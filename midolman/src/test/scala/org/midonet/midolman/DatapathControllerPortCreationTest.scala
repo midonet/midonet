@@ -29,7 +29,7 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
-import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.{MockNetlinkChannelFactory, MidolmanSpec}
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.midolman.util.mock.MockInterfaceScanner
 import org.midonet.midolman.util.mock.MockUpcallDatapathConnectionManager
@@ -54,7 +54,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
         VirtualTopologyActor -> (() => new VirtualTopologyActor),
         VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper
                                           with MessageAccumulator),
-        DatapathController -> (() => new DatapathController))
+        DatapathController -> (() => new DatapathController(new MockNetlinkChannelFactory)))
 
     override def beforeTest() {
         datapath = mockDpConn().futures.datapathsCreate("midonet").get()

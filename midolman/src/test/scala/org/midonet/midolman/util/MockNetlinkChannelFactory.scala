@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.midonet.midolman.cluster;
+package org.midonet.midolman.util
 
-import com.google.inject.PrivateModule;
-import org.midonet.midolman.host.scanner.DefaultInterfaceScanner;
-import org.midonet.midolman.host.scanner.InterfaceScanner;
+import org.midonet.netlink.NetlinkProtocol.NETLINK_GENERIC
 
-public class InterfaceScannerModule extends PrivateModule {
+import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory, NetlinkProtocol}
 
-    @Override
-    protected void configure() {
-        binder().requireExplicitBindings();
-        bind(InterfaceScanner.class).to(DefaultInterfaceScanner.class);
-        expose(InterfaceScanner.class);
-    }
+class MockNetlinkChannelFactory extends NetlinkChannelFactory {
+    val channel = new MockNetlinkChannel(
+        new MockSelectorProvider,
+        NetlinkProtocol.NETLINK_GENERIC)
+    channel.configureBlocking(false)
+
+    override def create(blocking: Boolean = false,
+                        protocol: NetlinkProtocol = NETLINK_GENERIC) = channel
 }
