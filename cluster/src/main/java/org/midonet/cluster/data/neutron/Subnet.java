@@ -20,6 +20,8 @@ import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
@@ -53,36 +55,49 @@ public class Subnet {
         this.enableDhcp = enableDhcp;
     }
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
+
+    @ZoomField(name = "name")
     public String name;
 
     @JsonProperty("ip_version")
+    @ZoomField(name = "ip_version")
     public Integer ipVersion;
 
     @JsonProperty("network_id")
+    @ZoomField(name = "network_id", converter = Converter.class)
     public UUID networkId;
 
+    @ZoomField(name = "cidr")
     public String cidr;
 
     @JsonProperty("gateway_ip")
+    @ZoomField(name = "gateway_ip")
     public String gatewayIp;
 
     @JsonProperty("allocation_pools")
+    @ZoomField(name = "allocation_pools")
     public List<IPAllocationPool> allocationPools = new ArrayList<>();
 
     @JsonProperty("dns_nameservers")
+    @ZoomField(name = "dns_nameservers")
     public List<String> dnsNameservers = new ArrayList<>();
 
     @JsonProperty("host_routes")
+    @ZoomField(name = "host_routes")
     public List<Route> hostRoutes = new ArrayList<>();
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @JsonProperty("enable_dhcp")
+    @ZoomField(name = "enable_dhcp")
     public boolean enableDhcp;
 
     @JsonProperty("shared")
+    @ZoomField(name = "shared")
     public boolean shared;
 
     @Override

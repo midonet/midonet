@@ -17,6 +17,7 @@ package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.midonet.cluster.data.ZoomField;
 
 import java.util.UUID;
 
@@ -30,9 +31,11 @@ public class ExternalGatewayInfo {
     }
 
     @JsonProperty("network_id")
+    @ZoomField(name = "network_id")
     public UUID networkId;
 
     @JsonProperty("enable_snat")
+    @ZoomField(name = "enable_snat")
     public boolean enableSnat;
 
     @Override
