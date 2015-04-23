@@ -1,0 +1,164 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_39743767",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T07:22:24Z",
+      "side": 1,
+      "message": "We should also document as one of the current MidoNet limitations that we can handle at most 1 subnet per network.",
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d9a883dd",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T07:22:24Z",
+      "side": 1,
+      "message": "s/net/Net/ (so it\u0027ll be MidoNet not Midonet).",
+      "range": {
+        "startLine": 86,
+        "startChar": 51,
+        "endLine": 86,
+        "endChar": 54
+      },
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_19717b76",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T07:22:24Z",
+      "side": 1,
+      "message": "So which port type does it actually refer to? I initially thought it was only a Floating IP port that is on an uplink network.",
+      "range": {
+        "startLine": 86,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 35
+      },
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_99f0cbff",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T07:22:24Z",
+      "side": 1,
+      "message": "This is done only when a floating IP is assigned to a (VIF) port (i.e. port_id !\u003d null).",
+      "range": {
+        "startLine": 348,
+        "startChar": 6,
+        "endLine": 348,
+        "endChar": 35
+      },
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f9f1ff01",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T07:22:24Z",
+      "side": 1,
+      "message": "It should also add a route to gateway, or will that be unnecessary once we migrate to the edge router?",
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b9d2e759",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T07:22:24Z",
+      "side": 1,
+      "message": "- If port_id was and is null, do nothing.\n- If port_id was non-null and is null, delete NAT rules and gateway routes.\n- if port_id was null and is non-null now create / update NAT rules and a gateway route.\n- if port_id was / is non-null,\n  * if router_id is different, delete the old NAT rules with the old router, and create new NAT rules with the new router.\n  * if on the same router, do nothing.",
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_99d72b4b",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T07:22:24Z",
+      "side": 1,
+      "message": "And a gateway route, too?",
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_993e0b8b",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-23T07:22:24Z",
+      "side": 1,
+      "message": "\"chains\" is unnecessary?",
+      "range": {
+        "startLine": 399,
+        "startChar": 27,
+        "endLine": 399,
+        "endChar": 33
+      },
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
