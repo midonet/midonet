@@ -127,16 +127,6 @@ task rhel7Prepare(type: Copy, dependsOn: installApp) {
     into "${pkgDestDir}"
 }
 
-task rhel6Prepare(type: Copy, dependsOn: installApp) {
-    from("src/rhel6/init.d/midonet-brain") {
-        into "etc/init.d"
-    }
-    from("src/rhel6/init/midonet-brain.conf") {
-        into "etc/init"
-    }
-    into "${pkgDestDir}"
-}
-
 packaging {
     version = project.debVersion
     maintainer = project.maintainer
@@ -153,13 +143,8 @@ packaging {
                '--epoch', '0']
 }
 
-if (project.rhelTarget == "7") {
-    rpm.dependsOn rhel7Prepare
-    rhel7Prepare.dependsOn preparePkg
-} else {
-    rpm.dependsOn rhel6Prepare
-    rhel6Prepare.dependsOn preparePkg
-}
+rpm.dependsOn rhel7Prepare
+rhel7Prepare.dependsOn preparePkg
 
 debian.dependsOn preparePkg
 preparePkg.dependsOn cleanPkg
@@ -181,21 +166,11 @@ rpm.doFirst {
     project.packaging.iteration = project.rpmRelease
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
-            '--after-install', "${project.projectDir}/src/rhel6/control/postinst"])
-    if (project.rhelTarget == "7") {
-        project.packaging.fpmOpts.addAll([
-                '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
-                '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
-                '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
-                '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
-                '--depends', 'java'])
-    } else {
-        project.packaging.fpmOpts.addAll([
-                '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
-                '--before-install', "${project.projectDir}/src/rhel6/control/preinst",
-                '--before-remove', "${project.projectDir}/src/rhel6/control/prerm",
-                '--depends', 'java7'])
-    }
+            '--after-install', "${project.projectDir}/src/rhel7/control/postinst",
+            '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
+            '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
+            '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
+            '--depends', 'java'])
 }
 
 debian.doLast {
