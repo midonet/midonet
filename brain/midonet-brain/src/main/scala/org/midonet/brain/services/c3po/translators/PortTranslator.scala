@@ -134,11 +134,19 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // be changed.
         val portId = nPort.getId
         val mPort = storage.get(classOf[Port], portId).await()
-        if ((isVifPort(nPort) || isDhcpPort(nPort)) &&
-            mPort.getAdminStateUp != nPort.getAdminStateUp)
-            midoOps += Update(mPort.toBuilder
-                                    .setAdminStateUp(nPort.getAdminStateUp)
-                                    .build)
+        if (portChanged(nPort, mPort)) {
+            // TODO: Is it okay not to check the port type? I assume Neutron
+            // won't tell us to do something we shouldn't.
+            val bldr = mPort.toBuilder.setAdminStateUp(nPort.getAdminStateUp)
+            if (hasBinding(nPort)) {
+                bldr.setHostId(nPort.getHostId)
+                bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
+            } else {
+                bldr.clearHostId().clearInterfaceName()
+            }
+
+            midoOps += Update(bldr.build())
+        }
 
         if (isVifPort(nPort)) { // It's a VIF port.
             val portContext = initPortContext
@@ -185,6 +193,25 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             midoOps ++= portContext.inRules ++ portContext.outRules
             midoOps ++= portContext.chains
             midoOps ++= portContext.updatedIpAddrGrps
+    }
+
+    // There's no binding unless both hostId and interfaceName are set.
+    private def hasBinding(np: NeutronPort): Boolean =
+        np.hasHostId && np.hasProfile && np.getProfile.hasInterfaceName
+    private def hasBinding(p: Port): Boolean = p.hasHostId && p.hasInterfaceName
+
+    /**
+     * Returns true if a port has changed in a way relevant to a port update,
+     * i.e. whether the admin state or host binding has changed.
+     */
+    private def portChanged(newPort: NeutronPort, curPort: Port): Boolean = {
+        if (newPort.getAdminStateUp != curPort.getAdminStateUp ||
+            hasBinding(newPort) != hasBinding(curPort)) return true
+
+        if (!hasBinding(newPort)) return false
+
+        newPort.getHostId != curPort.getHostId ||
+        newPort.getProfile.getInterfaceName != curPort.getInterfaceName
     }
 
     /* Update DHCP configuration by applying the given updateFun. */
@@ -509,10 +536,18 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         midoOps
     }
 
-    private def translateNeutronPort(nPort: NeutronPort): Port.Builder =
-        Port.newBuilder.setId(nPort.getId)
+    private def translateNeutronPort(nPort: NeutronPort): Port.Builder = {
+        val bldr = Port.newBuilder.setId(nPort.getId)
             .setNetworkId(nPort.getNetworkId)
             .setAdminStateUp(nPort.getAdminStateUp)
+
+        if (hasBinding(nPort)) {
+            bldr.setHostId(nPort.getHostId)
+            bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
+        }
+
+        bldr
+    }
 
     private def macTableUpdateOps(oldPort: NeutronPort,
                                   newPort: NeutronPort): MidoOpList = {

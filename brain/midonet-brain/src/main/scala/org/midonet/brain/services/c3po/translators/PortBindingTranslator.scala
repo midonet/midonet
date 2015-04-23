@@ -16,15 +16,12 @@
 
 package org.midonet.brain.services.c3po.translators
 
-import scala.collection.JavaConverters._
-
 import org.midonet.brain.services.c3po.midonet.Update
 import org.midonet.brain.services.c3po.neutron
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.PortBinding
-import org.midonet.cluster.models.Topology.{Host, Port}
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.models.Topology.Port
 import org.midonet.util.concurrent.toFutureOps
 
 /**
@@ -34,36 +31,20 @@ class PortBindingTranslator(storage: ReadOnlyStorage)
         extends NeutronTranslator[PortBinding] {
     /**
      * Creates a new port binding of a port to a host / interface, producing
-     * an UPDATE operation on a corresponding host.
+     * an UPDATE operation on the port. Updates to the host are handled by
+     * Zoom bindings.
      *
-     * It first checks if the port exists and throws an exception if it
-     * doesn't. It is assumed that the corresponding host already exists and
-     * throws an exception if it doesn't. Also throws an exception if the port
-     * or the interface is already bound on the host.
+     * Throws an exception if the port is already bound.
      */
     override protected def translateCreate(binding: PortBinding): MidoOpList = {
-        val hostFtr = storage.get(classOf[Host], binding.getHostId)
-        val portFtr = storage.get(classOf[Port], binding.getPortId)
+        val port = storage.get(classOf[Port], binding.getPortId).await()
+        if (port.hasHostId) throw new IllegalStateException(
+            s"Port ${port.getId} is already bound.")
 
-        val updatedHost = hostFtr.await().toBuilder
-        if (updatedHost.getPortBindingsList.asScala.exists(bdg =>
-            bdg.getInterfaceName == binding.getInterfaceName ||
-            bdg.getPortId == binding.getPortId)) {
-            throw new TranslationException(neutron.Create(binding),
-            msg = s"Interface ${binding.getInterfaceName} or port " +
-                  s"ID = ${UUIDUtil.fromProto(binding.getPortId)} " +
-                  "is already bound")
-        }
-
-        val builder = updatedHost.addPortBindingsBuilder()
-        builder.setInterfaceName(binding.getInterfaceName)
-               .setPortId(binding.getPortId)
-
-        val updatedPort = portFtr.await().toBuilder
-        updatedPort.setHostId(updatedHost.getId)
-        updatedPort.setInterfaceName(binding.getInterfaceName)
-
-        List(Update(updatedHost.build()), Update(updatedPort.build()))
+        val updatedPort = port.toBuilder
+            .setHostId(binding.getHostId)
+            .setInterfaceName(binding.getInterfaceName)
+        List(Update(updatedPort.build()))
     }
 
     /**
@@ -75,33 +56,13 @@ class PortBindingTranslator(storage: ReadOnlyStorage)
 
     /**
      * Deletes a port binding of a port to a host / interface, producing an
-     * UPDATE operation on a corresponding host.
-     *
-     * It is assumed that the corresponding host exists, and throws an exception
-     * if it doesn't. Also throws an exception if the binding doesn't exist with
-     * the host.
+     * UPDATE operation on the binding's port. The updates to the host is
+     * handled by the Zoom bindings.
      */
     override protected def translateDelete(id: UUID): MidoOpList = {
         val binding = storage.get(classOf[PortBinding], id).await()
-        val hostFtr = storage.get(classOf[Host], binding.getHostId)
-        val portFtr = storage.get(classOf[Port], binding.getPortId)
-
-        val updatedHost = hostFtr.await().toBuilder
-        val bindingToDelete = updatedHost.getPortBindingsList.asScala
-            .indexWhere(bdg =>
-                bdg.getPortId == binding.getPortId &&
-                bdg.getInterfaceName == binding.getInterfaceName)
-        if (bindingToDelete < 0)
-            throw new TranslationException(
-                    neutron.Delete(classOf[PortBinding], binding.getId),
-                    msg = "Trying to delete a non-existing port binding")
-
-        updatedHost.removePortBindings(bindingToDelete)
-
-        val updatedPort = portFtr.await().toBuilder
-        updatedPort.clearHostId()
-        updatedPort.clearInterfaceName()
-
-        List(Update(updatedHost.build()), Update(updatedPort.build()))
+        val port = storage.get(classOf[Port], binding.getPortId).await()
+        val updatedPort = port.toBuilder.clearHostId().clearInterfaceName()
+        List(Update(updatedPort.build()))
     }
 }

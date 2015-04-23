@@ -20,34 +20,9 @@ import java.util.{Objects, UUID}
 
 import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.models.Topology.Host.PortBinding
-import org.midonet.cluster.util.MapConverter
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter, _}
+import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.devices.Host.PortBindingConverter
 import org.midonet.packets.IPAddr
-
-object Host {
-    /**
-     * This class implements the MapConverter trait to do the conversion between
-     * tuples of type (UUID, String) and PortBinding messages.
-     */
-    class PortBindingConverter extends MapConverter[UUID, String, PortBinding] {
-
-        override def toKey(proto: PortBinding): UUID = {
-            proto.getPortId.asJava
-        }
-        override def toValue(proto: PortBinding): String = {
-            proto.getInterfaceName
-        }
-        override def toProto(key: UUID, value: String): PortBinding = {
-            PortBinding.newBuilder
-                .setPortId(key.asProto)
-                .setInterfaceName(value)
-                .build()
-        }
-    }
-}
 
 @ZoomClass(clazz = classOf[Topology.Host])
 class Host extends ZoomObject with Device {
@@ -55,7 +30,7 @@ class Host extends ZoomObject with Device {
     def this(host: Host) = {
         this()
         id = host.id
-        portBindings = host.portBindings
+        portIds = host.portIds
         tunnelZoneIds = host.tunnelZoneIds
         tunnelZones = host.tunnelZones
         alive = host.alive
@@ -65,6 +40,7 @@ class Host extends ZoomObject with Device {
              tunnelZones: Map[UUID, IPAddr]) = {
         this()
         id = hostId
+        this.portIds = portBindings.keySet
         this.portBindings = portBindings
         this.tunnelZoneIds = tunnelZones.keySet
         this.tunnelZones = tunnelZones
@@ -73,26 +49,32 @@ class Host extends ZoomObject with Device {
 
     @ZoomField(name = "id", converter = classOf[UUIDConverter])
     var id: UUID = _
-    @ZoomField(name = "port_bindings",
-               converter = classOf[PortBindingConverter])
-    var portBindings = Map.empty[UUID, String]
+    @ZoomField(name = "port_ids", converter = classOf[UUIDConverter])
+    var portIds = Set.empty[UUID]
     @ZoomField(name = "tunnel_zone_ids", converter = classOf[UUIDConverter])
     var tunnelZoneIds = Set.empty[UUID]
 
     // To be filled by the HostMapper.
     // The IP address of the host in each one of the tunnel zones.
     var tunnelZones = Map.empty[UUID, IPAddr]
+
+    // To be filled by the HostMapper.
+    // The interface to which each port is bound.
+    var portBindings = Map.empty[UUID, String]
+
     // The alive status of the host is stored outside of the host proto.
     var alive: Boolean = false
 
     override def toString =
-        s"Host [id=$id alive=$alive portBindings=$portBindings " +
-        s"tunnelZoneIds=$tunnelZoneIds]"
+        s"Host [id=$id alive=$alive " +
+        s"boundPortIds=$portIds portBindings=$portBindings " +
+        s"tunnelZoneIds=$tunnelZoneIds tunnelZones=$tunnelZones]"
 
     override def equals(o: Any): Boolean = o match {
         case host: Host =>
             host.alive == alive &&
             host.id == id &&
+            host.portIds == portIds &&
             host.portBindings == portBindings &&
             host.tunnelZoneIds == tunnelZoneIds &&
             host.tunnelZones == tunnelZones
@@ -100,5 +82,6 @@ class Host extends ZoomObject with Device {
     }
 
     override def hashCode: Int =
-        Objects.hashCode(alive, id, portBindings, tunnelZoneIds, tunnelZones)
+        Objects.hashCode(alive, id, portIds, portBindings,
+                         tunnelZoneIds, tunnelZones)
 }
