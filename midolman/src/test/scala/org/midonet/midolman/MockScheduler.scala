@@ -60,7 +60,7 @@ class MockScheduler(config: Config,
     private case class ScheduledRunnable(runnable: Runnable, shouldStartAt: Long,
                                          interval: Option[FiniteDuration] = None) {
         var cancelled: Boolean = false
-        def isReady = UnixClock.timeNanos >= shouldStartAt
+        def isReady = UnixClock().timeNanos >= shouldStartAt
     }
 
     implicit private val ordering = new Ordering[ScheduledRunnable] {
@@ -127,7 +127,7 @@ class MockScheduler(config: Config,
 
     private def doSchedule(runnable: Runnable, delay: FiniteDuration,
                            interval: Option[FiniteDuration]): Cancellable = {
-        val sr = ScheduledRunnable(runnable, UnixClock.timeNanos + delay.toNanos,
+        val sr = ScheduledRunnable(runnable, UnixClock().timeNanos + delay.toNanos,
                                    interval)
         scheduledRunnables += sr
         new Cancellable {

@@ -1,133 +1,98 @@
 ## Overview
 
-An `ArpTable` is a wrapper around an ArpCache object that services ARP
-get and set operations for `Router` RCU objects, being also responsible
-for emitting ARP requests as necessary in order to fulfill those get()
-operations.
+MidoNet's virtal routers store their ARP tables in `ReplicatedMap` instances,
+backed by ZooKeeper. This document explains how MidoNet implements ARP'ing
+in these distributed virtal routers.
 
-The `ArpCache` object it wraps is itself a thin thread-safe wrapper around
-a ZooKeeper backed `ReplicatedMap`, also called `ArpTable`, which lives in the
-`org.midonet.midolman.state` package.
+The bare API on top of the ArpTable `ReplicatedMap` is called `ArpCache`. It
+offers subscriptions to changes, read and write operations. The `ArpCache`
+executes all operations in the ZooKeeper reactor thread.
 
-## Lifecycle and ownership
+`ArpRequestBroker` is in turn responsible of deciding when ARP requests should
+be emitted and when to actually write to the `ArpCache`. Virtal routers use
+the `ArpRequestBroker` to read MAC addresses from the table or notify that
+they received an ARP reply.
 
-`ArpTable` objects are created by the corresponding `RouterManager` actor.
-There exists only one instance during the lifetime of a `RouterManager`, as
-is the case for the `ArpCache` object which the actor receives before it can
-start creating `Router` RCU objects.
+## ArpRequestBroker ownership
 
-There exists one `RouterManager` actor per virtual router, and it gives
-the `ArpTable` reference to every `Router` RCU object it creates, they share it.
+`ArpRequestBroker` instances run confined to individual simulation threads. They
+are thus single-threaded. Their only out-of-thread interaction is the notification
+provided by the `ArpCache` when the underlying `ReplicatedMap` has changed, likely
+becuase a remote MidoNet node added or deleted an ARP cache entry. This subscription
+is hidden by the `ArpRequestBroker` and will simply write to a private concurrent
+queue, which will be processed in-thread.
 
-`ArpTable` contains two lifecycle management methods `start()` and
-`stop()` which, respectively, make the object start or stop watching
-for `ArpCache` entry updates. `stop()` is currently unused, but it
-should be used by `RouterManager` when a tear down mechanism is added to
-it.
+Each agent simulation thread thus gets its own copy of the ArpRequestBroker. Becase
+this class needs to be resilient to several instances running on different MidoNet
+nodes, it makes sense that two threads on the same host can run their own independent
+copies too.
 
-## Execution model
+`Router` objects access the thread's `ArpRequestBroker` through the packet context,
+and merely pass in their own `ArpCache` along with their request. The
+broker will privately manage private wrappers for each ARP cache as it discovers them.
 
-All operations run out of the simulation that requests them. This happens when
-an RCU Router needs to resolve a MAC address or discovers a new IP-MAC mapping
-to add to the ARP table (while processing a received ARP packet).
+The request broker needs to process periodic and background events, such as retrying
+an ARP request, expiring cache entries, and such. Each `PacketWorkflow` must thus
+call the `process()` method of its ARP broker anytime it checks back channels for
+events to process, as well as anytime the broker's `shouldProcess()` method yields
+true.
 
-### `get()` method
+## ARP request coordination
 
-When a `Router` asks for IP/MAC address mapping, this is what happens:
+There is none. Brokers decide on their own whether to emit an ARP request. When an
+ARP request broker emits an ARP it doesn't notify any other instance, a broker can't
+tell whether any of their peers are already emitting ARPs for the same address.
 
-- The `ArpCache` is queried for the corresponding `ArpCacheEntry`.
-- A callback is registered on the `ArpCacheEntry` promise that will start
-  the arp requests loop if necessary (entry is null or stale)
-- To return a value to the caller, if the received entry is not valid or
-  not existant, a promised is placed in the `arpWaiters` map.
+We mitigate the risk of extra packets on the network by:
 
-The arp requests loop works as follows:
+ * Adding a random jitter to ARP entry staleness and ARP request retry intervals.
+ Only in one case will a broker ARP inmediately wihtout added jitter: when it gets
+ asked about a MAC for the 1st time and this mac is missing from the cache.
+ * Brokers will only write to the underlying cache if the learned MAC was unkown
+ or stale. Thus, no extra writes to ZooKeeper will be incurred.
+ 
+Moreover, it's extremely unlikely that two MidoNet nodes will race to write the same
+cache entry (although it would be harmless): the ARP replies for the same MAC will arrive
+at the same port/host and will be processed by the same thread, except in extremely
+rare cases like a redundant L2 link falling over to a different port.
 
-Each iteration checks that an arp request needs to be sent:
+The worst effect of this lack of coordination would be seen if a host is down and
+traffic towards it is arriving to multiple midonet agents. The amplification in the
+number of ARP packets emitted would equal the number of packet processing threads
+inside those agents.
 
-- the arp cache entry is still stale/null.
-- no one else took over the sending of the arp requests.
--   the arp cache entry is not expired
+In the case of packets arriving from the internet towards a
+VM hosted in MidoNet, only a handful of agents will be receiving those packets, the
+amplification will be very low.
 
-    ...if so:
+The worst case is when most agent nodes in a cloud see traffic to the same non-existent
+IP address. This could happen if a gateway virtual router has a default route that
+points to a downed gateway. The amplification due to lack of coordination in would,
+in this case, be large, but then the entire cloud would be disconnected from the 
+internet to start with.
 
-  - an ARP is emited.
-  - a new value for `lastArp` is written to the `ArpCacheEntry`
-  - the loop adds itself to the `arpWaiters` map, with a timeout that
-    equals the retry interval. If the future fails with a timeout, another
-    iteration of the loop starts.
+## ARP cache entry staleness
 
-### `set()` method
+ARP cache entries stored in the `ReplicatedMap` contain two times: the expiry time,
+at which point the entry is no longer valid, and the stale time, at which point the
+entry is valid but it should be refreshed.
 
-The set method notifies all the interested local waiters about the newly learned
-MAC address and writes an entry in the `ArpCache` so that it will make its way
-to ZooKeeper and to waiters in other nodes.
+Brokers will try to refresh ARP entries opportunistically by initiating ARP request
+loops any time a simulation queries a cache entry that is stale.
 
-### Processing of ARP packets
-
-Received ARP packets are not processed by the `ArpTable`, but by the RCU
-`Router`. However this processing usually results in calls to `arpTable.set()`.
-In particular, reception of the following packets will cause an `ArpTable`
-update, as long as the IP address of the sender falls within the network address
-of the ingress port of the RCU `Router`:
-
-- An ARP request addressed to the `Router` ingress port MAC and IP addresses.
-- An ARP reply addressed similarly.
-- A gratuitous ARP reply.
+This request loop will work just as if the MAC was unknown. All hosts will decide to
+emit ARPs independently until the entry becomes refreshed. The jitter introduced in
+the case of stale entries is ample, (6 minutes for a stale configuration of 30 minutes),
+thus duplicated ARP requests should only happen when a host is actually down.
 
 ### Expiry of ARP cache entries
 
-Whenever the `ArpTable` sets an entry on the `ArpCache` it will schedule
-an expiry callback that will clean up the entry if it has not been
-refreshed.
+Each `ArpRequestBroker` keeps a queue of the ARP cache entries it wrote to the
+underlying `ReplicatedMap`. The broker will check this queue for expired entries
+each time the broker enters `process()`.
 
-### ARP Cache updates performed in other ZooKeeper nodes
+When the expiry time for an entry is up, the broker will verify the entry is indeed
+expired and remove it from the replicated map.
 
-The `ArpCache` (implemented inside `ClusterRouterManager`) is the object
-responsible for sending notifications from ZK (the `ReplicatedMap`) down to the
-`ArpTable`, which will then notify the waiters (RCU Routers doing a simulation)
-that are waiting for that particular MAC address.
-
-## Potential race conditions / synchronization problems
-
--   If a node crashes, who cleans up the ARP cache entries whose
-    expiration the deceased node was responsible for?
-
-    The `ReplicatedMap` that backs the `ArpCache` writes ephemeral nodes to
-    ZooKeeper, so if a node goes down all entries it was responsible for will be
-    cleaned up.
-
--   While sending ARP requests, `ArpTable` does a read->change->write on
-    the affected `ArpCacheEntry`, this is a race condition. Preventing these
-    sort of races is a *TODO* item for the Cluster design.
-
-    This is harmful in two cases:
-
-    -   A node writing an entry with a null MAC address, the purpose of these
-        writes is to track retries. If one of these null writes races with a
-        write made by a node that discovered the actual MAC address it could
-        overwrite it and thus delete a freshly created entry.
-      
-        The node that overwrote the valid entry would continue ARPing for the
-        address so the consequences would just be some extra traffic and latency.
-
-        This case is likely to happen, albeit infrequently. The retry interval
-        for ARP requests is 10 seconds, null entries are written before sending
-        an ARP request. It may be triggered by and ARP being resolved due to an
-        event unrelated to the ARP request loop in question or due to a host
-        replying to an ARP about 10 seconds after the request was sent.
-
-    - A node expiring an ArpCacheEntry, could race with a node that happens to
-      refresh it just before expiration. The consequences of this case would be
-      similar to the above. But this case is so unlikely that it's not worth
-      worrying about: cache entries have a 1 hour expiration period, and they
-      become stale after 30 minutes. So triggering this would mean either
-      keeping an entry stale for 30 minutes and resolving it exactly at the end
-      of that period or having the entry be refreshed at that very moment for an
-      unrelated reason, such as a gratuitous ARP reply.
-
-- If a node is sending ARP requests for an IP address and crashes, other
-  nodes will take over if they need the MAC and the sender has skipped
-  two retries, but two different nodes could take over a the same time.
-  This is not serious because at the second iteration one of them would
-  bail out.
+If an agent dies, clean ups will take place naturally, because each ARP cache entry
+is stored in ZooKeeper as an ephemeral node.
