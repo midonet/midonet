@@ -63,6 +63,9 @@ trait AwaitableObserver[T] extends Observer[T] {
         wakeUp()
     }
 
+    def isCompleted(): Boolean =
+        if (status == DONE) { true } else { false }
+
     private def wakeUp(): Unit =
         if (thread ne null) {
             LockSupport.unpark(thread)
