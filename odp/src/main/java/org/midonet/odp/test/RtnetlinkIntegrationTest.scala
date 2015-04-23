@@ -70,7 +70,6 @@ class TestableRtnetlinkConnection(channel: NetlinkChannel,
 }
 
 object RtnetlinkTest {
-    val OK = "ok"
     val TestIpAddr = "192.168.42.1"
     val TestAnotherIpAddr = "192.168.42.10"
     val TestNeighbourIpAddr = "192.168.42.42"
@@ -78,37 +77,6 @@ object RtnetlinkTest {
 
     val log: Logger =
         LoggerFactory.getLogger(classOf[RtnetlinkIntegrationTestBase])
-
-    private[test]
-    object TestObserver {
-        def apply[T](condition: T => Boolean)
-                    (implicit promise: Promise[String] = Promise[String]()) =
-            new TestObserver[T] {
-                override var check = condition
-            }
-    }
-
-    private[test]
-    abstract class TestObserver[T](implicit promise: Promise[String])
-            extends Observer[T] {
-        var check: T => Boolean
-
-        def test: Future[String] = promise.future
-        override def onCompleted(): Unit = { promise.trySuccess(OK) }
-        override def onError(t: Throwable): Unit = { promise.tryFailure(t) }
-        override def onNext(resource: T): Unit = try {
-            if (!check(resource)) {
-                promise.tryFailure(UnexpectedResultException)
-            }
-        } catch {
-            case t: Throwable => promise.failure(t)
-        }
-    }
-
-    implicit private[this]
-    def closureToTestObserver[T](closure: T => Boolean)
-                                (implicit p: Promise[String]): TestObserver[T] =
-        TestObserver.apply(closure)
 
     private[test]
     object NotificationTestObserver {

@@ -125,8 +125,12 @@ public class InterfaceDescription extends ZoomObject {
         this.mac = MAC.fromString(macString);
     }
 
+    public void setMac(MAC mac) {
+        this.mac = mac;
+    }
+
     public byte[] getMac() {
-        return mac.getAddress();
+        return (mac != null) ? mac.getAddress() : null;
     }
 
     public void setType(Type type) {

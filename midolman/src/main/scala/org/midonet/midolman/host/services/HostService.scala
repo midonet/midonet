@@ -20,7 +20,6 @@ import java.net.{InetAddress, UnknownHostException}
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{CountDownLatch, TimeUnit, TimeoutException}
 import java.util.{Set => JSet, UUID}
-
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
@@ -32,7 +31,6 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import com.google.inject.name.Named
-
 import rx.{Observer, Subscription}
 
 import org.midonet.cluster.data.ZoomConvert
@@ -48,7 +46,6 @@ import org.midonet.midolman.Midolman
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.host.services.HostService.{HostIdAlreadyInUseException, OwnershipState}
 import org.midonet.midolman.host.state.HostDirectory.{Metadata => HostMetadata}
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.host.updater.InterfaceDataUpdater
@@ -56,16 +53,14 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.SerializationException
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{StateAccessException, ZkManager}
-import org.midonet.netlink.Callback
-import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.util.eventloop.Reactor
-import org.midonet.{Subscription => MnSubscription}
 
 object HostService {
     object OwnershipState extends Enumeration {
         type State = Value
         val Acquiring, Acquired, Released = Value
     }
+    val InterfacesTimeoutInSecs = 3
 
     class HostIdAlreadyInUseException(message: String)
         extends Exception(message)
@@ -101,6 +96,7 @@ class HostService @Inject()(config: MidolmanConfig,
                             zkManager: ZkManager,
                             @Named("directoryReactor") reactor: Reactor)
     extends AbstractService with HostIdProviderService with MidolmanLogging {
+    import HostService._
 
     private final val store = backend.ownershipStore
 
@@ -112,27 +108,7 @@ class HostService @Inject()(config: MidolmanConfig,
     private val interfacesLatch = new CountDownLatch(1)
     @volatile private var currentInterfaces: Set[InterfaceDescription] = null
     @volatile private var oldInterfaces: Set[InterfaceDescription] = null
-    @volatile private var scannerSubscription: MnSubscription = null
-    private val scannerCallback = new Callback[JSet[InterfaceDescription]] {
-        override def onSuccess(data: JSet[InterfaceDescription])
-        : Unit = {
-            oldInterfaces = currentInterfaces
-            currentInterfaces = data.asScala.toSet
-            interfacesLatch.countDown()
-            // Do not update if the interfaces have not changed or if the
-            // service has not yet acquired the host ownership.
-            if ((oldInterfaces == currentInterfaces) ||
-                (ownerState.get != OwnershipState.Acquired)) {
-                return
-            }
-            if (backendConfig.useNewStack) {
-                updateInterfacesInV2()
-            } else {
-                updateInterfacesInV1()
-            }
-        }
-        override def onError(e: NetlinkException): Unit = { }
-    }
+    @volatile private var scannerSubscription: Subscription = null
 
     private val ownerState = new AtomicReference(OwnershipState.Released)
     @volatile private var ownerSubscription: Subscription = null
@@ -169,8 +145,31 @@ class HostService @Inject()(config: MidolmanConfig,
     override def doStart(): Unit = {
         log.info("Starting MidoNet agent host service")
         try {
-            scannerSubscription = scanner.register(scannerCallback)
             scanner.start()
+            scannerSubscription = scanner.subscribe(new Observer[Set[InterfaceDescription]] {
+                override def onCompleted(): Unit = {
+                    log.debug("Interface updating is completed.")
+                }
+                override def onError(t: Throwable): Unit = {
+                    log.error("Got the error: {}", t)
+                }
+                override def onNext(data: Set[InterfaceDescription]): Unit = {
+                    oldInterfaces = currentInterfaces
+                    currentInterfaces = data
+                    interfacesLatch.countDown()
+                    // Do not update if the interfaces have not changed or if the
+                    // service has not yet acquired the host ownership.
+                    if ((oldInterfaces == currentInterfaces) ||
+                        (ownerState.get != OwnershipState.Acquired)) {
+                        return
+                    }
+                    if (backendConfig.useNewStack) {
+                        updateInterfacesInV2()
+                    } else {
+                        updateInterfacesInV1()
+                    }
+                }
+            })
             identifyHost()
             createHost()
             notifyStarted()
@@ -191,7 +190,7 @@ class HostService @Inject()(config: MidolmanConfig,
     override def doStop(): Unit = {
         log.info("Stopping MidoNet agent host service")
         ownerState.set(OwnershipState.Released)
-        scanner.shutdown()
+        scanner.stop()
 
         if (scannerSubscription ne null) {
             scannerSubscription.unsubscribe()
@@ -234,8 +233,9 @@ class HostService @Inject()(config: MidolmanConfig,
     @throws[PropertiesFileNotWritableException]
     private def identifyHost(): Unit = {
         log.debug("Identifying host")
-        if (!interfacesLatch.await(3, TimeUnit.SECONDS)) {
-            throw new IllegalStateException("Timeout while waiting for interfaces")
+        if (!interfacesLatch.await(InterfacesTimeoutInSecs, TimeUnit.SECONDS)) {
+            throw new IllegalStateException(
+                "Timeout while waiting for interfaces")
         }
         hostIdInternal = HostIdGenerator.getHostId
         try {
