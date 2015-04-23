@@ -23,12 +23,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigValueFactory;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigValueFactory;
 import org.apache.zookeeper.CreateMode;
 import org.hamcrest.beans.HasPropertyWithValue;
 import org.junit.Before;
@@ -37,7 +35,6 @@ import org.junit.Test;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.cluster.storage.StateStorageModule;
 import org.midonet.conf.MidoTestConfigurator;
-import org.midonet.midolman.cluster.InterfaceScannerModule;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.MidolmanActorsModule;
 import org.midonet.midolman.cluster.ResourceProtectionModule;
@@ -46,7 +43,7 @@ import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
-import org.midonet.midolman.host.guice.HostModule;
+import org.midonet.midolman.host.guice.MockHostModule;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
@@ -99,7 +96,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new MockFlowStateStorageModule(),
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),
-            new HostModule(),
+            new MockHostModule(),
             new MidonetBackendTestModule(configuration),
             new LegacyClusterModule(),
             new StateStorageModule(),
@@ -112,8 +109,7 @@ public class DefaultInterfaceDataUpdaterTest {
                     bind(NanoClock.class).toInstance(new MockClock());
                 }
             },
-            new ResourceProtectionModule(),
-            new InterfaceScannerModule());
+            new ResourceProtectionModule());
 
         directory = injector.getInstance(Directory.class);
         directory.add("/hosts", null, CreateMode.PERSISTENT);

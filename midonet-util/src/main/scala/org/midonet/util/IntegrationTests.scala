@@ -15,12 +15,18 @@
  */
 package org.midonet.util
 
+import java.nio.ByteBuffer
+
 import scala.concurrent.duration.DurationInt
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{Await, Future, Promise}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
+import rx.Observer
+
 object IntegrationTests {
+    val OK = "ok"
+
     object UnexpectedResultException extends RuntimeException
     object TestPrepareException extends RuntimeException
 
@@ -65,4 +71,32 @@ object IntegrationTests {
             (d, r) #:: (if (r.isSuccess) toReportLazy(tail) else Stream.empty)
     }
 
+    object TestObserver {
+        def apply[T](condition: T => Boolean)
+                    (implicit promise: Promise[String] = Promise[String]()) =
+            new TestObserver[T] {
+                override var check = condition
+            }
+    }
+
+    abstract class TestObserver[T](implicit promise: Promise[String])
+        extends Observer[T] {
+        var check: T => Boolean
+
+        def test: Future[String] = promise.future
+        override def onCompleted(): Unit = { promise.trySuccess(OK) }
+        override def onError(t: Throwable): Unit = { promise.tryFailure(t) }
+        override def onNext(resource: T): Unit = try {
+            if (!check(resource)) {
+                promise.tryFailure(UnexpectedResultException)
+            }
+        } catch {
+            case t: Throwable => promise.failure(t)
+        }
+    }
+
+    implicit
+    def closureToTestObserver[T](closure: T => Boolean)
+                                (implicit p: Promise[String]): TestObserver[T] =
+        TestObserver.apply(closure)
 }
