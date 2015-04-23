@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_6d46e950",
+        "filename": "build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-23T18:11:22Z",
+      "side": 1,
+      "message": "IIUC this flag is not queried anywhere else anymore except in the package name calculation in this same file.",
+      "revId": "a70a63d3973f24c1a4aef22978e11b35b6a6e8b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
