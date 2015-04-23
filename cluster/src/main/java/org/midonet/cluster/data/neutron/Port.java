@@ -22,14 +22,22 @@ import java.util.UUID;
 import com.google.common.base.Objects;
 
 import org.apache.commons.collections4.ListUtils;
+import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.annotate.JsonValue;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.collection.ListUtil;
 
+@ZoomClass(clazz = Neutron.NeutronPort.class)
 public class Port {
 
     public Port() {}
@@ -59,37 +67,49 @@ public class Port {
         this.extraDhcpOpts = extraDhcpOpts;
     }
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
+    @ZoomField(name = "name")
     public String name;
 
     @JsonProperty("network_id")
+    @ZoomField(name = "network_id", converter = Converter.class)
     public UUID networkId;
 
     @JsonProperty("admin_state_up")
+    @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
     @JsonProperty("mac_address")
+    @ZoomField(name = "mac_address")
     public String macAddress;
 
     @JsonProperty("fixed_ips")
+    @ZoomField(name = "fixed_ips")
     public List<IPAllocation> fixedIps = new ArrayList<>();
 
     @JsonProperty("device_id")
+    @ZoomField(name = "device_id")
     public String deviceId;
 
     @JsonProperty("device_owner")
+    @ZoomField(name = "device_owner")
     public DeviceOwner deviceOwner;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
+    @ZoomField(name = "status")
     public String status;
 
     @JsonProperty("security_groups")
+    @ZoomField(name = "security_groups", converter = Converter.class)
     public List<UUID> securityGroups = new ArrayList<>();
 
     @JsonProperty("extra_dhcp_opts")
+    @ZoomField(name = "extra_dhcp_opts")
     public List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
 
     @Override
