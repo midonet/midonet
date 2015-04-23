@@ -154,7 +154,7 @@ public class DatapathModule extends PrivateModule {
                 @Override
                 public OvsNetlinkFamilies get() {
                     NetlinkChannel channel = factory.create(
-                            true, NetlinkProtocol.NETLINK_GENERIC);
+                            true, NetlinkProtocol.NETLINK_GENERIC, false);
                     try {
                         try {
                             OvsNetlinkFamilies families = OvsNetlinkFamilies.discover(channel);
