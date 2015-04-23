@@ -289,8 +289,9 @@ def await_port_active(vport_id, active=True):
         time.sleep(sleep_period)
         timeout -= sleep_period
         if timeout <= 0:
-            raise Exception("Port did not become {0}."
-                            .format("active" if active else "inactive"))
+            raise Exception("Port {0} did not become {1}."
+                            .format(vport_id,
+                                    "active" if active else "inactive"))
 
 def check_all_zookeeper_hosts(alive=True):
     for zk_host in IP_ZOOKEEPER_HOSTS:
