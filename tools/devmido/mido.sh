@@ -294,7 +294,7 @@ cp $MIDO_CONF ${MIDO_CONF}.edited
 if [[ "$USE_CLUSTER" = "True" ]]; then
 
     # Copy over the brain config
-    mkdir $TOP_DIR/conf
+    mkdir -p $TOP_DIR/conf
     cp brain/midonet-brain/conf/midonet-brain.conf $TOP_DIR/conf
 
     # Configure the attributes for mm-ctl
