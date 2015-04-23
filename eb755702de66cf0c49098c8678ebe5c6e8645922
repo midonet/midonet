@@ -65,6 +65,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_8d56c528",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-23T23:20:29Z",
+      "side": 1,
+      "message": "The translator should only check that the port is on an uplink network, not its type.  The device ID (type) of this port would be left blank as it\u0027s just a generic port created by a user.",
+      "parentUuid": "1a106d94_d9a883dd",
+      "range": {
+        "startLine": 86,
+        "startChar": 51,
+        "endLine": 86,
+        "endChar": 54
+      },
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_99f0cbff",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 17
@@ -76,6 +100,30 @@
       "writtenOn": "2015-04-23T07:22:24Z",
       "side": 1,
       "message": "This is done only when a floating IP is assigned to a (VIF) port (i.e. port_id !\u003d null).",
+      "range": {
+        "startLine": 348,
+        "startChar": 6,
+        "endLine": 348,
+        "endChar": 35
+      },
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ad38e1ef",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-23T23:20:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_99f0cbff",
       "range": {
         "startLine": 348,
         "startChar": 6,
@@ -105,6 +153,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a82d6f97",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-23T23:20:29Z",
+      "side": 1,
+      "message": "This becomes unnecessary with edge router.  The edge router would have a route such as 200.200.200.0/24 (FIP CIDR) to the external network (MN bridge) through one of its ports, and on that network, proper ARP/MAC table entries are added to forward the traffic to the correct tenant router.",
+      "parentUuid": "1a106d94_f9f1ff01",
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b9d2e759",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 17
@@ -116,6 +182,24 @@
       "writtenOn": "2015-04-23T07:22:24Z",
       "side": 1,
       "message": "- If port_id was and is null, do nothing.\n- If port_id was non-null and is null, delete NAT rules and gateway routes.\n- if port_id was null and is non-null now create / update NAT rules and a gateway route.\n- if port_id was / is non-null,\n  * if router_id is different, delete the old NAT rules with the old router, and create new NAT rules with the new router.\n  * if on the same router, do nothing.",
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6846d750",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-23T23:20:29Z",
+      "side": 1,
+      "message": "Thanks, will update it.  But I believe the last point is not right.  Even on the same router, if the port ID association changed, you still need to update the NAT rules (just on the same router).",
+      "parentUuid": "1a106d94_b9d2e759",
       "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -139,6 +223,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a87baf8a",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 363,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-23T23:20:29Z",
+      "side": 1,
+      "message": "not with edge router, but it reminded me that I needed to mention to delete the FIP (or any) subnet route when a router and the network are unlinked (on routerinterface delete).  Thanks",
+      "parentUuid": "1a106d94_99d72b4b",
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_993e0b8b",
         "filename": "specs/2015.03/neutron_translation.md",
         "patchSetId": 17
@@ -150,6 +252,30 @@
       "writtenOn": "2015-04-23T07:22:24Z",
       "side": 1,
       "message": "\"chains\" is unnecessary?",
+      "range": {
+        "startLine": 399,
+        "startChar": 27,
+        "endLine": 399,
+        "endChar": 33
+      },
+      "revId": "eb755702de66cf0c49098c8678ebe5c6e8645922",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e87127a9",
+        "filename": "specs/2015.03/neutron_translation.md",
+        "patchSetId": 17
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-04-23T23:20:29Z",
+      "side": 1,
+      "message": "This was meant to indicate that you should fetch the midonet chains associated with the SG.  I\u0027ll update it.",
+      "parentUuid": "1a106d94_993e0b8b",
       "range": {
         "startLine": 399,
         "startChar": 27,
