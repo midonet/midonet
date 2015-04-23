@@ -2,6 +2,63 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_396f172d",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/ExternalGatewayInfo.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "This needs a @ZoomClass annotation to specify the equivalent ProtoBuf class. This is because it is used as a nested message inside another protobuf message. Otherwise the ZoomClass annotation is optional.",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 6
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_39d39705",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/ExternalGatewayInfo.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "UUID converter missing here.",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d901a36b",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/FloatingIp.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "This requires an IPAddressUtil.Converter",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_191fbb09",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/FloatingIp.java",
         "patchSetId": 1
@@ -18,6 +75,426 @@
         "startChar": 40,
         "endLine": 63,
         "endChar": 69
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_39fa7775",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/FloatingIp.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "This requires an IPAddressUtil.Converter too.",
+      "parentUuid": "1a106d94_191fbb09",
+      "range": {
+        "startLine": 63,
+        "startChar": 40,
+        "endLine": 63,
+        "endChar": 69
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7947cfbc",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/IPAllocation.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "This class requires a @ZoomClass(clazz \u003d Neutron.IPAllocation.class)\nannotation. This is because it is used as a nested message inside another message (NeutronSubnet).\n\nZoomClass annotation otherwise is optional.",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 27,
+        "endChar": 27
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_79f06f91",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/IPAllocation.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "IPAddressUtil.Converter",
+      "range": {
+        "startLine": 37,
+        "startChar": 15,
+        "endLine": 37,
+        "endChar": 34
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_594493b6",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "The class IPAllocation requires a @ZoomClass annotation. Otherwise, this will fail.",
+      "range": {
+        "startLine": 84,
+        "startChar": 16,
+        "endLine": 84,
+        "endChar": 28
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b97b07f4",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "The enum for DeviceOwner requires a @ZoomEnum annotation to indicate the equivalent ProtoBuf enum, and each field need a @ZoomEnumField annotation to indicate the corresponding enum field. Although in this case, I\u0027m not sure whether it would work because DeviceOwner takes constructor arguments. We have to test this one.",
+      "range": {
+        "startLine": 92,
+        "startChar": 11,
+        "endLine": 92,
+        "endChar": 22
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f90a9f77",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "This class too requires a @ZoomClass annotation to indicate which is the corresponding ProtoBuf message.",
+      "range": {
+        "startLine": 107,
+        "startChar": 16,
+        "endLine": 107,
+        "endChar": 28
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_196cdb34",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Router.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "Needs a ZoomClass annotation.",
+      "range": {
+        "startLine": 63,
+        "startChar": 11,
+        "endLine": 63,
+        "endChar": 30
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d95d237b",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroup.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "Needs a ZoomClass annotation.",
+      "range": {
+        "startLine": 58,
+        "startChar": 16,
+        "endLine": 58,
+        "endChar": 33
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3956f75c",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "Needs a ZoomClass annotation.",
+      "range": {
+        "startLine": 30,
+        "startChar": 13,
+        "endLine": 30,
+        "endChar": 30
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_19533b6c",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "The enum and its fields require ZoomEnum,ZoomEnumValue annotations.",
+      "range": {
+        "startLine": 55,
+        "startChar": 11,
+        "endLine": 55,
+        "endChar": 24
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_794cefc8",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "The same for enum.",
+      "range": {
+        "startLine": 58,
+        "startChar": 11,
+        "endLine": 58,
+        "endChar": 23
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b9c94728",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "The same for enum.",
+      "range": {
+        "startLine": 69,
+        "startChar": 11,
+        "endLine": 69,
+        "endChar": 24
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d9d403bf",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Subnet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "Needs an IPAddressUtil.Converter",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_39dd57e1",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Subnet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "Needs ZoomClass annotation.",
+      "range": {
+        "startLine": 81,
+        "startChar": 16,
+        "endLine": 81,
+        "endChar": 32
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_19da1be8",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/Subnet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "Needs ZoomClass annotation",
+      "range": {
+        "startLine": 89,
+        "startChar": 16,
+        "endLine": 89,
+        "endChar": 21
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_79e34fa4",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/HealthMonitor.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "Needs ZoomClass annotation.",
+      "range": {
+        "startLine": 47,
+        "startChar": 16,
+        "endLine": 47,
+        "endChar": 33
+      },
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b9f02768",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/Member.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "Requires IPAddressUtil.Converter",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_99f56b59",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/VIP.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "Needs an IPAddressUtil.Converter",
+      "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f9e61faf",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/VIP.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-23T08:51:28Z",
+      "side": 1,
+      "message": "This class requires a ZoomClass annotation",
+      "range": {
+        "startLine": 65,
+        "startChar": 11,
+        "endLine": 65,
+        "endChar": 29
       },
       "revId": "1236dfd0e9d133e50303a791b349a7e9a69f8909",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
