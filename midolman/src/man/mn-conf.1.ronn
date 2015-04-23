@@ -62,7 +62,7 @@ Although both examples will yield the same results, the second example shows wha
 Dumps the entire selected configuration.
 
   * `--host` <HOST_ID>, `-h` <HOST_ID>:
-    Selects a host id for which to dump configuration.
+    Selects a host id for which to dump configuration. The special value `local` will resolve to the local host id.
   * `--template` <TEMPLATE>, `-t` <TEMPLATE>:
     Asks for a dump of a particular configuration template.
   * `--schema`, `-s`:
@@ -94,7 +94,7 @@ Queries the assignments of configuration templates to MidoNet node IDs.
   * `-a`, `--all`:
     Prints all template assignments.
   * `-h` <HOST_ID>, `--host` <HOST_ID>:
-    Prints the template assignment for the given host id.
+    Prints the template assignment for the given host id. The special value `local` will resolve to the local host id.
 
 `template-set -h` <HOST_ID> `-t` <TEMPLATE_NAME>
 
