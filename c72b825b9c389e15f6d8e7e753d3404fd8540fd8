@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_4715ce3e",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/MacsTable.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-23T12:46:10Z",
+      "side": 1,
+      "message": "They should indeed. Changed.",
+      "parentUuid": "1a106d94_762d1ea8",
+      "range": {
+        "startLine": 80,
+        "startChar": 0,
+        "endLine": 90,
+        "endChar": 52
+      },
+      "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_562aa290",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalLocatorSetTable.java",
         "patchSetId": 13
@@ -36,6 +60,24 @@
       "writtenOn": "2015-04-23T03:10:51Z",
       "side": 1,
       "message": "This also should be static.",
+      "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c7289e88",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalLocatorSetTable.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-23T12:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_562aa290",
       "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a72da297",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalLocatorTable.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-23T12:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_b61af67a",
+      "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_961ffa6b",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalSwitchTable.java",
         "patchSetId": 13
@@ -70,6 +130,24 @@
       "writtenOn": "2015-04-23T03:10:51Z",
       "side": 1,
       "message": "An extra line.",
+      "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_071f565c",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalSwitchTable.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-23T12:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_961ffa6b",
       "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -93,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e7231aa5",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/PhysicalSwitchTable.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-23T12:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_f610ee5a",
+      "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d615f249",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/Table.java",
         "patchSetId": 13
@@ -110,6 +206,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_473caec8",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/Table.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-23T12:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d615f249",
+      "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_360e063c",
         "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/Table.java",
         "patchSetId": 13
@@ -121,6 +235,24 @@
       "writtenOn": "2015-04-23T03:10:51Z",
       "side": 1,
       "message": "Can be static.",
+      "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2739b2d7",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/Table.java",
+        "patchSetId": 13
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-23T12:46:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_360e063c",
       "revId": "c72b825b9c389e15f6d8e7e753d3404fd8540fd8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
