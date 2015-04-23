@@ -16,10 +16,16 @@
 package org.midonet.midolman
 
 import java.lang.{Integer => JInteger}
+import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException}
 import java.util.concurrent.ConcurrentHashMap
+import java.util.{Set => JSet, HashMap, UUID}
+import java.io.IOException
+import java.lang.{Boolean => JBoolean, Integer => JInteger}
+import java.nio.ByteBuffer
 import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.reflect._
@@ -29,8 +35,9 @@ import akka.pattern.{after, pipe}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
+import rx.{Observer, Subscription}
+import rx.subjects.PublishSubject
 
-import org.midonet.Subscription
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
@@ -43,15 +50,15 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
-import org.midonet.netlink.Callback
 import org.midonet.midolman.topology.rcu.ResolvedHost
-import org.midonet.netlink.exceptions.NetlinkException
+import org.midonet.netlink._
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
-import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
+import org.midonet.odp.{OpenVSwitch, Datapath, DpPort, OvsConnectionOps}
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError, OnNext}
 import org.midonet.util.concurrent._
 
 object UnderlayResolver {
@@ -108,7 +115,7 @@ object DatapathController extends Referenceable {
      * This message is sent when the separate thread has successfully
      * retrieved all information about the interfaces.
      */
-    case class InterfacesUpdate_(interfaces: JSet[InterfaceDescription])
+    case class InterfacesUpdate_(interfaces: Set[InterfaceDescription])
 
     // Signals that the tunnel ports have been created
     case object TunnelPortsCreated_
@@ -145,11 +152,13 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                                     upcallConnManager: UpcallDatapathConnectionManager,
                                     flowInvalidator: FlowInvalidator,
                                     clock: NanoClock,
-                                    storageFactory: FlowStateStorageFactory)
-        extends Actor with ActorLogWithoutPath
-                      with SingleThreadExecutionContextProvider
-                      with DatapathPortEntangler
-                      with MtuIncreaser {
+                                    storageFactory: FlowStateStorageFactory,
+                                    val netlinkChannelFactory: NetlinkChannelFactory)
+        extends Actor
+        with ActorLogWithoutPath
+        with SingleThreadExecutionContextProvider
+        with DatapathPortEntangler
+        with MtuIncreaser {
 
     import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
@@ -170,6 +179,10 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             case m =>
                 log.info(s"Not handling $m (still initializing)")
         })
+    }
+
+    override def postStop(): Unit = {
+        super.postStop()
     }
 
     private def subscribeToHost(id: UUID): Unit = {
@@ -204,13 +217,18 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             subscribeToHost(hostService.hostId)
             log.info("Initialization complete. Starting to act as a controller.")
             context become receive
-            portWatcher = interfaceScanner.register(
-                new Callback[JSet[InterfaceDescription]] {
-                    def onSuccess(data: JSet[InterfaceDescription]) {
+            portWatcher = interfaceScanner.subscribe(
+                new Observer[Set[InterfaceDescription]] {
+                    def onCompleted(): Unit = {
+                        log.debug("Port watcher is completed.")
+                    }
+                    def onError(t: Throwable): Unit = {
+                        log.error(s"Port watcher got an error: $t")
+                    }
+                    def onNext(data: Set[InterfaceDescription]): Unit = {
                         self ! InterfacesUpdate_(data)
                     }
-                    def onError(e: NetlinkException) { /* not called */ }
-            })
+                })
     }
 
     def deleteExistingPort(port: DpPort, conn: OvsConnectionOps) = port match {

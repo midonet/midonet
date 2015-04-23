@@ -37,12 +37,3 @@ class NetlinkChannelFactory {
     }
 }
 
-class MockNetlinkChannelFactory extends NetlinkChannelFactory {
-
-    val channel: MockNetlinkChannel = new MockNetlinkChannel(Netlink.selectorProvider,
-                                                             NetlinkProtocol.NETLINK_GENERIC)
-
-    override def create(blocking: Boolean = false,
-                        protocol: NetlinkProtocol = NETLINK_GENERIC,
-                        notificationGroups: Int = NO_NOTIFICATION) = channel
-}
