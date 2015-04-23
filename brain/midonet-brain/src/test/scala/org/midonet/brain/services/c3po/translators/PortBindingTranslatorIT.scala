@@ -71,27 +71,19 @@ class PortBindingTranslatorIT extends C3POMinionTestBase {
                 "tx3"))
 
         // Tests that the host now has the binding to the port / interface.
-        eventually {
-            val boundHost = storage.get(classOf[Host], hostId).await()
-            boundHost.getPortBindingsCount shouldBe 1
-            val binding = boundHost.getPortBindings(0)
-            binding.getInterfaceName shouldBe interfaceName
-            binding.getPortId shouldBe toProto(vifPortUuid)
-        }
-        val boundPort = storage.get(classOf[Port], vifPortUuid).await()
-        boundPort.getHostId shouldBe toProto(hostId)
-        boundPort.getInterfaceName shouldBe interfaceName
+        eventually(checkPortBinding(hostId, vifPortUuid, interfaceName))
 
         // Deletes the Port Binding
         executeSqlStmts(insertTaskSql(
                 id = 5, Delete, PortBindingType, json = "", bindingUuid, "tx4"))
         eventually {
-            val boundHost = storage.get(classOf[Host], hostId).await()
-            boundHost.getPortBindingsCount shouldBe 0
+            val hostFtr = storage.get(classOf[Host], hostId)
+            val portFtr = storage.get(classOf[Port], vifPortUuid)
+            val (host, port) = (hostFtr.await(), portFtr.await())
+            host.getPortIdsCount shouldBe 0
+            port.hasHostId shouldBe false
+            port.hasInterfaceName shouldBe false
         }
-        val unbound = storage.get(classOf[Port], vifPortUuid).await()
-        unbound.hasHostId shouldBe false
-        unbound.hasInterfaceName shouldBe false
     }
 
 }

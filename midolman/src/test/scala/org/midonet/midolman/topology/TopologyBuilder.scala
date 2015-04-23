@@ -21,7 +21,6 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 import org.midonet.cluster.models.Commons.{IPAddress, LBStatus}
-import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
@@ -120,14 +119,11 @@ trait TopologyBuilder {
     }
 
     protected def createHost(id: UUID = UUID.randomUUID,
-                             portBindings: Map[UUID, String] = Map.empty,
+                             portIds: Set[UUID] = Set.empty,
                              tunnelZoneIds: Set[UUID] = Set.empty): Host = {
         Host.newBuilder
             .setId(id.asProto)
-            .addAllPortBindings(
-                portBindings.map(e => PortBinding.newBuilder
-                    .setPortId(e._1.asProto).setInterfaceName(e._2).build())
-                    .asJava)
+            .addAllPortIds(portIds.map(_.asProto).asJava)
             .addAllTunnelZoneIds(tunnelZoneIds.map(_.asProto).asJava)
             .build()
     }

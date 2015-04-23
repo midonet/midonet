@@ -26,7 +26,7 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.StorageWithOwnership
-import org.midonet.cluster.models.Topology.{Host, TunnelZone}
+import org.midonet.cluster.models.Topology.{Router, Port, Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
@@ -61,7 +61,7 @@ class HostMapperTest extends MidolmanSpec
     feature("A host should come with its tunnel zones membership") {
         scenario("The host is in one tunnel zone") {
             Given("A host member of one tunnel zone")
-            val (protoHost, protoTunnelZone) = createHostAndTunnelZone
+            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
             val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
@@ -82,7 +82,7 @@ class HostMapperTest extends MidolmanSpec
 
         scenario("The host is in one tunnel zone and then in two") {
             Given("A host member of one tunnel zone")
-            val (protoHost1, protoTunnelZone1) = createHostAndTunnelZone
+            val (protoHost1, protoTunnelZone1) = createHostAndTunnelZone()
             val hostMapper = new HostMapper(protoHost1.getId.asJava, vt)
 
             And("An observable on the host mapper")
@@ -108,7 +108,7 @@ class HostMapperTest extends MidolmanSpec
 
         scenario("The host is in one tunnel zone and then none") {
             Given("A host member of one tunnel zone")
-            val (protoHost1, protoTunnelZone) = createHostAndTunnelZone
+            val (protoHost1, protoTunnelZone) = createHostAndTunnelZone()
             val hostMapper = new HostMapper(protoHost1.getId.asJava, vt)
 
             And("An observable on the host mapper")
@@ -134,10 +134,94 @@ class HostMapperTest extends MidolmanSpec
         }
     }
 
+    feature("A host's port bindings should be handled") {
+        scenario("The host has one port binding on creation") {
+            Given("A host with one port binding")
+            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val port = createRouterWithPorts(1).head
+            bindPort(port, protoHost, "eth0")
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = makeObservable()
+            observable.subscribe(hostObs)
+
+            And("Waiting for the host")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+
+            Then("We obtain a simulation host with the port bound.")
+            hostObs.getOnNextEvents.last.portBindings should
+                contain only port.getId.asJava -> "eth0"
+
+            And("The host mapper is observing the port.")
+            hostMapper.isObservingPort(port.getId) shouldBe true
+        }
+
+        scenario("An additional port is bound while mapper is watching host") {
+            Given("A host with one port binding")
+            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val Seq(port1, port2) = createRouterWithPorts(2)
+            bindPort(port1, protoHost, "eth0")
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = makeObservable()
+            observable.subscribe(hostObs)
+
+            And("Bind an additional port to the host")
+            bindPort(port2, protoHost, "eth1")
+
+            Then("We obtain a simulation host with both port bindings")
+            hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents.last.portBindings should contain
+                only(port1.getId.asJava -> "eth0", port2.getId.asJava -> "eth1")
+
+            And("The host mapper is watching both ports")
+            hostMapper.isObservingPort(port1.getId) shouldBe true
+            hostMapper.isObservingPort(port2.getId) shouldBe true
+        }
+
+        scenario("A port is deleted while mapper is watching host") {
+            Given("A host with two port bindings")
+            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val Seq(port1, port2) = createRouterWithPorts(2)
+            bindPort(port1, protoHost, "eth0")
+            bindPort(port2, protoHost, "eth1")
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = makeObservable()
+            observable.subscribe(hostObs)
+
+            And("Delete one of the bound ports")
+            store.delete(classOf[Port], port1.getId)
+
+            Then("We obtain a simulation host with both port bindings")
+            hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents.last.portBindings should
+                contain only port2.getId.asJava -> "eth1"
+
+            And("The host mapper is not watching the deleted port")
+            hostMapper.isObservingPort(port1.getId) shouldBe false
+            hostMapper.isObservingPort(port2.getId) shouldBe true
+        }
+    }
+
     feature("The host mapper handles deletion of hosts appropriately") {
         scenario("Deleting the host") {
-            Given("A host member of one tunnel zone")
-            val (protoHost, protoTunnelZone) = createHostAndTunnelZone
+            Given("A host member of one tunnel zone with one bound port")
+            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val port = createRouterWithPorts(1).head
+            bindPort(port, protoHost, "eth0")
             val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
@@ -158,15 +242,16 @@ class HostMapperTest extends MidolmanSpec
             hostObs.awaitCompletion(timeout)
             hostObs.getOnCompletedEvents should have size 1
 
-            And("The host mapper is not observing the tunnel zone")
+            And("The host mapper is not observing the tunnel zone or port")
             hostMapper.isObservingTunnel(protoTunnelZone.getId) shouldBe false
+            hostMapper.isObservingPort(port.getId) shouldBe false
         }
     }
 
     feature("The host mapper handles the alive status of the host correctly") {
         scenario("The alive status of the host is updated appropriately") {
             Given("An alive host")
-            val (protoHost, _) = createHostAndTunnelZone
+            val (protoHost, _) = createHostAndTunnelZone()
             val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
 
             And("An observable on the host mapper")
@@ -202,16 +287,10 @@ class HostMapperTest extends MidolmanSpec
     private def assertEquals(simHost: SimHost, protoHost: Host,
                              tunnelZones: Set[TunnelZone]) = {
         protoHost.getId.asJava shouldBe simHost.id
-        protoHost.getPortBindingsCount shouldBe simHost.portBindings.size
-        protoHost.getPortBindingsList.foreach(binding => {
-            val portId = binding.getPortId
-            val interface = binding.getInterfaceName
-            simHost.portBindings.get(portId) shouldBe Some(interface)
-        })
-        protoHost.getTunnelZoneIdsCount shouldBe simHost.tunnelZoneIds.size
-        protoHost.getTunnelZoneIdsList.foreach(tunnelId =>
-            simHost.tunnelZoneIds should contain(tunnelId.asJava)
-        )
+        protoHost.getPortIdsList.map(_.asJava) should
+            contain theSameElementsAs simHost.portBindings.keys
+        protoHost.getTunnelZoneIdsList.map(_.asJava) should
+            contain theSameElementsAs simHost.tunnelZoneIds
         var membershipSize = 0
         for (tz <- tunnelZones) {
             tz.getHostsList.foreach(hostToIp => {
@@ -259,21 +338,58 @@ class HostMapperTest extends MidolmanSpec
         updatedHost
     }
 
+    private def newPort(bridgeId: Option[UUID] = None,
+                        routerId: Option[UUID] = None,
+                        hostId: Option[UUID] = None,
+                        ifName: Option[String] = None): Port = {
+        assert(bridgeId.isDefined != routerId.isDefined)
+        if (bridgeId.isDefined) {
+            createBridgePort(bridgeId = bridgeId,
+                             hostId = hostId, interfaceName = ifName)
+        } else {
+            createRouterPort(routerId = routerId,
+                             hostId = hostId, interfaceName = ifName)
+        }
+    }
+
     private def newTunnelZone(hostId: UUID): TunnelZone = {
         createTunnelZone(tzType = TunnelZone.Type.GRE, name = Some("foo"),
                          hosts = Map(hostId -> IPAddr.fromString("192.168.0.1")))
     }
 
     private def newHost(hostId: UUID, tunnelIds: Set[UUID]): Host = {
-        createHost(hostId, Map(UUID.randomUUID() -> "eth0"), tunnelIds)
+        createHost(hostId, tunnelZoneIds = tunnelIds)
     }
 
-    private def createHostAndTunnelZone: (Host, TunnelZone) = {
+    private def createHostAndTunnelZone(): (Host, TunnelZone) = {
         val hostId = UUID.randomUUID()
         val protoTunnelZone = newTunnelZone(hostId)
         val protoHost = newHost(hostId, Set(protoTunnelZone.getId.asJava))
         store.create(protoTunnelZone)
         store.create(protoHost, hostId.toString)
         (protoHost, protoTunnelZone)
+    }
+
+    private def createRouterWithPorts(numPorts: Int): Seq[Port] = {
+        val r = createRouter()
+        val ps = for(_ <- 1 to numPorts)
+            yield createRouterPort(routerId = Some(r.getId))
+        store.create(r)
+        for (p <- ps) store.create(p)
+        ps
+    }
+
+    private def bindPort(port: Port, host: Host, ifName: String): Port = {
+        val updatedPort = port.toBuilder.setHostId(host.getId)
+                                        .setInterfaceName(ifName).build()
+        store.update(updatedPort)
+        updatedPort
+    }
+
+    private def unbindPort(port: Port, host: Host): Port = {
+        assert(port.getHostId == host.getId)
+        val updatedPort = port.toBuilder.clearHostId().build()
+        store.update(updatedPort)
+        updatedPort
     }
 }

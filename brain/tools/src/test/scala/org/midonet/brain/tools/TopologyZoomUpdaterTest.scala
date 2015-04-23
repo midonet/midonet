@@ -225,22 +225,6 @@ class TopologyZoomUpdaterTest extends FeatureSpec
             h.delete()
             Host.get(h.getId) shouldBe None
         }
-        scenario("added tunnelzone") {
-            val tz = TunnelZone("tz1", Topology.TunnelZone.Type.VXLAN).create()
-            val h = Host("host").create()
-
-            val h1 = Host.get(h.getId)
-            h1.get.getTunnelZones.size shouldBe 0
-            h.addTunnelZone(tz)
-
-            val h2 = Host.get(h.getId)
-            h2.get.getTunnelZones.size shouldBe 1
-            h2.get.getTunnelZones.iterator.next().getId shouldBe tz.getId
-            h.removeTunnelZone(tz)
-
-            val h3 = Host.get(h.getId)
-            h3.get.getTunnelZones.size shouldBe 0
-        }
     }
 
     feature("tunnel zone") {
@@ -266,7 +250,6 @@ class TopologyZoomUpdaterTest extends FeatureSpec
 
             tz.addHost(h)
             tz.getHosts.size shouldBe 1
-            h.getTunnelZones.size shouldBe 1
 
             val tz0 = TunnelZone.get(tz.getId).get
             val h0 = Host.get(h.getId).get
@@ -325,12 +308,13 @@ class TopologyZoomUpdaterTest extends FeatureSpec
         scenario("binding") {
             val vt = Vtep("vtep_tz").create()
             val nt = Network("network").create()
-            val h = Host("host").create()
+            val h1 = Host("host").create()
 
-            nt.bindVtep(vt, h)
+            nt.bindVtep(vt, h1)
 
-            h.getPorts.size shouldBe 1
-            val p = h.getPorts.iterator.next()
+            val h2 = Host.get(h1.getId).get
+            h2.getPorts.size shouldBe 1
+            val p = h2.getPorts.head
             p.model.getVtepId shouldBe vt.getId
 
             nt.getPorts.size shouldBe 0
@@ -339,8 +323,8 @@ class TopologyZoomUpdaterTest extends FeatureSpec
             val vxlanPort = nt.getVxLanPorts.iterator.next()
             vxlanPort.getId shouldBe p.getId
             vxlanPort.model.getVtepId shouldBe vt.getId
-            vxlanPort.model.getHostId shouldBe h.getId
-            vxlanPort.getId shouldBe h.getPorts.iterator.next().getId
+            vxlanPort.model.getHostId shouldBe h1.getId
+            vxlanPort.getId shouldBe p.getId
 
             val bindings = nt.vtepBindings
             bindings.size shouldBe 1
@@ -358,7 +342,7 @@ class TopologyZoomUpdaterTest extends FeatureSpec
             Network.get(nt.getId).get.vtepBindings.size shouldBe 0
             Network.get(nt.getId).get.getPorts.size shouldBe 0
             Network.get(nt.getId).get.getVxLanPorts.size shouldBe 0
-            Host.get(h.getId).get.getPorts.size shouldBe 0
+            Host.get(h2.getId).get.getPorts.size shouldBe 0
         }
     }
 

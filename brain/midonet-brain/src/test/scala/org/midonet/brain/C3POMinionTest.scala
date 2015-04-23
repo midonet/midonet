@@ -522,6 +522,16 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         val entry = MacPortMap.encodePersistentPath(MAC.fromString(mac), portId)
         pathBldr.getBridgeMacPortEntryPath(nwId, Bridge.UNTAGGED_VLAN_ID, entry)
     }
+
+    protected def checkPortBinding(hostId: UUID, portId: UUID,
+                                   interfaceName: String): Unit = {
+        val hostFtr = storage.get(classOf[Host], hostId)
+        val portFtr = storage.get(classOf[Port], portId)
+        val (host, port) = (hostFtr.await(), portFtr.await())
+        host.getPortIdsList.asScala.map(_.asJava) should contain only portId
+        port.getHostId.asJava shouldBe hostId
+        port.getInterfaceName shouldBe interfaceName
+    }
 }
 
 @RunWith(classOf[JUnitRunner])

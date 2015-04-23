@@ -56,7 +56,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec
             new Subscriber(request) with MessageAccumulator)).underlyingActor
 
     private def toDevicesHost(dataHost: DataHost): DevicesHost = {
-        val protoHost = createHost(dataHost.getId, Map.empty,
+        val protoHost = createHost(dataHost.getId, Set.empty,
                                    dataHost.getTunnelZones.toSet)
         val devicesHost = ZoomConvert.fromProto(protoHost, classOf[DevicesHost])
         devicesHost.alive = dataHost.getIsAlive

@@ -26,7 +26,6 @@ import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.models.Topology.Host.PortBinding
 import org.midonet.cluster.util.UUIDUtil._
 
 @RunWith(classOf[JUnitRunner])
@@ -50,44 +49,30 @@ class HostConversionTest extends FeatureSpec with Matchers {
 
     private def assertEquals(proto: Topology.Host, zoomObj: Host) = {
         proto.getId.asJava shouldBe zoomObj.id
-        proto.getPortBindingsCount shouldBe zoomObj.portBindings.size
-        for (binding <- proto.getPortBindingsList) {
-            val protoInterface = binding.getInterfaceName
-            val zoomInterface = zoomObj.portBindings.get(binding.getPortId)
-            zoomInterface should be(Some(protoInterface))
-        }
-        proto.getTunnelZoneIdsCount shouldBe zoomObj.tunnelZoneIds.toParArray.length
-        for (tunnelId <- proto.getTunnelZoneIdsList) {
-            zoomObj.tunnelZoneIds should contain(tunnelId.asJava)
-        }
+        proto.getPortIdsList.map(_.asJava) should
+            contain theSameElementsAs zoomObj.portIds
+        proto.getTunnelZoneIdsList.map(_.asJava) should
+            contain theSameElementsAs zoomObj.tunnelZoneIds
 
-        // The tunnelZones field of the zoomObj should be an empty map since no
-        // such field exists in the proto.
-        zoomObj.tunnelZones shouldBe Map.empty
-    }
-
-    private def newPortBinding(interface: String): PortBinding = {
-        PortBinding.newBuilder
-            .setPortId(UUID.randomUUID().asProto)
-            .setInterfaceName(interface)
-            .build()
+        // The tunnelZones and portBindings fields of the zoomObj should be
+        // empty maps since these fields don't exist in the proto.
+        zoomObj.tunnelZones shouldBe empty
+        zoomObj.portBindings shouldBe empty
     }
 
     private def newZoomObj = {
         val zoomObj = new Host
         zoomObj.id = UUID.randomUUID()
-        zoomObj.portBindings = Map(UUID.randomUUID() -> "eth0",
-                                   UUID.randomUUID() -> "eth1")
-        zoomObj.tunnelZoneIds = Set(UUID.randomUUID(),
-                                    UUID.randomUUID())
+        zoomObj.portIds = Set(UUID.randomUUID(), UUID.randomUUID())
+        zoomObj.tunnelZoneIds = Set(UUID.randomUUID(), UUID.randomUUID())
         zoomObj
     }
 
     private def newProto = {
         Topology.Host.newBuilder
             .setId(UUID.randomUUID().asProto)
-            .addPortBindings(newPortBinding("foo"))
-            .addPortBindings(newPortBinding("bar"))
+            .addPortIds(UUID.randomUUID())
+            .addPortIds(UUID.randomUUID())
             .addTunnelZoneIds(UUID.randomUUID().asProto)
             .addTunnelZoneIds(UUID.randomUUID().asProto)
             .build()
