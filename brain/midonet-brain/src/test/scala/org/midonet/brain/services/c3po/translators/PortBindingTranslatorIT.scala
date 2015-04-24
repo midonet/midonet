@@ -28,7 +28,6 @@ import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkT
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
-import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])

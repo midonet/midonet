@@ -30,7 +30,6 @@ import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.packets.IPv4Subnet
-import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
 /**
