@@ -24,6 +24,7 @@ import org.midonet.brain.services.conf.ConfMinion
 import org.midonet.brain.services.heartbeat.Heartbeat
 import org.midonet.brain.services.topology.TopologyApiService
 import org.midonet.brain.services.vxgw.VxlanGatewayService
+import org.midonet.brain.services.zookeeper.ZooKeeperMinion
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 
@@ -55,6 +56,7 @@ class BrainConfig(_conf: Config) {
     val c3po = new C3POConfig(conf)
     val hearbeat = new HeartbeatConfig(conf)
     val vxgw = new VxGwConfig(conf)
+    val zk = new ZkConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
     val topologyUpdater = new TopologyZoomUpdaterConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
@@ -132,4 +134,15 @@ class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
     override def minionClass = conf.getString("brain.conf_api.with")
 
     def httpPort = conf.getInt("brain.conf_api.http_port")
+}
+
+class ZkConfig(val conf: Config) extends MinionConfig[ZooKeeperMinion] {
+    override def isEnabled = conf.getBoolean("brain.zookeeper.enabled")
+    override def minionClass = conf.getString("brain.zookeeper.with")
+
+    def clientPort = conf.getInt("brain.zookeeper.client_port")
+    def tickTime = conf.getInt("brain.zookeeper.tick_time")
+    def numCnxns = conf.getInt("brain.zookeeper.num_connections")
+    def dataDir = conf.getString("brain.zookeeper.data_dir")
+    def logDir = conf.getString("brain.zookeeper.log_dir")
 }

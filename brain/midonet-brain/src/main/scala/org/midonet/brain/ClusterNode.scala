@@ -68,7 +68,7 @@ object ClusterNode extends App {
     private val configFile = args(0)
     log info s"Loading configuration: $configFile"
     if (!Files.isReadable(Paths.get(configFile))) {
-        System.err.println("OH NO! configuration file is not readable")
+        System.err.println(s"OH NO! config file ($configFile) is not readable")
         System.exit(1)
     }
 
@@ -101,6 +101,7 @@ object ClusterNode extends App {
     private val minionDefs: List[MinionDef[ClusterMinion]] = List (
         new MinionDef("heartbeat", brainConf.hearbeat),
         new MinionDef("vxgw", brainConf.vxgw),
+        new MinionDef("zookeeper", brainConf.zk),
         new MinionDef("neutron-importer", brainConf.c3po),
         new MinionDef("conf_api", brainConf.confApi),
         new MinionDef("topology", brainConf.topologyApi)
