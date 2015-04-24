@@ -26,17 +26,13 @@ import com.google.protobuf.MessageOrBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.midolman.NatTargetUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.packets.*;
 
 public class ForwardNatRule extends NatRule {
-    @ZoomField(name = "nat_targets", converter = NatTargetUtil.Converter.class)
+    @ZoomField(name = "nat_targets")
     protected transient Set<NatTarget> targetsSet;
     protected transient NatTarget[] targets;
     private boolean floatingIp;

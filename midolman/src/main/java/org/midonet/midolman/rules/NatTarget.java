@@ -16,16 +16,29 @@
 
 package org.midonet.midolman.rules;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.packets.IPv4Addr;
 
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public class NatTarget {
-    public final IPv4Addr nwStart;
-    public final IPv4Addr nwEnd;
-    public final int tpStart;
-    public final int tpEnd;
+@ZoomClass(clazz = Topology.Rule.NatTarget.class)
+public class NatTarget extends ZoomObject {
+
+    @ZoomField(name = "nw_start", converter = IPAddressUtil.Converter.class)
+    public IPv4Addr nwStart;
+    @ZoomField(name = "nw_end", converter = IPAddressUtil.Converter.class)
+    public IPv4Addr nwEnd;
+    @ZoomField(name = "tp_start")
+    public int tpStart;
+    @ZoomField(name = "tp_end")
+    public int tpEnd;
+
+    public NatTarget() { }
 
     @JsonCreator
     public NatTarget(@JsonProperty("nwStart") IPv4Addr nwStart,
