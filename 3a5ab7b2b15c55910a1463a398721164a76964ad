@@ -118,6 +118,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f980dff8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Fixed",
+      "parentUuid": "1a106d94_f43c6be4",
+      "range": {
+        "startLine": 57,
+        "startChar": 7,
+        "endLine": 57,
+        "endChar": 70
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d43fafd4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
         "patchSetId": 27
@@ -211,6 +235,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_197b3b29",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_6f1ee664",
+      "range": {
+        "startLine": 47,
+        "startChar": 30,
+        "endLine": 47,
+        "endChar": 37
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_ef2136a0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 27
@@ -257,6 +305,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_59713343",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_333c58c8",
+      "range": {
+        "startLine": 125,
+        "startChar": 0,
+        "endLine": 129,
+        "endChar": 48
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6fab861d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 27
@@ -268,6 +340,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "update?",
+      "range": {
+        "startLine": 161,
+        "startChar": 12,
+        "endLine": 161,
+        "endChar": 16
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f9973f38",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_6fab861d",
       "range": {
         "startLine": 161,
         "startChar": 12,
@@ -303,6 +399,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_19a21b99",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_af329e0d",
+      "range": {
+        "startLine": 165,
+        "startChar": 35,
+        "endLine": 165,
+        "endChar": 54
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8f3522f9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 27
@@ -314,6 +434,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 173,
+        "startChar": 34,
+        "endLine": 173,
+        "endChar": 70
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_79ab4f75",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_8f3522f9",
       "range": {
         "startLine": 173,
         "startChar": 34,
@@ -349,6 +493,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_59a81377",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_ef13f663",
+      "range": {
+        "startLine": 193,
+        "startChar": 28,
+        "endLine": 193,
+        "endChar": 33
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8f16c2a5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 27
@@ -360,6 +528,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "deleted",
+      "range": {
+        "startLine": 204,
+        "startChar": 28,
+        "endLine": 204,
+        "endChar": 38
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b9b827c9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_8f16c2a5",
       "range": {
         "startLine": 204,
         "startChar": 28,
@@ -395,6 +587,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d9b363e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_6f6386dc",
+      "range": {
+        "startLine": 232,
+        "startChar": 8,
+        "endLine": 232,
+        "endChar": 60
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_efe816b6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 27
@@ -406,6 +622,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "This can probably be simplified to:\n    private lazy val poolIdObservable \u003d\n        Observable.merge[Proto.Pool](vt.store.observable(classOf[Proto.Pool]))\n            .map[UUID](makeFunc1(p \u003d\u003e {fromProto(p.getId)}))",
+      "range": {
+        "startLine": 233,
+        "startChar": 4,
+        "endLine": 237,
+        "endChar": 15
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b9066784",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 237,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Mmm... I\u0027ve I get it correctly, this will publish the id of an observable each time the pool is updated, and not only the first time. That means that I should keep track of which ids already exist to avoid creating several PoolHealthMonitorStates for the same pool (so, I think we would simplify this code, and move the complexity to a different place...). Unless you think that makes the code much clearer, I would prefer keeping the filters here...",
+      "parentUuid": "1a106d94_efe816b6",
       "range": {
         "startLine": 233,
         "startChar": 4,
@@ -441,6 +681,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_19f7bb8c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 247,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done. Though that broke the indentation :-p",
+      "parentUuid": "1a106d94_0fcdb25d",
+      "range": {
+        "startLine": 247,
+        "startChar": 75,
+        "endLine": 247,
+        "endChar": 79
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_4f304ae8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
         "patchSetId": 27
@@ -452,6 +716,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "Map.empty()?",
+      "range": {
+        "startLine": 266,
+        "startChar": 40,
+        "endLine": 266,
+        "endChar": 45
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b92dc700",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolHealthMonitorMapper.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 266,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_4f304ae8",
       "range": {
         "startLine": 266,
         "startChar": 40,
@@ -487,6 +775,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f933bf5f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/HealthMonitor.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_2f3b4ed2",
+      "range": {
+        "startLine": 52,
+        "startChar": 13,
+        "endLine": 52,
+        "endChar": 16
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f3a3e0fd",
         "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcherTest.scala",
         "patchSetId": 27
@@ -510,6 +822,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b914a7a0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcherTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_f3a3e0fd",
+      "range": {
+        "startLine": 77,
+        "startChar": 29,
+        "endLine": 77,
+        "endChar": 60
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d3a864dd",
         "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcherTest.scala",
         "patchSetId": 27
@@ -521,6 +857,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "rnd.nextInt(65535)?",
+      "range": {
+        "startLine": 78,
+        "startChar": 29,
+        "endLine": 78,
+        "endChar": 46
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9919ebd9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/l4lb/HealthMonitorConfigWatcherTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d3a864dd",
       "range": {
         "startLine": 78,
         "startChar": 29,
@@ -722,6 +1082,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f981ffc3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "In that case, the second sender.await would expire, but it would not generate an exception, so the code would continue and the check against the last value detected would still be correct.",
+      "parentUuid": "1a106d94_534474b6",
+      "range": {
+        "startLine": 590,
+        "startChar": 12,
+        "endLine": 590,
+        "endChar": 32
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_33c6189b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HealthMonitorConversionTest.scala",
         "patchSetId": 27
@@ -793,6 +1177,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3928b7e1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HealthMonitorConversionTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d30fc486",
+      "range": {
+        "startLine": 42,
+        "startChar": 16,
+        "endLine": 44,
+        "endChar": 37
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_13c31c8a",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HealthMonitorConversionTest.scala",
         "patchSetId": 27
@@ -804,6 +1212,30 @@
       "writtenOn": "2015-04-22T14:33:26Z",
       "side": 1,
       "message": "random values?",
+      "range": {
+        "startLine": 62,
+        "startChar": 16,
+        "endLine": 64,
+        "endChar": 31
+      },
+      "revId": "3a5ab7b2b15c55910a1463a398721164a76964ad",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1925fb08",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/HealthMonitorConversionTest.scala",
+        "patchSetId": 27
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:38:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_13c31c8a",
       "range": {
         "startLine": 62,
         "startChar": 16,
