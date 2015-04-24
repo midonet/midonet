@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_728b6168",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 687,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-24T15:27:31Z",
+      "side": 1,
+      "message": "null check?",
+      "revId": "5d1532abef67af4b6dccaa356272d2a920f1ac56",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
