@@ -24,11 +24,11 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.brain.C3POMinionTestBase
+import org.midonet.brain.util.C3POEventually
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, PortBinding => PortBindingType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
-import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])

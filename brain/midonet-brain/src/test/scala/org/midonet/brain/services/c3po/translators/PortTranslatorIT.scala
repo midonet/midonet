@@ -24,13 +24,13 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.brain.C3POMinionTestBase
+import org.midonet.brain.util.C3POEventually
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType.{Create, Delete}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.packets.IPv4Subnet
-import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
 /**

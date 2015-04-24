@@ -26,6 +26,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.brain.C3POMinionTestBase
+import org.midonet.brain.util.C3POEventually
 import org.midonet.cluster.data.neutron.NeutronResourceType.{FloatingIp => FloatingIpType, Network => NetworkType, Port => PortType, PortBinding => PortBindingType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType.{Create, Delete, Update}
 import org.midonet.cluster.models.Neutron.FloatingIp

@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.brain.ClusterNode.Context
 import org.midonet.brain.services.c3po.C3POMinion
+import org.midonet.brain.util.C3POEventually
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
@@ -60,7 +61,6 @@ import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil, IPSubnetUtil}
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.state.{MacPortMap, PathBuilder}
 import org.midonet.packets.{MAC, IPSubnet, IPv4Subnet, UDP}
-import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
 /** Tests the service that syncs the Neutron DB into Midonet's backend. */
