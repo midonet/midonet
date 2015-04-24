@@ -403,18 +403,16 @@ class AdminStateTest extends MidolmanSpec {
             val host = rcu.ResolvedHost(hostId, true, Map.empty, Map.empty)
             def peerTunnelInfo(peer: UUID) = null
             def overlayTunnellingOutputAction: FlowActionOutput = null
-            def dpPortNumberForTunnelKey(key: Long) = None
+            def dpPortForTunnelKey(key: Long) = null
             def vtepTunnellingOutputAction: FlowActionOutput = null
-            def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
-                Some(1)
-            def getDpPortForInterface(itfName: String): Option[DpPort] = null
-            def getVportForDpPortNumber(portNum: Integer): Option[UUID] = null
+            def getDpPortNumberForVport(vportId: UUID): Integer = 1
+            def getDpPortForInterface(itfName: String): DpPort = null
+            def getVportForDpPortNumber(portNum: Integer): UUID = null
             def getDpPortName(num: Integer): Option[String] = null
             def version: Long = 0L
             def uplinkPid: Int = 0
             def isVtepTunnellingPort(portNumber: Integer): Boolean = false
             def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
-            override def getDescForInterface(itfName: String) = None
         }
 
         def translate(simRes: (SimulationResult, PacketContext)): Seq[FlowAction] = {

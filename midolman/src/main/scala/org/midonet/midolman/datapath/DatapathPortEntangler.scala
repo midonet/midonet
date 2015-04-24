@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.datapath
 
-import java.util.{UUID, Set => JSet}
+import java.util.{Set => JSet, HashSet, HashMap, UUID}
 
 import scala.concurrent.Future
 
@@ -24,30 +24,37 @@ import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.rcu.PortBinding
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.InternalPort
-import org.midonet.util.collection.Bimap
 import org.midonet.util.concurrent._
 
 object DatapathPortEntangler {
     trait Controller {
         def addToDatapath(interfaceName: String): Future[(DpPort, Int)]
         def removeFromDatapath(port: DpPort): Future[_]
-        def setVportStatus(port: DpPort, binding: PortBinding,
-                           isActive: Boolean): Future[_]
+        def setVportStatus(
+            port: DpPort, vport: UUID, tunnelKey: Long, isActive: Boolean): Unit
     }
+
+    case class DpTriad(
+            ifname: String,
+            var isUp: Boolean = false,
+            var vport: UUID = null,
+            var tunnelKey: Long = 0L,
+            var dpPort: DpPort = null,
+            var dpPortNo: Integer = null)
 }
 
 /**
  * This class manages the relationships between interfaces, datapath ports,
  * and virtual ports. In particular, it creates or removes datapath ports based
  * on the presence or absence of interfaces and virtual port bindings. An
- * external component can also register nternal datapath ports with this
+ * external component can also register internal datapath ports with this
  * class. This class DOES NOT manage tunnel ports.
  *
  * Before there is a port there must be a network interface. The
- * DatapathController does not create network interfaces (except in the
+ * DatapathController (DpC) does not create network interfaces (except in the
  * case of internal ports, where the network interface is created
- * automatically when the datapath port is created). Also, the
- * DatapathController does not change the status of network interfaces.
+ * automatically when the datapath port is created). Also, the DpC does not
+ * change the status of network interfaces.
  *
  * The datapath's non-tunnel ports correspond to one of the following:
  * - port 0, the datapath's 'local' interface, whose name is the same as
@@ -55,43 +62,31 @@ object DatapathPortEntangler {
  * - ports corresponding to interface-to-virtual-port bindings; port 0 may
  *   be bound to a virtual port.
  *
- * The DatapathController must be the only software controlling its
- * datapath. Therefore, the datapath may not be deleted or manipulated in
- * any way by other components, inside or outside Midolman.
+ * The DpC must be the only software controlling its datapath. Therefore, the
+ * datapath may not be deleted or manipulated in any way by other components,
+ * inside or outside Midolman.
  *
- * However, the DatapathController is able to cope with other components
- * creating, deleting, or modifying the status of network interfaces.
+ * However, the DpC is able to cope with other components creating, deleting,
+ * or modifying the status of network interfaces.
  *
- * The DatapathController scans the host's network interfaces periodically
- * to track creations, deletions, and status changes:
- * - when a new network interface is created, if it corresponds to an
- *   interface-vport binding, then the DC adds it as a port on the datapath
+ * The DpC scans the host's network interfaces periodically to track creations,
+ * deletions, and status changes:
+ * - when a network interface is created or goes up, if it corresponds to an
+ *   interface-vport binding, then the DpC adds it as a port on the datapath
  *   and records the correspondence of the resulting port's number to the
- *   virtual port. However, it does not consider the virtual port to be active
- *   unless the interface's status is UP, in which case it also sends a
- *   LocalPortActive(vportID, active=true) message to the
- *   VirtualToPhysicalMapper.
- * - when a network interface is deleted, if it corresponds to a datapath
- *   port, then the datapath port is removed and the port number reclaimed,
- *   unless it's an internal port.
- *   If the interface was bound to a virtual port, then the DC also sends a
- *   LocalPortActive(vportID, active=false) message to the
- *   VirtualToPhysicalMapper.
- * - when a network interface status changes from UP to DOWN, if it was bound
- *   to a virtual port, the DC sends a LocalPortActive(vportID, active=false)
- *   message to the VirtualToPhysicalMapper.
- * - when a network interface status changes from DOWN to UP, if it was bound
- *   to a virtual port, the DC sends a LocalPortActive(vportID, active=true)
- *   message to the VirtualToPhysicalMapper.
+ *   virtual port. It also broadcasts a LocalPortActive(vportID, active=true)
+ *   message.
+ * - when a network interface is deleted or goes down, if it corresponds to a
+ *   datapath port, then the datapath port is removed and the port number
+ *   reclaimed, unless it's an internal port.
+ *   If the interface was bound to a virtual port, then the DC broadcasts a
+ *   LocalPortActive(vportID, active=false) message
  *
- * The DatapathController receives updates to the host's interface-vport
- * bindings:
- * - when a new binding is discovered, if the interface already exists then
- *   the DC adds it as a port on the datapath and records the correspondence
- *   of the resulting port number to the virtual port. However, it does not
- *   consider the virtual port to be active unless the interface's
- *   status is UP, in which case it also sends a LocalPortActive(vportID,
- *   active=true) message to the VirtualToPhysicalMapper.
+ * The DpC receives updates to the host's interface-vport bindings:
+ * - when a new binding is discovered, if the interface already exists and is
+ *   up, then the DpC adds it as a port on the datapath and records the
+ *   correspondence of the resulting port's number to the virtual port. It also
+ *   broadcasts a LocalPortActive(vportID, active=true) message.
  * - when a binding is removed, if a corresponding port already exists on
  *   the datapath, then the datapath port is removed and the port number
  *   reclaimed, unless it's an internal port. If the virtual port was bound to
@@ -99,16 +94,16 @@ object DatapathPortEntangler {
  *   message to the VirtualToPhysicalMapper.
  */
 trait DatapathPortEntangler {
-    val controller: DatapathPortEntangler.Controller
+    import DatapathPortEntangler._
+
+    val controller: Controller
     implicit val ec: SingleThreadExecutionContext
     implicit val log: Logger
 
-    var interfaceToDescription = Map[String, InterfaceDescription]()
-    var interfaceToDpPort = Map[String, DpPort]()
-    var dpPortNumToInterface = Map[Integer, String]()
-    var interfaceToVport = new Bimap[String, UUID]()
-    var bindings = Map[String, PortBinding]()
-    var keysForLocalPorts = Map[Long, DpPort]()
+    val interfaceToTriad = new HashMap[String, DpTriad]()
+    val vportToTriad = new HashMap[UUID, DpTriad]()
+    val keyToTriad = new HashMap[Long, DpTriad]()
+    val dpPortNumToTriad = new HashMap[Int, DpTriad]
 
     // Sequentializes updates to a particular port. Note that while an update
     // is in progress, new updates can be scheduled.
@@ -121,8 +116,9 @@ trait DatapathPortEntangler {
      */
     def registerInternalPort(port: InternalPort): Unit =
         conveyor handle (port.getName, () => {
-            interfaceToDpPort += port.getName -> port
-            dpPortNumToInterface += port.getPortNo -> port.getName
+            val triad = getOrCreate(port.getName)
+            triad.dpPort = port
+            interfaceToTriad.put(port.getName, triad)
             Future successful null
         })
 
@@ -130,17 +126,21 @@ trait DatapathPortEntangler {
      * Register new interfaces, update their status or delete them.
      */
     def updateInterfaces(itfs: JSet[InterfaceDescription]): Unit = {
-        var interfacesToDelete = interfaceToDescription.keySet
-
+        val interfacesToDelete = new HashSet(interfaceToTriad.keySet())
         val it = itfs.iterator()
         while (it.hasNext) {
             val itf = it.next()
-            interfacesToDelete -= itf.getName
-            conveyor.handle(itf.getName, () => processUpdate(itf, itf.getName))
+            interfacesToDelete.remove(itf.getName)
+            conveyor.handle(itf.getName, () => processInterface(itf, itf.getName))
         }
 
-        for (ifname <- interfacesToDelete) {
-            conveyor.handle(ifname, () => deleteInterface(ifname))
+        val toDelete = interfacesToDelete.iterator()
+        while (toDelete.hasNext) {
+            val ifname = toDelete.next()
+            if (!itfs.contains(ifname)) {
+                conveyor.handle(ifname, () => deleteInterface(
+                    interfaceToTriad.get(ifname)))
+            }
         }
     }
 
@@ -149,86 +149,66 @@ trait DatapathPortEntangler {
      * We assume each vport ID and interface will occur in at most one binding.
      */
     def updateVPortInterfaceBindings(bindings: Map[UUID, PortBinding]): Unit = {
-        log.debug(s"updating vport to interface bindings: $bindings")
-        val vportToInterface = bindings map { case (id, p) => (id, p.iface)}
+        log.debug(s"Updating vport to interface bindings: $bindings")
 
-        for ((vportId, ifname) <- vportToInterface if !interfaceToVport.contains(ifname)) {
-            conveyor handle (ifname, () => {
-                this.bindings += ifname -> bindings(vportId)
-                newInterfaceVportBinding(vportId, ifname)
-            })
-        }
-
-        for ((ifname, vportId) <- interfaceToVport if !vportToInterface.contains(vportId)) {
-            conveyor handle (ifname, () => {
-                val f = deletedInterfaceVportBinding(vportId, ifname)
-                this.bindings -= ifname
-                f
-            })
-        }
-    }
-
-    private def processUpdate(itf: InterfaceDescription, ifname: String): Future[_] =
-        if (interfaceToDescription contains ifname) {
-            updateInterface(itf, ifname)
-        } else {
-            newInterface(itf, ifname)
-        }
-
-    private def newInterface(itf: InterfaceDescription, ifname: String): Future[_] = {
-        val isUp = itf.isUp
-        log.info(s"Found new interface ${itf.logString} which is ${if (isUp) "up" else "down"}")
-        interfaceToDescription += ifname -> itf
-        tryCreateDpPort(ifname)
-    }
-
-    private def newInterfaceVportBinding(vport: UUID, ifname: String): Future[_] = {
-        log.debug(s"Creating binding $ifname -> $vport")
-        interfaceToVport += ifname -> vport
-        tryCreateDpPort(ifname)
-    }
-
-    private def tryCreateDpPort(ifname: String): Future[_] = {
-        val vPort = interfaceToVport get ifname
-        val itf = interfaceToDescription get ifname
-        if (vPort.isDefined && itf.isDefined) {
-            val dpPort = interfaceToDpPort get ifname
-            if (dpPort.isDefined) { // If it was registered
-                dpPortAdded(dpPort.get)
-            } else {
-                addDpPort(ifname)
+        for ((vportId, PortBinding(_, tunnelKey, ifname)) <- bindings) {
+            if (!vportToTriad.containsKey(vportId)) {
+                conveyor handle (ifname, () =>
+                    newInterfaceVportBinding(vportId, bindings(vportId).tunnelKey, ifname))
             }
-        } else {
-            Future successful null
+        }
+
+        val it = vportToTriad.entrySet().iterator()
+        while (it.hasNext()) {
+            val entry = it.next()
+            if (!bindings.contains(entry.getKey)) {
+                val triad = entry.getValue
+                conveyor handle (triad.ifname, () =>
+                    deletedInterfaceVportBinding(triad))
+            }
         }
     }
 
     /**
-     * Updates the status of the interface. Updates the state of the port is a
+     * Updates the status of the interface. Updates the state of the port if a
      * datapath port exists or else it tries to create one. A particular case
      * is as follows: the NetlinkInterfaceSensor sets the endpoint for all the
      * ports of the dp to DATAPATH. If the endpoint is not DATAPATH it means
      * that this is a dangling tap. We need to recreate the dp port. Use case:
      * add tap, bind it to a vport, remove the tap. The dp port gets destroyed.
      */
-    private def updateInterface(itf: InterfaceDescription, ifname: String): Future[_] = {
+    private def processInterface(itf: InterfaceDescription, ifname: String): Future[_] = {
         val isUp = itf.isUp
-        val wasUp = interfaceToDescription(ifname).isUp
-        interfaceToDescription += ifname -> itf
+        val triad = getOrCreate(ifname)
+        val wasUp = triad.isUp
 
-        val dpPort = interfaceToDpPort get ifname
-        val vPort = interfaceToVport get ifname
-        if (dpPort.isDefined && vPort.isDefined) {
-            if (isDangling(itf, isUp)) {
-                updateDangling(dpPort.get, ifname)
-            } else if (isUp != wasUp) {
-                changeStatus(dpPort.get, itf, isUp)
-            } else {
-                Future successful null
-            }
+        if (isUp && !wasUp) {
+            triad.isUp = isUp
+            tryCreateDpPort(triad)
+        } else if (!isUp) {
+            deleteInterface(triad)
+        } else if (isDangling(itf, isUp)) {
+            updateDangling(triad)
         } else {
-            tryCreateDpPort(ifname) // In case we failed to create it before
+            Future successful null
         }
+    }
+
+    private def newInterfaceVportBinding(vport: UUID, tunnelKey: Long, ifname: String): Future[_] = {
+        val triad = getOrCreate(ifname)
+        triad.vport = vport
+        triad.tunnelKey = tunnelKey
+        vportToTriad.put(vport, triad)
+        tryCreateDpPort(triad)
+    }
+
+    private def getOrCreate(ifname: String): DpTriad = {
+        var status = interfaceToTriad.get(ifname)
+        if (status eq null) {
+            status = DpTriad(ifname)
+            interfaceToTriad.put(ifname, status)
+        }
+        status
     }
 
     private def isDangling(itf: InterfaceDescription, isUp: Boolean): Boolean =
@@ -236,107 +216,88 @@ trait DatapathPortEntangler {
         itf.getEndpoint != InterfaceDescription.Endpoint.DATAPATH &&
         isUp
 
-    private def updateDangling(dpPort: DpPort, name: String): Future[_] = {
-        log.debug(s"Recreating port $name because it was removed and the DP " +
-                   "didn't request the removal")
-        deleteInterface(name) continue { _ => tryCreateDpPort(name) } unwrap
+    private def updateDangling(triad: DpTriad): Future[_] = {
+        log.debug(s"Recreating port ${triad.ifname} because it was removed " +
+                   "and the DP didn't request the removal")
+        tryRemoveDpPort(triad) continue { _ => tryCreateDpPort(triad) } unwrap
     }
 
-    private def changeStatus(dpPort: DpPort, itf: InterfaceDescription,
-                             isUp: Boolean): Future[_] = {
-        log.info(s"Interface $itf is now ${if (isUp) "up" else "down"}")
-        val vportId = interfaceToVport.get(itf.getName)
-        if (vportId.isDefined) { // This can be a registered port with no binding
-            setVportStatus(dpPort, bindings(itf.getName), isUp)
+    private def deleteInterface(triad: DpTriad): Future[_] =
+        tryRemoveDpPort(triad) map { x =>
+            triad.isUp = false
+            shutdownIfNeeded(triad)
+        }
+
+    private def deletedInterfaceVportBinding(triad: DpTriad): Future[_] =
+        tryRemoveDpPort(triad) map { _ =>
+            vportToTriad.remove(triad.vport)
+            triad.vport = null
+            shutdownIfNeeded(triad)
+        }
+
+    private def tryCreateDpPort(triad: DpTriad): Future[_] = {
+        if ((triad.vport ne null) && triad.isUp) {
+            log.info(s"Binding port ${triad.vport} to ${triad.ifname}")
+            val dpPort = triad.dpPort
+            if (dpPort ne null) { // If it was registered
+                setVportStatus(triad, active = true)
+                triad.dpPortNo = dpPort.getPortNo
+                dpPortNumToTriad.put(dpPort.getPortNo, triad)
+                Future successful null
+            } else {
+                addDpPort(triad)
+            }
         } else {
             Future successful null
         }
     }
 
-    private def deleteInterface(ifname: String): Future[_] = {
-        log.info("Deleting interface {}", ifname)
-        tryRemovePort(ifname) {
-            interfaceToDescription -= ifname
-        }
-    }
-
-    private def deletedInterfaceVportBinding(vport: UUID, ifname: String): Future[_] = {
-        log.info(s"Deleting binding of port $vport to $ifname")
-        tryRemovePort(ifname) {
-            interfaceToVport -= ifname
-        }
-    }
-
-    private def tryRemovePort(ifname: String)
-                             (removeFromMap: => Unit): Future[_] = {
-        val dpPort = interfaceToDpPort get ifname
-        val res =
-            if (dpPort.isDefined) {
-                Future.sequence(List(removeIfNeeded(dpPort.get, ifname),
-                                     deactivateIfNeeded(dpPort.get, ifname)))
-            } else {
-                Future successful null
-            }
-
-        removeFromMap
-
-        if (!(interfaceToDescription contains ifname) &&
-            !(interfaceToVport contains ifname)) {
-            conveyor.shutdown(ifname)
+    private def tryRemoveDpPort(triad: DpTriad): Future[_] =
+        if ((triad.vport ne null) && triad.isUp) {
+            log.info(s"Unbinding port ${triad.vport} from ${triad.ifname}")
+            setVportStatus(triad, active = false)
+            dpPortNumToTriad.remove(triad.dpPortNo)
+            triad.dpPortNo = null
+            if (!isInternal(triad)) {
+                val dpPort = triad.dpPort
+                triad.dpPort = null
+                (controller removeFromDatapath dpPort) recover { case t =>
+                    // We got ourselves a dangling port
+                    log.warn(s"Failed to remove port $dpPort: ${t.getMessage}")
+                }
+            } else Future successful null
+        } else {
+            Future successful null
         }
 
-        res
-    }
+    private def shutdownIfNeeded(triad: DpTriad): Unit =
+        if (!triad.isUp && (triad.vport eq null) && !isInternal(triad)) {
+            interfaceToTriad.remove(triad.ifname)
+            conveyor.shutdown(triad.ifname)
+        }
 
-    private def addDpPort(ifname: String): Future[_] =
-        (controller addToDatapath ifname) flatMap { case (dpPort, _) =>
-            log.debug(s"Datapath port $ifname added")
-            interfaceToDpPort += ifname -> dpPort
-            dpPortNumToInterface += dpPort.getPortNo -> ifname
-            dpPortAdded(dpPort)
+    private def isInternal(triad: DpTriad): Boolean =
+        (triad.dpPort ne null) && triad.dpPort.isInstanceOf[InternalPort]
+
+    private def addDpPort(triad: DpTriad): Future[_] =
+        (controller addToDatapath triad.ifname) map { case (dpPort, _) =>
+            log.info(s"Datapath port ${triad.ifname} added")
+            triad.dpPort = dpPort
+            triad.dpPortNo = dpPort.getPortNo
+            dpPortNumToTriad.put(dpPort.getPortNo, triad)
+            setVportStatus(triad, active = true)
         } recover { case t =>
             // We'll retry on the next interface scan
-            log.warn(s"Failed to create port $ifname: ${t.getMessage}")
+            triad.isUp = false
+            log.warn(s"Failed to create port ${triad.ifname}: ${t.getMessage}")
         }
 
-    private def dpPortAdded(port: DpPort): Future[_] = {
-        val name = port.getName
-        if (interfaceToDescription(name).isUp) {
-            val vport = interfaceToVport.get(name).get
-            setVportStatus(port, bindings(name), active = true)
-        } else {
-            Future successful null
-        }
-    }
-
-    private def removeIfNeeded(dpPort: DpPort, name: String): Future[_] =
-        if (!dpPort.isInstanceOf[InternalPort]) {
-            interfaceToDpPort -= name
-            dpPortNumToInterface -= dpPort.getPortNo
-            (controller removeFromDatapath dpPort) recover { case t =>
-                // We got ourselves a dangling port
-                log.warn(s"Failed to remove port $dpPort: ${t.getMessage}")
-            }
-        } else {
-            Future successful null
-        }
-
-    private def deactivateIfNeeded(dpPort: DpPort, name: String): Future[_] = {
-        val vportId = interfaceToVport get name
-        val desc = interfaceToDescription get name
-
-        if (vportId.isDefined && desc.isDefined && desc.get.isUp) {
-            setVportStatus(dpPort, bindings(name), active = false)
-        } else {
-            Future successful null
-        }
-    }
-
-    private def setVportStatus(port: DpPort, binding: PortBinding, active: Boolean): Future[_] = {
+    private def setVportStatus(triad: DpTriad, active: Boolean): Unit = {
         if (active)
-            keysForLocalPorts += binding.tunnelKey -> port
+            keyToTriad.put(triad.tunnelKey, triad)
         else
-            keysForLocalPorts -= binding.tunnelKey
-        controller.setVportStatus(port, binding, active)
+            keyToTriad.remove(triad.tunnelKey)
+        controller.setVportStatus(
+            triad.dpPort, triad.vport, triad.tunnelKey, active)
     }
 }

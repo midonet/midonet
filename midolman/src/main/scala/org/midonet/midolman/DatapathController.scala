@@ -42,7 +42,7 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
+import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
@@ -90,22 +90,13 @@ trait UnderlayResolver {
 trait VirtualPortsResolver {
 
     /** Returns bounded datapath port or None if port not found */
-    def getDpPortNumberForVport(vportId: UUID): Option[JInteger]
+    def getDpPortNumberForVport(vportId: UUID): JInteger
 
     /** Returns bounded datapath port or None if port not found */
-    def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort]
-
-    /** Returns bounded datapath port or None if port not found */
-    def getDpPortForInterface(itfName: String): Option[DpPort]
+    def dpPortForTunnelKey(tunnelKey: Long): DpPort
 
     /** Returns vport UUID of bounded datapath port, or None if not found */
-    def getVportForDpPortNumber(portNum: JInteger): Option[UUID]
-
-    /** Returns bounded datapath port interface or None if port not found */
-    def getDpPortName(num: JInteger): Option[String]
-
-    /** Returns interface desc bound to the interface or None if not found */
-    def getDescForInterface(itfName: String): Option[InterfaceDescription]
+    def getVportForDpPortNumber(portNum: JInteger): UUID
 }
 
 trait DatapathState extends VirtualPortsResolver with UnderlayResolver
@@ -179,7 +170,8 @@ object DatapathController extends Referenceable {
  */
 class DatapathController extends Actor
                          with ActorLogWithoutPath
-                         with SingleThreadExecutionContextProvider {
+                         with SingleThreadExecutionContextProvider
+                         with MtuIncreaser {
 
     import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
@@ -233,12 +225,14 @@ class DatapathController extends Actor
                 upcallConnManager.deleteDpPort(datapath, port)
             }
 
-            override def setVportStatus(port: DpPort, binding: PortBinding,
-                                        isActive: Boolean): Future[_] = {
-                log.info(s"Port ${port.getPortNo}/${port.getName}/${binding.portId} " +
+            override def setVportStatus(port: DpPort, vport: UUID, tunnelKey: Long,
+                                        isActive: Boolean): Unit = {
+                log.info(s"Port ${port.getPortNo}/${port.getName}/$vport " +
                          s"became ${if (isActive) "active" else "inactive"}")
-                VirtualToPhysicalMapper ! LocalPortActive(binding.portId, isActive)
-                invalidateTunnelKeyFlows(port, binding.tunnelKey, isActive)
+                system.eventStream.publish(LocalPortActive(vport, isActive))
+                invalidateTunnelKeyFlows(port, tunnelKey, isActive)
+                if (isActive)
+                    increaseMtu(vport)
             }
         }
     )(singleThreadExecutionContext, log)
@@ -458,7 +452,7 @@ class DatapathController extends Actor
     }
 
     private def invalidateTunnelKeyFlows(port: DpPort, tunnelKey: Long,
-                                         active: Boolean): Future[_] = {
+                                         active: Boolean): Unit = {
         // Trigger invalidation. This is done regardless of whether we are
         // activating or deactivating:
         //   - The case for invalidating on deactivation is obvious.
@@ -466,7 +460,6 @@ class DatapathController extends Actor
         //     it has been reused by the dp: we want to start with a clean state
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForTunnelKey(tunnelKey))
         flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDpPort(port.getPortNo))
-        Future.successful[Any](null)
     }
 
     private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
@@ -682,26 +675,22 @@ class DatapathStateManager(val controller: DatapathPortEntangler.Controller)
     def removePeersForZone(zone: UUID): Seq[FlowTag] =
         _peersRoutes.keys.toSeq.flatMap{ removePeer(_, zone) }
 
-    override def getDpPortForInterface(itfName: String): Option[DpPort] =
-        interfaceToDpPort.get(itfName)
-
-    // FIXME: these methods are called from the fast-path; they allocate
-    //        closures and Options.
-    override def getDpPortNumberForVport(vportId: UUID): Option[JInteger] =
-        interfaceToVport.inverse.get(vportId) flatMap { itfName =>
-            interfaceToDpPort.get(itfName) map { _.getPortNo }
-        }
-
-    override def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = {
-        keysForLocalPorts.get(tunnelKey)
+    override def getDpPortNumberForVport(vportId: UUID): JInteger = {
+        val triad = vportToTriad.get(vportId)
+        if (triad ne null)
+            triad.dpPortNo
+        else
+            null
     }
 
-    override def getVportForDpPortNumber(portNum: JInteger): Option[UUID] =
-        dpPortNumToInterface get portNum flatMap { interfaceToVport.get }
+    override def dpPortForTunnelKey(tunnelKey: Long): DpPort =
+        keyToTriad.get(tunnelKey).dpPort
 
-    override def getDpPortName(num: JInteger): Option[String] =
-        dpPortNumToInterface.get(num)
-
-    override def getDescForInterface(itf: String): Option[InterfaceDescription] =
-        interfaceToDescription.get(itf)
+    override def getVportForDpPortNumber(portNum: JInteger): UUID = {
+        val triad = dpPortNumToTriad.get(portNum)
+        if (triad ne null)
+            triad.vport
+        else
+            null
+    }
 }

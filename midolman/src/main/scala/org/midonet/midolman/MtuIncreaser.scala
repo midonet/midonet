@@ -23,50 +23,39 @@ import scala.concurrent.duration.Duration
 import scala.sys.process._
 import scala.util.{Failure, Success, Try}
 
-import akka.actor.Actor
-import org.midonet.midolman.host.interfaces.InterfaceDescription.Endpoint
-
-import org.slf4j.LoggerFactory
+import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.midolman.DatapathController.DatapathReady
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.topology.devices.{BridgePort, Port}
-import org.midonet.midolman.topology.{LocalPortActive, VirtualTopologyActor}
+import org.midonet.midolman.topology.VirtualTopologyActor
+
+object MtuIncreaser  {
+    val BOUND_INTERFACE_MTU = 65000L
+}
 
 /**
  * MtuIncreaser subscribes to LocalPortActive events to increase the MTU of
  * the interface associated with the activated port to 65K bytes.
  */
-class MtuIncreaser extends Actor
-                   with ActorLogWithoutPath
-                   with SubscriberActor {
-    import context.system
+trait MtuIncreaser {
     import MtuIncreaser._
 
-    implicit val executorContext = context.dispatcher
+    protected val log: Logger
 
-    override def logSource = "org.midonet.datapath-control"
-    override def subscribedClasses =
-        Seq(classOf[DatapathReady], classOf[LocalPortActive])
-    implicit val logger: Logger = log
-
-    var dpState: DatapathState = _
-
-    private def receiveLocalPortActive: Receive = {
-        case LocalPortActive(id, true) =>
-            increaseMtu(id)
-    }
-
-    override def receive = {
-        case DatapathReady(_, passedDpState) =>
-            dpState = passedDpState
-            context.become(receiveLocalPortActive)
-    }
-
-    private def increaseMtu(portId: UUID): Unit = {
-        val port: Port = try {
-            VirtualTopologyActor.tryAsk[Port](portId)
+    def increaseMtu(portId: UUID)
+                   (implicit actorSystem: ActorSystem): Unit =
+        try {
+            val port = VirtualTopologyActor.tryAsk[Port](portId)
+            if (port.isInstanceOf[BridgePort]) {
+                val itfName = port.interfaceName
+                s"ip link set mtu $BOUND_INTERFACE_MTU dev $itfName".! match {
+                    case 0 =>
+                        log.debug(s"Successfully increased the MTU of $itfName")
+                    case statusCode =>
+                        log.warn(s"Failed to increase the MTU of $itfName " +
+                                 s"with status code $statusCode.")
+                }
+            }
         } catch {
             case NotYetException(f, _) =>
                 Try(Await.result(f, Duration.Inf)) match {
@@ -75,26 +64,9 @@ class MtuIncreaser extends Actor
                                   s"interface associated with port $portId")
                     case Success(_) =>
                         increaseMtu(portId)
+
                 }
-                return
+            case t: Throwable =>
+                log.error(s"Failed to increate MTU of interface for port $portId")
         }
-        val itfName = port.interfaceName
-        val itfDesc = dpState.getDescForInterface(itfName)
-        if (port.isInstanceOf[BridgePort] && itfDesc.isDefined) {
-            s"ip link set mtu $BOUND_INTERFACE_MTU dev $itfName".! match {
-                case 0 =>
-                    log.debug(s"Successfully increased the MTU of $itfName")
-                case statusCode: Int =>
-                    log.warn(s"Failed to increase the MTU of $itfName " +
-                             s"with status code $statusCode.")
-            }
-        }
-    }
-}
-
-object MtuIncreaser extends Referenceable {
-    val log = LoggerFactory.getLogger(classOf[MtuIncreaser])
-
-    override val Name = "MtuIncreaseActor"
-    val BOUND_INTERFACE_MTU = 65000L
 }
