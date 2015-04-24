@@ -108,7 +108,7 @@ public abstract class AbstractZkManager<K, CFG>
     protected Op simpleCreateOp(K key, CFG config)
             throws SerializationException {
         return Op.create(getConfigPath(key), serializer.serialize(config),
-                ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+                         ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
     }
 
     /**
@@ -131,6 +131,20 @@ public abstract class AbstractZkManager<K, CFG>
     public CFG get(K key)
             throws StateAccessException, SerializationException {
         return get(key, null);
+    }
+
+    /**
+     * Gets the config for the specified resource ID but does not thrown a
+     * NoStatePathException if the resource does not exist.  Instead, returns
+     * null if the resource does not exist.
+     */
+    public CFG tryGet(K key)
+        throws StateAccessException, SerializationException {
+        try {
+            return get(key, null);
+        } catch (NoStatePathException ex) {
+            return null;
+        }
     }
 
     /**
