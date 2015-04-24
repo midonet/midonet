@@ -70,9 +70,7 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name),
             (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[NetlinkCallbackDispatcher]),
-                NetlinkCallbackDispatcher.Name),
-            (propsFor(classOf[MtuIncreaser]).
-                withDispatcher("actors.pinned-dispatcher"), MtuIncreaser.Name))
+                NetlinkCallbackDispatcher.Name))
         if (config.healthMonitor.enable)
             actors :+ (propsFor(classOf[HealthMonitor])
                 .withDispatcher("actors.pinned-dispatcher"), HealthMonitor.Name)

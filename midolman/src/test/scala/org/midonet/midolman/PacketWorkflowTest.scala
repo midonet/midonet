@@ -86,18 +86,15 @@ class PacketWorkflowTest extends MidolmanSpec {
         ddaRef = TestActorRef(ddaProps)(actorSystem)
         dda should not be null
         ddaRef ! DatapathController.DatapathReady(new Datapath(0, "midonet"), new DatapathState {
-            override def getDpPortForInterface(itfName: String): Option[DpPort] = ???
-            override def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] = ???
-            override def getVportForDpPortNumber(portNum: Integer): Option[UUID] = ???
-            override def getDpPortNumberForVport(vportId: UUID): Option[Integer] = ???
-            override def getDpPortName(num: Integer): Option[String] = ???
+            override def dpPortForTunnelKey(tunnelKey: Long): DpPort = ???
+            override def getVportForDpPortNumber(portNum: Integer): UUID = ???
+            override def getDpPortNumberForVport(vportId: UUID): Integer = ???
             override def host = new ResolvedHost(UUID.randomUUID(), true,
                                                  Map(), Map())
             override def peerTunnelInfo(peer: UUID): Option[Route] = ???
             override def isVtepTunnellingPort(portNumber: Integer): Boolean = ???
             override def isOverlayTunnellingPort(portNumber: Integer): Boolean = ???
             override def vtepTunnellingOutputAction: FlowActionOutput = ???
-            override def getDescForInterface(itfName: String) = ???
         })
     }
 

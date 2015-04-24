@@ -17,8 +17,11 @@ package org.midonet.midolman.datapath
 
 import java.util.{HashSet, UUID}
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
+import org.slf4j.LoggerFactory
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 
@@ -26,12 +29,11 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.datapath.DatapathPortEntangler.DpTriad
 import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.topology.rcu.PortBinding
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.{InternalPort, NetDevPort}
-import org.midonet.util.collection.Bimap
 import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
@@ -40,14 +42,12 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     val controller = new DatapathPortEntangler.Controller {
         var portCreated: DpPort = _
         var portRemoved: DpPort = _
-        var portUpdated: DpPort = _
         var portActive: Boolean = _
         var portNumbers = 0
 
         def clear(): Unit = {
             portCreated = null
             portRemoved = null
-            portUpdated = null
         }
 
         override def addToDatapath(interfaceName: String): Future[(DpPort, Int)] = {
@@ -62,11 +62,9 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             Future.successful(true)
         }
 
-        override def setVportStatus(port: DpPort, binding: PortBinding,
-                                    isActive: Boolean): Future[_] = {
-            portUpdated = port
+        override def setVportStatus(port: DpPort, vport: UUID, tunnelKey: Long,
+                                    isActive: Boolean): Unit = {
             portActive = isActive
-            Future.successful(null)
         }
     }
 
@@ -80,9 +78,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         val port: String
 
         def act(): Unit
-        def validate(prevInterfaceToStatus: Map[String, Boolean],
-                     prevInterfaceToVport: Bimap[String, UUID],
-                     prevInterfaceToDpPort: Map[String, DpPort]): Unit
+        def validate(prevInterfaceToTriad: Map[String, DpTriad]): Unit
     }
 
     case class Interface(port: String, isUp: Boolean, internal: Boolean = false) extends DatapathOperation {
@@ -95,38 +91,81 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             entangler.updateInterfaces(ifts)
         }
 
-        override def validate(prevInterfaceToStatus: Map[String, Boolean],
-                              prevInterfaceToVport: Bimap[String, UUID],
-                              prevInterfaceToDpPort: Map[String, DpPort]): Unit = {
+        override def validate(prevInterfaceToTriad: Map[String, DpTriad]): Unit = {
+            val newTriad = entangler.interfaceToTriad.get(port)
+            val oldTriad = prevInterfaceToTriad.get(port).orNull
 
-            entangler.interfaceToDescription(port).isUp should be (isUp)
+            if (controller.portCreated ne null) {
+                isUp should be (true)
 
-            if ((controller.portCreated ne null) || (controller.portUpdated ne null)) {
-                (prevInterfaceToVport contains port) should be (true)
-                (entangler.interfaceToVport contains port) should be (true)
-                (entangler.interfaceToDpPort contains port) should be (true)
-
-                if (controller.portCreated ne null) {
-                    (prevInterfaceToStatus contains port) should be (false)
-                    (prevInterfaceToDpPort contains port) should be(false)
-                    if (controller.portUpdated ne null) {
-                        isUp should be (true)
-                        controller.portActive should be (true)
-                    }
+                oldTriad.isUp should be (false)
+                oldTriad.vport should not be null
+                if (internal) {
+                    oldTriad.dpPort should not be null
+                    oldTriad.dpPortNo should not be null
                 } else {
-                    controller.portActive should be (isUp)
-                    if (!internal) {
-                        (prevInterfaceToStatus get port).get should be (!isUp)
-                    }
-                    (prevInterfaceToDpPort contains port) should be (true)
+                    oldTriad.dpPort should be (null)
+                    oldTriad.dpPortNo should be (null)
                 }
+
+                newTriad.isUp should be (isUp)
+                newTriad.vport should be (oldTriad.vport)
+                newTriad.dpPort should not be null
+                newTriad.dpPortNo should not be null
+
+                entangler.dpPortNumToTriad containsKey newTriad.dpPortNo should be (true)
+                entangler.vportToTriad containsKey newTriad.vport should be (true)
+                entangler.keyToTriad containsKey newTriad.tunnelKey should be (true)
+
+                controller.portActive should be (true)
             } else if (controller.portRemoved ne null) {
-                fail("port removed on interface update")
+                isUp should be (false)
+
+                oldTriad.isUp should be (true)
+                oldTriad.vport should not be null
+                oldTriad.dpPort should not be null
+                oldTriad.dpPortNo should not be null
+
+                newTriad.vport should not be null
+                newTriad.isUp should be (false)
+
+                if (internal) {
+                    newTriad.dpPort should not be null
+                    newTriad.dpPortNo should not be null
+                    entangler.interfaceToTriad containsKey port should be (true)
+                    entangler.dpPortNumToTriad containsKey newTriad.dpPortNo should be (true)
+                } else if (newTriad eq null) {
+                    newTriad.dpPort should be (null)
+                    newTriad.dpPortNo should be (null)
+                    entangler.interfaceToTriad containsKey port should be (false)
+                    entangler.dpPortNumToTriad containsKey oldTriad.dpPortNo should be (false)
+                }
+
+                entangler.vportToTriad containsKey newTriad.vport should be (true)
+                entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
+
+                controller.portActive should be (false)
             } else {
-                (prevInterfaceToVport contains port) should be (entangler.interfaceToVport contains port)
-                (prevInterfaceToDpPort contains port) should be (entangler.interfaceToDpPort contains port)
-                if (!internal) {
-                    (entangler.interfaceToVport contains port) should be (entangler.interfaceToDpPort contains port)
+                (oldTriad, newTriad) match {
+                    case (null, null) =>
+                        isUp should be (false)
+                        entangler.interfaceToTriad containsKey port should be (false)
+                    case (null, _) =>
+                        isUp should be (true)
+                        newTriad.isUp should be (true)
+                        newTriad.dpPort should be (null)
+                        entangler.interfaceToTriad containsKey port should be (true)
+                        newTriad.vport should be (null)
+                    case (_, null) =>
+                        oldTriad.vport should be (null)
+                        oldTriad.dpPort should be (null)
+                        entangler.interfaceToTriad containsKey port should be (false)
+                    case (_, _) =>
+                        newTriad.isUp should be (isUp)
+                        oldTriad.vport should be (newTriad.vport)
+                        oldTriad.dpPort should be (newTriad.dpPort)
+                        if (!internal)
+                            oldTriad.dpPortNo should be (newTriad.dpPortNo)
                 }
             }
         }
@@ -138,29 +177,59 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             entangler.updateInterfaces(new HashSet[InterfaceDescription]())
         }
 
-        override def validate(prevInterfaceToStatus: Map[String, Boolean],
-                              prevInterfaceToVport: Bimap[String, UUID],
-                              prevInterfaceToDpPort: Map[String, DpPort]): Unit = {
-
-            (entangler.interfaceToDescription contains port) should be (false)
-            (entangler.interfaceToDpPort contains port) should be (internal)
+        override def validate(prevInterfaceToTriad: Map[String, DpTriad]): Unit = {
+            val newTriad = entangler.interfaceToTriad.get(port)
+            val oldTriad = prevInterfaceToTriad.get(port).orNull
 
             if (controller.portCreated ne null) {
                 fail("port added on interface delete")
-            } else if ((controller.portRemoved ne null) || (controller.portUpdated ne null)) {
-                (prevInterfaceToStatus contains port) should be (true)
-                (prevInterfaceToVport contains port) should be (true)
-                (entangler.interfaceToVport contains port) should be (true)
-                (prevInterfaceToDpPort contains port) should be (true)
+            } else if (controller.portRemoved ne null) {
+                oldTriad.isUp should be (true)
+                oldTriad.vport should not be null
+                oldTriad.dpPort should not be null
+                oldTriad.dpPortNo should not be null
 
-                if (controller.portUpdated ne null) {
-                    controller.portActive should be (false)
-                    (prevInterfaceToStatus get port).get should be (true) // prev was up
+                newTriad.isUp should be (false)
+                newTriad.vport should not be null
+
+                if (internal) {
+                    newTriad.dpPort should not be null
+                    newTriad.dpPortNo should not be null
+                    entangler.interfaceToTriad containsKey port should be (true)
+                    entangler.dpPortNumToTriad containsKey newTriad.dpPortNo should be (true)
+                } else if (newTriad eq null) {
+                    newTriad.dpPort should be (null)
+                    newTriad.dpPortNo should be (null)
+                    entangler.interfaceToTriad containsKey port should be (false)
+                    entangler.dpPortNumToTriad containsKey oldTriad.dpPortNo should be (false)
                 }
+
+                entangler.vportToTriad containsKey newTriad.vport should be (true)
+                entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
+
+                controller.portActive should be (false)
             } else {
-                (prevInterfaceToVport contains port) should be (entangler.interfaceToVport contains port)
-                (prevInterfaceToDpPort contains port) should be (entangler.interfaceToDpPort contains port)
-                (prevInterfaceToDpPort contains port) should be (internal)
+                (oldTriad, newTriad) match {
+                    case (null, null) =>
+                        entangler.interfaceToTriad containsKey port should be (false)
+                    case (null, _) =>
+                        fail("interface delete created an entry for the interface")
+                    case (_, null) =>
+                        oldTriad.isUp should be (true)
+                        oldTriad.vport should be (null)
+                        oldTriad.dpPort should be (null)
+                        entangler.interfaceToTriad containsKey port should be (false)
+                    case (_, _) =>
+                        newTriad.isUp should be (false)
+                        if (!internal) {
+                            oldTriad.isUp should be (newTriad.isUp)
+                            oldTriad.vport should not be null
+                        }
+                        oldTriad.vport should be (newTriad.vport)
+                        oldTriad.dpPort should be (newTriad.dpPort)
+                        if (!internal)
+                            oldTriad.dpPortNo should be (newTriad.dpPortNo)
+                }
             }
         }
     }
@@ -168,41 +237,57 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     case class VportBindingAdded(port: String, uuid: UUID, internal: Boolean = false) extends DatapathOperation {
 
         override def act(): Unit = {
-            val bridgePort = new BridgePort() {
-                id = uuid
-                interfaceName = port
-            }
             entangler.updateVPortInterfaceBindings(Map(uuid -> PortBinding(uuid, 1L, port)))
         }
 
-        override def validate(prevInterfaceToStatus: Map[String, Boolean],
-                              prevInterfaceToVport: Bimap[String, UUID],
-                              prevInterfaceToDpPort: Map[String, DpPort]): Unit = {
+        override def validate(prevInterfaceToTriad: Map[String, DpTriad]): Unit = {
+            val newTriad = entangler.interfaceToTriad.get(port)
+            val oldTriad = prevInterfaceToTriad.get(port).orNull
 
-            (entangler.interfaceToVport get port).get should be (uuid)
-
-            if ((controller.portCreated ne null) || (controller.portUpdated ne null)) {
-                (prevInterfaceToStatus contains port) should be (true)
-                (entangler.interfaceToDescription contains port) should be (true)
-                if (!internal) {
-                    (prevInterfaceToDpPort contains port) should be (false)
-                }
-                (entangler.interfaceToDpPort contains port) should be (true)
-
-                if (controller.portUpdated ne null) {
-                    controller.portActive should be (true)
-                    (prevInterfaceToStatus get port).get should be (true)
+            if (controller.portCreated ne null) {
+                oldTriad.isUp should be (true)
+                oldTriad.vport should be (null)
+                if (internal) {
+                    oldTriad.dpPort should not be null
+                    oldTriad.dpPortNo should not be null
                 } else {
-                    (prevInterfaceToStatus get port).get should be (false)
+                    oldTriad.dpPort should be (null)
+                    oldTriad.dpPortNo should be (null)
                 }
+
+                newTriad.isUp should be (true)
+                newTriad.vport should be (uuid)
+                newTriad.dpPort should not be null
+                newTriad.dpPortNo should not be null
+
+                entangler.dpPortNumToTriad containsKey newTriad.dpPortNo should be (true)
+                entangler.vportToTriad containsKey newTriad.vport should be (true)
+                entangler.keyToTriad containsKey newTriad.tunnelKey should be (true)
+
+                controller.portActive should be (true)
             } else if (controller.portRemoved ne null) {
                 fail("port removed on new binding")
             } else {
-                (prevInterfaceToStatus get port) should be (for {
-                    ifDesc <- entangler.interfaceToDescription.get(port)
-                } yield ifDesc.isUp)
-                (prevInterfaceToDpPort contains port) should be (
-                    entangler.interfaceToDpPort contains port)
+                (oldTriad, newTriad) match {
+                    case (null, null) =>
+                        fail("new binding didn't create an entry")
+                    case (null, _) =>
+                        newTriad.vport should not be null
+                        newTriad.dpPort should be (null)
+                        entangler.dpPortNumToTriad containsKey newTriad.dpPortNo should be (false)
+                        entangler.vportToTriad containsKey newTriad.vport should be (true)
+                        entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
+                    case (_, null) =>
+                        fail("new binding deleted an entry")
+                    case (_, _) =>
+                        oldTriad.isUp should be (newTriad.isUp)
+                        if (!internal)
+                            oldTriad.vport should be (newTriad.vport)
+
+                        oldTriad.dpPort should be (newTriad.dpPort)
+                        if (!internal)
+                            oldTriad.dpPortNo should be (newTriad.dpPortNo)
+                }
             }
         }
     }
@@ -213,32 +298,56 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
             entangler.updateVPortInterfaceBindings(Map())
         }
 
-        override def validate(prevInterfaceToStatus: Map[String, Boolean],
-                              prevInterfaceToVport: Bimap[String, UUID],
-                              prevInterfaceToDpPort: Map[String, DpPort]): Unit = {
-
-            (entangler.interfaceToVport contains port) should be (false)
-            (entangler.interfaceToDpPort contains port) should be (internal)
+        override def validate(prevInterfaceToTriad: Map[String, DpTriad]): Unit = {
+            val newTriad = entangler.interfaceToTriad.get(port)
+            val oldTriad = prevInterfaceToTriad.get(port).orNull
 
             if (controller.portCreated ne null) {
-                fail("port created on binding delete")
-            } else if ((controller.portRemoved ne null) || (controller.portUpdated ne null)) {
-                (prevInterfaceToVport contains port) should be (true)
-                (prevInterfaceToStatus contains port) should be (true)
-                (entangler.interfaceToDescription contains port) should be (true)
-                (prevInterfaceToDpPort contains port) should be (true)
+                fail("port created on new deleted binding")
+            } else if (controller.portRemoved ne null) {
+                oldTriad.isUp should be (true)
+                oldTriad.vport should not be null
+                oldTriad.dpPort should not be null
+                oldTriad.dpPortNo should not be null
 
-                if (controller.portUpdated ne null) {
-                    controller.portActive should be (false)
-                    (prevInterfaceToStatus get port).get should be (true) // prev was up
+                newTriad.isUp should be (true)
+                newTriad.vport should be (null)
+
+                if (internal) {
+                    newTriad.dpPort should not be null
+                    newTriad.dpPortNo should not be null
+                    entangler.interfaceToTriad containsKey port should be (true)
+                    entangler.dpPortNumToTriad containsKey newTriad.dpPortNo should be (true)
+                } else if (newTriad eq null) {
+                    newTriad.dpPort should be (null)
+                    newTriad.dpPortNo should be (null)
+                    entangler.interfaceToTriad containsKey port should be (false)
+                    entangler.dpPortNumToTriad containsKey oldTriad.dpPortNo should be (false)
                 }
-            } else {
-                (prevInterfaceToStatus get port) should be (for {
-                    ifDesc  <- entangler.interfaceToDescription.get(port)
-                } yield ifDesc.isUp)
 
-                (prevInterfaceToDpPort contains port) should be (
-                    entangler.interfaceToDpPort contains port)
+                entangler.vportToTriad containsKey port should be (false)
+                entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
+
+                controller.portActive should be (false)
+            } else {
+                (oldTriad, newTriad) match {
+                    case (null, null) =>
+                        entangler.interfaceToTriad containsKey port should be (false)
+                    case (null, _) =>
+                        fail("deleting binding created an entry")
+                    case (_, null) =>
+                        oldTriad.isUp should be (false)
+                        oldTriad.vport should not be null
+                        oldTriad.dpPort should be (null)
+                        entangler.interfaceToTriad containsKey port should be (false)
+                    case (_, _) =>
+                        oldTriad.isUp should be (newTriad.isUp)
+                        if (!internal)
+                            oldTriad.vport should be (newTriad.vport)
+                        oldTriad.dpPort should be (newTriad.dpPort)
+                        if (!internal)
+                            oldTriad.dpPortNo should be (newTriad.dpPortNo)
+                }
             }
         }
     }
@@ -266,20 +375,26 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     }
 
     def validateHistory(history: Iterator[DatapathOperation]): Unit = {
-        var i = 0
+        var arrayBuffer = new ArrayBuffer[DatapathOperation]
         try {
             history foreach { op =>
-                i += 1
-                val prevInterfaceToStatus =
-                    entangler.interfaceToDescription.mapValues(_.isUp)
-                val prevInterfaceToVport = entangler.interfaceToVport
-                val prevInterfaceToDpPort = entangler.interfaceToDpPort
+                arrayBuffer += op
+                val prevInterfaceToTriad = (entangler.interfaceToTriad.values() map {
+                    case triad: DpTriad =>
+                        val newTriad = DpTriad(triad.ifname)
+                        newTriad.isUp = triad.isUp
+                        newTriad.vport = triad.vport
+                        newTriad.tunnelKey = triad.tunnelKey
+                        newTriad.dpPort = triad.dpPort
+                        newTriad.dpPortNo = triad.dpPortNo
+                        (triad.ifname, newTriad)
+                }).toMap
                 op.act()
-                op.validate(prevInterfaceToStatus, prevInterfaceToVport, prevInterfaceToDpPort)
+                op.validate(prevInterfaceToTriad)
                 controller.clear()
             }
         } catch { case e: Throwable =>
-            throw new Exception(s"Failed with history = ${history.take(i).toList}", e)
+            throw new Exception(s"Failed with history = $arrayBuffer", e)
         }
     }
 
@@ -301,10 +416,9 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                 Future.successful(true)
             }
 
-            override def setVportStatus(port: DpPort, binding: PortBinding,
-                                        isActive: Boolean): Future[_] = {
+            override def setVportStatus(port: DpPort, vport: UUID, tunnelKey: Long,
+                                        isActive: Boolean): Unit = {
                 portActive = isActive
-                Future.successful(null)
             }
         }
 
@@ -317,20 +431,21 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         val id = UUID.randomUUID()
         val binding = new PortBinding(id, 1, "eth1")
         val desc = new InterfaceDescription("eth1")
+        desc.setUp(true)
         entangler.updateVPortInterfaceBindings(Map(id -> binding))
         entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
 
         controller.portActive should be (false)
-        entangler.interfaceToDescription("eth1") should be (desc)
-        entangler.bindings("eth1") should be (binding)
-        entangler.interfaceToVport.get("eth1") should be (Some(id))
-        entangler.dpPortNumToInterface.get(1) should be (None)
-        entangler.interfaceToDpPort.get("eth1") should be (None)
+        entangler.interfaceToTriad containsKey "eth1" should be (true)
+        entangler.vportToTriad containsKey id should be (true)
+        entangler.dpPortNumToTriad containsKey 1 should be (false)
+        entangler.keyToTriad containsKey 1 should be (false)
 
         entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
 
-        entangler.dpPortNumToInterface(1) should be ("eth1")
-        entangler.interfaceToDpPort("eth1") should be (
+        (entangler.interfaceToTriad get "eth1" dpPort) should be (
             DpPort.fakeFrom(new NetDevPort("eth1"), 1))
+        entangler.dpPortNumToTriad containsKey 1 should be (true)
+        entangler.keyToTriad containsKey 1L should be (true)
     }
 }
