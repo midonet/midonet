@@ -97,6 +97,9 @@ class ObservableNodeCache(zk: CuratorFramework,
                     else
                         stream.onCompleted()
             }
+            ObservableNodeCache.this.synchronized {
+                ObservableNodeCache.this.notifyAll()
+            }
         }
     }
 
@@ -109,6 +112,25 @@ class ObservableNodeCache(zk: CuratorFramework,
             newState match {
                 case ConnectionState.LOST => close()
                 case _ =>
+            }
+        }
+    }
+
+    /*
+     * Blocks until the nodeCache's content is up to date with version
+     */
+    def waitForVersion(version: Int) {
+        this.synchronized {
+            while (!terminated.get() &&
+                   ((current eq null) ||
+                    (current.getStat.getVersion < version))) {
+                try {
+                    wait()
+                } catch {
+                    case e: InterruptedException =>
+                        Thread.currentThread().interrupt()
+                        return
+                }
             }
         }
     }
@@ -159,6 +181,9 @@ class ObservableNodeCache(zk: CuratorFramework,
         nodeCacheListener = null
         connListener = null
         nodeCache.close()
+        this.synchronized {
+            notifyAll()
+        }
     }
 
     /** Exposes updates on this node as observables since the moment when the

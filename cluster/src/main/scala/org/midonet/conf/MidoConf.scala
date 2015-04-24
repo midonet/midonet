@@ -20,6 +20,7 @@ import java.io._
 import java.net.{URL, URI}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.LockSupport
 import java.util.zip.ZipInputStream
 
 import com.typesafe.scalalogging.Logger
@@ -586,6 +587,7 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
                 if (!conf.isEmpty) {
                     val newconf = conf.root().render(renderOpts).getBytes
                     zk.create().creatingParentsIfNeeded().forPath(path, newconf)
+                    cache.waitForVersion(Int.MinValue)
                     true
                 } else {
                     false
@@ -596,7 +598,11 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
                 val conf = changeset(oldConf)
                 if (conf ne oldConf) {
                     val newconfStr = conf.root().render(renderOpts).getBytes
-                    zk.setData().withVersion(version).forPath(path, newconfStr)
+                    val stat = zk.setData().withVersion(version).forPath(path, newconfStr)
+                    cache.waitForVersion(stat.getVersion)
+                    do {
+                        LockSupport.parkNanos(1L)
+                    } while (cache.current.getStat.getVersion == version)
                     true
                 } else {
                     false
