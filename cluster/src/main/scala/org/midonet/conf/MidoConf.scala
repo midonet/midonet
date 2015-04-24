@@ -578,6 +578,13 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
 
     override def close() = cache.close()
 
+    private def updateAndBlockUntil(cond: ChildData => Boolean)(update: => Unit) {
+        val iter = cache.observable.filter(makeFunc1(cond(_))).
+                toBlocking.latest().iterator()
+        update
+        iter.next()
+    }
+
     override protected def modify(changeset: Config => Config): Boolean = {
         val zkdata = cache.current
         try {
@@ -585,7 +592,9 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
                 val conf = changeset(ConfigFactory.empty)
                 if (!conf.isEmpty) {
                     val newconf = conf.root().render(renderOpts).getBytes
-                    zk.create().creatingParentsIfNeeded().forPath(path, newconf)
+                    updateAndBlockUntil(_.getStat ne null) {
+                        zk.create().creatingParentsIfNeeded().forPath(path, newconf)
+                    }
                     true
                 } else {
                     false
@@ -596,7 +605,9 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
                 val conf = changeset(oldConf)
                 if (conf ne oldConf) {
                     val newconfStr = conf.root().render(renderOpts).getBytes
-                    zk.setData().withVersion(version).forPath(path, newconfStr)
+                    updateAndBlockUntil(_.getStat.getVersion > version) {
+                        zk.setData().withVersion(version).forPath(path, newconfStr)
+                    }
                     true
                 } else {
                     false
