@@ -145,7 +145,9 @@ public class L3ZkManager extends BaseZkManager {
     public void prepareDeleteRouter(List<Op> ops, UUID id)
             throws SerializationException, StateAccessException {
 
-        RouterConfig config = routerZkManager.get(id);
+        ops.add(zk.getDeleteOp(paths.getNeutronRouterPath(id)));
+
+        RouterConfig config = routerZkManager.tryGet(id);
         if (config == null)
             return;
 
@@ -163,8 +165,6 @@ public class L3ZkManager extends BaseZkManager {
                 ResourceType.ROUTER.toString(), id);
         zk.removeLastOp(ops, inRefPath);
         zk.removeLastOp(ops, outRefPath);
-
-        ops.add(zk.getDeleteOp(paths.getNeutronRouterPath(id)));
     }
 
     public void prepareUpdateRouter(List<Op> ops, Router router)
@@ -302,9 +302,10 @@ public class L3ZkManager extends BaseZkManager {
         // Not all VM images supports DHCP option 121.  Add a route for the
         // Metadata server in the router to forward the packet to the bridge
         // that will send them to the Metadata Proxy.
-        routeZkManager.preparePersistPortRouteCreate(ops, UUID.randomUUID(),
-            IPv4Subnet.fromCidr(subnet.cidr), MetaDataService.IPv4_SUBNET,
-            routerPortId, nextHopAddr, routerId, rpCfg);
+        routeZkManager.preparePersistPortRouteCreate(
+            ops, UUID.randomUUID(), IPv4Subnet.fromCidr(subnet.cidr),
+            MetaDataService.IPv4_SUBNET, routerPortId, nextHopAddr, routerId,
+            rpCfg);
     }
 
     private void prepareRemoveMetadataServiceRoute(List<Op> ops, UUID routerId,
@@ -380,7 +381,7 @@ public class L3ZkManager extends BaseZkManager {
         // Remove all the NAT rules referencing this port from the tenant
         // router.
         PortConfig peer = portZkManager.getPeerPort(port.id);
-        RouterConfig rCfg = routerZkManager.get(peer.device_id);
+        RouterConfig rCfg = routerZkManager.tryGet(peer.device_id);
         ruleZkManager.prepareDeleteSourceNatRules(ops, rCfg.inboundFilter,
             rCfg.outboundFilter, port.firstIpv4Addr(), peer.id);
     }
