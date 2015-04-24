@@ -22,6 +22,30 @@
       "revId": "c95ad27eab6ae0eb6ac2089ca5be5856ef51e428",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dfc97e27",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualTopologyRedirectorTest.scala",
+        "patchSetId": 30
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-24T13:39:59Z",
+      "side": 1,
+      "message": "In that case, the second sender.await would expire, but it would not generate an exception, so the code would continue and the check against the last value detected would still be correct.",
+      "parentUuid": "1a106d94_1f59568e",
+      "range": {
+        "startLine": 590,
+        "startChar": 12,
+        "endLine": 590,
+        "endChar": 32
+      },
+      "revId": "c95ad27eab6ae0eb6ac2089ca5be5856ef51e428",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
