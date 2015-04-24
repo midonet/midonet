@@ -22,6 +22,30 @@
       "revId": "b0110b82f3eba588ba943f1aa996546de1448676",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1282edc7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-24T16:37:51Z",
+      "side": 1,
+      "message": "yeah, that\u0027s the approach i took for the state tables. i was being lazy, but i guess now i have no choice :)",
+      "parentUuid": "1a106d94_33dd78e1",
+      "range": {
+        "startLine": 142,
+        "startChar": 35,
+        "endLine": 142,
+        "endChar": 37
+      },
+      "revId": "b0110b82f3eba588ba943f1aa996546de1448676",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
