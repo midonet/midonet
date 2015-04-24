@@ -116,6 +116,15 @@ class ObservableNodeCache(zk: CuratorFramework,
     nodeCache.getListenable.addListener(nodeCacheListener)
     zk.getConnectionStateListenable.addListener(connListener)
 
+    /**
+     * Rebuild the internal cache, blockingly. After this method returns
+     * nodeCache current is guaranteed to contain any changes to the node
+     * whose write() calls completed before rebuild() was invoked.
+     */
+    def rebuild(): Unit = {
+        nodeCache.rebuild()
+    }
+
     /** Return the current state of the watched node, or null if the node is
       * not tracked, or has been deleted. */
     def current = nodeCache.getCurrentData

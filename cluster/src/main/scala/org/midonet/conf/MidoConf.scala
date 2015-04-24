@@ -586,6 +586,7 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
                 if (!conf.isEmpty) {
                     val newconf = conf.root().render(renderOpts).getBytes
                     zk.create().creatingParentsIfNeeded().forPath(path, newconf)
+                    cache.rebuild()
                     true
                 } else {
                     false
@@ -597,6 +598,7 @@ class ZookeeperConf(zk: CuratorFramework, path: String) extends MidoConf with
                 if (conf ne oldConf) {
                     val newconfStr = conf.root().render(renderOpts).getBytes
                     zk.setData().withVersion(version).forPath(path, newconfStr)
+                    cache.rebuild()
                     true
                 } else {
                     false
