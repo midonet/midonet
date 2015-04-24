@@ -140,13 +140,9 @@ Building debian packages:
 
     ~/midonet$ ./gradlew debian -x test
 
-RPM packages targeted for RHEL 6.5:
-
-    ~/midonet$ ./gradlew rpm -x test
-
 RHEL 7 packages:
 
-    ~/midonet$ ./gradlew rpm -x test -PrhelTarget=7
+    ~/midonet$ ./gradlew rpm -x test
 
 On ubuntu this requires the rpm tools which you can install with
 
