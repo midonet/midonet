@@ -84,11 +84,6 @@ object RoutingHandler {
     private case class DpPortCreateSuccess(port: DpPort, pid: Int)
     private case class DpPortDeleteSuccess(port: DpPort)
     private case class DpPortError(port: String, ex: Throwable)
-
-    // For testing
-    case class BGPD_STATUS(port: UUID, isActive: Boolean)
-
-    case class PEER_ROUTE_ADDED(router: UUID, route: Route)
 }
 
 /**
@@ -415,17 +410,13 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             if (log.underlying.isDebugEnabled)
                 bgpVty.setDebug(isEnabled = true)
 
+            // BGP routes are added on:
+            // - createSession method
+            // - received from BGPListBuilder
             theBgpSession foreach {
                 createSession(rport.portAddr.getAddress, _)
             }
 
-            // BGP routes are added on:
-            // - create method
-            // - received from BGPListBuilder
-
-            log.debug("({}) announcing we are BGPD_STATUS active", phase)
-            context.system.eventStream.publish(
-                BGPD_STATUS(rport.id, true))
 
         case AddPeerRoute(ribType, destination, gateway, distance) =>
             log.info(s"($phase) AddPeerRoute: $ribType, $destination, $gateway, $distance")
@@ -559,8 +550,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             val routeId = dataClient.routesCreateEphemeral(route)
             peerRoutes.put(route, routeId)
             log.debug("({}) announcing we've added a peer route", phase)
-            context.system.eventStream.publish(
-                new PEER_ROUTE_ADDED(rport.deviceId, route))
 
         case RemovePeerRoute(ribType, destination, gateway) =>
             log.info(s"($phase) RemovePeerRoute: $ribType, $destination, $gateway")
@@ -723,9 +712,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
         // Delete port from datapath
         dpPorts.get(BGP_NETDEV_PORT_NAME) foreach removeDpPort
-
-        log.debug("({}) announcing BGPD_STATUS inactive", phase)
-        context.system.eventStream.publish(BGPD_STATUS(rport.id, false))
 
         self ! BGPD_DEAD
     }
