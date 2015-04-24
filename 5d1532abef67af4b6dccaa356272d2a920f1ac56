@@ -16,6 +16,24 @@
       "revId": "5d1532abef67af4b6dccaa356272d2a920f1ac56",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_72a88177",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 687,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-24T16:25:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_728b6168",
+      "revId": "5d1532abef67af4b6dccaa356272d2a920f1ac56",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
