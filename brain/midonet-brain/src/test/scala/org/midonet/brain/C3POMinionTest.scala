@@ -545,7 +545,12 @@ class C3POMinionTest extends C3POMinionTestBase {
         network1.getId shouldBe toProto(network1Uuid)
         network1.getName shouldBe network1Name
         network1.getAdminStateUp shouldBe true
-        eventually(getLastProcessedIdFromTable shouldBe Some(2))
+        eventually {
+            // Updating the last processed task ID is a separate call to MySQL
+            // after the translation and persisting of the results, therefore
+            // needs a separate eventually block.
+            getLastProcessedIdFromTable shouldBe Some(2)
+        }
 
         eventually(checkReplTables(network1Uuid, shouldExist = true))
 
@@ -576,6 +581,9 @@ class C3POMinionTest extends C3POMinionTestBase {
             network1a.getId shouldBe toProto(network1Uuid)
             network1a.getName shouldBe "public-network"
             network1a.getAdminStateUp shouldBe false
+        }
+        eventually {
+            // Similarly, a separate MySQL call, a separate eventually block.
             getLastProcessedIdFromTable shouldBe Some(4)
         }
 
@@ -584,8 +592,11 @@ class C3POMinionTest extends C3POMinionTestBase {
                 id = 5, Delete, NetworkType, json = "", network1Uuid, "tx3"))
         eventually {
             storage.exists(classOf[Network], network1Uuid).await() shouldBe false
-            getLastProcessedIdFromTable shouldBe Some(5)
             checkReplTables(network1Uuid, shouldExist = false)
+        }
+        eventually {
+            // Similarly, a separate MySQL call, a separate eventually block.
+            getLastProcessedIdFromTable shouldBe Some(5)
         }
 
         // Empties the Task table and flushes the Topology.
@@ -609,9 +620,12 @@ class C3POMinionTest extends C3POMinionTestBase {
                  nwExists <- storage.exists(classOf[Network], id)) {
                 nwExists shouldBe true
             }
-            getLastProcessedIdFromTable shouldBe Some(3)
             checkReplTables(network1Uuid, shouldExist = true)
             checkReplTables(network2Uuid, shouldExist = true)
+        }
+        eventually {
+            // Similarly, a separate MySQL call, a separate eventually block.
+            getLastProcessedIdFromTable shouldBe Some(3)
         }
     }
 
