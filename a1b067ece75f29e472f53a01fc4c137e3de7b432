@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_3cf8a0c2",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbTranslator.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-24T07:23:58Z",
+      "side": 1,
+      "message": "s/Midonet/MidoNet/",
+      "range": {
+        "startLine": 67,
+        "startChar": 37,
+        "endLine": 67,
+        "endChar": 44
+      },
+      "revId": "a1b067ece75f29e472f53a01fc4c137e3de7b432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
