@@ -17,7 +17,11 @@ package org.midonet.brain.services.c3po.translators
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.brain.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
@@ -27,9 +31,6 @@ import org.midonet.cluster.models.Topology.{Port, Route, Router}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.util.concurrent.toFutureOps
-import org.scalatest.junit.JUnitRunner
-
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase {
