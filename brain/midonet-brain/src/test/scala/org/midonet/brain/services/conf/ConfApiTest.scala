@@ -26,7 +26,6 @@ import org.apache.curator.test.TestingServer
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 import org.junit.runner.RunWith
-import org.scalatest.concurrent.Eventually
 
 import org.midonet.brain.{BrainConfig, ClusterNode}
 import org.midonet.conf.{MidoNodeConfigurator, MidoTestConfigurator, HostIdGenerator}
@@ -85,8 +84,7 @@ class ConfApiTest extends FeatureSpecLike
                             with BeforeAndAfterAll
                             with BeforeAndAfter
                             with GivenWhenThen
-                            with ZookeeperTestSuite
-                            with Eventually {
+                            with ZookeeperTestSuite {
 
     HostIdGenerator.useTemporaryHostId()
 
@@ -159,10 +157,8 @@ class ConfApiTest extends FeatureSpecLike
         post("conf/template-mappings", assignment)
 
         Then("getting the mappings should return the same set")
-        eventually {
-            val mappings = get("conf/template-mappings")
-            mappings.getString(nodeId) should be("the_template")
-        }
+        val mappings = get("conf/template-mappings")
+        mappings.getString(nodeId) should be("the_template")
 
         var runtimeConf = get(s"conf/runtime-config/$nodeId")
         intercept[ConfigException.Missing] {
@@ -173,10 +169,8 @@ class ConfApiTest extends FeatureSpecLike
         post("conf/template/the_template", template)
 
         Then("the runtime configuration for a node assigned to the template should include that content")
-        eventually {
-            runtimeConf = get(s"conf/runtime-config/$nodeId")
-            runtimeConf.getString("the.name") should be ("seven")
-        }
+        runtimeConf = get(s"conf/runtime-config/$nodeId")
+        runtimeConf.getString("the.name") should be ("seven")
     }
 
     scenario("lists templates") {
@@ -190,12 +184,10 @@ class ConfApiTest extends FeatureSpecLike
         post("conf/template/vandelay", vandelay)
 
         Then("the list of templates should contain the new templates")
-        eventually {
-            val templates = get("conf/template-list").getStringList("templates")
-            templates should contain ("seven")
-            templates should contain ("vandelay")
-            templates should have size (2 + origSize)
-        }
+        val templates = get("conf/template-list").getStringList("templates")
+        templates should contain ("seven")
+        templates should contain ("vandelay")
+        templates should have size (2 + origSize)
     }
 
     def testWritableSource(path: String) {
@@ -210,12 +202,11 @@ class ConfApiTest extends FeatureSpecLike
         post(path, newTemplateStr)
 
         Then("the returned content is parsed as valid config and contains the same keys and values")
-        eventually {
-            val wrote = get(path)
-            wrote.getDuration("foo.bar", TimeUnit.MILLISECONDS) should be (100)
-            wrote.getString("another.option") should be ("string value")
-            wrote.getInt("and.yet.another") should be (42)
-        }
+        val wrote = get(path)
+        wrote.getDuration("foo.bar", TimeUnit.MILLISECONDS) should be (100)
+        wrote.getString("another.option") should be ("string value")
+        wrote.getInt("and.yet.another") should be (42)
+
         When("A piece of configuration is deleted")
         delete(path) should be (200)
         And("fetched again")
