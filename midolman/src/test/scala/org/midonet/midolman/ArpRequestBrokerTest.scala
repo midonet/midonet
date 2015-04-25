@@ -315,10 +315,10 @@ class ArpRequestBrokerTest extends Suite
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, THEIR_MAC)
         eventually {
             arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
-            arpBroker.process()
-            for (f <- futures) {
-                eventually { f.value should be (Some(Success(THEIR_MAC))) }
-            }
+            arpBroker.shouldProcess() should be (true)
+        }
+        for (f <- futures) {
+            f.value should be (Some(Success(THEIR_MAC)))
         }
     }
 
