@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_263a4be7",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-25T12:43:56Z",
+      "side": 1,
+      "message": "I don\u0027t think this is a good idea, you\u0027re forcing synchronisation on all users of this observable, not only your subscriber.\n\nIncidentally, I think we should use a private lock for this purpose, not `this`. But I think we should go for a different solution anyway.",
+      "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2611ab5d",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-25T12:43:56Z",
+      "side": 1,
+      "message": "I think this is loading the ONC with responsibilities that are not its own. The ONC models a simple update stream. It\u0027s up to subscribers to decide when to process updates (block until an expected value is received, etc.), deal with their own concurrency model, etc. without impacting other subscribers of the same observable.\n\nI think you can achieve the same goal in a much cleaner way using Observable operators. If I understand the code in MidoConf correctly, what you want is to ignore all updates until the emitted value has is \u003e\u003d version. You can do so like this (assuming o is an ObservableNodeCache[ChildData]))\n\no.filter(_.getStat.getVersion \u003e version)\n\nif you just care about the first element (I seem to remember this was the case) and want to block until it\u0027s emitted, then do:\n\no.filter(_.getStat.getVersion \u003e version).toBlocking.first\n\nif you want to get all the elements, but block until the next one is emitted, use .next instead of .first\n\nYou can also turn .first() into a future using .toFuture\n\nhttps://github.com/ReactiveX/RxJava/wiki/Blocking-Observable-Operators",
+      "range": {
+        "startLine": 122,
+        "startChar": 8,
+        "endLine": 122,
+        "endChar": 22
+      },
+      "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
