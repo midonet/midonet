@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_6128ade2",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-04-26T06:54:05Z",
+      "side": 1,
+      "message": "Following the spec format in openstack/neutron, it contains Performance Impact chapter. I think it makes sense to add it here as well, to add information regarding expected performance degradation once flow tracing is enabled.",
+      "revId": "1ee9cea20080f91fb042b0f716292bd5d4a23a25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
