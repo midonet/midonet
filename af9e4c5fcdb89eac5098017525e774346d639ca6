@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_61042d4a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-26T16:30:38Z",
+      "side": 1,
+      "message": "scala\u003e trait Foo {\n       |   val i: Int\n       |   println(i)\n       |   lazy val j: Int \u003d i + 1\n       | }\n  defined trait Foo\n  \n  scala\u003e class Bar(val x: Int \u003d 42) extends Foo { override val i: Int \u003d x + 1 }\n  defined class Bar\n  \n  scala\u003e val b \u003d new Bar\n  0\n  b: Bar \u003d Bar@6a2bcfcb\n  \n  scala\u003e class LazyBar(val x: Int \u003d 42) extends Foo { override lazy val i: Int \u003d x + 1 }\n  defined class LazyBar\n  \n  scala\u003e val lb \u003d new LazyBar\n  43\n  lb: LazyBar \u003d LazyBar@47ef968d\n\n\nand line 93 of https://review.gerrithub.io/#/c/218410/12/netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+      "parentUuid": "1a106d94_076d96cc",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e7715aa9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 10
@@ -30,6 +48,24 @@
       "writtenOn": "2015-04-23T13:04:40Z",
       "side": 1,
       "message": "why not a PublishSubject?",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c59d2c68",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-26T16:30:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_e7715aa9",
       "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_08d003c8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-26T16:30:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_476aeeb3",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c7841e60",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 10
@@ -64,6 +118,24 @@
       "writtenOn": "2015-04-23T13:04:40Z",
       "side": 1,
       "message": "This is not called by the DatapathController thread, is it? If not, it needs to be because dpState is not thread safe. \n\nI\u0027d consider using the ReactiveActor trait in midonet-util.",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a59ab06b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-26T16:30:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c7841e60",
       "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_48dddbdf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 293,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-26T16:30:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_2767f2ea",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e77f9a64",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 10
@@ -98,6 +188,81 @@
       "writtenOn": "2015-04-23T13:04:40Z",
       "side": 1,
       "message": "it seems you\u0027re just aliasing notificationSubject. what\u0027s the point?",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_058bc41f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-26T16:30:38Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_e77f9a64",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_88f07392",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-26T16:30:38Z",
+      "side": 1,
+      "message": "Memo to myself: import order",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a8328f5c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 199,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-26T16:30:38Z",
+      "side": 1,
+      "message": "Memo to myself: Remove this",
+      "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_48283be2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 342,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-04-26T16:30:38Z",
+      "side": 1,
+      "message": "no",
+      "range": {
+        "startLine": 342,
+        "startChar": 30,
+        "endLine": 342,
+        "endChar": 33
+      },
       "revId": "af9e4c5fcdb89eac5098017525e774346d639ca6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
