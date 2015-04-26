@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_4153f16a",
+        "filename": "specs/2015.02/tracing_api.md",
+        "patchSetId": 8
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-04-26T07:36:48Z",
+      "side": 1,
+      "message": "Please add some clarification who is the user in this context. In case we want this API to be consumed by admin/tenant, then I think the device type should be one of the high level objects, i.e network, router, port.",
+      "revId": "1ee9cea20080f91fb042b0f716292bd5d4a23a25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6128ade2",
         "filename": "specs/2015.02/tracing_api.md",
         "patchSetId": 8
