@@ -39,6 +39,30 @@
       "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_853cd4c9",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-04-26T11:24:11Z",
+      "side": 1,
+      "message": "Please review the new version.",
+      "parentUuid": "1a106d94_2611ab5d",
+      "range": {
+        "startLine": 122,
+        "startChar": 8,
+        "endLine": 122,
+        "endChar": 22
+      },
+      "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
