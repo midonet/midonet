@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_2b396f41",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-27T08:38:28Z",
+      "side": 1,
+      "message": "Overhead is negligible. Can be easily optimized.",
+      "parentUuid": "1a106d94_263a4be7",
+      "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_2611ab5d",
         "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
         "patchSetId": 2
@@ -54,6 +72,30 @@
       "side": 1,
       "message": "Please review the new version.",
       "parentUuid": "1a106d94_2611ab5d",
+      "range": {
+        "startLine": 122,
+        "startChar": 8,
+        "endLine": 122,
+        "endChar": 22
+      },
+      "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_cb47fbba",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-27T08:38:28Z",
+      "side": 1,
+      "message": "Galo, that approach does not work in the presence of multiple writers (you don\u0027t want \u003e version, you want \u003d\u003d version). The general pattern is:\n\nval version \u003d fetchVersion(set(...))\nonc.waitForVersion(version)\n\nWhich is more or less like a ZK sync. \n\nThis primitive can be synchronous or asynchronous, but I do think it makes sense to have it as a primitive here instead of ad-hoc code.",
+      "parentUuid": "1a106d94_853cd4c9",
       "range": {
         "startLine": 122,
         "startChar": 8,
