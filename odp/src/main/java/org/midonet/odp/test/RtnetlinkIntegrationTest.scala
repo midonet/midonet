@@ -26,7 +26,8 @@ import scala.concurrent.{Future, Promise}
 import scala.sys.process._
 
 import org.slf4j.{Logger, LoggerFactory}
-import rx.Observer
+import rx.{Observable, Observer}
+import rx.subjects.PublishSubject
 
 import org.midonet.netlink._
 import org.midonet.netlink.rtnetlink._
@@ -34,6 +35,8 @@ import org.midonet.odp.util.TapWrapper
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.IntegrationTests._
 import org.midonet.util.concurrent.NanoClock
+import org.midonet.util.functors._
+
 
 object TestableSelectorBasedRtnetlinkConnection extends
         RtnetlinkConnectionFactory[TestableSelectorBasedRtnetlinkConnection] {
@@ -565,6 +568,26 @@ trait RtnetlinkTest {
     }
     val NewNeighNotificationTest: LazyTest = () => newNeighNotificationTest
 
+    def listLinksAndAddrs: Test = {
+        val desc ="""listing addresses following right after listing links
+                    |should not experience [16] Resource or device busy.
+                  """.stripMargin.replaceAll("\n", " ")
+        implicit val promise = Promise[String]()
+
+        val linksSubject = PublishSubject.create[Set[Link]]
+        val addrsSubject = PublishSubject.create[Set[Addr]]
+
+        Observable.zip[Set[Link], Set[Addr], Boolean](
+            linksSubject, addrsSubject, makeFunc2((links, addrs) => true))
+            .subscribe(TestObserver { _: Boolean => promise.trySuccess(OK)} )
+
+        conn.linksList(linksSubject)
+        conn.addrsList(addrsSubject)
+
+        (desc, promise.future)
+    }
+    val ListLinksAndAddrs: LazyTest = () => listLinksAndAddrs
+
     val LinkTests: LazyTestSuite = Seq(ListlinkNumberTest, GetLinkTest,
         NewLinkNotificationTest)
     val AddrTests: LazyTestSuite = Seq(ListAddrTest, GetAddrTest,
@@ -572,10 +595,11 @@ trait RtnetlinkTest {
     val RouteTests: LazyTestSuite = Seq(GetRouteTest, ListRouteTest,
         NewRouteNotificationTest)
     val NeighTests: LazyTestSuite = Seq(ListNeighTest, NewNeighNotificationTest)
+
+    val CombinationTests: LazyTestSuite = Seq(ListLinksAndAddrs)
 }
 
 class RtnetlinkIntegrationTestBase extends RtnetlinkTest {
-    val sendPool = new BufferPool(10, 20, 1024)
     override val conn = TestableSelectorBasedRtnetlinkConnection()
 
     def run(): Boolean = {
@@ -586,6 +610,7 @@ class RtnetlinkIntegrationTestBase extends RtnetlinkTest {
             passed &= printReport(runLazySuite(AddrTests))
             passed &= printReport(runLazySuite(RouteTests))
             passed &= printReport(runLazySuite(NeighTests))
+            passed &= printReport(runLazySuite(CombinationTests))
         } finally {
             stop()
             conn.stop()
