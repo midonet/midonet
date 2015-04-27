@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 
 package org.midonet.util
 
-import scala.concurrent.duration.{Duration, DurationLong}
+import scala.concurrent.duration.DurationLong
 
 import org.scalatest.concurrent.Eventually
 
@@ -26,6 +26,5 @@ import org.scalatest.concurrent.Eventually
  * the timeout used in tests, update the expiration value below.
  */
 trait MidonetEventually extends Eventually {
-    val expiration: Duration = 3 seconds
-    override implicit val patienceConfig = PatienceConfig(timeout = scaled(expiration))
+    override implicit val patienceConfig = PatienceConfig(timeout = scaled(5 seconds))
 }
