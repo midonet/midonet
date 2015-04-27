@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ce5389e0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-27T10:28:07Z",
+      "side": 1,
+      "message": "Minor comment: Why not passing the DHCP config as a constructor parameter?",
+      "range": {
+        "startLine": 141,
+        "startChar": 12,
+        "endLine": 141,
+        "endChar": 56
+      },
+      "revId": "05c65b1e03dceafa0a6c81282fab325864e53fb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0e0801d9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketsEntryPoint.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-27T10:28:07Z",
+      "side": 1,
+      "message": "Can this be a class member? Or do we expect the implementation to switch between the legacy and new stack?",
+      "range": {
+        "startLine": 152,
+        "startChar": 0,
+        "endLine": 158,
+        "endChar": 9
+      },
+      "revId": "05c65b1e03dceafa0a6c81282fab325864e53fb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6e1ff508",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 729,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-27T10:28:07Z",
+      "side": 1,
+      "message": "If this is a Seq, then the toList wouldn\u0027t be needed.",
+      "range": {
+        "startLine": 729,
+        "startChar": 43,
+        "endLine": 729,
+        "endChar": 50
+      },
+      "revId": "05c65b1e03dceafa0a6c81282fab325864e53fb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ce18a920",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/simulation/DhcpConfigFromZoomTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-27T10:28:07Z",
+      "side": 1,
+      "message": "Import order.",
+      "revId": "05c65b1e03dceafa0a6c81282fab325864e53fb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
