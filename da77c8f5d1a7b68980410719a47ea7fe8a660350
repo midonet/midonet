@@ -105,6 +105,30 @@
       "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8edfd168",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T09:56:58Z",
+      "side": 1,
+      "message": "After a f2f chat:\n\n- The approach works in this case (and the implementation provided in th new patch) because you use a set with version, so we\u0027re guaranteed that the filter condition evaluates properly.\n\n- The solution won\u0027t work so cleanly in a case where you don\u0027t use the set with version. There, you\u0027d rely on zxid, which you only know after doing the set, and you need to make sure that the observable is subscribed to before doing the update so the client side code might be a bit uglier.\n\n- D and myself disagree on whether the non-set-with-version use case needs to be considered now. IMO, given that the current use case works with the solution on (3), we should keep it as it uses standard Observable operators. D thinks it\u0027s worth considering the non-set-with-version use case.\n\nYou decide :P",
+      "parentUuid": "1a106d94_cb47fbba",
+      "range": {
+        "startLine": 122,
+        "startChar": 8,
+        "endLine": 122,
+        "endChar": 22
+      },
+      "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
