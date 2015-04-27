@@ -129,6 +129,30 @@
       "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6ec37589",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-27T10:01:37Z",
+      "side": 1,
+      "message": "Yeah, it\u0027s not like this is a very critical thing. I\u0027m fine with whatever approach :-)",
+      "parentUuid": "1a106d94_8edfd168",
+      "range": {
+        "startLine": 122,
+        "startChar": 8,
+        "endLine": 122,
+        "endChar": 22
+      },
+      "revId": "da77c8f5d1a7b68980410719a47ea7fe8a660350",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
