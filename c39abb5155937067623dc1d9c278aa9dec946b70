@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_6bafe72a",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-04-27T09:20:04Z",
+      "side": 1,
+      "message": "Okay, so I just need to double check.  We really are changing this value from literal \"2\" to \"16\", correct?  It WAS being treated as a binary 010, but now will be treated as a hexadecimal 0x010?  Will this affect other code that uses this flag which is now drastically changing in value?  Was there a failure that was being caused by the fact that this value had the incorrect value?",
+      "revId": "c39abb5155937067623dc1d9c278aa9dec946b70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
