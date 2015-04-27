@@ -438,7 +438,9 @@ class PacketWorkflow(
             context.flowRemovedCallbacks.runAndClear()
             UserspaceFlow
         } else {
-            applyState(context)
+            if (!context.isDrop) {
+                applyState(context)
+            }
             dpChannel.executePacket(context.packet, context.packetActions)
             handleFlow(context, expiration)
         }
@@ -470,20 +472,19 @@ class PacketWorkflow(
             }
         }
 
-    def applyState(context: PacketContext): Unit =
-        if (!context.isDrop) {
-            context.log.debug("Applying connection state")
-            replicator.accumulateNewKeys(context.conntrackTx,
-                                         context.natTx,
-                                         context.traceTx,
-                                         context.inputPort,
-                                         context.outPorts,
-                                         context.flowTags,
-                                         context.flowRemovedCallbacks)
-            replicator.pushState(dpChannel)
-            context.conntrackTx.commit()
-            context.natTx.commit()
-            context.traceTx.commit()
+    def applyState(context: PacketContext): Unit = {
+        context.log.debug("Applying connection state")
+        replicator.accumulateNewKeys(context.conntrackTx,
+                                     context.natTx,
+                                     context.traceTx,
+                                     context.inputPort,
+                                     context.outPorts,
+                                     context.flowTags,
+                                     context.flowRemovedCallbacks)
+        replicator.pushState(dpChannel)
+        context.conntrackTx.commit()
+        context.natTx.commit()
+        context.traceTx.commit()
     }
 
     private def handlePacketIngress(context: PacketContext): SimulationResult = {
@@ -537,6 +538,8 @@ class PacketWorkflow(
                 sendPacket(context)
                 PacketWorkflow.GeneratedPacket
             case NoOp =>
+                if (context.containsFlowState)
+                    applyState(context)
                 context.flowRemovedCallbacks.runAndClear()
                 resultLogger.debug(s"no-op for match ${context.origMatch} " +
                                    s"tags ${context.flowTags}")
