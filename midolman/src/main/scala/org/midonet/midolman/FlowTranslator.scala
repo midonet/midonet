@@ -168,9 +168,9 @@ trait FlowTranslator {
                 ports = ports.tail
                 if (port.hostId == dpState.host.id) {
                     val portNo = dpState.getDpPortNumberForVport(port.id)
-                    if (portNo.isDefined) {
+                    if (portNo ne null) {
                         context.outPorts.add(port.id)
-                        outputActionsForLocalPort(portNo.get, context)
+                        outputActionsForLocalPort(portNo, context)
                     }
                 }
             }
@@ -225,23 +225,21 @@ trait FlowTranslator {
     }
 
     private def expandPortAction(port: UUID, context: PacketContext): Unit =
-        dpState.getDpPortNumberForVport(port) map { portNum =>
-            context.outPorts.add(port)
-            // If the DPC has a local DP port for this UUID, translate
-            outputActionsForLocalPort(portNum, context)
-        } getOrElse {
-            // Otherwise we translate to a remote port or a vtep peer
-            // VxLanPort is a subtype of exterior port,
-            // therefore it needs to be matched first.
-            tryAsk[Port](port) match {
-                case p: VxLanPort =>
-                    outputActionsToVtep(p.vtepVni, p.vtepTunnelIp,
-                                        p.vtepTunnelZoneId, context)
-                case p: Port if p.isExterior =>
-                    context.outPorts.add(port)
-                    outputActionsToPeer(p.tunnelKey, p.hostId, context)
-                case _ =>
-                    context.log.warn("Port {} was not exterior", port)
-            }
+        dpState.getDpPortNumberForVport(port) match {
+            case null => // Translate to a remote port or a vtep peer.
+                tryAsk[Port](port) match {
+                    case p: VxLanPort => // Always exterior
+                        outputActionsToVtep(p.vtepVni, p.vtepTunnelIp,
+                                            p.vtepTunnelZoneId, context)
+                    case p: Port if p.isExterior =>
+                        context.outPorts.add(port)
+                        outputActionsToPeer(p.tunnelKey, p.hostId, context)
+                    case _ =>
+                        context.log.warn("Port {} was not exterior", port)
+                }
+            case portNum =>
+                context.outPorts.add(port)
+                // If the DPC has a local DP port for this UUID, translate
+                outputActionsForLocalPort(portNum, context)
         }
 }

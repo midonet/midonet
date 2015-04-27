@@ -119,7 +119,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             addInterface()
 
             Then("the DpC should create the datapath port")
-            testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal None
+            testableDpc.dpState.getDpPortNumberForVport(port.getId) should not equal null
 
             And("the min MTU should be the default one")
             DatapathController.minMtu should be (
@@ -135,7 +135,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             interfaceScanner.removeInterface(ifname)
 
             Then("the DpC should delete the datapath port")
-            testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
+            testableDpc.dpState.getDpPortNumberForVport(port.getId) should be (null)
 
             And("the min MTU should be the default one")
             DatapathController.minMtu should be (DatapathController.defaultMtu)
@@ -166,7 +166,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             clusterDataClient.hostsDelVrnPortMapping(host.getId, port.getId)
 
             Then("the DpC should delete the datapath port")
-            testableDpc.dpState.getDpPortNumberForVport(port.getId) should equal (None)
+            testableDpc.dpState.getDpPortNumberForVport(port.getId) should be (null)
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false

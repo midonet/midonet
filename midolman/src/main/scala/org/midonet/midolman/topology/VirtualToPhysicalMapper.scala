@@ -337,12 +337,15 @@ trait DeviceManagement {
  * </li>
  * </ul>
  */
-abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
+abstract class VirtualToPhysicalMapperBase
+    extends VTPMRedirector with SubscriberActor {
 
     val cluster: DataClient
 
     import context.system
     import VirtualToPhysicalMapper._
+
+    override def subscribedClasses = Seq(classOf[LocalPortActive])
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean): Unit
 
@@ -505,7 +508,6 @@ abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
 
         case msg@LocalPortActive(id, active) =>
             notifyLocalPortActive(id, active)
-            context.system.eventStream.publish(msg)
 
         case value =>
             log.warn("Unknown message: {}" + value)

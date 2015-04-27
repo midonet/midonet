@@ -126,12 +126,12 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
                            " from underlay")
 
         val tunnelKey = context.wcmatch.getTunnelKey
-        dpState.dpPortNumberForTunnelKey(tunnelKey) match {
-            case Some(dpPort) =>
+        dpState.dpPortForTunnelKey(tunnelKey) match {
+            case null =>
+                processSimulationResult(context, TemporaryDrop)
+            case dpPort =>
                 addActionsForTunnelPacket(context, dpPort)
                 addTranslatedFlow(context, FlowExpiration.TUNNEL_FLOW_EXPIRATION)
-            case None =>
-                processSimulationResult(context, TemporaryDrop)
         }
     }
 }
@@ -477,12 +477,8 @@ class PacketWorkflow(
 
     private def resolveVport(context: PacketContext, inPortNo: Int): Boolean = {
         val inPortId = dpState getVportForDpPortNumber inPortNo
-        if (inPortId.isDefined) {
-            context.inputPort = inPortId.get
-            true
-        } else {
-            false
-        }
+        context.inputPort = inPortId
+        inPortId != null
     }
 
     private def handlePacketEgress(context: PacketContext) = {

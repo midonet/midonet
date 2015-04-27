@@ -35,7 +35,6 @@ import com.google.inject.Injector
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data._
 import org.midonet.midolman.datapath.DatapathChannel
-import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman._
 import org.midonet.midolman.PacketWorkflow.SimulationResult
@@ -266,16 +265,13 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override def isOverlayTunnellingPort(portNumber: Integer): Boolean =
                 tunnelPorts.contains(portNumber)
             override def vtepTunnellingOutputAction: FlowActionOutput = null
-            override def getDescForInterface(itfName: String): Option[InterfaceDescription] = None
-            override def getDpPortForInterface(itfName: String): Option[DpPort] = None
-            override def getVportForDpPortNumber(portNum: Integer): Option[UUID] =
-                dpPortToVport.get(portNum)
-            override def dpPortNumberForTunnelKey(tunnelKey: Long): Option[DpPort] =
-                Some(DpPort.fakeFrom(new InternalPort("dpPort-" + tunnelKey),
-                                     tunnelKey.toInt))
-            override def getDpPortNumberForVport(vportId: UUID): Option[Integer] =
-                dpPortToVport.map(_.swap).toMap.get(vportId).map(_.asInstanceOf[Integer])
-            override def getDpPortName(num: Integer): Option[String] =  None
+            override def getVportForDpPortNumber(portNum: Integer): UUID =
+                dpPortToVport get portNum orNull
+            override def dpPortForTunnelKey(tunnelKey: Long): DpPort =
+                DpPort.fakeFrom(new InternalPort("dpPort-" + tunnelKey),
+                                tunnelKey.toInt)
+            override def getDpPortNumberForVport(vportId: UUID): Integer =
+                (dpPortToVport map (_.swap) toMap) get vportId map Integer.valueOf orNull
         })
         pktWkfl
     }
