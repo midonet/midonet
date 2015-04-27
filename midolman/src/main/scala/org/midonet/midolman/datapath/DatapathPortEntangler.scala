@@ -187,7 +187,7 @@ trait DatapathPortEntangler {
             tryCreateDpPort(triad)
         } else if (!isUp) {
             deleteInterface(triad)
-        } else if (isDangling(itf, isUp)) {
+        } else if ((triad.dpPort ne null) && isDangling(itf, isUp)) {
             updateDangling(triad)
         } else {
             Future successful null
