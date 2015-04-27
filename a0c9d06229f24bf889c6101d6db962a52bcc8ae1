@@ -117,6 +117,230 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_39b3850b",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "nit: Map.empty",
+      "range": {
+        "startLine": 57,
+        "startChar": 17,
+        "endLine": 57,
+        "endChar": 23
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_19b849e4",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 62,
+        "startChar": 18,
+        "endLine": 62,
+        "endChar": 23
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_59cda184",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "remove? it\u0027ll be catched by the _ below (you can add if row !\u003dnull to the case below to make it clearer)",
+      "range": {
+        "startLine": 66,
+        "startChar": 12,
+        "endLine": 66,
+        "endChar": 57
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d9c19155",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "javadoc",
+      "range": {
+        "startLine": 75,
+        "startChar": 4,
+        "endLine": 76,
+        "endChar": 32
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d9a8718f",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "worth having these implicit?",
+      "range": {
+        "startLine": 87,
+        "startChar": 9,
+        "endLine": 87,
+        "endChar": 22
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d996b13e",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "filled.future.map(true).recover(false) maybe?",
+      "range": {
+        "startLine": 110,
+        "startChar": 8,
+        "endLine": 110,
+        "endChar": 32
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_19e169fe",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "won\u0027t compile, but I think you should be able to: \n\nFuture.sequence(f1, f2, f3..).map(b.map.(_ \u0026\u0026 available) ?\n\nor something in those lines",
+      "range": {
+        "startLine": 102,
+        "startChar": 4,
+        "endLine": 102,
+        "endChar": 55
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d93351a9",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/VtepDumpApp.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "VtepClientDump?\n\nWhen are you using this? Would it be better to have it as a JMX method so that we can use it to troubleshoot running code?\n\nIncidentally, I\u0027d also move it to its own patch",
+      "range": {
+        "startLine": 32,
+        "startChar": 7,
+        "endLine": 32,
+        "endChar": 18
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3925455c",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/VtepDumpApp.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "it\u0027s not disconnecting",
+      "range": {
+        "startLine": 44,
+        "startChar": 11,
+        "endLine": 44,
+        "endChar": 15
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_192a092c",
+        "filename": "brain/vtep/src/main/scala/org/midonet/vtep/VtepDumpApp.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T15:00:31Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_5995a185",
         "filename": "cluster/src/main/java/org/midonet/cluster/data/vtep/VtepException.java",
         "patchSetId": 90
