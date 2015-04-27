@@ -257,11 +257,15 @@ public class SecurityGroupZkManager extends BaseZkManager {
     public void prepareDeletePortSecurityGroup(List<Op> ops, Port port)
         throws SerializationException, StateAccessException {
 
-        PortConfig cfg = portZkManager.get(port.id);
         prepareDeletePortSecurityGroupBindings(ops, port);
 
         // Remove the port chains
-        prepareDeletePortChains(ops, cfg);
+        PortConfig cfg = portZkManager.tryGet(port.id);
+        // Sanity check to make sure the port config wasn't deleted oustide of
+        // neutron
+        if (cfg != null) {
+            prepareDeletePortChains(ops, cfg);
+        }
     }
 
     public void prepareUpdatePortSecurityGroupBindings(List<Op> ops,

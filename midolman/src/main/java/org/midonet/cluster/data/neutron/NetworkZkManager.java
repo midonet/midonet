@@ -87,15 +87,19 @@ public class NetworkZkManager extends BaseZkManager {
     public void prepareDeleteNetwork(List<Op> ops, UUID id)
         throws SerializationException, StateAccessException {
 
+        String path = paths.getNeutronNetworkPath(id);
+        ops.add(zk.getDeleteOp(path));
+
+        if (!bridgeZkManager.exists(id)) {
+            return;
+        }
+
         ops.addAll(bridgeZkManager.prepareBridgeDelete(id));
 
         // Delete Neutron subnets.  That should be the only thing that is still
         // left over after deleting the bridge.
         List<Subnet> subs = getSubnets(id);
         prepareDeleteNeutronSubnets(ops, subs);
-
-        String path = paths.getNeutronNetworkPath(id);
-        ops.add(zk.getDeleteOp(path));
     }
 
     public void prepareUpdateNetwork(List<Op> ops, Network network)
@@ -423,11 +427,12 @@ public class NetworkZkManager extends BaseZkManager {
      */
     public PortConfig prepareDeletePortConfig(List<Op> ops, UUID portId)
         throws SerializationException, StateAccessException {
-        try {
-            PortConfig p = portZkManager.get(portId);
+
+        PortConfig p = portZkManager.tryGet(portId);
+        if (p != null) {
             portZkManager.prepareDelete(ops, p, true);
             return p;
-        } catch (NoStatePathException ex) {
+        } else {
             log.warn("Non-existent port deletion attempted: {}", portId);
             return null;
         }
