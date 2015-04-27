@@ -93,6 +93,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_4b25cb5a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-27T06:24:19Z",
+      "side": 1,
+      "message": "Done: https://review.gerrithub.io/#/c/231469/",
+      "parentUuid": "1a106d94_eb0c77ef",
+      "range": {
+        "startLine": 52,
+        "startChar": 0,
+        "endLine": 53,
+        "endChar": 45
+      },
+      "revId": "b385d48ee8a7b9d4eb95a4b952fd5823b0052ee4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_4b0e6be6",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
         "patchSetId": 3
@@ -104,6 +128,30 @@
       "writtenOn": "2015-04-27T05:53:01Z",
       "side": 1,
       "message": "This, too.",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 32
+      },
+      "revId": "b385d48ee8a7b9d4eb95a4b952fd5823b0052ee4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8b222350",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VirtualToPhysicalMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-27T06:24:19Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_4b0e6be6",
       "range": {
         "startLine": 34,
         "startChar": 0,
