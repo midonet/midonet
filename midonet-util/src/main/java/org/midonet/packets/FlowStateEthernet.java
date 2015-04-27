@@ -87,7 +87,7 @@ public final class FlowStateEthernet extends Ethernet {
     public final static byte FLOW_STATE_IP_VERSION = (byte) 0x04;
     public final static byte FLOW_STATE_IP_HEADER_LENGTH = (byte) 0x05;
     public final static byte FLOW_STATE_IP_DIFF_SERV = (byte) 0x00;
-    public final static byte FLOW_STATE_IP_FLAGS = (byte) 0b010;
+    public final static byte FLOW_STATE_IP_FLAGS = (byte) 0x010;
     public final static short FLOW_STATE_IP_FRAGMENT_OFFSET = (short) 0;
     // TODO(tfukushima): Get the accurate TTL and use it if possible.
     public final static byte FLOW_STATE_IP_TTL = (byte) 64;
