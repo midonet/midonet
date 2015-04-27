@@ -91,6 +91,98 @@
       "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d9f07100",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/schema/Table.java",
+        "patchSetId": 90
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T14:00:58Z",
+      "side": 1,
+      "message": "javadoc this?",
+      "range": {
+        "startLine": 234,
+        "startChar": 4,
+        "endLine": 236,
+        "endChar": 7
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5995a185",
+        "filename": "cluster/src/main/java/org/midonet/cluster/data/vtep/VtepException.java",
+        "patchSetId": 90
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T14:00:58Z",
+      "side": 1,
+      "message": "As noted elsewhere, I think we should not pass the client but, the ip:port (which is what seems more relevant for the exception)",
+      "range": {
+        "startLine": 26,
+        "startChar": 17,
+        "endLine": 26,
+        "endChar": 29
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_397b857c",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/VtepDataClient.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T14:00:58Z",
+      "side": 1,
+      "message": "you can also use Observable.toBlocking.single.toFuture to save you most of this (I think).",
+      "range": {
+        "startLine": 84,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 10
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_995d5918",
+        "filename": "cluster/src/main/scala/org/midonet/cluster/data/vtep/model/VtepEntry.scala",
+        "patchSetId": 90
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T14:00:58Z",
+      "side": 1,
+      "message": "nit: move to\n\nVtepEntry(val uuid: UUID) ?",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 26,
+        "endChar": 18
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
