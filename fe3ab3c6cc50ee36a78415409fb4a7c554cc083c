@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_cb609bd1",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 548,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-27T04:23:53Z",
+      "side": 1,
+      "message": "I think this can be eventually(getLastProcessedIdFromTable shouldBe Some(2)), if you want to make it a bit more concise.",
+      "range": {
+        "startLine": 548,
+        "startChar": 8,
+        "endLine": 548,
+        "endChar": 18
+      },
+      "revId": "fe3ab3c6cc50ee36a78415409fb4a7c554cc083c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6b67e7e9",
+        "filename": "brain/midonet-brain/src/test/scala/org/midonet/brain/C3POMinionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-04-27T04:23:53Z",
+      "side": 1,
+      "message": "I would change this comment to something like this:\n\nC3PO updates the last processed ID with a MySQL call after committing the Zookeeper transaction. Check this in a separate eventually block to give it more time to complete and avoid unnecessarily checking both every iteration.",
+      "range": {
+        "startLine": 549,
+        "startChar": 11,
+        "endLine": 551,
+        "endChar": 49
+      },
+      "revId": "fe3ab3c6cc50ee36a78415409fb4a7c554cc083c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
