@@ -16,6 +16,24 @@
       "revId": "c39abb5155937067623dc1d9c278aa9dec946b70",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ab7c3fb6",
+        "filename": "midonet-util/src/main/java/org/midonet/packets/FlowStateEthernet.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T09:33:14Z",
+      "side": 1,
+      "message": "Yes, this is wrong and broke tests. I\u0027m submitting a new patch shortly (I was in a meeting)",
+      "parentUuid": "1a106d94_6bafe72a",
+      "revId": "c39abb5155937067623dc1d9c278aa9dec946b70",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
