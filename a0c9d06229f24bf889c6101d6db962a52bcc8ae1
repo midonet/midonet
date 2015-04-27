@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_cefa6942",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 90
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T12:35:47Z",
+      "side": 1,
+      "message": "I found it by the way. It\u0027s in MoreExecutors.sameThread or something like that (part of Guava)",
+      "range": {
+        "startLine": 57,
+        "startChar": 35,
+        "endLine": 57,
+        "endChar": 64
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_aef72d58",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 90
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T12:35:47Z",
+      "side": 1,
+      "message": "nit: HARDWARE_VTEP_SCHEMA, don\u0027t bother changing unless you do submit a patch.",
+      "range": {
+        "startLine": 74,
+        "startChar": 47,
+        "endLine": 74,
+        "endChar": 48
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0e98011b",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 90
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T12:35:47Z",
+      "side": 1,
+      "message": "why is the client needed?",
+      "range": {
+        "startLine": 89,
+        "startChar": 32,
+        "endLine": 89,
+        "endChar": 52
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ee9c8511",
+        "filename": "brain/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 90
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T12:35:47Z",
+      "side": 1,
+      "message": "thought: note that depending on the consumer\u0027s threading model, they might be hijacking your thread to do stuff. Do you want to protect against that with rx schedulers?",
+      "range": {
+        "startLine": 252,
+        "startChar": 43,
+        "endLine": 252,
+        "endChar": 49
+      },
+      "revId": "a0c9d06229f24bf889c6101d6db962a52bcc8ae1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
