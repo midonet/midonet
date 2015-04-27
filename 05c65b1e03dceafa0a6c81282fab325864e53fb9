@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_ee8f6528",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T10:41:47Z",
+      "side": 1,
+      "message": "see comment in the other file, yes.",
+      "parentUuid": "1a106d94_ce5389e0",
+      "range": {
+        "startLine": 141,
+        "startChar": 12,
+        "endLine": 141,
+        "endChar": 56
+      },
+      "revId": "05c65b1e03dceafa0a6c81282fab325864e53fb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_0e0801d9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/PacketsEntryPoint.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-27T10:28:07Z",
       "side": 1,
       "message": "Can this be a class member? Or do we expect the implementation to switch between the legacy and new stack?",
+      "range": {
+        "startLine": 152,
+        "startChar": 0,
+        "endLine": 158,
+        "endChar": 9
+      },
+      "revId": "05c65b1e03dceafa0a6c81282fab325864e53fb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2eb85de4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketsEntryPoint.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T10:41:47Z",
+      "side": 1,
+      "message": "in the current code the dhcpconfig is instantiated on demand, so I copied the same model, but you\u0027re right, better to go this way",
+      "parentUuid": "1a106d94_0e0801d9",
       "range": {
         "startLine": 152,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_0e8be11f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 729,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T10:41:47Z",
+      "side": 1,
+      "message": "it\u0027s a Buffer unfortunately",
+      "parentUuid": "1a106d94_6e1ff508",
+      "range": {
+        "startLine": 729,
+        "startChar": 43,
+        "endLine": 729,
+        "endChar": 50
+      },
+      "revId": "05c65b1e03dceafa0a6c81282fab325864e53fb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_ce18a920",
         "filename": "midolman/src/test/scala/org/midonet/midolman/simulation/DhcpConfigFromZoomTest.scala",
         "patchSetId": 3
@@ -82,6 +154,24 @@
       "writtenOn": "2015-04-27T10:28:07Z",
       "side": 1,
       "message": "Import order.",
+      "revId": "05c65b1e03dceafa0a6c81282fab325864e53fb9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_aec3ad55",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/simulation/DhcpConfigFromZoomTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-27T10:41:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_ce18a920",
       "revId": "05c65b1e03dceafa0a6c81282fab325864e53fb9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
