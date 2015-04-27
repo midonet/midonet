@@ -301,6 +301,8 @@
         <option value="_______ blank line _______" />
         <option value="scala" />
         <option value="_______ blank line _______" />
+        <option value="akka" />
+        <option value="_______ blank line _______" />
         <option value="antenna" />
         <option value="_______ blank line _______" />
         <option value="antlr" />
@@ -444,6 +446,8 @@
         <option value="lti" />
         <option value="_______ blank line _______" />
         <option value="memetic" />
+        <option value="_______ blank line _______" />
+        <option value="mockito" />
         <option value="_______ blank line _______" />
         <option value="mt" />
         <option value="_______ blank line _______" />
