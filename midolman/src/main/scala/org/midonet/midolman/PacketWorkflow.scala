@@ -491,7 +491,12 @@ class PacketWorkflow(
         val res = result match {
             case AddVirtualWildcardFlow =>
                 concludeSimulation(context)
+            case _ if context.isGenerated =>
+                context.flowRemovedCallbacks.runAndClear()
+                NoOp
             case NoOp =>
+                if (context.containsFlowState)
+                    applyState(context)
                 context.flowRemovedCallbacks.runAndClear()
                 NoOp
             case TemporaryDrop =>
@@ -518,6 +523,7 @@ class PacketWorkflow(
                 }
             addTranslatedFlow(context, expiration)
         } else {
+            // Generated packets are return packets, so we don't apply flow state
             context.flowRemovedCallbacks.runAndClear()
             PacketWorkflow.GeneratedPacket
         }
