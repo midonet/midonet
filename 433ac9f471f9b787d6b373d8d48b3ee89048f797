@@ -22,6 +22,30 @@
       "revId": "433ac9f471f9b787d6b373d8d48b3ee89048f797",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ba32c3ef",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-04-28T08:28:01Z",
+      "side": 1,
+      "message": "It should be here. The condition reads \"if there is a datapath port and it is dangling, then update it\".",
+      "parentUuid": "1a106d94_1f394941",
+      "range": {
+        "startLine": 190,
+        "startChar": 19,
+        "endLine": 190,
+        "endChar": 41
+      },
+      "revId": "433ac9f471f9b787d6b373d8d48b3ee89048f797",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
