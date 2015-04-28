@@ -220,6 +220,9 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
      */
     private
     def makeObs(buf: ByteBuffer): Observable[Set[InterfaceDescription]] = {
+        if (buf.remaining() < NetlinkMessage.HEADER_SIZE) {
+            return Observable.empty()
+        }
         val NetlinkHeader(_, nlType, _, seq, _) =
             NetlinkUtil.readNetlinkHeader(buf)
         if (seq != NotificationSeq && !isAddrNotification(nlType)) {
