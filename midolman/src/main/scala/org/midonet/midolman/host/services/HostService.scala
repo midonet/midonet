@@ -53,7 +53,7 @@ import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.{StateAccessException, ZkManager}
 
 object HostService {
-    val InterfacesTimeoutInSecs = 2
+    val InterfacesTimeoutInSecs = 7
 
     class HostIdAlreadyInUseException(message: String)
         extends Exception(message)
