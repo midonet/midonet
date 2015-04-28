@@ -333,7 +333,7 @@ trait RtnetlinkTest {
                      |of `ip addr list`.
                    """.stripMargin.replaceAll("\n", " ")
         val obs = TestObserver { addrs: Set[Addr] =>
-            val ipAddrsNum = ("ip address list" #| "grep -v inet6" #|
+            val ipAddrsNum = ("ip address list" #|
                 "grep inet" #| "wc -l" !!).trim.toInt
             addrs.size == ipAddrsNum
         }
@@ -354,15 +354,15 @@ trait RtnetlinkTest {
         }
 
         val obs = TestObserver { addrs: Set[Addr] =>
-            val ipAddrsNum = (s"ip addr show dev $tapName" #| "grep -v inet6" #|
+            val ipAddrsNum = (s"ip addr show dev $tapName" #|
                 "grep inet" #| "wc -l" !!).trim.toInt
             val filteredAddrs = addrs.filter(_.ifa.index == tapId)
-            filteredAddrs.size == ipAddrsNum && filteredAddrs.forall {
+            filteredAddrs.size == ipAddrsNum && filteredAddrs.exists {
                 addr: Addr =>
                     addr.ifa.index == tapId &&
                         addr.ifa.prefixLen == 32 &&
-                        addr.ipv4.size() == 1 // &&
-                        // addr.ipv4.head == IPv4Addr.fromString(TestIpAddr)
+                        addr.ipv4.size() == 1 &&
+                        addr.ipv4.get(0) == IPv4Addr.fromString(TestIpAddr)
             }
         }(promise)
 

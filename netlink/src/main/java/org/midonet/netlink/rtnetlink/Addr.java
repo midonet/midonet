@@ -215,7 +215,7 @@ public class Addr implements AttributeHandler, RtnetlinkResource {
     }
 
     static public ByteBuffer describeListRequest(ByteBuffer buf) {
-        return describeGetRequest(buf, 0, Family.AF_INET);
+        return describeGetRequest(buf, 0, Family.AF_UNSPEC);
     }
 
     static public ByteBuffer describeGetRequest(ByteBuffer buf,
