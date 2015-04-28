@@ -118,13 +118,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                 bindingId, hostId, interfaceName, vifPortId).toString
         executeSqlStmts(insertTaskSql(
                 id = 5, Create, PortBindingType, bindingJson, bindingId, "tx5"))
-        eventually {
-            val boundHost = storage.get(classOf[Host], hostId).await()
-            boundHost.getPortBindingsCount shouldBe 1
-            val binding = boundHost.getPortBindings(0)
-            binding.getInterfaceName shouldBe interfaceName
-            binding.getPortId shouldBe toProto(vifPortId)
-        }
+        eventually(checkPortBinding(hostId, vifPortId, interfaceName))
 
         // #6 Create an external Network
         val extNetworkId = UUID.randomUUID()

@@ -26,7 +26,9 @@ import scala.util.Failure
 
 import akka.actor._
 import akka.util.Timeout
+
 import com.google.inject.Inject
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.TunnelZone
@@ -36,10 +38,8 @@ import org.midonet.midolman._
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
-
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.devices.Host
-import org.midonet.midolman.topology.devices.{TunnelZone => NewTunnelZone}
+import org.midonet.midolman.topology.devices.{Host, TunnelZone => NewTunnelZone}
 import org.midonet.util.concurrent._
 
 object HostConfigOperation extends Enumeration {
@@ -342,10 +342,11 @@ abstract class VirtualToPhysicalMapperBase
 
     val cluster: DataClient
 
-    import context.system
     import VirtualToPhysicalMapper._
 
     override def subscribedClasses = Seq(classOf[LocalPortActive])
+
+    import context.system
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean): Unit
 

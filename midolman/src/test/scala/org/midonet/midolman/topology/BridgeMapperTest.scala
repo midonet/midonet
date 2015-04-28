@@ -19,20 +19,21 @@ import java.util.UUID
 
 import scala.concurrent.duration._
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 import rx.observers.TestObserver
 
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Network => TopologyBridge}
-import org.midonet.cluster.data.storage.{NotFoundException, UpdateOp, CreateOp, Storage}
+import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
+import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.simulation.{Bridge => SimulationBridge}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.{MAC, IPv4Addr}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
@@ -78,6 +79,12 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                     vt.threadId == Thread.currentThread.getId ||
                     threadId == Thread.currentThread.getId)
         }
+    }
+
+    private def createHostInStore(): UUID = {
+        val id = UUID.randomUUID()
+        store.create(createHost(id))
+        id
     }
 
     private def testBridgeCreated(bridgeId: UUID,
@@ -197,12 +204,13 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             val bridge = testBridgeCreated(bridgeId, obs)
+            val hostId = createHostInStore()
 
             When("Creating a first exterior port for the bridge")
             val portId1 = UUID.randomUUID
             val port1 = createBridgePort(id = portId1, bridgeId = Some(bridgeId),
-                                         hostId = Some(UUID.randomUUID),
-                                         interfaceName = Some("iface"))
+                                         hostId = Some(hostId),
+                                         interfaceName = Some("iface1"))
             store.create(port1)
 
             Then("The observer should receive the update")
@@ -217,8 +225,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             When("Creating a second exterior port for the bridge")
             val portId2 = UUID.randomUUID
             val port2 = createBridgePort(id = portId2, bridgeId = Some(bridgeId),
-                                         hostId = Some(UUID.randomUUID),
-                                         interfaceName = Some("iface"))
+                                         hostId = Some(hostId),
+                                         interfaceName = Some("iface2"))
             store.create(port2)
 
             Then("The observer should receive the update")
@@ -259,10 +267,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             val bridge = testBridgeCreated(bridgeId, obs)
+            val hostId = createHostInStore()
 
             When("Creating a first exterior port for the bridge")
             val portId = UUID.randomUUID
-            val hostId = UUID.randomUUID
             val port1 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          hostId = Some(hostId),
                                          interfaceName = Some("iface0"))
@@ -297,10 +305,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             val bridge = testBridgeCreated(bridgeId, obs)
+            val hostId = createHostInStore()
 
             When("Creating a first exterior port for the bridge")
             val portId = UUID.randomUUID
-            val hostId = UUID.randomUUID
             val port1 = createBridgePort(id = portId, bridgeId = Some(bridgeId))
             store.create(port1)
 
@@ -333,10 +341,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             val bridge = testBridgeCreated(bridgeId, obs)
+            val hostId = createHostInStore()
 
             When("Creating a first exterior port for the bridge")
             val portId = UUID.randomUUID
-            val hostId = UUID.randomUUID
             val port1 = createBridgePort(id = portId, bridgeId = Some(bridgeId),
                                          hostId = Some(hostId),
                                          interfaceName = Some("iface"))
@@ -1240,7 +1248,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             store.delete(classOf[TopologyPort], portId)
 
             Then("The observer should receive the update")
-            obs.awaitOnNext(4, timeout) should be (true)
+            obs.awaitOnNext(4, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(3)
             device shouldBeDeviceOf bridge
 
@@ -1304,11 +1312,12 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             val bridgeId = UUID.randomUUID
             val obs = createObserver()
             testBridgeCreated(bridgeId, obs)
+            val hostId = createHostInStore()
 
             When("Creating an exterior port for the bridge")
             val portId = UUID.randomUUID
             val port = createBridgePort(id = portId, bridgeId = Some(bridgeId),
-                                        hostId = Some(UUID.randomUUID),
+                                        hostId = Some(hostId),
                                         interfaceName = Some("iface"))
             store.create(port)
 

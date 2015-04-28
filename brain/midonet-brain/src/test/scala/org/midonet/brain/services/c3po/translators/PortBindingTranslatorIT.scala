@@ -18,8 +18,6 @@ package org.midonet.brain.services.c3po.translators
 
 import java.util.UUID
 
-import com.fasterxml.jackson.databind.JsonNode
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -28,7 +26,6 @@ import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkT
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
-import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -56,8 +53,7 @@ class PortBindingTranslatorIT extends C3POMinionTestBase {
         // Sets up a host. Needs to do this directly via Zoom as the Host info
         // is to be created by the Agent.
         val hostId = UUID.randomUUID()
-        val host = Host.newBuilder.setId(hostId).build()
-        backend.ownershipStore.create(host, hostId)
+        val host = createHost(hostId)
 
         // Creates a Port Binding
         val bindingUuid = UUID.randomUUID()
@@ -71,27 +67,19 @@ class PortBindingTranslatorIT extends C3POMinionTestBase {
                 "tx3"))
 
         // Tests that the host now has the binding to the port / interface.
-        eventually {
-            val boundHost = storage.get(classOf[Host], hostId).await()
-            boundHost.getPortBindingsCount shouldBe 1
-            val binding = boundHost.getPortBindings(0)
-            binding.getInterfaceName shouldBe interfaceName
-            binding.getPortId shouldBe toProto(vifPortUuid)
-        }
-        val boundPort = storage.get(classOf[Port], vifPortUuid).await()
-        boundPort.getHostId shouldBe toProto(hostId)
-        boundPort.getInterfaceName shouldBe interfaceName
+        eventually(checkPortBinding(hostId, vifPortUuid, interfaceName))
 
         // Deletes the Port Binding
         executeSqlStmts(insertTaskSql(
                 id = 5, Delete, PortBindingType, json = "", bindingUuid, "tx4"))
         eventually {
-            val boundHost = storage.get(classOf[Host], hostId).await()
-            boundHost.getPortBindingsCount shouldBe 0
+            val hostFtr = storage.get(classOf[Host], hostId)
+            val portFtr = storage.get(classOf[Port], vifPortUuid)
+            val (host, port) = (hostFtr.await(), portFtr.await())
+            host.getPortIdsCount shouldBe 0
+            port.hasHostId shouldBe false
+            port.hasInterfaceName shouldBe false
         }
-        val unbound = storage.get(classOf[Port], vifPortUuid).await()
-        unbound.hasHostId shouldBe false
-        unbound.hasInterfaceName shouldBe false
     }
 
 }
