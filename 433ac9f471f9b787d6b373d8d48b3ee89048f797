@@ -46,6 +46,30 @@
       "revId": "433ac9f471f9b787d6b373d8d48b3ee89048f797",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1a803745",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-28T08:49:03Z",
+      "side": 1,
+      "message": "I can read that much. I wonder if we might end up introducing the same null pointer exception bug again the next time we need to update a danged data path...",
+      "parentUuid": "1a106d94_ba32c3ef",
+      "range": {
+        "startLine": 190,
+        "startChar": 19,
+        "endLine": 190,
+        "endChar": 41
+      },
+      "revId": "433ac9f471f9b787d6b373d8d48b3ee89048f797",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
