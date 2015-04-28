@@ -173,19 +173,19 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         vtep1.memberships(0).name shouldBe mgr.lsName
 
         eventually {    // the initial state reaches the VTEP
-            vtep1MacRemotes.getOnNextEvents should have size 4
+            vtep1MacRemotes.getOnErrorEvents shouldBe empty
+            vtep1MacRemotes.getOnCompletedEvents shouldBe empty
+            vtep1MacRemotes.getOnNextEvents should contain only (
+                MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
+                MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
+                MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip)
+                // the last one might be duplicated because we emit the initial
+                // flooding proxy twice: first because it's the first
+                // subscription to the tz, another on the VTEP preseed, both
+                // race, so we just emit both.
+            )
         }
 
-        vtep1MacRemotes.getOnErrorEvents shouldBe empty
-        vtep1MacRemotes.getOnCompletedEvents shouldBe empty
-        vtep1MacRemotes.getOnNextEvents should contain only (
-            MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
-            MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip)
-            // the last one is duplicated because we emit the initial flooding
-            // proxy twice: first because it's the first subscription to the tz,
-            // another on the VTEP preseed, both race, so we just emit both.
-        )
         // We expect 4, but they are duplicate. This is because the
         // mgr initialization races with the first vtep load. We can't rely
         // on the mac-port watchers to be triggered in time to get to the VTEP
@@ -193,17 +193,16 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         When("a new mac-port entry is added")
         ctx.macPortMap.put(mac3, ctx.port1.getId)
-        eventually {
-           vtep1MacRemotes.getOnNextEvents should have size 5
-        }
 
         Then("the update should be received")
-        vtep1MacRemotes.getOnNextEvents should contain only (
-            MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
-            MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip), // x2
-            MacLocation(fromMac(mac3), null, mgr.lsName, host.ip)
-        )
+        eventually {
+            vtep1MacRemotes.getOnNextEvents should contain only (
+                MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
+                MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
+                MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip), // x2
+                MacLocation(fromMac(mac3), null, mgr.lsName, host.ip)
+            )
+        }
 
         When("a second VTEP is bound to the same neutron network (same VNI)")
         dataClient.bridgeCreateVxLanPort(ctx.nwId, vteps.ip2, VTEP_PORT, vni1,
@@ -252,14 +251,11 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("both VTEPs should see the update")
         eventually {
-            vtep1MacRemotes.getOnNextEvents should have size 7
-            vtep2MacRemotes.getOnNextEvents should have size 7
+            val vtepMac2 = VtepMAC.fromMac(mac2)
+            val newMl = MacLocation(vtepMac2, newIp, mgr.lsName, host.ip)
+            vtep1MacRemotes.getOnNextEvents.get(6) shouldBe newMl
+            vtep2MacRemotes.getOnNextEvents.get(6) shouldBe newMl
         }
-
-        val vtepMac2 = VtepMAC.fromMac(mac2)
-        val newMl = MacLocation(vtepMac2, newIp, mgr.lsName, host.ip)
-        vtep1MacRemotes.getOnNextEvents.get(6) shouldBe newMl
-        vtep2MacRemotes.getOnNextEvents.get(6) shouldBe newMl
 
         When("the VxLAN port corresponding to the first VTEP is deleted")
         dataClient.bridgeDeleteVxLanPort(vxPort1)
@@ -274,15 +270,14 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         dataClient.bridgeAddMacPort(ctx.nwId, UNTAGGED_VLAN_ID, mac1,
                                     ctx.port2.getId)
 
+        Then("the first VTEP won't receive any more updates")
         eventually {
             // we see an update and deletion
-            vtep2MacRemotes.getOnNextEvents should have size 9
+            vtep1MacRemotes.getOnNextEvents should have size 7
+            vtep1MacRemotes.getOnErrorEvents shouldBe empty
+            vtep1MacRemotes.getOnCompletedEvents shouldBe empty
         }
 
-        Then("the first VTEP won't receive any more updates")
-        vtep1MacRemotes.getOnNextEvents should have size 7
-        vtep1MacRemotes.getOnErrorEvents shouldBe empty
-        vtep1MacRemotes.getOnCompletedEvents shouldBe empty
 
         And("the second VTEP will receive the new one")
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
