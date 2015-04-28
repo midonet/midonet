@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_1f394941",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-04-28T03:59:00Z",
+      "side": 1,
+      "message": "Should this condition be part of isDangling or updateDangling? From your description that \"If the endpoint is not DATAPATH it means that this is a dangling tap. We need to recreate the dp port\", it sounds like that dp port exists is part of the condition for the tap being dangled. If not, since fixing the dangled tap practically means recreating the port, the null check should go inside updateDangling?",
+      "range": {
+        "startLine": 190,
+        "startChar": 19,
+        "endLine": 190,
+        "endChar": 41
+      },
+      "revId": "433ac9f471f9b787d6b373d8d48b3ee89048f797",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
