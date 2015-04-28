@@ -192,7 +192,9 @@ class PacketWorkflow(protected val dpState: DatapathState,
             // ApplyState needs to happen before we add the wildcard flow
             // because it adds callbacks to the PacketContext and it can also
             // result in a NotYet exception being thrown.
-            applyState(context, wildFlow.getActions)
+            if (wildFlow.getActions.nonEmpty) {
+                applyState(context)
+            }
             executePacket(context, wildFlow.getActions)
             handleFlow(context, wildFlow)
         }
@@ -249,18 +251,17 @@ class PacketWorkflow(protected val dpState: DatapathState,
         }
     }
 
-    def applyState(context: PacketContext, actions: Seq[FlowAction]): Unit =
-        if (!actions.isEmpty) {
-            context.log.debug("Applying connection state")
-            replicator.accumulateNewKeys(context.state.conntrackTx,
-                                         context.state.natTx,
-                                         context.inputPort,
-                                         context.outPorts,
-                                         context.flowTags,
-                                         context.flowRemovedCallbacks)
-            replicator.pushState(datapathConn(context))
-            context.state.conntrackTx.commit()
-            context.state.natTx.commit()
+    def applyState(context: PacketContext): Unit = {
+        context.log.debug("Applying connection state")
+        replicator.accumulateNewKeys(context.state.conntrackTx,
+                                     context.state.natTx,
+                                     context.inputPort,
+                                     context.outPorts,
+                                     context.flowTags,
+                                     context.flowRemovedCallbacks)
+        replicator.pushState(datapathConn(context))
+        context.state.conntrackTx.commit()
+        context.state.natTx.commit()
     }
 
     private def handlePacketWithCookie(context: PacketContext): PipelinePath = {
@@ -369,6 +370,7 @@ class PacketWorkflow(protected val dpState: DatapathState,
                 context.runFlowRemovedCallbacks()
                 sendPacket(context, actions)
             case NoOp =>
+                applyState(context)
                 context.runFlowRemovedCallbacks()
                 addToActionsCacheAndInvalidate(context, Nil)
                 resultLogger.debug(s"no-op for match ${context.origMatch} " +
