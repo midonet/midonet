@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman
 
+import java.util.concurrent.Executor
 import java.util.{UUID, ArrayDeque}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -112,6 +113,8 @@ class ArpRequestBrokerTest extends Suite
         context
     }
 
+    private var executor: ControllingThreadExecutor = _
+
     override def beforeAll() {
         ts = new TestingServer
         ts.start()
@@ -155,7 +158,8 @@ class ArpRequestBrokerTest extends Suite
 
         val invalidator: InvalidationSource = (t) => invalidations.add(t)
 
-        arpBroker = new ArpRequestBroker(emitter, invalidator, (delay) => {},
+        executor = new ControllingThreadExecutor()
+        arpBroker = new ArpRequestBroker(emitter, invalidator, executor,
             ARP_RETRY/1000, ARP_TIMEOUT/1000, ARP_STALE/1000, ARP_EXPIRATION/1000,
             clock)
         router = new Router(routerId, null, null, null, arpCache)(actorSystem)
@@ -252,9 +256,10 @@ class ArpRequestBrokerTest extends Suite
 
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
         eventually {
-            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+            executor.run() should be (1)
         }
 
+        arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
         arpBroker.process()
         for (f <- futures) {
             f.value should be (Some(Success(THEIR_MAC)))
@@ -266,43 +271,42 @@ class ArpRequestBrokerTest extends Suite
         arpBroker.process()
 
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, THEIR_MAC)
-        eventually {
-            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
-            arpBroker.process()
-            for (f <- futures) {
-                eventually { f.value should be (Some(Success(THEIR_MAC))) }
-            }
+        eventually { executor.run() should be (1) }
+        arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+        arpBroker.process()
+        for (f <- futures) {
+            f.value should be (Some(Success(THEIR_MAC)))
         }
     }
 
     def testInvalidatesFlowsRemotely(): Unit ={
         intercept[NotYetException] { arpBroker.get(THEIR_IP, port, router) }
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, THEIR_MAC)
-        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
+        eventually { executor.run() should be (1) }
+        arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
 
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, MAC.random())
-        eventually {
-            arpBroker.process()
-            invalidations should have size 1
-            invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
-        }
+        eventually { executor.run() should be (1) }
+        arpBroker.process()
+        invalidations should have size 1
+        invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
     }
 
     def testInvalidatesFlowsLocally(): Unit = {
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
-        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
+        eventually { executor.run() should be (1) }
+        arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
 
         arpBroker.set(THEIR_IP, MAC.random(), router)
-        eventually {
-            arpBroker.process()
-            invalidations should have size 1
-            invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
-        }
+        eventually { executor.run() should be (1) }
+        invalidations should have size 1
+        invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
     }
 
     def testArpForStaleEntries(): Unit = {
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
-        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
+        eventually { executor.run() should be (1) }
+        arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
         arpBroker.process()
         arpBroker.shouldProcess() should be (false)
 
@@ -320,9 +324,11 @@ class ArpRequestBrokerTest extends Suite
         expectEmitArp()
 
         arpBroker.set(THEIR_IP, MAC.random(), router)
-        eventually { arpBroker.shouldProcess() should be (true) }
+        eventually { executor.run() should be (1) }
+        arpBroker.shouldProcess() should be (false)
         arpBroker.process()
         clock.time += (ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong * 2
+        arpBroker.shouldProcess() should be (true)
         arpBroker.process()
         arps should be ('empty)
 
@@ -334,7 +340,8 @@ class ArpRequestBrokerTest extends Suite
 
     def testExpiresEntries(): Unit = {
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
-        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
+        eventually { executor.run() should be (1) }
+        arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
         arpBroker.process()
         arps.clear()
 
@@ -344,5 +351,21 @@ class ArpRequestBrokerTest extends Suite
             arpCache.get(THEIR_IP) should be (null)
         }
         arps should be ('empty)
+    }
+
+   class ControllingThreadExecutor extends Executor {
+        val queue = new java.util.concurrent.ConcurrentLinkedQueue[Runnable]()
+        override def execute(command: Runnable): Unit = {
+            queue.add(command)
+        }
+
+        def run(): Int = {
+            var i = 0
+            while (!queue.isEmpty) {
+                queue.poll().run()
+                i += 1
+            }
+            i
+        }
     }
 }

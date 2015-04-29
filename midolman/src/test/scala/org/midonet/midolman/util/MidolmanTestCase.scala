@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.util
 
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{Executor, TimeUnit}
 import java.util.concurrent.locks.ReentrantLock
 import java.util.{ArrayList, UUID, List => JList}
 
@@ -130,8 +130,11 @@ trait MidolmanTestCase extends Suite with BeforeAndAfter
     implicit protected def system: ActorSystem = actors
     implicit protected def executor: ExecutionContext = actors.dispatcher
 
+    val NO_OP_EXECUTOR = new Executor {
+        override def execute(command: Runnable) {}
+    }
     val arpBroker = new ArpRequestBroker(PacketsEntryPoint ! _,
-        FlowController ! InvalidateFlowsByTag(_), (_) => {}, 1, 3, 5, 10)
+        FlowController ! InvalidateFlowsByTag(_), NO_OP_EXECUTOR, 1, 3, 5, 10)
 
     protected def newProbe(): TestProbe = {
         new TestProbe(actors)

@@ -17,9 +17,11 @@ package org.midonet.midolman.state
 
 import java.lang.{Long => JLong}
 import java.util
-import java.util.concurrent.{TimeUnit, ConcurrentLinkedQueue}
+import java.util.concurrent.{Executor, TimeUnit, ConcurrentLinkedQueue}
 import java.util.{ArrayDeque, Comparator, PriorityQueue, UUID}
 
+import akka.actor.ActorSystem
+import akka.dispatch.Dispatcher
 import org.midonet.midolman.DeduplicationActor.EmitGeneratedPacket
 import org.midonet.midolman.state.ArpRequestBroker.{InvalidationSource, PacketEmitter}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -85,7 +87,7 @@ object ArpRequestBroker {
  */
 class ArpRequestBroker(emitter: PacketEmitter,
                        invalidator: InvalidationSource,
-                       processCb: (FiniteDuration) => Unit,
+                       dispatcher: Executor,
                        arpRetrySeconds: Int,
                        arpTimeoutSeconds: Int,
                        arpStaleSeconds: Int,
@@ -103,7 +105,7 @@ class ArpRequestBroker(emitter: PacketEmitter,
             case null =>
                 log.info(s"Building new arp request broker for router ${router.id}")
                 val broker = new SingleRouterArpRequestBroker(router.id,
-                        router.arpCache, emitter, invalidator, processCb,
+                        router.arpCache, emitter, invalidator, dispatcher,
                         arpRetrySeconds, arpTimeoutSeconds, arpStaleSeconds,
                         arpExpirySeconds, clock)
                 brokers.put(router.id, broker)
@@ -166,7 +168,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                                    arpCache: ArpCache,
                                    emitter: PacketEmitter,
                                    invalidator: InvalidationSource,
-                                   processCb: (FiniteDuration) => Unit,
+                                   dispatcher: Executor,
                                    arpRetrySeconds: Int,
                                    arpTimeoutSeconds: Int,
                                    arpStaleSeconds: Int,
@@ -200,19 +202,6 @@ class SingleRouterArpRequestBroker(id: UUID,
      */
     private val arpLoopQ = new PriorityQueue[ArpLoop](32, LOOP_COMPARE)
 
-    private def scheduleNextProcessCall() = {
-        val now = clock.time
-        var when = Long.MaxValue
-        if (!arpLoopQ.isEmpty)
-            when = arpLoopQ.peek().nextTry
-        if (!expiryQ.isEmpty)
-            when = Math.min(when, expiryQ.peek()._1)
-        if (when < Long.MaxValue) {
-            when = Math.max(now, when)
-            processCb(FiniteDuration(when - now, TimeUnit.MILLISECONDS))
-        }
-    }
-
     /*
      * Queue of ARP entry expirations. It contains in FIFO order, all the
      * arp entries created by this ArpRequestBroker. In other words, entries
@@ -237,6 +226,13 @@ class SingleRouterArpRequestBroker(id: UUID,
      */
     private val macsDiscovered = new ConcurrentLinkedQueue[MacChange]()
 
+
+    private val newMacsRunnable = new Runnable {
+        override def run(): Unit = {
+            processNewMacs()
+        }
+    }
+
     /**
      * Notify this ArpRequestBroker that the ArpTable has discovered a new
      * MAC - IP address association. May be called from any thread.
@@ -244,7 +240,7 @@ class SingleRouterArpRequestBroker(id: UUID,
     arpCache.notify(new Callback3[IPv4Addr, MAC, MAC] {
         override def call(ip: IPv4Addr, oldMac: MAC, newMac: MAC): Unit = {
             macsDiscovered.add(MacChange(ip, oldMac, newMac))
-            processCb(FiniteDuration(0, TimeUnit.MILLISECONDS))
+            dispatcher.execute(newMacsRunnable)
         }
     })
 
@@ -268,7 +264,6 @@ class SingleRouterArpRequestBroker(id: UUID,
         processNewMacs()
         processArpLoops()
         processExpirations()
-        scheduleNextProcessCall()
     }
 
     def shouldProcess(): Boolean = (!macsDiscovered.isEmpty) || arpLoopIsReady
@@ -312,7 +307,6 @@ class SingleRouterArpRequestBroker(id: UUID,
 
         arpLoops.add(ip)
         arpLoopQ.add(loop)
-        scheduleNextProcessCall()
     }
 
     /**
@@ -332,7 +326,6 @@ class SingleRouterArpRequestBroker(id: UUID,
                                                now + STALE_TIME, 0)
             arpCache.add(ip, entry)
             expiryQ.add((entry.expiry, ip))
-            scheduleNextProcessCall()
         }
     }
 
