@@ -35,6 +35,8 @@ import org.midonet.cluster.util.ObservableTestUtils.observer
 import org.midonet.util.MidonetEventually
 import org.midonet.util.functors.makeRunnable
 
+import scala.concurrent.duration._
+
 @RunWith(classOf[JUnitRunner])
 class ObservablePathChildrenCacheTest extends Suite
                                       with CuratorTestFramework
@@ -42,6 +44,7 @@ class ObservablePathChildrenCacheTest extends Suite
                                       with MidonetEventually {
 
     val log = LoggerFactory.getLogger(classOf[ObservablePathChildrenCache])
+    val timeout = 5
 
     /** Subscribes to an ObservablePathChildrenCache and also to every child
       * observable that appears, accumulating all the data received. The given
@@ -104,7 +107,7 @@ class ObservablePathChildrenCacheTest extends Suite
         makePaths(nChildren)
         val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
         opcc.subscribe(collector)
-        assert(latch.await(1, TimeUnit.SECONDS))
+        assert(latch.await(timeout, TimeUnit.SECONDS))
         collector.getOnNextEvents should have size nChildren
         collector.getOnCompletedEvents shouldBe empty
         collector.getOnErrorEvents shouldBe empty
@@ -130,13 +133,13 @@ class ObservablePathChildrenCacheTest extends Suite
         val ts1 = observer(l1)
         val ts2 = observer(l2)
         o.subscribe(ts1) // the subscribers are told about the dodgy observable
-        assert(l1.await(1, TimeUnit.SECONDS))
+        assert(l1.await(timeout, TimeUnit.SECONDS))
         ts1.getOnErrorEvents should have size 1
         ts1.getOnNextEvents shouldBe empty
         curator.create().forPath("/NOT_EXISTS")
         curator.create().forPath("/NOT_EXISTS/1")
         o.subscribe(ts2) // any new subscriber keeps getting the onError
-        assert(l2.await(1, TimeUnit.SECONDS))
+        assert(l2.await(timeout, TimeUnit.SECONDS))
         ts2.getOnErrorEvents should have size 1
         ts2.getOnNextEvents shouldBe empty
     }
@@ -174,9 +177,9 @@ class ObservablePathChildrenCacheTest extends Suite
         makePaths(nItems)
         val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
         opcc.asObservable().subscribe(ts)
-        assert(count.await(1, TimeUnit.SECONDS))
+        assert(count.await(timeout, TimeUnit.SECONDS))
         opcc close()
-        assert(error.await(1, TimeUnit.SECONDS))
+        assert(error.await(timeout, TimeUnit.SECONDS))
         ts.getOnCompletedEvents shouldBe empty
         ts.getOnNextEvents should have size nItems
         ts.getOnErrorEvents should have size 1
@@ -385,7 +388,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
     // Relaxed retry policy to spare time to the tests
     override protected val retryPolicy = new RetryOneTime(1000)
 
-    override def cnxnTimeoutMs = 2000
+    override def cnxnTimeoutMs = 3000
     override def sessionTimeoutMs = 10000
 
     def testOnErrorEmittedWhenCacheLosesConnection(): Unit = {
@@ -393,7 +396,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
         makePaths(2)
         val o = ObservablePathChildrenCache.create(curator, ZK_ROOT)
         o.subscribe(ts1)
-        assert(ts1.c.await(1, TimeUnit.SECONDS))
+        assert(ts1.c.await(5, TimeUnit.SECONDS))
         ts1.getOnErrorEvents shouldBe empty
         ts1.getOnCompletedEvents shouldBe empty
         zk.stop() // interrupt the connection
@@ -407,7 +410,7 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
         // Prove that the observable is unusable
         val ts2 = observer[Observable[ChildData]](0, 0, 0)
         o.subscribe(ts2)
-        assert(ts2.e.await(1, TimeUnit.SECONDS))
+        assert(ts2.e.await(5, TimeUnit.SECONDS))
         assert(ts2.getOnErrorEvents.get(0).isInstanceOf[PathCacheDisconnectedException])
         ts2.getOnNextEvents shouldBe empty
         ts2.getOnCompletedEvents shouldBe empty
