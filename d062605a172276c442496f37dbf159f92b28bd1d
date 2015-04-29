@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_973fd886",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-29T10:33:31Z",
+      "side": 1,
+      "message": "not sure I understand why this is the same object, are you not changing the flag?",
+      "range": {
+        "startLine": 204,
+        "startChar": 11,
+        "endLine": 207,
+        "endChar": 24
+      },
+      "revId": "d062605a172276c442496f37dbf159f92b28bd1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
