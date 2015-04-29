@@ -22,6 +22,30 @@
       "revId": "d062605a172276c442496f37dbf159f92b28bd1d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_97a99892",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-29T10:37:56Z",
+      "side": 1,
+      "message": "In the multi below, I update the LB with the same object and then we a different object. As a result there should only receive one update. Without doing the real update, this test would have to wait for a timeout, which would slow down jenkins.",
+      "parentUuid": "1a106d94_973fd886",
+      "range": {
+        "startLine": 204,
+        "startChar": 11,
+        "endLine": 207,
+        "endChar": 24
+      },
+      "revId": "d062605a172276c442496f37dbf159f92b28bd1d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
