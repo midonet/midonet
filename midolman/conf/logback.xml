@@ -51,6 +51,22 @@
 
     </appender>
 
+    <!-- This appender writes to logstash over a udp socket on the configured port.
+         To use this, logstash should have an input configured with:
+
+             input {
+                 udp {
+                     port => 5000
+                     codec => json
+                 }
+             }
+    //-->
+    <!--
+    <appender name="LOG-STASH" class="net.logstash.logback.appender.LogstashSocketAppender">
+        <syslogHost>LOGSTASH_HOST</syslogHost>
+        <port>LOGSTASH_UDP_PORT</port>
+    </appender>//-->
+
     <!-- Fine grained settings for specific classes -->
     <!-- Third party libraries -->
     <logger name="org.apache.zookeeper" level="INFO" />
@@ -119,6 +135,7 @@
          levels: OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
     <root level="INFO">
         <appender-ref ref="LOG-FILE" />
+        <!-- <appender-ref ref="LOG-STASH" /> //-->
     </root>
 
 </configuration>
