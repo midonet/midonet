@@ -72,13 +72,31 @@ public class TryCatchReactor implements Reactor {
      * @return Wrapper runnable.
      */
     private Runnable wrapRunnable(final Runnable runnable) {
+        final long startTime;
+        if (log.isDebugEnabled()) {
+            startTime = System.currentTimeMillis();
+        } else {
+            startTime = 0;
+        }
         return new Runnable() {
             @Override
             public void run() {
+                long runTime = 0;
+                if (log.isDebugEnabled()) {
+                    runTime = System.currentTimeMillis();
+                    log.debug("After {}ms on queue, running ({})",
+                              runTime - startTime, runnable);
+                }
                 try {
                     runnable.run();
                 } catch (Throwable tt) {
                     log.error("Reactor encountered Throwable", tt);
+                } finally {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Finished after {}ms, ({})",
+                                  System.currentTimeMillis() - runTime,
+                                  runnable);
+                    }
                 }
             }
         };
@@ -91,13 +109,34 @@ public class TryCatchReactor implements Reactor {
      * @return Wrapper callable.
      */
     private <V> Callable<V> wrapCallable(final Callable<V> callable) {
+        final long startTime;
+        if (log.isDebugEnabled()) {
+            startTime = System.currentTimeMillis();
+            log.debug("Enqueuing ({})", callable);
+        } else {
+            startTime = 0;
+        }
+
         return new Callable<V>() {
             @Override
             public V call() throws Exception {
+                long runTime = 0;
+                if (log.isDebugEnabled()) {
+                    runTime = System.currentTimeMillis();
+                    log.debug("After {}ms on queue, running ({})",
+                              runTime - startTime, callable);
+                }
+
                 try {
                     return callable.call();
                 } catch (Throwable tt) {
                     log.error("Reactor encountered Throwable", tt);
+                } finally {
+                    if (log.isDebugEnabled()) {
+                        log.debug("Finished after {}ms, ({})",
+                                  System.currentTimeMillis() - runTime,
+                                  callable);
+                    }
                 }
                 return null;
             }
