@@ -217,9 +217,11 @@ object SetConf extends ConfigWriter("set") with ConfCommand {
         val reader = new InputStreamReader(System.in)
         val newConf = ConfigFactory.parseReader(reader, parseOpts)
 
+        val validationConf = newConf.withFallback(schema).resolve()
+
         for (entry <- newConf.entrySet) {
             val key = entry.getKey
-            val newVal = entry.getValue
+            val newVal = validationConf.getValue(key)
             try {
                 val schemaVal = schema.getValue(key)
                 if (!newVal.valueType().equals(schemaVal.valueType()))
@@ -270,19 +272,22 @@ abstract class ConfigWriter(name: String) extends Subcommand(name) {
     def makeConfig(configurator: MidoNodeConfigurator) = {
         implicit def cfgOptToNaked(opt: Option[Config]): Config = opt.getOrElse(ConfigFactory.empty)
 
-        val hostOpt: Option[UUID] = hostId.get flatMap { h =>
-            Option(if (h == "local") HostIdGenerator.getHostId() else UUID.fromString(h))
-        }
         val templateNameOpt: Option[String] = template.get
 
-        if (hostOpt.isDefined) {
-            configurator.centralPerNodeConfig(hostOpt.get)
-        } else if (templateNameOpt.isDefined) {
+        if (templateNameOpt.isDefined) {
             configurator.templateByName(templateNameOpt.get)
         } else {
-            throw new Exception("Couldn't choose a configuration source to " +
-                "write to, please indicate it by providing the template or host "+
-                "name you want to edit.")
+            hostId.get map {
+                case "local" => HostIdGenerator.getHostId()
+                case id => UUID.fromString(id)
+            } match {
+                case Some(h) =>
+                    configurator.centralPerNodeConfig(h)
+                case None =>
+                    throw new Exception("Couldn't choose a configuration source to " +
+                        "write to, please indicate it by providing the template or host "+
+                        "name you want to edit.")
+            }
         }
 
     }
