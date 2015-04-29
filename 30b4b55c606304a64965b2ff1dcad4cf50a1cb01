@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_b3b94917",
+        "filename": "cluster/src/test/scala/org/midonet/cluster/util/ObservablePathChildrenCacheTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-04-29T08:13:12Z",
+      "side": 1,
+      "message": "why not make this a variable?",
+      "range": {
+        "startLine": 133,
+        "startChar": 24,
+        "endLine": 133,
+        "endChar": 25
+      },
+      "revId": "30b4b55c606304a64965b2ff1dcad4cf50a1cb01",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
