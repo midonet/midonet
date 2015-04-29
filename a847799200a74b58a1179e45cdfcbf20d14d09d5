@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_7d44bb1a",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.java",
+        "patchSetId": 33
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-29T15:22:50Z",
+      "side": 1,
+      "message": "Is this used?",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 56
+      },
+      "revId": "a847799200a74b58a1179e45cdfcbf20d14d09d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5d073fca",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatTarget.java",
+        "patchSetId": 33
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-29T15:22:50Z",
+      "side": 1,
+      "message": "Primitives could have been compared with \u003d\u003d, as before, preventing autoboxing them into objects to pass to equals.",
+      "range": {
+        "startLine": 82,
+        "startChar": 15,
+        "endLine": 83,
+        "endChar": 47
+      },
+      "revId": "a847799200a74b58a1179e45cdfcbf20d14d09d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fdeb8bd9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-29T15:22:50Z",
+      "side": 1,
+      "message": "Why is this needed? After all, natTargets depends only on address and protocolPort. If those are equal, this should be equal too.",
+      "range": {
+        "startLine": 76,
+        "startChar": 74,
+        "endLine": 77,
+        "endChar": 43
+      },
+      "revId": "a847799200a74b58a1179e45cdfcbf20d14d09d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
