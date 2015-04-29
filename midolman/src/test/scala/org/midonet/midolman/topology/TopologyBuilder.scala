@@ -423,7 +423,8 @@ trait TopologyBuilder {
                             poolId: Option[UUID] = None,
                             address: Option[String] = None,
                             protocolPort: Option[Int] = None,
-                            isStickySourceIp: Option[Boolean] = None) = {
+                            isStickySourceIp: Option[Boolean] = None,
+                            loadBalancerId: Option[UUID] = None) = {
 
         val builder = VIP.newBuilder
             .setId(UUID.randomUUID().asProto)
@@ -437,6 +438,9 @@ trait TopologyBuilder {
             builder.setProtocolPort(protocolPort.get)
         if (isStickySourceIp.isDefined) {
             builder.setStickySourceIp(isStickySourceIp.get)
+        }
+        if (loadBalancerId.isDefined) {
+            builder.setLoadBalancerId(loadBalancerId.get.asProto)
         }
 
         builder.build()

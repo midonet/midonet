@@ -26,7 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import rx.Observable
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.data.storage.{UpdateOp, NotFoundException, Storage}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, VIP => TopologyVIP}
 import org.midonet.cluster.services.MidonetBackend
@@ -98,7 +98,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             simLB shouldBeDeviceOf protoLB
 
             And("when we add a vip to the load-balancer")
-            val vip1 = buildAndStoreVIP("192.168.0.1")
+            val vip1 = buildAndStoreVIP(protoLB.getId, "192.168.0.1")
             var updatedProtoLB = addVipToLoadBalancer(protoLB, vip1.getId)
 
             Then("We receive the load-balancer with one vip")
@@ -122,7 +122,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             assertVips(List(updatedVip1), simLB.vips)
 
             And("When we add a 2nd vip to the load-balancer")
-            val vip2 = buildAndStoreVIP("192.168.0.2")
+            val vip2 = buildAndStoreVIP(protoLB.getId, "192.168.0.2")
             updatedProtoLB = addVipToLoadBalancer(updatedProtoLB, vip2.getId)
 
             Then("We receive the load-balancer with 2 vips")
@@ -153,6 +153,96 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("We receive only one update")
             obs.awaitOnNext(6, timeout) shouldBe true
             obs.getOnNextEvents should have size 6
+        }
+
+        scenario("Clearing the load-balancer id field in the VIP") {
+            Given("A load-balancer with one vip")
+            val protoLB = buildAndStoreLB()
+            val vip = buildAndStoreVIP(protoLB.getId, "192.168.0.1")
+            var updatedProtoLB = addVipToLoadBalancer(protoLB, vip.getId)
+
+            Then("When we subscribe to the load-balancer observable")
+            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
+            val observable = Observable.create(lbMapper)
+            val obs = makeObservable()
+            observable.subscribe(obs)
+
+            Then("We obtain a simulation load-balancer with one vip")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+            var simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
+
+            And("when we clear the load-balancer id field in the vip")
+            updatedProtoLB = protoLB.toBuilder.clearVipIds().build()
+            val updatedVIP = vip.toBuilder.clearLoadBalancerId().build()
+            store.multi(List(UpdateOp(updatedVIP), UpdateOp(updatedProtoLB)))
+
+            Then("We obtain only one load-balancer with no vips")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
+        }
+
+        scenario("Updating the load-balancer with an identical object") {
+            Given("A load-balancer")
+            val protoLB = buildAndStoreLB()
+
+            Then("When we subscribe to the load-balancer observable")
+            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
+            val observable = Observable.create(lbMapper)
+            val obs = makeObservable()
+            observable.subscribe(obs)
+
+            Then("We obtain a simulation load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+            var simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf protoLB
+
+            And("When we update the load-balancer with the same object" +
+                " and then we update its admin state")
+            val updatedProtoLB = protoLB.toBuilder.setAdminStateUp(false)
+                .build()
+            store.multi(List(UpdateOp(protoLB), UpdateOp(updatedProtoLB)))
+
+            Then("We obtain a single simulation load-balancer update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
+        }
+
+        scenario("Updating the vip with an identical object") {
+            Given("A load-balancer with one vip")
+            val protoLB = buildAndStoreLB()
+            val vip = buildAndStoreVIP(protoLB.getId, "192.168.0.1")
+            val updatedProtoLB = addVipToLoadBalancer(protoLB, vip.getId)
+
+            Then("When we subscribe to the load-balancer observable")
+            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
+            val observable = Observable.create(lbMapper)
+            val obs = makeObservable()
+            observable.subscribe(obs)
+
+            Then("We obtain a simulation load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+            var simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
+
+            And("When we update the VIP with the same object" +
+                " and then we update its admin state")
+            val updatedVIP = vip.toBuilder.setAdminStateUp(false)
+                .build()
+            store.multi(List(UpdateOp(vip), UpdateOp(updatedVIP)))
+
+            Then("We obtain a single simulation load-balancer update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
         }
 
         scenario("Deleting a load-balancer") {
@@ -206,12 +296,13 @@ class LoadBalancerMapperTest extends MidolmanSpec
         updatedLB
     }
 
-    private def buildAndStoreVIP(ip: String): TopologyVIP = {
+    private def buildAndStoreVIP(lbId: UUID, ip: String): TopologyVIP = {
         val vip = createVIP(adminStateUp = Some(true),
                             poolId = Some(UUID.randomUUID()),
                             address = Some(ip),
                             protocolPort = Some(7777),
-                            isStickySourceIp = Some(false))
+                            isStickySourceIp = Some(false),
+                            loadBalancerId = Some(lbId))
         store.create(vip)
         vip
     }
