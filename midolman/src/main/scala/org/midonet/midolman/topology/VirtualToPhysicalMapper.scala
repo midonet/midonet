@@ -402,8 +402,13 @@ abstract class VirtualToPhysicalMapperBase
                 .getOrElse(ZoneMembers(tunnelZone.id, newMembers.zoneType))
             val msg = if (DeviceCaches.tunnelZone(tunnelZone.id).isEmpty) newMembers
                       else tunnelZone.diffMembers(oldZone)
-            tunnelZonesMgr.updateAndNotifySubscribers(tunnelZone.id, newMembers,
-                                                      msg, createHandler)
+
+            if (msg != null) {
+                tunnelZonesMgr.updateAndNotifySubscribers(tunnelZone.id,
+                                                          newMembers, msg,
+                                                          createHandler)
+            }
+
         case zoneChanged: ZoneChanged =>
             val zId = zoneChanged.zone
             val zoneType = zoneChanged.zoneType

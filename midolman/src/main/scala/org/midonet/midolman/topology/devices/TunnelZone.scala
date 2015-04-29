@@ -27,7 +27,7 @@ import org.midonet.cluster.util.{IPAddressUtil, MapConverter}
 import org.midonet.midolman.topology.HostConfigOperation
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.midolman.topology.devices.TunnelZone.HostIpConverter
+import org.midonet.midolman.topology.devices.TunnelZone.{toOldTunnelZoneType, HostIpConverter}
 import org.midonet.packets.{IPAddr, IPv4Addr}
 
 object TunnelZone {
@@ -92,7 +92,7 @@ class TunnelZone extends ZoomObject with Device {
         val hostSet = hosts.map({
             case (k, v) => new HostConfig(k).setIp(v.asInstanceOf[IPv4Addr])
         }).toSet
-        new ZoneMembers(id, TunnelZone.toOldTunnelZoneType(zoneType), hostSet)
+        new ZoneMembers(id, toOldTunnelZoneType(zoneType), hostSet)
     }
 
     /**
@@ -106,16 +106,23 @@ class TunnelZone extends ZoomObject with Device {
         val oldZoneSize = oldZone.members.size
 
         if (oldZoneSize > hosts.keySet.size) {
-            val removedId = oldZone.members.map(_.getId).diff(hosts.keySet).head
-            val removedMember = oldZone.members.find(_.getId.eq(removedId)).get
-            new ZoneChanged(id, TunnelZone.toOldTunnelZoneType(zoneType),
-                            removedMember, HostConfigOperation.Deleted)
+            val removed = oldZone.members.map(_.getId).diff(hosts.keySet)
+            if (removed.nonEmpty) {
+                val removedMember = oldZone.members.find(_.getId == removed.head).get
+                return new ZoneChanged(id, toOldTunnelZoneType(zoneType),
+                                       removedMember, HostConfigOperation.Deleted)
+            }
         } else {
-            val addedId = hosts.keySet.diff(oldZone.members.map(_.getId).toSet).head
-            val addedMember = new HostConfig(addedId).setIp(hosts.get(addedId).get
-                                                              .asInstanceOf[IPv4Addr])
-            new ZoneChanged(id, TunnelZone.toOldTunnelZoneType(zoneType), addedMember,
-                            HostConfigOperation.Added)
+            val added = hosts.keySet.diff(oldZone.members.map(_.getId))
+            if (added.nonEmpty) {
+                val addedId = added.head
+                val addedHostIp = hosts.get(addedId).get.asInstanceOf[IPv4Addr]
+                val addedMember = new HostConfig(addedId).setIp(addedHostIp)
+                return new ZoneChanged(id, toOldTunnelZoneType(zoneType),
+                                       addedMember, HostConfigOperation.Added)
+            }
         }
+
+        null
     }
 }
