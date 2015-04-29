@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util.UUID
+import java.util.{Objects, UUID}
 
 import akka.actor.ActorSystem
 
@@ -39,10 +39,6 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
 
     val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
     val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)
-
-    override def toString =
-        s"LoadBalancer [id=$id adminStateUp=$adminStateUp routerId=$routerId " +
-        s"vips=${vips.toSeq}]"
 
     def processInbound(context: PacketContext)(implicit actorSystem: ActorSystem)
     : RuleResult = {
@@ -140,4 +136,21 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         }
         null
     }
+
+    override def equals(obj: Any): Boolean = obj match {
+        case loadBalancer: LoadBalancer =>
+            id == loadBalancer.id &&
+            adminStateUp == loadBalancer.adminStateUp &&
+            routerId == loadBalancer.routerId &&
+            vips.sameElements(loadBalancer.vips)
+
+        case _ => false
+    }
+
+    override def hashCode: Int =
+        Objects.hashCode(id, adminStateUp, routerId, vips)
+
+    override def toString =
+        s"LoadBalancer [id=$id adminStateUp=$adminStateUp routerId=$routerId " +
+        s"vips=${vips.toSeq}]"
 }
