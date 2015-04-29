@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_93a52da4",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-04-29T09:12:28Z",
+      "side": 1,
+      "message": "It worth to provide some rule to what is considered to be Cluster Service and what it contains.\nAs I see it, there are 2 types of Services: \u0027platform services\u0027 and \u0027networking services\u0027. Platform services provides functionality that is not related to any specific Networking feature support (Topology view, Config management). Network Services are realization of some specific networking functionality (VxLAN Gateway) and it looks like sort of \u0027cluster hosted\u0027 agent that takes care of the required actions",
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
