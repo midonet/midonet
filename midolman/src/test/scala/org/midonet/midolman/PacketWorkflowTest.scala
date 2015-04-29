@@ -90,8 +90,7 @@ object PacketWorkflowTest {
                 testKit ! TranslateActions
                 List(output)
             }
-            override def applyState(pktCtx: PacketContext,
-                                    actions: Seq[FlowAction]): Unit = { }
+            override def applyState(pktCtx: PacketContext): Unit = { }
         }
         (pktCtx, wf)
     }
