@@ -52,6 +52,24 @@
       "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3706e41d",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-29T09:42:41Z",
+      "side": 1,
+      "message": "Sounds reasonable. Would you say that platform services offer potentially northbound APIs, whereas management services APIs (if any) will typically be East-West (meaning, some other internal service may fetch data from it, but won\u0027t be exposed publicly)?\n\nThat actually gives us a nicer direction for sharing Auth tools etc. I\u0027ll update.",
+      "parentUuid": "1a106d94_b32ae98d",
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
