@@ -68,7 +68,7 @@ object DeduplicationActor {
     case class EmitGeneratedPacket(egressPort: UUID, eth: Ethernet,
                                    parentCookie: Option[Int] = None)
 
-    case class ProcessArpTables()
+    case object ProcessArpTables
 
     case class RestartWorkflow(pktCtx: PacketContext, error: Throwable)
 
@@ -184,7 +184,7 @@ class DeduplicationActor(
     protected var arpBroker: ArpRequestBroker = new ArpRequestBroker(
         PacketsEntryPoint ! _,
         FlowController ! InvalidateFlowsByTag(_),
-        context.system.scheduler.scheduleOnce(_, self, ProcessArpTables()),
+        context.dispatcher,
         config.getArpRetryIntervalSeconds, config.getArpTimeoutSeconds,
         config.getArpStaleSeconds, config.getArpExpirationSeconds)
 
@@ -222,6 +222,7 @@ class DeduplicationActor(
                                           dpConnPool, cbExecutor, actionsCache,
                                           replicator, config)
             context.become(receive)
+            context.system.scheduler.schedule(1 second, 1 second, self, ProcessArpTables)
             unstashAll()
         case _ => stash()
     }
@@ -230,7 +231,7 @@ class DeduplicationActor(
         case m: FlowStateBatch =>
             replicator.importFromStorage(m)
 
-        case ProcessArpTables() =>
+        case DeduplicationActor.ProcessArpTables =>
             arpBroker.process()
 
         case HandlePackets(packets) =>

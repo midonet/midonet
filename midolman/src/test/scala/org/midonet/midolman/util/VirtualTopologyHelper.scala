@@ -16,6 +16,7 @@
 package org.midonet.midolman.util
 
 import java.util.UUID
+import java.util.concurrent.Executor
 import scala.concurrent.{ExecutionContext, Future, Await}
 import scala.concurrent.duration._
 
@@ -86,8 +87,11 @@ trait VirtualTopologyHelper {
     val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null)
     val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](null)
 
+    val NO_OP_EXECUTOR = new Executor {
+        override def execute(command: Runnable) {}
+    }
     def throwAwayArpBroker: ArpRequestBroker = {
-        new ArpRequestBroker(PacketsEntryPoint ! _, (_) => {}, (_) => {}, 1, 3, 5, 10)
+        new ArpRequestBroker(PacketsEntryPoint ! _, (_) => {}, NO_OP_EXECUTOR, 1, 3, 5, 10)
     }
 
     def packetContextFor(frame: Ethernet, inPort: UUID)

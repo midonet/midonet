@@ -16,6 +16,7 @@
 
 package org.midonet.midolman
 
+import java.util.concurrent.Executor
 import java.util.{List => JList}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.midonet.config.ConfigProvider
@@ -131,8 +132,11 @@ class PacketWorkflowTest extends TestKit(ActorSystem("PacketWorkflowTest"))
 
     system.actorOf(Props(new ForwarderParent), "midolman")
 
+    val NO_OP_EXECUTOR = new Executor {
+        override def execute(command: Runnable) {}
+    }
     val arpBroker = new ArpRequestBroker(PacketsEntryPoint ! _,
-        FlowController ! InvalidateFlowsByTag(_), (_) => {}, 1, 3, 5, 10)
+        FlowController ! InvalidateFlowsByTag(_), NO_OP_EXECUTOR, 1, 3, 5, 10)
 
     feature("a PacketWorkflow queries the wildcard table to find matches") {
 
