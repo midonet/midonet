@@ -43,11 +43,16 @@ object LoadBalancerMapper {
         private var currentVip: SimVip = null
 
         private val mark = PublishSubject.create[TopologyVIP]
-        /** The vip observable, notifications on the VT thread. */
+        /** The vip observable, notifications on the VT thread.
+          * The filter discards any vip without a back-reference to the
+          * load balancer, which may occur when removing the VIP from the
+          * load balancer. */
         val observable = vt.store.observable(classOf[TopologyVIP], vipId)
+            .filter(makeFunc1(_.hasLoadBalancerId))
             .map[SimVip](makeFunc1(ZoomConvert.fromProto(_, classOf[SimVip])))
             .observeOn(vt.vtScheduler)
             .doOnNext(makeAction1(currentVip = _))
+            .distinctUntilChanged
             .takeUntil(mark)
 
         /** Completes the observable corresponding to this vip state. */
@@ -150,4 +155,5 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
                               loadBalancerObservable)
             .filter(makeFunc1(loadBalancerReady))
             .map[SimLB](makeFunc1(deviceUpdated))
+            .distinctUntilChanged
 }
