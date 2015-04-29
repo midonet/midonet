@@ -128,9 +128,8 @@ abstract class VTPMRedirector extends Actor with MidolmanLogging {
                 case Some(subscription) =>
                     subscription.unsubscribe()
                 case None =>
-                    throw new IllegalStateException(
-                        s"Device $deviceId does not have a subscription to an " +
-                        s"observable")
+                    log.info("Trying to unsubscribe from device {} but no " +
+                             "subscriptions found", deviceId)
             }
         }
     }
