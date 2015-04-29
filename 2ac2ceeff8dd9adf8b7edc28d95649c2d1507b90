@@ -34,6 +34,24 @@
       "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b32ae98d",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-04-29T09:33:28Z",
+      "side": 1,
+      "message": "I see them as two quite different types of service that we may have different requirements with regards to execution/APIs/... \nThere is different type of Services supported by overall MidoNet system , once you consider Neutron API driven Services that are realized by agents via Model translation and distribution on top of Cluster. So for me it make sense to have explicit distinction, even though both Platform and Hosted Network services currently delivered in the same way",
+      "parentUuid": "1a106d94_13981d1b",
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
