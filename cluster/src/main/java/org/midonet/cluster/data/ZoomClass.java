@@ -20,7 +20,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.google.protobuf.MessageOrBuilder;
+import com.google.protobuf.Message;
 
 /**
  * The annotation specifies how a Java class should be converted to an
@@ -33,7 +33,7 @@ public @interface ZoomClass {
     /**
      * Specifies the corresponding Protocol Buffers class for this type.
      */
-    Class<? extends MessageOrBuilder> clazz();
+    Class<? extends Message> clazz();
 
     /**
      * Specifies the converter for this class. Objects to types annotated with
