@@ -15,17 +15,18 @@
  */
 package org.midonet.api.network.validation;
 
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+
 import com.google.inject.Inject;
+
 import org.midonet.api.network.Link;
 import org.midonet.api.network.Port;
 import org.midonet.api.network.PortFactory;
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 public class PortsLinkableConstraintValidator implements
         ConstraintValidator<PortsLinkable, Link> {

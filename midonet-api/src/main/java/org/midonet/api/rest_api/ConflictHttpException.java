@@ -16,13 +16,14 @@
 
 package org.midonet.api.rest_api;
 
+import javax.ws.rs.WebApplicationException;
+
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.brain.services.rest_api.ResponseUtils;
 import org.midonet.midolman.state.StatePathExceptionBase.NodeInfo;
 import org.midonet.midolman.state.StatePathExistsException;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
 
 /**
  * WebApplicationException class to represent 409 status.
@@ -30,27 +31,17 @@ import javax.ws.rs.core.Response;
 public class ConflictHttpException extends WebApplicationException {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Create a ConflictHttpException object with no message.
-     */
     public ConflictHttpException() {
         this("");
     }
 
-    /**
-     * Create a ConflicHttpExcption object with a message.
-     *
-     * @param message
-     *             Error message.
-     */
     public ConflictHttpException(String message) {
-        super(ResponseUtils.buildErrorResponse(
-            Response.Status.CONFLICT.getStatusCode(), message));
+        super(buildErrorResponse(CONFLICT.getStatusCode(), message));
     }
 
     public ConflictHttpException(Throwable throwable, String message) {
         super(throwable,
-            ResponseUtils.buildErrorResponse(Response.Status.CONFLICT.getStatusCode(), message));
+            buildErrorResponse(CONFLICT.getStatusCode(), message));
     }
 
     public ConflictHttpException(StatePathExistsException ex) {

@@ -32,11 +32,13 @@ import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.brain.services.rest_api.ResponseUtils;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.SystemState;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.state.StateAccessException;
+
+import static javax.servlet.http.HttpServletResponse.*;
+import static org.midonet.cluster.rest_api.ResponseUtils.*;
 
 /**
  * Servlet filter for API server state
@@ -96,9 +98,9 @@ public final class StateFilter implements Filter {
             SystemState systemState = dataClient.systemStateGet();
             availability = systemState.getAvailability();
         } catch(StateAccessException ex) {
-            ResponseUtils.setErrorResponse((HttpServletResponse) response,
-                    HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                    "Can not access topology information");
+            setErrorResponse((HttpServletResponse) response,
+                             SC_SERVICE_UNAVAILABLE,
+                             "Can not access topology information");
             log.error("Can not access topology information");
             return;
         }
@@ -117,9 +119,9 @@ public final class StateFilter implements Filter {
                     return;
                 }
             }
-            ResponseUtils.setErrorResponse((HttpServletResponse) response,
-                    HttpServletResponse.SC_SERVICE_UNAVAILABLE,
-                    "API server currently in restricted mode.");
+            setErrorResponse((HttpServletResponse) response,
+                             SC_SERVICE_UNAVAILABLE,
+                             "API server currently in restricted mode.");
             log.error("API server currently in restricted mode.");
             return;
         }
