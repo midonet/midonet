@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.state
 
-import java.util.{ArrayList, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
+import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -262,7 +262,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                           natTx: FlowStateTransaction[NatKey, NatBinding],
                           traceTx: FlowStateTransaction[TraceKey, TraceContext],
                           ingressPort: UUID, egressPorts: JList[UUID],
-                          tags: JHashSet[FlowTag],
+                          tags: JList[FlowTag],
                           callbacks: ArrayList[Callback0]): Unit = {
         if (natTx.size() == 0 && conntrackTx.size() == 0 && traceTx.size() == 0)
             return
@@ -407,7 +407,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
 
     @throws(classOf[NotYetException])
     private def collectPeersForPort(portId: UUID, hosts: JSet[UUID],
-                                    ports: JSet[UUID], tags: JSet[FlowTag]) {
+                                    ports: JSet[UUID],
+                                    tags: Collection[FlowTag]) {
         def addPeerFor(port: Port) {
             if ((port.hostId ne null) && (port.hostId != underlay.host.id))
                 hosts.add(port.hostId)
@@ -440,7 +441,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                                egressPorts: JList[UUID],
                                hosts: JSet[UUID],
                                ports: JSet[UUID],
-                               tags: JSet[FlowTag]): Unit = {
+                               tags: Collection[FlowTag]): Unit = {
         hosts.clear()
         ports.clear()
         collectPeersForPort(ingressPort, hosts, ports, tags)

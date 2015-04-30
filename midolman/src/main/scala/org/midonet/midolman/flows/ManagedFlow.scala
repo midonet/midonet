@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.flows
 
-import java.util.{HashSet, ArrayList}
+import java.util.{ArrayList, Collection}
 
 import org.midonet.midolman.flows.FlowExpiration.Expiration
 import org.midonet.odp.FlowMatch
@@ -39,7 +39,7 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
     var absoluteExpirationNanos = 0L
     var sequence = 0L
 
-    def reset(flowMatch: FlowMatch, flowTags: HashSet[FlowTag],
+    def reset(flowMatch: FlowMatch, flowTags: Collection[FlowTag],
               flowRemovedCallbacks: ArrayList[Callback0], sequence: Long,
               expiration: Expiration, now: Long): Unit = {
         this.flowMatch.reset(flowMatch)

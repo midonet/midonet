@@ -113,6 +113,8 @@ public class Chain implements VirtualDevice {
             Rule r = iter.next();
             r.process(context, res, ownerId, isPortFilter);
 
+            context.recordTraversedRule(r.id, res);
+
             if (res.action == Action.JUMP) {
                 Chain jumpChain = getJumpTarget(res.jumpToChain);
                 if (null == jumpChain) {

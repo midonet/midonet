@@ -540,7 +540,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
                 def verify(result: (Seq[FlowAction], ROSet[FlowTag])) = {
                     translatedActions should contain theSameElementsAs result._1
-                    pktCtx.flowTags should be (result._2.asJava)
+                    pktCtx.flowTags.asScala.toSet should be (result._2)
                 }
             }
             testFun(ctx)
