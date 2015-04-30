@@ -71,7 +71,9 @@ public class ZkDirectory implements Directory {
     public void ensureHas(String relativePath, byte[] data)
             throws KeeperException, InterruptedException {
         try {
-            this.add(relativePath, data, CreateMode.PERSISTENT);
+            if (!this.has(relativePath)) {
+                this.add(relativePath, data, CreateMode.PERSISTENT);
+            }
         } catch (KeeperException.NodeExistsException e) { /* node was there */ }
     }
 
