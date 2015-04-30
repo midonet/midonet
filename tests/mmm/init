@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2014 Midokura SARL
+# Copyright 2015 Midokura SARL
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,11 +22,11 @@ echo $0 called at `date` with args $*
 sudo apt-get update
 
 # Install basic tools
-sudo apt-get install curl screen tmux python-dev libncurses5-dev openjdk-7-jdk -y
+sudo apt-get install --no-install-recommends curl screen tmux python-dev libncurses5-dev openjdk-7-jdk -y
 
 # Bring in newer version of iproute, which fixes "Cannot remove <namespace>: Device or resource busy":
 # https://bugs.launchpad.net/ubuntu/+source/iproute/+bug/1238981
-sudo apt-get install iproute -y
+sudo apt-get install --no-install-recommends iproute -y
 
 # add midokura apt source
 sudo bash -c "echo deb http://repo.midonet.org/midonet/current unstable main >   /etc/apt/sources.list.d/midokura.list"
@@ -34,7 +34,7 @@ sudo bash -c "echo deb http://repo.midonet.org/misc stable main >> /etc/apt/sour
 curl -k http://repo.midonet.org/packages.midokura.key | sudo apt-key add -
 
 # add cloud archive for icehouse
-sudo apt-get install python-software-properties -y
+sudo apt-get install --no-install-recommends python-software-properties -y
 
 if [ $(lsb_release  -cs) == "trusty" ] ; then
     sudo add-apt-repository cloud-archive:juno -y
@@ -54,7 +54,7 @@ sudo sh -c "echo deb https://get.docker.com/ubuntu docker main > /etc/apt/source
 sudo apt-get update
 
 # install docker
-sudo apt-get install -y lxc-docker
+sudo apt-get install --no-install-recommends -y lxc-docker
 
 # Install zookeeper
 if [ $(lsb_release  -cs) == "trusty" ] ; then
@@ -89,14 +89,14 @@ sudo bash -c "echo $(hostname|sed 's/ip-//;s/-/./g') $(hostname -f) $(hostname) 
 if [ $(lsb_release  -cs) == "trusty" ] ; then
    : # Trusy kernel is new enough that it has kmod in kernel package
 else
-    sudo  apt-get install -y --force-yes openvswitch-datapath-dkms=1.10.2-0ubuntu2~cloud0
+    sudo  apt-get install --no-install-recommends -y --force-yes openvswitch-datapath-dkms=1.10.2-0ubuntu2~cloud0
 fi
 
 # Install haproxy
 sudo apt-get -y install haproxy
 
 # Install midolman
-sudo apt-get install -y --force-yes midolman
+sudo apt-get install --no-install-recommends -y --force-yes midolman
 
 # Install python-midonetclient from source
 MMM_PMC_SOURCE_DIR=${MMM_PMC_SOURCE_DIR:-../../python-midonetclient}
@@ -107,9 +107,9 @@ sudo python setup.py develop
 cd -
 
 # Install midonet-api
-sudo apt-get install -y --force-yes tomcat7
+sudo apt-get install --no-install-recommends -y --force-yes tomcat7
 sudo apt-get -o Dpkg::Options::="--force-confnew" install -y --force-yes midonet-api
-sudo apt-get install -y --force-yes python-httplib2
+sudo apt-get install --no-install-recommends -y --force-yes python-httplib2
 
 sudo service tomcat7 stop
 sudo sed -i 's/#\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/default/tomcat7
@@ -120,10 +120,10 @@ sudo update-rc.d tomcat7 enable
 # use java7 by default for mm-dpctl
 sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
 
-sudo apt-get install -y --force-yes dnsmasq-base
+sudo apt-get install --no-install-recommends -y --force-yes dnsmasq-base
 
 # Install tools
-sudo apt-get install -y --force-yes zkdump
+sudo apt-get install --no-install-recommends -y --force-yes zkdump
 
 # Install dependencies for MDTS
 bash -xe ../mdts/install_deps.sh
