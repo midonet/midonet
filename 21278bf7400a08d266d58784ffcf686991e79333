@@ -22,6 +22,30 @@
       "revId": "21278bf7400a08d266d58784ffcf686991e79333",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_af939059",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-30T08:31:17Z",
+      "side": 1,
+      "message": "I thought about it, but this is only used inside the test, where byteField is always set to 7 and I was lazy to change it. But, yeah, you\u0027re have a point, let\u0027s make it the right way.",
+      "parentUuid": "1a106d94_8fdb344e",
+      "range": {
+        "startLine": 349,
+        "startChar": 19,
+        "endLine": 349,
+        "endChar": 28
+      },
+      "revId": "21278bf7400a08d266d58784ffcf686991e79333",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
