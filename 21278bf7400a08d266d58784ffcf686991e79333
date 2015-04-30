@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_8fdb344e",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-30T08:21:18Z",
+      "side": 1,
+      "message": "NPE risk?",
+      "range": {
+        "startLine": 349,
+        "startChar": 19,
+        "endLine": 349,
+        "endChar": 28
+      },
+      "revId": "21278bf7400a08d266d58784ffcf686991e79333",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
