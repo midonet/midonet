@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +42,10 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     private ZkManager zk;
     private PathBuilder paths;
     private final Comparator<String> comparator;
+    private AtomicReference<String> cachedWriteVersion
+        = new AtomicReference<String>(null);
+
+    private Runnable writeVersionWatcher = new WriteVersionWatcher();
 
     @Inject
     public ZkSystemDataProvider(ZkManager zk, PathBuilder paths,
@@ -69,6 +75,7 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     public void setWriteVersion(String version) throws StateAccessException {
         String writeVersionPath = paths.getWriteVersionPath();
         zk.update(writeVersionPath, version.getBytes());
+        cachedWriteVersion.set(version);
     }
 
     @Override
@@ -121,10 +128,14 @@ public class ZkSystemDataProvider implements SystemDataProvider {
     @Override
     public String getWriteVersion() throws StateAccessException {
         log.trace("Entered ZkSystemDataProvider.getWriteVersion");
-        String version = null;
-        byte[] data = zk.get(paths.getWriteVersionPath());
-        if (data != null) {
-            version = new String(data);
+        String version = cachedWriteVersion.get();
+        if (version == null) {
+            byte[] data = zk.get(paths.getWriteVersionPath(),
+                                 writeVersionWatcher);
+            if (data != null) {
+                version = new String(data);
+                cachedWriteVersion.set(version);
+            }
         }
         log.trace("Exiting ZkSystemDataProvider.getWriteVersion. " +
                 "Version={}", version);
@@ -163,4 +174,39 @@ public class ZkSystemDataProvider implements SystemDataProvider {
         }
         return hosts;
     }
+
+    class WriteVersionWatcher extends Directory.DefaultTypedWatcher
+        implements Runnable, DirectoryCallback<byte[]> {
+        final int DEFAULT_RETRIES = 10;
+        int retries = DEFAULT_RETRIES;
+
+        public void onSuccess(byte[] data) {
+            cachedWriteVersion.set(new String(data));
+        }
+
+        public void onTimeout() {
+            log.error("Timeout reading from zookeeper, trying again");
+            readWriteVersion();
+        }
+
+        public void onError(KeeperException e) {
+            log.error("Error reading from zookeeper, trying again", e);
+            readWriteVersion();
+        }
+
+        public void readWriteVersion() {
+            if (--retries > 0) {
+                zk.asyncGet(paths.getWriteVersionPath(),
+                            this, this);
+            } else {
+                cachedWriteVersion.set(null);
+            }
+        }
+
+        public void run() {
+            int retries = DEFAULT_RETRIES;
+            readWriteVersion();
+        }
+    }
+
 }
