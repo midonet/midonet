@@ -72,10 +72,10 @@ Feel free to join other MidoNet developers on our public
 
 The **MidoNet** project is split into several submodules:
 
-### brain
+### cluster
 
 This contains the various pieces that compose each of the nodes in
-Midonet's distributed controller (`brain`). Controller nodes take care
+Midonet's distributed controller (`cluster`). Controller nodes take care
 of orchestrating the configuration of all Midonet subcomponents, as well
 as coordinating with other external devices and systems, such as VTEP
 switches, the backend services holding our Network State DataBase (e.g:
@@ -117,7 +117,7 @@ there are some prerequisites:
 
 ## Building the project
 
-The `brain` directory contains an odl-ovsdb git submodule with code that
+The `cluster` directory contains an odl-ovsdb git submodule with code that
 must be compiled in order to generate dependencies needed in various
 midonet components. Before any build tasks, ensure that you have the
 right version of odl-ovsdb by executing:

@@ -110,7 +110,7 @@ element as follows:
 </code></pre>
 
 For the value, specify the fully qualified name of the class that implements
-<i>org.midonet.brain.southbound.auth.AuthService</i> interface.  In the example above,
+<i>org.midonet.cluster.southbound.auth.AuthService</i> interface.  In the example above,
 <i>org.midonet.api.auth.MockAuthService</i> class is specified which is a
 service that provides as a way to mock the auth service for testing or
 disabling auth.  See the 'Mocking auth service' section below for more details.

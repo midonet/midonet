@@ -57,14 +57,14 @@ class build_with_proto_py(build_py.build_py):
         else:
             with open(os.path.join(_PROTOBUF_PATH, '__init__.py'), 'a'):
                 pass
-        build_proto('../cluster/src/main/proto/commons.proto',
-                    '../cluster/src/main/proto',
+        build_proto('../nsdb/src/main/proto/commons.proto',
+                    '../nsdb/src/main/proto',
                     'src/midonetclient/topology/_protobuf')
-        build_proto('../cluster/src/main/proto/topology_api.proto',
-                    '../cluster/src/main/proto',
+        build_proto('../nsdb/src/main/proto/topology_api.proto',
+                    '../nsdb/src/main/proto',
                     'src/midonetclient/topology/_protobuf')
-        build_proto('../cluster/src/main/proto/topology.proto',
-                    '../cluster/src/main/proto',
+        build_proto('../nsdb/src/main/proto/topology.proto',
+                    '../nsdb/src/main/proto',
                     'src/midonetclient/topology/_protobuf')
 
         # build testing protobuf
