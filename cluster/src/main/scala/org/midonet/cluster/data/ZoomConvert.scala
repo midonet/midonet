@@ -23,12 +23,10 @@ import java.util.{List => JList, Set => JSet, HashSet => JHashSet}
 import scala.annotation.meta.field
 import scala.collection.concurrent.TrieMap
 import scala.collection.JavaConversions._
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 import com.google.protobuf.Descriptors.{EnumDescriptor, EnumValueDescriptor}
 import com.google.protobuf.GeneratedMessage.Builder
-import com.google.protobuf.{ByteString, Descriptors, MessageOrBuilder}
+import com.google.protobuf.{ByteString, Descriptors, Message}
 
 /**
  * Converts Java objects to/from Protocol Buffers messages. The class converts
@@ -76,7 +74,7 @@ object ZoomConvert {
      * @param protoClass The Protocol Buffers message class.
      * @return The Protocol Buffers message.
      */
-    def toProto[T <: ZoomObject, U <: MessageOrBuilder]
+    def toProto[T <: ZoomObject, U <: Message]
         (pojo: T, protoClass: Class[U]): U = {
         pojo.beforeToProto()
         val builder = newBuilder(protoClass)
@@ -93,7 +91,7 @@ object ZoomConvert {
      * @param pojoClass The Java object class.
      * @return The Java object.
      */
-    def fromProto[T >: Null <: ZoomObject, U <: MessageOrBuilder]
+    def fromProto[T >: Null <: ZoomObject, U <: Message]
         (proto: U, pojoClass: Class[T]): T = {
         if (proto eq null) {
             return null
@@ -115,7 +113,7 @@ object ZoomConvert {
      *              performed.
      * @param topBuilder The Protocol Buffers builder for the final message.
      */
-    private def to[T <: ZoomObject, U <: MessageOrBuilder](
+    private def to[T <: ZoomObject, U <: Message](
             pojo: T, clazz: Class[_], topBuilder: ProtoBuilder): ProtoBuilder = {
 
         // Recursively iterate over all superclasses in the objects inheritance
@@ -195,8 +193,8 @@ object ZoomConvert {
      * @param clazz The Java class corresponding to the current inheritance
      *              level.
      */
-    private def from[T <: ZoomObject, U <: MessageOrBuilder](
-        proto: U, pojo: T, clazz: Class[_]): MessageOrBuilder = {
+    private def from[T <: ZoomObject, U <: Message](
+        proto: U, pojo: T, clazz: Class[_]): Message = {
 
         // Recursively iterate over all superclasses in the objects inheritance
         // hierarchy, and get the corresponding Protocol Buffers message.
@@ -219,7 +217,7 @@ object ZoomConvert {
                     s"Message ${descriptor.getName} does not have a " +
                     s"one-of field ${zoomOneOf.name}")
             } else message.getField(oneOfField) match {
-                case msg: MessageOrBuilder =>
+                case msg: Message =>
                     descriptor = msg.getDescriptorForType
                     msg
                 case _ =>
@@ -272,8 +270,7 @@ object ZoomConvert {
      * @param clazz The class for a Protocol Buffers message.
      * @return A Protocol Buffers builder for the given message class.
      */
-    private def newBuilder[U <: MessageOrBuilder](clazz: Class[U])
-    : ProtoBuilder = {
+    private def newBuilder[U <: Message](clazz: Class[U]): ProtoBuilder = {
         try {
             clazz.getMethod(ZoomConvert.BuilderMethod)
                 .invoke(null).asInstanceOf[ProtoBuilder]
@@ -296,8 +293,7 @@ object ZoomConvert {
      *              to specify abstract classes.
      * @return A factory class.
      */
-    private def newFactory[U <: MessageOrBuilder](proto: U,
-                                                  clazz: Class[_]): Class[_] = {
+    private def newFactory[U <: Message](proto: U, clazz: Class[_]): Class[_] = {
         var factory = clazz
         val zoomClass = clazz.getAnnotation(classOf[ZoomClass])
 
@@ -457,7 +453,7 @@ object ZoomConvert {
      * A class factory specifies how to create a Java class instance for a
      * Protocol Buffer message.
      */
-    trait Factory[T <: ZoomObject, U <: MessageOrBuilder] {
+    trait Factory[T <: ZoomObject, U <: Message] {
         def getType(proto: U): Class[_ <: T]
     }
 
@@ -580,7 +576,7 @@ object ZoomConvert {
         override def fromProto(value: Any, clazz: Type): Any = clazz match {
             case c: Class[_] if classOf[ZoomObject].isAssignableFrom(c) =>
                 ZoomConvert.fromProto(
-                    value.asInstanceOf[MessageOrBuilder],
+                    value.asInstanceOf[Message],
                     c.asInstanceOf[Class[_ >: Null <: ZoomObject]])
             case _ => throw new ConvertException(
                 s"Object converter not supported for class $clazz");
@@ -685,7 +681,7 @@ object ZoomConvert {
      * objects.
      */
     protected[data] class DefaultFactory
-            extends Factory[ZoomObject, MessageOrBuilder] {
-        def getType(proto: MessageOrBuilder) = null
+            extends Factory[ZoomObject, Message] {
+        def getType(proto: Message) = null
     }
 }

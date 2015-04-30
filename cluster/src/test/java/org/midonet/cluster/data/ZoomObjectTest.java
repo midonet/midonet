@@ -23,7 +23,7 @@ import java.util.Random;
 import java.util.Set;
 
 import com.google.protobuf.ByteString;
-import com.google.protobuf.MessageOrBuilder;
+import com.google.protobuf.Message;
 
 import org.junit.Test;
 
@@ -219,7 +219,7 @@ public class ZoomObjectTest {
         protected int baseBefore;
 
         @Override
-        public void afterFromProto(MessageOrBuilder proto) {
+        public void afterFromProto(Message proto) {
             baseAfter = baseField;
         }
         @Override
@@ -312,7 +312,7 @@ public class ZoomObjectTest {
         private int after;
 
         @Override
-        public void afterFromProto(MessageOrBuilder proto) {
+        public void afterFromProto(Message proto) {
             super.afterFromProto(proto);
             after = int32Field;
         }
@@ -346,7 +346,7 @@ public class ZoomObjectTest {
         public boolean equals(Object obj) {
             if (null == obj || !(obj instanceof TestableZoomObject2)) return false;
             TestableZoomObject2 o = (TestableZoomObject2) obj;
-            return byteField == o.byteField &&
+            return byteField.equals(o.byteField) &&
                    byteSet.equals(o.byteSet);
         }
     }

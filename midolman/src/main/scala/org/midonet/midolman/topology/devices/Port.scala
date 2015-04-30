@@ -21,7 +21,7 @@ import javax.annotation.concurrent.Immutable
 
 import scala.collection.JavaConverters._
 
-import com.google.protobuf.MessageOrBuilder
+import com.google.protobuf.Message
 
 import org.midonet.cluster.data._
 import org.midonet.cluster.models.Topology
@@ -75,7 +75,7 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
 
     def isActive: Boolean = _active
 
-    override def afterFromProto(message: MessageOrBuilder): Unit = {
+    override def afterFromProto(message: Message): Unit = {
         _deviceTag = FlowTagger.tagForDevice(id)
         _txTag = FlowTagger.tagForPortTx(id)
         _rxTag = FlowTagger.tagForPortRx(id)
@@ -163,7 +163,7 @@ class RouterPort extends Port {
 
     override def deviceId = routerId
 
-    override def afterFromProto(message: MessageOrBuilder): Unit = {
+    override def afterFromProto(message: Message): Unit = {
         _portAddr = new IPv4Subnet(portIp, portSubnet.getPrefixLen)
         super.afterFromProto(message)
     }
