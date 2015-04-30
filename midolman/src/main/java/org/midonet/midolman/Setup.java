@@ -99,12 +99,18 @@ public class Setup {
         ensureBasePathExists(rootDir, basePath);
         PathBuilder pathMgr = new PathBuilder(basePath);
         for (String path : Setup.getTopLevelPaths(pathMgr)) {
-            rootDir.ensureHas(path, null);
+            if (!rootDir.has(path)) {
+                rootDir.ensureHas(path, null);
+            }
         }
-        rootDir.ensureHas(pathMgr.getVniCounterPath(),
-                          Integer.toString(MIN_VNI).getBytes());
-        rootDir.ensureHas(pathMgr.getWriteVersionPath(),
-                          DataWriteVersion.CURRENT.getBytes());
+        if (!rootDir.has(pathMgr.getVniCounterPath())) {
+            rootDir.ensureHas(pathMgr.getVniCounterPath(),
+                              Integer.toString(MIN_VNI).getBytes());
+        }
+        if (!rootDir.has(pathMgr.getWriteVersionPath())) {
+            rootDir.ensureHas(pathMgr.getWriteVersionPath(),
+                              DataWriteVersion.CURRENT.getBytes());
+        }
     }
 
     public static void ensureBasePathExists(Directory rootDir,
