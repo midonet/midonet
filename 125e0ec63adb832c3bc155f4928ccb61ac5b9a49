@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7deb1b78",
+        "filename": "cluster/midonet-cluster/build.gradle",
+        "patchSetId": 20
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-30T07:30:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_fd71cb0c",
+      "range": {
+        "startLine": 24,
+        "startChar": 52,
+        "endLine": 24,
+        "endChar": 56
+      },
+      "revId": "125e0ec63adb832c3bc155f4928ccb61ac5b9a49",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7d867bdc",
         "filename": "specs/2015.02/cluster_design.md",
         "patchSetId": 20
@@ -36,6 +60,30 @@
       "writtenOn": "2015-04-29T15:30:39Z",
       "side": 1,
       "message": "Trailing whitespace",
+      "range": {
+        "startLine": 97,
+        "startChar": 24,
+        "endLine": 97,
+        "endChar": 25
+      },
+      "revId": "125e0ec63adb832c3bc155f4928ccb61ac5b9a49",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_54bef165",
+        "filename": "specs/2015.02/cluster_design.md",
+        "patchSetId": 20
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-04-30T07:30:16Z",
+      "side": 1,
+      "message": "Oh damn, I\u0027ll fix it later if you don\u0027t mind, I want to get this merged asap since it\u0027s a conflict magnet",
+      "parentUuid": "1a106d94_7d867bdc",
       "range": {
         "startLine": 97,
         "startChar": 24,
