@@ -17,7 +17,8 @@
 package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
-import java.util.{ArrayList, HashSet => JHashSet, List => JList, Set => JSet, UUID}
+import java.util.{ArrayList, Collection, HashSet => JHashSet}
+import java.util.{List => JList, Set => JSet, UUID}
 import java.util.Random
 
 import scala.collection.JavaConversions._
@@ -485,7 +486,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
                                   egressPorts: JList[UUID],
                                   peers: JSet[UUID],
                                   ports: JSet[UUID],
-                                  tags: JSet[FlowTag]) {
+                                  tags: Collection[FlowTag]) {
             super.resolvePeers(ingressPort, egressPorts, peers, ports, tags)
         }
     }
