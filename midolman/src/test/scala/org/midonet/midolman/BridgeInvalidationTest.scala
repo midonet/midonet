@@ -167,8 +167,8 @@ class BridgeInvalidationTest extends MidolmanSpec
                 FlowTagger.tagForDevice(bridge.id),
                 leftPortUnicastInvalidation,
                 rightMacFloodInvalidation,
-                floodInvalidation).asJava
-            pktContext.flowTags should be (expectedTags)
+                floodInvalidation)
+            pktContext.flowTags.asScala.toSet should be (expectedTags)
         }
 
         scenario("unicast flows are properly tagged") {
@@ -187,8 +187,8 @@ class BridgeInvalidationTest extends MidolmanSpec
             val expectedTags = Set(
                 FlowTagger.tagForDevice(bridge.id),
                 leftPortUnicastInvalidation,
-                rightPortUnicastInvalidation).asJava
-            pktContext.flowTags should be (expectedTags)
+                rightPortUnicastInvalidation)
+            pktContext.flowTags.asScala.toSet should be (expectedTags)
         }
 
         scenario("VM migration") {
@@ -211,10 +211,10 @@ class BridgeInvalidationTest extends MidolmanSpec
             val expectedTags = Set(
                 FlowTagger.tagForDevice(bridge.id),
                 leftPortUnicastInvalidation,
-                otherPortUnicastInvalidation).asJava
+                otherPortUnicastInvalidation)
 
             action should be (ToPortAction(otherPort.getId))
-            pktContext.flowTags should be (expectedTags)
+            pktContext.flowTags.asScala.toSet should be (expectedTags)
         }
 
         scenario("Packet whose dst mac resolves to the inPort is dropped") {

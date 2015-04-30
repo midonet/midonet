@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.state
 
-import java.util.{ArrayList, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
+import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
 
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
@@ -322,7 +322,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
 
     @throws(classOf[NotYetException])
     private def collectPeersForPort(portId: UUID, hosts: JSet[UUID],
-                                    ports: JSet[UUID], tags: JSet[FlowTag]) {
+                                    ports: JSet[UUID],
+                                    tags: Collection[FlowTag]) {
         def addPeerFor(port: Port) {
             if ((port.hostId ne null) && (port.hostId != hostId))
                 hosts.add(port.hostId)
@@ -355,7 +356,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                                egressPorts: JList[UUID],
                                hosts: JSet[UUID],
                                ports: JSet[UUID],
-                               tags: JSet[FlowTag]): Unit = {
+                               tags: Collection[FlowTag]): Unit = {
         hosts.clear()
         ports.clear()
         collectPeersForPort(ingressPort, hosts, ports, tags)
