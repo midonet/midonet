@@ -105,9 +105,18 @@ sudo ip link set dev veth1 up
 
 # create the linux bridge, give to it an IP address and attach the veth0
 # interface
-sudo brctl addbr uplinkbridge
-sudo brctl addif uplinkbridge veth0
-sudo ip addr add 172.19.0.1/30 dev uplinkbridge
+if ! ifconfig uplinkbridge; then
+    sudo brctl addbr uplinkbridge
+fi
+
+if ! brctl show uplinkbridge | grep veth0; then
+    sudo brctl addif uplinkbridge veth0
+fi
+
+if ! ip addr | grep uplinkbridge | grep 172.19.0.1; then
+    sudo ip addr add 172.19.0.1/30 dev uplinkbridge
+fi
+
 sudo ip link set dev uplinkbridge up
 
 # allow ip forwarding
@@ -115,6 +124,8 @@ sudo sysctl -w net.ipv4.ip_forward=1
 
 # route packets from physical underlay network to the bridge if the
 # destination belongs to the cidr provided
-sudo ip route add $CIDR via 172.19.0.2
+if ! ip route | grep $CIDR; then
+    sudo ip route add $CIDR via 172.19.0.2
+fi
 
 echo "Successfully created fake uplink"
