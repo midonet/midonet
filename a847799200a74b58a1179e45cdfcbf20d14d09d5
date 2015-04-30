@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d48ae1bd",
+        "filename": "cluster/src/test/java/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.java",
+        "patchSetId": 33
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-30T07:51:52Z",
+      "side": 1,
+      "message": "Yes. I moved it to main instead of test, so it can be used by tests in any subproject",
+      "parentUuid": "1a106d94_7d44bb1a",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 56
+      },
+      "revId": "a847799200a74b58a1179e45cdfcbf20d14d09d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_5d073fca",
         "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatTarget.java",
         "patchSetId": 33
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_14a8f91e",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatTarget.java",
+        "patchSetId": 33
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-30T07:51:52Z",
+      "side": 1,
+      "message": "Ok, If you don\u0027t mind, I can change that in a separate patch (to avoid another ci cycle)",
+      "parentUuid": "1a106d94_5d073fca",
+      "range": {
+        "startLine": 82,
+        "startChar": 15,
+        "endLine": 83,
+        "endChar": 47
+      },
+      "revId": "a847799200a74b58a1179e45cdfcbf20d14d09d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_fdeb8bd9",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
         "patchSetId": 33
@@ -59,6 +107,30 @@
       "writtenOn": "2015-04-29T15:22:50Z",
       "side": 1,
       "message": "Why is this needed? After all, natTargets depends only on address and protocolPort. If those are equal, this should be equal too.",
+      "range": {
+        "startLine": 76,
+        "startChar": 74,
+        "endLine": 77,
+        "endChar": 43
+      },
+      "revId": "a847799200a74b58a1179e45cdfcbf20d14d09d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_946b49f0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 33
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-04-30T07:51:52Z",
+      "side": 1,
+      "message": "Mmm... Curious: I thought that was at some point in the original code, but now I realize it wasn\u0027t... I\u0027ll remove that",
+      "parentUuid": "1a106d94_fdeb8bd9",
       "range": {
         "startLine": 76,
         "startChar": 74,
