@@ -154,7 +154,7 @@ class ConfApiTest extends FeatureSpecLike
         val template = s"""the.name : "seven" """
 
         When("An updated set of template mappings is posted to the API")
-        post("conf/template-mappings", assignment)
+        post(s"conf/template-mappings/$nodeId", assignment)
 
         Then("getting the mappings should return the same set")
         val mappings = get("conf/template-mappings")
