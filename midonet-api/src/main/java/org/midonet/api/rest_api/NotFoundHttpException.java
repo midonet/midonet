@@ -15,17 +15,15 @@
  */
 package org.midonet.api.rest_api;
 
+import javax.ws.rs.WebApplicationException;
+
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.brain.services.rest_api.ResponseUtils;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StatePathExceptionBase.NodeInfo;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
 
-/**
- * WebApplicationException class to represent 404 status.
- */
 public class NotFoundHttpException extends WebApplicationException {
 
     private static final long serialVersionUID = 1L;
@@ -37,21 +35,13 @@ public class NotFoundHttpException extends WebApplicationException {
         this("");
     }
 
-    /**
-     * Create a NotFoundHttpException object with a message.
-     *
-     * @param message
-     *            Error message.
-     */
     public NotFoundHttpException(String message) {
-        super(ResponseUtils
-                  .buildErrorResponse(Response.Status.NOT_FOUND.getStatusCode(),
-                                      message));
+        super(buildErrorResponse(NOT_FOUND.getStatusCode(), message));
     }
 
     public NotFoundHttpException(Throwable throwable, String message) {
         super(throwable,
-            ResponseUtils.buildErrorResponse(Response.Status.NOT_FOUND.getStatusCode(), message));
+            buildErrorResponse(NOT_FOUND.getStatusCode(), message));
     }
 
     public NotFoundHttpException(NoStatePathException ex) {

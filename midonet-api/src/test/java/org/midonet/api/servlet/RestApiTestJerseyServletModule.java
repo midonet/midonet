@@ -21,7 +21,7 @@ import com.typesafe.config.Config;
 
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
-import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
+import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 
 /**
  * Jersey servlet module for MidoNet REST API application.

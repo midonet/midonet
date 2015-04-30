@@ -46,9 +46,9 @@ function clean() {
 
 function build_protobuf_modules() {
     mkdir -p src/midonetclient/topology/_protobuf
-    protoc -I=../cluster/src/main/proto/ --python_out=src/midonetclient/topology/_protobuf ../cluster/src/main/proto/commons.proto
-    protoc -I=../cluster/src/main/proto/ --python_out=src/midonetclient/topology/_protobuf ../cluster/src/main/proto/topology_api.proto
-    protoc -I=../cluster/src/main/proto/ --python_out=src/midonetclient/topology/_protobuf ../cluster/src/main/proto/topology.proto
+    protoc -I=../nsdb/src/main/proto/ --python_out=src/midonetclient/topology/_protobuf ../nsdb/src/main/proto/commons.proto
+    protoc -I=../nsdb/src/main/proto/ --python_out=src/midonetclient/topology/_protobuf ../nsdb/src/main/proto/topology_api.proto
+    protoc -I=../nsdb/src/main/proto/ --python_out=src/midonetclient/topology/_protobuf ../nsdb/src/main/proto/topology.proto
     touch src/midonetclient/topology/_protobuf/__init__.py
 }
 

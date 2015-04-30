@@ -20,7 +20,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import org.midonet.brain.services.rest_api.ResponseUtils;
+import org.midonet.cluster.rest_api.ResponseUtils;
 
 /**
  * ExceptionMapper provider class to handle WebApplicationException.
@@ -29,11 +29,6 @@ import org.midonet.brain.services.rest_api.ResponseUtils;
 public class WebApplicationExceptionMapper implements
         ExceptionMapper<WebApplicationException> {
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see javax.ws.rs.ext.ExceptionMapper#toResponse(java.lang.Throwable)
-     */
     @Override
     public Response toResponse(WebApplicationException e) {
         return ResponseUtils.buildErrorResponse(e.getResponse().getStatus(),
