@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_8f0a1477",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/auth/LoginFilter.java",
+        "patchSetId": 21
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-30T09:12:59Z",
+      "side": 1,
+      "message": "Indent?",
+      "revId": "50c838bbc019ac5c3458e9619e337984d13e4e71",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8fcfb428",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-30T09:12:59Z",
+      "side": 1,
+      "message": "For what is this?",
+      "range": {
+        "startLine": 115,
+        "startChar": 8,
+        "endLine": 115,
+        "endChar": 46
+      },
+      "revId": "50c838bbc019ac5c3458e9619e337984d13e4e71",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2ff5e056",
+        "filename": "specs/2015.02/cluster_design.md",
+        "patchSetId": 21
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-04-30T09:12:59Z",
+      "side": 1,
+      "message": "Trailing whitespace",
+      "range": {
+        "startLine": 97,
+        "startChar": 24,
+        "endLine": 97,
+        "endChar": 25
+      },
+      "revId": "50c838bbc019ac5c3458e9619e337984d13e4e71",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
