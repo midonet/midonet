@@ -32,6 +32,7 @@ import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class FlowStateStorageTest extends FeatureSpec
@@ -84,8 +85,7 @@ class FlowStateStorageTest extends FeatureSpec
 
             var strongConn: java.util.Set[ConnTrackKey] = null
             eventually {
-                val future = storage.fetchStrongConnTrackRefs(ingressPort)
-                strongConn = Await.result(future, expiration)
+                strongConn = storage.fetchStrongConnTrackRefs(ingressPort).await()
                 strongConn should not be null
                 strongConn should have size connTrackKeys.size
             }
@@ -95,22 +95,19 @@ class FlowStateStorageTest extends FeatureSpec
             }
 
             for (port <- egressPorts) {
-                val weakRefs = Await.result(storage.fetchWeakConnTrackRefs(port),
-                                            expiration)
+                val weakRefs = storage.fetchWeakConnTrackRefs(port).await()
                 for (k <- connTrackKeys) {
                     weakRefs should contain (k)
                 }
             }
 
-            val strongNat = Await.result(storage.fetchStrongNatRefs(ingressPort),
-                                         expiration)
+            val strongNat = storage.fetchStrongNatRefs(ingressPort).await()
             for ((k, v) <- natMappings) {
                 strongNat.get(k) should === (v)
             }
 
             for (port <- egressPorts) {
-                val weakRefs = Await.result(storage.fetchWeakNatRefs(port),
-                                            expiration)
+                val weakRefs = storage.fetchWeakNatRefs(port).await()
                 for ((k, v) <- natMappings) {
                     weakRefs.get(k) should === (v)
                 }
