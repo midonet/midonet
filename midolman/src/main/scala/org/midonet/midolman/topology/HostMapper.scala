@@ -22,7 +22,6 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import com.google.common.annotations.VisibleForTesting
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
