@@ -15,8 +15,7 @@
  */
 package org.midonet.midolman.topology.devices
 
-import java.util.UUID
-
+import java.util.{Objects, UUID}
 import javax.annotation.concurrent.Immutable
 
 import scala.collection.JavaConverters._
@@ -95,6 +94,22 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
         port
     }
 
+    override def equals(obj: Any): Boolean = obj match {
+        case port: Port =>
+            id == port.id && inboundFilter == port.inboundFilter &&
+            outboundFilter == port.outboundFilter && tunnelKey == port.tunnelKey &&
+            portGroups == port.portGroups && peerId == port.peerId &&
+            hostId == port.hostId && interfaceName == port.interfaceName &&
+            adminStateUp == port.adminStateUp && vlanId == port.vlanId
+
+        case _ => false
+    }
+
+    override def hashCode: Int =
+        Objects.hashCode(id, inboundFilter, outboundFilter, tunnelKey,
+                         portGroups, peerId, hostId, interfaceName,
+                         adminStateUp, vlanId)
+
     override def toString =
         s"id=$id active=$isActive adminStateUp=$adminStateUp " +
         s"inboundFilter=$inboundFilter outboundFilter=$outboundFilter " +
@@ -134,6 +149,17 @@ class VxLanPort extends Port {
     override def isInterior = false
     override def isActive = true
 
+    override def equals(obj: Any): Boolean = obj match {
+        case port: VxLanPort =>
+            super.equals(obj) &&
+            networkId == port.networkId && vtepId == port.vtepId
+
+        case _ => false
+    }
+
+    override def hashCode: Int =
+        Objects.hashCode(super.hashCode, networkId, vtepId)
+
     override def toString =
         s"VxLanPort [${super.toString} networkId=$networkId vtepId=$vtepId]"
 }
@@ -144,6 +170,16 @@ class BridgePort extends Port {
     var networkId: UUID = _
 
     override def deviceId = networkId
+
+    override def equals(obj: Any): Boolean = obj match {
+        case port: BridgePort =>
+            super.equals(obj) && networkId == port.networkId
+
+        case _ => false
+    }
+
+    override def hashCode: Int =
+        Objects.hashCode(super.hashCode, networkId)
 
     override def toString =
         s"BridgePort [${super.toString} networkId=$networkId]"
@@ -174,9 +210,24 @@ class RouterPort extends Port {
     def portAddr = _portAddr
     def nwSubnet = _portAddr
 
+    override def equals(obj: Any): Boolean = obj match {
+        case port: RouterPort =>
+            super.equals(obj) &&
+            routerId == port.routerId && portSubnet == port.portSubnet &&
+            portIp == port.portIp && portMac == port.portMac &&
+            routeIds == port.routeIds
+
+        case _ => false
+    }
+
+    override def hashCode: Int =
+        Objects.hashCode(super.hashCode, routerId, portSubnet, portIp, portMac,
+                         routeIds)
+
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
-        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac]"
+        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac] " +
+        s"routeIds=${routeIds.toSeq}"
 }
 
 sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {

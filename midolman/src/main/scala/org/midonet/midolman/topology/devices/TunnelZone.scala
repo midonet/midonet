@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.topology.devices
 
-import java.util.UUID
+import java.util.{Objects, UUID}
 
 import org.midonet.cluster.data.TunnelZone.HostConfig
 import org.midonet.cluster.data.{TunnelZone => OldTunnelZone, _}
@@ -125,4 +125,14 @@ class TunnelZone extends ZoomObject with Device {
 
         null
     }
+
+    override def equals(obj: Any): Boolean = obj match {
+        case tunnelZone: TunnelZone =>
+            id == tunnelZone.id && name == tunnelZone.name &&
+            zoneType == tunnelZone.zoneType && hosts == tunnelZone.hosts
+
+        case _ => false
+    }
+
+    override def hashCode: Int = Objects.hashCode(id, name, zoneType, hosts)
 }

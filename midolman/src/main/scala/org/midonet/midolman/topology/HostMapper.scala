@@ -22,7 +22,6 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import com.google.common.annotations.VisibleForTesting
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -185,8 +184,10 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
     // as the host observable, which ensures they are subscribed to before
     // emitting any updates.
     protected override lazy val observable: Observable[SimulationHost] =
-        Observable.merge[Any](Observable.merge(tunnelZonesSubject),
-                              Observable.merge(portsSubject),
+        Observable.merge[Any](Observable.merge(tunnelZonesSubject)
+                                .distinctUntilChanged,
+                              Observable.merge(portsSubject)
+                                .distinctUntilChanged,
                               aliveObservable,
                               hostObservable)
                   .filter(makeFunc1(isHostReady))
