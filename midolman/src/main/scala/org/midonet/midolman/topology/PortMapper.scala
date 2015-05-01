@@ -79,7 +79,6 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
         .filter(makeFunc1(isPortReady))
 
-
     /** Handles updates to the simulation port. */
     private def portUpdated(port: SimulationPort): SimulationPort = {
         assertThread()
