@@ -19,11 +19,11 @@ package org.midonet.midolman.topology
 import java.util.UUID
 
 import scala.collection.JavaConversions._
+import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 import rx.observers.TestObserver
 
@@ -134,12 +134,39 @@ class HostMapperTest extends MidolmanSpec
             And("The host mapper is not observing the removed tunnel zone")
             hostMapper.isObservingTunnel(protoTunnelZone.getId) shouldBe false
         }
+
+        scenario("The host mapper discards tunnel zones with no hostId " +
+                 "back-reference") {
+            Given("A host member of one tunnel zone")
+            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = makeObservable()
+            observable.subscribe(hostObs)
+
+            And("Waiting for the host")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+
+            When("We clear the host id field in the tunnel zone")
+            val updatedTunnelZone = protoTunnelZone.toBuilder
+                .clearHostIds()
+                .build()
+            store.update(updatedTunnelZone)
+
+            Then("We receive a single host notification")
+            hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 2
+        }
     }
 
     feature("A host's port bindings should be handled") {
         scenario("The host has one port binding on creation") {
             Given("A host with one port binding")
-            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val (protoHost, _) = createHostAndTunnelZone()
             val port = createRouterWithPorts(1).head
             bindPort(port, protoHost, "eth0")
             val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
@@ -164,7 +191,7 @@ class HostMapperTest extends MidolmanSpec
 
         scenario("An additional port is bound while mapper is watching host") {
             Given("A host with one port binding")
-            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val (protoHost, _) = createHostAndTunnelZone()
             val Seq(port1, port2) = createRouterWithPorts(2)
             bindPort(port1, protoHost, "eth0")
             val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
@@ -176,11 +203,17 @@ class HostMapperTest extends MidolmanSpec
             val hostObs = makeObservable()
             observable.subscribe(hostObs)
 
-            And("Bind an additional port to the host")
+            Then("We obtain a simulation host with one port binding")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 1
+
+            And("When we bind an additional port to the host")
             bindPort(port2, protoHost, "eth1")
 
             Then("We obtain a simulation host with both port bindings")
             hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 2
+
             hostObs.getOnNextEvents.last.portBindings should contain
                 only(port1.getId.asJava -> "eth0", port2.getId.asJava -> "eth1")
 
@@ -189,9 +222,36 @@ class HostMapperTest extends MidolmanSpec
             hostMapper.isObservingPort(port2.getId) shouldBe true
         }
 
+        scenario("The host mapper discards ports with no hostId back-reference") {
+            Given("A host with one port binding")
+            val (protoHost, _) = createHostAndTunnelZone()
+
+            Given("A host member with one port")
+            val Seq(port1) = createRouterWithPorts(1)
+            bindPort(port1, protoHost, "eth0")
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = makeObservable()
+            observable.subscribe(hostObs)
+
+            And("Waiting for the host")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+
+            When("We clear the host id field in the port")
+            store.update(port1.toBuilder.clearHostId().build())
+
+            Then("We receive a single host notification")
+            hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 2
+        }
+
         scenario("A port is deleted while mapper is watching host") {
             Given("A host with two port bindings")
-            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val (protoHost, _) = createHostAndTunnelZone()
             val Seq(port1, port2) = createRouterWithPorts(2)
             bindPort(port1, protoHost, "eth0")
             bindPort(port2, protoHost, "eth1")
@@ -283,6 +343,90 @@ class HostMapperTest extends MidolmanSpec
             hostObs.awaitOnNext(3, timeout)
             simHost = hostObs.getOnNextEvents.last
             simHost.alive shouldBe true
+        }
+    }
+
+    feature("The host mapper discards updates that do not modify the host") {
+        scenario("A host update with no modifications") {
+            val (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = makeObservable()
+            observable.subscribe(hostObs)
+
+            Then("We obtain a host update")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 1
+
+            And("When we update the host with the same object and add " +
+                "a tunnel zone")
+            store.update(protoHost)
+            addTunnelZoneToHost(protoHost)
+
+            Then("We obtain a single host notification")
+            hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 2
+        }
+
+        scenario("A tunnel zone update with no modifications") {
+            var (protoHost, protoTunnelZone) = createHostAndTunnelZone()
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = makeObservable()
+            observable.subscribe(hostObs)
+
+            Then("We obtain a host update")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 1
+
+            And("When we update the tunnel zone with the same object")
+            protoTunnelZone = Await.result(
+                store.get(classOf[TunnelZone], protoTunnelZone.getId), timeout)
+            store.update(protoTunnelZone)
+
+            And("We add a 2nd tunnel zone to the host")
+            addTunnelZoneToHost(protoHost)
+
+            Then("We obtain a single host notification")
+            hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 2
+        }
+
+        scenario("A port update with no modifications") {
+            val (protoHost, _) = createHostAndTunnelZone()
+            var Seq(port) = createRouterWithPorts(1)
+            bindPort(port, protoHost, "eth0")
+            val hostMapper = new HostMapper(protoHost.getId.asJava, vt)
+
+            And("An observable on the host mapper")
+            val observable = Observable.create(hostMapper)
+
+            When("We subscribe to the host")
+            val hostObs = makeObservable()
+            observable.subscribe(hostObs)
+
+            Then("We obtain a host update")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 1
+
+            And("When we update the port with the same object")
+            port = Await.result(store.get(classOf[Port], port.getId), timeout)
+            store.update(port)
+
+            And("We add a tunnel zone to the host")
+            addTunnelZoneToHost(protoHost)
+
+            Then("We obtain a single host update")
+            hostObs.awaitOnNext(2, timeout) shouldBe true
+            hostObs.getOnNextEvents should have size 2
         }
     }
 
