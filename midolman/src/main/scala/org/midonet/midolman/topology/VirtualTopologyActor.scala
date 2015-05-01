@@ -329,6 +329,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
     }
 
     protected override def deviceUpdated(id: UUID, device: AnyRef) {
+        topology.put(id, device)
         for (client <- idToSubscribers(id)) {
             log.debug("Sending subscriber {} the device update for {}",
                       client, id)
@@ -343,7 +344,6 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
             }
         }
         idToUnansweredClients(id).clear()
-        topology.put(id, device)
     }
 
     protected override def deviceDeleted(id: UUID): Unit = {
@@ -351,6 +351,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
     }
 
     protected override def deviceError(id: UUID, e: Throwable): Unit = {
+        topology.remove(id)
         // Notify the error to promise sender actors that are not subscribers:
         // this allows tryAsk() futures to complete immediately with an error.
         for (client <- idToUnansweredClients(id)
@@ -361,7 +362,6 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
             client ! Status.Failure(e)
         }
         idToUnansweredClients(id).clear()
-        topology.remove(id)
     }
 
     protected override def unsubscribe(id: UUID, actor: ActorRef): Unit = {
