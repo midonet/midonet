@@ -78,6 +78,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
         .merge(chainsObservable.map[SimulationPort](makeFunc1(chainUpdated)),
                portObservable.map[SimulationPort](makeFunc1(portUpdated)))
         .filter(makeFunc1(isPortReady))
+        .distinctUntilChanged
 
 
     /** Handles updates to the simulation port. */
