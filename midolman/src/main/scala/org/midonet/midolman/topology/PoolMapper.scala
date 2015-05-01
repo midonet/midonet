@@ -48,7 +48,7 @@ object PoolMapper {
 
         val observable = vt.store
             .observable(classOf[TopologyPoolMember], poolMemberId)
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
             .map[SimulationPoolMember](makeFunc1(poolMemberUpdated))
             .takeUntil(mark)
 
@@ -91,7 +91,7 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
         .map[TopologyPool](makeFunc1(poolMemberUpdated))
     private lazy val poolObservable = vt.store
         .observable(classOf[TopologyPool], poolId)
-        .observeOn(vt.scheduler)
+        .observeOn(vt.vtScheduler)
         .doOnCompleted(makeAction0(poolDeleted()))
         .doOnNext(makeAction1(poolUpdated))
 

@@ -37,6 +37,6 @@ class PortGroupMapper(id: UUID, vt: VirtualTopology)
             .distinctUntilChanged
             .map[SimulationPortGroup](
                 makeFunc1(ZoomConvert.fromProto(_, classOf[SimulationPortGroup])))
-            .observeOn(vt.scheduler)
+            .observeOn(vt.vtScheduler)
 
 }

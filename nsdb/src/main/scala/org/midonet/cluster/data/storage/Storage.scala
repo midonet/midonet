@@ -28,7 +28,6 @@ sealed trait PersistenceOp
 
 case class CreateOp(obj: Obj) extends PersistenceOp
 
-private[storage]
 case class CreateWithOwnerOp(obj: Obj, owner: String) extends PersistenceOp
 
 case class UpdateOp[T <: Obj](obj: T, validator: UpdateValidator[T])
@@ -49,11 +48,9 @@ object UpdateOp {
 case class DeleteOp(clazz: Class[_], id: ObjId,
                     ignoreIfNotExists: Boolean = false) extends PersistenceOp
 
-private[storage]
 case class DeleteWithOwnerOp(clazz: Class[_], id: ObjId, owner: String)
     extends PersistenceOp
 
-private[storage]
 case class DeleteOwnerOp(clazz: Class[_], id: ObjId, owner: String)
     extends PersistenceOp
 

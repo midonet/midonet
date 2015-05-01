@@ -76,12 +76,12 @@ object IPSubnetUtil {
     sealed class Converter
             extends ZoomConvert.Converter[IPSubnet[_], Commons.IPSubnet] {
 
-        override def toProto(value: IPSubnet[_],
-                             clazz: Type): Commons.IPSubnet =
+        override def toProto(value: IPSubnet[_], clazz: Type)
+        : Commons.IPSubnet =
             IPSubnetUtil.toProto(value)
 
-        override def fromProto(value: Commons.IPSubnet,
-                               clazz: Type): IPSubnet[_] =
+        override def fromProto(value: Commons.IPSubnet, clazz: Type)
+        : IPSubnet[_] =
             IPSubnetUtil.fromProto(value)
     }
 

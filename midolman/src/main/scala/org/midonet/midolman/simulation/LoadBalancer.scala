@@ -40,6 +40,10 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
     val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
     val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)
 
+    override def toString =
+        s"LoadBalancer [id=$id adminStateUp=$adminStateUp routerId=$routerId " +
+        s"vips=${vips.toSeq}]"
+
     def processInbound(context: PacketContext)(implicit actorSystem: ActorSystem)
     : RuleResult = {
 
@@ -136,8 +140,4 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         }
         null
     }
-
-    override def toString() =
-        s"LoadBalancer [id=$id adminStateUp=$adminStateUp routerId=$routerId " +
-        s"vips=${vips.toList}]"
 }
