@@ -31,9 +31,9 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
 import org.apache.commons.lang3.StringUtils;
-import org.midonet.brain.BrainConfig;
-import org.midonet.brain.ClusterNode;
-import org.midonet.brain.services.conf.ConfMinion;
+import org.midonet.cluster.ClusterConfig;
+import org.midonet.cluster.ClusterNode;
+import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.MidoNodeConfigurator;
@@ -53,8 +53,7 @@ import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
-import org.midonet.brain.services.flowtracing.FlowTracingMinion;
-import org.midonet.cluster.backend.cassandra.CassandraClient;
+import org.midonet.cluster.services.flowtracing.FlowTracingMinion;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.config.ConfigProvider;
@@ -194,10 +193,10 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
     protected void installConfigApi(Config zkConf) {
         try {
             UUID hostId = HostIdGenerator.getHostId();
-            BrainConfig brainConf = new BrainConfig(zkConf.withFallback(
+            ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
                 MidoNodeConfigurator.apply(zkConf).runtimeConfig(hostId)));
             ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
-            bind(ConfMinion.class).toInstance(new ConfMinion(ctx, brainConf));
+            bind(ConfMinion.class).toInstance(new ConfMinion(ctx, clusterConf));
         } catch (Exception e) {
             log.error("Failed to start config API", e);
         }
@@ -206,13 +205,13 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
     protected void installFlowTracingService(Config zkConf) {
         try {
             UUID hostId = HostIdGenerator.getHostId();
-            BrainConfig brainConf = new BrainConfig(
+            ClusterConfig clusterConf = new ClusterConfig(
                     zkConf.withFallback(
                             MidoNodeConfigurator.apply(zkConf)
                             .runtimeConfig(hostId)));
             ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
             bind(FlowTracingMinion.class).toInstance(
-                    new FlowTracingMinion(ctx, brainConf,
+                    new FlowTracingMinion(ctx, clusterConf,
                                           new TryCatchReactor("cassandra", 1)));
         } catch (Exception e) {
             log.error("Failed to start flow tracing service");

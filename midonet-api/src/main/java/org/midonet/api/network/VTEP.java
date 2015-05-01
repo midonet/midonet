@@ -28,7 +28,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.host.validation.IsValidTunnelZoneId;
 import org.midonet.api.validation.MessageProperty;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4;

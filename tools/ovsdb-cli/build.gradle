@@ -12,5 +12,5 @@ jar {
 dependencies {
     compile project(':tools:ovsdb-org')
 
-    compile libraries.findbugs, project(':brain:odl-ovsdb:ovsdb')
+    compile libraries.findbugs, project(':cluster:odl-ovsdb:ovsdb')
 }

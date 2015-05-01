@@ -113,7 +113,7 @@ in trunk and ensuring backwards compatibility at all times.
 
 Cluster elements meant for use by other MidoNet components such as
 client libraries or APIs are developed under /cluster.  Internal
-services to the cluster live under /brain/midonet-brain.
+services to the cluster live under /cluster/midonet-cluster.
 
 ### Phase 1
 
@@ -168,7 +168,7 @@ mutations in MidoNet's storage.
 
 For its translation abilities, this component is being developed under
 codename C3PO after the Star Wars character.  It's being developed under
-`org.midonet.brain.services.c3po`.
+`org.midonet.cluster.services.c3po`.
 
 The low-level model definitions for MidoNet can be found at
 `cluster/src/main/proto/topology.proto`, forming MidoNet's low-level
@@ -234,8 +234,8 @@ There are two important considerations to this work:
 
 #### Topology API
 
-The Topology API (`org.midonet.brain.services.topology`) will provide an
-RPC mechanism that can be used to access the low-level models.  The
+The Topology API (`org.midonet.cluster.services.topology`) will provide
+an RPC mechanism that can be used to access the low-level models.  The
 Topology API exposes a simple API defined using Protobuf messages in
 `cluster/src/main/proto/topology_api.proto`.  A client may use these
 messages to Get or Subscribe to different entities in the topology.

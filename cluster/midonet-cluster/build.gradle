@@ -1,0 +1,145 @@
+/*
+ * Copyright 2014 Midokura SARL
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+apply plugin: 'scala'
+apply plugin: 'application'
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'MidoNet Cluster',
+        'Implementation-Version': version
+    }
+}
+
+repositories {
+    maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
+    maven { url "http://nexus.opendaylight.org/content/repositories/public/"  }
+}
+
+sourceSets {
+    main {
+        scala { srcDirs = ['src/main/scala', 'src/main/java'] }
+        java { srcDirs = [] }
+    }
+    test {
+        scala { srcDirs = ['src/test/scala', 'src/test/java'] }
+        java { srcDirs = [] }
+    }
+}
+
+dependencies {
+    compile project(':cluster:odl-ovsdb:ovsdb'),
+            project(':nsdb'),
+            project(':midolman'),
+            project(':midonet-util'),
+            "com.fasterxml.jackson.core:jackson-annotations:2.3.0",
+            "com.fasterxml.jackson.core:jackson-core:2.3.0",
+            "com.fasterxml.jackson.core:jackson-databind:2.3.0",
+            "org.opendaylight.controller:sal.connection:0.1.1",
+            "org.opendaylight.controller:sal:0.7.0",
+            "org.opendaylight.controller:sal.networkconfiguration:0.0.2",
+            "org.opendaylight.controller:clustering.services:0.5.0",
+            "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521",
+            "org.opendaylight.ovsdb:ovsdb:0.5.0",
+            libraries.metrics,
+            libraries.commons_dbcp2,
+            libraries.curator_recipes,
+            libraries.curator_framework,
+            libraries.guava,
+            libraries.guice,
+            libraries.jetty_server,
+            libraries.jetty_servlet,
+            libraries.mockit,
+            libraries.netty,
+            libraries.mysql_jdbc,
+            libraries.protobuf,
+            libraries.rx,
+            libraries.scala,
+            libraries.typesafeconf,
+            libraries.zookeeper
+
+    testCompile libraries.curator_test,
+                libraries.cassandraunit,
+                libraries.hamcrest_lib,
+                libraries.httpclient,
+                libraries.mockit,
+                libraries.scalatest,
+                libraries.sqlite
+}
+
+// Runs the cluster daemon, locally. use -Pconf=conf/midonet-cluster.conf to
+// start it up pointing at the sample config file in
+// cluster/midonet-cluster/conf - Note that the path is relative to the
+// midonet-cluster submodule.
+run {
+    mainClassName = "org.midonet.cluster.ClusterNode"
+    if (project.hasProperty("conf")) {
+        args = [conf]
+    } else {
+        args = ["conf/midonet-cluster.conf"]
+    }
+}
+
+// Runs the zookeeper updater for topology data. This tool provides a way
+// to populate ZooKeeper with topology objects, for use in testing other
+// components. Use -Pconf=conf/topology-zkupdater.conf to start it up
+// pointing a the sample config file in cluster/midonet-cluster/conf.
+// Note that the path is relative to the midonet-cluster submodule
+task runTopologyZoomUpdater(type: JavaExec) {
+    description = 'Run the Topology API Zoom updater app'
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.midonet.cluster.tools.TopologyZoomUpdaterApp"
+    if (project.hasProperty("conf")) {
+        args = [conf]
+    } else {
+        args = ["conf/topology-zkupdater.conf"]
+    }
+}
+
+// Runs the Topology API service in stand-alone mode.
+// Use -Pconf=conf/midonet-cluster.conf to start it pointing at the sample
+// config file in cluster/midonet-cluster/conf
+// Note that the path is relative to the midonet-cluster submodule.
+task runTopologyApi(type: JavaExec) {
+    description = 'Run the Topology API Service - standalone'
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.midonet.cluster.services.topology.TopologyApiServiceApp"
+    if (project.hasProperty("conf")) {
+        args = [conf]
+    } else {
+        args = ["conf/midonet-cluster.conf"]
+    }
+}
+
+// Runs a topology text-based client that dumps updates made to the topology
+// Use -Pconf=conf/topology-client.conf to start it up pointing at the sample
+// config file in cluster/midonet-cluster/conf (note that the path is relative
+// to the midonet-cluster submodule
+task runTopologySnoopy(type: JavaExec) {
+    description = 'Run the Topology Snoopy client'
+    classpath sourceSets.main.runtimeClasspath
+    main = "org.midonet.cluster.tools.TopologySnoopyApp"
+    if (project.hasProperty("conf")) {
+        args = [conf]
+    } else {
+        args = ["conf/topology-client.conf"]
+    }
+}
+
+cobertura {
+    coverageSourceDirs << sourceSets.main.java.srcDirs
+    coverageSourceDirs << sourceSets.main.scala.srcDirs
+}

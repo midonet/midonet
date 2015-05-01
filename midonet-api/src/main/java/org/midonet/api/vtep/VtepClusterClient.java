@@ -37,13 +37,13 @@ import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.GatewayTimeoutHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
-import org.midonet.brain.southbound.vtep.VtepNotConnectedException;
-import org.midonet.brain.southbound.vtep.VtepStateException;
-import org.midonet.brain.southbound.vtep.model.LogicalSwitch;
-import org.midonet.brain.southbound.vtep.model.PhysicalPort;
-import org.midonet.brain.southbound.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.southbound.vtep.VtepDataClient;
+import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
+import org.midonet.cluster.southbound.vtep.VtepNotConnectedException;
+import org.midonet.cluster.southbound.vtep.VtepStateException;
+import org.midonet.cluster.southbound.vtep.model.LogicalSwitch;
+import org.midonet.cluster.southbound.vtep.model.PhysicalPort;
+import org.midonet.cluster.southbound.vtep.model.PhysicalSwitch;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
@@ -61,8 +61,8 @@ import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
 import static org.midonet.api.validation.MessageProperty.VTEP_TUNNEL_IP_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
-import static org.midonet.brain.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
-import static org.midonet.brain.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
+import static org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
+import static org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 
 /**
  * Coordinates VtepDataClient and DataClient (Zookeeper) operations.

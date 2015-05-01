@@ -26,10 +26,10 @@ import com.google.common.collect.Sets;
 import rx.Subscription;
 import rx.functions.Action1;
 
-import org.midonet.brain.southbound.vtep.VtepDataClient;
-import org.midonet.brain.southbound.vtep.VtepDataClientFactory;
-import org.midonet.brain.southbound.vtep.VtepDataClientMock;
-import org.midonet.brain.southbound.vtep.VtepStateException;
+import org.midonet.cluster.southbound.vtep.VtepDataClient;
+import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
+import org.midonet.cluster.southbound.vtep.VtepDataClientMock;
+import org.midonet.cluster.southbound.vtep.VtepStateException;
 import org.midonet.packets.IPv4Addr;
 
 import static java.util.Arrays.*;
