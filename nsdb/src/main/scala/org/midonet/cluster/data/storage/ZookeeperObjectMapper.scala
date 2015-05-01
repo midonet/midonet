@@ -708,30 +708,6 @@ class ZookeeperObjectMapper(
         try manager.commit() finally { manager.releaseLock() }
     }
 
-    /**
-     * Flushes all the data in the storage by bumping the data set path version.
-     *
-     * TODO: move this operation out, this is a C3PO op, not a ZOOM op.
-     */
-    @throws[StorageException]
-    override def flush(): Unit = {
-        version.incrementAndGet()
-        updateVersionNumber()
-        try {
-            simpleNameToClass.clear()
-            // TODO: Need to close all class subscriptions.
-            classCaches.clear()
-            ownerCaches.values.foreach( _.values.foreach { _.close() })
-            ownerCaches.clear()
-            for (info <- classInfo.values)
-                registerClassInternal(info.clazz, info.ownershipType)
-        } catch {
-            case th: Throwable =>
-                throw new StorageException("Failure in flushing Storage.", th)
-        }
-        log.info(s"Flushed the Storage, bumping the version to $version.")
-    }
-
     private[storage] def getPath(clazz: Class[_], version: Long) =
         basePath(version) + "/" + clazz.getSimpleName
 
