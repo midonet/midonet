@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_5871e4a6",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Setup.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-02T18:44:09Z",
+      "side": 1,
+      "message": "should this check be in ensureHas?",
+      "revId": "1d9d4896423c550178d9d1f4cff50b1ec3121723",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
