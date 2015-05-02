@@ -168,7 +168,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             dda.completeWithGenerated(List(output(1)), GeneratedPacket(id, frame))
 
             Then("the generated packet should be simulated")
-            packetsSeen map { _._1.getEthernet } should be (List(pkt.getEthernet, frame))
+            packetsSeen map { _._1.getEthernet } should be (List(frame))
 
             And("packetsOut should not be called for the generated packet")
             packetsOut should be (1)

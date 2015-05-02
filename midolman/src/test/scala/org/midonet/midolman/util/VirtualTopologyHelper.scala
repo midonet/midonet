@@ -118,12 +118,31 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         context
     }
 
-    def simulateDevice(device: Device, frame: Ethernet, inPort: UUID)
+    def egressPacketContextFor(
+            frame: Ethernet,
+            egressPort: UUID = null,
+            emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList)
+            (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
+                      natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
+                      traceTx: FlowStateTransaction[TraceKey, TraceContext] = NO_TRACE,
+                      arpBroker: ArpRequestBroker = throwAwayArpBroker(emitter))
+    : PacketContext = {
+        val fmatch = new FlowMatch(FlowKeys.fromEthernetPacket(frame))
+        val context = new PacketContext(-1, new Packet(frame, fmatch), fmatch, egressPort)
+        context.packetEmitter = new PacketEmitter(emitter, actorSystem.deadLetters)
+        context.arpBroker = arpBroker
+        context.initialize(conntrackTx, natTx, HappyGoLuckyLeaser, traceTx)
+        context.prepareForSimulation()
+        context
+    }
+
+    def simulateDevice(device: Device, frame: Ethernet, inPort: UUID,
+                       emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList)
                       (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                 natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
                                 arpBroker: ArpRequestBroker = throwAwayArpBroker())
     : (PacketContext, SimulationResult) = {
-        val context = packetContextFor(frame, inPort)
+        val context = packetContextFor(frame, inPort, emitter)
         force {
             flushTransactions(conntrackTx, natTx)
             context.clear()
