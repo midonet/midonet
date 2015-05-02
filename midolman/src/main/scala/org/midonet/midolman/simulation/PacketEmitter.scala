@@ -35,7 +35,6 @@ class PacketEmitter(queue: Queue[PacketEmitter.GeneratedPacket],
 
     def schedule(genPacket: GeneratedPacket): Boolean =
         if (queue.offer(genPacket)) {
-            alert ! CheckBackchannels
             true
         } else {
             false
