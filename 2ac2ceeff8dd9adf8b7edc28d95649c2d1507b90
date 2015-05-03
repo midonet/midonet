@@ -88,6 +88,74 @@
       "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f89ed061",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1003720
+      },
+      "writtenOn": "2015-05-03T11:34:17Z",
+      "side": 1,
+      "message": "Could there be dependencies between services (regardless of the physical location of the other service) ? i.e. the ability of one service to function based on another service functionality? How do we support that? If the answer is yes, then a service should expose an inf. to query about its status by other services.",
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d899547a",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1003720
+      },
+      "writtenOn": "2015-05-03T11:34:17Z",
+      "side": 1,
+      "message": "Are configuration REST API and (future) PUB/SUB services? Or tools? What is the difference?",
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_388ce835",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1003720
+      },
+      "writtenOn": "2015-05-03T11:34:17Z",
+      "side": 1,
+      "message": "Typo: delete one \u0027is\u0027",
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_188f6c2b",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 255,
+      "author": {
+        "id": 1003720
+      },
+      "writtenOn": "2015-05-03T11:34:17Z",
+      "side": 1,
+      "message": "Can we add the \u0027Cluster service framework\u0027 API? i.e., \u0027GET\u0027 a list of registered services, \u0027GET\u0027 status of the services, \u0027stop/restart\u0027 a service etc.",
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
