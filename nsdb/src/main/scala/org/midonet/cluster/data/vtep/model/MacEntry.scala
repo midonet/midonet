@@ -29,9 +29,9 @@ import org.midonet.packets.IPv4Addr
  * @param id is UUID of the entry
  */
 abstract class MacEntry(id: UUID, val logicalSwitchId: UUID,
-                        val mac: VtepMAC, val ip: IPv4Addr) {
+                        val mac: VtepMAC, val ip: IPv4Addr) extends VtepEntry {
     // pseudo random id based on mac, ip, logical switch and locator
-    val uuid = if (id != null) id else new UUID(
+    override val uuid = if (id != null) id else new UUID(
         (Objects.hash(mac) << 32) | (Objects.hash(ip) & 0xFFFFFFFF),
         (Objects.hash(locationId) << 32) |
             (Objects.hash(logicalSwitchId) & 0xFFFFFFFF)
@@ -48,7 +48,6 @@ abstract class MacEntry(id: UUID, val logicalSwitchId: UUID,
     def locationId: UUID
 
     override def equals(o: Any): Boolean = o match {
-        case null => false
         case that: MacEntry if isUcast != that.isUcast => false
         case that: MacEntry =>
             Objects.equals(logicalSwitchId, that.logicalSwitchId) &&
@@ -57,8 +56,6 @@ abstract class MacEntry(id: UUID, val logicalSwitchId: UUID,
             Objects.equals(locationId, that.locationId)
         case other => false
     }
-
-    override def hashCode: Int = uuid.hashCode()
 
     /** Convenience method to filter multicast entries */
     def asMcast: McastMac = this match {
