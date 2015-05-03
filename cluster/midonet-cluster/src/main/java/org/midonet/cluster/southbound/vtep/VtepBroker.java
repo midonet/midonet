@@ -44,6 +44,7 @@ import org.midonet.cluster.services.vxgw.VxLanPeer;
 import org.midonet.cluster.services.vxgw.VxLanPeerConsolidationException;
 import org.midonet.cluster.services.vxgw.VxLanPeerSyncException;
 import org.midonet.cluster.data.VtepBinding;
+import org.midonet.cluster.data.vtep.VtepNotConnectedException;
 import org.midonet.cluster.data.vtep.model.MacLocation;
 import org.midonet.cluster.data.vtep.model.McastMac;
 import org.midonet.cluster.data.vtep.model.UcastMac;

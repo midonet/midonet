@@ -240,7 +240,7 @@ public class VtepTest {
     public void testObservableUpdatesMacAddition() throws Exception {
 
         // Our logical switch
-        final UUID lsId = new UUID(0, 111);
+        final UUID lsId = mehUuid;
         final LogicalSwitch ls = new LogicalSwitch(lsId, "ls0", 111, "dsc");
 
         // Prepare an update consisting of a new row being added
@@ -292,7 +292,7 @@ public class VtepTest {
         // Don't find the logical switch
         new Expectations() {{
             vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
-            vtepDataClient.getLogicalSwitch(new UUID(0, 111));
+            vtepDataClient.getLogicalSwitch(mehUuid);
             times = 1; result = null;
         }};
 
@@ -324,7 +324,7 @@ public class VtepTest {
         );
         feedPhysicalSwitchUpdate(ups);
 
-        final LogicalSwitch ls = new LogicalSwitch(new UUID(0, 111), "ls0", 111,
+        final LogicalSwitch ls = new LogicalSwitch(mehUuid, "ls0", 111,
                                                   "Description");
 
         // The VtepBroker should process the update, fetching the logical switch
@@ -332,7 +332,7 @@ public class VtepTest {
         // the MacLocation
         new Expectations() {{
             vtepDataClient.getTunnelIp(); times = 1; result = vxTunEndpoint;
-            vtepDataClient.getLogicalSwitch(new UUID(0, 111));
+            vtepDataClient.getLogicalSwitch(mehUuid);
             times = 1;
             result = ls;
         }};

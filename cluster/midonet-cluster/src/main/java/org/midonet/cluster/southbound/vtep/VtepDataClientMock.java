@@ -43,6 +43,8 @@ import rx.Subscription;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
+import org.midonet.cluster.data.vtep.VtepException;
+import org.midonet.cluster.data.vtep.VtepStateException;
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
 import org.midonet.cluster.data.vtep.model.McastMac;
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
