@@ -91,7 +91,7 @@ public final class PhysicalLocatorSetTable extends Table {
      * Generate an insert command
      */
     @Override
-    public <E extends VtepEntry> OvsdbInsert insert(E row)
+    public <E extends VtepEntry> Table.OvsdbInsert insert(E row)
         throws IllegalArgumentException {
         Insert<GenericTableSchema> op = newInsert(row);
         PhysicalLocatorSet set = (PhysicalLocatorSet)row;
