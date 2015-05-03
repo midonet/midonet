@@ -25,8 +25,8 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
-import org.midonet.cluster.data.vtep.model.MacEntry;
 import org.midonet.cluster.data.vtep.model.McastMac;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 /**
  * Specific schema section for the multicast mac tables
@@ -35,17 +35,14 @@ public abstract class McastMacsTable extends MacsTable {
     static private final String COL_LOCATOR_SET = "locator_set";
 
     protected McastMacsTable(DatabaseSchema databaseSchema, String tableName) {
-        super(databaseSchema, tableName);
-    }
-
-    @Override
-    public Boolean isUcastTable() {
-        return false;
+        super(databaseSchema, tableName, McastMac.class);
     }
 
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
-        List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
+        List<ColumnSchema<GenericTableSchema, ?>> cols =
+            super.partialColumnSchemas();
         cols.add(getLocatorSetSchema());
         return cols;
     }
@@ -56,6 +53,7 @@ public abstract class McastMacsTable extends MacsTable {
     }
 
     /** Map the schema for the location column */
+    @Override
     protected ColumnSchema<GenericTableSchema, UUID> getLocationIdSchema() {
         return getLocatorSetSchema();
     }
@@ -71,13 +69,15 @@ public abstract class McastMacsTable extends MacsTable {
     /**
      * Extract the entry information
      */
-    public McastMac parseMcastMac(Row<GenericTableSchema> row) {
-        return new McastMac(parseUuid(row), parseLogicalSwitch(row),
-                            parseMac(row), parseIpaddr(row),
-                            parseLocatorSet(row));
-    }
-
-    public MacEntry parseMacEntry(Row<GenericTableSchema> row) {
-        return parseMcastMac(row);
+    @Override
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+        throws IllegalArgumentException {
+        ensureOutputClass(clazz);
+        return (row == null)? null:
+               (E)McastMac.apply(parseUuid(row), parseLogicalSwitch(row),
+                                 parseMac(row), parseIpaddr(row),
+                                 parseLocatorSet(row));
     }
 }
