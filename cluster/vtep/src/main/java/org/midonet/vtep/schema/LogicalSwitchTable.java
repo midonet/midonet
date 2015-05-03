@@ -23,29 +23,37 @@ import java.util.Set;
 import org.opendaylight.ovsdb.lib.notation.Condition;
 import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
+import org.opendaylight.ovsdb.lib.operations.Delete;
 import org.opendaylight.ovsdb.lib.operations.Insert;
 import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 
 /**
  * Schema for the Ovsdb logical switch table
  */
 public final class LogicalSwitchTable extends Table {
-    static private final String TB_NAME = "Logical_Switch";
+    static public final String TB_NAME = "Logical_Switch";
     static private final String COL_NAME = "name";
     static private final String COL_DESCRIPTION = "description";
     static private final String COL_TUNNEL_KEY = "tunnel_key";
 
     public LogicalSwitchTable(DatabaseSchema databaseSchema) {
-        super(databaseSchema, TB_NAME);
+        super(databaseSchema, TB_NAME, LogicalSwitch.class);
+    }
+
+    public String getName() {
+        return TB_NAME;
     }
 
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
-        List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
+        List<ColumnSchema<GenericTableSchema, ?>> cols =
+            super.partialColumnSchemas();
         cols.add(getNameSchema());
         cols.add(getDescriptionSchema());
         cols.add(getTunnelKeySchema());
@@ -64,7 +72,6 @@ public final class LogicalSwitchTable extends Table {
 
     /** Get the schema for the optional tunnel key (vxlan vni) */
     private ColumnSchema<GenericTableSchema, Set> getTunnelKeySchema() {
-
         return tableSchema.column(COL_TUNNEL_KEY, Set.class);
     }
 
@@ -100,23 +107,55 @@ public final class LogicalSwitchTable extends Table {
     /**
      * Extract a complete logical switch from a table row
      */
-    public LogicalSwitch parseLogicalSwitch(Row<GenericTableSchema> row) {
-        return new LogicalSwitch(parseUuid(row), parseName(row),
-                                 parseTunnelKey(row), parseDescription(row));
+    @Override
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+        throws IllegalArgumentException {
+        ensureOutputClass(clazz);
+        return (row == null)? null:
+               (E)LogicalSwitch.apply(parseUuid(row), parseName(row),
+                                      parseTunnelKey(row),
+                                      parseDescription(row));
     }
 
     /**
      * Generate an insertion operation for a logical switch
      */
-    public Insert<GenericTableSchema> insert(LogicalSwitch ls) {
-        Insert<GenericTableSchema> op = super.insert(ls.uuid());
+    @Override
+    public <E extends VtepEntry> Table.OvsdbInsert insert(E entry)
+        throws IllegalArgumentException {
+        Insert<GenericTableSchema> op = newInsert(entry);
+        LogicalSwitch ls = (LogicalSwitch)entry;
         Set<Long> vni = new HashSet<>();
         if (ls.tunnelKey() != null)
             vni.add((long)ls.tunnelKey());
         op.value(getNameSchema(), ls.name());
         op.value(getDescriptionSchema(), ls.description());
         op.value(getTunnelKeySchema(), vni);
-        return op;
+        return new OvsdbInsert(op);
     }
 
+    /**
+     * Generate a delete operation based on logical switch name
+     */
+    public Table.OvsdbDelete deleteByName(String name) {
+        Delete<GenericTableSchema> op = new Delete<>(tableSchema);
+        op.where(getNameMatcher(name));
+        return new OvsdbDelete(op);
+    }
+
+    @Override
+    public <E extends VtepEntry> Row<GenericTableSchema> generateRow(
+        E entry) throws IllegalArgumentException {
+        Row<GenericTableSchema> row = super.generateRow(entry);
+        LogicalSwitch ls = (LogicalSwitch)entry;
+        Set<Long> vni = new HashSet<>();
+        if (ls.tunnelKey() != null)
+            vni.add((long)ls.tunnelKey());
+        addToRow(row, getNameSchema(), ls.name());
+        addToRow(row, getDescriptionSchema(), ls.description());
+        addToRow(row, getTunnelKeySchema(), vni);
+        return row;
+    }
 }
