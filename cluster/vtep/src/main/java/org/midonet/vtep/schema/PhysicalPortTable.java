@@ -141,7 +141,8 @@ public final class PhysicalPortTable extends Table {
                                               Class<E> clazz)
         throws IllegalArgumentException {
         ensureOutputClass(clazz);
-        return (E)PhysicalPort.apply(parseUuid(row), parseName(row),
+        return (row == null)? null:
+               (E)PhysicalPort.apply(parseUuid(row), parseName(row),
                                      parseDescription(row),
                                      parseVlanBindings(row),
                                      parseVlanStats(row),

@@ -83,7 +83,8 @@ public final class PhysicalLocatorSetTable extends Table {
     E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
         throws IllegalArgumentException {
         ensureOutputClass(clazz);
-        return (E)PhysicalLocatorSet.apply(parseUuid(row), parseLocators(row));
+        return (row == null)? null:
+               (E)PhysicalLocatorSet.apply(parseUuid(row), parseLocators(row));
     }
 
     /**
