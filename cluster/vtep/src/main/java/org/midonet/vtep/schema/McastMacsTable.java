@@ -75,7 +75,8 @@ public abstract class McastMacsTable extends MacsTable {
     E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
         throws IllegalArgumentException {
         ensureOutputClass(clazz);
-        return (E)McastMac.apply(parseUuid(row), parseLogicalSwitch(row),
+        return (row == null)? null:
+               (E)McastMac.apply(parseUuid(row), parseLogicalSwitch(row),
                                  parseMac(row), parseIpaddr(row),
                                  parseLocatorSet(row));
     }

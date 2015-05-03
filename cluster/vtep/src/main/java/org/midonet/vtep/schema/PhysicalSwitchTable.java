@@ -146,7 +146,8 @@ public final class PhysicalSwitchTable extends Table {
     E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
         throws IllegalArgumentException {
         ensureOutputClass(clazz);
-        return (E)PhysicalSwitch.apply(parseUuid(row), parseName(row),
+        return (row == null)? null:
+               (E)PhysicalSwitch.apply(parseUuid(row), parseName(row),
                                       parseDescription(row), parsePorts(row),
                                       parseManagementIps(row),
                                       parseTunnelIps(row));

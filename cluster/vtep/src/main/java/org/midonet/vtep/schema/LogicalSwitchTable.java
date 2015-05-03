@@ -113,7 +113,8 @@ public final class LogicalSwitchTable extends Table {
     E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
         throws IllegalArgumentException {
         ensureOutputClass(clazz);
-        return (E)LogicalSwitch.apply(parseUuid(row), parseName(row),
+        return (row == null)? null:
+               (E)LogicalSwitch.apply(parseUuid(row), parseName(row),
                                       parseTunnelKey(row),
                                       parseDescription(row));
     }
