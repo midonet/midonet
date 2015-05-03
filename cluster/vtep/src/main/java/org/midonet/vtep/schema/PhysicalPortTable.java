@@ -153,7 +153,7 @@ public final class PhysicalPortTable extends Table {
      * Insertion of physical port information
      */
     @Override
-    public <E extends VtepEntry> OvsdbInsert insert(E row)
+    public <E extends VtepEntry> Table.OvsdbInsert insert(E row)
         throws IllegalArgumentException {
         Insert<GenericTableSchema> op = newInsert(row);
         PhysicalPort port = (PhysicalPort)row;
