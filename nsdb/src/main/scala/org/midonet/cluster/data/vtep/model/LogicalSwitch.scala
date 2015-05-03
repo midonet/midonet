@@ -36,6 +36,11 @@ final class LogicalSwitch(id: UUID, lsName: String,
     val name = if (lsName == null) "" else lsName
     val description = if (lsDesc == null || lsDesc.isEmpty) null else lsDesc
 
+    /** Corresponding Midonet NetworkId, assuming the logical switch has
+      * a Midonet-compliant name (null otherwise) */
+    def networkId: UUID = LogicalSwitch.lsNameToNetworkId(name)
+
+
     private val str: String = "LogicalSwitch{" +
                                   "uuid=" + uuid + ", " +
                                   "name='" + name + "', " +
@@ -57,4 +62,21 @@ object LogicalSwitch {
         new LogicalSwitch(id, name, vni, desc)
     def apply(name: String, vni: Integer, desc: String) =
         new LogicalSwitch(null, name, vni, desc)
+
+    /** prefix prepended to the network uuid when forming
+      * a logical switch name */
+    private val LogicalSwitchPrefix = "mn-"
+
+    /** Logical switches created to bind a VTEP port and a Midonet network have
+      * a name formed as a function of the network uuid. This method extracts
+      * the uuid from the logical switch name */
+    def lsNameToNetworkId(lsName: String): UUID = try {
+        UUID.fromString(lsName.substring(LogicalSwitchPrefix.length))
+    } catch {
+        case _: Throwable => null
+    }
+
+    /** This method returns the name that should be assigned to a logical switch
+      * used to bind a VTEP port with a Midonet bridge */
+    def networkIdToLogicalSwitchName(id: UUID): String = LogicalSwitchPrefix + id
 }
