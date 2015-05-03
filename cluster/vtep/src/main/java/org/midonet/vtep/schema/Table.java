@@ -273,6 +273,7 @@ public abstract class Table {
     @SuppressWarnings(value = "unckecked")
     public Row<GenericTableSchema> generateRow(Map<String, Object> rowValues) {
         Row<GenericTableSchema> row = new Row<>();
+        row.setTableSchema(tableSchema);
         for (ColumnSchema<GenericTableSchema, ?> c: getColumnSchemas()) {
             if (rowValues.containsKey(c.getName())) {
                 row.addColumn(c.getName(),
@@ -289,6 +290,7 @@ public abstract class Table {
         E entry) throws IllegalArgumentException {
         ensureInputClass(entry.getClass());
         Row<GenericTableSchema> row = new Row<>();
+        row.setTableSchema(tableSchema);
         return addToRow(row, getUuidSchema(), toOvsdb(entry.uuid()));
     }
 
