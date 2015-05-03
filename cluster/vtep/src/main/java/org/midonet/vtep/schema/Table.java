@@ -272,7 +272,7 @@ public abstract class Table {
      */
     @SuppressWarnings(value = "unckecked")
     public Row<GenericTableSchema> generateRow(Map<String, Object> rowValues) {
-        Row<GenericTableSchema> row = new Row<>();
+        Row<GenericTableSchema> row = new Row<>(tableSchema);
         for (ColumnSchema<GenericTableSchema, ?> c: getColumnSchemas()) {
             if (rowValues.containsKey(c.getName())) {
                 row.addColumn(c.getName(),
