@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_6ea5fa02",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-04T13:07:59Z",
+      "side": 1,
+      "message": "Since the order in VIPs appear is irrelevant (I checked the LoadBalacerManager), I made this order-agnostic.",
+      "parentUuid": "1a106d94_f3ac338e",
+      "range": {
+        "startLine": 145,
+        "startChar": 17,
+        "endLine": 145,
+        "endChar": 29
+      },
+      "revId": "c9251d3698efd9ed5cb052c7bfda4f78735f5d7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_33ba4bc1",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-04T09:24:00Z",
       "side": 1,
       "message": "Why this? Below too.",
+      "range": {
+        "startLine": 89,
+        "startChar": 64,
+        "endLine": 89,
+        "endChar": 70
+      },
+      "revId": "c9251d3698efd9ed5cb052c7bfda4f78735f5d7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2e51420f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-04T13:07:59Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "1a106d94_33ba4bc1",
       "range": {
         "startLine": 89,
         "startChar": 64,
