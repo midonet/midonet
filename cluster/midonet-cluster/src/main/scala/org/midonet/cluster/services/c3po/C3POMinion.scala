@@ -27,11 +27,10 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.cluster.services.c3po.translators._
-import org.midonet.cluster.{ClusterConfig, ClusterConfig$, ClusterNode, ScheduledClusterMinion}
+import org.midonet.cluster.{ClusterConfig, ClusterNode, ScheduledClusterMinion}
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.state.PathBuilder

@@ -26,9 +26,8 @@ import scala.util.control.NonFatal
 import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.services.c3po.translators.{NeutronTranslator, TranslationException}
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.services.c3po.C3POState
+import org.midonet.cluster.services.c3po.translators.{NeutronTranslator, TranslationException}
 
 object C3POStorageManager {
 
