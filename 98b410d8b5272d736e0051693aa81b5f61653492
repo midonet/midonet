@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_53e0a7f9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/VtepDataClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-04T09:02:35Z",
+      "side": 1,
+      "message": "VtepConnectionHandle?",
+      "range": {
+        "startLine": 100,
+        "startChar": 19,
+        "endLine": 100,
+        "endChar": 29
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d3ebf7d9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-04T09:02:35Z",
+      "side": 1,
+      "message": "bindings?",
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
