@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ee544acb",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-04T13:54:16Z",
+      "side": 1,
+      "message": "Why make this a set, if you later convert it to a list? Alternatively for this you could use something like:\n\n  for (vId \u003c- loadBalancer.getVipIdList.asScala) yield UpdateOp(...)\n\nor\n\n  loadBalancer.getVipIdList.asScala.map(vId \u003d\u003e UpdateOp(...))",
+      "range": {
+        "startLine": 281,
+        "startChar": 34,
+        "endLine": 281,
+        "endChar": 37
+      },
+      "revId": "db3bc22dcadb5a4ec6dfe4caf0935f149ecd045d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
