@@ -22,6 +22,30 @@
       "revId": "db3bc22dcadb5a4ec6dfe4caf0935f149ecd045d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ce486eb5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/LoadBalancerMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-04T15:55:20Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_ee544acb",
+      "range": {
+        "startLine": 281,
+        "startChar": 34,
+        "endLine": 281,
+        "endChar": 37
+      },
+      "revId": "db3bc22dcadb5a4ec6dfe4caf0935f149ecd045d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
