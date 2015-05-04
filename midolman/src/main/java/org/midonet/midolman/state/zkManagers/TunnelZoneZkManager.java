@@ -18,11 +18,18 @@ package org.midonet.midolman.state.zkManagers;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 
+import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
+import com.google.common.util.concurrent.SettableFuture;
 
 import org.midonet.cluster.WatchableZkManager;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -32,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
@@ -91,6 +99,56 @@ public class TunnelZoneZkManager
     public boolean membershipExists(UUID zoneId, UUID hostId)
             throws StateAccessException {
         return zk.exists(paths.getTunnelZoneMembershipPath(zoneId, hostId));
+    }
+
+    public Set<TunnelZone.HostConfig> getZoneMembershipsForHosts(
+            UUID zoneId, Set<UUID> hosts)
+            throws StateAccessException, SerializationException {
+        Map<UUID, Future<byte[]>> futures =
+            new HashMap<UUID, Future<byte[]>>();
+        for (UUID host : hosts) {
+            String zoneMembershipPath =
+                paths.getTunnelZoneMembershipPath(zoneId, host);
+            final SettableFuture<byte[]> f = SettableFuture.create();
+            zk.asyncGet(zoneMembershipPath,
+                        new DirectoryCallback<byte[]>(){
+                            @Override
+                            public void onTimeout(){
+                                f.setException(new TimeoutException());
+                            }
+
+                            @Override
+                            public void onError(KeeperException e) {
+                                f.setException(e);
+                            }
+
+                            @Override
+                            public void onSuccess(byte[] data) {
+                                f.set(data);
+                            }
+                        }, null);
+            futures.put(host, f);
+        }
+
+        Set<TunnelZone.HostConfig> configs = new HashSet<TunnelZone.HostConfig>();
+        for (Map.Entry<UUID, Future<byte[]>> entry : futures.entrySet()) {
+            try {
+                TunnelZone.HostConfig.Data config =
+                    serializer.deserialize(entry.getValue().get(),
+                                           TunnelZone.HostConfig.Data.class);
+                configs.add(new TunnelZone.HostConfig(entry.getKey(), config));
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                throw new StateAccessException(ie);
+            } catch (ExecutionException ee) {
+                if (ee.getCause() instanceof KeeperException.NoNodeException) {
+                    // ignore, membership simply didn't exist
+                } else {
+                    throw new StateAccessException(ee.getCause());
+                }
+            }
+        }
+        return configs;
     }
 
     public TunnelZone.HostConfig getZoneMembership(UUID zoneId, UUID hostId, Directory.TypedWatcher watcher)

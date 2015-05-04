@@ -248,15 +248,15 @@ public class LocalClientImpl implements Client {
         try {
             Set<TunnelZone.HostConfig> newMemberships =
                     new HashSet<TunnelZone.HostConfig>();
-
+            Set<UUID> newHosts = new HashSet<UUID>();
             for (UUID uuid : currentList) {
                 if (!zoneHosts.containsKey(uuid)) {
-                    newMemberships.add(
-                            tunnelZoneZkManager.getZoneMembership(
-                                    zone.getId(), uuid, null)
-                    );
+                    newHosts.add(uuid);
                 }
             }
+            newMemberships.addAll(
+                    tunnelZoneZkManager.getZoneMembershipsForHosts(
+                            zone.getId(), newHosts));
 
             Set<UUID> removedMemberships = new HashSet<UUID>();
             for (UUID uuid : zoneHosts.keySet()) {
