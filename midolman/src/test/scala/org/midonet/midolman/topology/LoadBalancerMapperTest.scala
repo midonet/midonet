@@ -19,22 +19,23 @@ package org.midonet.midolman.topology
 import java.util.UUID
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration.DurationInt
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
+import rx.observers.TestObserver
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.data.storage.{PersistenceOp, NotFoundException, Storage, UpdateOp}
 import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, VIP => TopologyVIP}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVIP}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
-import rx.observers.TestObserver
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerMapperTest extends MidolmanSpec
@@ -97,7 +98,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             var simLB = obs.getOnNextEvents.asScala.last
             simLB shouldBeDeviceOf protoLB
 
-            And("when we add a vip to the load-balancer")
+            And("When we add a vip to the load-balancer")
             val vip1 = buildAndStoreVIP(protoLB.getId, "192.168.0.1")
             var updatedProtoLB = getLB(protoLB.getId)
 
@@ -136,14 +137,15 @@ class LoadBalancerMapperTest extends MidolmanSpec
             updatedProtoLB = removeVipsFromLoadBalancer(updatedProtoLB)
 
             Then("We receive the load-balancer with no vips")
-            obs.awaitOnNext(6, timeout) shouldBe true
-            obs.getOnNextEvents should have size 6
+            obs.awaitOnNext(5, timeout) shouldBe true
+            obs.getOnNextEvents should have size 5
             simLB = obs.getOnNextEvents.asScala.last
             simLB shouldBeDeviceOf updatedProtoLB
             assertVips(List.empty, simLB.vips)
 
             And("When we update one of the vips and the load-balancer")
             store.update(vip2.toBuilder
+                             .clearLoadBalancerId()
                              .setPoolId(UUID.randomUUID().asProto)
                              .build())
             store.update(updatedProtoLB.toBuilder
@@ -151,8 +153,97 @@ class LoadBalancerMapperTest extends MidolmanSpec
                              .build())
 
             Then("We receive only one update")
-            obs.awaitOnNext(7, timeout) shouldBe true
-            obs.getOnNextEvents should have size 7
+            obs.awaitOnNext(6, timeout) shouldBe true
+            obs.getOnNextEvents should have size 6
+        }
+
+        scenario("Clearing the load-balancer id field in the VIP") {
+            Given("A load-balancer with one vip")
+            val protoLB = buildAndStoreLB()
+            val vip = buildAndStoreVIP(protoLB.getId, "192.168.0.1")
+            var updatedProtoLB = getLB(protoLB.getId)
+
+            Then("When we subscribe to the load-balancer observable")
+            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
+            val observable = Observable.create(lbMapper)
+            val obs = makeObservable()
+            observable.subscribe(obs)
+
+            Then("We obtain a simulation load-balancer with one vip")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+            var simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
+
+            And("When we clear the load-balancer id field in the vip")
+            val updatedVIP = vip.toBuilder.clearLoadBalancerId().build()
+            store.update(updatedVIP)
+            updatedProtoLB = getLB(protoLB.getId)
+
+            Then("We obtain only one load-balancer with no vips")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
+        }
+
+        scenario("Updating the load-balancer with an identical object") {
+            Given("A load-balancer")
+            val protoLB = buildAndStoreLB()
+
+            Then("When we subscribe to the load-balancer observable")
+            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
+            val observable = Observable.create(lbMapper)
+            val obs = makeObservable()
+            observable.subscribe(obs)
+
+            Then("We obtain a simulation load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+            var simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf protoLB
+
+            And("When we update the load-balancer with the same object" +
+                " and then we update its admin state")
+            val updatedProtoLB = protoLB.toBuilder.setAdminStateUp(false)
+                .build()
+            store.multi(List(UpdateOp(protoLB), UpdateOp(updatedProtoLB)))
+
+            Then("We obtain a single simulation load-balancer update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
+        }
+
+        scenario("Updating the vip with an identical object") {
+            Given("A load-balancer with one vip")
+            val protoLB = buildAndStoreLB()
+            val vip = buildAndStoreVIP(protoLB.getId, "192.168.0.1")
+            val updatedProtoLB = getLB(protoLB.getId)
+
+            Then("When we subscribe to the load-balancer observable")
+            val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
+            val observable = Observable.create(lbMapper)
+            val obs = makeObservable()
+            observable.subscribe(obs)
+
+            Then("We obtain a simulation load-balancer")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+            var simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
+
+            And("When we update the VIP with the same object" +
+                " and then we update its admin state")
+            val updatedVIP = vip.toBuilder.setAdminStateUp(false).build()
+            store.multi(List(UpdateOp(vip), UpdateOp(updatedVIP)))
+
+            Then("We obtain a single simulation load-balancer update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            simLB = obs.getOnNextEvents.asScala.last
+            simLB shouldBeDeviceOf updatedProtoLB
         }
 
         scenario("Deleting a load-balancer") {
@@ -188,10 +279,9 @@ class LoadBalancerMapperTest extends MidolmanSpec
 
     private def removeVipsFromLoadBalancer(loadBalancer: TopologyLB)
     : TopologyLB = {
-        for (vId <- loadBalancer.getVipIdsList.asScala) {
-            val vip = getVIP(vId).toBuilder.clearLoadBalancerId().build
-            store.update(vip)
-        }
+        val updatedVips = for (vId <- loadBalancer.getVipIdsList.asScala)
+            yield UpdateOp(getVIP(vId).toBuilder.clearLoadBalancerId().build)
+        store.multi(updatedVips)
         getLB(loadBalancer.getId)
     }
 
