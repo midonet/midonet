@@ -29,6 +29,14 @@ object IPSubnetUtil {
             .build()
     }
 
+    def fromV4Proto(subnet: Commons.IPSubnet): IPv4Subnet = {
+        if (subnet.getVersion == Commons.IPVersion.V4) {
+            return new IPv4Subnet(subnet.getAddress, subnet.getPrefixLength)
+        } else {
+            throw new IllegalArgumentException("Can't make an ipv4 address v6")
+        }
+    }
+
     implicit def fromProto(subnet: Commons.IPSubnet): IPSubnet[_] = {
         subnet.getVersion match {
             case Commons.IPVersion.V4 =>

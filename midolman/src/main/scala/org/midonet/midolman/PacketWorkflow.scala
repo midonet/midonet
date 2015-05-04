@@ -24,32 +24,28 @@ import scala.util.{Failure, Success}
 
 import akka.actor._
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.flows.FlowExpiration.Expiration
-
+import org.jctools.queues.MpscArrayQueue
 import org.slf4j.{LoggerFactory, MDC}
 
-import org.jctools.queues.MpscArrayQueue
-
-import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
+import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
+import org.midonet.midolman.flows.FlowExpiration.Expiration
 import org.midonet.midolman.flows.{FlowExpiration, FlowInvalidator}
 import org.midonet.midolman.logging.{ActorLogWithoutPath, FlowTracingContext}
 import org.midonet.midolman.management.PacketTracing
-import org.midonet.midolman.topology.{VxLanPortMapper, VirtualTopologyActor}
-import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation._
-import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
-import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.state._
-import org.midonet.odp._
+import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
+import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser, _}
+import org.midonet.midolman.topology.devices.Port
+import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.odp.FlowMatch.Field
+import org.midonet.odp._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger._
@@ -142,7 +138,7 @@ class PacketWorkflow(
             val cookieGen: CookieGenerator,
             val clock: NanoClock,
             val dpChannel: DatapathChannel,
-            val clusterDataClient: DataClient,
+            val dhcpConfigProvider: DhcpConfig,
             val flowInvalidator: FlowInvalidator,
             val flowProcessor: FlowProcessor,
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
@@ -561,7 +557,7 @@ class PacketWorkflow(
                             dhcp: DHCP, mtu: Short): Boolean = {
         val srcMac = context.origMatch.getEthSrc
         val optMtu = Option(mtu)
-        DhcpImpl(clusterDataClient, inPort, dhcp, srcMac, optMtu, context.log) match {
+        DhcpImpl(dhcpConfigProvider, inPort, dhcp, srcMac, optMtu, context.log) match {
             case Some(dhcpReply) =>
                 context.log.debug(
                     "sending DHCP reply {} to port {}", dhcpReply, inPort.id)
