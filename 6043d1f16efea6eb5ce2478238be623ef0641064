@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_8e3dd62d",
+        "filename": "tests/mmm/bootstrap_v2",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-04T15:06:51Z",
+      "side": 1,
+      "message": "This need to be as root?",
+      "range": {
+        "startLine": 15,
+        "startChar": 0,
+        "endLine": 15,
+        "endChar": 6
+      },
+      "revId": "6043d1f16efea6eb5ce2478238be623ef0641064",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6e35fa44",
+        "filename": "tests/mmm/bootstrap_v2",
+        "patchSetId": 3
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-04T15:06:51Z",
+      "side": 1,
+      "message": "This too.",
+      "range": {
+        "startLine": 69,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 7
+      },
+      "revId": "6043d1f16efea6eb5ce2478238be623ef0641064",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
