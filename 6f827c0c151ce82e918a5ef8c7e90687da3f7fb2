@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_8e94b68b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-04T12:55:59Z",
+      "side": 1,
+      "message": "for the record: i\u0027m 100%sure all these changes to import order will cause conflicts with some other patch :/",
+      "revId": "6f827c0c151ce82e918a5ef8c7e90687da3f7fb2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
