@@ -31,7 +31,7 @@ object IPSubnetUtil {
 
     def fromV4Proto(subnet: Commons.IPSubnet): IPv4Subnet = {
         if (subnet.getVersion == Commons.IPVersion.V4) {
-            return new IPv4Subnet(subnet.getAddress, subnet.getPrefixLength)
+            new IPv4Subnet(subnet.getAddress, subnet.getPrefixLength)
         } else {
             throw new IllegalArgumentException("Can't make an ipv4 address v6")
         }
@@ -68,7 +68,7 @@ object IPSubnetUtil {
     implicit def richIPSubnet(subnet: IPSubnet[_]): RichIPSubnet =
         new RichIPSubnet(subnet)
 
-    class RichIPSubnet protected[IPSubnetUtil](val subnet: IPSubnet[_])
+    final class RichIPSubnet protected[IPSubnetUtil](val subnet: IPSubnet[_])
         extends AnyVal {
         def asProto: Commons.IPSubnet = toProto(subnet)
     }
@@ -76,7 +76,7 @@ object IPSubnetUtil {
     implicit def richProtoIPSubnet(subnet: Commons.IPSubnet)
         : RichProtoIPSubnet = new RichProtoIPSubnet(subnet)
 
-    class RichProtoIPSubnet protected[IPSubnetUtil]
+    final class RichProtoIPSubnet protected[IPSubnetUtil]
         (val subnet: Commons.IPSubnet) extends AnyVal {
         def asJava: IPSubnet[_] = fromProto(subnet)
     }

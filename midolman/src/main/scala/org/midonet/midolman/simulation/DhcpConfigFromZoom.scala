@@ -30,12 +30,12 @@ import com.google.common.annotations.VisibleForTesting
 
 import org.midonet.cluster.data.dhcp.{Host, Opt121, Subnet}
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.util.IPAddressUtil.toIPv4Addr
-import org.midonet.cluster.util.IPSubnetUtil.fromV4Proto
-import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil}
+import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.IPSubnetUtil._
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.topology.VirtualTopology._
-import org.midonet.packets.{IPv4Subnet, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 
 /** This class enables access to DHCP resources via the new storage stack.
   *
@@ -78,9 +78,12 @@ class DhcpConfigFromZoom(vt: VirtualTopology)
     private[simulation] def toHost(protoHost: Topology.Dhcp.Host): Host = {
         val h = new Host()
         h.setId(h.getId)
-        h.setIp(IPAddressUtil.toIPv4Addr(protoHost.getIpAddress))
-        h.setMAC(MAC.fromString(protoHost.getMac))
-        h.setName(protoHost.getName)
+        if (protoHost.hasIpAddress)
+            h.setIp(protoHost.getIpAddress.asIPv4Address)
+        if (protoHost.hasMac)
+            h.setMAC(MAC.fromString(protoHost.getMac))
+        if (protoHost.hasName)
+            h.setName(protoHost.getName)
         // h.setExtraDhcpOpts() unused yet?
         h
     }
@@ -90,21 +93,38 @@ class DhcpConfigFromZoom(vt: VirtualTopology)
       */
     @VisibleForTesting
     private[simulation] def toSubnet(dhcp: Topology.Dhcp): Subnet = {
-        val s = new Subnet
-        s.setId(UUIDUtil.fromProto(dhcp.getId).toString)
-        s.setDefaultGateway(toIPv4Addr(dhcp.getDefaultGateway))
-        s.setEnabled(dhcp.getEnabled)
-        s.setInterfaceMTU(dhcp.getInterfaceMtu.toShort)
-        s.setServerAddr(toIPv4Addr(dhcp.getServerAddress))
-        s.setSubnetAddr(fromV4Proto(dhcp.getSubnetAddress))
-        s.setOpt121Routes ( dhcp.getOpt121RoutesList.map { opt121 =>
+        val subnet = new Subnet
+        // Mandatory fields.
+        subnet.setId(dhcp.getId.asJava.toString)
+        subnet.setSubnetAddr(fromV4Proto(dhcp.getSubnetAddress))
+
+        // Optional fields
+        if (dhcp.hasDefaultGateway)
+            subnet.setDefaultGateway(dhcp.getDefaultGateway.asIPv4Address)
+        if (dhcp.hasEnabled)
+            subnet.setEnabled(dhcp.getEnabled)
+        if (dhcp.hasInterfaceMtu)
+            subnet.setInterfaceMTU(dhcp.getInterfaceMtu.toShort)
+        if (dhcp.hasServerAddress) {
+            subnet.setServerAddr(dhcp.getServerAddress.asIPv4Address)
+        } else if (dhcp.hasDefaultGateway) {
+            // If the server address is not set, use the default gateway.
+            subnet.setServerAddr(dhcp.getDefaultGateway.asIPv4Address)
+        } else {
+            // Or else, the network broadcast address minus 1.
+            subnet.setServerAddr(
+                IPv4Addr(subnet.getSubnetAddr.toBroadcastAddress.toInt - 1))
+        }
+        subnet.setOpt121Routes(dhcp.getOpt121RoutesList.map(opt121 => {
             val o = new Opt121
-            o.setGateway(toIPv4Addr(opt121.getGateway))
-            o.setRtDstSubnet(fromV4Proto(opt121.getDstSubnet))
+            if (opt121.hasGateway)
+                o.setGateway(opt121.getGateway.asIPv4Address)
+            if (opt121.hasDstSubnet)
+                o.setRtDstSubnet(fromV4Proto(opt121.getDstSubnet))
             o
-        })
-        s.setDnsServerAddrs(dhcp.getDnsServerAddressList.map(toIPv4Addr))
-        s
+        }))
+        subnet.setDnsServerAddrs(dhcp.getDnsServerAddressList.map(toIPv4Addr))
+        subnet
     }
 }
 

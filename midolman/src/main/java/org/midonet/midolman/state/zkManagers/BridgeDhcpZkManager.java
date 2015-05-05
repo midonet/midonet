@@ -18,10 +18,12 @@ package org.midonet.midolman.state.zkManagers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.base.Preconditions;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
@@ -33,7 +35,6 @@ import org.midonet.cluster.data.neutron.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZkManager;
@@ -41,8 +42,6 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.version.Since;
-
-import javax.annotation.Nonnull;
 
 public class BridgeDhcpZkManager extends BaseZkManager {
 
@@ -63,6 +62,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
         /* Default constructor for deserialization. */
         public Subnet() {
         }
+
         public Subnet(IPv4Subnet subnetAddr, IPv4Addr defaultGateway,
                       IPv4Addr serverAddr, List<IPv4Addr> dnsServerAddrs,
                       short interfaceMTU, List<Opt121> opt121Routes) {
