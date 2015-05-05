@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_903330f5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T08:42:48Z",
+      "side": 1,
+      "message": "Do these make sense here? Shouldn\u0027t identical devices be filtered at the source observables (in this case the port and tunnel-zone VT observables)?",
+      "range": {
+        "startLine": 188,
+        "startChar": 32,
+        "endLine": 188,
+        "endChar": 54
+      },
+      "revId": "e37ac00b532e2ced01f1a3f593e51a046c90f636",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
