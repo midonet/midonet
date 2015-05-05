@@ -211,31 +211,13 @@ object SetConf extends ConfigWriter("set") with ConfCommand {
 
     override def run(configurator: MidoNodeConfigurator) = {
         val parseOpts = ConfigParseOptions.defaults().setOriginDescription("STDIN")
-        val schema = configurator.mergedSchemas().resolve()
-        val zkConf = makeConfig(configurator)
+        val newConf = ConfigFactory.parseReader(new InputStreamReader(System.in), parseOpts)
 
-        val reader = new InputStreamReader(System.in)
-        val newConf = ConfigFactory.parseReader(reader, parseOpts)
-
-        val validationConf = newConf.withFallback(schema).resolve()
-
-        for (entry <- newConf.entrySet) {
-            val key = entry.getKey
-            val newVal = validationConf.getValue(key)
-            try {
-                val schemaVal = schema.getValue(key)
-                if (!newVal.valueType().equals(schemaVal.valueType()))
-                    throw new ConfigException.WrongType(newVal.origin(),
-                        s"Value for $key (${newVal.render()}}) does " +
-                        s"not follow schema type (${schemaVal.render()}})")
-            } catch {
-                case e: ConfigException.Missing =>
-                    println(s"Installing configuration key that cannot be " +
-                            s"found in the schema: $key")
-            }
-
+        configurator.validate(newConf) foreach { k =>
+            println(s"Installing config key that was not found in the schema: $k")
         }
 
+        val zkConf = makeConfig(configurator)
         if (clear.get.get)
             zkConf.clearAndSet(newConf)
         else

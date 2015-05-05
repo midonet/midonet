@@ -226,4 +226,60 @@ class MidoConfTest extends FeatureSpecLike
         configurator.schema("foo").setAsSchema(newSchema) should be (true)
         eventually { schema.get.getString("which.source") should be ("new schema") }
     }
+
+    scenario("validates configuration based on schemas") {
+        implicit def str2conf(cfg: String) = ConfigFactory.parseString(cfg)
+
+        def shouldBeInvalid(cfg: Config): Unit = {
+            intercept[ConfigException] {
+                configurator.validate(cfg)
+            }
+        }
+
+        val schemaContent = ConfigFactory.parseString(s"""
+         | foo {
+         |     schemaVersion : 100
+         | }
+         |
+         | a_duration : 10s
+         | a_duration_type : "duration"
+         |
+         | a_bool : true
+         | a_bool_type : "bool"
+         |
+         | a_string : foobar
+         | a_string_type : "string"
+         |
+         | an_int : foobar
+         | an_int_type : "int"
+         |
+         | a_size : 1k
+         | a_size_type : "size"
+         |
+         | a_double : 0.5
+         | a_double_type : "double"
+        """.stripMargin)
+
+        val schema = configurator.schema("foo")
+        schema.setAsSchema(schemaContent)
+
+        val validConfig = """
+         | a_duration = 100s
+         | a_bool = false
+         | a_string = "puffy shirt"
+         | an_int = 7
+         | a_size = 10M
+         | a_double = 1.2
+        """.stripMargin
+
+        configurator.validate(validConfig) should be (List.empty)
+
+        shouldBeInvalid("a_duration = 100M")
+        shouldBeInvalid("a_bool = 0")
+        shouldBeInvalid("an_int = 10s")
+        shouldBeInvalid("a_size = foo")
+        shouldBeInvalid("a_double = foo")
+
+        configurator.validate("unknown = 23") should be (List("unknown"))
+    }
 }
