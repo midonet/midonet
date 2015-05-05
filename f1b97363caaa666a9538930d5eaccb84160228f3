@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_53570258",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T14:48:56Z",
+      "side": 1,
+      "message": "I wasn\u0027t sure whether they were needed. I guess they can be added later if needed. I\u0027m cleaning them then!!",
+      "parentUuid": "1a106d94_1058e0f8",
+      "range": {
+        "startLine": 60,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 15
+      },
+      "revId": "f1b97363caaa666a9538930d5eaccb84160228f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f05a64f0",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
         "patchSetId": 16
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-05T11:56:02Z",
       "side": 1,
       "message": "is this correct? shouldn\u0027t it be VXLAN_PORTS?",
+      "range": {
+        "startLine": 100,
+        "startChar": 39,
+        "endLine": 100,
+        "endChar": 44
+      },
+      "revId": "f1b97363caaa666a9538930d5eaccb84160228f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_33524667",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T14:48:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_f05a64f0",
       "range": {
         "startLine": 100,
         "startChar": 39,
