@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_f03d44de",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/mock/MockOvsdbVtep.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T12:38:00Z",
+      "side": 1,
+      "message": "shouldn\u0027t this live in /test?",
+      "revId": "b94da8633cadbed46d65a071adef42761a507c90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
