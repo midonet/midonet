@@ -122,19 +122,19 @@ object IPAddressUtil {
         }
     }
 
-    final class RichAddresString(str: String) {
+    final class RichAddresString(val str: String) extends AnyVal {
         def asProtoIPAddress: Commons.IPAddress = str
     }
 
-    final class RichIPAddress(addr:IPAddr) {
+    final class RichIPAddress(val addr:IPAddr) extends AnyVal {
         def asProto: Commons.IPAddress = addr
     }
 
-    final class RichInetAddress(addr: InetAddress) {
+    final class RichInetAddress(val addr: InetAddress) extends AnyVal {
         def asProto: Commons.IPAddress = IPAddressUtil.toProto(addr)
     }
 
-    final class RichProtoIPAddress(addr: Commons.IPAddress) {
+    final class RichProtoIPAddress(val addr: Commons.IPAddress) extends AnyVal {
         def asString: String = addr.getAddress
         def asIPv4Address: IPv4Addr = IPAddressUtil.toIPv4Addr(addr)
         def asIPv6Address: IPv6Addr = IPAddressUtil.toIPv6Addr(addr)
