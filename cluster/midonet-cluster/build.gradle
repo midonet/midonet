@@ -228,8 +228,3 @@ task runTopologySnoopy(type: JavaExec) {
         args = ["conf/topology-client.conf"]
     }
 }
-
-cobertura {
-    coverageSourceDirs << sourceSets.main.java.srcDirs
-    coverageSourceDirs << sourceSets.main.scala.srcDirs
-}

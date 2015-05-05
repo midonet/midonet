@@ -174,7 +174,7 @@ buildscript {
 
     dependencies {
         classpath 'com.github.jengelman.gradle.plugins:shadow:0.9.0-M3'
-        classpath 'net.saliman:gradle-cobertura-plugin:2.2.4'
+        classpath 'net.saliman:gradle-cobertura-plugin:2.2.8'
         classpath 'com.andrewkroh.gradle:gradle-protobuf-plugin:0.3.0'
     }
 }
@@ -238,7 +238,7 @@ idea.project {
 
 configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     apply plugin: 'java'
-    apply plugin: 'cobertura'
+    apply plugin: 'net.saliman.cobertura'
     apply plugin: 'com.github.johnrengelman.shadow'
     apply from: "${rootProject.projectDir}/git.gradle"
 
@@ -372,7 +372,16 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     }
 
     cobertura {
+        coverageDirs << file("midonet-util/build/classes/main")
+        coverageDirs << file("netlink/build/classes/main")
+        coverageDirs << file("odp/build/classes/main")
+        coverageDirs << file("nsdb/build/classes/main")
+        coverageDirs << file("midolman/build/classes/main")
+        coverageDirs << file("midonet-api/build/classes/main")
+        coverageDirs << file("cluster/midonet-cluster/build/classes/main")
+        coverageDirs << file("cluster/vtep/build/classes/main")
         coverageFormats = ['html', 'xml']
+//        auxiliaryClasspath = project.sourceSets.main.output.classesDir.path + ":" + project.sourceSets.main.compileClasspath.getAsPath()
     }
 }
 

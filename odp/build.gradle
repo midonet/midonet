@@ -49,9 +49,6 @@ dependencies {
 }
 
 cobertura {
-    coverageSourceDirs << sourceSets.main.java.srcDirs
-    coverageSourceDirs << sourceSets.main.scala.srcDirs
-
     coverageExcludes = ['.*org.midonet.odp.test.*']
 }
 
