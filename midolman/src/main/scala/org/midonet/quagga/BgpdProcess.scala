@@ -20,16 +20,29 @@ import java.util.concurrent.TimeUnit
 import org.slf4j.LoggerFactory
 
 import org.midonet.packets.{IPv4Subnet, MAC}
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.util.process.ProcessHelper
 import org.midonet.util.process.ProcessHelper.ProcessResult
 
 case class BgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4Subnet,
-                       routerIp: IPv4Subnet, routerMac: MAC, vtyPortNumber: Int,
-                       config: MidolmanConfig) {
+                       routerIp: IPv4Subnet, routerMac: MAC, vtyPortNumber: Int) {
     private final val log = LoggerFactory.getLogger(s"org.midonet.routing.bgpd-helper-$bgpIndex")
 
     val BGPD_HELPER = "/usr/lib/midolman/bgpd-helper"
+
+    val CONF_FILE = "/etc/midolman/quagga/bgpd.conf"
+
+    private val LOGDIR: String = {
+        var logdir = "/var/log/midolman"
+        try {
+            val prop = System.getProperty("midolman.log.dir")
+            if (prop ne null)
+                logdir = prop
+        } catch {
+            case _ => // ignored
+        }
+        logdir
+    }
+
 
     var bgpdProcess: Process = null
 
@@ -83,7 +96,7 @@ case class BgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4S
     }
 
     def start(): Boolean = {
-        val cmd = s"$BGPD_HELPER up $bgpIndex $vtyPortNumber ${config.bgpdConfigPath}/bgpd.conf"
+        val cmd = s"$BGPD_HELPER up $bgpIndex $vtyPortNumber $CONF_FILE $LOGDIR"
 
         log.debug(s"Starting bgpd process. vty: $vtyPortNumber")
         log.debug(s"bgpd command line: $cmd")
@@ -94,10 +107,10 @@ case class BgpdProcess(bgpIndex: Int, localVtyIp: IPv4Subnet, remoteVtyIp: IPv4S
         log.debug("Sleeping 5 seconds because we need bgpd to boot up")
         TimeUnit.SECONDS.sleep(5)
         if (isAlive) {
-            log.debug("bgpd process started. Vty: {}", vtyPortNumber)
+            log.debug("bgpd started. Vty: {}", vtyPortNumber)
             true
         } else {
-            log.warn("bgpd process is failed to start")
+            log.warn("bgpd failed to start")
             false
         }
     }
