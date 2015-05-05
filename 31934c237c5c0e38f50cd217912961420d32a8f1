@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_93bdfa04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T13:47:10Z",
+      "side": 1,
+      "message": "Next lines indented.",
+      "parentUuid": "1a106d94_e7616c3a",
+      "range": {
+        "startLine": 43,
+        "startChar": 16,
+        "endLine": 43,
+        "endChar": 79
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_275c247e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
         "patchSetId": 9
@@ -59,6 +83,30 @@
       "writtenOn": "2015-04-17T16:17:26Z",
       "side": 1,
       "message": "name parameters?",
+      "range": {
+        "startLine": 59,
+        "startChar": 22,
+        "endLine": 59,
+        "endChar": 50
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_73b83e11",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGP.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T13:47:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_275c247e",
       "range": {
         "startLine": 59,
         "startChar": 22,
@@ -117,6 +165,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f3438e10",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T13:47:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_8754f821",
+      "range": {
+        "startLine": 55,
+        "startChar": 22,
+        "endLine": 55,
+        "endChar": 38
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_837863f3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
         "patchSetId": 9
@@ -128,6 +200,30 @@
       "writtenOn": "2015-04-21T14:09:25Z",
       "side": 1,
       "message": "bgpSubject or something that characterizes more what this subject is about?",
+      "range": {
+        "startLine": 73,
+        "startChar": 20,
+        "endLine": 73,
+        "endChar": 27
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_130f4ae2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T13:47:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_837863f3",
       "range": {
         "startLine": 73,
         "startChar": 20,
@@ -186,6 +282,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f311ce04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BGPMapper.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 289,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T13:47:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_035c737d",
+      "range": {
+        "startLine": 289,
+        "startChar": 16,
+        "endLine": 289,
+        "endChar": 23
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_63f8c749",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
         "patchSetId": 9
@@ -232,6 +352,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_13262a68",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T13:47:10Z",
+      "side": 1,
+      "message": "I think that even splitting this on multiple lines will be hard to maintain using IDEA, and will be frustrating for many.",
+      "parentUuid": "1a106d94_a3675f24",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 43
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_637d67b1",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/BGPRouteConversionTest.scala",
         "patchSetId": 9
@@ -243,6 +387,30 @@
       "writtenOn": "2015-04-21T14:09:25Z",
       "side": 1,
       "message": "unused",
+      "range": {
+        "startLine": 5,
+        "startChar": 0,
+        "endLine": 5,
+        "endChar": 24
+      },
+      "revId": "31934c237c5c0e38f50cd217912961420d32a8f1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f328ae34",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/BGPRouteConversionTest.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T13:47:10Z",
+      "side": 1,
+      "message": "Removed",
+      "parentUuid": "1a106d94_637d67b1",
       "range": {
         "startLine": 5,
         "startChar": 0,
