@@ -135,7 +135,7 @@ abstract class ConfigApiEndpoint extends HttpServlet {
         log.info(s"${req.getMethod} ${req.getRequestURI}")
         val content = getResource(resource(req))
         resp.getWriter.println(render(content))
-        resp.setContentType("application/json; charset=utf-8")
+        resp.setContentType("text/plain; charset=utf-8")
         resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
         resp.setHeader("Pragma", "no-cache")
         resp.setDateHeader("Expires", 0)
