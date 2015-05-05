@@ -118,7 +118,7 @@ task preparePkg(type: Copy, dependsOn: installApp) {
         into "etc/midolman"
     }
     from("src/deb/quagga/bgpd.conf") {
-        into "etc/quagga"
+        into "etc/midolman/quagga"
     }
     from("src/deb/bin/wdog") {
         into "usr/bin"
