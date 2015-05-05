@@ -58,7 +58,6 @@ class ClusterConfig(_conf: Config) {
     val hearbeat = new HeartbeatConfig(conf)
     val vxgw = new VxGwConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
-    val topologyUpdater = new TopologyZoomUpdaterConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
     val confApi = new ConfApiConfig(conf)
     val restApi = new RestApiConfig(conf)
@@ -109,19 +108,6 @@ class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiServic
     def wsPath = conf.getString(s"$PREFIX.ws_path")
     def sessionGracePeriod = conf.getDuration(s"$PREFIX.session_grace_period", TimeUnit.MILLISECONDS)
     def sessionBufferSize = conf.getInt(s"$PREFIX.session_buffer_size")
-}
-
-class TopologyZoomUpdaterConfig(val conf: Config) {
-    val PREFIX = "cluster.topology_zoom_updater"
-
-    def enableUpdates = conf.getBoolean(s"$PREFIX.enable_updates")
-    def threads = conf.getInt(s"$PREFIX.num_threads")
-    def period = conf.getDuration(s"$PREFIX.period", TimeUnit.MILLISECONDS)
-    def initialRouters = conf.getInt(s"$PREFIX.initial_routers")
-    def initialNetworksPerRouter = conf.getInt(s"$PREFIX.initial_networks_per_router")
-    def initialPortsPerNetwork = conf.getInt(s"$PREFIX.initial_ports_per_network")
-    def initialVteps = conf.getInt(s"$PREFIX.initial_vteps")
-    def initialHosts = conf.getInt(s"$PREFIX.initial_hosts")
 }
 
 class TopologySnoopyConfig(val conf: Config) {
