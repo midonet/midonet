@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_5616d04c",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/schema/LogicalSwitchTable.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-05T14:56:16Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_50ded8dd",
+      "range": {
+        "startLine": 115,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 80
+      },
+      "revId": "2e97f944ac1e98dcc43e4edd4a564181f5c9bd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_10446072",
         "filename": "cluster/vtep/src/main/java/org/midonet/vtep/schema/Table.java",
         "patchSetId": 3
@@ -36,6 +60,24 @@
       "writtenOn": "2015-05-05T12:37:31Z",
       "side": 1,
       "message": "anything we need to do if not found?",
+      "revId": "2e97f944ac1e98dcc43e4edd4a564181f5c9bd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d350120d",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/schema/Table.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-05T14:56:16Z",
+      "side": 1,
+      "message": "No. I wonder if someone would do that, but theoretically someone could add additional information to the table, so if we find something we don\u0027t understand, we ignore it.",
+      "parentUuid": "1a106d94_10446072",
       "revId": "2e97f944ac1e98dcc43e4edd4a564181f5c9bd8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
