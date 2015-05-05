@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_50ded8dd",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/schema/LogicalSwitchTable.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T12:37:31Z",
+      "side": 1,
+      "message": "it might be worth moving this into the parent class and super.parseEntry(this.getClass()) here to spare rewriting this all over the place. An alternative is to provide an ensureClass(this.getClass())",
+      "range": {
+        "startLine": 115,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 80
+      },
+      "revId": "2e97f944ac1e98dcc43e4edd4a564181f5c9bd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_10446072",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/schema/Table.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T12:37:31Z",
+      "side": 1,
+      "message": "anything we need to do if not found?",
+      "revId": "2e97f944ac1e98dcc43e4edd4a564181f5c9bd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
