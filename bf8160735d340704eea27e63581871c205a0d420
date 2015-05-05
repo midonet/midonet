@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_10b0e0db",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/MidonetTypes.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T11:23:00Z",
+      "side": 1,
+      "message": "It seems worth separating the media type constants to a MidonetMediaTypes from the logic to transform to Dto.",
+      "range": {
+        "startLine": 45,
+        "startChar": 7,
+        "endLine": 45,
+        "endChar": 19
+      },
+      "revId": "bf8160735d340704eea27e63581871c205a0d420",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
