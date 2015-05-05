@@ -432,7 +432,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 holdTime = config.bgpHoldTime,
                 connectRetryTime = config.bgpConnectRetry)
 
-            bgpVty.setLogFile("/var/log/quagga/bgpd." + BGP_VTY_PORT + ".log")
             if (log.underlying.isDebugEnabled)
                 bgpVty.setDebug(isEnabled = true)
 
@@ -606,8 +605,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 adRoutes = adRoutes filter (bgp.getId == _.getBgpId)
                 bgpdProcess = new BgpdProcess(bgpIdx,
                                     BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
-                                    rport.portAddr, rport.portMac,
-                                    BGP_VTY_PORT, config)
+                                    rport.portAddr, rport.portMac, BGP_VTY_PORT)
                 startBGP()
                 transition(Starting)
         }

@@ -70,7 +70,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     def bgpKeepAlive = getDuration(s"$PREFIX.midolman.bgp_keepalive", TimeUnit.SECONDS).toInt
     def bgpHoldTime = getDuration(s"$PREFIX.midolman.bgp_holdtime", TimeUnit.SECONDS).toInt
     def bgpConnectRetry = getDuration(s"$PREFIX.midolman.bgp_connect_retry", TimeUnit.SECONDS).toInt
-    def bgpdConfigPath = getString(s"$PREFIX.midolman.bgpd_config")
+
     def dhcpMtu: Short = getInt(s"$PREFIX.midolman.dhcp_mtu").toShort
     def simulationThreads = getInt(s"$PREFIX.midolman.simulation_threads")
     def outputChannels = getInt(s"$PREFIX.midolman.output_channels")
