@@ -22,6 +22,40 @@
       "revId": "bf8160735d340704eea27e63581871c205a0d420",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f0e9c4b7",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/VladimirTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T11:33:07Z",
+      "side": 1,
+      "message": "Remove, I removed it in the previous patch because it\u0027s not really doing anything (unless you want to add a minor test case that just spawns the api)",
+      "revId": "bf8160735d340704eea27e63581871c205a0d420",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_70be74af",
+        "filename": "midonet-api/src/main/java/org/midonet/api/ResourceUriBuilder.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T11:33:07Z",
+      "side": 1,
+      "message": "undo",
+      "revId": "bf8160735d340704eea27e63581871c205a0d420",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
