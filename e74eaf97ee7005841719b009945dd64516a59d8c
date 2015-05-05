@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b3f4765b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T14:48:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_53cd4265",
+      "range": {
+        "startLine": 29,
+        "startChar": 8,
+        "endLine": 29,
+        "endChar": 25
+      },
+      "revId": "e74eaf97ee7005841719b009945dd64516a59d8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_13990a6e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
         "patchSetId": 2
@@ -95,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_13e8ea7a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T14:48:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_d37c92ee",
+      "range": {
+        "startLine": 69,
+        "startChar": 4,
+        "endLine": 69,
+        "endChar": 34
+      },
+      "revId": "e74eaf97ee7005841719b009945dd64516a59d8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f3370e4b",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
         "patchSetId": 2
@@ -106,6 +154,30 @@
       "writtenOn": "2015-05-05T14:30:04Z",
       "side": 1,
       "message": "Does it make sense to add an additional node between the root and the counters?",
+      "range": {
+        "startLine": 72,
+        "startChar": 16,
+        "endLine": 72,
+        "endChar": 20
+      },
+      "revId": "e74eaf97ee7005841719b009945dd64516a59d8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f3ea6e72",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T14:48:31Z",
+      "side": 1,
+      "message": "Yes, I refactored this last minute but it should have it",
+      "parentUuid": "1a106d94_f3370e4b",
       "range": {
         "startLine": 72,
         "startChar": 16,
@@ -141,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d3bf725f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T14:48:31Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_73431eaf",
+      "range": {
+        "startLine": 85,
+        "startChar": 0,
+        "endLine": 86,
+        "endChar": 71
+      },
+      "revId": "e74eaf97ee7005841719b009945dd64516a59d8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_731afec6",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
         "patchSetId": 2
@@ -152,6 +248,30 @@
       "writtenOn": "2015-05-05T14:30:04Z",
       "side": 1,
       "message": "If the trySetCount returns false (which should happen for a BadVersionException), shouldn\u0027t include here the retry logic?",
+      "range": {
+        "startLine": 95,
+        "startChar": 35,
+        "endLine": 95,
+        "endChar": 46
+      },
+      "revId": "e74eaf97ee7005841719b009945dd64516a59d8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_93a97a26",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T14:48:31Z",
+      "side": 1,
+      "message": "I\u0027m assuming the client will do it, just so they can chose their own policy (e.g., how many times? period? ..)",
+      "parentUuid": "1a106d94_731afec6",
       "range": {
         "startLine": 95,
         "startChar": 35,
