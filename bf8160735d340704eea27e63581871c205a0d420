@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_934dfac6",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T14:48:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_105aa082",
+      "revId": "bf8160735d340704eea27e63581871c205a0d420",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_10b0e0db",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/MidonetTypes.scala",
         "patchSetId": 17
@@ -30,6 +48,30 @@
       "writtenOn": "2015-05-05T11:23:00Z",
       "side": 1,
       "message": "It seems worth separating the media type constants to a MidonetMediaTypes from the logic to transform to Dto.",
+      "range": {
+        "startLine": 45,
+        "startChar": 7,
+        "endLine": 45,
+        "endChar": 19
+      },
+      "revId": "bf8160735d340704eea27e63581871c205a0d420",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_53054244",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/MidonetTypes.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T14:48:50Z",
+      "side": 1,
+      "message": "Moved all conversion utility methods to a DtoRenderer object.",
+      "parentUuid": "1a106d94_10b0e0db",
       "range": {
         "startLine": 45,
         "startChar": 7,
@@ -59,6 +101,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_139f4a04",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/VladimirTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T14:48:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_f0e9c4b7",
+      "revId": "bf8160735d340704eea27e63581871c205a0d420",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_70be74af",
         "filename": "midonet-api/src/main/java/org/midonet/api/ResourceUriBuilder.java",
         "patchSetId": 17
@@ -70,6 +130,24 @@
       "writtenOn": "2015-05-05T11:33:07Z",
       "side": 1,
       "message": "undo",
+      "revId": "bf8160735d340704eea27e63581871c205a0d420",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5361c203",
+        "filename": "midonet-api/src/main/java/org/midonet/api/ResourceUriBuilder.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T14:48:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_70be74af",
       "revId": "bf8160735d340704eea27e63581871c205a0d420",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
