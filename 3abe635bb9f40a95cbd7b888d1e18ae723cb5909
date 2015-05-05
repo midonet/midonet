@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_1c3f57b5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T19:51:56Z",
+      "side": 1,
+      "message": "No changes - revert?",
+      "revId": "3abe635bb9f40a95cbd7b888d1e18ae723cb5909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9c7a2786",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T19:51:56Z",
+      "side": 1,
+      "message": "Ditto",
+      "revId": "3abe635bb9f40a95cbd7b888d1e18ae723cb5909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dc701fa6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T19:51:56Z",
+      "side": 1,
+      "message": "nit: wrap lines",
+      "revId": "3abe635bb9f40a95cbd7b888d1e18ae723cb5909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9ca187fa",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T19:51:56Z",
+      "side": 1,
+      "message": "this is a big nit: given that .subscribe will generate a first element, and you\u0027re doing the awaitOnNext for 1 element right after the update, there is a chance that the store.update does result in a second notification, but you just don\u0027t wait enough to see it. Maybe forcing a timeout with awaitOnNext(2, timeout) and then verifying that getOnNextEvents is really 1 would be more reliable. Not sure this is really worth changing though.",
+      "revId": "3abe635bb9f40a95cbd7b888d1e18ae723cb5909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fca4fb08",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T19:51:56Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "3abe635bb9f40a95cbd7b888d1e18ae723cb5909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1cad97e9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 399,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T19:51:56Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "3abe635bb9f40a95cbd7b888d1e18ae723cb5909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
