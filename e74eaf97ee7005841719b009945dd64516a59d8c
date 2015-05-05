@@ -22,6 +22,30 @@
       "revId": "e74eaf97ee7005841719b009945dd64516a59d8c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_73a79ea7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-05T14:09:40Z",
+      "side": 1,
+      "message": "I\u0027ll fix this pre-merge by editing straight in Jenkins. Waiting for a +2",
+      "parentUuid": "1a106d94_13990a6e",
+      "range": {
+        "startLine": 34,
+        "startChar": 48,
+        "endLine": 34,
+        "endChar": 52
+      },
+      "revId": "e74eaf97ee7005841719b009945dd64516a59d8c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
