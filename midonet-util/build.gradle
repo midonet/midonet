@@ -46,8 +46,3 @@ sourceSets {
         java { srcDirs = [] }
     }
 }
-
-cobertura {
-    coverageSourceDirs << sourceSets.main.java.srcDirs
-    coverageSourceDirs << sourceSets.main.scala.srcDirs
-}

@@ -49,9 +49,3 @@ dependencies {
     testCompile libraries.mockit,
                 libraries.scalatest
 }
-
-cobertura {
-    coverageSourceDirs << sourceSets.main.java.srcDirs
-    coverageSourceDirs << sourceSets.main.scala.srcDirs
-}
-
