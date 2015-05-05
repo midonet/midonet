@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_b688e471",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-05T15:15:53Z",
+      "side": 1,
+      "message": "Thanks Nicolas! However, I\u0027m not sure whether we can do this. The mapper should emit a port also, for example, when the port\u0027s chains have changed (such that to invalidate the flows for this port), even if the Port instance is equal to the previous one. I think that here `distinctUntilChanged` should do a deep comparison of all port members, including the chain. I\u0027m not sure though whether that\u0027s practical, plus we have to be very careful not to ignore needed notifications.",
+      "range": {
+        "startLine": 81,
+        "startChar": 9,
+        "endLine": 81,
+        "endChar": 29
+      },
+      "revId": "23dd06f2a1b30a1d19141128afff4e6d49e6a7c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
