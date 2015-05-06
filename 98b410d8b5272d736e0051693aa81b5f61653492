@@ -341,6 +341,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_82f002ca",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/VtepEntry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-06T12:59:51Z",
+      "side": 1,
+      "message": "Thanks Ernest!",
+      "parentUuid": "1a106d94_678d18d3",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 48
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_27004033",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitchTest.scala",
         "patchSetId": 2
