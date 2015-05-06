@@ -36,7 +36,7 @@ import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state.zkManagers.PortZkManager
 import org.midonet.midolman.state.{PortConfig, PortDirectory, StateAccessException, _}
 import org.midonet.util.eventloop.Reactor
-import org.midonet.util.functors.makeRunnable
+import org.midonet.util.functors._
 
 /**
  * An implementation of the [[StateStorage]] trait using the legacy ZooKeeper
@@ -80,24 +80,33 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
                                        active: Boolean): Unit = runOnReactor {
         // Activate the port for legacy ZK storage.
         if (!backendCfg.useNewStack) {
-            var portConfig: PortConfig = null
-            try {
-                portZkManager.setActivePort(portId, hostId, active)
-                portConfig = portZkManager.get(portId)
-            } catch {
-                case e: StateAccessException =>
-                    log.error("Error retrieving the configuration for port {}",
-                              portId, e)
-                case e: SerializationException =>
-                    log.error("Error serializing the configuration for port {}",
-                              portId, e)
-            }
-            if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
-                val deviceId: UUID = portConfig.device_id
-                routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                    deviceId, portId, active)
-            }
+            portZkManager.setActivePort(portId, hostId, active)
+                .observeOn(reactor.rxScheduler)
+                .flatMap(makeFunc1[Void,Observable[PortConfig]](
+                             (x: Void) => { portZkManager.getWithObservable(portId) }))
+                .doOnNext(makeAction1[PortConfig](portConfig => {
+                             if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
+                                 val deviceId: UUID = portConfig.device_id
+                                 routerManager.updateRoutesBecauseLocalPortChangedStatus(
+                                     deviceId, portId, active)
+                             }
+                         }))
+                .subscribe(makeAction1[PortConfig](
+                               (p) => { subjectLocalPortActive.onNext(
+                                           LocalPortActive(portId, active)) }),
+                           makeAction1[Throwable](
+                               (t: Throwable) => {
+                                   t match {
+                                       case e: StateAccessException =>
+                                           log.error("Error retrieving the configuration for port {}",
+                                                     portId, e)
+                                       case e: SerializationException =>
+                                           log.error("Error serializing the configuration for port {}",
+                                                     portId, e)
+                                   }
+                               }))
         }
+
         // Activate the port for cluster storage.
         if (backend.isEnabled) {
             try {
@@ -115,8 +124,9 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
                     log.error("Host {} does not have permission to activate " +
                               "or deactivate port {}", hostId, portId)
             }
+            subjectLocalPortActive.onNext(
+                                LocalPortActive(portId, active))
         }
-        subjectLocalPortActive.onNext(LocalPortActive(portId, active))
     }
 
     override def observableLocalPortActive: Observable[LocalPortActive] =

@@ -24,6 +24,13 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import java.util.concurrent.TimeoutException;
+
+import rx.Observable;
+import rx.Subscriber;
+import rx.Observable.OnSubscribe;
+import rx.functions.Func1;
+
 import com.google.common.base.Function;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
@@ -34,6 +41,7 @@ import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
@@ -927,19 +935,61 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         );
     }
 
-    public void setActivePort(UUID portId, UUID owner, boolean active) throws StateAccessException {
-        String parentPath = paths.getPortActivePath(portId);
-        String path = parentPath + "/" + owner.toString();
+    public Observable<Void> setActivePort(UUID portId, UUID owner,
+            boolean active) throws StateAccessException {
+        final String parentPath = paths.getPortActivePath(portId);
+        final String path = parentPath + "/" + owner.toString();
 
         // NOTE(guillermo): creating this path here ensures backwards
         // compatibility for ports that were created without an 'active' subnode.
-        if (active && !zk.exists(parentPath))
-            zk.addPersistent(parentPath, new byte[0]);
-
-        if (active)
-            zk.ensureEphemeral(path, new byte[0]);
-        else
-            zk.deleteEphemeral(path);
+        if (active) {
+            return Observable.create(new OnSubscribe<Boolean>() {
+                    public void call(final Subscriber<? super Boolean> sub) {
+                        zk.asyncExists(parentPath,
+                                       DirectoryCallbackFactory.wrap(sub));
+                    }
+                })
+                .flatMap(new Func1<Boolean, Observable<String>>() {
+                        @Override
+                        public Observable<String> call(final Boolean exists) {
+                            if (!exists) {
+                                return Observable.create(new OnSubscribe<String>() {
+                                        @Override
+                                        public void call(final Subscriber<? super String> sub) {
+                                            zk.asyncAdd(parentPath, new byte[0],
+                                                        CreateMode.PERSISTENT,
+                                                        DirectoryCallbackFactory.wrap(sub));
+                                        }
+                                    });
+                            } else {
+                                return Observable.just(parentPath);
+                            }
+                        }
+                    })
+                .flatMap(new Func1<String, Observable<String>>() {
+                        @Override
+                        public Observable<String> call(final String v) {
+                            return Observable.create(new OnSubscribe<String>() {
+                                    public void call(final Subscriber<? super String> sub) {
+                                        zk.ensureEphemeralAsync(path, new byte[0],
+                                                                DirectoryCallbackFactory.wrap(sub));
+                                    }
+                                });
+                        }
+                    })
+                .map(new Func1<String, Void>() {
+                        @Override
+                        public Void call(final String v) {
+                            return null;
+                        }
+                    });
+        } else {
+            return Observable.create(new OnSubscribe<Void>() {
+                    public void call(final Subscriber<? super Void> sub) {
+                        zk.asyncDelete(path, DirectoryCallbackFactory.wrap(sub));
+                    }
+                });
+        }
     }
 
     public boolean isActivePort(UUID portId, Runnable watcher) throws StateAccessException {
