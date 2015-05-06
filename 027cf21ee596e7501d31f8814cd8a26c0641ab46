@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_2775e0ca",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "deletion of MAC table of device {}, deviceId?",
+      "range": {
+        "startLine": 173,
+        "startChar": 33,
+        "endLine": 173,
+        "endChar": 69
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8780148c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "MAC table change stream of device {}, deviceId, e?",
+      "range": {
+        "startLine": 176,
+        "startChar": 42,
+        "endLine": 176,
+        "endChar": 50
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_677b58be",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "port p?",
+      "range": {
+        "startLine": 179,
+        "startChar": 15,
+        "endLine": 179,
+        "endChar": 19
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c74dec9b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "same comment as above",
+      "range": {
+        "startLine": 191,
+        "startChar": 22,
+        "endLine": 194,
+        "endChar": 70
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4761fc03",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "!\u003d",
+      "range": {
+        "startLine": 337,
+        "startChar": 70,
+        "endLine": 337,
+        "endChar": 72
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_275cc04a",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 338,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "indent?",
+      "range": {
+        "startLine": 338,
+        "startChar": 59,
+        "endLine": 338,
+        "endChar": 76
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_87577425",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "!\u003d",
+      "range": {
+        "startLine": 351,
+        "startChar": 68,
+        "endLine": 351,
+        "endChar": 70
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a750b032",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "indent?",
+      "range": {
+        "startLine": 352,
+        "startChar": 55,
+        "endLine": 352,
+        "endChar": 70
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_079f0404",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/RMObservableOnSubscribe.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "MapNotification? The replicated map is not important I feel. It just makes it highly available but it\u0027s still a map ;-)",
+      "range": {
+        "startLine": 8,
+        "startChar": 11,
+        "endLine": 8,
+        "endChar": 25
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2787a0b6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/RMObservableOnSubscribe.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T10:04:42Z",
+      "side": 1,
+      "message": "MapObservableOnSubscribe?",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 29
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
