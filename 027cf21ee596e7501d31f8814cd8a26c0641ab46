@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_769947c3",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T15:10:02Z",
+      "side": 1,
+      "message": "Done. The device id is shown by default in the logger, see declaration.",
+      "parentUuid": "1a106d94_2775e0ca",
+      "range": {
+        "startLine": 173,
+        "startChar": 33,
+        "endLine": 173,
+        "endChar": 69
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8780148c",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-06T10:04:42Z",
       "side": 1,
       "message": "MAC table change stream of device {}, deviceId, e?",
+      "range": {
+        "startLine": 176,
+        "startChar": 42,
+        "endLine": 176,
+        "endChar": 50
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_167f3367",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T15:10:02Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "1a106d94_8780148c",
       "range": {
         "startLine": 176,
         "startChar": 42,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_968a0362",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T15:10:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_677b58be",
+      "range": {
+        "startLine": 179,
+        "startChar": 15,
+        "endLine": 179,
+        "endChar": 19
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c74dec9b",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
         "patchSetId": 11
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_16f613f9",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T15:10:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c74dec9b",
+      "range": {
+        "startLine": 191,
+        "startChar": 22,
+        "endLine": 194,
+        "endChar": 70
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_4761fc03",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
         "patchSetId": 11
@@ -105,6 +201,30 @@
       "writtenOn": "2015-05-06T10:04:42Z",
       "side": 1,
       "message": "!\u003d",
+      "range": {
+        "startLine": 337,
+        "startChar": 70,
+        "endLine": 337,
+        "endChar": 72
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_56db6b7b",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 337,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T15:10:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_4761fc03",
       "range": {
         "startLine": 337,
         "startChar": 70,
@@ -163,6 +283,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b6e61f42",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T15:10:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_87577425",
+      "range": {
+        "startLine": 351,
+        "startChar": 68,
+        "endLine": 351,
+        "endChar": 70
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a750b032",
         "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
         "patchSetId": 11
@@ -174,6 +318,30 @@
       "writtenOn": "2015-05-06T10:04:42Z",
       "side": 1,
       "message": "indent?",
+      "range": {
+        "startLine": 352,
+        "startChar": 55,
+        "endLine": 352,
+        "endChar": 70
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_96e1632c",
+        "filename": "brain/midonet-brain/src/main/scala/org/midonet/brain/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 352,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T15:10:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a750b032",
       "range": {
         "startLine": 352,
         "startChar": 55,
@@ -209,6 +377,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_36ca2fa1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/RMObservableOnSubscribe.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T15:10:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_079f0404",
+      "range": {
+        "startLine": 8,
+        "startChar": 11,
+        "endLine": 8,
+        "endChar": 25
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_2787a0b6",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/RMObservableOnSubscribe.scala",
         "patchSetId": 11
@@ -220,6 +412,30 @@
       "writtenOn": "2015-05-06T10:04:42Z",
       "side": 1,
       "message": "MapObservableOnSubscribe?",
+      "range": {
+        "startLine": 12,
+        "startChar": 6,
+        "endLine": 12,
+        "endChar": 29
+      },
+      "revId": "027cf21ee596e7501d31f8814cd8a26c0641ab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d6d63b4e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/RMObservableOnSubscribe.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T15:10:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_2787a0b6",
       "range": {
         "startLine": 12,
         "startChar": 6,
