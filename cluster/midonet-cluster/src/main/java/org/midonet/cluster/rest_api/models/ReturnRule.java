@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.models;
 
-import javax.xml.bind.annotation.XmlRootElement;
+public class ReturnRule extends Rule {
 
-@XmlRootElement
-public class ErrorEntity {
-
-    private String message = null;
-    private int code = 0;
-
-    public String getMessage() {
-        return message;
+    public ReturnRule() {
+        super(RuleType.LITERAL, RuleAction.RETURN);
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    @Override
+    public String getType() {
+        return Rule.Return;
     }
 
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
 }

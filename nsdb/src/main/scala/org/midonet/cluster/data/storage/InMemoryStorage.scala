@@ -157,7 +157,8 @@ class InMemoryStorage extends StorageWithOwnership {
         }
 
         /* Lock free read, synchronous completion */
-        def getAll(ids: Seq[_ <: ObjId]): Seq[Future[T]] = ids.map(get)
+        def getAll(ids: Seq[_ <: ObjId]): Future[Seq[T]] =
+            Future.sequence(ids.map(get))
 
         /* Lock free read, completion on the implicit exec. ctx.: IO thread */
         def getAll: Future[Seq[T]] = {
@@ -462,7 +463,7 @@ class InMemoryStorage extends StorageWithOwnership {
     }
 
     override def getAll[T](clazz: Class[T],
-                           ids: Seq[_ <: ObjId]): Seq[Future[T]] = {
+                           ids: Seq[_ <: ObjId]): Future[Seq[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
 

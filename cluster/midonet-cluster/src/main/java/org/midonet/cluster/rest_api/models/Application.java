@@ -100,7 +100,6 @@ public class Application {
         return uriFor(ResourceUris.POOLS);
     }
 
-    // TODO: ? @Since("5")
     @XmlElement(name = "ports")
     public URI getPorts() {
         return uriFor(ResourceUris.PORTS);
@@ -240,12 +239,5 @@ public class Application {
     public URI getTraceRequests() {
         return uriFor(ResourceUris.TRACE_REQUESTS);
     }
-
-    /*
-    @Since("5")
-    public URI getNeutron() {
-        return null;
-    }
-    */
 
 }

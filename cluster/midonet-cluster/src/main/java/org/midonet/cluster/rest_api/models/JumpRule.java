@@ -13,44 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.models;
 
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlTransient;
-
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.rest_api.annotation.ParentId;
+import org.midonet.cluster.data.ZoomOneOf;
 import org.midonet.cluster.util.UUIDUtil;
 
-public class VxLanPort extends Port {
+@ZoomOneOf(name = "jump_rule_data")
+public class JumpRule extends Rule {
 
-    @ZoomField(name = "mgmtIpAddr", converter = UUIDUtil.Converter.class)
-    public String mgmtIpAddr;
+    @ZoomField(name = "jump_chain_name")
+    public String jumpChainName;
+    @ZoomField(name = "jump_to", converter = UUIDUtil.Converter.class)
+    public UUID jumpChainId;
 
-    @ZoomField(name = "mgmtPort", converter = UUIDUtil.Converter.class)
-    public int mgmtPort;
+    public JumpRule() {
+        super(RuleType.JUMP, RuleAction.JUMP);
+    }
 
-    @ZoomField(name = "vni", converter = UUIDUtil.Converter.class)
-    public int vni;
-
-    @XmlTransient
-    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
-    @ParentId
-    public UUID networkId;
-
+    @Override
     public String getType() {
-        return PortType.VXLAN;
-    }
-
-    @Override
-    public UUID getDeviceId() {
-        return networkId;
-    }
-
-    @Override
-    public void setDeviceId(UUID deviceId) {
-        networkId = deviceId;
+        return Rule.Jump;
     }
 
 }

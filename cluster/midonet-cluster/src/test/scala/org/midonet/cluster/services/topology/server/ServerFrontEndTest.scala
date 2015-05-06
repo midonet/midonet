@@ -40,7 +40,6 @@ import org.midonet.cluster.models.{Topology, Commons}
 import org.midonet.cluster.rpc.Commands
 import org.midonet.cluster.services.topology.common._
 import org.midonet.cluster.services.topology.common.ProtocolFactory.State
-import org.midonet.cluster.services.topology.server.RequestHandler
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.functors.makeAction0
 import org.midonet.util.netty._

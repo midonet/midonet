@@ -22,13 +22,21 @@ import java.util.UUID;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.annotation.Resource;
+import org.midonet.cluster.rest_api.annotation.ResourceId;
+import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.version.Since;
 
 @XmlRootElement(name = "bridge")
+@Resource(name = ResourceUris.BRIDGES)
+@ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
 
+    @ResourceId
     @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
@@ -46,32 +54,23 @@ public class Bridge extends UriResource {
     @ZoomField(name = "outbound_filter_id", converter = Converter.class)
     public UUID outboundFilterId;
 
-    @Since("2")
     public UUID vxLanPortId;
 
-    @Since("3") // after adding support to multiple vtep bindings
     @ZoomField(name = "vxlan_port_ids", converter = Converter.class)
-    public List<UUID> vxLanPortIds = null;
+    public List<UUID> vxLanPortIds;
 
+    @XmlTransient
+    @Subresource(name = ResourceUris.PORTS)
     @ZoomField(name = "port_ids", converter = Converter.class)
-    @XmlTransient
-    public List<UUID> portIds = null;
+    public List<UUID> portIds;
 
-    @ZoomField(name = "dhcp_ids", converter = Converter.class)
     @XmlTransient
-    public List<UUID> dhcpIds = null;
+    @Subresource(name = ResourceUris.DHCP)
+    @ZoomField(name = "dhcp_ids", converter = Converter.class)
+    public List<UUID> dhcpIds;
 
     public Bridge() {
         adminStateUp = true;
-    }
-
-    @Override
-    public String getUri() {
-        return uriFor(ResourceUris.BRIDGES + "/" + id).toString();
-    }
-
-    public URI getPorts() {
-        return buildUri(ResourceUris.PORTS);
     }
 
     public String getVlanMacTableTemplate() {
@@ -86,23 +85,32 @@ public class Bridge extends UriResource {
         return getUri() + "/vlans/{vlanId}/mac_table/{macAddress}_{portId}";
     }
 
+    public URI getPorts() {
+        return getUriFor(ResourceUris.PORTS);
+    }
+
     public URI getPeerPorts() {
-        return buildUri("peer_ports");
+        return getUriFor(ResourceUris.PEER_PORTS);
     }
-    public URI getMacTable() {
-        return buildUri("mac_table");
-    }
-    public URI getArpTable() {
-        return buildUri("/arp_table");
-    }
-    public URI getDhcpSubnets() {
-        return buildUri("/dhcp");
-    }
-    public URI getDhcpSubnet6s() {
-        return buildUri("/dhcpV6");
-    }
+
     public List<URI> getVxLanPorts() {
-        return toUris(ResourceUris.PORTS, vxLanPortIds);
+        return getUrisFor(ResourceUris.VXLAN_PORTS, vxLanPortIds);
+    }
+
+    public URI getMacTable() {
+        return getUriFor(ResourceUris.MAC_TABLE);
+    }
+
+    public URI getArpTable() {
+        return getUriFor(ResourceUris.ARP_TABLE);
+    }
+
+    public URI getDhcpSubnets() {
+        return getUriFor(ResourceUris.DHCP);
+    }
+
+    public URI getDhcpSubnet6s() {
+        return getUriFor(ResourceUris.DHCPV6);
     }
 
 }
