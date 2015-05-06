@@ -22,14 +22,6 @@ import org.midonet.util.functors.Callback;
 
 public interface DirectoryCallback<T> extends Callback<T, KeeperException> {
 
-    public static interface Void extends DirectoryCallback<java.lang.Void> {
-
-    }
-
-    public static interface Add extends DirectoryCallback<String> {
-
-    }
-
     public abstract class DirectoryCallbackLogErrorAndTimeout<T> implements DirectoryCallback<T>{
 
         String itemInfo;

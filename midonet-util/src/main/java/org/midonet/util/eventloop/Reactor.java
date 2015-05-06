@@ -20,6 +20,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import rx.Scheduler;
+
 /**
  * Interface for submitting and executing Runnable and Callable tasks.
  */
@@ -72,4 +74,9 @@ public interface Reactor {
      * Returns true if the reactor has been shut down or terminated.
      */
     boolean isShutDownOrTerminated();
+
+    /**
+     * Returns a rx Scheduler which can be used with Observable#observeOn
+     */
+    Scheduler rxScheduler();
 }
