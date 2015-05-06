@@ -51,9 +51,9 @@ class PhysicalSwitchTest extends FeatureSpec with Matchers {
     }
     feature("physical switch tolerates null values") {
         scenario("null uuid") {
-            val ps =
-                PhysicalSwitch(null, psName, psDesc, psPorts, psMgmt, psTunnel)
-            ps.uuid shouldBe null
+            val ps = PhysicalSwitch(id = null, psName, psDesc, psPorts, psMgmt,
+                                    psTunnel)
+            ps.uuid shouldNot be (null)
             ps.name shouldBe psName
             ps.description shouldBe psDesc
             ps.ports shouldBe psPorts
