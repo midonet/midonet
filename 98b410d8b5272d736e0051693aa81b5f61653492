@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_27ae802e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/VtepDataClient.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T12:12:20Z",
+      "side": 1,
+      "message": "VtepHandle was shorter ;-) But I can change it",
+      "parentUuid": "1a106d94_53e0a7f9",
+      "range": {
+        "startLine": 100,
+        "startChar": 19,
+        "endLine": 100,
+        "endChar": 29
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_47573c58",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
         "patchSetId": 2
@@ -59,6 +83,30 @@
       "writtenOn": "2015-05-06T09:32:22Z",
       "side": 1,
       "message": "Shouldn\u0027t hashCode be defined together with equals?",
+      "range": {
+        "startLine": 46,
+        "startChar": 17,
+        "endLine": 46,
+        "endChar": 23
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_87a93426",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T12:12:20Z",
+      "side": 1,
+      "message": "It\u0027s defined in the superclass (VtepEntry), based on the uuid only (see the answer to Alex\u0027 comment for details)",
+      "parentUuid": "1a106d94_47573c58",
       "range": {
         "startLine": 46,
         "startChar": 17,
@@ -157,6 +205,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a7c270e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T12:12:20Z",
+      "side": 1,
+      "message": "Only one: the vni is the key for the bindings map, so a port can only have a single binding with a given vni",
+      "parentUuid": "1a106d94_d3ebf7d9",
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_07d1c4cc",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
         "patchSetId": 2
@@ -168,6 +234,30 @@
       "writtenOn": "2015-05-06T09:32:22Z",
       "side": 1,
       "message": "hashCode?",
+      "range": {
+        "startLine": 77,
+        "startChar": 17,
+        "endLine": 77,
+        "endChar": 23
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_07b6e489",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T12:12:20Z",
+      "side": 1,
+      "message": "It is defined in the superclass",
+      "parentUuid": "1a106d94_07d1c4cc",
       "range": {
         "startLine": 77,
         "startChar": 17,
@@ -214,6 +304,30 @@
       "writtenOn": "2015-05-06T09:32:22Z",
       "side": 1,
       "message": "I have the same question.",
+      "parentUuid": "1a106d94_874db4c6",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 48
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_678d18d3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/VtepEntry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T12:12:20Z",
+      "side": 1,
+      "message": "There is, but not a strong one. The uuid is the only common field for all vtep entries, and it is always a key, so basing the hashCode in it gives a reduced chance of collision and makes unnecessary to repeat the code in each subclass. I guess that there is also minor performance improvements (an update will not change the uuid, so that a replacement entry will end up in the same bucket in a map or set) but, honestly, I did not consider that.",
       "parentUuid": "1a106d94_874db4c6",
       "range": {
         "startLine": 29,
