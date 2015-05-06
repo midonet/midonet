@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_964323ae",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/PortZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 993,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-06T16:21:25Z",
+      "side": 1,
+      "message": "It seems like we should be returning a Future instead of an Observer, since we\u0027re just interested in a single value?",
+      "revId": "c2f1a044fbe5c053361a004a609f2ffd729fef7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
