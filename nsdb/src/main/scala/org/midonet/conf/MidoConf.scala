@@ -22,17 +22,17 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 
-import com.typesafe.scalalogging.Logger
-import org.slf4j.LoggerFactory
 import scala.collection.JavaConversions._
 import scala.util.Try
 
 import com.typesafe.config._
+import com.typesafe.scalalogging.Logger
 import org.apache.commons.configuration.HierarchicalINIConfiguration
 import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.retry.RetryOneTime
 import org.apache.zookeeper.KeeperException
+import org.slf4j.LoggerFactory
 import rx.Observable
 
 import org.midonet.conf.MidoConf._
@@ -298,6 +298,57 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     def observableMergedSchemas(): Observable[Config] = {
         (listSchemas map (schema(_).observable)).
             fold(Observable.just(ConfigFactory.empty))((a, b) => combine(a, b))
+    }
+
+    private def validateKey(schema: Config, conf: Config, key: String): Unit = {
+        if (schema.hasPath(s"${key}_type")) {
+            schema.getString(s"${key}_type") match {
+                case "duration" => conf.getDuration(key, TimeUnit.MILLISECONDS)
+                case "duration[]" => conf.getDurationList(key, TimeUnit.MILLISECONDS)
+
+                case "bool" => conf.getBoolean(key)
+                case "bool[]" => conf.getBooleanList(key)
+
+                case "string" => conf.getString(key)
+                case "string[]" => conf.getStringList(key)
+
+                case "int" => conf.getInt(key)
+                case "int[]" => conf.getIntList(key)
+
+                case "size" => conf.getBytes(key)
+                case "size[]" => conf.getBytesList(key)
+
+                case "double" => conf.getDouble(key)
+                case "double[]" => conf.getDoubleList(key)
+            }
+        } else {
+            val newVal = conf.getValue(key)
+            val schemaVal = schema.getValue(key)
+            if (!newVal.valueType().equals(schemaVal.valueType()))
+                throw new ConfigException.WrongType(newVal.origin(),
+                    s"Value for $key (${newVal.render()}}) does " +
+                        s"not follow schema type (${schemaVal.render()}})")
+        }
+    }
+
+    /**
+     * Validates a configuration snippet against the schemas. Returns a list
+     * of keys that are missing from the schemas and thus could not be validated
+     */
+    def validate(newConf: Config): Seq[String] = {
+        val schemas = mergedSchemas().resolve()
+        val validationConf = newConf.withFallback(schemas).resolve()
+        var unverified: List[String] = List.empty
+
+        for (entry <- newConf.entrySet) {
+            try {
+                validateKey(schemas, validationConf, entry.getKey)
+            } catch {
+                case e: ConfigException.Missing => unverified ::= entry.getKey
+            }
+        }
+
+        unverified
     }
 
     /**
