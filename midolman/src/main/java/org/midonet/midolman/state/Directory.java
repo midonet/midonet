@@ -76,6 +76,8 @@ public interface Directory {
     boolean exists(String path, Runnable watcher)
             throws KeeperException, InterruptedException;
 
+    void asyncExists(String path, DirectoryCallback<Boolean> cb);
+
     boolean has(String relativePath) throws KeeperException,
             InterruptedException;
 
