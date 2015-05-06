@@ -16,16 +16,14 @@
 
 package org.midonet.midolman.simulation
 
-import java.util
 import java.util.UUID
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
-import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
 import akka.actor.ActorSystem
+
 import com.google.common.annotations.VisibleForTesting
 
 import org.midonet.cluster.data.dhcp.{Host, Opt121, Subnet}
@@ -35,7 +33,7 @@ import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.topology.VirtualTopology._
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.packets.{IPv4Addr, MAC}
 
 /** This class enables access to DHCP resources via the new storage stack.
   *
@@ -45,33 +43,23 @@ class DhcpConfigFromZoom(vt: VirtualTopology)
                         (implicit val as: ActorSystem, val ec: ExecutionContext)
     extends DhcpConfig {
 
-    override def bridgeDhcpSubnets(deviceId: UUID): util.List[Subnet] = {
+    private final val timeout = 3 seconds
+
+    override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = {
         val f = Future.sequence (
             tryGet[Bridge](deviceId).subnetIds.map {
                 vt.store.get(classOf[Topology.Dhcp], _) map toSubnet
             }
-        )
-        Await.result(f, 3.seconds).asJava
+        ) recover { case _ => Seq.empty[Subnet] }
+        Await.result(f, timeout)
     }
 
-    override def dhcpHost(deviceId: UUID, subnetAddr: IPv4Subnet,
-                          srcMac: String): Option[Host] = {
-        val f = Future.sequence (
-            tryGet[Bridge](deviceId).subnetIds.map {
-                vt.store.get(classOf[Topology.Dhcp], _)
-            }
-        )
-
-        Await.result(f, 3.seconds) filter {
-            _.getSubnetAddress == subnetAddr
-        } map {             // also with the host we're looking for
-            _.getHostsList filter { _.getMac == srcMac }
-        } match {           // and if found a host, build the sim object
-            case protoHosts: mutable.Buffer[_] if protoHosts.nonEmpty =>
-                Some(toHost(protoHosts.get(0).asInstanceOf[Topology.Dhcp.Host]))
-            case _ =>
-                None
-        }
+    override def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String)
+    : Option[Host] = {
+        val f = vt.store.get(classOf[Topology.Dhcp], subnet.getId) map {
+            _.getHostsList.find(_.getMac == srcMac).map(toHost)
+        } recover { case _ => None }
+        Await.result(f, timeout)
     }
 
     @VisibleForTesting
