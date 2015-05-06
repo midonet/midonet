@@ -107,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c715ec9c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T09:22:14Z",
+      "side": 1,
+      "message": "Oh, the opposite, wrapping .build in the same line (which I think fits). But don\u0027t bother, looks fine as it is.",
+      "parentUuid": "1a106d94_8702d4b1",
+      "revId": "3abe635bb9f40a95cbd7b888d1e18ae723cb5909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9ca187fa",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
         "patchSetId": 4
@@ -136,6 +154,24 @@
       "side": 1,
       "message": "store.update(protoHost) should not result in a notification but it might be that the code is incorrect and still we don\u0027t get a 2nd notification due to timing. To make the test more robust I\u0027m now adding a 2nd tunnel zone to the host and verifying that we only get a single notification.",
       "parentUuid": "1a106d94_9ca187fa",
+      "revId": "3abe635bb9f40a95cbd7b888d1e18ae723cb5909",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6771980b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/HostMapperTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T09:22:14Z",
+      "side": 1,
+      "message": "great thanks!",
+      "parentUuid": "1a106d94_e7df4838",
       "revId": "3abe635bb9f40a95cbd7b888d1e18ae723cb5909",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
