@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_e75c687f",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T09:32:22Z",
+      "side": 1,
+      "message": "a",
+      "range": {
+        "startLine": 16,
+        "startChar": 43,
+        "endLine": 16,
+        "endChar": 45
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_53e0a7f9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/VtepDataClient.scala",
         "patchSetId": 2
@@ -18,6 +41,98 @@
         "startChar": 19,
         "endLine": 100,
         "endChar": 29
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_47573c58",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T09:32:22Z",
+      "side": 1,
+      "message": "Shouldn\u0027t hashCode be defined together with equals?",
+      "range": {
+        "startLine": 46,
+        "startChar": 17,
+        "endLine": 46,
+        "endChar": 23
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_27520067",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/MacEntry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T09:32:22Z",
+      "side": 1,
+      "message": "Shouldn\u0027t hashCode be defined together with equals?",
+      "range": {
+        "startLine": 50,
+        "startChar": 17,
+        "endLine": 50,
+        "endChar": 23
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_674878b3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalLocator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T09:32:22Z",
+      "side": 1,
+      "message": "defined hashCode?",
+      "range": {
+        "startLine": 43,
+        "startChar": 17,
+        "endLine": 43,
+        "endChar": 23
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a7cd5033",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalLocatorSet.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T09:32:22Z",
+      "side": 1,
+      "message": "define hashCode?",
+      "range": {
+        "startLine": 39,
+        "startChar": 17,
+        "endLine": 39,
+        "endChar": 23
       },
       "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -42,6 +157,29 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_07d1c4cc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/PhysicalPort.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T09:32:22Z",
+      "side": 1,
+      "message": "hashCode?",
+      "range": {
+        "startLine": 77,
+        "startChar": 17,
+        "endLine": 77,
+        "endChar": 23
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_874db4c6",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/VtepEntry.scala",
         "patchSetId": 2
@@ -58,6 +196,53 @@
         "startChar": 4,
         "endLine": 29,
         "endChar": 48
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c7f16c6c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/VtepEntry.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T09:32:22Z",
+      "side": 1,
+      "message": "I have the same question.",
+      "parentUuid": "1a106d94_874db4c6",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 29,
+        "endChar": 48
+      },
+      "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_27004033",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/vtep/model/PhysicalSwitchTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-06T09:32:22Z",
+      "side": 1,
+      "message": "id \u003d null",
+      "range": {
+        "startLine": 55,
+        "startChar": 31,
+        "endLine": 55,
+        "endChar": 35
       },
       "revId": "98b410d8b5272d736e0051693aa81b5f61653492",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
