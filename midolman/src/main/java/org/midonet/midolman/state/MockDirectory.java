@@ -397,6 +397,15 @@ public class MockDirectory implements Directory {
     }
 
     @Override
+    public void asyncExists(String path, DirectoryCallback<Boolean> cb) {
+        try {
+            cb.onSuccess(getNode(path).exists(null));
+        } catch (NoNodeException e) {
+            cb.onSuccess(false);
+        }
+    }
+
+    @Override
     public boolean has(String path) {
         PathUtils.validatePath(path);
         try {
