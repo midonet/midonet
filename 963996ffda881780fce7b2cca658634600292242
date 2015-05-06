@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f6025708",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T14:56:46Z",
+      "side": 1,
+      "message": "Maybe, but you could have several implementations so... I\u0027m probably going to remove this from conf and move to annotations though.",
+      "parentUuid": "1a106d94_e7e908b8",
+      "range": {
+        "startLine": 36,
+        "startChar": 27,
+        "endLine": 36,
+        "endChar": 34
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_47d45ceb",
         "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 5
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b61c5f6b",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T14:56:46Z",
+      "side": 1,
+      "message": "Ditto, I\u0027ll make a note.",
+      "parentUuid": "1a106d94_87dad414",
+      "range": {
+        "startLine": 83,
+        "startChar": 31,
+        "endLine": 83,
+        "endChar": 65
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_674358af",
         "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 5
@@ -94,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1623b3a7",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T14:56:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_674358af",
+      "range": {
+        "startLine": 89,
+        "startChar": 32,
+        "endLine": 90,
+        "endChar": 65
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a718b0d3",
         "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 5
@@ -105,6 +177,30 @@
       "writtenOn": "2015-05-06T09:15:58Z",
       "side": 1,
       "message": "same",
+      "range": {
+        "startLine": 93,
+        "startChar": 33,
+        "endLine": 94,
+        "endChar": 28
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_763dc7c3",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T14:56:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a718b0d3",
       "range": {
         "startLine": 93,
         "startChar": 33,
@@ -151,6 +247,30 @@
       "writtenOn": "2015-05-06T09:07:31Z",
       "side": 1,
       "message": "This port is commonly used for \u0027alternate\u0027 web-like services... Should we use a different port as default, to minimize the risk of conflicts?",
+      "range": {
+        "startLine": 132,
+        "startChar": 15,
+        "endLine": 132,
+        "endChar": 19
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_165a9329",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T14:56:46Z",
+      "side": 1,
+      "message": "no idea.. I guess this is just another common web service so it\u0027s fair that we use it. If the operator needs several to coexist it\u0027s up to them to arrange as they prefer",
+      "parentUuid": "1a106d94_c707ac80",
       "range": {
         "startLine": 132,
         "startChar": 15,
@@ -232,6 +352,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_563febb3",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T14:56:46Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_27f6808f",
+      "range": {
+        "startLine": 168,
+        "startChar": 72,
+        "endLine": 168,
+        "endChar": 74
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a731d05b",
         "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 5
@@ -255,6 +399,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b64a9f52",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T14:56:46Z",
+      "side": 1,
+      "message": "Yeah, we should get the snoopy out of midonet-cluster and into midonet-tools probably. I\u0027ll open a JIRA issue.",
+      "parentUuid": "1a106d94_a731d05b",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 169,
+        "endChar": 5
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_07354445",
         "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
         "patchSetId": 5
@@ -266,6 +434,30 @@
       "writtenOn": "2015-05-06T09:07:31Z",
       "side": 1,
       "message": "No documentation?",
+      "range": {
+        "startLine": 185,
+        "startChar": 4,
+        "endLine": 185,
+        "endChar": 12
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f677f79d",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T14:56:46Z",
+      "side": 1,
+      "message": "Done. It got added after this patch.",
+      "parentUuid": "1a106d94_07354445",
       "range": {
         "startLine": 185,
         "startChar": 4,
