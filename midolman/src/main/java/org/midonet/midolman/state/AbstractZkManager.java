@@ -15,6 +15,9 @@
  */
 package org.midonet.midolman.state;
 
+import rx.Observable;
+import rx.Subscriber;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
@@ -192,5 +195,15 @@ public abstract class AbstractZkManager<K, CFG>
                          DirectoryCallback<CFG> callback,
                          Directory.TypedWatcher watcher) {
         getAsync(getConfigPath(key), getConfigClass(), callback, watcher);
+    }
+
+    public Observable<CFG> getWithObservable(final K key) {
+        return Observable.create(new Observable.OnSubscribe<CFG>() {
+                    public void call(final Subscriber<? super CFG> sub) {
+                        getAsync(getConfigPath(key),
+                                 getConfigClass(),
+                                 DirectoryCallbackFactory.wrap(sub), null);
+                    }
+            });
     }
 }
