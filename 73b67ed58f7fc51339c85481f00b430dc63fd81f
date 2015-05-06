@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_165d7379",
+        "filename": "midolman/src/deb/quagga/bgpd.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-06T16:52:29Z",
+      "side": 1,
+      "message": "what directory does this get written to now? would be worth putting in the comments for someone trying to find the log.",
+      "revId": "73b67ed58f7fc51339c85481f00b430dc63fd81f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f6ca5719",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-06T16:52:29Z",
+      "side": 1,
+      "message": "In the previous implementation, logs were written to a log file based on the bgpIndex. This change puts all the logs in /var/log/midolman/bgpd.log. Even if there is more than one. This looks like a bug to me.",
+      "revId": "73b67ed58f7fc51339c85481f00b430dc63fd81f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
