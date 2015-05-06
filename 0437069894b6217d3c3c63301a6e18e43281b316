@@ -16,6 +16,24 @@
       "revId": "0437069894b6217d3c3c63301a6e18e43281b316",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b6f1ff96",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/DirectoryCallbackFactory.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-06T16:19:15Z",
+      "side": 1,
+      "message": "For ZOOM ones yes. But these are not those.",
+      "parentUuid": "1a106d94_36e7cfe5",
+      "revId": "0437069894b6217d3c3c63301a6e18e43281b316",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
