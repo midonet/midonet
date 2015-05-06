@@ -299,6 +299,24 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
+    public void asyncExists(String path, final DirectoryCallback<Boolean> cb) {
+        zk.getZooKeeper().exists(path, false,
+                new AsyncCallback.StatCallback() {
+                    @Override
+                    public void processResult(int rc, String path,
+                                              Object ctx, Stat stat) {
+                        if (rc == KeeperException.Code.OK.intValue()) {
+                            cb.onSuccess(true);
+                        } else if (rc == KeeperException.Code.NONODE.intValue()) {
+                            cb.onSuccess(false);
+                        } else {
+                            cb.onError(KeeperException.create(rc));
+                        }
+                    }
+            }, null);
+    }
+
+    @Override
     public boolean has(String relativePath) throws KeeperException,
                                                    InterruptedException {
         String absPath = getAbsolutePath(relativePath);

@@ -18,6 +18,10 @@ package org.midonet.midolman.state;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.junit.Assert;
+
+import rx.subjects.AsyncSubject;
+
 public class ZkOpListTest extends ZookeeperTest {
 
     private ZkManager zk;
@@ -88,5 +92,18 @@ public class ZkOpListTest extends ZookeeperTest {
         testObj.add(zk.getDeleteOp("/foo/bar"));
 
         testObj.commit();
+    }
+
+    @Test(timeout=10000)
+    public void testAsyncExists() throws Exception {
+        zk.addPersistent(getPath("/foo"), null);
+
+        AsyncSubject<Boolean> s = AsyncSubject.create();
+        zk.asyncExists(getPath("/foo"), DirectoryCallbackFactory.wrap(s));
+        Assert.assertTrue(s.toBlocking().single());
+
+        AsyncSubject<Boolean> s2 = AsyncSubject.create();
+        zk.asyncExists(getPath("/bar"), DirectoryCallbackFactory.wrap(s2));
+        Assert.assertFalse(s2.toBlocking().single());
     }
 }
