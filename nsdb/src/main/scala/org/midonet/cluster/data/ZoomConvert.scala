@@ -562,23 +562,26 @@ object ZoomConvert {
      * Converter class for a ZoomObject. All classes that have a ZoomClass
      * annotation receive this converter as default converter.
      */
-    protected[data] class ObjectConverter extends Converter[Any, Any] {
+    protected[data] class ObjectConverter extends Converter[ZoomObject, Message] {
 
-        override def toProto(value: Any, clazz: Type): Any = clazz match {
+        override def toProto(value: ZoomObject, clazz: Type): Message = clazz match {
             case c: Class[_] if classOf[ZoomObject].isAssignableFrom(c) =>
                 val protoClass = c.getAnnotation(classOf[ZoomClass]).clazz()
                 val builder = newBuilder(protoClass)
+                value.beforeToProto()
                 ZoomConvert.to(value.asInstanceOf[ZoomObject], c, builder)
                 builder.build()
             case _ => throw new ConvertException(
                 s"Object converter not supported for class $clazz");
         }
 
-        override def fromProto(value: Any, clazz: Type): Any = clazz match {
+        override def fromProto(value: Message, clazz: Type): ZoomObject = clazz match {
             case c: Class[_] if classOf[ZoomObject].isAssignableFrom(c) =>
-                ZoomConvert.fromProto(
-                    value.asInstanceOf[Message],
+                val obj = ZoomConvert.fromProto(
+                    value,
                     c.asInstanceOf[Class[_ >: Null <: ZoomObject]])
+                obj.afterFromProto(value)
+                obj
             case _ => throw new ConvertException(
                 s"Object converter not supported for class $clazz");
         }

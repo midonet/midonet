@@ -16,7 +16,6 @@
 package org.midonet.midolman.simulation
 
 import java.nio.{BufferOverflowException, ByteBuffer}
-import java.util
 import java.util.UUID
 
 import scala.collection.JavaConversions._
@@ -430,20 +429,20 @@ object MalformedDhcpRequestException extends DhcpException {}
   * on whatever storage is active.
   */
 trait DhcpConfig {
-    def bridgeDhcpSubnets(deviceId: UUID): util.List[Subnet]
-    def dhcpHost(deviceId: UUID, subnetAddr: IPv4Subnet, srcMac: String): Option[Host]
+    def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet]
+    def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String): Option[Host]
 }
 
 /** Implementation based on the old DataClient */
 class DhcpConfigFromDataclient(val dataClient: DataClient) extends DhcpConfig {
 
-    override def bridgeDhcpSubnets(deviceId: UUID): util.List[Subnet] = {
+    override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = {
         dataClient.dhcpSubnetsGetByBridge(deviceId)
     }
 
-    override def dhcpHost(deviceId: UUID, subnetAddr: IPv4Subnet,
+    override def dhcpHost(deviceId: UUID, subnet: Subnet,
                           srcMac: String): Option[Host] = Option(
-        dataClient.dhcpHostsGet(deviceId, subnetAddr, srcMac)
+        dataClient.dhcpHostsGet(deviceId, subnet.getSubnetAddr, srcMac)
     )
 }
 
@@ -489,17 +488,17 @@ class DhcpImpl(val dhcpConfig: DhcpConfig,
 
         // Look for the DHCP's source MAC in the list of hosts in each subnet
         var host: Option[Host] = None
-        val assignment = subnets.find { sub =>
+        val assignment = subnets.find { subnet =>
             log.debug("Looking up assignment for MAC {} on subnet {} ",
-                      sourceMac, sub.getId)
-            if (sub.isReplyReady) {
+                      sourceMac, subnet.getId)
+            if (subnet.isReplyReady) {
                 // TODO(pino): make this asynchronous?
-                host = dhcpConfig.dhcpHost(port.deviceId, sub.getSubnetAddr,
+                host = dhcpConfig.dhcpHost(port.deviceId, subnet,
                                            sourceMac.toString)
                 host.isDefined && (host.get.getIp != null)
             } else {
                 log.warn("Can not create DHCP reply because the subnet" +
-                         s" ${sub.getId} does not have all necessary " +
+                         s" ${subnet.getId} does not have all necessary " +
                          "information.")
                 false
             }

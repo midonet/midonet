@@ -16,8 +16,6 @@
 
 package org.midonet.midolman.simulation
 
-import org.midonet.cluster.util.IPSubnetUtil._
-
 import java.util.UUID
 
 import scala.collection.JavaConversions._
@@ -25,12 +23,14 @@ import scala.collection.JavaConversions._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.topology.{TopologyBuilder, VirtualTopology}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
@@ -46,6 +46,10 @@ class DhcpConfigFromZoomTest extends MidolmanSpec
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).store
         cfg = new DhcpConfigFromZoom(vt)
+    }
+
+    private def createSubnet(address: IPv4Addr): Subnet = {
+        new Subnet(address.toString, new Subnet.Data())
     }
 
     feature("The DHCP config can't fetch a subnet") {
@@ -93,7 +97,7 @@ class DhcpConfigFromZoomTest extends MidolmanSpec
             cfg.bridgeDhcpSubnets(id) shouldBe empty
 
             And("The host searches fail as no subnets exist")
-            cfg.dhcpHost(id, IPv4Addr.random.subnet(24),
+            cfg.dhcpHost(id, createSubnet(IPv4Addr.random),
                          MAC.random().toString) shouldBe None
         }
 
@@ -134,13 +138,12 @@ class DhcpConfigFromZoomTest extends MidolmanSpec
             And("The hosts can be found")
             dhcps foreach { dhcp => dhcp.getHostsList foreach { h =>
                 val addr = dhcp.getSubnetAddress.asJava.asInstanceOf[IPv4Subnet]
-                val _h = cfg.dhcpHost(bId, addr, h.getMac)
+                val _h = cfg.dhcpHost(bId, cfg.toSubnet(dhcp), h.getMac)
                 _h shouldBe h
             }}
 
             And("Non existing hosts are not found")
-            cfg.dhcpHost(bId, subnets(0).getSubnetAddr,
-                         "aa:bb:cc:dd:ee:ff") shouldBe None
+            cfg.dhcpHost(bId, subnets.head, "aa:bb:cc:dd:ee:ff") shouldBe None
         }
     }
 }
