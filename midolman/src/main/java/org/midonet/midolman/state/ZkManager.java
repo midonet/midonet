@@ -76,7 +76,7 @@ public class ZkManager {
     }
 
     public void asyncAdd(String relativePath, byte[] data, CreateMode mode,
-                  DirectoryCallback.Add cb) {
+                  DirectoryCallback<String> cb) {
         this.zk.asyncAdd(relativePath, data, mode, cb);
     }
 
@@ -85,7 +85,7 @@ public class ZkManager {
     }
 
     public void asyncDelete(String relativePath,
-                            DirectoryCallback.Void callback) {
+                            DirectoryCallback<Void> callback) {
         this.zk.asyncDelete(relativePath, callback);
     }
 
@@ -236,10 +236,10 @@ public class ZkManager {
      * recreates the node as an ephemeral in order to own it.
      */
     public void ensureEphemeralAsync(final String path, final byte[] data,
-                                     final DirectoryCallback.Add cb) {
-        asyncDelete(path, new DirectoryCallback.Void() {
+                                     final DirectoryCallback<String> cb) {
+        asyncDelete(path, new DirectoryCallback<Void>() {
             @Override
-            public void onSuccess(java.lang.Void result) {
+            public void onSuccess(Void result) {
                 zk.asyncAdd(path, data, CreateMode.EPHEMERAL, cb);
             }
 

@@ -319,7 +319,7 @@ public class ClusterRouterManager extends ClusterManager<RouterBuilder> {
         for (final Route routeToAdd : addedRoutes){
             String path = "/" + encoder.encode(routeToAdd);
             routingTableManager.ensureEphemeralAsync(path, null,
-                new DirectoryCallback.Add() {
+                new DirectoryCallback<String>() {
                     @Override
                     public void onSuccess(String data) {
                         log.debug("Added new route for port {} in router {}, route {}",

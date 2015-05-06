@@ -28,6 +28,9 @@ import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.Scheduler;
+import rx.schedulers.Schedulers;
+
 public class MockReactor implements Reactor {
 
     private static final Logger log = LoggerFactory
@@ -178,5 +181,10 @@ public class MockReactor implements Reactor {
     @Override
     public boolean isShutDownOrTerminated() {
         return false;
+    }
+
+    @Override
+    public Scheduler rxScheduler() {
+        return Schedulers.trampoline();
     }
 }

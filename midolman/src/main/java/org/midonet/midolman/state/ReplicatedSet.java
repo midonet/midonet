@@ -174,7 +174,7 @@ public abstract class ReplicatedSet<T> {
         }
     }
 
-    class DeleteCallback implements DirectoryCallback.Void {
+    class DeleteCallback implements DirectoryCallback<Void> {
         private T item;
 
         private DeleteCallback(T item) {
@@ -182,7 +182,7 @@ public abstract class ReplicatedSet<T> {
         }
 
         @Override
-        public void onSuccess(java.lang.Void data) {
+        public void onSuccess(Void data) {
             log.debug("ReplicatedSet delete {} succeeded", item);
         }
 
@@ -197,7 +197,7 @@ public abstract class ReplicatedSet<T> {
         }
     }
 
-    private class AddCallback implements DirectoryCallback.Add {
+    private class AddCallback implements DirectoryCallback<String> {
         private T item;
 
         AddCallback(T v) {

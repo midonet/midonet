@@ -29,6 +29,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import rx.Scheduler;
+import rx.schedulers.Schedulers;
+
+
 /**
  * Reactor implementation that catches, logs, and discards any exceptions thrown
  * by scheduled or submitted work items.
@@ -159,5 +163,10 @@ public class TryCatchReactor implements Reactor {
     @Override
     public boolean isShutDownOrTerminated() {
         return executor.isShutdown() || executor.isTerminated();
+    }
+
+    @Override
+    public Scheduler rxScheduler() {
+        return Schedulers.from(executor);
     }
 }

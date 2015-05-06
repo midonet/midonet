@@ -79,7 +79,7 @@ public class ZkDirectory implements Directory {
 
     @Override
     public void asyncAdd(String relativePath, final byte[] data,
-                         CreateMode mode, final DirectoryCallback.Add cb) {
+                         CreateMode mode, final DirectoryCallback<String> cb) {
 
         final String absPath = getAbsolutePath(relativePath);
 
@@ -313,7 +313,7 @@ public class ZkDirectory implements Directory {
     }
 
     @Override
-    public void asyncDelete(String relativePath, final DirectoryCallback.Void callback) {
+    public void asyncDelete(String relativePath, final DirectoryCallback<Void> callback) {
         String absPath = getAbsolutePath(relativePath);
         zk.getZooKeeper().delete(absPath, -1, new AsyncCallback.VoidCallback() {
             @Override
