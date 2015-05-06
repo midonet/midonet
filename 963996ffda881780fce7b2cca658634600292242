@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_e7e908b8",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "Should we add a \u0027DO NOT CHANGE\u0027 warning here?",
+      "range": {
+        "startLine": 36,
+        "startChar": 27,
+        "endLine": 36,
+        "endChar": 34
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_47d45ceb",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "nitpick: I would try to be consistent with the warnings: it should be either \u0027do not change\u0027 or \u0027do not change this\u0027 for all fields...",
+      "range": {
+        "startLine": 56,
+        "startChar": 58,
+        "endLine": 56,
+        "endChar": 62
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_87dad414",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "Should we add a notice saying that the user should not need to change this? (the same for the rest of services)",
+      "range": {
+        "startLine": 83,
+        "startChar": 31,
+        "endLine": 83,
+        "endChar": 65
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_67d518e4",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "missing \u0027 as you want\u0027 at the end of the sentence?",
+      "range": {
+        "startLine": 119,
+        "startChar": 77,
+        "endLine": 119,
+        "endChar": 78
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c707ac80",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "This port is commonly used for \u0027alternate\u0027 web-like services... Should we use a different port as default, to minimize the risk of conflicts?",
+      "range": {
+        "startLine": 132,
+        "startChar": 15,
+        "endLine": 132,
+        "endChar": 19
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_67ecf8bb",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "// Snoopy is a client for the topology API that monitors and logs all changes in the topology. It may connect using plain sockets or a websocket protocol. Snoopy is intended to be used as a debugging/troubleshooting tool.",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 158,
+        "endChar": 4
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_27f6808f",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "if not set, it assumes a plain socket service, rather than a websocket interface.",
+      "range": {
+        "startLine": 168,
+        "startChar": 72,
+        "endLine": 168,
+        "endChar": 74
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a731d05b",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "Snoopy is a tool, more than a service... Maybe its configuration should not be here...",
+      "range": {
+        "startLine": 158,
+        "startChar": 0,
+        "endLine": 169,
+        "endChar": 5
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_07354445",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "No documentation?",
+      "range": {
+        "startLine": 185,
+        "startChar": 4,
+        "endLine": 185,
+        "endChar": 12
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_273de02b",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 5
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-06T09:07:31Z",
+      "side": 1,
+      "message": "why not setting the recommended value, instead of asking the user to change it? (chances is that the user may overlook this comment...)",
+      "range": {
+        "startLine": 70,
+        "startChar": 4,
+        "endLine": 70,
+        "endChar": 18
+      },
+      "revId": "963996ffda881780fce7b2cca658634600292242",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
