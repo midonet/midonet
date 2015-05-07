@@ -183,7 +183,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
     @Inject var client: DataClient = null
 
     private var fileLocation: String = null
-    private var namespaceSuffix: String = null
+    private var namespaceSuffix: String = "_hm"
 
     private var hostId: UUID = null
 
@@ -192,7 +192,6 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
     override def preStart(): Unit = {
 
         fileLocation =  config.healthMonitor.haproxyFileLoc
-        namespaceSuffix = config.healthMonitor.namespaceSuffix
 
         if (config.healthMonitor.namespaceCleanup) {
             cleanupNamespaces()
