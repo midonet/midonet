@@ -15,8 +15,11 @@
  */
 package org.midonet.cluster.data.storage
 
-import scala.concurrent.Future
+import scala.collection.JavaConverters._
+import scala.collection.mutable
 
+import com.google.common.collect.ArrayListMultimap
+import com.google.protobuf.Message
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
@@ -38,8 +41,7 @@ case class UpdateWithOwnerOp[T <: Obj](obj: T, owner: String,
     extends PersistenceOp
 
 case class UpdateOwnerOp(clazz: Class[_], id: ObjId, owner: String,
-                         throwIfExists: Boolean)
-    extends PersistenceOp
+                         throwIfExists: Boolean) extends PersistenceOp
 
 object UpdateOp {
     def apply[T <: Obj](obj: T): UpdateOp[T] = UpdateOp(obj, null)
@@ -151,48 +153,16 @@ class StorageException(val msg: String, val cause: Throwable)
 }
 
 /**
- * A trait defining the read-only storage service API.
- */
-trait ReadOnlyStorage {
-    /**
-     * Asynchronous method that gets the specified instance of the specified
-     * class from storage. If the value is available in the internal cache,
-     * the returned future is completed synchronously.
-     */
-    @throws[NotFoundException]
-    def get[T](clazz: Class[T], id: ObjId): Future[T]
-
-    /**
-     * Asynchronous method that gets the specified instances of the specified
-     * class from storage. The method returns a sequence a futures,
-     * corresponding to the retrieval of each requested instance. The futures
-     * will fail for the objects that could not be retrieved from storage. The
-     * futures for the objects that are cached internally, will complete
-     * synchronously.
-     */
-    def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId]): Future[Seq[T]]
-
-    /**
-     * Asynchronous method that gets all the instances of the specified class
-     * from the storage. The method returns a future with a sequence a futures.
-     * The outer future completes when the sequence of objects has been
-     * retrieved from storage. The inner futures complete when the data of each
-     * object has been retrived from storage.
-     */
-    def getAll[T](clazz: Class[T]): Future[Seq[T]]
-
-    /**
-     * Asynchronous method that indicated if the specified object exists in the
-     * storage.
-     */
-    def exists(clazz: Class[_], id: ObjId): Future[Boolean]
-}
-
-/**
  * A trait that extends the read-only storage service API and provides storage
  * write service API.
  */
 trait Storage extends ReadOnlyStorage {
+
+    @volatile private var built = false
+    protected[this] val allBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
+    protected[this] val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
+
+
     /**
      * Synchronous method that persists the specified object to the storage. The
      * object must have a field named "id", and an appropriate unique ID must
@@ -296,119 +266,48 @@ trait Storage extends ReadOnlyStorage {
     def declareBinding(leftClass: Class[_], leftFieldName: String,
                        onDeleteLeft: DeleteAction,
                        rightClass: Class[_], rightFieldName: String,
-                       onDeleteRight: DeleteAction): Unit
+                       onDeleteRight: DeleteAction): Unit = {
+        assert(!isBuilt)
+        assert(isRegistered(leftClass))
+        assert(isRegistered(rightClass))
+
+        val leftIsMessage = classOf[Message].isAssignableFrom(leftClass)
+        val rightIsMessage = classOf[Message].isAssignableFrom(rightClass)
+        if (leftIsMessage != rightIsMessage) {
+            throw new IllegalArgumentException(
+                "Cannot bind a protobuf Message class to a POJO class.")
+        }
+
+        val bdgs = if (leftIsMessage) {
+            ProtoFieldBinding.createBindings(
+                leftClass, leftFieldName, onDeleteLeft,
+                rightClass, rightFieldName, onDeleteRight)
+        } else {
+            PojoFieldBinding.createBindings(
+                leftClass, leftFieldName, onDeleteLeft,
+                rightClass, rightFieldName, onDeleteRight)
+        }
+
+        for (entry <- bdgs.entries.asScala) {
+            allBindings.put(entry.getKey, entry.getValue)
+        }
+    }
+
 
     /** This method must be called after all calls to registerClass() and
       * declareBinding() have been made, but before any calls to data-related
       * methods such as CRUD operations and subscribe().
       */
-    def build()
+    def build(): Unit = {
+        assert(!built)
+        built = true
+    }
 
-    def isBuilt: Boolean
+    protected[this] def assertBuilt(): Unit = {
+        if (!isBuilt) throw new ServiceUnavailableException
+    }
 
-}
-
-/**
- * A trait defining the methods for ownership-based storage.
- */
-trait StorageWithOwnership extends Storage {
-
-    /**
-     * Registers an object class with support for ownership. The ownership type
-     * can be one of the following:
-     * - [[OwnershipType.Exclusive]] Every object in this class permits at most
-     * one owner at any time. The owner identifier may be specified when the
-     * object is created, or may be created without an owner and its ownership
-     * may later be claimed by a subsequent Update operation. The ownership is
-     * released either when the object is deleted, or when the current owner
-     * disconnects from storage, orphaning the object. It is possible to update
-     * the ownership both by the current owner, and when an object has been
-     * orphaned.
-     * - [[OwnershipType.Shared]] Every object in this class supports multiple
-     * owners, where all owners are peers. Ownership is optional for objects
-     * with shared ownership. Owners can be added using the update() or
-     * updateOwner() methods, where the former also updates the object data.
-     * Owners are removed with the delete() or deleteOwner() methods.
-     */
-    def registerClass(clazz: Class[_], ownershipType: OwnershipType): Unit
-
-    /**
-     * Gets the set of owners for the given object.
-     */
-    @throws[NotFoundException]
-    def getOwners(clazz: Class[_], id: ObjId): Future[Set[String]]
-
-    /**
-     * Creates an object with the specified owner.
-     */
-    @throws[ObjectExistsException]
-    @throws[ReferenceConflictException]
-    @throws[OwnershipConflictException]
-    def create(obj: Obj, owner: ObjId): Unit =
-        multi(List(CreateWithOwnerOp(obj, owner.toString)))
-
-    /**
-     * Updates an object and its owner. The method has the following behavior
-     * depending on the ownership type:
-     * - for [[OwnershipType.Exclusive]], the update succeeds if it is a
-     *   regular owner-agnostic update, the object is not assigned an owner, the
-     *   specified owner is the current owner of the object, or the object has
-     *   been orphaned and has no owner.
-     * - for [[OwnershipType.Shared]], it is always possible to update the
-     *   owner.
-     * In both cases, the method rewrites the current ownership node in storage,
-     * such that it corresponds to the client session last performing the
-     * update.
-     */
-    @throws[NotFoundException]
-    @throws[ReferenceConflictException]
-    @throws[OwnershipConflictException]
-    def update[T <: Obj](obj: T, owner: ObjId,
-                         validator: UpdateValidator[T]): Unit =
-        multi(List(UpdateWithOwnerOp(obj, owner.toString, validator)))
-
-    /**
-     * Updates the owner for the specified object. This method is similar to
-     * [[update()]], except that the method throws an exception if the ownership
-     * owner already exists and the throwIfExists argument is set to true.
-     * The method does not modify the object data, however it increments the
-     * object version to prevent concurrent modifications,
-     * @param throwIfExists When set to true, the method throws an exception if
-     *                      the ownership node already exists. This can be used
-     *                      to prevent taking ownership from a different client
-     *                      session, when the owner is the same.
-     */
-    @throws[NotFoundException]
-    @throws[OwnershipConflictException]
-    def updateOwner(clazz: Class[_], id: ObjId, owner: ObjId,
-                    throwIfExists: Boolean): Unit =
-        multi(List(UpdateOwnerOp(clazz, id, owner.toString, throwIfExists)))
-
-    /**
-     * Deletes an object and/or removes an ownership. The specified identifier
-     * must be a current owner of the object. For [[OwnershipType.Exclusive]],
-     * the operation either fails or the object is deleted. For
-     * [[OwnershipType.Shared]], the object is not deleted if there are one or
-     * more remaining owners for the object, in which case only the specified
-     * identifier is removed as owner.
-     */
-    @throws[NotFoundException]
-    @throws[ReferenceConflictException]
-    @throws[OwnershipConflictException]
-    def delete(clazz: Class[_], id: ObjId, owner: ObjId): Unit =
-        multi(List(DeleteWithOwnerOp(clazz, id, owner.toString)))
-
-    @throws[NotFoundException]
-    @throws[OwnershipConflictException]
-    def deleteOwner(clazz: Class[_], id: ObjId, owner: ObjId): Unit =
-        multi(List(DeleteOwnerOp(clazz, id, owner.toString)))
-
-    /**
-     * Returns an observable, which emits the current set of owners for
-     * a given object. The observable emits an
-     * [[org.midonet.cluster.util.ParentDeletedException]] if the object
-     * does not exist, or when the object is deleted.
-     */
-    def ownersObservable(clazz: Class[_], id: ObjId): Observable[Set[String]]
+    /** Whether the instance is ready to service requests */
+    def isBuilt: Boolean = built
 
 }

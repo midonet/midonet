@@ -19,7 +19,7 @@ import java.io.StringWriter
 import java.lang.{Long => JLong}
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
-import java.util.{ConcurrentModificationException, List => JList}
+import java.util.ConcurrentModificationException
 
 import scala.async.Async.async
 import scala.collection.JavaConversions._
@@ -27,12 +27,10 @@ import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.{Failure, Success}
+import scala.util.{Try, Failure, Success}
 
 import com.google.common.annotations.VisibleForTesting
-import com.google.common.collect.ArrayListMultimap
 import com.google.protobuf.{Message, TextFormat}
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
@@ -45,10 +43,8 @@ import org.apache.zookeeper.data.Stat
 import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
-
 import rx.Observable
 
-import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
@@ -118,7 +114,6 @@ class ZookeeperObjectMapper(
     private val curator: CuratorFramework) extends StorageWithOwnership {
 
     import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
-    @volatile private var built = false
 
     /* Monotonically increasing version number for the data set path under
      * which all the Storage contents are stored. When we "flush" the storage,
@@ -132,16 +127,11 @@ class ZookeeperObjectMapper(
 
     private def locksPath(version: Long) = basePath(version) + "/zoomlocks/lock"
 
-    private val allBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
-
     private val executor = Executors.newCachedThreadPool()
     private implicit val executionContext =
         ExecutionContext.fromExecutorService(executor)
 
-    private val classInfo =
-        new mutable.HashMap[Class[_], ClassInfo]()
-    private val simpleNameToClass =
-        new mutable.HashMap[String, Class[_]]()
+    private val simpleNameToClass = new mutable.HashMap[String, Class[_]]()
 
     private val instanceCaches = new mutable.HashMap[
         Class[_], TrieMap[String, InstanceSubscriptionCache[_]]]
@@ -387,7 +377,7 @@ class ZookeeperObjectMapper(
      * intended to be stored in this instance of ZookeeperObjectManager.
      */
     override def registerClass(clazz: Class[_]): Unit = {
-        assert(!built)
+        assert(!isBuilt)
         registerClassInternal(clazz, OwnershipType.Shared)
     }
 
@@ -396,7 +386,7 @@ class ZookeeperObjectMapper(
      */
     override def registerClass(clazz: Class[_],
                                ownershipType: OwnershipType): Unit = {
-        assert(!built)
+        assert(!isBuilt)
         registerClassInternal(clazz, ownershipType)
     }
 
@@ -433,59 +423,21 @@ class ZookeeperObjectMapper(
         registered
     }
 
-    override def declareBinding(leftClass: Class[_], leftFieldName: String,
-                                onDeleteLeft: DeleteAction,
-                                rightClass: Class[_], rightFieldName: String,
-                                onDeleteRight: DeleteAction): Unit = {
-        assert(!built)
-        assert(isRegistered(leftClass))
-        assert(isRegistered(rightClass))
-
-        val leftIsMessage = classOf[Message].isAssignableFrom(leftClass)
-        val rightIsMessage = classOf[Message].isAssignableFrom(rightClass)
-        if (leftIsMessage != rightIsMessage) {
-            throw new IllegalArgumentException(
-                "Cannot bind a protobuf Message class to a POJO class.")
-        }
-
-        val bdgs = if (leftIsMessage) {
-            ProtoFieldBinding.createBindings(
-                leftClass, leftFieldName, onDeleteLeft,
-                rightClass, rightFieldName, onDeleteRight)
-        } else {
-            PojoFieldBinding.createBindings(
-                leftClass, leftFieldName, onDeleteLeft,
-                rightClass, rightFieldName, onDeleteRight)
-        }
-
-        for (entry <- bdgs.entries().asScala) {
-            allBindings.put(entry.getKey, entry.getValue)
-        }
-    }
-
-    /**
-     * This method must be called after all calls to registerClass() and
-     * declareBinding() have been made, but before any calls to data-related
-     * methods such as CRUD operations and subscribe().
-     */
-    def build() {
-        assert(!built)
+    override def build() {
         initVersionNumber()
         ensureClassNodes(instanceCaches.keySet.toSet)
-        built = true
+        super.build()
     }
 
     private def getVersionNumberFromZkAndWatch: Long = {
         val watcher = new Watcher() {
-                override def process(event: WatchedEvent) {
-                    event.getType match {
-                        case NodeDataChanged =>
-                            setVersionNumberAndWatch()
-                            // TODO GC subscriptions.
-                        case _ =>  // Do nothing.
-                    }
+            override def process(event: WatchedEvent) {
+                event.getType match {
+                    case NodeDataChanged => setVersionNumberAndWatch()
+                    case _ =>  // Do nothing.
                 }
             }
+        }
         JLong.parseLong(new String(
                 curator.getData.usingWatcher(watcher).forPath(versionNodePath)))
     }
@@ -514,8 +466,6 @@ class ZookeeperObjectMapper(
         }
         log.info(s"Initialized the version number to $version.")
     }
-
-    def isBuilt = built
 
     /**
      * Ensures that the class nodes in Zookeeper for each provided class exist,
@@ -565,17 +515,11 @@ class ZookeeperObjectMapper(
                         if (e.getStat == null) {
                             p.failure(new NotFoundException(clazz, id))
                         } else {
-                            try {
-                                p.success(deserialize(e.getData, clazz))
-                            } catch {
-                                case t: Throwable => p.failure(t)
-                            }
+                            p.complete(Try(deserialize(e.getData, clazz)))
                         }
                     }
                 }
-                curator.getData
-                       .inBackground(cb)
-                       .forPath(getPath(clazz, id))
+                curator.getData.inBackground(cb).forPath(getPath(clazz, id))
                 p.future
         }
     }
@@ -798,11 +742,6 @@ class ZookeeperObjectMapper(
         classCaches.get(clazz).map(_.subscriptionCount)
     }
 
-    private def assertBuilt() {
-        if (!built) throw new ServiceUnavailableException(
-            "Data operation received before call to build().")
-    }
-
 }
 
 object ZookeeperObjectMapper {
@@ -832,10 +771,7 @@ object ZookeeperObjectMapper {
 
     private final class OwnerMapMethods(owners: Map[String, Int]) {
         def containsIfOwner(owner: Option[String], default: Boolean): Boolean = {
-            owner match {
-                case Some(o) => owners.contains(o)
-                case None => default
-            }
+            owner.map(owners.contains).getOrElse(default)
         }
     }
 
