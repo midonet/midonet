@@ -411,7 +411,8 @@ public class SecurityGroupZkManager extends BaseZkManager {
         List<SecurityGroupRule> rules = new ArrayList<>();
         for (UUID id : ids) {
             SecurityGroupRule rule = getSecurityGroupRule(id);
-            if (sgId == null || Objects.equal(rule.securityGroupId, sgId)) {
+            if (sgId == null || (rule != null &&
+                                 Objects.equal(rule.securityGroupId, sgId))) {
                 rules.add(rule);
             }
         }
