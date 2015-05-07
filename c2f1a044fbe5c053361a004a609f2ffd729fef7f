@@ -16,6 +16,24 @@
       "revId": "c2f1a044fbe5c053361a004a609f2ffd729fef7f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4c3d9c2a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/PortZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 993,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-07T09:21:38Z",
+      "side": 1,
+      "message": "I don\u0027t see Future vs Observers as an either or thing, but rather that Observers are a generalization of Futures. Recently I\u0027ve only seen new code in the agent that contains Observers. The futures seem tied to the akka code.\n\nI\u0027m new to observables, but as well as offering multivalues, they seem a lot more composeability compared to futures.",
+      "parentUuid": "1a106d94_964323ae",
+      "revId": "c2f1a044fbe5c053361a004a609f2ffd729fef7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
