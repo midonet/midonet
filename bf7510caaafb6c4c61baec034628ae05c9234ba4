@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ecb9e8cc",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-07T09:32:19Z",
+      "side": 1,
+      "message": "across",
+      "range": {
+        "startLine": 126,
+        "startChar": 19,
+        "endLine": 126,
+        "endChar": 26
+      },
+      "revId": "bf7510caaafb6c4c61baec034628ae05c9234ba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6c57b858",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-07T09:32:19Z",
+      "side": 1,
+      "message": "An",
+      "range": {
+        "startLine": 33,
+        "startChar": 33,
+        "endLine": 33,
+        "endChar": 34
+      },
+      "revId": "bf7510caaafb6c4c61baec034628ae05c9234ba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ac4d30c6",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/schemas/nsdb.conf",
+        "patchSetId": 7
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-07T09:32:19Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this go closer to Zookeeper parameters such as session_gracetime?",
+      "range": {
+        "startLine": 53,
+        "startChar": 4,
+        "endLine": 58,
+        "endChar": 75
+      },
+      "revId": "bf7510caaafb6c4c61baec034628ae05c9234ba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
