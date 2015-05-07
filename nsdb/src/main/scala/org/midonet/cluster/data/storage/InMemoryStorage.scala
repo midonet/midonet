@@ -15,27 +15,25 @@
  */
 package org.midonet.cluster.data.storage
 
+import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.concurrent.{ConcurrentHashMap, Executors, ThreadFactory}
+import java.util.concurrent.{ConcurrentHashMap, ThreadFactory}
 
 import scala.async.Async.async
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
+import scala.concurrent.ExecutionContext.fromExecutorService
+import scala.concurrent.Future
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
 
-import com.google.common.collect.ArrayListMultimap
-import com.google.protobuf.Message
 import org.apache.zookeeper.KeeperException.BadVersionException
 import rx.Observable.OnSubscribe
 import rx._
 import rx.schedulers.Schedulers
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
-import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.InMemoryStorage.copyObj
 import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.storage.TransactionManager._
@@ -179,7 +177,7 @@ class InMemoryStorage extends StorageWithOwnership {
         def getSnapshot(id: ObjId): ObjSnapshot = {
             instances.getOrElse(getIdString(clazz, id),
                                 throw new NotFoundException(clazz, id))
-                .getSnapshot
+                     .getSnapshot
         }
 
         /* Lock free read, completion on the IO thread */
@@ -275,12 +273,12 @@ class InMemoryStorage extends StorageWithOwnership {
             val set = mutable.Set[String](owners.keySet.toSeq:_*)
             for (op <- ownerOps) op match {
                 case TxCreateOwner(o) if set.contains(o) =>
-                    throw new OwnershipConflictException(
-                        clazz.toString, id.toString, o)
+                    throw new OwnershipConflictException(clazz.toString,
+                                                         id.toString, o)
                 case TxCreateOwner(o) => set += o
                 case TxDeleteOwner(o) if !set.contains(o) =>
-                    throw new OwnershipConflictException(
-                        clazz.toString, id.toString, o)
+                    throw new OwnershipConflictException(clazz.toString,
+                                                         id.toString, o)
                 case TxDeleteOwner(o) => set -= o
             }
         }
@@ -364,7 +362,7 @@ class InMemoryStorage extends StorageWithOwnership {
     }
 
     private class InMemoryTransactionManager
-            extends TransactionManager(classInfo.toMap, bindings) {
+            extends TransactionManager(classInfo.toMap, allBindings) {
 
         override def isRegistered(clazz: Class[_]): Boolean = {
             InMemoryStorage.this.isRegistered(clazz)
@@ -426,7 +424,7 @@ class InMemoryStorage extends StorageWithOwnership {
 
     @volatile private var ioThreadId: Long = -1L
     @volatile private var eventThreadId: Long = -1L
-    private val ioExecutor = Executors.newSingleThreadExecutor(
+    private val ioExecutor = newSingleThreadExecutor(
         new ThreadFactory {
             override def newThread(r: Runnable): Thread = {
                 val thread = new Thread(r, "storage-io")
@@ -434,7 +432,7 @@ class InMemoryStorage extends StorageWithOwnership {
                 thread
             }
         })
-    private val eventExecutor = Executors.newSingleThreadExecutor(
+    private val eventExecutor = newSingleThreadExecutor(
         new ThreadFactory {
             override def newThread(r: Runnable): Thread = {
                 val thread = new Thread(r, "storage-event")
@@ -442,18 +440,12 @@ class InMemoryStorage extends StorageWithOwnership {
                 thread
             }
         })
-    private implicit val ioExecutionContext =
-        ExecutionContext.fromExecutorService(ioExecutor)
-    private val eventExecutionContext =
-        ExecutionContext.fromExecutorService(eventExecutor)
+    private implicit val ioExecutionContext = fromExecutorService(ioExecutor)
+    private val eventExecutionContext = fromExecutorService(eventExecutor)
     private val eventScheduler = Schedulers.from(eventExecutor)
 
-    @volatile private var built = false
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
-    private val bindings = ArrayListMultimap.create[Class[_], FieldBinding]()
     private val lock = new ReentrantReadWriteLock()
-
-    private val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
@@ -549,47 +541,6 @@ class InMemoryStorage extends StorageWithOwnership {
 
     override def isRegistered(clazz: Class[_]): Boolean = {
         classes.containsKey(clazz)
-    }
-
-    override def declareBinding(leftClass: Class[_], leftFieldName: String,
-                                onDeleteLeft: DeleteAction,
-                                rightClass: Class[_], rightFieldName: String,
-                                onDeleteRight: DeleteAction): Unit = {
-        assert(!built)
-        assert(isRegistered(leftClass))
-        assert(isRegistered(rightClass))
-
-        val leftIsMessage = classOf[Message].isAssignableFrom(leftClass)
-        val rightIsMessage = classOf[Message].isAssignableFrom(rightClass)
-        if (leftIsMessage != rightIsMessage) {
-            throw new IllegalArgumentException("Incompatible types")
-        }
-
-        val bdgs = if (leftIsMessage) {
-            ProtoFieldBinding.createBindings(
-                leftClass, leftFieldName, onDeleteLeft,
-                rightClass, rightFieldName, onDeleteRight)
-        } else {
-            PojoFieldBinding.createBindings(
-                leftClass, leftFieldName, onDeleteLeft,
-                rightClass, rightFieldName, onDeleteRight)
-        }
-
-        for (entry <- bdgs.entries.asScala) {
-            bindings.put(entry.getKey, entry.getValue)
-        }
-    }
-
-    override def build(): Unit = {
-        assert(!built)
-        built = true
-    }
-
-    override def isBuilt = built
-
-    private def assertBuilt() {
-        if (!built) throw new ServiceUnavailableException(
-            "Data operation received before call to build().")
     }
 
     private def registerClassInternal(clazz: Class[_ <: Obj],

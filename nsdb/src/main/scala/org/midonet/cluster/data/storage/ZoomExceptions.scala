@@ -34,8 +34,8 @@ class InternalObjectMapperException private[storage](message: String,
  * Thrown when the StorageService receives a request while it is unable to
  * service requests.
  */
-class ServiceUnavailableException(message: String)
-    extends StorageException(message)
+class ServiceUnavailableException
+    extends StorageException("Data operation received before setup is complete")
 
 class NotFoundException (val clazz: Class[_], val id: ObjId)
     extends StorageException(
