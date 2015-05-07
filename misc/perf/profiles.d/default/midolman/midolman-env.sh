@@ -109,6 +109,9 @@ JVM_OPTS="$JVM_OPTS -Xmx${MAX_HEAP_SIZE}"
 JVM_OPTS="$JVM_OPTS -Xmn${HEAP_NEWSIZE}"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError" 
 
+# Do not use biased locking
+JVM_OPTS="$JVM_OPTS -XX:-UseBiasedLocking"
+
 # GC tuning options
 JVM_OPTS="$JVM_OPTS -XX:+UseParNewGC" 
 JVM_OPTS="$JVM_OPTS -XX:+UseConcMarkSweepGC" 
