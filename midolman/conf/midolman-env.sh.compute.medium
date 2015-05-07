@@ -110,6 +110,9 @@ JVM_OPTS="$JVM_OPTS -XX:HeapDumpPath=/var/log/midolman/"
 JVM_OPTS="$JVM_OPTS -XX:+HeapDumpOnOutOfMemoryError"
 JVM_OPTS="$JVM_OPTS -XX:OnOutOfMemoryError=\"kill;-3;%p\""
 
+# Do not use biased locking
+JVM_OPTS="$JVM_OPTS -XX:-UseBiasedLocking"
+
 # GC tuning options
 JVM_OPTS="$JVM_OPTS -XX:+UseParNewGC"
 JVM_OPTS="$JVM_OPTS -XX:+UseConcMarkSweepGC"
