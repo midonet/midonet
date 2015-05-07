@@ -650,18 +650,30 @@ public class L3ZkManager extends BaseZkManager {
         } else if (!oldFip.isAssociated() && fip.isAssociated()) {
             // Associate fip to fixed
             prepareAssociateFloatingIp(ops, fip);
-        } else if (oldFip.isAssociated()) {
-            // Association modified.  No need to change the provider router
-            // route, but need to update the static NAT rules.
-            RouterConfig rCfg = routerZkManager.get(fip.routerId);
-            RouterPortConfig gwPort =
-                portZkManager.findFirstRouterPortByPeer(fip.routerId, prId);
-            ruleZkManager.prepareReplaceSnatRules(ops, rCfg.outboundFilter,
-                gwPort.id, fip.fixedIpv4Addr(), oldFip.floatingIpv4Addr(),
-                fip.floatingIpv4Addr());
-            ruleZkManager.prepareReplaceDnatRules(ops, rCfg.inboundFilter,
-                gwPort.id, fip.floatingIpv4Addr(), oldFip.fixedIpv4Addr(),
-                fip.fixedIpv4Addr());
+        } else if (oldFip.isAssociated() && fip.isAssociated()) {
+            // The association has changed. Take a different action depending
+            // whether the router has changed.
+            if (oldFip.routerId.equals(fip.routerId)) {
+                // The association has changed, but the router has not. We need
+                // to leave the route as is, and update the rules. NOTE that
+                // modifications to chains of rules have to be done together to
+                // take into account the position of the rule on the chain.
+                RouterConfig rCfg = routerZkManager.get(fip.routerId);
+                RouterPortConfig gwPort =
+                        portZkManager.findFirstRouterPortByPeer(fip.routerId, prId);
+                ruleZkManager.prepareReplaceSnatRules(ops, rCfg.outboundFilter,
+                        gwPort.id, fip.fixedIpv4Addr(), oldFip.floatingIpv4Addr(),
+                        fip.floatingIpv4Addr());
+                ruleZkManager.prepareReplaceDnatRules(ops, rCfg.inboundFilter,
+                        gwPort.id, fip.floatingIpv4Addr(), oldFip.fixedIpv4Addr(),
+                        fip.fixedIpv4Addr());
+            } else {
+                // The router associated with this fip has changed. It needs to
+                // be disassociated from the old router, and re-associated with
+                // the new router.
+                prepareDisassociateFloatingIp(ops, oldFip);
+                prepareAssociateFloatingIp(ops, fip);
+            }
         }
 
         prepareUpdateNeutronFloatingIp(ops, fip);
