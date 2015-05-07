@@ -15,7 +15,10 @@
  */
 package org.midonet.midolman.state;
 
+import java.util.concurrent.TimeoutException;
 import javax.annotation.Nonnull;
+
+import rx.Observer;
 
 import org.apache.zookeeper.KeeperException;
 
@@ -47,4 +50,24 @@ public class DirectoryCallbackFactory {
                 });
         }
     }
+
+    public static <T> DirectoryCallback<T> wrap(final Observer<? super T> obs) {
+        return new DirectoryCallback<T>() {
+            @Override
+            public void onSuccess(T value) {
+                obs.onNext(value);
+                obs.onCompleted();
+            }
+            @Override
+            public void onTimeout() {
+                obs.onError(new TimeoutException());
+            }
+
+            @Override
+            public void onError(KeeperException ke) {
+                obs.onError(ke);
+            }
+        };
+    }
+
 }

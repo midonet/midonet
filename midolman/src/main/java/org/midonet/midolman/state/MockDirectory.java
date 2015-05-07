@@ -314,7 +314,7 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public void asyncAdd(String relativePath, byte[] data, CreateMode mode, DirectoryCallback.Add cb) {
+    public void asyncAdd(String relativePath, byte[] data, CreateMode mode, DirectoryCallback<String> cb) {
         try {
             cb.onSuccess(add(relativePath, data, mode));
         } catch (KeeperException e) {
@@ -423,7 +423,7 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public void asyncDelete(String relativePath, DirectoryCallback.Void callback) {
+    public void asyncDelete(String relativePath, DirectoryCallback<Void> callback) {
          try {
              delete(relativePath, false);
              callback.onSuccess(null);

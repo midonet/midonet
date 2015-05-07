@@ -306,7 +306,7 @@ public abstract class ReplicatedMap<K, V> {
         return keyList;
     }
 
-    private class PutCallback implements DirectoryCallback.Add {
+    private class PutCallback implements DirectoryCallback<String> {
         private K key;
         private V value;
 

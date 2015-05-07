@@ -20,6 +20,9 @@ import java.util.concurrent.{Delayed, Future, ScheduledFuture, TimeUnit, Callabl
 
 import scala.{Boolean, Long}
 
+import rx.Scheduler;
+import rx.schedulers.Schedulers;
+
 import com.google.common.util.concurrent.SettableFuture
 
 class CallingThreadReactor extends Reactor {
@@ -60,4 +63,6 @@ class CallingThreadReactor extends Reactor {
         }
 
     def isShutDownOrTerminated: Boolean = false
+
+    def rxScheduler: Scheduler = Schedulers.trampoline()
 }
