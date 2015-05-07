@@ -22,6 +22,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.junit.Assert;
+
+import rx.subjects.AsyncSubject;
 import org.midonet.cluster.ZookeeperTest;
 
 import static org.slf4j.LoggerFactory.getLogger;
@@ -127,5 +130,18 @@ public class ZkOpListTest extends ZookeeperTest {
         testObj.add(zk.getDeleteOp("/foo/bar"));
 
         testObj.commit();
+    }
+
+    @Test(timeout=10000)
+    public void testAsyncExists() throws Exception {
+        zk.addPersistent(getPath("/foo"), null);
+
+        AsyncSubject<Boolean> s = AsyncSubject.create();
+        zk.asyncExists(getPath("/foo"), DirectoryCallbackFactory.wrap(s));
+        Assert.assertTrue(s.toBlocking().single());
+
+        AsyncSubject<Boolean> s2 = AsyncSubject.create();
+        zk.asyncExists(getPath("/bar"), DirectoryCallbackFactory.wrap(s2));
+        Assert.assertFalse(s2.toBlocking().single());
     }
 }

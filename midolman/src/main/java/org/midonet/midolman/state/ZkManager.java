@@ -179,6 +179,11 @@ public class ZkManager {
         }
     }
 
+    public void asyncExists(String relativePath,
+                            DirectoryCallback<Boolean> cb) {
+        this.zk.asyncExists(relativePath, cb);
+    }
+
     public String addPersistent_safe(String path, byte[] data)
             throws StateAccessException {
         try {
