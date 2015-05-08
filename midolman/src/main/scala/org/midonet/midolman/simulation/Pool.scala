@@ -18,11 +18,11 @@ package org.midonet.midolman.simulation
 
 import java.util.{Objects, UUID}
 
-import org.midonet.midolman.state.l4lb.PoolLBMethod
 import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.NatKey
+import org.midonet.midolman.state.l4lb.PoolLBMethod
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
-import org.midonet.packets.{IPAddr, ICMP}
+import org.midonet.packets.{ICMP, IPAddr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.collection.WeightedSelector
 
@@ -38,6 +38,15 @@ object Pool {
         }
         false
     }
+
+    private def sameMembers(members1: Array[PoolMember],
+                            members2: Array[PoolMember]): Boolean = {
+        if ((members1 eq null) || (members2 eq null)) {
+            (members1 eq null) && (members2 eq null)
+        } else {
+            members1.sameElements(members2)
+        }
+    }
 }
 
 final class Pool(val id: UUID, val adminStateUp: Boolean,
@@ -48,6 +57,8 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
                  val activePoolMembers: Array[PoolMember],
                  val disabledPoolMembers: Array[PoolMember])
     extends VirtualDevice {
+
+    import Pool._
 
     override val deviceTag = FlowTagger.tagForDevice(id)
 
@@ -205,12 +216,16 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
         case pool: Pool =>
             id == pool.id && adminStateUp == pool.adminStateUp &&
             lbMethod == pool.lbMethod &&
-            activePoolMembers == pool.activePoolMembers &&
-            disabledPoolMembers == pool.disabledPoolMembers
+            healthMonitorId == pool.healthMonitorId &&
+            loadBalancerId == pool.loadBalancerId &&
+            sameMembers(members, pool.members) &&
+            sameMembers(activePoolMembers, pool.activePoolMembers) &&
+            sameMembers(disabledPoolMembers, pool.disabledPoolMembers)
         case _ => false
     }
 
     override def hashCode =
-        Objects.hash(id, Boolean.box(adminStateUp), lbMethod, activePoolMembers,
+        Objects.hash(id, Boolean.box(adminStateUp), lbMethod, healthMonitorId,
+                     loadBalancerId, members, activePoolMembers,
                      disabledPoolMembers)
 }

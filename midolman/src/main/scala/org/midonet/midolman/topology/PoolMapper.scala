@@ -79,7 +79,7 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
     override def logSource = s"org.midonet.devices.pool.pool-$poolId"
 
     private var pool: TopologyPool = null
-    private val poolMembers = new mutable.HashMap[UUID, PoolMemberState]
+    private var poolMembers = new mutable.LinkedHashMap[UUID, PoolMemberState]
     private var device: SimulationPool = null
 
     // A subject that emits a pool member observable for every pool member added
@@ -157,22 +157,30 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
 
         pool = p
 
-        val memberIds = pool.getPoolMemberIdsList.asScala.map(_.asJava).toSet
+        val memberIds = pool.getPoolMemberIdsList.asScala.map(_.asJava)
         log.debug("Update for pool with members {}", memberIds)
 
-        // Complete the observables for the members no longer part of this pool.
-        for ((memberId, memberState) <- poolMembers.toList
-             if !memberIds.contains(memberId)) {
-            memberState.complete()
-            poolMembers -= memberId
+        val previousMembers = poolMembers
+        poolMembers = mutable.LinkedHashMap[UUID, PoolMemberState]()
+
+        // Fill in the members in the order they appear in the pool
+        // protocol buffer.
+        for (memberId <- memberIds) {
+            if (previousMembers.contains(memberId)) {
+                poolMembers += memberId -> previousMembers(memberId)
+            } else {
+                // Create observables for the new members of this pool, and notify them
+                // on the pool members observable.
+                val memberState = new PoolMemberState(memberId, vt)
+                poolMembers += memberId -> memberState
+                poolMembersSubject onNext memberState.observable
+            }
         }
 
-        // Create observables for the new members of this pool, and notify them
-        // on the pool members observable.
-        for (memberId <- memberIds if !poolMembers.contains(memberId)) {
-            val memberState = new PoolMemberState(memberId, vt)
-            poolMembers += memberId -> memberState
-            poolMembersSubject onNext memberState.observable
+        // Complete the observables for the members no longer part of this pool.
+        for ((memberId, memberState) <- previousMembers
+             if !memberIds.contains(memberId)) {
+            memberState.complete()
         }
     }
 
