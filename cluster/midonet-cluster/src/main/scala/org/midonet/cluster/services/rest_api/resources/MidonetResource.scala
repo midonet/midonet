@@ -31,6 +31,7 @@ import com.google.common.util.concurrent.MoreExecutors._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 import com.google.protobuf.Message
+import com.typesafe.scalalogging.Logger
 
 import org.codehaus.jackson.map.JsonMappingException
 import org.eclipse.jetty.http.HttpStatus
@@ -49,8 +50,10 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @RequestScoped
 class MidonetResource @Inject()(implicit backend: MidonetBackend) {
 
-    private implicit val ec = ExecutionContext.fromExecutor(sameThreadExecutor())
-    private final val log = LoggerFactory.getLogger(classOf[MidonetResource])
+    private implicit val ec =
+        ExecutionContext.fromExecutor(sameThreadExecutor())
+    private final val log =
+        Logger(LoggerFactory.getLogger(classOf[MidonetResource]))
     private final val timeout = 5 seconds
     private final val storageAttempts = 3
 
@@ -483,7 +486,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
             // Update all parent resources that are affected by the creation.
             var index = path.length - 2
             while (obj ne null) {
-                obj = updateSubresource(path, index, obj)
+                obj = updateSubresource(path, index, obj, merge = false)
                 index -= 1
             }
 
@@ -509,6 +512,8 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
         if (path.last.attr.clazz == classOf[HostInterfacePort]) {
             var port = storeGet(classOf[Topology.Port], protoId)
             port = port.toBuilder.mergeFrom(obj).build()
+            log.info("Port update for binding create: {}/{}\n{}", port.getClass,
+                     port.getProtoId, port)
             tryWithRaceProtection { backend.store.update(port) }
             return null
         }
@@ -555,12 +560,12 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
         var obj = ZoomConvert.toProto(dto, path.last.attr.zoom.clazz)
 
         tryWithResponse {
-            obj = updateSubresource(path, path.length - 1, obj)
+            obj = updateSubresource(path, path.length - 1, obj, merge = true)
 
             // Update all parent resources that are affected by the creation.
             var index = path.length - 2
             while (obj ne null) {
-                obj = updateSubresource(path, index, obj)
+                obj = updateSubresource(path, index, obj, merge = false)
                 index -= 1
             }
 
@@ -573,7 +578,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
      * and it returns the parent resource, if it was modified by the update.
      */
     private def updateSubresource(path: RequestPath, index: Int,
-                                  obj: Message): Message = {
+                                  obj: Message, merge: Boolean): Message = {
         // TODO : Use annotation or custom builder
         val o = obj match {
             case port: Topology.Port =>
@@ -596,7 +601,11 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
         } else {
             // The resource is either a referenced or top resource: only update
             // the resource.
-            storeUpdate(path(index), o)
+            val current =
+                if (merge)
+                    o.mergeSubresources(path, index, storeGet(path(index)))
+                else o
+            storeUpdate(path(index), current)
             null
         }
     }
@@ -618,7 +627,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
             // Update all parent resources that are affected by the deletion.
             var index = path.length - 2
             while (obj ne null) {
-                obj = updateSubresource(path, index, obj)
+                obj = updateSubresource(path, index, obj, merge = false)
                 index -= 1
             }
 
@@ -637,8 +646,10 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
 
         // TODO : Use annotations or custom builder
         if (item.attr.clazz == classOf[HostInterfacePort]) {
-            var port = storeGet(classOf[Topology.Port], item.id.protoId)
-            port = port.toBuilder.clearHostId().clearInterfaceName().build()
+            val p = storeGet(classOf[Topology.Port], item.id.protoId)
+            val port = p.toBuilder.clearHostId().clearInterfaceName().build()
+            log.info("Port update for binding delete: {}/{}\n{}", port.getClass,
+                     port.getProtoId, port)
             tryWithRaceProtection { backend.store.update(port) }
             return null
         }
@@ -666,6 +677,8 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
                 val chain = storeGet(classOf[Topology.Chain], rule.getChainId)
                 val ruleIds = chain.getRuleIdsList.asScala - rule.getId
                 chain.toBuilder.clearRuleIds().addAllRuleIds(ruleIds.asJava)
+                log.info("Chain update for rule delete: {}/{}\n{}",
+                         chain.getClass, chain.getProtoId, chain)
                 tryWithRaceProtection {
                     backend.store.update(chain)
                 }
@@ -713,6 +726,8 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
     @throws[ReferenceConflictException]
     private def storeCreate(item: RequestItem, obj: Message): Unit = {
         if (item.attr.isStorable) {
+            log.info("Store create: {}/{}\n{}", obj.getClass, obj.getProtoId,
+                     obj)
             tryWithRaceProtection { backend.store.create(obj) }
         }
     }
@@ -722,6 +737,8 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
     @throws[ReferenceConflictException]
     private def storeUpdate(item: RequestItem, obj: Message): Unit = {
         if ((obj ne null) && item.attr.isStorable) {
+            log.info("Store update: {}/{}\n{}", obj.getClass, obj.getProtoId,
+                     obj)
             tryWithRaceProtection { backend.store.update(obj) }
         }
     }
@@ -732,6 +749,8 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
     private def storeDelete(item: RequestItem): Unit = {
         if (item.attr.isStorable) {
             tryWithRaceProtection {
+                log.info("Store delete: {}/{}", item.attr.zoom.clazz,
+                         item.id.protoId)
                 backend.store.delete(item.attr.zoom.clazz, item.id.protoId)
             }
         }
@@ -757,7 +776,6 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
             f
         } catch {
             case e: NotFoundException =>
-                val i = 0
                 Response.status(HttpStatus.NOT_FOUND_404).build()
             case e: ObjectReferencedException =>
                 Response.status(HttpStatus.NOT_ACCEPTABLE_406).build()

@@ -210,12 +210,24 @@ object DtoRenderer {
             items(index - 1).attr
                 .getSubresourceDescriptor(items(index).attr.resource.name())
         }
+
+        /**
+         * Indicates whether the subresource from the path at the given index is
+         * referenced by its parent resource. The method returns `false` if the
+         * resource is a root resource.
+         */
         def isSubresourceReferenced(index: Int): Boolean = {
             if (index == 0) return false
             val fieldDescriptor = getSubresourceDescriptor(index)
             fieldDescriptor.isRepeated &&
             fieldDescriptor.getMessageType == Commons.UUID.getDescriptor
         }
+
+        /**
+         * Indicates whether the subresource from the path at the given index is
+         * embedded into its parent resource. The method returns `false` if the
+         * resource is a root resource.
+         */
         def isSubresourceEmbedded(index: Int): Boolean = {
             if (index == 0) return false
             val fieldDescriptor = getSubresourceDescriptor(index)
@@ -231,6 +243,14 @@ object DtoRenderer {
         /** Gets the identifier value. */
         def getId: Any = {
             msg.getField(msg.getDescriptorForType.findFieldByName(IdField))
+        }
+
+        /** Gets the identifier as a string. */
+        def getProtoId: String = {
+            getId match {
+                case id: Commons.UUID => id.asJava.toString
+                case id => id.toString
+            }
         }
 
         /** Gets the subresources for the index at the given request path. */
@@ -389,6 +409,18 @@ object DtoRenderer {
           * in the other message will overwrite the fields from this message. */
         def mergeWith(other: Message): Message = {
             msg.toBuilder.mergeFrom(other).build()
+        }
+
+        def mergeSubresources(path: RequestPath, index: Int, other: Message)
+        : Message = {
+            val attr = path(index).attr
+            val builder = msg.toBuilder
+            for (subresource <- attr.subresources.keys) {
+                val descriptor = attr.getSubresourceDescriptor(subresource)
+                val list = other.getField(descriptor)
+                builder.setField(descriptor, list)
+            }
+            builder.build()
         }
 
         /** Converts this message to a sequence. */
