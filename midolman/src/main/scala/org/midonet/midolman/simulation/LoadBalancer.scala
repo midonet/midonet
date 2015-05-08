@@ -15,7 +15,6 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util
 import java.util.{Arrays, Objects, UUID}
 
 import akka.actor.ActorSystem

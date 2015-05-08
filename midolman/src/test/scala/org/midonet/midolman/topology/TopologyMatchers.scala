@@ -301,6 +301,8 @@ object TopologyMatchers {
         override def shouldBeDeviceOf(p: TopologyPool): Unit = {
             pool.id shouldBe p.getId.asJava
             pool.adminStateUp shouldBe p.getAdminStateUp
+            pool.members.map(_.id) should contain theSameElementsInOrderAs
+                p.getPoolMemberIdsList.asScala.map(_.asJava)
         }
     }
 
