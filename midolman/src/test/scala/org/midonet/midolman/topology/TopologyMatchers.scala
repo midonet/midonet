@@ -281,7 +281,7 @@ object TopologyMatchers {
             lb.id shouldBe l.getId.asJava
             lb.adminStateUp shouldBe l.getAdminStateUp
             lb.routerId shouldBe (if (l.hasRouterId) l.getRouterId.asJava else null)
-            lb.vips.map(_.id) should contain theSameElementsAs
+            lb.vips.map(_.id) should contain theSameElementsInOrderAs
                 l.getVipIdsList.asScala.map(_.asJava)
         }
     }
