@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_bb69e0fa",
+        "filename": "midolman/src/deb/quagga/bgpd.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 13,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-08T13:47:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_165d7379",
+      "revId": "73b67ed58f7fc51339c85481f00b430dc63fd81f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f6ca5719",
         "filename": "midolman/src/main/scala/org/midonet/quagga/BgpdProcess.scala",
         "patchSetId": 2
