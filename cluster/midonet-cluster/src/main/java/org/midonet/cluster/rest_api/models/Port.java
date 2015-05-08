@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -30,7 +31,6 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.util.version.Since;
 
 @XmlRootElement
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
@@ -102,4 +102,15 @@ public abstract class Port extends UriResource {
         }
     }
 
+    public URI getHost() {
+        return absoluteUri(ResourceUris.HOSTS, hostId);
+    }
+
+    public URI getPeer() {
+        return absoluteUri(ResourceUris.PORTS, peerId);
+    }
+
+    public URI getLink() {
+        return relativeUri(ResourceUris.LINK);
+    }
 }

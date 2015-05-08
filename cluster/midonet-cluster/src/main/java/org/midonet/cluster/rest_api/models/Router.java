@@ -16,17 +16,19 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.rest_api.annotation.ResourceId;
+import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.util.version.Since;
 
 @XmlRootElement(name = "router")
 @Resource(name = ResourceUris.ROUTERS)
@@ -54,23 +56,33 @@ public class Router extends UriResource {
     @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
     public UUID loadBalancerId;
 
+    @XmlTransient
+    @Subresource(name = ResourceUris.PORTS)
+    @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> portIds;
+
+    @XmlTransient
+    @Subresource(name = ResourceUris.ROUTES)
+    @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> routeIds;
+
     public Router() {
         adminStateUp = true;
     }
 
     public URI getPorts() {
-        return getUriFor(ResourceUris.PORTS);
+        return relativeUri(ResourceUris.PORTS);
     }
 
     public URI getPeerPorts() {
-        return getUriFor(ResourceUris.PEER_PORTS);
+        return relativeUri(ResourceUris.PEER_PORTS);
     }
 
     public URI getRoutes() {
-        return getUriFor(ResourceUris.ROUTES);
+        return relativeUri(ResourceUris.ROUTES);
     }
 
     public URI getLoadBalancer() {
-        return getUriFor(ResourceUris.LOAD_BALANCERS, loadBalancerId);
+        return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
     }
 }

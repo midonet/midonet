@@ -31,7 +31,6 @@ import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil.Converter;
-import org.midonet.util.version.Since;
 
 @XmlRootElement(name = "bridge")
 @Resource(name = ResourceUris.BRIDGES)
@@ -94,16 +93,16 @@ public class Bridge extends UriResource {
     }
 
     public URI getPorts() {
-        return getUriFor(ResourceUris.PORTS);
+        return relativeUri(ResourceUris.PORTS);
     }
 
     public URI getPeerPorts() {
-        return getUriFor(ResourceUris.PEER_PORTS);
+        return relativeUri(ResourceUris.PEER_PORTS);
     }
 
     @Since("3")
     public List<URI> getVxLanPorts() {
-        return getUrisFor(ResourceUris.VXLAN_PORTS, vxLanPortIds);
+        return absoluteUris(ResourceUris.VXLAN_PORTS, vxLanPortIds);
     }
 
     @Since("2")
@@ -112,19 +111,19 @@ public class Bridge extends UriResource {
     }
 
     public URI getMacTable() {
-        return getUriFor(ResourceUris.MAC_TABLE);
+        return relativeUri(ResourceUris.MAC_TABLE);
     }
 
     public URI getArpTable() {
-        return getUriFor(ResourceUris.ARP_TABLE);
+        return relativeUri(ResourceUris.ARP_TABLE);
     }
 
     public URI getDhcpSubnets() {
-        return getUriFor(ResourceUris.DHCP);
+        return relativeUri(ResourceUris.DHCP);
     }
 
     public URI getDhcpSubnet6s() {
-        return getUriFor(ResourceUris.DHCPV6);
+        return relativeUri(ResourceUris.DHCPV6);
     }
 
 }

@@ -449,7 +449,9 @@ object DtoRenderer {
         classOf[HostInterfacePort],
         classOf[Interface],
         classOf[Port],
+        classOf[Route],
         classOf[Router],
+        classOf[RouterPort],
         classOf[Rule],
         classOf[TunnelZone],
         classOf[TunnelZoneHost]

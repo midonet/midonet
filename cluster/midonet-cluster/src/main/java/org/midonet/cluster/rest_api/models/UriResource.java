@@ -53,20 +53,24 @@ public abstract class UriResource extends ZoomObject {
         return UriBuilder.fromUri(baseUri).segment(resource.name(), id).build();
     }
 
-    final protected URI getUriFor(String path) {
+    /** Gets an URI for the specified path relative to the URI of the current
+     * object. */
+    final protected URI relativeUri(String path) {
         return UriBuilder.fromUri(getUri()).segment(path).build();
     }
 
-    final protected URI getUriFor(String path, UUID id) {
+    /** Gets an URI for the specified path and identifier, relative to the base
+     * URI of the current object. */
+    final protected URI absoluteUri(String path, UUID id) {
         if (id == null) return null;
         return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
     }
 
-    final protected List<URI> getUrisFor(String path, List<UUID> ids) {
+    final protected List<URI> absoluteUris(String path, List<UUID> ids) {
         if (ids == null) return null;
         List<URI> uris = new ArrayList<>(ids.size());
         for (UUID id : ids) {
-            uris.add(getUriFor(path, id));
+            uris.add(absoluteUri(path, id));
         }
         return uris;
     }

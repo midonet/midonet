@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
@@ -23,31 +24,50 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.google.protobuf.Message;
+
+import org.apache.commons.lang.StringUtils;
+
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.rest_api.annotation.ParentId;
+import org.midonet.cluster.rest_api.annotation.Resource;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 
+@Resource(name = ResourceUris.PORTS, parents = { Router.class })
 public class RouterPort extends Port {
 
     @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
-    protected String networkAddress;
+    public String networkAddress;
 
     @Min(0)
     @Max(32)
-    protected int networkLength;
+    public int networkLength;
+
+    @XmlTransient
+    @ZoomField(name = "port_subnet", converter = IPSubnetUtil.Converter.class)
+    public IPSubnet<?> portSubnet;
 
     @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
-    protected String portAddress;
+    @ZoomField(name = "port_address", converter = IPAddressUtil.Converter.class)
+    public String portAddress;
 
-    protected String portMac;
+    @ZoomField(name = "port_mac")
+    public String portMac;
 
     @XmlTransient
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     @ParentId
     public UUID routerId;
+
+    @XmlTransient
+    @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> routeIds;
 
     @Override
     public UUID getDeviceId() {
@@ -57,6 +77,22 @@ public class RouterPort extends Port {
     @Override
     public void setDeviceId(UUID deviceId) {
         routerId = deviceId;
+    }
+
+    @Override
+    public void afterFromProto(Message message) {
+        if (null != portSubnet) {
+            networkAddress = portSubnet.getAddress().toString();
+            networkLength = portSubnet.getPrefixLen();
+        }
+    }
+
+    @Override
+    public void beforeToProto() {
+        if (StringUtils.isNotEmpty(networkAddress)) {
+            portSubnet =
+                IPSubnet.fromString(networkAddress + "/" + networkLength);
+        }
     }
 
 }
