@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ff79832f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-08T15:54:06Z",
+      "side": 1,
+      "message": "encapsulate these very long condition that includes { a code block and looks awkward } into a tiny aptly named, self evident method?",
+      "revId": "42fc86bc5923b8646871396ab135d92d4620fa37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bfe9cbb8",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/concurrent/SequenceReportingEventPoller.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-08T15:54:06Z",
+      "side": 1,
+      "message": "explain yourself",
+      "revId": "42fc86bc5923b8646871396ab135d92d4620fa37",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
