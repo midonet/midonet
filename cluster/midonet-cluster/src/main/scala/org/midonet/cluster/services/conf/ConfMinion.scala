@@ -20,7 +20,7 @@ import java.util.UUID
 import javax.servlet.http.{HttpServlet, HttpServletResponse, HttpServletRequest}
 
 import com.google.inject.Inject
-import com.typesafe.config.{ConfigFactory, Config, ConfigRenderOptions}
+import com.typesafe.config.{ConfigValueFactory, ConfigFactory, Config, ConfigRenderOptions}
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.nio.BlockingChannelConnector
@@ -72,6 +72,7 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: ClusterConf
         addServlet(new RuntimeEndpoint(c), "runtime-config/*")
         addServlet(new TemplateEndpoint(c), "template/*")
         addServlet(new TemplateListEndpoint(c), "template-list")
+        addServlet(new TemplateMappingsEndpoint(c), "template-mappings/*")
         addServlet(new TemplateMappingsEndpoint(c), "template-mappings")
     }
 
@@ -87,7 +88,7 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: ClusterConf
     }
 }
 
-abstract class ConfigApiEndpoint(val configurator: MidoNodeConfigurator) extends HttpServlet {
+abstract class ConfigApiEndpoint extends HttpServlet {
 
     protected val log = LoggerFactory.getLogger("org.midonet.conf-api")
 
@@ -108,7 +109,7 @@ abstract class ConfigApiEndpoint(val configurator: MidoNodeConfigurator) extends
                 resp.setDateHeader("Expires", 0)
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
                 e.printStackTrace(resp.getWriter)
-                e.printStackTrace(System.out)
+                log.warn("Resquest failed: ", e)
         }
     }
 
@@ -160,7 +161,7 @@ abstract class ConfigApiEndpoint(val configurator: MidoNodeConfigurator) extends
     protected def postResource(name: String, content: Config): Int = HttpServletResponse.SC_METHOD_NOT_ALLOWED
 }
 
-class TemplateEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
+class TemplateEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint {
     override protected def getResource(name: String) =
         configurator.templateByName(name).closeAfter(_.get)
 
@@ -175,15 +176,15 @@ class TemplateEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndp
     }
 }
 
-class SchemaEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
+class SchemaEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint {
     override protected def getResource(name: String) = configurator.mergedSchemas()
 }
 
-class RuntimeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
+class RuntimeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint {
     override protected def getResource(name: String) = configurator.centralConfig(UUID.fromString(name))
 }
 
-class PerNodeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
+class PerNodeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint {
     override protected def getResource(name: String) =
         configurator.centralPerNodeConfig(UUID.fromString(name)).closeAfter(_.get)
 
@@ -198,17 +199,38 @@ class PerNodeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpo
     }
 }
 
-class TemplateMappingsEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
-    override protected def getResource(name: String) =
-        configurator.templateMappings
+class TemplateMappingsEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint {
+    override protected def getResource(name: String) = {
+        if (name == null || name.isEmpty || name.equals("/")) {
+            configurator.templateMappings
+        } else {
+            val templateName = configurator.templateNameForNode(UUID.fromString(name))
+            ConfigFactory.empty().withValue(name, ConfigValueFactory.fromAnyRef(templateName))
+        }
+    }
 
-    override protected def postResource(name: String, content: Config) = {
-        configurator.updateTemplateAssignments(content)
-        HttpServletResponse.SC_OK
+    override def postResource(name: String, content: Config): Int = {
+        if (name == null || name.isEmpty || name.equals("/")) {
+            HttpServletResponse.SC_BAD_REQUEST
+        } else {
+            val templateName = content.getString(name)
+            configurator.assignTemplate(UUID.fromString(name), templateName)
+            HttpServletResponse.SC_OK
+        }
+    }
+
+    override def deleteResource(name: String): Int = {
+        if (name == null || name.isEmpty || name.equals("/")) {
+            HttpServletResponse.SC_BAD_REQUEST
+        } else {
+            val newMappings = configurator.templateMappings.withoutPath(name)
+            configurator.updateTemplateAssignments(newMappings)
+            HttpServletResponse.SC_OK
+        }
     }
 }
 
-class TemplateListEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint(configurator) {
+class TemplateListEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpoint {
     override protected def getResource(name: String) = {
         val templates = configurator.listTemplates reduceOption ((a, b) => s"$a, $b") getOrElse ""
         ConfigFactory.parseString(s"{ templates : [ $templates ] }")
