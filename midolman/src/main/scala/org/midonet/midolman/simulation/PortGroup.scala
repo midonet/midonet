@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.UUID
+import java.util.{Objects, UUID}
 
 import com.google.protobuf.Message
 
@@ -44,4 +44,13 @@ class PortGroup(@ScalaZoomField(name = "id", converter = classOf[UUIDConverter])
     override def afterFromProto(proto: Message): Unit = {
         _deviceTag = FlowTagger.tagForDevice(id)
     }
+
+    override def equals(obj: Any): Boolean = obj match {
+        case portGroup: PortGroup =>
+            id == portGroup.id && name == portGroup.name &&
+            stateful == portGroup.stateful &&  members == portGroup.members
+        case _ => false
+    }
+
+    override def hashCode: Int = Objects.hashCode(id, name, stateful, members)
 }

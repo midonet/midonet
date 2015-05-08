@@ -38,6 +38,15 @@ object Pool {
         }
         false
     }
+
+    private def sameMembers(members1: Array[PoolMember],
+                            members2: Array[PoolMember]): Boolean = {
+        if ((members1 eq null) || (members2 eq null)) {
+            (members1 eq null) && (members2 eq null)
+        } else {
+            members1.size == members2.size && members1.forall(members2.contains)
+        }
+    }
 }
 
 final class Pool(val id: UUID, val adminStateUp: Boolean,
@@ -48,6 +57,8 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
                  val activePoolMembers: Array[PoolMember],
                  val disabledPoolMembers: Array[PoolMember])
     extends VirtualDevice {
+
+    import Pool._
 
     override val deviceTag = FlowTagger.tagForDevice(id)
 
@@ -205,12 +216,14 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
         case pool: Pool =>
             id == pool.id && adminStateUp == pool.adminStateUp &&
             lbMethod == pool.lbMethod &&
-            activePoolMembers == pool.activePoolMembers &&
-            disabledPoolMembers == pool.disabledPoolMembers
+            // The order of the various member arrays is unimportant
+            sameMembers(members, pool.members) &&
+            sameMembers(activePoolMembers, pool.activePoolMembers) &&
+            sameMembers(disabledPoolMembers, pool.disabledPoolMembers)
         case _ => false
     }
 
     override def hashCode =
-        Objects.hash(id, Boolean.box(adminStateUp), lbMethod, activePoolMembers,
-                     disabledPoolMembers)
+        Objects.hash(id, Boolean.box(adminStateUp), lbMethod, members.toSet,
+                     activePoolMembers.toSet, disabledPoolMembers.toSet)
 }
