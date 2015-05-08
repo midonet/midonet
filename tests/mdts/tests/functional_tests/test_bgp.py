@@ -394,8 +394,8 @@ def test_snat_1():
             ping_inet(count=1, retry_count=5)
     finally:
         unset_filters('router-000-001')
+        clear_bgp(p1)
 
-    clear_bgp(p1)
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1759
 @attr(version="v1.2.0", slow=True, flaky=True)

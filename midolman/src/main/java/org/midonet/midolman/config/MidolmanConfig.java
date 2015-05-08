@@ -51,6 +51,9 @@ public interface MidolmanConfig
     @ConfigInt(key = "bgp_port_start_index", defaultValue = 0)
     public int getMidolmanBGPPortStartIndex();
 
+    @ConfigInt(key = "bgp_zookeeper_holdtime", defaultValue = 5)
+    public int getBgpZookeeperHoldTime();
+
     @ConfigInt(key = "bgp_keepalive", defaultValue = 60)
     public int getMidolmanBGPKeepAlive();
 

@@ -19,6 +19,7 @@ import java.io.File
 import java.util.{ArrayList, UUID}
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.concurrent.duration._
 import scala.util.{Failure, Success}
 
 import akka.actor.{Stash, Actor, ActorRef}
@@ -47,6 +48,7 @@ import org.midonet.quagga._
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.util.AfUnix
+import org.midonet.util.UnixClock
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors.Callback0
 import org.midonet.util.process.ProcessHelper
@@ -92,6 +94,52 @@ object RoutingHandler {
     case class BGPD_STATUS(port: UUID, isActive: Boolean)
 
     case class PEER_ROUTE_ADDED(router: UUID, route: Route)
+}
+
+class LazyZkConnectionMonitor(down: () => Unit,
+                              up: () => Unit,
+                              connWatcher: ZkConnectionAwareWatcher,
+                              downEventDelay: FiniteDuration,
+                              clock: UnixClock,
+                              schedule: (FiniteDuration, Runnable) => Unit) {
+
+    implicit def f2r(f: () => Unit): Runnable = new Runnable() { def run() = f() }
+
+    private val lock = new Object
+
+    connWatcher.scheduleOnReconnect(onReconnect _)
+    connWatcher.scheduleOnDisconnect(onDisconnect _)
+
+    private var lastDisconnection: Long = 0L
+    private var connected = true
+
+    private val NOW = 0 seconds
+
+    private def disconnectedFor: Long = clock.time - lastDisconnection
+
+    private def onDelayedDisconnect() = {
+        lock.synchronized {
+            if (!connected && (disconnectedFor >= downEventDelay.toMillis))
+                down()
+        }
+    }
+
+    private def onDisconnect() {
+        schedule(NOW, () => lock.synchronized {
+            lastDisconnection = clock.time
+            connected = false
+        })
+        schedule(downEventDelay, onDelayedDisconnect _)
+        connWatcher.scheduleOnDisconnect(onDisconnect _)
+    }
+
+    private def onReconnect() {
+        schedule(NOW, () => lock.synchronized {
+            connected = true
+            up()
+        })
+        connWatcher.scheduleOnReconnect(onReconnect _)
+    }
 }
 
 /**
@@ -211,25 +259,17 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     var zookeeperActive = true
     var portActive = true
 
+    val lazyConnWatcher = new LazyZkConnectionMonitor(
+            () => self ! ZookeeperActive(false),
+            () => self ! ZookeeperActive(true),
+            connWatcher,
+            config.getBgpZookeeperHoldTime seconds,
+            UnixClock.DEFAULT,
+            (d, r) => system.scheduler.scheduleOnce(d, r)(context.dispatcher))
+
     override def preStart() {
         log.info("({}) Starting, port {}.", phase, rport.id)
-
         super.preStart()
-
-        if (rport == null) {
-            log.error("({}) port is null", phase)
-            return
-        }
-
-        if (client == null) {
-            log.error("({}) client is null", phase)
-            return
-        }
-
-        if (dataClient == null) {
-            log.error("({}) dataClient is null", phase)
-            return
-        }
 
         // Watch the BGP session information for this port.
         // In the future we may also watch for session configurations of
@@ -253,20 +293,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
             def removeAdvertisedRoute(route: AdRoute) {
                 self ! StopAdvertisingRoute(route)
-            }
-        })
-
-        connWatcher.scheduleOnDisconnect(new Runnable() {
-            override def run() {
-                self ! ZookeeperActive(false)
-                connWatcher.scheduleOnDisconnect(this)
-            }
-        })
-
-        connWatcher.scheduleOnReconnect(new Runnable() {
-            override def run() {
-                self ! ZookeeperActive(true)
-                connWatcher.scheduleOnReconnect(this)
             }
         })
 
@@ -295,7 +321,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     }
 
     override def receive = {
-        case port: RouterPort if port.isExterior =>
+        case port: RouterPort if ! port.isInterior =>
             var store = true
             phase match {
                 case Starting =>
@@ -307,6 +333,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             }
             if (store)
                 rport = port
+
         case port: Port =>
             log.error("({}) Cannot run BGP on anything but an exterior " +
                 "virtual router port. We got {}", phase, port)
@@ -586,11 +613,13 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             if (zookeeperActive)
                 enable()
 
-        case ZookeeperActive(true) =>
+        case ZookeeperActive(true) if !zookeeperActive =>
             log.info("({}) Reconnected to Zookeeper", phase)
             zookeeperActive = true
             if (portActive)
                 enable()
+
+        case ZookeeperActive(true) if zookeeperActive => // ignored
 
         case PortActive(false) =>
             log.info("({}) Port became inactive", phase)
