@@ -20,7 +20,7 @@ import java.util.UUID
 import javax.servlet.http.{HttpServlet, HttpServletResponse, HttpServletRequest}
 
 import com.google.inject.Inject
-import com.typesafe.config.{ConfigValueFactory, ConfigFactory, Config, ConfigRenderOptions}
+import com.typesafe.config._
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.nio.BlockingChannelConnector
@@ -102,10 +102,13 @@ abstract class ConfigApiEndpoint extends HttpServlet {
         try {
             func(req, resp)
         } catch {
+            case e: ConfigException =>
+                resp.setContentType("text/plain; charset=utf-8")
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST)
+                resp.getWriter.write(e.getMessage)
+                log.info("Bad request: ", e.getMessage)
             case e: Exception =>
                 resp.setContentType("text/plain; charset=utf-8")
-                resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate")
-                resp.setHeader("Pragma", "no-cache")
                 resp.setDateHeader("Expires", 0)
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
                 e.printStackTrace(resp.getWriter)
@@ -166,6 +169,7 @@ class TemplateEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndp
         configurator.templateByName(name).closeAfter(_.get)
 
     override protected def postResource(name: String, content: Config) = {
+        configurator.validate(content)
         configurator.templateByName(name).closeAfter(_.mergeAndSet(content))
         HttpServletResponse.SC_OK
     }
@@ -189,6 +193,7 @@ class PerNodeEndpoint(configurator: MidoNodeConfigurator) extends ConfigApiEndpo
         configurator.centralPerNodeConfig(UUID.fromString(name)).closeAfter(_.get)
 
     override protected def postResource(name: String, content: Config) = {
+        configurator.validate(content)
         configurator.centralPerNodeConfig(UUID.fromString(name)).closeAfter(_.mergeAndSet(content))
         HttpServletResponse.SC_OK
     }
