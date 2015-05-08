@@ -26,8 +26,7 @@ import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology.{VIP => TopologyVIP}
-import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB}
+import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, VIP => TopologyVIP}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVip}
 import org.midonet.midolman.topology.LoadBalancerMapper.VipState
@@ -70,7 +69,7 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
 
     private var currentLB: TopologyLB = null
     private val vipSubject = PublishSubject.create[Observable[SimVip]]()
-    private val vips = mutable.Map[UUID, VipState]()
+    private var vips = mutable.LinkedHashMap[UUID, VipState]()
 
     private def deviceUpdated(update: Any): SimLB = {
         assertThread()
@@ -88,24 +87,30 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
 
         update match {
             case loadBalancer: TopologyLB =>
-                val vipIds =
-                    loadBalancer.getVipIdsList.asScala.map(_.asJava).toSet
+                val vipIds = loadBalancer.getVipIdsList.asScala.map(_.asJava)
                 log.debug("Load-balancer update, VIPs {}", vipIds)
 
+                val previousVips = vips
+                vips = mutable.LinkedHashMap[UUID, VipState]()
+
+                // Fill in the VIPs in the order they appear in the
+                // protocol buffer.
+                for (vipId <- vipIds) {
+                    if (previousVips.contains(vipId)) {
+                        vips += vipId -> previousVips(vipId)
+                    } else {
+                        // Create state for the new vips of this load-balancer,
+                        // and notify their observable on the vips observable.
+                        val vipState = new VipState(vipId, vt)
+                        vips += vipId -> vipState
+                        vipSubject onNext vipState.observable
+                    }
+                }
                 // Complete the observables for the vips no longer part
                 // of this load-balancer.
-                for ((vipId, vipState) <- vips.toList
+                for ((vipId, vipState) <- previousVips
                      if !vipIds.contains(vipId)) {
                     vipState.complete()
-                    vips -= vipId
-                }
-
-                // Create state for the new vips of this load-balancer, and
-                // notify their observable on the vips observable.
-                for (vipId <- vipIds if !vips.contains(vipId)) {
-                    val vipState = new VipState(vipId, vt)
-                    vips += vipId -> vipState
-                    vipSubject onNext vipState.observable
                 }
 
                 currentLB = loadBalancer
