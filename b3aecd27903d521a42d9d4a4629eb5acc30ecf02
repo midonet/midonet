@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_5b6b8cb6",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-08T09:25:30Z",
+      "side": 1,
+      "message": "delete",
+      "range": {
+        "startLine": 48,
+        "startChar": 59,
+        "endLine": 48,
+        "endChar": 66
+      },
+      "revId": "b3aecd27903d521a42d9d4a4629eb5acc30ecf02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_db9e5cb8",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-08T09:25:30Z",
+      "side": 1,
+      "message": "If possible, I\u0027d like to rename this to output_threads and clarify that their job is to write datapath requests.",
+      "revId": "b3aecd27903d521a42d9d4a4629eb5acc30ecf02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1ba59403",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-08T09:25:30Z",
+      "side": 1,
+      "message": "netewwwlink",
+      "range": {
+        "startLine": 97,
+        "startChar": 44,
+        "endLine": 97,
+        "endChar": 52
+      },
+      "revId": "b3aecd27903d521a42d9d4a4629eb5acc30ecf02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fba7d808",
+        "filename": "midolman/src/main/resources/org/midonet/conf/schemas/agent.conf",
+        "patchSetId": 1
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-08T09:25:30Z",
+      "side": 1,
+      "message": "seed",
+      "range": {
+        "startLine": 105,
+        "startChar": 12,
+        "endLine": 105,
+        "endChar": 18
+      },
+      "revId": "b3aecd27903d521a42d9d4a4629eb5acc30ecf02",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
