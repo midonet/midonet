@@ -1,0 +1,78 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_5f6b7784",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-08T15:03:02Z",
+      "side": 1,
+      "message": "what threads can access this variable?",
+      "revId": "8436659298abb8ce729c79ce8ebf892887795b19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_df0e47e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-08T15:03:02Z",
+      "side": 1,
+      "message": "what does the set represent? why are we only interested in the first element?",
+      "revId": "8436659298abb8ce729c79ce8ebf892887795b19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7f0bd3d5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-08T15:03:02Z",
+      "side": 1,
+      "message": "the thread you\u0027re blocking here is not needed to complete the future?",
+      "revId": "8436659298abb8ce729c79ce8ebf892887795b19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bf11cb05",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-08T15:03:02Z",
+      "side": 1,
+      "message": "should be id?",
+      "range": {
+        "startLine": 129,
+        "startChar": 69,
+        "endLine": 129,
+        "endChar": 75
+      },
+      "revId": "8436659298abb8ce729c79ce8ebf892887795b19",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
