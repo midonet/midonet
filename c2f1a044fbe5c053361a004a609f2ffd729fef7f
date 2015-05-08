@@ -34,6 +34,24 @@
       "revId": "c2f1a044fbe5c053361a004a609f2ffd729fef7f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7fcd9330",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/zkManagers/PortZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 993,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-08T16:17:42Z",
+      "side": 1,
+      "message": "Only in the since an Iterable is a generalization of a single value. It\u0027s about the expectation of the reader: when I see observables, I think a stream of things. \n\nFutures were in Akka, but are now in Scala. \n\nAnyway, I find this perfectly acceptable. I\u0027m not -1ing :)",
+      "parentUuid": "1a106d94_4c3d9c2a",
+      "revId": "c2f1a044fbe5c053361a004a609f2ffd729fef7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
