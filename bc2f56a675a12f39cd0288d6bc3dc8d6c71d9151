@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_5f19b720",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-08T15:52:11Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "1a106d94_5f8ff774",
+      "range": {
+        "startLine": 14,
+        "startChar": 16,
+        "endLine": 15,
+        "endChar": 36
+      },
+      "revId": "bc2f56a675a12f39cd0288d6bc3dc8d6c71d9151",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_ffda2376",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-08T14:41:18Z",
       "side": 1,
       "message": "Good catch Nicolas! However, is it feasible is make the member sets as to avoid this O(n^2) comparison?",
+      "range": {
+        "startLine": 47,
+        "startChar": 45,
+        "endLine": 47,
+        "endChar": 80
+      },
+      "revId": "bc2f56a675a12f39cd0288d6bc3dc8d6c71d9151",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9fe04fce",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-08T15:52:11Z",
+      "side": 1,
+      "message": "Do we expect members to contains many elements? I see a way to avoid O(n^2) comparisons but it requires more memory. I\u0027ll leave it like this unless this is really a problem.",
+      "parentUuid": "1a106d94_ffda2376",
       "range": {
         "startLine": 47,
         "startChar": 45,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_5ff097c8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-08T15:52:11Z",
+      "side": 1,
+      "message": "Yes it would actually. I\u0027ll fix this.",
+      "parentUuid": "1a106d94_9fd32f5f",
+      "range": {
+        "startLine": 228,
+        "startChar": 21,
+        "endLine": 228,
+        "endChar": 60
+      },
+      "revId": "bc2f56a675a12f39cd0288d6bc3dc8d6c71d9151",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9feccf2b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2015-05-08T14:41:18Z",
       "side": 1,
       "message": "Shouldn\u0027t we invalidate the port group flows if the tenant has changed?",
+      "range": {
+        "startLine": 40,
+        "startChar": 13,
+        "endLine": 40,
+        "endChar": 33
+      },
+      "revId": "bc2f56a675a12f39cd0288d6bc3dc8d6c71d9151",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1fcd7f66",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-08T15:52:11Z",
+      "side": 1,
+      "message": "I\u0027m going to revert this change. Even though the simulation object has no tenant_id, this field does not change and so we can rely on the equals method of the proto buff (the one used when distinctUntilChanged is placed before ZoomConvert).",
+      "parentUuid": "1a106d94_9feccf2b",
       "range": {
         "startLine": 40,
         "startChar": 13,
