@@ -137,14 +137,20 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
         null
     }
 
+    private def sameVips(otherVips: Array[VIP]): Boolean = {
+        if ((vips eq null) || (otherVips eq null)) {
+            (vips eq null) && (otherVips eq null)
+        } else {
+            vips.sameElements(otherVips)
+        }
+    }
+
     override def equals(obj: Any): Boolean = obj match {
         case loadBalancer: LoadBalancer =>
             id == loadBalancer.id &&
             adminStateUp == loadBalancer.adminStateUp &&
             routerId == loadBalancer.routerId &&
-            // The order in which vips appear is irrelevant
-            vips.length == loadBalancer.vips.length &&
-            vips.forall(loadBalancer.vips.contains)
+            sameVips(loadBalancer.vips)
 
         case _ => false
     }

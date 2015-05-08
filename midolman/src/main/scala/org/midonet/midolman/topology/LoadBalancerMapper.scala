@@ -26,8 +26,7 @@ import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology.{VIP => TopologyVIP}
-import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB}
+import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, VIP => TopologyVIP}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVip}
 import org.midonet.midolman.topology.LoadBalancerMapper.VipState
@@ -66,19 +65,28 @@ object LoadBalancerMapper {
 }
 
 final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
-    extends VirtualDeviceMapper[SimLB](lbId, vt){
+    extends VirtualDeviceMapper[SimLB](lbId, vt) {
 
     private var currentLB: TopologyLB = null
     private val vipSubject = PublishSubject.create[Observable[SimVip]]()
-    private val vips = mutable.Map[UUID, VipState]()
+    private val vips = mutable.HashMap[UUID, VipState]()
+
+    // Store the order in which VIPs appear in the load-balancer protocol
+    // buffer.
+    private var vipIdsInOrder: List[UUID] = null
 
     private def deviceUpdated(update: Any): SimLB = {
         assertThread()
+        val vipsArray = new Array[SimVip](vipIdsInOrder.size)
+        var index = 0
+        for (vipId <- vipIdsInOrder)
+            { vipsArray(index) = vips(vipId).vip; index += 1 }
+
         val lb = new SimLB(lbId, currentLB.getAdminStateUp,
                            if (currentLB.hasRouterId)
                                currentLB.getRouterId.asJava
                            else null,
-                           vips.values.map(_.vip).toArray)
+                           vipsArray)
         log.debug("Load-balancer ready: {}", lb)
         lb
     }
@@ -88,8 +96,9 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
 
         update match {
             case loadBalancer: TopologyLB =>
-                val vipIds =
-                    loadBalancer.getVipIdsList.asScala.map(_.asJava).toSet
+                vipIdsInOrder =
+                    loadBalancer.getVipIdsList.asScala.map(_.asJava).toList
+                val vipIds = vipIdsInOrder.toSet
                 log.debug("Load-balancer update, VIPs {}", vipIds)
 
                 // Complete the observables for the vips no longer part
