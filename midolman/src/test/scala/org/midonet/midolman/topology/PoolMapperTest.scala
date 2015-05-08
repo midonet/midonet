@@ -18,11 +18,11 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 import rx.observers.TestObserver
 
@@ -162,7 +162,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
     feature("The pool emits updates for pool members") {
         scenario("Active pool member added") {
             Given("A pool")
-            val pool = createPool()
+            var pool = createPool()
             store.create(pool)
 
             And("A pool mapper")
@@ -183,7 +183,8 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
                                           status = Some(LBStatus.ACTIVE),
                                           weight = Some(1))
             store.create(member)
-
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
             Then("The observer should receive a pool update")
             obs.awaitOnNext(2, timeout) shouldBe true
             val device = obs.getOnNextEvents.get(1)
@@ -194,13 +195,15 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Active pool member updated") {
             Given("A pool with an active member")
-            val pool = createPool()
+            var pool = createPool()
             val member1 = createPoolMember(poolId = Some(pool.getId),
                                            adminStateUp = Some(true),
                                            status = Some(LBStatus.ACTIVE),
                                            weight = Some(1))
             store.create(pool)
             store.create(member1)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -232,13 +235,15 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Active pool member deleted") {
             Given("A pool with an active member")
-            val pool = createPool()
+            var pool = createPool()
             val member = createPoolMember(poolId = Some(pool.getId),
                                           adminStateUp = Some(true),
                                           status = Some(LBStatus.ACTIVE),
                                           weight = Some(1))
             store.create(pool)
             store.create(member)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -258,6 +263,8 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
             When("The member is deleted")
             store.delete(classOf[PoolMember], member.getId)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             Then("The observer should receive an updated pool")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -269,7 +276,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Inactive pool member added") {
             Given("A pool")
-            val pool = createPool()
+            var pool = createPool()
             store.create(pool)
 
             And("A pool mapper")
@@ -290,6 +297,8 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
                                           status = Some(LBStatus.INACTIVE),
                                           weight = Some(1))
             store.create(member)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             Then("The observer should receive a pool update")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -301,13 +310,15 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Inactive pool member updated") {
             Given("A pool with an inactive member")
-            val pool = createPool()
+            var pool = createPool()
             val member1 = createPoolMember(poolId = Some(pool.getId),
                                            adminStateUp = Some(true),
                                            status = Some(LBStatus.INACTIVE),
                                            weight = Some(1))
             store.create(pool)
             store.create(member1)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -339,13 +350,15 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Inactive pool member deleted") {
             Given("A pool with an inactive member")
-            val pool = createPool()
+            var pool = createPool()
             val member = createPoolMember(poolId = Some(pool.getId),
                                           adminStateUp = Some(true),
                                           status = Some(LBStatus.INACTIVE),
                                           weight = Some(1))
             store.create(pool)
             store.create(member)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -365,6 +378,8 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
             When("The member is deleted")
             store.delete(classOf[PoolMember], member.getId)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             Then("The observer should receive an updated pool")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -376,7 +391,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Disabled pool member added") {
             Given("A pool")
-            val pool = createPool()
+            var pool = createPool()
             store.create(pool)
 
             And("A pool mapper")
@@ -395,6 +410,8 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val member = createPoolMember(poolId = Some(pool.getId),
                                           adminStateUp = Some(false))
             store.create(member)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             Then("The observer should receive a pool update")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -406,11 +423,13 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Disabled pool member updated") {
             Given("A pool with a disabled member")
-            val pool = createPool()
+            var pool = createPool()
             val member1 = createPoolMember(poolId = Some(pool.getId),
                                            adminStateUp = Some(false))
             store.create(pool)
             store.create(member1)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -442,11 +461,13 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Disabled pool member deleted") {
             Given("A pool with a disabled member")
-            val pool = createPool()
+            var pool = createPool()
             val member = createPoolMember(poolId = Some(pool.getId),
                                           adminStateUp = Some(false))
             store.create(pool)
             store.create(member)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -466,6 +487,8 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
             When("The member is deleted")
             store.delete(classOf[PoolMember], member.getId)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             Then("The observer should receive an updated pool")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -477,13 +500,15 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Active pool member updates to inactive") {
             Given("A pool with an active member")
-            val pool = createPool()
+            var pool = createPool()
             val member1 = createPoolMember(poolId = Some(pool.getId),
                                            adminStateUp = Some(true),
                                            status = Some(LBStatus.ACTIVE),
                                            weight = Some(1))
             store.create(pool)
             store.create(member1)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -515,13 +540,15 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Active pool member updates to disabled") {
             Given("A pool with an active member")
-            val pool = createPool()
+            var pool = createPool()
             val member1 = createPoolMember(poolId = Some(pool.getId),
                                            adminStateUp = Some(true),
                                            status = Some(LBStatus.ACTIVE),
                                            weight = Some(1))
             store.create(pool)
             store.create(member1)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -553,13 +580,15 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Inactive pool member updates to active") {
             Given("A pool with an inactive member")
-            val pool = createPool()
+            var pool = createPool()
             val member1 = createPoolMember(poolId = Some(pool.getId),
                                            adminStateUp = Some(true),
                                            status = Some(LBStatus.INACTIVE),
                                            weight = Some(1))
             store.create(pool)
             store.create(member1)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -591,13 +620,15 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Inactive pool member updates to disabled") {
             Given("A pool with an inactive member")
-            val pool = createPool()
+            var pool = createPool()
             val member1 = createPoolMember(poolId = Some(pool.getId),
                                            adminStateUp = Some(true),
                                            status = Some(LBStatus.INACTIVE),
                                            weight = Some(1))
             store.create(pool)
             store.create(member1)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -629,11 +660,13 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Disabled pool member updates to active") {
             Given("A pool with a disabled member")
-            val pool = createPool()
+            var pool = createPool()
             val member1 = createPoolMember(poolId = Some(pool.getId),
                                            adminStateUp = Some(false))
             store.create(pool)
             store.create(member1)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)
@@ -668,11 +701,13 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Disabled pool member updates to inactive") {
             Given("A pool with a disabled member")
-            val pool = createPool()
+            var pool = createPool()
             val member1 = createPoolMember(poolId = Some(pool.getId),
                                            adminStateUp = Some(false))
             store.create(pool)
             store.create(member1)
+            pool = Await.result(store.get(classOf[TopologyPool], pool.getId),
+                                timeout)
 
             And("A pool mapper")
             val mapper = new PoolMapper(pool.getId, vt)

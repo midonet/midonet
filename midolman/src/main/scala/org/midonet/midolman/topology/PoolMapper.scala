@@ -80,6 +80,9 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
 
     private var pool: TopologyPool = null
     private val poolMembers = new mutable.HashMap[UUID, PoolMemberState]
+    // The order of members in the pool protocol buffer
+    private var membersInOrder: Seq[UUID] = null
+    // The last emitted pool
     private var device: SimulationPool = null
 
     // A subject that emits a pool member observable for every pool member added
@@ -107,14 +110,13 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
     // Obs[Obs[PoolMember]]->| map(portUpdated) |-------------------+ merge
     //                       +------------------+                   |
     //   +----------------------------------------------------------+
-    //   |  +---------------------+  +------------------+
-    //   +->| filter(isPoolReady) |->| map(buildDevice) |-> SimulationPool
-    //      +---------------------+  +------------------+
+    //   |  +---------------------+
+    //   +->| filter(isPoolReady) |-> device: SimulationPool
+    //      +---------------------+
     protected override val observable = Observable
         .merge[Any](poolMembersObservable, poolObservable)
         .filter(makeFunc1(isPoolReady))
-        .map[SimulationPool](makeFunc1(buildDevice))
-        .distinctUntilChanged()
+        .map[SimulationPool](makeFunc1(_ => device))
 
     /**
      * Indicates that the pool is ready, which occurs when the states for all
@@ -122,9 +124,15 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
      */
     private def isPoolReady(update: Any): JBoolean = {
         assertThread()
-        val ready: JBoolean = poolMembers.forall(_._2.isReady)
-        log.debug("Pool ready: {}", ready)
-        ready
+        if (poolMembers.forall(_._2.isReady)) {
+            val pool = buildDevice()
+            if (pool != device) {
+                log.debug("Pool ready: {}", pool)
+                device = pool
+                return true
+            }
+        }
+        false
     }
 
     /**
@@ -157,7 +165,8 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
 
         pool = p
 
-        val memberIds = pool.getPoolMemberIdsList.asScala.map(_.asJava).toSet
+        membersInOrder = pool.getPoolMemberIdsList.asScala.map(_.asJava)
+        val memberIds = membersInOrder.toSet
         log.debug("Update for pool with members {}", memberIds)
 
         // Complete the observables for the members no longer part of this pool.
@@ -185,30 +194,43 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
     }
 
     /**
+     * This method orders the members passed as parameter according
+     * to the order in which they appear in the pool protocol buffer.
+     */
+    private def orderMembers(members: mutable.Map[UUID, PoolMemberState])
+    : Array[SimulationPoolMember] = {
+        val memberArray = new Array[SimulationPoolMember](members.size)
+        var index = 0
+        for (memberId <- membersInOrder) {
+            if (members.contains(memberId)) {
+                memberArray(index) = members(memberId).poolMember
+                index += 1
+            }
+        }
+        memberArray
+    }
+
+    /**
      * Maps the [[TopologyPool]] to a [[SimulationPool]] device.
      */
-    private def buildDevice(update: Any): SimulationPool = {
+    private def buildDevice(): SimulationPool = {
         assertThread()
 
         // Compute the active and disabled pool members.
-        val members = poolMembers.values.map(_.poolMember)
-        val activePoolMembers = members.filter(_.isUp).toArray
-        val disabledPoolMembers = members.filterNot(_.adminStateUp).toArray
+        val activePoolMembers = poolMembers
+            .filter(_._2.poolMember.isUp)
+        val disabledPoolMembers = poolMembers
+            .filterNot(_._2.poolMember.adminStateUp)
 
         // Create the simulation pool.
-        val newDevice = new SimulationPool(
+        new SimulationPool(
             pool.getId,
             pool.getAdminStateUp,
             PoolLBMethod.fromProto(pool.getLbMethod),
             if (pool.hasHealthMonitorId) pool.getHealthMonitorId else null,
             if (pool.hasLoadBalancerId) pool.getLoadBalancerId else null,
-            members.toArray,
-            activePoolMembers,
-            disabledPoolMembers)
-        if (newDevice != device) {
-            log.debug("Building pool: {}", pool)
-            device = newDevice
-        }
-        device
+            orderMembers(poolMembers),
+            orderMembers(activePoolMembers),
+            orderMembers(disabledPoolMembers))
     }
 }

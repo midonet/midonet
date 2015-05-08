@@ -15,8 +15,8 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util
 import java.util.{Arrays, Objects, UUID}
+import javax.annotation.Nonnull
 
 import akka.actor.ActorSystem
 
@@ -32,7 +32,7 @@ object LoadBalancer {
 }
 
 class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
-                   val vips: Array[VIP]) extends VirtualDevice {
+                   @Nonnull val vips: Array[VIP]) extends VirtualDevice {
 
     import LoadBalancer._
 
