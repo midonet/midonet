@@ -70,7 +70,7 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
 
     private var currentLB: TopologyLB = null
     private val vipSubject = PublishSubject.create[Observable[SimVip]]()
-    private val vips = mutable.Map[UUID, VipState]()
+    private val vips = mutable.LinkedHashMap[UUID, VipState]()
 
     private def deviceUpdated(update: Any): SimLB = {
         assertThread()
@@ -94,7 +94,7 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
 
                 // Complete the observables for the vips no longer part
                 // of this load-balancer.
-                for ((vipId, vipState) <- vips.toList
+                for ((vipId, vipState) <- vips
                      if !vipIds.contains(vipId)) {
                     vipState.complete()
                     vips -= vipId
