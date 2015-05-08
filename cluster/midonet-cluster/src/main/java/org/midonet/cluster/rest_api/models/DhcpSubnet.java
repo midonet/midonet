@@ -45,7 +45,6 @@ import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
-import org.midonet.util.version.Since;
 
 @XmlRootElement
 @ZoomClass(clazz = Topology.Dhcp.class)
@@ -104,7 +103,7 @@ public class DhcpSubnet extends UriResource {
     public Boolean enabled = true;
 
     public URI getHosts() {
-        return getUriFor(ResourceUris.HOSTS);
+        return relativeUri(ResourceUris.HOSTS);
     }
 
     @Override

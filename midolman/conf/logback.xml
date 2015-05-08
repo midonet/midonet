@@ -51,6 +51,14 @@
 
     </appender>
 
+    <!--
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-4level [%thread] %logger{0} %m%n%rEx</pattern>
+        </encoder>
+    </appender>
+    -->
+
     <!-- This appender writes to logstash over a udp socket on the configured port.
          To use this, logstash should have an input configured with:
 
@@ -85,6 +93,7 @@
          levels: OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
     <root level="INFO">
         <appender-ref ref="LOG-FILE" />
+        <!-- <appender-ref ref="STDOUT" /> -->
         <!-- <appender-ref ref="LOG-STASH" /> //-->
     </root>
 

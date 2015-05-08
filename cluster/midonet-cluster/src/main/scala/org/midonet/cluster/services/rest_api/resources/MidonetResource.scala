@@ -231,6 +231,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
                     APPLICATION_HOST_INTERFACE_PORT_JSON,
                     APPLICATION_PORT_JSON,
                     APPLICATION_PORT_V2_JSON,
+                    APPLICATION_ROUTE_JSON,
                     APPLICATION_RULE_JSON,
                     APPLICATION_RULE_JSON_V2,
                     APPLICATION_TUNNEL_ZONE_HOST_JSON,

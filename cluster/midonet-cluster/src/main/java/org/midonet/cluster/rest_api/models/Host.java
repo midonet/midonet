@@ -37,8 +37,6 @@ import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.util.version.Since;
-import org.midonet.util.version.Until;
 
 @XmlRootElement
 @Resource(name = ResourceUris.HOSTS)
@@ -95,7 +93,7 @@ public class Host extends UriResource {
         return interfaces;
     }
 
-    public URI getInterfaces() { return getUriFor(ResourceUris.INTERFACES); }
+    public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }
 
-    public URI getPorts() { return getUriFor(ResourceUris.PORTS); }
+    public URI getPorts() { return relativeUri(ResourceUris.PORTS); }
 }
