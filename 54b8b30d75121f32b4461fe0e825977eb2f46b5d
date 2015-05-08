@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_3bf7b0d4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 650,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-08T10:03:20Z",
+      "side": 1,
+      "message": "This can be var port. I\u0027ll fix this in a later patch.",
+      "range": {
+        "startLine": 649,
+        "startChar": 12,
+        "endLine": 650,
+        "endChar": 20
+      },
+      "revId": "54b8b30d75121f32b4461fe0e825977eb2f46b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
