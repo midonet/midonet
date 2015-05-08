@@ -22,6 +22,30 @@
       "revId": "a2f9d23596f73899af5bf6848425a45c88468b1f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9f2e8ff9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-08T15:54:50Z",
+      "side": 1,
+      "message": "fixed",
+      "parentUuid": "1a106d94_bfdf0b39",
+      "range": {
+        "startLine": 154,
+        "startChar": 12,
+        "endLine": 154,
+        "endChar": 39
+      },
+      "revId": "a2f9d23596f73899af5bf6848425a45c88468b1f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
