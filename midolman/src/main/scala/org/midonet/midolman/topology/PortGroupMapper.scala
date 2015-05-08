@@ -34,9 +34,9 @@ class PortGroupMapper(id: UUID, vt: VirtualTopology)
 
     protected override def observable =
         vt.store.observable(classOf[TopologyPortGroup], id)
-            .distinctUntilChanged
             .map[SimulationPortGroup](
                 makeFunc1(ZoomConvert.fromProto(_, classOf[SimulationPortGroup])))
             .observeOn(vt.vtScheduler)
+            .distinctUntilChanged
 
 }
