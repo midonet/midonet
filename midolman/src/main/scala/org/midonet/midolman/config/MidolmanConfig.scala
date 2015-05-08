@@ -98,7 +98,9 @@ class BridgeConfig(val conf: Config, val schema: Config) extends TypeFailureFall
 }
 
 class RouterConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
-    def maxBgpPeerRoutes = conf.getInt("agent.router.max_bgp_peer_routes")
+    val PREFIX = "agent.router"
+    def maxBgpPeerRoutes = conf.getInt(s"$PREFIX.max_bgp_peer_routes")
+    def bgpZookeeperHoldtime = conf.getDuration(s"$PREFIX.bgp_zookeeper_holdtime", TimeUnit.SECONDS)
 }
 
 class DatapathConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
