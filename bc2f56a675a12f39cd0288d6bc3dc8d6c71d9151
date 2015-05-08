@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_5f8ff774",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-08T14:41:18Z",
+      "side": 1,
+      "message": "Are you saying that if the tenant of a port has changed (even though this shouldn\u0027t be possible), we don\u0027t need to update the simulation object?",
+      "range": {
+        "startLine": 14,
+        "startChar": 16,
+        "endLine": 15,
+        "endChar": 36
+      },
+      "revId": "bc2f56a675a12f39cd0288d6bc3dc8d6c71d9151",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ffda2376",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-08T14:41:18Z",
+      "side": 1,
+      "message": "Good catch Nicolas! However, is it feasible is make the member sets as to avoid this O(n^2) comparison?",
+      "range": {
+        "startLine": 47,
+        "startChar": 45,
+        "endLine": 47,
+        "endChar": 80
+      },
+      "revId": "bc2f56a675a12f39cd0288d6bc3dc8d6c71d9151",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9fd32f5f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-08T14:41:18Z",
+      "side": 1,
+      "message": "Would a members array have a different hash code (if they would have the elements in different order), even if they would compare equal by the method above?",
+      "range": {
+        "startLine": 228,
+        "startChar": 21,
+        "endLine": 228,
+        "endChar": 60
+      },
+      "revId": "bc2f56a675a12f39cd0288d6bc3dc8d6c71d9151",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9feccf2b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PortGroupMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-08T14:41:18Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we invalidate the port group flows if the tenant has changed?",
+      "range": {
+        "startLine": 40,
+        "startChar": 13,
+        "endLine": 40,
+        "endChar": 33
+      },
+      "revId": "bc2f56a675a12f39cd0288d6bc3dc8d6c71d9151",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
