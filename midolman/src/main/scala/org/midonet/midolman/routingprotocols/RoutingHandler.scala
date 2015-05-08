@@ -44,6 +44,7 @@ import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.util.UnixClock
 import org.midonet.util.eventloop.SelectLoop
 
 object RoutingHandler {
@@ -84,6 +85,46 @@ object RoutingHandler {
     private case class DpPortCreateSuccess(port: DpPort, pid: Int)
     private case class DpPortDeleteSuccess(port: DpPort)
     private case class DpPortError(port: String, ex: Throwable)
+}
+
+class LazyZkConnectionMonitor(down: () => Unit,
+                              up: () => Unit,
+                              connWatcher: ZkConnectionAwareWatcher,
+                              downEventDelay: FiniteDuration,
+                              clock: UnixClock,
+                              schedule: (FiniteDuration, Runnable) => Unit) {
+
+    implicit def f2r(f: () => Unit): Runnable = new Runnable() { def run() = f() }
+
+    connWatcher.scheduleOnReconnect(onReconnect _)
+    connWatcher.scheduleOnDisconnect(onDisconnect _)
+
+    private var lastDisconnection: Long = 0L
+    private var connected = true
+
+    private val NOW = 0 seconds
+
+    private def onDelayedDisconnect() = {
+        if (!connected && (clock.time - lastDisconnection) >= downEventDelay.toMillis)
+            down()
+    }
+
+    private def onDisconnect() {
+        schedule(NOW, () => {
+            lastDisconnection = clock.time
+            connected = false
+        })
+        schedule(downEventDelay, onDelayedDisconnect _)
+        connWatcher.scheduleOnDisconnect(onDisconnect _)
+    }
+
+    private def onReconnect() {
+        schedule(NOW, () => {
+            connected = true
+            up()
+        })
+        connWatcher.scheduleOnReconnect(onReconnect _)
+    }
 }
 
 /**
@@ -212,25 +253,17 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     var zookeeperActive = true
     var portActive = true
 
+    val lazyConnWatcher = new LazyZkConnectionMonitor(
+            () => self ! ZookeeperActive(false),
+            () => self ! ZookeeperActive(true),
+            connWatcher,
+            config.router.bgpZookeeperHoldtime seconds,
+            UnixClock.DEFAULT,
+            (d, r) => system.scheduler.scheduleOnce(d, r)(dispatcher))
+
     override def preStart() {
         log.info("({}) Starting, port {}.", phase, rport.id)
-
         super.preStart()
-
-        if (rport == null) {
-            log.error("({}) port is null", phase)
-            return
-        }
-
-        if (client == null) {
-            log.error("({}) client is null", phase)
-            return
-        }
-
-        if (dataClient == null) {
-            log.error("({}) dataClient is null", phase)
-            return
-        }
 
         // Watch the BGP session information for this port.
         // In the future we may also watch for session configurations of
@@ -254,20 +287,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
             def removeAdvertisedRoute(route: AdRoute) {
                 self ! StopAdvertisingRoute(route)
-            }
-        })
-
-        connWatcher.scheduleOnDisconnect(new Runnable() {
-            override def run() {
-                self ! ZookeeperActive(false)
-                connWatcher.scheduleOnDisconnect(this)
-            }
-        })
-
-        connWatcher.scheduleOnReconnect(new Runnable() {
-            override def run() {
-                self ! ZookeeperActive(true)
-                connWatcher.scheduleOnReconnect(this)
             }
         })
 
@@ -364,11 +383,13 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             if (zookeeperActive)
                 enable()
 
-        case ZookeeperActive(true) =>
+        case ZookeeperActive(true) if !zookeeperActive =>
             log.info("({}) Reconnected to Zookeeper", phase)
             zookeeperActive = true
             if (portActive)
                 enable()
+
+        case ZookeeperActive(true) if zookeeperActive => // ignored
 
         case PortActive(false) =>
             log.info("({}) Port became inactive", phase)
