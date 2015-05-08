@@ -388,8 +388,8 @@ def test_snat():
             ping_inet(count=1, retry_count=5)
     finally:
         unset_filters('router-000-001')
+        clear_bgp(p1)
 
-    clear_bgp(p1)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_snat_1, binding_snat_2, binding_snat_3)
