@@ -69,7 +69,7 @@ public class TunnelZone extends UriResource {
     public List<TunnelZoneHost> hosts;
 
     public URI getHosts() {
-        return getUriFor(ResourceUris.HOSTS);
+        return relativeUri(ResourceUris.HOSTS);
     }
 
 }
