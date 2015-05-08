@@ -61,7 +61,7 @@ import static org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider.DIRECT
  */
 public abstract class ZookeeperTest {
 
-    protected static final int ZK_PORT = (int)(Math.random() * 1000) + 63000;
+    protected static final int ZK_PORT = (int)(Math.random() * 1000) + 64000;
 
     protected Injector injector;
     private String zkRoot;
