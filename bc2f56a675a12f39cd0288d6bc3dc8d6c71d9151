@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7ff4735a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-08T16:29:46Z",
+      "side": 1,
+      "message": "But this arrays are already converted from sets, inside the PoolMapper. I\u0027m asking whether it\u0027s feasible to pass the sets in the constructor argument of the Pool class.",
+      "parentUuid": "1a106d94_9fe04fce",
+      "range": {
+        "startLine": 47,
+        "startChar": 45,
+        "endLine": 47,
+        "endChar": 80
+      },
+      "revId": "bc2f56a675a12f39cd0288d6bc3dc8d6c71d9151",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9fd32f5f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
         "patchSetId": 3
