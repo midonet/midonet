@@ -19,6 +19,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import javax.portlet.ResourceURL;
+import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -41,22 +43,28 @@ public class Bridge extends UriResource {
     public UUID id;
 
     @ZoomField(name = "tenant_id")
+    @NotNull
     public String tenantId;
 
     @ZoomField(name = "name")
+    @NotNull
     public String name;
 
     @ZoomField(name = "admin_state_up")
-    protected boolean adminStateUp;
+    public boolean adminStateUp;
 
     @ZoomField(name = "inbound_filter_id", converter = Converter.class)
     public UUID inboundFilterId;
     @ZoomField(name = "outbound_filter_id", converter = Converter.class)
     public UUID outboundFilterId;
 
+    // TODO: validation, this field must not be updated by the user
+    @Since("2")
     public UUID vxLanPortId;
 
+    // TODO: validation, this field must not be updated by the user
     @ZoomField(name = "vxlan_port_ids", converter = Converter.class)
+    @Since("3") // after adding support to multiple vtep bindings
     public List<UUID> vxLanPortIds;
 
     @XmlTransient
@@ -74,7 +82,7 @@ public class Bridge extends UriResource {
     }
 
     public String getVlanMacTableTemplate() {
-        return getUri() + "/vlans/{vlanId}/mac_table/{macAddress}_{portId}";
+        return getUri() + "/vlans/{vlanId}/mac_table";
     }
 
     public String getMacPortTemplate() {
@@ -93,8 +101,14 @@ public class Bridge extends UriResource {
         return getUriFor(ResourceUris.PEER_PORTS);
     }
 
+    @Since("3")
     public List<URI> getVxLanPorts() {
         return getUrisFor(ResourceUris.VXLAN_PORTS, vxLanPortIds);
+    }
+
+    @Since("2")
+    public URI getVxLanPort() {
+        return getUriFor(ResourceUris.PORTS, vxLanPortId);
     }
 
     public URI getMacTable() {

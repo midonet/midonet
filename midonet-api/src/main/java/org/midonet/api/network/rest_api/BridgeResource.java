@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 import javax.annotation.security.PermitAll;
@@ -43,16 +44,13 @@ import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
-import org.midonet.api.network.Bridge;
-import org.midonet.api.network.Bridge.BridgeCreateGroupSequence;
-import org.midonet.api.network.Bridge.BridgeUpdateGroupSequence;
+import org.midonet.api.network.BridgeDataConverter;
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.network.Port;
@@ -65,6 +63,8 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.Bridge;
 import org.midonet.event.topology.BridgeEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -74,6 +74,7 @@ import org.midonet.packets.MAC;
 import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
 import static org.midonet.api.ResourceUriBuilder.VLANS;
 import static org.midonet.api.validation.MessageProperty.NO_VXLAN_PORT;
+import static org.midonet.api.validation.MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
@@ -106,8 +107,7 @@ public class BridgeResource extends AbstractResource {
             throws StateAccessException,
             SerializationException {
 
-        org.midonet.cluster.data.Bridge bridgeData =
-                dataClient.bridgesGet(id);
+        org.midonet.cluster.data.Bridge bridgeData = dataClient.bridgesGet(id);
         if (bridgeData == null) {
             return;
         }
@@ -129,7 +129,8 @@ public class BridgeResource extends AbstractResource {
                 VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
                 MediaType.APPLICATION_JSON })
     public Bridge get(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+                   IllegalAccessException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -139,7 +140,7 @@ public class BridgeResource extends AbstractResource {
         org.midonet.cluster.data.Bridge bridgeData = getBridgeOrThrow(id, false);
 
         // Convert to the REST API DTO
-        Bridge bridge = new Bridge(bridgeData);
+        Bridge bridge = BridgeDataConverter.fromData(bridgeData);
         bridge = populateLegacyVxlanPortId(bridge);
         bridge.setBaseUri(getBaseUri());
 
@@ -151,12 +152,11 @@ public class BridgeResource extends AbstractResource {
      * old property vxlanPortId, so V2 clients work.
      */
     private Bridge populateLegacyVxlanPortId(Bridge bridge) {
-        if (bridge.getVxLanPortIds() == null) {
+        if (bridge.vxLanPortIds == null) {
             return bridge;
         }
-        List<UUID> vxlanPortIds = bridge.getVxLanPortIds();
-        if (!vxlanPortIds.isEmpty()) {
-            bridge.setVxLanPortId(vxlanPortIds.get(0));
+        if (!bridge.vxLanPortIds.isEmpty()) {
+            bridge.vxLanPortId = bridge.vxLanPortIds.get(0);
         }
         return bridge;
     }
@@ -248,8 +248,7 @@ public class BridgeResource extends AbstractResource {
      *
      * @param id Bridge ID from the request.
      * @param bridge Bridge object.
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      */
     @PUT
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -259,18 +258,26 @@ public class BridgeResource extends AbstractResource {
                 VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
             MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Bridge bridge)
-            throws StateAccessException,
-            SerializationException {
+            throws StateAccessException, SerializationException {
 
-        bridge.setId(id);
-        validate(bridge, BridgeUpdateGroupSequence.class);
+        bridge.id = id;
+
+        validate(bridge);
+
+        org.midonet.cluster.data.Bridge oldB = dataClient.bridgesGet(id);
+        if (!Objects.equals(bridge.vxLanPortIds, oldB.getVxLanPortIds()) ||
+            !Objects.equals(bridge.vxLanPortId, oldB.getVxLanPortId())) {
+            throw new BadRequestHttpException(
+                getMessage(VXLAN_PORT_ID_NOT_SETTABLE)
+            );
+        }
 
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to update this bridge.");
         }
 
-        dataClient.bridgesUpdate(bridge.toData());
+        dataClient.bridgesUpdate(BridgeDataConverter.toData(bridge));
         bridgeEvent.update(id, dataClient.bridgesGet(id));
     }
 
@@ -292,17 +299,23 @@ public class BridgeResource extends AbstractResource {
     public Response create(Bridge bridge)
             throws StateAccessException, SerializationException{
 
-        validate(bridge, BridgeCreateGroupSequence.class);
+        validate(bridge);
 
-        if (!Authorizer.isAdminOrOwner(context, bridge.getTenantId())) {
+        if (!Authorizer.isAdminOrOwner(context, bridge.tenantId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to add bridge to this tenant.");
         }
 
-        UUID id = dataClient.bridgesCreate(bridge.toData());
+        if (bridge.vxLanPortIds != null || bridge.vxLanPortId != null) {
+           throw new BadRequestHttpException(
+               getMessage(VXLAN_PORT_ID_NOT_SETTABLE)
+           );
+        }
+
+        UUID id = dataClient.bridgesCreate(BridgeDataConverter.toData(bridge));
         bridgeEvent.create(id, dataClient.bridgesGet(id));
         return Response.created(
-                ResourceUriBuilder.getBridge(getBaseUri(), id)).build();
+            ResourceUriBuilder.getBridge(getBaseUri(), id)).build();
     }
 
     /**
@@ -319,7 +332,8 @@ public class BridgeResource extends AbstractResource {
             VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V3,
             MediaType.APPLICATION_JSON })
     public List<Bridge> list(@QueryParam("tenant_id") String tenantId)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+                   IllegalAccessException{
 
         List<org.midonet.cluster.data.Bridge> dataBridges;
         if (tenantId == null) {
@@ -331,7 +345,7 @@ public class BridgeResource extends AbstractResource {
         if (dataBridges != null) {
             for (org.midonet.cluster.data.Bridge dataBridge :
                     dataBridges) {
-                Bridge bridge = new Bridge(dataBridge);
+                Bridge bridge = BridgeDataConverter.fromData(dataBridge);
                 bridge.setBaseUri(getBaseUri());
                 bridge = populateLegacyVxlanPortId(bridge);
                 bridges.add(bridge);
@@ -367,8 +381,7 @@ public class BridgeResource extends AbstractResource {
      * it does serialize the VLAN field. Returns all MAC ports regardless of
      * VLAN association.
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of MacPort objects.
      */
     @GET
@@ -389,8 +402,7 @@ public class BridgeResource extends AbstractResource {
      * @param vlanId ID of the VLAN whose MAC table is requested. Specify 0 to
      *               request MAC ports not associated with a VLAN.
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of MacPort objects.
      */
     @GET
@@ -431,10 +443,8 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler for creating a MAC table entry.
      *
-     * @param mp
-     *            MacPort entry for the mac table.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param mp MacPort entry for the mac table.
+     * @throws StateAccessException Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -485,15 +495,11 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to getting a MAC table entry.
      *
-     * @param id
-     *      Bridge's UUID.
-     * @param macAddress
-     *      MAC address of mapping to get, in URI format,
-     *      e.g., 12-34-56-78-9a-bc.
-     * @param portId
-     *      UUID of port in the MAC-port mapping to get.
-     * @throws StateAccessException
-     *      Data access error.
+     * @param id Bridge's UUID.
+     * @param macAddress MAC address of mapping to get, in URI format,
+     *                   e.g., 12-34-56-78-9a-bc.
+     * @param portId UUID of port in the MAC-port mapping to get.
+     * @throws StateAccessException Data access error.
      * @return A MacPort object.
      */
     @GET
@@ -512,15 +518,11 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to getting a MAC table entry.
      *
-     * @param id
-     *      Bridge's UUID.
-     * @param macAddress
-     *      MAC address of mapping to get, in URI format,
-     *      e.g., 12-34-56-78-9a-bc.
-     * @param portId
-     *      UUID of port in the MAC-port mapping to get.
-     * @throws StateAccessException
-     *      Data access error.
+     * @param id Bridge's UUID.
+     * @param macAddress MAC address of mapping to get, in URI format,
+     *                   e.g., 12-34-56-78-9a-bc.
+     * @param portId UUID of port in the MAC-port mapping to get.
+     * @throws StateAccessException Data access error.
      * @return A MacPort object.
      */
     @GET
@@ -565,14 +567,10 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to deleting a MAC table entry.
      *
-     * @param id
-     *      Bridge UUID.
-     * @param macAddress
-     *      MAC address of MAC-port mapping to delete.
-     * @param portId
-     *      UUID of port in MAC-port mapping to delete.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *      Data access error.
+     * @param id Bridge UUID.
+     * @param macAddress MAC address of MAC-port mapping to delete.
+     * @param portId UUID of port in MAC-port mapping to delete.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
@@ -587,16 +585,11 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to deleting a MAC table entry.
      *
-     * @param id
-     *      Bridge UUID.
-     * @param vlanId
-     *      VLAN ID of MAC-port mapping to delete.
-     * @param macAddress
-     *      MAC address of MAC-port mapping to delete.
-     * @param portId
-     *      UUID of port in MAC-port mapping to delete.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *      Data access error.
+     * @param id Bridge UUID.
+     * @param vlanId VLAN ID of MAC-port mapping to delete.
+     * @param macAddress MAC address of MAC-port mapping to delete.
+     * @param portId UUID of port in MAC-port mapping to delete.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
@@ -632,8 +625,7 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to list the ARP table's entries..
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of IP4MacPair objects.
      */
     @GET
@@ -662,10 +654,8 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler for creating a ARP table entry.
      *
-     * @param mp
-     *            IP4MacPair entry for the ARP table.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param mp IP4MacPair entry for the ARP table.
+     * @throws StateAccessException Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -693,10 +683,8 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to getting a ARP table entry.
      *
-     * @param IP4MacPairString
-     *            IP4MacPair entry in the ARP table.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param IP4MacPairString IP4MacPair entry in the ARP table.
+     * @throws StateAccessException Data access error.
      * @return A IP4MacPair object.
      */
     @GET
@@ -729,10 +717,8 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to deleting a ARP table entry.
      *
-     * @param IP4MacPairString
-     *            IP4MacPair entry in the ARP table.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param IP4MacPairString IP4MacPair entry in the ARP table.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})

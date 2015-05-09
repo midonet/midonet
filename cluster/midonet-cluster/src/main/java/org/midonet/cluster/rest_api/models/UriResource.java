@@ -71,6 +71,7 @@ public abstract class UriResource extends ZoomObject {
         return uris;
     }
 
+    @XmlTransient
     public void setBaseUri(URI baseUri) throws IllegalAccessException {
         this.baseUri = baseUri;
         setSubresourcesUri(getUri());
