@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_659ea664",
+        "filename": "midonet-api/src/main/java/org/midonet/api/network/rest_api/BridgeResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-09T16:27:23Z",
+      "side": 1,
+      "message": "Better to do this with getMessage (See other examples in the file)",
+      "revId": "adf5b91f04044b1da66b4d0ab7c3262a4a5adf1b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
