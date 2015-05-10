@@ -28,7 +28,6 @@ import javax.ws.rs.core.UriInfo;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.storage.Storage;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -38,9 +37,6 @@ import static org.midonet.api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PA
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
-/**
- * Base resource class.
- */
 public abstract class AbstractResource {
 
     protected final RestApiConfig config;
@@ -48,11 +44,7 @@ public abstract class AbstractResource {
     protected final SecurityContext context;
     protected final Validator validator;
     protected final DataClient dataClient;
-
-    public AbstractResource(RestApiConfig config, UriInfo uriInfo,
-                            SecurityContext context, DataClient dataClient) {
-        this(config, uriInfo, context, dataClient, null);
-    }
+    protected final Authoriser authoriser;
 
     public AbstractResource(RestApiConfig config, UriInfo uriInfo,
                             SecurityContext context, DataClient dataClient,
@@ -62,6 +54,8 @@ public abstract class AbstractResource {
         this.context = context;
         this.dataClient = dataClient;
         this.validator = validator;
+        // TODO: when we want alternative
+        this.authoriser = new DataClientAuthoriser(dataClient, context);
     }
 
     /**
@@ -135,4 +129,5 @@ public abstract class AbstractResource {
         }
         return bridge;
     }
+
 }

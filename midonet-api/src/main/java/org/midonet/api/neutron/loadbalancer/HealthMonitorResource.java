@@ -68,7 +68,7 @@ public class HealthMonitorResource extends AbstractResource {
     @Inject
     public HealthMonitorResource(RestApiConfig config, UriInfo uriInfo,
                                  SecurityContext context, LoadBalancerApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 
