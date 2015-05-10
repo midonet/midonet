@@ -35,7 +35,7 @@ public class LBResource extends AbstractResource {
     public LBResource(RestApiConfig config, UriInfo uriInfo,
                       SecurityContext context,
                       LBResourceFactory factory) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.factory = factory;
     }
 

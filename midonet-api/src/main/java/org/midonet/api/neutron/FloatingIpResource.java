@@ -55,7 +55,7 @@ public class FloatingIpResource extends AbstractResource {
     @Inject
     public FloatingIpResource(RestApiConfig config, UriInfo uriInfo,
                               SecurityContext context, L3Api api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
@@ -102,7 +101,7 @@ public class TenantResource extends AbstractResource {
     public TenantResource(RestApiConfig config, UriInfo uriInfo,
                           SecurityContext context, AuthService authService,
                           HttpServletRequest reqContext, ResourceFactory factory) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.authService = authService;
         this.reqContext = reqContext;
         this.factory = factory;
@@ -117,15 +116,15 @@ public class TenantResource extends AbstractResource {
     @PermitAll
     @Path("/{id}")
     @Produces({ VendorMediaType.APPLICATION_TENANT_JSON })
-    public Tenant get(@PathParam("id") String id) throws AuthException {
-        log.debug("TenantResource.get: entered. id=" + id);
+    public Tenant get(@PathParam("id") String tenantId) throws AuthException {
+        log.debug("TenantResource.get: entered. id=" + tenantId);
 
-        if (!Authorizer.isAdminOrOwner(context, id)) {
+        if (!authoriser.isAdminOrOwner(tenantId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to view this tenant.");
         }
 
-        org.midonet.cluster.auth.Tenant authTenant = authService.getTenant(id);
+        org.midonet.cluster.auth.Tenant authTenant = authService.getTenant(tenantId);
         if (authTenant == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");

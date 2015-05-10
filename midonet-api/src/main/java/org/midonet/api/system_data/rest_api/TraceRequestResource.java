@@ -17,6 +17,12 @@
 package org.midonet.api.system_data.rest_api;
 
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
@@ -33,62 +39,41 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.auth.MockAuthConfig;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.network.auth.PortAuthorizer;
-import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.system_data.TraceRequest;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
+
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Root Resource class for trace requests
  */
 @RequestScoped
 public class TraceRequestResource extends AbstractResource {
-    private final static Logger log
-        = LoggerFactory.getLogger(TraceRequestResource.class);
 
-    private final BridgeAuthorizer bridgeAuthorizer;
-    private final PortAuthorizer portAuthorizer;
-    private final RouterAuthorizer routerAuthorizer;
+    private final static Logger log = getLogger(TraceRequestResource.class);
 
     @Inject
     public TraceRequestResource(RestApiConfig config, UriInfo uriInfo,
-                                SecurityContext context,
-                                BridgeAuthorizer bridgeAuthorizer,
-                                PortAuthorizer portAuthorizer,
-                                RouterAuthorizer routerAuthorizer,
-            Validator validator, DataClient dataClient,
-                                MockAuthConfig authconfig) {
+                                SecurityContext context, Validator validator,
+                                DataClient dataClient) {
         super(config, uriInfo, context, dataClient, validator);
-        this.bridgeAuthorizer = bridgeAuthorizer;
-        this.portAuthorizer = portAuthorizer;
-        this.routerAuthorizer = routerAuthorizer;
     }
 
     /**
@@ -121,26 +106,20 @@ public class TraceRequestResource extends AbstractResource {
         return traceRequests;
     }
 
-    private static class ForbiddenAuthorizer extends Authorizer<UUID> {
-        @Override
-        public boolean authorize(SecurityContext context,
-                                 AuthAction action, UUID id)
-                throws StateAccessException, SerializationException {
-            return false;
-        }
-    }
-
-    private Authorizer<UUID> getAuthorizer(
-            org.midonet.cluster.data.TraceRequest.DeviceType type) {
-        switch (type) {
-        case ROUTER:
-            return routerAuthorizer;
-        case BRIDGE:
-            return bridgeAuthorizer;
-        case PORT:
-            return portAuthorizer;
-        default:
-            return new ForbiddenAuthorizer();
+    private void tryAuthorize(org.midonet.cluster.data.TraceRequest tr,
+                              String what) throws StateAccessException,
+                                                  SerializationException{
+        switch (tr.getDeviceType()) {
+            case ROUTER:
+                authoriser.tryAuthoriseRouter(tr.getDeviceId(), what);
+                break;
+            case BRIDGE:
+                authoriser.tryAuthoriseBridge(tr.getDeviceId(), what);
+                break;
+            case PORT:
+                authoriser.tryAuthorisePort(tr.getDeviceId(), what);
+                break;
+            default: throw new ForbiddenHttpException("Not authorized");
         }
     }
 
@@ -157,15 +136,7 @@ public class TraceRequestResource extends AbstractResource {
         if (traceRequest == null) {
             return;
         }
-
-        Authorizer<UUID> authorizer
-            = getAuthorizer(traceRequest.getDeviceType());
-        if (!authorizer.authorize(context, AuthAction.WRITE,
-                                  traceRequest.getDeviceId())) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to delete this trace request.");
-        }
-
+        tryAuthorize(traceRequest, "delete this trace request");
         dataClient.traceRequestDelete(id);
     }
 
@@ -181,17 +152,12 @@ public class TraceRequestResource extends AbstractResource {
             throws StateAccessException, SerializationException {
         org.midonet.cluster.data.TraceRequest traceRequestData
             = dataClient.traceRequestGet(id);
+
         if (traceRequestData == null) {
             throw new NotFoundHttpException("Trace request doesn't exist");
         }
 
-        Authorizer<UUID> authorizer = getAuthorizer(
-                traceRequestData.getDeviceType());
-        if (!authorizer.authorize(context, AuthAction.READ,
-                                  traceRequestData.getDeviceId())) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this trace request.");
-        }
+        tryAuthorize(traceRequestData, "view this trace request");
 
         TraceRequest traceRequest = new TraceRequest(traceRequestData);
         traceRequest.setBaseUri(getBaseUri());
@@ -213,13 +179,8 @@ public class TraceRequestResource extends AbstractResource {
 
         org.midonet.cluster.data.TraceRequest traceRequestData
             = traceRequest.toData();
-        Authorizer<UUID> authorizer = getAuthorizer(
-                traceRequestData.getDeviceType());
-        if (!authorizer.authorize(context, AuthAction.WRITE,
-                                  traceRequest.getDeviceId())) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to add a trace to this device.");
-        }
+        tryAuthorize(traceRequestData,
+                     "add a trace to this device.");
 
         UUID id = dataClient.traceRequestCreate(traceRequestData,
                                                 traceRequest.getEnabled());
@@ -241,16 +202,12 @@ public class TraceRequestResource extends AbstractResource {
             RuleIndexOutOfBoundsException {
         org.midonet.cluster.data.TraceRequest traceRequest
             = dataClient.traceRequestGet(id);
-        Authorizer<UUID> authorizer = getAuthorizer(
-                traceRequest.getDeviceType());
-        if (!authorizer.authorize(context, AuthAction.WRITE,
-                                  traceRequest.getDeviceId())) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to enable a trace to this device.");
-        }
+
         if (traceRequest == null) {
             throw new NotFoundHttpException("Trace request doesn't exist");
         }
+        tryAuthorize(traceRequest, "enable a trace to this device");
+
         org.midonet.cluster.data.TraceRequest newData
             = newTraceRequest.toData();
         if (Objects.equals(newData.getName(), traceRequest.getName())

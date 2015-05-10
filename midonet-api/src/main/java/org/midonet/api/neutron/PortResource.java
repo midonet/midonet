@@ -56,7 +56,7 @@ public class PortResource extends AbstractResource {
     @Inject
     public PortResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context, NetworkApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

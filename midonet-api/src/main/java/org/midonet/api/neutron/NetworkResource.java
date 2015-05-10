@@ -55,7 +55,7 @@ public class NetworkResource extends AbstractResource {
     @Inject
     public NetworkResource(RestApiConfig config, UriInfo uriInfo,
                            SecurityContext context, NetworkApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

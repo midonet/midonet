@@ -15,12 +15,11 @@
  */
 package org.midonet.api.bgp.rest_api;
 
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.bgp.auth.BgpAuthorizer;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.DataClient;
+import java.util.UUID;
+
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,11 +27,16 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.UUID;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestBgpResource {
@@ -49,7 +53,7 @@ public class TestBgpResource {
     private ResourceFactory factory;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private BgpAuthorizer auth;
+    private Authoriser auth;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private UriInfo uriInfo;
@@ -59,15 +63,15 @@ public class TestBgpResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new BgpResource(config, uriInfo, context, auth, dataClient,
-                factory);
+        testObject = new BgpResource(config, uriInfo, context, dataClient,
+                                     factory, auth);
     }
 
     @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.WRITE, id);
+        doReturn(false).when(auth).tryAuthoriseBgp(id, anyString());
 
         // Execute
         testObject.delete(id);
@@ -77,7 +81,7 @@ public class TestBgpResource {
     public void testDeleteNonExistentData() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(true).when(auth).authorize(context, AuthAction.WRITE, id);
+        doReturn(true).when(auth).tryAuthoriseBgp(id, anyString());
         doReturn(null).when(dataClient).bgpGet(id);
 
         // Execute
@@ -91,7 +95,7 @@ public class TestBgpResource {
     public void testGetUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.READ, id);
+        doReturn(false).when(auth).tryAuthoriseBgp(id, anyString());
 
         // Execute
         testObject.get(id);

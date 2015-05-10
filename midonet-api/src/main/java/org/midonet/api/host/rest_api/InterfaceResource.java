@@ -52,7 +52,7 @@ public class InterfaceResource extends AbstractResource {
                              SecurityContext context,
                              DataClient dataClient,
                              @Assisted UUID hostId) {
-        super(config, uriInfo, context, dataClient);
+        super(config, uriInfo, context, dataClient, null);
         this.hostId = hostId;
     }
 
