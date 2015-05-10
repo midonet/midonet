@@ -56,7 +56,7 @@ public class SecurityGroupResource extends AbstractResource {
     public SecurityGroupResource(RestApiConfig config, UriInfo uriInfo,
                                  SecurityContext context,
                                  SecurityGroupApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

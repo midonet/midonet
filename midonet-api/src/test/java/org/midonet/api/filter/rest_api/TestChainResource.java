@@ -15,12 +15,12 @@
  */
 package org.midonet.api.filter.rest_api;
 
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.filter.auth.ChainAuthorizer;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.DataClient;
+import java.util.UUID;
+
+import javax.validation.Validator;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,12 +28,19 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.validation.Validator;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.UUID;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestChainResource {
@@ -50,9 +57,6 @@ public class TestChainResource {
     private ResourceFactory factory;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private ChainAuthorizer auth;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private Validator validator;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
@@ -63,41 +67,16 @@ public class TestChainResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new ChainResource(config, uriInfo, context, auth,
-                validator, dataClient, factory);
-    }
-
-    @Test(expected = ForbiddenHttpException.class)
-    public void testDeleteUnauthorized() throws Exception {
-        // Set up
-        UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.WRITE, id);
-
-        // Execute
-        testObject.delete(id);
+        testObject = new ChainResource(config, uriInfo, context, validator,
+                                       dataClient, factory);
     }
 
     @Test
     public void testDeleteNonExistentData() throws Exception {
-        // Set up
         UUID id = UUID.randomUUID();
-        doReturn(true).when(auth).authorize(context, AuthAction.WRITE, id);
         doReturn(null).when(dataClient).chainsGet(id);
-
-        // Execute
         testObject.delete(id);
-
-        // Verify
         verify(dataClient, never()).chainsDelete(id);
     }
 
-    @Test(expected = ForbiddenHttpException.class)
-    public void testGetUnauthorized() throws Exception {
-        // Set up
-        UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.READ, id);
-
-        // Execute
-        testObject.get(id);
-    }
 }
