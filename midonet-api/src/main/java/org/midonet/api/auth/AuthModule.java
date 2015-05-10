@@ -17,8 +17,11 @@ package org.midonet.api.auth;
 
 import java.net.MalformedURLException;
 
+import javax.ws.rs.core.SecurityContext;
+
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
@@ -30,15 +33,9 @@ import org.midonet.api.auth.vsphere.VSphereClient;
 import org.midonet.api.auth.vsphere.VSphereConfig;
 import org.midonet.api.auth.vsphere.VSphereConfigurationException;
 import org.midonet.api.auth.vsphere.VSphereSSOService;
-import org.midonet.api.bgp.auth.AdRouteAuthorizer;
-import org.midonet.api.bgp.auth.BgpAuthorizer;
-import org.midonet.api.filter.auth.ChainAuthorizer;
-import org.midonet.api.filter.auth.RuleAuthorizer;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.network.auth.PortAuthorizer;
-import org.midonet.api.network.auth.PortGroupAuthorizer;
-import org.midonet.api.network.auth.RouteAuthorizer;
-import org.midonet.api.network.auth.RouterAuthorizer;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.DataClientAuthoriser;
+import org.midonet.cluster.DataClient;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.keystone.v2_0.KeystoneClient;
@@ -54,18 +51,9 @@ public class AuthModule extends AbstractModule {
 
         requireBinding(ConfigProvider.class);
 
-        bind(AuthService.class).toProvider(
-                AuthServiceProvider.class).asEagerSingleton();
-
-        bind(AdRouteAuthorizer.class).asEagerSingleton();
-        bind(BgpAuthorizer.class).asEagerSingleton();
-        bind(BridgeAuthorizer.class).asEagerSingleton();
-        bind(ChainAuthorizer.class).asEagerSingleton();
-        bind(PortAuthorizer.class).asEagerSingleton();
-        bind(PortGroupAuthorizer.class).asEagerSingleton();
-        bind(RouteAuthorizer.class).asEagerSingleton();
-        bind(RouterAuthorizer.class).asEagerSingleton();
-        bind(RuleAuthorizer.class).asEagerSingleton();
+        bind(AuthService.class)
+            .toProvider(AuthServiceProvider.class)
+            .asEagerSingleton();
 
         MapBinder<String, AuthService> registeredAuthServices =
                 MapBinder.newMapBinder(binder(), String.class, AuthService.class);
@@ -138,4 +126,5 @@ public class AuthModule extends AbstractModule {
     CorsConfig provideCorsConfig(ConfigProvider provider) {
         return provider.getConfig(CorsConfig.class);
     }
+
 }

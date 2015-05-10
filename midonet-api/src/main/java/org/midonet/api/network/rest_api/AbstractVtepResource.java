@@ -53,24 +53,17 @@ abstract public class AbstractVtepResource extends AbstractResource {
         this.factory = factory;
     }
 
-    protected org.midonet.cluster.data.VTEP getVtepOrThrow(
-            String ipAddrStr, boolean badRequest)
-            throws StateAccessException, SerializationException
-    {
-        return vtepClient.getVtepOrThrow(parseIPv4Addr(ipAddrStr), badRequest);
-    }
-
     protected final List<VtepBinding> listVtepBindings(String ipAddrStr,
                                                        UUID bridgeId)
             throws SerializationException, StateAccessException {
 
         List<VtepBinding> bindings;
         try {
-            bindings = vtepClient.listVtepBindings(
-                    parseIPv4Addr(ipAddrStr), bridgeId);
+            bindings = vtepClient.listVtepBindings(parseIPv4Addr(ipAddrStr),
+                                                   bridgeId);
         } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(getMessage(
-                    VTEP_NOT_FOUND, ipAddrStr));
+            throw new NotFoundHttpException(getMessage(VTEP_NOT_FOUND,
+                                                       ipAddrStr));
         }
 
         URI baseUri = getBaseUri();

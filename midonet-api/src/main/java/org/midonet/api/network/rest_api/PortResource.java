@@ -18,6 +18,7 @@ package org.midonet.api.network.rest_api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
@@ -37,11 +38,9 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.bgp.rest_api.BgpResource.PortBgpResource;
 import org.midonet.api.network.BridgePort;
 import org.midonet.api.network.Link;
@@ -51,10 +50,6 @@ import org.midonet.api.network.PortGroupPort;
 import org.midonet.api.network.PortGroupPort.PortGroupPortCreateGroupSequence;
 import org.midonet.api.network.PortType;
 import org.midonet.api.network.RouterPort;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.network.auth.PortAuthorizer;
-import org.midonet.api.network.auth.PortGroupAuthorizer;
-import org.midonet.api.network.auth.RouterAuthorizer;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
@@ -63,41 +58,35 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.event.topology.PortEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.VlanPathExistsException;
 
-/**
- * Root resource class for ports.
- */
 @RequestScoped
 public class PortResource extends AbstractResource {
 
     private final static PortEvent portEvent = new PortEvent();
 
-    private final PortAuthorizer authorizer;
     private final ResourceFactory factory;
     private final VtepClusterClient vtepClient;
 
     @Inject
     public PortResource(RestApiConfig config, UriInfo uriInfo,
-                        SecurityContext context, PortAuthorizer authorizer,
-                        Validator validator, DataClient dataClient,
-                        ResourceFactory factory, VtepClusterClient vtepClient) {
+                        SecurityContext context, Validator validator,
+                        DataClient dataClient, ResourceFactory factory,
+                        VtepClusterClient vtepClient) {
         super(config, uriInfo, context, dataClient, validator);
         this.vtepClient = vtepClient;
-        this.authorizer = authorizer;
         this.factory = factory;
     }
 
     /**
      * Handler to deleting a port.
      *
-     * @param id
-     *            Port ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Port ID from the request.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -106,14 +95,11 @@ public class PortResource extends AbstractResource {
             throws StateAccessException, SerializationException {
 
         // Get the port and validate that this can be deleted
-        org.midonet.cluster.data.Port<?, ?> portData = dataClient.portsGet(id);
+        org.midonet.cluster.data.Port<?, ?> portData =
+            authoriser.tryAuthorisePort(id, "delete this port");
+
         if (portData == null) {
             return;
-        }
-
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to delete this port.");
         }
 
         Port port = PortFactory.convertToApiPort(portData);
@@ -129,27 +115,22 @@ public class PortResource extends AbstractResource {
 
     private org.midonet.cluster.data.Port<?, ?> getPortData(UUID id)
             throws StateAccessException, SerializationException {
-        if (!authorizer.authorize(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this port.");
-        }
 
         org.midonet.cluster.data.Port<?, ?> portData =
-                dataClient.portsGet(id);
+            authoriser.tryAuthorisePort(id, "view this port");
+
         if (portData == null) {
-            throw new NotFoundHttpException(
-                    "The requested resource was not found.");
+            throwNotFound(id, "port");
         }
+
         return portData;
     }
 
     /**
      * Handler to getting a v1 port.
      *
-     * @param id
-     *            Port ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Port ID from the request.
+     * @throws StateAccessException Data access error.
      * @return A Port object.
      */
     @GET
@@ -157,24 +138,19 @@ public class PortResource extends AbstractResource {
     @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_PORT_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public Port getv1(@PathParam("id") UUID id) throws StateAccessException,
-            SerializationException {
-        org.midonet.cluster.data.Port<?, ?> portData = getPortData(id);
-
-        Port port = PortFactory.convertToApiPortV1(portData);
+                                                       SerializationException {
+        Port port = PortFactory.convertToApiPortV1(getPortData(id));
         port.setBaseUri(getBaseUri());
-
         return port;
     }
 
     /**
      * Handler to getting a v2 port.
      *
-     * @param id
-     *            Port ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Port ID from the request.
+     * @throws StateAccessException Data access error.
      * @return A Port object.
      */
     @GET
@@ -183,29 +159,24 @@ public class PortResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_PORT_V2_JSON})
     public Port get(@PathParam("id") UUID id) throws StateAccessException,
             SerializationException {
-        org.midonet.cluster.data.Port<?, ?> portData = getPortData(id);
-
-        Port port = PortFactory.convertToApiPort(portData);
+        Port port = PortFactory.convertToApiPort(getPortData(id));
         port.setBaseUri(getBaseUri());
-
         return port;
     }
 
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON})
-    public List<Port> list()
-            throws StateAccessException, SerializationException {
-        List<org.midonet.cluster.data.Port<?, ?>> portDataList =
-                dataClient.portsGetAll();
+                MediaType.APPLICATION_JSON})
+    public List<Port> list() throws StateAccessException,
+                                    SerializationException {
         List<Port> ports = new ArrayList<>();
-        for (org.midonet.cluster.data.Port<?, ?> portData: portDataList) {
+        for (org.midonet.cluster.data.Port<?, ?> portData :
+                dataClient.portsGetAll()) { // NPE-safe
             Port port = PortFactory.convertToApiPort(portData);
             port.setBaseUri(getBaseUri());
             ports.add(port);
         }
-
         return ports;
     }
 
@@ -229,29 +200,23 @@ public class PortResource extends AbstractResource {
     /**
      * Handler to updating a port.
      *
-     * @param id
-     *            Port ID from the request.
-     * @param port
-     *            Port object.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Port ID from the request.
+     * @param port Port object.
+     * @throws StateAccessException Data access error.
      */
     @PUT
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
-            VendorMediaType.APPLICATION_PORT_V2_JSON,
-            MediaType.APPLICATION_JSON })
+                VendorMediaType.APPLICATION_PORT_V2_JSON,
+                MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Port port)
             throws StateAccessException, SerializationException {
 
         port.setId(id);
         validate(port);
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to update this port.");
-        }
+        authoriser.tryAuthorisePort(id, "update this port");
 
         dataClient.portsUpdate(port.toData());
         portEvent.update(id, dataClient.portsGet(id));
@@ -260,18 +225,15 @@ public class PortResource extends AbstractResource {
     /**
      * Handler to linking ports.
      *
-     * @param id
-     *            Port ID from the request.
-     * @param link
-     *            Link object
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Port ID from the request.
+     * @param link Link object
+     * @throws StateAccessException Data access error.
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}/link")
     @Consumes({ VendorMediaType.APPLICATION_PORT_LINK_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public Response link(@PathParam("id") UUID id, Link link)
             throws StateAccessException,
             SerializationException {
@@ -279,23 +241,16 @@ public class PortResource extends AbstractResource {
         link.setPortId(id);
         validate(link, Link.LinkCreateGroupSequence.class);
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)
-                || !authorizer
-                        .authorize(context, AuthAction.WRITE,
-                                link.getPeerId())) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to link these ports.");
-        }
-
+        authoriser.tryAuthorisePort(id, "link these ports");
+        authoriser.tryAuthorisePort(link.getPeerId(), "link these ports");
 
         dataClient.portsLink(link.getPortId(), link.getPeerId());
 
         org.midonet.cluster.data.Port<?, ?> portData = dataClient.portsGet(id);
         portEvent.link(id, portData);
 
-        return Response.created(
-                ResourceUriBuilder.getPortLink(getBaseUri(), id))
-                .build();
+        return Response.created(ResourceUriBuilder.getPortLink(getBaseUri(),
+                                                               id)).build();
     }
 
     @DELETE
@@ -305,16 +260,12 @@ public class PortResource extends AbstractResource {
             SerializationException {
 
         // Idempotent operation: if the port does not exists, just return.
-        org.midonet.cluster.data.Port<?, ?> portData =
-                dataClient.portsGet(id);
+        org.midonet.cluster.data.Port<?, ?> portData = dataClient.portsGet(id);
         if (portData == null) {
             return;
         }
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to unlink these ports.");
-        }
+        authoriser.tryAuthorisePort(id, "unlink these ports");
 
         dataClient.portsUnlink(id);
 
@@ -325,8 +276,7 @@ public class PortResource extends AbstractResource {
     /**
      * Port resource locator for BGP.
      *
-     * @param id
-     *            Port ID from the request.
+     * @param id Port ID from the request.
      * @return PortBgpResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.BGP)
@@ -337,8 +287,7 @@ public class PortResource extends AbstractResource {
     /**
      * Port resource locator for port group.
      *
-     * @param id
-     *            Port ID from the request.
+     * @param id Port ID from the request.
      * @return PortPortGroupResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PORT_GROUPS)
@@ -360,18 +309,13 @@ public class PortResource extends AbstractResource {
     public static class BridgePortResource extends AbstractResource {
 
         private final UUID bridgeId;
-        private final BridgeAuthorizer authorizer;
 
         @Inject
-        public BridgePortResource(RestApiConfig config,
-                                  UriInfo uriInfo,
-                                  SecurityContext context,
-                                  BridgeAuthorizer authorizer,
-                                  Validator validator,
+        public BridgePortResource(RestApiConfig config, UriInfo uriInfo,
+                                  SecurityContext context, Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID bridgeId) {
             super(config, uriInfo, context, dataClient, validator);
-            this.authorizer = authorizer;
             this.bridgeId = bridgeId;
         }
 
@@ -381,15 +325,7 @@ public class PortResource extends AbstractResource {
             port.setDeviceId(bridgeId);
             validate(port);
 
-            if (dataClient.bridgesGet(bridgeId) == null) {
-                throw new NotFoundHttpException(
-                        "Cannot create port for non existent bridge");
-            }
-
-            if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to add port to this bridge.");
-            }
+            authoriser.tryAuthoriseBridge(bridgeId, "add port to this bridge");
 
             // If we are running on a pre-1.2 version, the VLANs path
             // in the bridge may not exist, so let's ensure it exists
@@ -399,8 +335,7 @@ public class PortResource extends AbstractResource {
                 UUID id = dataClient.portsCreate(port.toData());
                 portEvent.create(id, dataClient.portsGet(id));
                 return Response.created(
-                        ResourceUriBuilder.getPort(getBaseUri(), id))
-                        .build();
+                        ResourceUriBuilder.getPort(getBaseUri(), id)).build();
             } catch (VlanPathExistsException e) {
                 throw new BadRequestHttpException(e, e.getMessage());
             }
@@ -409,8 +344,7 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to create a V1 bridge port.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return Response object with 201 status code set if successful.
          */
         @POST
@@ -434,8 +368,7 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to create a V2 bridge port.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return Response object with 201 status code set if successful.
          */
         @POST
@@ -456,8 +389,7 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to list v1 bridge ports.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return A list of Port objects.
          */
         @GET
@@ -468,16 +400,12 @@ public class PortResource extends AbstractResource {
         public List<Port> listV1()
                 throws SerializationException, StateAccessException {
 
-            if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view these ports.");
-            }
+            authoriser.tryAuthoriseBridge(bridgeId, "view these ports");
 
-            List<org.midonet.cluster.data.ports.BridgePort> portDataList =
+            List<org.midonet.cluster.data.ports.BridgePort> list =
                     dataClient.portsFindByBridge(bridgeId);
-            List<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.ports.BridgePort portData :
-                    portDataList) {
+            List<Port> ports = new ArrayList<>(list.size());
+            for (org.midonet.cluster.data.ports.BridgePort portData : list) {
                 Port port = PortFactory.convertToApiPortV1(portData);
                 port.setBaseUri(getBaseUri());
                 ports.add(port);
@@ -488,8 +416,7 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to list bridge ports.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return A list of Port objects.
          */
         @GET
@@ -498,16 +425,12 @@ public class PortResource extends AbstractResource {
         public List<Port> list()
                 throws StateAccessException, SerializationException {
 
-            if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view these ports.");
-            }
+            authoriser.tryAuthoriseBridge(bridgeId, "view these ports");
 
-            List<org.midonet.cluster.data.ports.BridgePort> portDataList =
+            List<org.midonet.cluster.data.ports.BridgePort> list =
                     dataClient.portsFindByBridge(bridgeId);
-            List<Port> ports = new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.ports.BridgePort portData :
-                portDataList) {
+            List<Port> ports = new ArrayList<>(list.size());
+            for (org.midonet.cluster.data.ports.BridgePort portData : list) {
                 Port port = PortFactory.convertToApiPort(portData);
                 port.setBaseUri(getBaseUri());
                 ports.add(port);
@@ -523,25 +446,21 @@ public class PortResource extends AbstractResource {
     public static class BridgePeerPortResource extends AbstractResource {
 
         private final UUID bridgeId;
-        private final BridgeAuthorizer authorizer;
 
         @Inject
         public BridgePeerPortResource(RestApiConfig config,
                                       UriInfo uriInfo,
                                       SecurityContext context,
-                                      BridgeAuthorizer authorizer,
                                       DataClient dataClient,
                                       @Assisted UUID bridgeId) {
-            super(config, uriInfo, context, dataClient);
-            this.authorizer = authorizer;
+            super(config, uriInfo, context, dataClient, null);
             this.bridgeId = bridgeId;
         }
 
         /**
          * Handler to list bridge peer ports.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return A list of Port objects.
          */
         @GET
@@ -552,10 +471,7 @@ public class PortResource extends AbstractResource {
         public List<Port> listV1()
                 throws StateAccessException, SerializationException {
 
-            if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view these ports.");
-            }
+            authoriser.tryAuthoriseBridge(bridgeId, "view these ports");
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByBridge(bridgeId);
@@ -571,8 +487,7 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to list bridge peer ports.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return A list of Port objects.
          */
         @GET
@@ -581,10 +496,7 @@ public class PortResource extends AbstractResource {
         public List<Port> list()
                 throws StateAccessException, SerializationException {
 
-            if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view these ports.");
-            }
+            authoriser.tryAuthoriseBridge(bridgeId, "view these ports");
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByBridge(bridgeId);
@@ -605,18 +517,15 @@ public class PortResource extends AbstractResource {
     public static class RouterPortResource extends AbstractResource {
 
         private final UUID routerId;
-        private final RouterAuthorizer authorizer;
 
         @Inject
         public RouterPortResource(RestApiConfig config,
                                   UriInfo uriInfo,
                                   SecurityContext context,
-                                  RouterAuthorizer authorizer,
                                   Validator validator,
                                   DataClient dataClient,
                                   @Assisted UUID routerId) {
             super(config, uriInfo, context, dataClient, validator);
-            this.authorizer = authorizer;
             this.routerId = routerId;
         }
 
@@ -631,10 +540,7 @@ public class PortResource extends AbstractResource {
                         "Cannot create port for non existent router");
             }
 
-            if (!authorizer.authorize(context, AuthAction.WRITE, routerId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to add port to this router.");
-            }
+            authoriser.tryAuthoriseRouter(routerId, "create this port");
 
             UUID id = dataClient.portsCreate(port.toData());
             portEvent.create(id, dataClient.portsGet(id));
@@ -646,15 +552,14 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to create a V1 router port.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return Response object with 201 status code set if successful.
          */
         @POST
         @Deprecated
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_PORT_JSON,
-                MediaType.APPLICATION_JSON })
+                    MediaType.APPLICATION_JSON })
         public Response createV1(RouterPort port)
                 throws StateAccessException, SerializationException {
 
@@ -671,15 +576,14 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to create a V2 router port.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return Response object with 201 status code set if successful.
          */
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_PORT_V2_JSON })
-        public Response create(RouterPort port)
-                throws StateAccessException, SerializationException {
+        public Response create(RouterPort port) throws StateAccessException,
+                                                       SerializationException {
 
             // Make sure that the only type accepted is RouterPort
             if (!port.getType().equals(PortType.ROUTER)) {
@@ -693,7 +597,7 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to list V1 router ports.
          *
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return A list of Port objects.
          */
         @GET
@@ -704,10 +608,7 @@ public class PortResource extends AbstractResource {
         public List<Port> listV1()
                 throws StateAccessException, SerializationException {
 
-            if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view these ports.");
-            }
+            authoriser.tryAuthoriseRouter(routerId, "view these ports");
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindByRouter(routerId);
@@ -723,7 +624,7 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to list V2 router ports.
          *
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return A list of Port objects.
          */
         @GET
@@ -731,10 +632,7 @@ public class PortResource extends AbstractResource {
         @Produces({ VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON })
         public List<Port> list()
                 throws StateAccessException, SerializationException {
-            if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view these ports.");
-            }
+            authoriser.tryAuthoriseRouter(routerId, "create these ports");
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindByRouter(routerId);
@@ -755,39 +653,32 @@ public class PortResource extends AbstractResource {
     public static class RouterPeerPortResource extends AbstractResource {
 
         private final UUID routerId;
-        private final RouterAuthorizer authorizer;
 
         @Inject
         public RouterPeerPortResource(RestApiConfig config,
                                       UriInfo uriInfo,
                                       SecurityContext context,
-                                      RouterAuthorizer authorizer,
                                       DataClient dataClient,
                                       @Assisted UUID routerId) {
-            super(config, uriInfo, context, dataClient);
-            this.authorizer = authorizer;
+            super(config, uriInfo, context, dataClient, null);
             this.routerId = routerId;
         }
 
         /**
          * Handler to list V1 router peer ports.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return A list of Port objects.
          */
         @GET
         @Deprecated
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_COLLECTION_JSON,
-                MediaType.APPLICATION_JSON })
+                    MediaType.APPLICATION_JSON })
         public List<Port> listV1()
                 throws StateAccessException, SerializationException {
 
-            if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view these ports.");
-            }
+            authoriser.tryAuthoriseRouter(routerId, "view these ports");
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByRouter(routerId);
@@ -803,20 +694,16 @@ public class PortResource extends AbstractResource {
         /**
          * Handler to list router peer ports.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return A list of Port objects.
          */
         @GET
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORT_V2_COLLECTION_JSON })
-        public List<Port> list()
-                throws StateAccessException, SerializationException {
+        public List<Port> list() throws StateAccessException,
+                                        SerializationException {
 
-            if (!authorizer.authorize(context, AuthAction.READ, routerId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view these ports.");
-            }
+            authoriser.tryAuthoriseRouter(routerId, "view these ports");
 
             List<org.midonet.cluster.data.Port<?, ?>> portDataList =
                     dataClient.portsFindPeersByRouter(routerId);
@@ -837,53 +724,38 @@ public class PortResource extends AbstractResource {
     public static class PortGroupPortResource extends AbstractResource {
 
         private final UUID portGroupId;
-        private final PortGroupAuthorizer portGroupAuthorizer;
-        private final PortAuthorizer portAuthorizer;
 
         @Inject
         public PortGroupPortResource(RestApiConfig config, UriInfo uriInfo,
                                      SecurityContext context,
-                                     PortGroupAuthorizer portGroupAuthorizer,
-                                     PortAuthorizer portAuthorizer,
                                      Validator validator,
                                      DataClient dataClient,
                                      @Assisted UUID portGroupId) {
             super(config, uriInfo, context, dataClient, validator);
-            this.portGroupAuthorizer = portGroupAuthorizer;
-            this.portAuthorizer = portAuthorizer;
             this.portGroupId = portGroupId;
         }
 
         @POST
         @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON,
-                MediaType.APPLICATION_JSON })
+                    MediaType.APPLICATION_JSON })
         public Response create(PortGroupPort portGroupPort)
                 throws StateAccessException, SerializationException {
 
             portGroupPort.setPortGroupId(portGroupId);
             validate(portGroupPort, PortGroupPortCreateGroupSequence.class);
 
-            if (!portGroupAuthorizer.authorize(
-                    context, AuthAction.WRITE, portGroupId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to modify this port group's " +
-                                "membership.");
-            }
+            authoriser.tryAuthorisePortGroup(
+                portGroupId, "modify this port group's membership");
 
-            if(!portAuthorizer.authorize(context, AuthAction.WRITE,
-                    portGroupPort.getPortId())) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to modify this port's membership.");
-            }
+            authoriser.tryAuthorisePort(
+                portGroupPort.getPortId(), "modify this port's memberships");
 
             dataClient.portGroupsAddPortMembership(portGroupId,
-                    portGroupPort.getPortId());
+                                                   portGroupPort.getPortId());
 
-            return Response.created(
-                    ResourceUriBuilder.getPortGroupPort(getBaseUri(),
-                            portGroupId, portGroupPort.getPortId()))
-                    .build();
+            return Response.created(ResourceUriBuilder.getPortGroupPort(
+                getBaseUri(), portGroupId, portGroupPort.getPortId())).build();
         }
 
 
@@ -893,22 +765,16 @@ public class PortResource extends AbstractResource {
         public void delete(@PathParam("portId") UUID portId)
                 throws StateAccessException, SerializationException {
 
-            if (!dataClient.portGroupsExists(portGroupId)
-                 || !dataClient.portsExists(portId)) {
+            if (!dataClient.portGroupsExists(portGroupId) ||
+                !dataClient.portsExists(portId)) {
                 return;
             }
 
-            if (!portGroupAuthorizer.authorize(
-                    context, AuthAction.WRITE, portGroupId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to modify this port group's " +
-                                "membership.");
-            }
+            authoriser.tryAuthorisePortGroup(
+                portGroupId, "modify this port group's membership.");
 
-            if(!portAuthorizer.authorize(context, AuthAction.WRITE, portId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to modify this port's membership.");
-            }
+            authoriser.tryAuthorisePort(
+                portId, "modify this port's membership.");
 
             dataClient.portGroupsRemovePortMembership(portGroupId, portId);
 
@@ -917,22 +783,18 @@ public class PortResource extends AbstractResource {
         @GET
         @PermitAll
         @Produces( {VendorMediaType.APPLICATION_PORTGROUP_PORT_JSON,
-                MediaType.APPLICATION_JSON })
+                    MediaType.APPLICATION_JSON })
         @Path("{portId}")
         public PortGroupPort get(@PathParam("portId") UUID portId)
             throws StateAccessException, SerializationException {
 
             if (!dataClient.portGroupsIsPortMember(portGroupId, portId)) {
                 throw new NotFoundHttpException(
-                        "The requested resource was not found.");
+                    "The requested resource was not found.");
             }
 
-            if (!portGroupAuthorizer.authorize(
-                    context, AuthAction.READ, portGroupId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view this port group's " +
-                                "membership.");
-            }
+            authoriser.tryAuthorisePortGroup(
+                portGroupId, "view this port group's membership");
 
             PortGroupPort portGroupPort = new PortGroupPort();
             portGroupPort.setPortGroupId(portGroupId);
@@ -944,23 +806,17 @@ public class PortResource extends AbstractResource {
         @GET
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
-                MediaType.APPLICATION_JSON })
+                    MediaType.APPLICATION_JSON })
         public List<PortGroupPort> list() throws StateAccessException,
                                                  SerializationException {
 
-            if (!portGroupAuthorizer.authorize(
-                    context, AuthAction.READ, portGroupId)) {
-                throw new ForbiddenHttpException(
-                        "Not authorized to view this port group's " +
-                                "membership.");
-            }
+            authoriser.tryAuthorisePortGroup(
+                portGroupId, "view this port group's membership");
 
-            List<org.midonet.cluster.data.Port<?, ?>> portDataList =
+            List<org.midonet.cluster.data.Port<?, ?>> list =
                     dataClient.portsFindByPortGroup(portGroupId);
-            List<PortGroupPort> portGroupPorts =
-                    new ArrayList<>(portDataList.size());
-            for (org.midonet.cluster.data.Port<?, ?> portData :
-                    portDataList) {
+            List<PortGroupPort> portGroupPorts = new ArrayList<>(list.size());
+            for (org.midonet.cluster.data.Port<?, ?> portData : list) {
                 PortGroupPort portGroupPort = new PortGroupPort();
                 portGroupPort.setPortGroupId(portGroupId);
                 portGroupPort.setPortId(portData.getId());
