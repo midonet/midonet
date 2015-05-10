@@ -17,6 +17,7 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
+import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
@@ -43,20 +44,18 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.*;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class RouterResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory.getLogger(
-            RouterResource.class);
-    private final static RouterEvent ROUTER_EVENT =
-            new RouterEvent();
-
+    private final static Logger log = getLogger(RouterResource.class);
+    private final static RouterEvent ROUTER_EVENT = new RouterEvent();
     private final L3Api api;
 
     @Inject
     public RouterResource(RestApiConfig config, UriInfo uriInfo,
-                        SecurityContext context, L3Api api) {
-        super(config, uriInfo, context, null);
+                          SecurityContext context, L3Api api) {
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

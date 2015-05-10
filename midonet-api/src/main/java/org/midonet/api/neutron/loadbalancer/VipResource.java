@@ -66,7 +66,7 @@ public class VipResource extends AbstractResource {
     @Inject
     public VipResource(RestApiConfig config, UriInfo uriInfo,
                        SecurityContext context, LoadBalancerApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

@@ -39,14 +39,10 @@ import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.auth.AuthAction;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.filter.auth.ChainAuthorizer;
 import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
@@ -62,16 +58,13 @@ public class ChainResource extends AbstractResource {
 
     private final static ChainEvent chainEvent = new ChainEvent();
 
-    private final ChainAuthorizer authorizer;
     private final ResourceFactory factory;
 
     @Inject
     public ChainResource(RestApiConfig config, UriInfo uriInfo,
-                         SecurityContext context,
-                         ChainAuthorizer authorizer, Validator validator,
+                         SecurityContext context, Validator validator,
                          DataClient dataClient, ResourceFactory factory) {
         super(config, uriInfo, context, dataClient, validator);
-        this.authorizer = authorizer;
         this.factory = factory;
     }
 
@@ -86,18 +79,11 @@ public class ChainResource extends AbstractResource {
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
-
         org.midonet.cluster.data.Chain chainData =
-                dataClient.chainsGet(id);
+            authoriser.tryAuthoriseChain(id, "delete this chain");
         if (chainData == null) {
             return;
         }
-
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to delete this chain.");
-        }
-
         dataClient.chainsDelete(id);
         chainEvent.delete(id);
     }
@@ -118,16 +104,11 @@ public class ChainResource extends AbstractResource {
                                                       SerializationException,
                                                       IllegalAccessException {
 
-        if (!authorizer.authorize(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this chain.");
-        }
-
         org.midonet.cluster.data.Chain chainData =
-                dataClient.chainsGet(id);
+            authoriser.tryAuthoriseChain(id, "view this chain");
+
         if (chainData == null) {
-            throw new NotFoundHttpException(
-                    "The requested resource was not found.");
+            throwNotFound(id, "chain");
         }
 
         return ChainDataConverter.fromData(chainData, getBaseUri());
@@ -160,16 +141,15 @@ public class ChainResource extends AbstractResource {
 
         validate(chain);
 
-        if (!Authorizer.isAdminOrOwner(context, chain.tenantId)) {
+        if(!authoriser.isAdminOrOwner(chain.tenantId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to add chain to this tenant.");
         }
 
         UUID id = dataClient.chainsCreate(ChainDataConverter.toData(chain));
         chainEvent.create(id, dataClient.chainsGet(id));
-        return Response.created(
-                ResourceUriBuilder.getChain(getBaseUri(), id))
-                .build();
+        return Response.created(ResourceUriBuilder.getChain(getBaseUri(), id))
+                       .build();
     }
 
     /**
@@ -181,12 +161,12 @@ public class ChainResource extends AbstractResource {
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON })
+        MediaType.APPLICATION_JSON })
     public List<Chain> list(@QueryParam("tenant_id") String tenantId)
-        throws StateAccessException, SerializationException,
-               IllegalAccessException{
+    throws StateAccessException, SerializationException,
+                      IllegalAccessException{
 
-        List<org.midonet.cluster.data.Chain> dataChains = (tenantId == null) ?
+               List<org.midonet.cluster.data.Chain> dataChains = (tenantId == null) ?
                 dataClient.chainsGetAll() :
                 dataClient.chainsFindByTenant(tenantId);
 
