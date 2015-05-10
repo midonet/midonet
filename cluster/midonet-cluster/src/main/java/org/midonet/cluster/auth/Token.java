@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.cluster.auth;
 
 import org.codehaus.jackson.annotate.JsonProperty;
-import org.midonet.api.HttpSupport;
+import org.midonet.util.http.HttpSupport;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

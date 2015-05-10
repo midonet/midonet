@@ -15,7 +15,7 @@
  */
 package org.midonet.api.serialization;
 
-import org.midonet.api.rest_api.ResponseUtils;
+import org.midonet.cluster.rest_api.ResponseUtils;
 import org.codehaus.jackson.map.JsonMappingException;
 
 import javax.ws.rs.core.Response;

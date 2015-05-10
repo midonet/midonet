@@ -22,7 +22,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.api.VendorMediaType;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
@@ -31,8 +31,8 @@ import org.midonet.client.dto.l4lb.LBStatus;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
-import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_HEALTH_MONITOR_COLLECTION_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON;
 
 @RunWith(Enclosed.class)
 public class TestHealthMonitor {

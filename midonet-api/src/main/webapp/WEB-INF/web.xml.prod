@@ -100,24 +100,6 @@
     <param-value>admin</param-value>
   </context-param>
 
-  <!-- CloudStack auth configuration -->
-  <context-param>
-    <param-name>cloudstack-api_base_uri</param-name>
-    <param-value>http://127.0.0.1:8080</param-value>
-  </context-param>
-  <context-param>
-    <param-name>cloudstack-api_path</param-name>
-    <param-value>/client/api?</param-value>
-  </context-param>
-  <context-param>
-    <param-name>cloudstack-api_key</param-name>
-    <param-value></param-value>
-  </context-param>
-  <context-param>
-    <param-name>cloudstack-secret_key</param-name>
-    <param-value></param-value>
-  </context-param>
-
   <!-- Zookeeper configuration -->
   <!-- The following parameters should match the ones in midolman.conf
        except 'use_mock' -->

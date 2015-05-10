@@ -28,7 +28,7 @@ import java.io.IOException;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import org.midonet.api.HttpSupport;
+import org.midonet.util.http.HttpSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

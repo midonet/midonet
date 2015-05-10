@@ -19,26 +19,29 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.network.PortGroup;
 import org.midonet.api.network.PortGroupPort;
-import org.midonet.api.network.auth.PortAuthorizer;
-import org.midonet.api.network.auth.PortGroupAuthorizer;
-import org.midonet.api.rest_api.*;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -53,55 +56,41 @@ import java.util.UUID;
 @RequestScoped
 public class PortGroupResource extends AbstractResource {
 
-    private final PortGroupAuthorizer authorizer;
     private final ResourceFactory factory;
 
     @Inject
     public PortGroupResource(RestApiConfig config, UriInfo uriInfo,
-                             SecurityContext context,
-                             PortGroupAuthorizer authorizer,
-                             Validator validator, DataClient dataClient,
-                             ResourceFactory factory) {
+                             SecurityContext context, Validator validator,
+                             DataClient dataClient, ResourceFactory factory) {
         super(config, uriInfo, context, dataClient, validator);
-        this.authorizer = authorizer;
         this.factory = factory;
     }
 
     /**
      * Handler to deleting a port group.
      *
-     * @param id
-     *            PortGroup ID from the request.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param id PortGroup ID from the request.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
+    public void delete(@PathParam("id") UUID id) throws StateAccessException,
+                                                        SerializationException {
 
-        org.midonet.cluster.data.PortGroup portGroupData =
-                dataClient.portGroupsGet(id);
-        if (portGroupData == null) {
+        org.midonet.cluster.data.PortGroup pg = dataClient.portGroupsGet(id);
+        if (pg == null) {
             return;
         }
-
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to delete this port group.");
-        }
-
+        authoriser.tryAuthorisePortGroup(id, "delete this port group");
         dataClient.portGroupsDelete(id);
     }
 
     /**
      * Handler to getting a port group.
      *
-     * @param id
-     *            PortGroup ID from the request.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param id PortGroup ID from the request.
+     * @throws StateAccessException Data access error.
      * @return A PortGroup object.
      */
     @GET
@@ -111,20 +100,14 @@ public class PortGroupResource extends AbstractResource {
     public PortGroup get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this port group.");
-        }
-
-        org.midonet.cluster.data.PortGroup portGroupData =
-                dataClient.portGroupsGet(id);
-        if (portGroupData == null) {
-            throw new NotFoundHttpException(
-                    "The requested resource was not found.");
+        org.midonet.cluster.data.PortGroup pg =
+            authoriser.tryAuthorisePortGroup(id, "view this port group");
+        if (pg == null) {
+            throwNotFound(id, "port group");
         }
 
         // Convert to the REST API DTO
-        PortGroup portGroup = new PortGroup(portGroupData);
+        PortGroup portGroup = new PortGroup(pg);
         portGroup.setBaseUri(getBaseUri());
 
         return portGroup;
@@ -133,22 +116,20 @@ public class PortGroupResource extends AbstractResource {
     /**
      * Handler for creating a tenant port group.
      *
-     * @param group
-     *            PortGroup object.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param group PortGroup object.
+     * @throws StateAccessException Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_PORTGROUP_JSON,
-                   MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public Response create(PortGroup group)
             throws StateAccessException, SerializationException {
 
         validate(group, PortGroup.PortGroupCreateGroupSequence.class);
 
-        if (!Authorizer.isAdminOrOwner(context, group.getTenantId())) {
+        if (!authoriser.isAdminOrOwner(group.getTenantId())) {
             throw new ForbiddenHttpException(
                     "Not authorized to add PortGroup to this tenant.");
         }
@@ -162,19 +143,18 @@ public class PortGroupResource extends AbstractResource {
     /**
      * Handler to getting a collection of PortGroups.
      *
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of PortGroup objects.
      */
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_PORTGROUP_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public List<PortGroup> list(@QueryParam("tenant_id") String tenantId,
                                 @QueryParam("port_id") UUID portId)
             throws StateAccessException, SerializationException {
 
-        List<org.midonet.cluster.data.PortGroup> portGroupDataList = null;
+        List<org.midonet.cluster.data.PortGroup> portGroupDataList;
         if (portId != null) {
             portGroupDataList = dataClient.portGroupsFindByPort(portId);
         } else if (tenantId != null) {
@@ -208,25 +188,21 @@ public class PortGroupResource extends AbstractResource {
     public static class PortPortGroupResource extends AbstractResource {
 
         private final UUID portId;
-        private final PortAuthorizer portAuthorizer;
 
         @Inject
         public PortPortGroupResource(RestApiConfig config,
                                      UriInfo uriInfo,
                                      SecurityContext context,
-                                     PortAuthorizer portAuthorizer,
                                      DataClient dataClient,
                                      @Assisted UUID portId) {
-            super(config, uriInfo, context, dataClient);
+            super(config, uriInfo, context, dataClient, null);
             this.portId = portId;
-            this.portAuthorizer = portAuthorizer;
         }
 
         /**
          * Handler to list port's PortGroups.
          *
-         * @throws StateAccessException
-         *             Data access error.
+         * @throws StateAccessException Data access error.
          * @return A list of PortGroupPort objects.
          */
         @GET
@@ -235,13 +211,12 @@ public class PortGroupResource extends AbstractResource {
         public List<PortGroupPort> list() throws StateAccessException,
                 SerializationException {
 
-            List<org.midonet.cluster.data.PortGroup> portGroupDataList =
+            List<org.midonet.cluster.data.PortGroup> list =
                 fetchPortGroupsHelper();
 
             List<PortGroupPort> portGroups = new ArrayList<>();
-            if (portGroupDataList != null) {
-                for (org.midonet.cluster.data.PortGroup portGroupData :
-                        portGroupDataList) {
+            if (list != null) {
+                for (org.midonet.cluster.data.PortGroup portGroupData : list) {
                     PortGroupPort portGroup = new PortGroupPort();
                     portGroup.setPortGroupId(portGroupData.getId());
                     portGroup.setPortId(portId);
@@ -265,7 +240,7 @@ public class PortGroupResource extends AbstractResource {
             List<org.midonet.cluster.data.PortGroup> portGroupDataList =
                 fetchPortGroupsHelper();
 
-            List<PortGroup> portGroups = new ArrayList<PortGroup>();
+            List<PortGroup> portGroups = new ArrayList<>();
             if (portGroupDataList != null) {
                 for (org.midonet.cluster.data.PortGroup portGroupData :
                     portGroupDataList) {
@@ -279,10 +254,7 @@ public class PortGroupResource extends AbstractResource {
 
         private List<org.midonet.cluster.data.PortGroup> fetchPortGroupsHelper()
             throws StateAccessException, SerializationException {
-            if (!portAuthorizer.authorize(context, AuthAction.READ, portId)) {
-                throw new ForbiddenHttpException(
-                    "Not authorized to view port groups for this port.");
-            }
+            authoriser.tryAuthorisePort(portId, "view port groups for port");
             return dataClient.portGroupsFindByPort(portId);
         }
     }

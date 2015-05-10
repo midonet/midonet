@@ -15,11 +15,31 @@
  */
 package org.midonet.api.network.rest_api;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import com.google.inject.Inject;
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.cluster.VendorMediaType;
+import org.midonet.api.network.VTEP;
+import org.midonet.api.network.VTEPPort;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.GatewayTimeoutHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.vtep.VtepClusterClient;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.southbound.vtep.VtepNotConnectedException;
+import org.midonet.cluster.southbound.vtep.model.PhysicalSwitch;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.NodeNotEmptyStateException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.packets.IPv4Addr;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
@@ -34,34 +54,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.network.VTEP;
-import org.midonet.api.network.VTEPPort;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.GatewayTimeoutHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.vtep.VtepClusterClient;
-import org.midonet.cluster.southbound.vtep.VtepNotConnectedException;
-import org.midonet.cluster.southbound.vtep.model.PhysicalSwitch;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.host.Host;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.NodeNotEmptyStateException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.packets.IPv4Addr;
-
-import com.google.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
 import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;

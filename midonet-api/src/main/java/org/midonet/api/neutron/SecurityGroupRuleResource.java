@@ -16,7 +16,7 @@
 package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
@@ -45,9 +45,8 @@ import static org.midonet.api.validation.MessageProperty.*;
 public class SecurityGroupRuleResource extends AbstractResource {
 
     private final static Logger log = LoggerFactory.getLogger(
-            SecurityGroupRuleResource.class);
-    private final static
-    SecurityGroupRuleEvent SECURITY_GROUP_RULE_EVENT =
+        SecurityGroupRuleResource.class);
+    private final static SecurityGroupRuleEvent SECURITY_GROUP_RULE_EVENT =
             new SecurityGroupRuleEvent();
 
     private final SecurityGroupApi api;
@@ -56,7 +55,7 @@ public class SecurityGroupRuleResource extends AbstractResource {
     public SecurityGroupRuleResource(RestApiConfig config, UriInfo uriInfo,
                                      SecurityContext context,
                                      SecurityGroupApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 
@@ -125,7 +124,7 @@ public class SecurityGroupRuleResource extends AbstractResource {
 
         SecurityGroupRule rule = api.getSecurityGroupRule(id);
         if (rule == null) {
-            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+            throwNotFound(id, "security group rule");
         }
 
         log.info("SecurityGroupRuleResource.get exiting {}", rule);
@@ -135,8 +134,8 @@ public class SecurityGroupRuleResource extends AbstractResource {
     @GET
     @Produces(NeutronMediaType.SECURITY_GROUP_RULES_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public List<SecurityGroupRule> list()
-            throws SerializationException, StateAccessException {
+    public List<SecurityGroupRule> list() throws SerializationException,
+                                                 StateAccessException {
         log.info("SecurityGroupRuleResource.list entered");
         return api.getSecurityGroupRules();
     }

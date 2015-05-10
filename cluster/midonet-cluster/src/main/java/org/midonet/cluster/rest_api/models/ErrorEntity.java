@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.error;
+package org.midonet.cluster.rest_api.models;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -34,7 +34,7 @@ public class ErrorEntity {
 
     /**
      * @param message
-     *            the message to set
+     *            the message to et
      */
     public void setMessage(String message) {
         this.message = message;

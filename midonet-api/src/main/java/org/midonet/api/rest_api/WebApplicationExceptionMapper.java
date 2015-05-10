@@ -15,6 +15,8 @@
  */
 package org.midonet.api.rest_api;
 
+import org.midonet.cluster.rest_api.ResponseUtils;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;

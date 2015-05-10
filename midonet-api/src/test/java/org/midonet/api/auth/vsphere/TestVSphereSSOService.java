@@ -15,26 +15,27 @@
  */
 package org.midonet.api.auth.vsphere;
 
-import java.net.MalformedURLException;
-import java.rmi.RemoteException;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-
 import com.google.common.base.Optional;
 import com.vmware.vim25.Permission;
 import com.vmware.vim25.mo.Datacenter;
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.auth.Tenant;
+import org.midonet.cluster.auth.Token;
+import org.midonet.cluster.auth.UserIdentity;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import org.midonet.api.auth.AuthException;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Tenant;
-import org.midonet.api.auth.Token;
-import org.midonet.api.auth.UserIdentity;
+import javax.servlet.http.HttpServletRequest;
+import java.net.MalformedURLException;
+import java.rmi.RemoteException;
+import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 public class TestVSphereSSOService {

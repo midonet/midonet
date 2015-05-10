@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.api.VendorMediaType;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
@@ -58,11 +58,11 @@ import org.midonet.midolman.state.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestHostInterfacePort {

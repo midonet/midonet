@@ -32,8 +32,8 @@ import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.rest_api.ResponseUtils;
+import org.midonet.cluster.VendorMediaType;
+import org.midonet.cluster.rest_api.ResponseUtils;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.SystemState;
 import org.midonet.midolman.state.StateAccessException;

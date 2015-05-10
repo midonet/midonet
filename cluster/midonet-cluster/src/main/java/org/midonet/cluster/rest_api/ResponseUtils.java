@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.rest_api;
+package org.midonet.cluster.rest_api;
 
 import org.codehaus.jackson.JsonEncoding;
 import org.codehaus.jackson.JsonFactory;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.midonet.api.HttpSupport;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.error.ErrorEntity;
-import org.midonet.api.validation.ValidationErrorEntity;
+import org.midonet.cluster.VendorMediaType;
+import org.midonet.cluster.rest_api.models.ValidationErrorEntity;
+import org.midonet.cluster.rest_api.models.ErrorEntity;
+import org.midonet.util.http.HttpSupport;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.ConstraintViolation;
+import javax.ws.rs.core.Response;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,9 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.ConstraintViolation;
-import javax.ws.rs.core.Response;
 
 /**
  * Utility methods for Response class.

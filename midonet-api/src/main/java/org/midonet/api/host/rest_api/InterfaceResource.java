@@ -15,9 +15,17 @@
  */
 package org.midonet.api.host.rest_api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+import org.midonet.cluster.VendorMediaType;
+import org.midonet.api.host.Interface;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
 
 import javax.annotation.security.RolesAllowed;
 import javax.inject.Inject;
@@ -28,19 +36,9 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.host.Interface;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @RequestScoped
 public class InterfaceResource extends AbstractResource {
@@ -52,7 +50,7 @@ public class InterfaceResource extends AbstractResource {
                              SecurityContext context,
                              DataClient dataClient,
                              @Assisted UUID hostId) {
-        super(config, uriInfo, context, dataClient);
+        super(config, uriInfo, context, dataClient, null);
         this.hostId = hostId;
     }
 

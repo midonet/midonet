@@ -16,7 +16,7 @@
 package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
@@ -55,7 +55,7 @@ public class NetworkResource extends AbstractResource {
     @Inject
     public NetworkResource(RestApiConfig config, UriInfo uriInfo,
                            SecurityContext context, NetworkApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

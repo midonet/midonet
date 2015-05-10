@@ -38,8 +38,8 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
-import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_VIP_JSON;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 

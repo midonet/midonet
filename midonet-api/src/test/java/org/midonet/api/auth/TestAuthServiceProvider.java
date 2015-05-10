@@ -25,11 +25,12 @@ import com.google.inject.util.Modules;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.MockAuthConfig;
+import org.midonet.cluster.auth.MockAuthService;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import org.midonet.api.auth.cloudstack.CloudStackAuthService;
-import org.midonet.api.auth.cloudstack.CloudStackConfig;
 import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.auth.keystone.v2_0.KeystoneService;
 import org.midonet.api.auth.vsphere.VSphereConfig;
@@ -145,19 +146,6 @@ public class TestAuthServiceProvider {
                 customConfigProviderInjector.getProvider(AuthService.class);
 
         assertTrue(authServiceProvider.get() instanceof KeystoneService);
-    }
-
-    @Test
-    public void testInstalledCloudStackPlugin() {
-        when(mockAuthConfig.getAuthProvider())
-                .thenReturn(AuthServiceProvider.CLOUDSTACK_PLUGIN);
-        when(mockConfigProvider.getConfig(CloudStackConfig.class))
-                .thenReturn(mock(CloudStackConfig.class));
-
-        Provider<AuthService> authServiceProvider =
-                customConfigProviderInjector.getProvider(AuthService.class);
-
-        assertTrue(authServiceProvider.get() instanceof CloudStackAuthService);
     }
 
     @Test

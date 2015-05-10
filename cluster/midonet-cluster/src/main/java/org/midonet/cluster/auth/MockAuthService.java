@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.cluster.auth;
 
 import com.google.inject.Inject;
 import org.midonet.cluster.DataClient;
@@ -22,18 +22,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Configurable auth client that skips authentication but allows setting of
  * roles.
  */
-public final class MockAuthService implements AuthService {
+public class MockAuthService implements AuthService {
 
-    private final static Logger log = LoggerFactory
+    protected final static Logger log = LoggerFactory
             .getLogger(MockAuthService.class);
     private final MockAuthConfig config;
-    private final Map<String, UserIdentity> tokenMap;
+    protected final Map<String, UserIdentity> tokenMap;
     private final DataClient dataClient;
 
     /**
@@ -67,7 +71,7 @@ public final class MockAuthService implements AuthService {
 
     }
 
-    private UserIdentity createUserIdentity() {
+    protected UserIdentity createUserIdentity() {
         UserIdentity userIdentity = new UserIdentity();
         userIdentity.setTenantId("no_auth_tenant_id");
         userIdentity.setTenantName("no_auth_tenant_name");

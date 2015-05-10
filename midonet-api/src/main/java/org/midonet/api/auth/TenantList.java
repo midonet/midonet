@@ -15,10 +15,12 @@
  */
 package org.midonet.api.auth;
 
+import org.midonet.cluster.auth.Tenant;
+
 import java.util.List;
 
 /**
- * Interface defines methods to manage {@link Tenant} object list.
+ * Interface defines methods to manage {@link org.midonet.cluster.auth.Tenant} object list.
  */
 public interface TenantList {
 

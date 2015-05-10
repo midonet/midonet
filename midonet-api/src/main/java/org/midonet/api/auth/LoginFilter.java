@@ -19,8 +19,11 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import org.midonet.api.HttpSupport;
-import org.midonet.api.rest_api.ResponseUtils;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.Token;
+import org.midonet.util.http.HttpSupport;
+import org.midonet.cluster.rest_api.ResponseUtils;
+import org.midonet.cluster.auth.AuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

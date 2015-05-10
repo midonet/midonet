@@ -15,29 +15,28 @@
  */
 package org.midonet.api.auth.vsphere;
 
-import java.rmi.RemoteException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 import com.vmware.vim25.Permission;
 import com.vmware.vim25.mo.Datacenter;
+import org.apache.commons.lang3.StringUtils;
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.MockAuthService;
+import org.midonet.cluster.auth.Tenant;
+import org.midonet.cluster.auth.Token;
+import org.midonet.cluster.auth.UserIdentity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.commons.lang3.StringUtils;
 
-import org.midonet.api.auth.AuthException;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.AuthService;
-import org.midonet.api.auth.MockAuthService;
-import org.midonet.api.auth.Tenant;
-import org.midonet.api.auth.Token;
-import org.midonet.api.auth.UserIdentity;
+import javax.servlet.http.HttpServletRequest;
+import java.rmi.RemoteException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class VSphereSSOService implements AuthService {
 

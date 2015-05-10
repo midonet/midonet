@@ -36,7 +36,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
@@ -70,7 +70,7 @@ public class PoolResource extends AbstractResource {
     @Inject
     public PoolResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context, LoadBalancerApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 
@@ -84,7 +84,7 @@ public class PoolResource extends AbstractResource {
 
         Pool pool = api.getPool(id);
         if (pool == null) {
-            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+            throwNotFound(id, "pool");
         }
 
         log.info("PoolResource.get exiting {}", pool);

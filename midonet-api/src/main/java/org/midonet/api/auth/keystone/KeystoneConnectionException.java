@@ -15,7 +15,7 @@
  */
 package org.midonet.api.auth.keystone;
 
-import org.midonet.api.auth.AuthException;
+import org.midonet.cluster.auth.AuthException;
 
 /**
  * KeystoneConnectionException class for bad JSON response from Keystone.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api;
+package org.midonet.cluster;
 
 /**
  * Vendor media types that represent resources available in MidoNet API.

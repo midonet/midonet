@@ -29,7 +29,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.api.VendorMediaType;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
@@ -44,11 +44,11 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
-import static org.midonet.api.VendorMediaType.APPLICATION_VIP_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_POOL_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_VIP_COLLECTION_JSON;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_VIP_JSON;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 

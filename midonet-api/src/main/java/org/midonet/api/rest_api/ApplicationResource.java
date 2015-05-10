@@ -27,7 +27,7 @@ import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.Application;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.auth.rest_api.TenantResource;
 import org.midonet.api.bgp.rest_api.AdRouteResource;
 import org.midonet.api.bgp.rest_api.BgpResource;
@@ -71,7 +71,7 @@ public class ApplicationResource extends AbstractResource {
     public ApplicationResource(RestApiConfig config, UriInfo uriInfo,
                                SecurityContext context,
                                ResourceFactory factory) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.factory = factory;
     }
 

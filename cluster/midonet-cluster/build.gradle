@@ -69,7 +69,14 @@ dependencies {
             libraries.rx,
             libraries.scala,
             libraries.typesafeconf,
-            libraries.zookeeper
+            libraries.zookeeper,
+            libraries.jsr311,
+            libraries.jersey_client,
+            libraries.jersey_server,
+            libraries.jersey_guice,
+            libraries.jersey_json,
+            libraries.jersey_core,
+            libraries.validation
 
     testCompile libraries.curator_test,
                 libraries.cassandraunit,

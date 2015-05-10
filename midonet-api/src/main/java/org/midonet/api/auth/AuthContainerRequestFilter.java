@@ -17,6 +17,8 @@ package org.midonet.api.auth;
 
 import com.sun.jersey.spi.container.ContainerRequest;
 import com.sun.jersey.spi.container.ContainerRequestFilter;
+import org.midonet.cluster.auth.AuthFilter;
+import org.midonet.cluster.auth.UserIdentity;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Context;
