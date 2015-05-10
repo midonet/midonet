@@ -142,7 +142,7 @@ class FlowProcessor(dpState: DatapathState,
      */
     def tryEject(sequence: Long, datapathId: Int, flowMatch: FlowMatch,
                  obs: Observer[ByteBuffer]): Boolean = {
-        var brokerSeq = 0
+        var brokerSeq = 0L
         val disruptorSeq = unsafe.getLongVolatile(this, sequenceAddress)
         if (disruptorSeq >= sequence && { brokerSeq = broker.nextSequence()
                                           brokerSeq } != NetlinkRequestBroker.FULL) {
@@ -160,7 +160,7 @@ class FlowProcessor(dpState: DatapathState,
 
     def tryGet(datapathId: Int, flowMatch: FlowMatch,
                obs: Observer[ByteBuffer]): Boolean = {
-        var seq = 0
+        var seq = 0L
         if ({ seq = broker.nextSequence(); seq } != NetlinkRequestBroker.FULL) {
             try {
                 protocol.prepareFlowGet(datapathId, flowMatch, broker.get(seq))
