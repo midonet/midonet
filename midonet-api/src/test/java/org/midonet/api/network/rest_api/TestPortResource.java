@@ -15,16 +15,12 @@
  */
 package org.midonet.api.network.rest_api;
 
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.ExteriorRouterPort;
-import org.midonet.api.network.RouterPort;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.network.auth.PortAuthorizer;
-import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.DataClient;
+import java.util.UUID;
+
+import javax.validation.Validator;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,12 +28,16 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.validation.Validator;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.UUID;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestPortResource {
@@ -54,10 +54,7 @@ public class TestPortResource {
     private ResourceFactory factory;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private PortAuthorizer auth;
-
-    @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private RouterAuthorizer routerAuth;
+    private Authoriser auth;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private Validator validator;
@@ -70,15 +67,16 @@ public class TestPortResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new PortResource(config, uriInfo, context, auth, validator,
-                 dataClient, factory, null);
+        testObject = new PortResource(config, uriInfo, context, validator,
+                                      dataClient, factory, auth, null);
     }
 
     @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.WRITE, id);
+        doThrow(ForbiddenHttpException.class)
+            .when(auth).tryAuthorisePort(id, "delete this port");
 
         // Execute
         testObject.delete(id);
@@ -88,8 +86,7 @@ public class TestPortResource {
     public void testDeleteNonExistentData() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(true).when(auth).authorize(context, AuthAction.WRITE, id);
-        doReturn(null).when(dataClient).portsGet(id);
+        doReturn(null).when(auth).tryAuthorisePort(id, "delete this port");
 
         // Execute
         testObject.delete(id);
@@ -102,7 +99,8 @@ public class TestPortResource {
     public void testGetUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.READ, id);
+        doThrow(ForbiddenHttpException.class)
+            .when(auth).tryAuthorisePort(id, "view this port");
 
         // Execute
         testObject.get(id);

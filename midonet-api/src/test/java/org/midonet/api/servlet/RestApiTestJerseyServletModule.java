@@ -34,7 +34,7 @@ public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
 
     @Override
     protected boolean clusterEmbedEnabled() {
-        return false;
+        return true;
     }
 
     @Override

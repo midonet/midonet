@@ -55,7 +55,7 @@ public class SubnetResource extends AbstractResource {
     @Inject
     public SubnetResource(RestApiConfig config, UriInfo uriInfo,
                           SecurityContext context, NetworkApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

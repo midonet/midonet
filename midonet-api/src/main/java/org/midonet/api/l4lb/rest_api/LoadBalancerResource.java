@@ -69,7 +69,7 @@ public class LoadBalancerResource extends AbstractResource {
     public LoadBalancerResource(RestApiConfig config, UriInfo uriInfo,
                                 SecurityContext context, DataClient dataClient,
                                 ResourceFactory factory) {
-        super(config, uriInfo, context, dataClient);
+        super(config, uriInfo, context, dataClient, null);
         this.factory = factory;
     }
 

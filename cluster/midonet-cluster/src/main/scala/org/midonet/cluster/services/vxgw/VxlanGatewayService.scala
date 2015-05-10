@@ -216,7 +216,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     /** Makes the node become passive but not stop. */
     private def becomePassive(): Unit = {
         log.info("Node suspends VxLAN Gateway management")
-        if (networkSub != null) {
+        if (networkSub != null && !executor.isShutdown) {
             networkSub.unsubscribe()
         }
         managers.values().foreach {_.terminate() }

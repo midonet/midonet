@@ -70,7 +70,7 @@ public class PoolResource extends AbstractResource {
     @Inject
     public PoolResource(RestApiConfig config, UriInfo uriInfo,
                         SecurityContext context, LoadBalancerApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 
@@ -84,7 +84,7 @@ public class PoolResource extends AbstractResource {
 
         Pool pool = api.getPool(id);
         if (pool == null) {
-            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND));
+            throwNotFound(id, "pool");
         }
 
         log.info("PoolResource.get exiting {}", pool);

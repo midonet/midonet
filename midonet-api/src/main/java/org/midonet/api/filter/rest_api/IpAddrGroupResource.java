@@ -225,7 +225,7 @@ public class IpAddrGroupResource extends AbstractResource {
                                        SecurityContext context,
                                        DataClient dataClient,
                                        @Assisted UUID ipAddrGroupId) {
-            super(config, uriInfo, context, dataClient);
+            super(config, uriInfo, context, dataClient, null);
             this.id = ipAddrGroupId;
         }
 

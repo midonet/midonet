@@ -15,12 +15,12 @@
  */
 package org.midonet.api.network.rest_api;
 
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.DataClient;
+import java.util.UUID;
+
+import javax.validation.Validator;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,12 +28,17 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.validation.Validator;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.UUID;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestRouterResource {
@@ -50,7 +55,7 @@ public class TestRouterResource {
     private ResourceFactory factory;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private RouterAuthorizer auth;
+    private Authoriser auth;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private Validator validator;
@@ -63,15 +68,16 @@ public class TestRouterResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new RouterResource(config, uriInfo, context, auth,
-                validator, dataClient, factory);
+        testObject = new RouterResource(config, uriInfo, context,
+                                        validator, dataClient, factory, auth);
     }
 
     @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.WRITE, id);
+        doThrow(ForbiddenHttpException.class)
+            .when(auth).tryAuthoriseRouter(id, "delete this router");
 
         // Execute
         testObject.delete(id);
@@ -81,8 +87,7 @@ public class TestRouterResource {
     public void testDeleteNonExistentData() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(true).when(auth).authorize(context, AuthAction.WRITE, id);
-        doReturn(null).when(dataClient).routersGet(id);
+        doReturn(null).when(auth).tryAuthoriseRouter(id, "delete this router");
 
         // Execute
         testObject.delete(id);
@@ -95,7 +100,8 @@ public class TestRouterResource {
     public void testGetUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.READ, id);
+        doThrow(ForbiddenHttpException.class)
+            .when(auth).tryAuthoriseRouter(id, "view this router");
 
         // Execute
         testObject.get(id);

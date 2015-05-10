@@ -41,7 +41,7 @@ public class NeutronResource extends AbstractResource {
     public NeutronResource(RestApiConfig config, UriInfo uriInfo,
                            SecurityContext context,
                            NeutronResourceFactory factory) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.factory = factory;
     }
 

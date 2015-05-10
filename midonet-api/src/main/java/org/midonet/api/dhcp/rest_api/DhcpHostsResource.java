@@ -16,53 +16,58 @@
 
 package org.midonet.api.dhcp.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.dhcp.DhcpHost;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.dhcp.Host;
-import org.midonet.packets.IPv4Subnet;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.dhcp.DhcpHost;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.dhcp.Host;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Subnet;
 
 @RequestScoped
 public class DhcpHostsResource extends AbstractResource {
 
     private final UUID bridgeId;
     private final IPv4Subnet subnet;
-    private final BridgeAuthorizer authorizer;
 
     @Inject
     public DhcpHostsResource(RestApiConfig config, UriInfo uriInfo,
                              SecurityContext context,
-                             BridgeAuthorizer authorizer,
                              DataClient dataClient,
+                             Authoriser authoriser,
                              @Assisted UUID bridgeId,
                              @Assisted IPv4Subnet subnet) {
-        super(config, uriInfo, context, dataClient);
-        this.authorizer = authorizer;
+        super(config, uriInfo, context, dataClient, null, authoriser);
         this.bridgeId = bridgeId;
         this.subnet = subnet;
     }
@@ -70,31 +75,27 @@ public class DhcpHostsResource extends AbstractResource {
     /**
      * Handler for creating a DHCP host assignment.
      *
-     * @param host
-     *            DHCP host assignment object.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param host DHCP host assignment object.
+     * @throws StateAccessException Data access error.
      * @returns Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
                 VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public Response create(DhcpHost host)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to configure DHCP for this bridge.");
-        }
+        authoriser.tryAuthoriseBridge(bridgeId,
+                                      "configure DHCP for this bridge.");
 
         Host h = host.toData();
         dataClient.dhcpHostsCreate(bridgeId, subnet, h);
         // Update the Bridge's ARP table.
         dataClient.bridgeAddIp4Mac(bridgeId, h.getIp(), h.getMAC());
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
-                bridgeId, subnet);
+                                                       bridgeId, subnet);
         return Response.created(
                 ResourceUriBuilder.getDhcpHost(dhcpUri, host.getMacAddr()))
                 .build();
@@ -103,10 +104,8 @@ public class DhcpHostsResource extends AbstractResource {
     /**
      * Handler to getting a DHCP host assignment.
      *
-     * @param mac
-     *            mac address of the host.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param mac mac address of the host.
+     * @throws StateAccessException Data access error.
      * @return A DhcpHost object.
      */
     @GET
@@ -114,26 +113,23 @@ public class DhcpHostsResource extends AbstractResource {
     @Path("/{mac}")
     @Produces({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
                 VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public DhcpHost get(@PathParam("mac") String mac)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this bridge's dhcp config.");
-        }
+        authoriser.tryAuthoriseBridge(bridgeId,
+                                      "view this bridge's dhcp config.");
 
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macStrFromUri(mac);
         Host hostConfig = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
         if (hostConfig == null) {
-            throw new NotFoundHttpException(
-                    "The requested resource was not found.");
+            throw new NotFoundHttpException("Host was not found.");
         }
 
         DhcpHost host = new DhcpHost(hostConfig);
-        host.setParentUri(ResourceUriBuilder.getBridgeDhcp(
-              getBaseUri(), bridgeId, subnet));
+        host.setParentUri(ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
+                                                           bridgeId, subnet));
 
         return host;
     }
@@ -141,26 +137,21 @@ public class DhcpHostsResource extends AbstractResource {
     /**
      * Handler to updating a host assignment.
      *
-     * @param mac
-     *            mac address of the host.
-     * @param host
-     *            Host assignment object.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param mac mac address of the host.
+     * @param host Host assignment object.
+     * @throws StateAccessException Data access error.
      */
     @PUT
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{mac}")
     @Consumes({ VendorMediaType.APPLICATION_DHCP_HOST_JSON,
                 VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public Response update(@PathParam("mac") String mac, DhcpHost host)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to update this bridge's dhcp config.");
-        }
+        authoriser.tryAuthoriseBridge(bridgeId,
+                                      "update this bridge's dhcp config.");
 
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macStrFromUri(mac);
@@ -174,8 +165,8 @@ public class DhcpHostsResource extends AbstractResource {
         dataClient.dhcpHostsUpdate(bridgeId, subnet, newHost);
 
         // Update the bridge's arp table.
-        dataClient.bridgeDeleteIp4Mac(
-            bridgeId, oldHost.getIp(), oldHost.getMAC());
+        dataClient.bridgeDeleteIp4Mac(bridgeId, oldHost.getIp(),
+                                      oldHost.getMAC());
         dataClient.bridgeAddIp4Mac(bridgeId, newHost.getIp(), newHost.getMAC());
 
         return Response.ok().build();
@@ -184,10 +175,8 @@ public class DhcpHostsResource extends AbstractResource {
     /**
      * Handler to deleting a DHCP host assignment.
      *
-     * @param mac
-     *            mac address of the host.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param mac mac address of the host.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
@@ -195,11 +184,8 @@ public class DhcpHostsResource extends AbstractResource {
     public void delete(@PathParam("mac") String mac)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to delete dhcp configuration of "
-                            + "this bridge.");
-        }
+        authoriser.tryAuthoriseBridge(
+            bridgeId, "delete dhcp configuration of this bridge.");
 
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macStrFromUri(mac);
@@ -213,8 +199,7 @@ public class DhcpHostsResource extends AbstractResource {
     /**
      * Handler to list DHCP host assignments.
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of DhcpHost objects.
      */
     @GET
@@ -224,15 +209,13 @@ public class DhcpHostsResource extends AbstractResource {
     public List<DhcpHost> list()
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view DHCP config of this bridge.");
-        }
+        authoriser.tryAuthoriseBridge(
+            bridgeId, "view DHCP config of this bridge.");
 
         List<Host> hostConfigs = dataClient.dhcpHostsGetBySubnet(bridgeId, subnet);
         List<DhcpHost> hosts = new ArrayList<>();
-        URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(
-                getBaseUri(), bridgeId, subnet);
+        URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(), bridgeId,
+                                                       subnet);
         for (Host hostConfig : hostConfigs) {
             DhcpHost host = new DhcpHost(hostConfig);
             host.setParentUri(dhcpUri);
