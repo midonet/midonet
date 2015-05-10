@@ -44,7 +44,7 @@ public class SystemStateResource extends AbstractResource {
     @Inject
     public SystemStateResource(RestApiConfig config, UriInfo uriInfo,
                          SecurityContext context, DataClient dataClient) {
-        super(config, uriInfo, context, dataClient);
+        super(config, uriInfo, context, dataClient, null);
     }
 
     /**
