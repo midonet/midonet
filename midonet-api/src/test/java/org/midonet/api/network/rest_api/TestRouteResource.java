@@ -15,11 +15,11 @@
  */
 package org.midonet.api.network.rest_api;
 
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.auth.RouteAuthorizer;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.DataClient;
+import java.util.UUID;
+
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,11 +27,16 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.UUID;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.Route;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestRouteResource {
@@ -45,7 +50,7 @@ public class TestRouteResource {
     private SecurityContext context;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private RouteAuthorizer auth;
+    private Authoriser auth;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private UriInfo uriInfo;
@@ -55,15 +60,21 @@ public class TestRouteResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new RouteResource(config, uriInfo, context, auth,
-                dataClient);
+        testObject = new RouteResource(config, uriInfo, context, dataClient,
+                                       auth);
     }
 
     @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.WRITE, id);
+        Route r = new Route();
+        r.setRouterId(UUID.randomUUID());
+
+        doReturn(r).when(dataClient).routesGet(id);
+        doThrow(ForbiddenHttpException.class)
+            .when(auth).tryAuthoriseRouter(r.getRouterId(),
+                                           "delete this route");
 
         // Execute
         testObject.delete(id);
@@ -73,7 +84,6 @@ public class TestRouteResource {
     public void testDeleteNonExistentData() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(true).when(auth).authorize(context, AuthAction.WRITE, id);
         doReturn(null).when(dataClient).routesGet(id);
 
         // Execute
@@ -87,7 +97,12 @@ public class TestRouteResource {
     public void testGetUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.READ, id);
+        Route r = new Route();
+        r.setRouterId(UUID.randomUUID());
+
+        doReturn(r).when(dataClient).routesGet(id);
+        doThrow(ForbiddenHttpException.class)
+            .when(auth).tryAuthoriseRouter(r.getRouterId(), "view this route");
 
         // Execute
         testObject.get(id);

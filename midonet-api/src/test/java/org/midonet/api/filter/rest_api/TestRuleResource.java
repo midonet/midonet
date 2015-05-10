@@ -15,11 +15,11 @@
  */
 package org.midonet.api.filter.rest_api;
 
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.filter.auth.RuleAuthorizer;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.DataClient;
+import java.util.UUID;
+
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,11 +27,15 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.UUID;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TestRuleResource {
@@ -45,7 +49,7 @@ public class TestRuleResource {
     private SecurityContext context;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
-    private RuleAuthorizer auth;
+    private Authoriser auth;
 
     @Mock(answer = Answers.RETURNS_SMART_NULLS)
     private UriInfo uriInfo;
@@ -55,15 +59,14 @@ public class TestRuleResource {
 
     @Before
     public void setUp() throws Exception {
-        testObject = new RuleResource(config, uriInfo, context, auth,
-                dataClient);
+        testObject = new RuleResource(config, uriInfo, context, dataClient);
     }
 
     @Test(expected = ForbiddenHttpException.class)
     public void testDeleteUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.WRITE, id);
+        doReturn(false).when(auth).tryAuthoriseRule(id, anyString());
 
         // Execute
         testObject.delete(id);
@@ -73,7 +76,7 @@ public class TestRuleResource {
     public void testDeleteNonExistentData() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(true).when(auth).authorize(context, AuthAction.WRITE, id);
+        doReturn(true).when(auth).tryAuthoriseRule(id, anyString());
         doReturn(null).when(dataClient).rulesGet(id);
 
         // Execute
@@ -87,7 +90,7 @@ public class TestRuleResource {
     public void testGetUnauthorized() throws Exception {
         // Set up
         UUID id = UUID.randomUUID();
-        doReturn(false).when(auth).authorize(context, AuthAction.READ, id);
+        doReturn(false).when(auth).tryAuthoriseRule(id, anyString());
 
         // Execute
         testObject.get(id);
