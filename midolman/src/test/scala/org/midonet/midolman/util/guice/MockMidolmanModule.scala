@@ -16,11 +16,32 @@
 
 package org.midonet.midolman.util.guice
 
+import java.util.LinkedList
+
 import org.midonet.midolman.cluster.MidolmanModule
-import org.midonet.midolman.state.{MockNatBlockAllocator, NatBlock, NatRange, NatBlockAllocator}
-import org.midonet.util.functors.Callback
+import org.midonet.midolman.flows.{FlowInvalidationHandler, FlowInvalidator}
+import org.midonet.midolman.state.{MockNatBlockAllocator, NatBlockAllocator}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 class MockMidolmanModule extends MidolmanModule {
+
+    protected override def bindFlowInvalidator: Unit = {
+        bind(classOf[FlowInvalidator]).toInstance(new FlowInvalidator {
+            private val q = new LinkedList[FlowTag]()
+
+            override def scheduleInvalidationFor(tag: FlowTag): Unit =
+                q.offer(tag)
+
+            override def hasInvalidations: Boolean =
+                !q.isEmpty
+
+            override def process(handler: FlowInvalidationHandler): Unit =
+                while (hasInvalidations) {
+                    handler.invalidateFlowsFor(q.pop())
+                }
+        })
+        expose(classOf[FlowInvalidator])
+    }
 
     protected override def bindAllocator() {
         bind(classOf[NatBlockAllocator]).toInstance(new MockNatBlockAllocator)

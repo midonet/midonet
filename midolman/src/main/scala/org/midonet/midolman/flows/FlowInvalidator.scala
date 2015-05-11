@@ -16,6 +16,8 @@
 
 package org.midonet.midolman.flows
 
+import java.util.ArrayList
+
 import org.jctools.queues.MpscArrayQueue
 
 import org.midonet.midolman.{CheckBackchannels, PacketsEntryPoint}
@@ -23,73 +25,91 @@ import org.midonet.midolman.services.MidolmanActorsService
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
-trait InvalidationSource {
+trait FlowInvalidator {
     def scheduleInvalidationFor(tag: FlowTag): Unit
+    def hasInvalidations: Boolean
+    def process(handler: FlowInvalidationHandler): Unit
 }
 
-object FlowInvalidator {
-    private val MAX_PENDING_INVALIDATIONS = 1024
+trait FlowInvalidationHandler {
+    def invalidateFlowsFor(tag: FlowTag): Unit
 }
 
 // TODO: having to pass the actorsService here, ugly as it
 //       may be, is an artifact of our bootstrap process
-final class FlowInvalidator(actorsService: MidolmanActorsService,
-                            numQueues: Int) extends Parkable with InvalidationSource {
-    import FlowInvalidator._
+final class ShardedFlowInvalidator(actorsService: MidolmanActorsService)
+    extends FlowInvalidator {
 
-    private val queues = new Array[MpscArrayQueue[FlowTag]](numQueues)
-    @volatile private var waitingFor = 0
+    private val NO_SHARD: FlowInvalidatorShard = null
+    private val processors = new ArrayList[FlowInvalidatorShard]()
 
-    {
-        var i = 0
-        while (i < numQueues) {
-            queues(i) = new MpscArrayQueue[FlowTag](MAX_PENDING_INVALIDATIONS)
-            i += 1
-        }
+    def registerProcessor(): FlowInvalidatorShard = {
+        val processor = new FlowInvalidatorShard()
+        processors.add(processor)
+        processor
     }
 
     /**
-     * Broadcasts this tag to all invalidation queues. Not thread-safe.
+     * Broadcasts this tag to all invalidation processors.
      */
-    def scheduleInvalidationFor(tag: FlowTag): Unit = {
+    override def scheduleInvalidationFor(tag: FlowTag): Unit =
+        scheduleInvalidationInOthers(NO_SHARD, tag)
+
+    private def scheduleInvalidationInOthers(
+            shardToSkip: FlowInvalidatorShard,
+            tag: FlowTag): Unit = {
         var i = 0
-        while (i < numQueues) {
-            while (!queues(i).offer(tag)) {
-                waitingFor = i
-                park(retries = 0)
-            }
+        while (i < processors.size()) {
+            val p = processors.get(i)
+            if (p ne shardToSkip)
+                p.scheduleInvalidationFor(tag)
             i += 1
         }
         PacketsEntryPoint.getRef()(actorsService.system) ! CheckBackchannels
     }
 
-    /**
-     * Processes the invalidated tags for the queue identified by the `id`
-     * parameter. Thread-safe for callers specifying different ids.
-     */
-    def process(id: Int, invalidation: FlowInvalidation): Unit = {
-        val q = queues(id)
-        var tag: FlowTag = null
-        while ({ tag = q.poll(); tag } ne null) {
-            invalidation.invalidateFlowsFor(tag)
-        }
-    }
-
-    /**
-     * Processes the invalidated tags for all queues. Not thread-safe. Also not
-     * thread-safe for concurrent callers of `process`.
-     */
-    def processAll(invalidation: FlowInvalidation): Unit = {
+    override def hasInvalidations: Boolean = {
         var i = 0
-        while (i < numQueues) {
-            process(i, invalidation)
+        while (i < processors.size()) {
+            if (processors.get(i).hasInvalidations)
+                return true
             i += 1
         }
+        false
     }
 
-    def needsToInvalidateTags(id: Int): Boolean =
-        queues(waitingFor).size() < MAX_PENDING_INVALIDATIONS
+     override def process(handler: FlowInvalidationHandler): Unit =
+        throw new Exception("Calling process on the main flow invalidator is not supported")
 
-    override def shouldWakeUp(): Boolean =
-        needsToInvalidateTags(waitingFor)
+    final class FlowInvalidatorShard extends FlowInvalidator with Parkable {
+        private val MAX_PENDING_INVALIDATIONS = 1024
+
+        private val q = new MpscArrayQueue[FlowTag](MAX_PENDING_INVALIDATIONS)
+
+        /**
+         * Broadcasts this tag to all invalidation processors.
+         */
+        override def scheduleInvalidationFor(tag: FlowTag): Unit = {
+            while (!q.offer(tag)) {
+                park(retries = 0)
+            }
+            scheduleInvalidationInOthers(this, tag)
+        }
+
+        override def hasInvalidations: Boolean =
+            q.size() < MAX_PENDING_INVALIDATIONS
+
+        /**
+         * Processes the invalidations in this instance.
+         */
+        override def process(handler: FlowInvalidationHandler): Unit = {
+            var tag: FlowTag = null
+            while ({ tag = q.poll(); tag } ne null) {
+                handler.invalidateFlowsFor(tag)
+            }
+        }
+
+        override def shouldWakeUp(): Boolean =
+            hasInvalidations
+    }
 }

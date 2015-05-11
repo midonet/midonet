@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.InvalidationSource
+import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.devices.RouterPort
@@ -80,7 +80,7 @@ object ArpRequestBroker {
  */
 class ArpRequestBroker(emitter: PacketEmitter,
                        config: MidolmanConfig,
-                       invalidator: InvalidationSource,
+                       invalidator: FlowInvalidator,
                        clock: UnixClock = UnixClock()) {
 
     val log = Logger(LoggerFactory.getLogger(s"org.midonet.devices.router.arptable"))
@@ -155,7 +155,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                                    arpCache: ArpCache,
                                    emitter: PacketEmitter,
                                    config: MidolmanConfig,
-                                   invalidator: InvalidationSource,
+                                   invalidator: FlowInvalidator,
                                    clock: UnixClock = UnixClock()) {
     import ArpRequestBroker._
 
