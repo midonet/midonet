@@ -17,19 +17,20 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, Router => RouterType}
 import org.midonet.cluster.data.neutron.TaskType._
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.{Port, Route, Router}
+import org.midonet.cluster.models.Topology.{Network, Port, Route, Router}
+import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.util.concurrent.toFutureOps
-import org.scalatest.junit.JUnitRunner
-
-import scala.collection.JavaConverters._
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase {
@@ -80,152 +81,162 @@ class RouterTranslatorIT extends C3POMinionTestBase {
     }
 
     it should "handle router gateway CRUD" in {
-        val tenant = "tenant1"
+        val uplNetworkId = UUID.randomUUID()
+        val uplNwSubnetId = UUID.randomUUID()
+        val uplNwDhcpPortId = UUID.randomUUID()
 
-        val nwId = UUID.randomUUID()
-        val nwJson = networkJson(nwId, tenant, name = "tenant-network",
-                                 external = true)
+        val extNwId = UUID.randomUUID()
+        val extNwSubnetId = UUID.randomUUID()
+        val extNwDhcpPortId = UUID.randomUUID()
 
-        val snId = UUID.randomUUID()
-        val snJson = subnetJson(snId, nwId, tenantId = tenant,
-                                cidr = "10.0.1.0/24", gatewayIp = "10.0.1.1")
+        val hostId = UUID.randomUUID()
 
-        val gwIpAddr = "10.0.0.1"
-        val prGwPortId = UUID.randomUUID()
-        val gwIpAlloc = IPAlloc(gwIpAddr, snId.toString)
-        val prGwPortJson = portJson(prGwPortId, nwId,
-                                    fixedIps = List(gwIpAlloc),
-                                    deviceId = prGwPortId,
-                                    deviceOwner = DeviceOwner.ROUTER_GATEWAY)
+        val edgeRtrId = UUID.randomUUID()
+        val edgeRtrUplNwIfPortId = UUID.randomUUID()
+        val edgeRtrExtNwIfPortId = UUID.randomUUID()
 
-        val trId = UUID.randomUUID()
-        val trJson = routerJson(trId, name = "tenant-router",
-                                gwPortId = prGwPortId)
+        val tntRtrId = UUID.randomUUID()
+        val extNwGwPortId = UUID.randomUUID()
 
-        val prId = RouterTranslator.providerRouterId
+        // Create uplink network.
+        createUplinkNetwork(2, uplNetworkId)
+        createSubnet(3, uplNwSubnetId, uplNetworkId, "10.0.0.0/16")
+        createDhcpPort(4, uplNwDhcpPortId, uplNetworkId,
+                       uplNwSubnetId, "10.0.0.1")
 
-        executeSqlStmts(insertTaskSql(2, Create, NetworkType,
-                                      nwJson.toString, nwId, "tx1"),
-                        insertTaskSql(3, Create, SubnetType,
-                                      snJson.toString, snId, "tx2"),
-                        insertTaskSql(4, Create, PortType,
-                                      prGwPortJson.toString, prGwPortId, "tx3"),
-                        insertTaskSql(5, Create, RouterType,
-                                      trJson.toString, trId, "tx3"))
+        createHost(hostId)
 
-        val tr = eventually(storage.get(classOf[Router], trId).await())
-        tr.getPortIdsCount shouldBe 1
-        tr.getRouteIdsCount shouldBe 0
+        // Create edge router.
+        createRouter(5, edgeRtrId)
+        createRouterInterfacePort(6, edgeRtrUplNwIfPortId, uplNetworkId,
+                                  edgeRtrId, "10.0.0.2", "02:02:02:02:02:02",
+                                  uplNwSubnetId, hostId = hostId,
+                                  ifName = "eth0")
+        createRouterInterface(7, edgeRtrId, edgeRtrUplNwIfPortId, uplNwSubnetId)
 
-        validateGateway(tr, prGwPortId, gwIpAddr)
+        // Create external network.
+        createTenantNetwork(8, extNwId, external = true)
+        createSubnet(9, extNwSubnetId, extNwId, "10.0.1.0/24")
+        createDhcpPort(10, extNwDhcpPortId, extNwId,
+                       extNwSubnetId, "10.0.1.0")
+        createRouterInterfacePort(11, edgeRtrExtNwIfPortId, extNwId, edgeRtrId,
+                                  "10.0.1.2", "03:03:03:03:03:03",
+                                  extNwSubnetId)
+        createRouterInterface(12, edgeRtrId,
+                              edgeRtrExtNwIfPortId, extNwSubnetId)
 
-        // Rename router and make sure everything is preserved.
-        val trV2Json = routerJson(trId, name = "tenant-router-v2").toString
-        executeSqlStmts(insertTaskSql(6, Update, RouterType,
-                                      trV2Json, trId, "tx4"))
-        val trV2 = eventually {
-            val trRenamed = storage.get(classOf[Router], trId).await()
-            trRenamed.getName shouldBe "tenant-router-v2"
-            trRenamed
-        }
-        trV2.getPortIdsCount shouldBe 1
-        validateGateway(trV2, prGwPortId, gwIpAddr)
-
-        // Delete Gateway.
-        executeSqlStmts(insertTaskSql(7, Delete, PortType,
-                                      null, prGwPortId, "tx5"))
+        // Sanity check for external network's connection to edge router. This
+        // is just a normal router interface, so RouterInterfaceTranslatorIT
+        // checks the details.
         eventually {
-            storage.exists(classOf[Port], prGwPortId).await() shouldBe false
+            val nwPort = storage.get(classOf[Port],
+                                     edgeRtrExtNwIfPortId).await()
+            val rPortF = storage.get(classOf[Port], nwPort.getPeerId)
+            val rtrF = storage.get(classOf[Router], edgeRtrId)
+            val (rPort, rtr) = (rPortF.await(), rtrF.await())
+            rPort.getRouterId shouldBe rtr.getId
+            rtr.getPortIdsCount shouldBe 2
+            rtr.getPortIdsList.asScala should contain(rPort.getId)
         }
 
-        // Should delete tenant gateway port as well.
-        val trGwPortId = RouterTranslator.tenantGwPortId(prGwPortId)
-        storage.exists(classOf[Port], trGwPortId).await() shouldBe false
+        // Create tenant router and check gateway setup.
+        createRouterGatewayPort(13, extNwGwPortId, extNwId, tntRtrId,
+                                "10.0.1.3", extNwSubnetId)
+        createRouter(14, tntRtrId, gwPortId = extNwGwPortId)
+        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3", "10.0.1.2")
 
-        val List(prV3, trV3) =
-            storage.getAll(classOf[Router], List(prId, trId)).await()
-        prV3.getPortIdsCount shouldBe 0
-        trV3.getPortIdsCount shouldBe 0
+        // Rename router to make sure update doesn't break anything.
+        val trRenamedJson = routerJson(tntRtrId, name = "tr-renamed",
+                                       gwPortId = extNwGwPortId).toString
+        insertUpdateTask(15, RouterType, trRenamedJson, tntRtrId)
+        eventually {
+            val tr = storage.get(classOf[Router], tntRtrId).await()
+            tr.getName shouldBe "tr-renamed"
+            tr.getPortIdsCount shouldBe 1
+            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3", "10.0.1.2")
+        }
 
-        // All routes should be deleted.
-        storage.getAll(classOf[Route]).await() shouldBe empty
+        // Delete gateway.
+        insertDeleteTask(16, PortType, extNwGwPortId)
+        eventually {
+            val trF = storage.get(classOf[Router], tntRtrId)
+            val extNwF = storage.get(classOf[Network], extNwId)
+            val (tr, extNw) = (trF.await(), extNwF.await())
+            tr.getPortIdsCount shouldBe 0
+            extNw.getPortIdsList.asScala should contain only (
+                UUIDUtil.toProto(edgeRtrExtNwIfPortId),
+                UUIDUtil.toProto(extNwDhcpPortId))
+        }
 
         // Re-add gateway.
-        executeSqlStmts(insertTaskSql(8, Create, PortType,
-                                      prGwPortJson.toString, prGwPortId, "tx6"),
-                        insertTaskSql(9, Update, RouterType,
-                                      trJson.toString, trId, "tx6"))
-        val trV4 = eventually {
-            val trV4 = storage.get(classOf[Router], trId).await()
-            trV4.getPortIdsCount shouldBe 1
-            trV4
-        }
+        createRouterGatewayPort(17, extNwGwPortId, extNwId, tntRtrId,
+                                "10.0.1.4", extNwSubnetId)
+        val trAddGwJson = routerJson(tntRtrId, name = "tr-add-gw",
+                                     gwPortId = extNwGwPortId).toString
+        insertUpdateTask(18, RouterType, trAddGwJson, tntRtrId)
+        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4", "10.0.1.2")
 
-        validateGateway(trV4, prGwPortId, gwIpAddr)
-
-        // Delete the gateway and then router.
-        executeSqlStmts(insertTaskSql(10, Delete, PortType,
-                                      null, prGwPortId, "tx7"),
-                        insertTaskSql(11, Delete, RouterType,
-                                      null, trId, "tx7"))
-
+        // Delete gateway and router.
+        insertDeleteTask(19, PortType, extNwGwPortId)
+        insertDeleteTask(20, RouterType, tntRtrId)
         eventually {
-            storage.exists(classOf[Router], trId).await() shouldBe false
+            val extNwF = storage.get(classOf[Network], extNwId)
+            List(storage.exists(classOf[Router], tntRtrId),
+                 storage.exists(classOf[Port], extNwGwPortId),
+                 storage.exists(classOf[Port], tenantGwPortId(extNwGwPortId)))
+                .map(_.await()) shouldBe List(false, false, false)
+            val extNw = extNwF.await()
+            extNw.getPortIdsList.asScala should contain only (
+                UUIDUtil.toProto(edgeRtrExtNwIfPortId),
+                UUIDUtil.toProto(extNwDhcpPortId))
         }
-        storage.getAll(classOf[Route]).await() shouldBe empty
-        val prV5 = storage.get(classOf[Router], prId).await()
-        prV5.getPortIdsCount shouldBe 0
     }
 
-    private def validateGateway(tr: Router, prGwPortId: UUID,
+    private def validateGateway(rtrId: UUID, nwGwPortId: UUID,
+                                trPortIpAddr: String,
                                 gwIpAddr: String): Unit = {
-        // Tenant router should have gateway port.
-        val trGwPortId = RouterTranslator.tenantGwPortId(prGwPortId)
-        tr.getPortIdsList.asScala should contain(trGwPortId)
+        // Tenant router should have gateway port and no routes.
+        val trGwPortId = tenantGwPortId(nwGwPortId)
+        eventually {
+            val tr = storage.get(classOf[Router], rtrId).await()
+            tr.getPortIdsList.asScala should contain only trGwPortId
+            tr.getRouteIdsCount shouldBe 0
+        }
 
-        // Get gateway ports on tenant and provider routers.
-        val portFs = storage.getAll(classOf[Port], List(prGwPortId, trGwPortId))
+        // Get the router gateway port and its peer on the network.
+        val portFs = storage.getAll(classOf[Port], List(nwGwPortId, trGwPortId))
 
-        // Get routes.
-        val prLocalRtId = RouteManager.localRouteId(prGwPortId)
-        val prGwRtId = RouteManager.gatewayRouteId(prGwPortId)
+        // Get routes on router gateway port.
         val trLocalRtId = RouteManager.localRouteId(trGwPortId)
         val trGwRtId = RouteManager.gatewayRouteId(trGwPortId)
 
-        val List(prLocalRt, prGwRt, trLocalRt, trGwRt) =
-            List(prLocalRtId, prGwRtId, trLocalRtId, trGwRtId)
+        val List(trLocalRt, trGwRt) =
+            List(trLocalRtId, trGwRtId)
                 .map(storage.get(classOf[Route], _)).map(_.await())
 
-        val List(prGwPort, trGwPort) = portFs.await()
+        val List(nwGwPort, trGwPort) = portFs.await()
 
-        // Check ports have correct router and route IDs.
-        prGwPort.getRouterId shouldBe RouterTranslator.providerRouterId
-        prGwPort.getRouteIdsList.asScala should
-        contain only (prGwRtId, prLocalRtId)
-        trGwPort.getRouterId shouldBe tr.getId
+        // Check router port has correct router and route IDs.
+        trGwPort.getRouterId shouldBe UUIDUtil.toProto(rtrId)
         trGwPort.getRouteIdsList.asScala should
-        contain only (trGwRtId, trLocalRtId)
+            contain only (trGwRtId, trLocalRtId)
+
+        // Network port has no routes.
+        nwGwPort.getRouteIdsCount shouldBe 0
 
         // Ports should be linked.
-        prGwPort.getPeerId shouldBe trGwPortId
-        trGwPort.getPeerId shouldBe prGwPort.getId
+        nwGwPort.getPeerId shouldBe trGwPortId
+        trGwPort.getPeerId shouldBe nwGwPort.getId
 
-        prGwPort.getPortAddress shouldBe PortManager.LL_GW_IP_1
-        trGwPort.getPortAddress.getAddress shouldBe gwIpAddr
+        trGwPort.getPortAddress.getAddress shouldBe trPortIpAddr
 
-        validateLocalRoute(prLocalRt, prGwPort)
         validateLocalRoute(trLocalRt, trGwPort)
-
-        prGwRt.getNextHop shouldBe NextHop.PORT
-        prGwRt.getNextHopPortId shouldBe prGwPort.getId
-        prGwRt.getDstSubnet shouldBe
-        IPSubnetUtil.fromAddr(trGwPort.getPortAddress)
-        prGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
 
         trGwRt.getNextHop shouldBe NextHop.PORT
         trGwRt.getNextHopPortId shouldBe trGwPort.getId
         trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
         trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+        trGwRt.getNextHopGateway.getAddress shouldBe gwIpAddr
     }
 
     private def validateLocalRoute(rt: Route, nextHopPort: Port): Unit = {

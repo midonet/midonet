@@ -17,20 +17,19 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.data.neutron.DeviceOwner
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Dhcp, Network}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
+import org.midonet.cluster.models.Topology.{Dhcp, Network}
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.util.concurrent.toFutureOps
-
-import scala.collection.mutable
 
 // TODO: add code to handle connection to provider router.
 class SubnetTranslator(val storage: ReadOnlyStorage)
@@ -61,7 +60,6 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
 
         addHostRoutes(dhcp, ns.getHostRoutesList.asScala)
 
-        // TODO: connect to provider router if external
         List(Create(dhcp.build))
     }
 

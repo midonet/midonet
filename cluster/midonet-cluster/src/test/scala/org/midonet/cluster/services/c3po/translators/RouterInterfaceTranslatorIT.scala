@@ -24,10 +24,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType}
 import org.midonet.cluster.models.Neutron.NeutronPort
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner.ROUTER_INTERFACE
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouteManager.{metadataServiceRouteId, routerInterfaceRouteId}
@@ -44,54 +42,6 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
     private val dhcpPortId = UUID.randomUUID()
     private val rifPortId = UUID.randomUUID()
     private val hostId = UUID.randomUUID()
-
-    private def createTenantNetwork(taskId: Int, nwId: UUID): Unit = {
-        val json = networkJson(nwId, name = "tenant-network",
-                               tenantId = "tenant").toString
-        insertCreateTask(taskId, NetworkType, json, nwId)
-    }
-
-    private def createUplinkNetwork(taskId: Int, nwId: UUID): Unit = {
-        val json = networkJson(nwId, name = "uplink-network",
-                               uplink = true).toString
-        insertCreateTask(taskId, NetworkType, json, nwId)
-    }
-
-    private def createRouter(taskId: Int, routerId: UUID): Unit = {
-        val json = routerJson(routerId, name = "router").toString
-        insertCreateTask(taskId, RouterType, json, routerId)
-    }
-
-    private def createSubnet(taskId: Int, subnetId: UUID,
-                             networkId: UUID, cidr: String): Unit = {
-        val json = subnetJson(subnetId, networkId, cidr = cidr).toString
-        insertCreateTask(taskId, SubnetType, json, subnetId)
-    }
-
-    private def createDhcpPort(taskId: Int, portId: UUID, networkId: UUID,
-                               subnetId: UUID, ipAddr: String): Unit = {
-        val json = portJson(portId, networkId, deviceOwner = DeviceOwner.DHCP,
-                            fixedIps = List(IPAlloc(ipAddr, subnetId.toString)))
-        insertCreateTask(taskId, PortType, json.toString, portId)
-    }
-
-    private def createRouterInterfacePort(taskId: Int, portId: UUID,
-                                          networkId: UUID, routerId: UUID,
-                                          ipAddr: String, macAddr: String,
-                                          subnetId: UUID, hostId: UUID = null,
-                                          ifName: String = null): Unit = {
-        val json = portJson(portId, networkId, deviceId = routerId,
-                            deviceOwner = ROUTER_INTERFACE, macAddr = macAddr,
-                            fixedIps = List(IPAlloc(ipAddr, subnetId.toString)),
-                            hostId = hostId, ifName = ifName)
-        insertCreateTask(taskId, PortType, json.toString, portId)
-    }
-
-    private def createRouterInterface(taskId: Int, routerId: UUID,
-                                      portId: UUID, subnetId: UUID): Unit = {
-        val json = routerInterfaceJson(routerId, portId, subnetId).toString
-        insertCreateTask(taskId, RouterInterfaceType, json, routerId)
-    }
 
     "RouterInterfaceTranslator" should "handle translation for interfaces on " +
                                        "non-edge routers." in {

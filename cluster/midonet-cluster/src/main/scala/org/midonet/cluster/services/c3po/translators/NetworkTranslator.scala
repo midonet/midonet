@@ -19,9 +19,8 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronNetwork.NetworkType
-import org.midonet.cluster.models.Topology.{Network, Router}
+import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
-import org.midonet.cluster.services.c3po.translators.RouterTranslator.{providerRouterId, providerRouterName}
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
@@ -36,7 +35,6 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
         if (isUplinkNetwork(nn)) return List()
 
         val ops = new MidoOpListBuffer
-        ops ++= ensureProviderRouterExists(nn)
         ops += Create(translate(nn))
         ops ++= replMapPaths(nn.getId).map(CreateNode(_, null))
         ops.toList
@@ -77,23 +75,6 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
         Iterable(pathBldr.getBridgeIP4MacMapPath(id),
                  pathBldr.getBridgeMacPortsPath(id),
                  pathBldr.getBridgeVlansPath(id))
-    }
-
-    /**
-     * Return an Option which has an operation to create the provider router
-     * iff it does not already exist.
-     */
-    private def ensureProviderRouterExists(nn: NeutronNetwork)
-    : Option[Create[Router]] = {
-        if (!nn.hasExternal || !nn.getExternal ||
-            storage.exists(classOf[Router], providerRouterId).await()) {
-            None
-        } else {
-            Some(Create(Router.newBuilder()
-                              .setAdminStateUp(true)
-                              .setId(providerRouterId)
-                              .setName(providerRouterName).build()))
-        }
     }
 }
 

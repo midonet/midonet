@@ -16,12 +16,12 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
-import org.midonet.cluster.models.Topology.Rule.{NatTarget, NatRuleData, Action, FragmentPolicy}
+import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.ICMP
@@ -30,8 +30,8 @@ import org.midonet.util.concurrent.toFutureOps
 class RouterTranslator(protected val storage: ReadOnlyStorage)
     extends NeutronTranslator[NeutronRouter]
     with ChainManager with PortManager with RouteManager with RuleManager {
-    import org.midonet.cluster.services.c3po.translators.RouteManager._
     import RouterTranslator._
+    import org.midonet.cluster.services.c3po.translators.RouteManager._
 
     override protected def translateCreate(nr: NeutronRouter): MidoOpList = {
         val r = translate(nr)
@@ -40,12 +40,21 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
         val outChain = newChain(r.getOutboundFilterId,
                                 postRouteChainName(nr.getId))
 
+        // This is actually only needed for edge routers, but edge routers are
+        // only defined by having an interface to an uplink network, so it's
+        // simpler just to create a port group for every router than to
+        // create or delete the port group when a router becomes or ceases to
+        // be an edge router as interfaces are created and deleted.
+        val pgId = PortManager.portGroupId(nr.getId)
+        val portGroup = PortGroup.newBuilder.setId(pgId).build()
+
         val gwPortOps = gatewayPortCreateOps(nr, r)
 
         val ops = new MidoOpListBuffer
         ops += Create(r)
         ops += Create(inChain)
         ops += Create(outChain)
+        ops += Create(portGroup)
         ops ++= gwPortOps
         ops.toList
     }
@@ -53,6 +62,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
     override protected def translateDelete(id: UUID): MidoOpList = {
         List(Delete(classOf[Chain], inChainId(id)),
              Delete(classOf[Chain], outChainId(id)),
+             Delete(classOf[PortGroup], PortManager.portGroupId(id)),
              Delete(classOf[Router], id))
     }
 
@@ -90,50 +100,43 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
 
         /* There's a bit of a quirk in the translation here. We actually create
          * two linked Midonet ports for a single Neutron gateway port, one on
-         * the provider router, and one on the tenant router. We have to do this
-         * because Neutron has no provider router.
+         * an external network, and one on the tenant router. We have to do
+         * this because Neutron has no concept of router ports.
          *
          * When creating a router with a gateway port, Neutron first creates the
-         * gateway port in separate transaction. That gets handled in
-         * PortTranslator.translateCreate. By the time we get here, we've
-         * a port with an ID equal the NeutronRouter's gw_port_id and the
-         * link-local gateway IP address (169.254.55.1) has already been added
-         * to the provider router.
+         * gateway port in a separate transaction. That gets handled in
+         * PortTranslator.translateCreate. By the time we get here, a port with
+         * an ID equal the NeutronRouter's gw_port_id and the link-local gateway
+         * IP address (169.254.55.1) has already been added to the external
+         * network (specified by the port's networkId).
          *
-         * Now, when translating the Neutron Router creation, we need to create
-         * a gateway port on the tenant router which has the Neutron gateway
-         * port's IP address and link it to the provider gateway. Note that the
-         * Neutron gateway port's ID goes to the port on the provider router,
-         * while its IP address goes to the port on the tenant router.
+         * Now, when translating the Neutron Router creation or update, we need
+         * to create a port on the tenant router which has the Neutron gateway
+         * port's IP address and link it to the gateway port on the external
+         * network. Note that the Neutron gateway port's ID goes to the port on
+         * the external network, while its IP address goes to the port on the
+         * tenant router.
          */
-        val PortPair(neutronGwPort, prGwPort) = getPortPair(nr.getGwPortId)
+        val PortPair(nGwPort, extNwPort) = getPortPair(nr.getGwPortId)
 
         // Neutron gateway port assumed to have one IP, namely the gateway IP.
-        val gwIpAddr = neutronGwPort.getFixedIps(0).getIpAddress
+        val gwIpAddr = nGwPort.getFixedIps(0).getIpAddress
 
-        // Create port on tenant router to link to port on the provider router.
-        val trGwPortId = tenantGwPortId(nr.getGwPortId)
-        val trPort = newTenantRouterGWPort(trGwPortId, nr.getId, gwIpAddr)
+        // Create port on tenant router and link to the external network port.
+        val trPortId = tenantGwPortId(nr.getGwPortId)
+        val trPort = newTenantRouterGWPort(trPortId, nr.getId, gwIpAddr)
 
-        val linkOps = linkPortOps(trPort, prGwPort)
+        val linkOps = linkPortOps(trPort, extNwPort)
 
-        // Route from provider router to tenant router via gateway port.
-        val prGatewayRoute = newNextHopPortRoute(
-            prGwPort.getId, id = gatewayRouteId(prGwPort.getId),
-            dstSubnet = IPSubnetUtil.fromAddr(gwIpAddr))
+        val defaultRoute =
+            defaultGwRoute(nGwPort.getFixedIps(0).getSubnetId, trPortId)
 
-        // Default route from tenant router to provider router.
-        val trDefaultRouteId = gatewayRouteId(trGwPortId)
-        val trDefaultRoute = newNextHopPortRoute(trGwPortId,
-                                                 id = trDefaultRouteId)
-
-        val snatOps = snatRuleCreateOps(nr, r, gwIpAddr, trGwPortId)
+        val snatOps = snatRuleCreateOps(nr, r, gwIpAddr, trPortId)
 
         val ops = new MidoOpListBuffer
         ops += Create(trPort)
         ops ++= linkOps
-        ops += Create(prGatewayRoute)
-        ops += Create(trDefaultRoute)
+        ops += Create(defaultRoute)
         ops ++= snatOps
         ops.toList
     }
@@ -141,17 +144,28 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
     private def gatewayPortUpdateOps(nr: NeutronRouter,
                                      r: Router): MidoOpList = {
         if (!nr.hasGwPortId) return List()
-        val PortPair(nGwPort, prGwPort) = getPortPair(nr.getGwPortId)
+        val PortPair(nGwPort, extNwPort) = getPortPair(nr.getGwPortId)
 
         // If the gateway port isn't linked to the router yet, do that.
-        if (!prGwPort.hasPeerId) return gatewayPortCreateOps(nr, r)
+        if (!extNwPort.hasPeerId) return gatewayPortCreateOps(nr, r)
 
         if (snatEnabled(nr)) {
             val gwIpAddr = nGwPort.getFixedIps(0).getIpAddress
-            snatRuleCreateOps(nr, r, gwIpAddr, tenantGwPortId(prGwPort.getId))
+            snatRuleCreateOps(nr, r, gwIpAddr, tenantGwPortId(extNwPort.getId))
         } else {
             snatDeleteRuleOps(nr.getId)
         }
+    }
+
+    /** Create default route for gateway port. */
+    private def defaultGwRoute(dhcpId: UUID, portId: UUID): Route = {
+        val dhcp = storage.get(classOf[Dhcp], dhcpId).await()
+        val nextHopIp = if (!dhcp.hasRouterGwPortId) null else {
+            val gwPortFtr = storage.get(classOf[Port], dhcp.getRouterGwPortId)
+            gwPortFtr.await().getPortAddress
+        }
+        val routeId = gatewayRouteId(portId)
+        newNextHopPortRoute(portId, id = routeId, nextHopGwIpAddr = nextHopIp)
     }
 
     // Deterministically generate SNAT rule IDs so we can delete them without
@@ -242,15 +256,10 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
 
 object RouterTranslator {
     def preRouteChainName(id: UUID) = "OS_PRE_ROUTING_" + id.asJava
+
     def postRouteChainName(id: UUID) = "OS_PORT_ROUTING_" + id.asJava
 
-    /** ID of tenant router port that connects to provider router GW port.*/
+    /** ID of tenant router port that connects to external network port. */
     def tenantGwPortId(providerGwPortId: UUID) =
         providerGwPortId.xorWith(0xd3a45084502f4366L, 0x9fd7d26cc7566972L)
-
-    val providerRouterId = UUID.newBuilder()
-                           .setMsb(0xf7a6a8153dc44c28L)
-                           .setLsb(0xb627646bf183e517L).build()
-
-    val providerRouterName = "Midonet Provider Router"
 }

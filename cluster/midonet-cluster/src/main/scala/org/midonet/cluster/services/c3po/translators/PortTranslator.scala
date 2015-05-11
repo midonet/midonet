@@ -47,16 +47,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
-        // Uplink networks don't exist in Midonet.
-        if (isOnUplinkNetwork(nPort)) return List()
+        // Floating IP ports and ports on uplink networks have no corresponding
+        // Midonet port.
+        if (isFloatingIpPort(nPort) || isOnUplinkNetwork(nPort)) return List()
 
-        val midoPortBldr: Port.Builder = if (isRouterGatewayPort(nPort)) {
-            newProviderRouterGwPortBldr(nPort.getId)
-        } else if (!isFloatingIpPort(nPort)) {
-            // For all other port types except floating IP port, create a normal
-            // bridge (network) port.
-            translateNeutronPort(nPort)
-        } else null
+        // All other ports have a corresponding Midonet network (bridge) port.
+        val midoPortBldr = translateNeutronPort(nPort)
 
         val portId = nPort.getId
         val midoOps = new MidoOpListBuffer
@@ -80,10 +76,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                               addDhcpServer)
             midoOps ++= configureMetaDataService(nPort)
         }
+
         addMidoOps(portContext, midoOps)
-
-        if (midoPortBldr != null) midoOps += Create(midoPortBldr.build)
-
+        midoOps += Create(midoPortBldr.build)
         midoOps.toList
     }
 
