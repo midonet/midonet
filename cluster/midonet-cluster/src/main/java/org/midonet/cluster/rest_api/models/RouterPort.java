@@ -22,22 +22,19 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.google.protobuf.Message;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.rest_api.annotation.ParentId;
-import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 
-@Resource(name = ResourceUris.PORTS, parents = { Router.class })
 public class RouterPort extends Port {
 
     @NotNull
@@ -48,7 +45,7 @@ public class RouterPort extends Port {
     @Max(32)
     public int networkLength;
 
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "port_subnet", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> portSubnet;
 
@@ -60,12 +57,11 @@ public class RouterPort extends Port {
     @ZoomField(name = "port_mac")
     public String portMac;
 
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
-    @ParentId
     public UUID routerId;
 
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
 
@@ -95,4 +91,16 @@ public class RouterPort extends Port {
         }
     }
 
+    public void create(UUID routerId) {
+        super.create();
+        this.routerId = routerId;
+    }
+
+    @Override
+    public void update(UUID id, Port from) {
+        super.update(id, from);
+        RouterPort routerPort = (RouterPort)from;
+        routerId = routerPort.routerId;
+        routeIds = routerPort.routeIds;
+    }
 }
