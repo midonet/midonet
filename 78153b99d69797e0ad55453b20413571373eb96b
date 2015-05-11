@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_348cdad9",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-11T14:14:25Z",
+      "side": 1,
+      "message": "@Ryu I have intentionally removed the @NotNull from here, because it\u0027s no problem if it\u0027s null, I think:\n\n- CREATE: the field is null, and it should be set as such on the zk creation (why not just forcefully null it?)\n- UPDATE: the id from the request is being copied into the dto, so the validation is jsut redundant",
+      "revId": "78153b99d69797e0ad55453b20413571373eb96b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
