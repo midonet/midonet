@@ -21,21 +21,17 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
-import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil;
 
-@XmlRootElement
-@Resource(name = ResourceUris.TUNNEL_ZONES)
 @ZoomClass(clazz = Topology.TunnelZone.class)
 public class TunnelZone extends UriResource {
 
@@ -63,12 +59,30 @@ public class TunnelZone extends UriResource {
     public TunnelZoneType type;
 
     @XmlTransient
-    @Subresource(name = ResourceUris.HOSTS)
     @ZoomField(name = "hosts")
     public List<TunnelZoneHost> hosts;
+    @JsonIgnore
+    @ZoomField(name = "host_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> hostIds;
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.TUNNEL_ZONES, id);
+    }
 
     public URI getHosts() {
         return relativeUri(ResourceUris.HOSTS);
     }
 
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+    }
+
+    public void update(UUID id, TunnelZone from) {
+        this.id = id;
+        hosts = from.hosts;
+        hostIds = from.hostIds;
+    }
 }

@@ -25,25 +25,19 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class Application {
 
-    private URI root;
-
-    public Application()  {
-        this.root = UriBuilder.fromPath("").build();
-    }
+    private final URI root;
 
     public Application(URI root)  {
         this.root = root;
     }
 
     private URI uriFor(String s) {
-        return UriBuilder.fromUri(root).path(s).build();
+        return UriBuilder.fromUri(root).segment(s).build();
     }
 
     private String templateFor(String s) {
         return uriFor(s).toString() + "/{id}";
     }
-
-    // TODO: can't we generate these?
 
     @XmlElement(name = "version")
     public String getVersion() {
