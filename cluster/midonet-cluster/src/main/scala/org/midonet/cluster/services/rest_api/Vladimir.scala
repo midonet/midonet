@@ -18,19 +18,28 @@ package org.midonet.cluster.services.rest_api
 
 import java.util
 
+import javax.ws.rs.core.MediaType
+import javax.ws.rs.ext.Provider
+import javax.ws.rs.{Consumes, Produces}
+
 import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
 import com.google.inject.{Guice, Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
+
+import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider
+import org.codehaus.jackson.map.DeserializationConfig.Feature._
+import org.codehaus.jackson.map.ObjectMapper
 import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.rest_api.resources.{MidonetResource, LoginResource, SystemStateResource}
+import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
 
 object Vladimir {
+
     final val RootUri = "/midonet-api"
     final val ContainerResponseFiltersClass =
         "com.sun.jersey.spi.container.ContainerResponseFilters"
@@ -40,6 +49,22 @@ object Vladimir {
         "com.sun.jersey.api.container.filter.LoggingFilter"
     final val POJOMappingFeatureClass =
         "com.sun.jersey.api.json.POJOMappingFeature"
+
+    @Provider
+    @Consumes(Array(MediaType.WILDCARD))
+    @Produces(Array(MediaType.WILDCARD))
+    class WildcardJacksonJaxbJsonProvider extends JacksonJaxbJsonProvider {
+
+        val mapper = new ObjectMapper()
+        mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+        mapper.configure(USE_GETTERS_AS_SETTERS, false)
+        configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
+
+        override def locateMapper(`type`: Class[_], mediaType: MediaType)
+        :ObjectMapper = {
+            mapper
+        }
+    }
 }
 
 class Vladimir @Inject()(nodeContext: ClusterNode.Context,
@@ -66,9 +91,14 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
             override def getInjector: Injector = {
                 Guice.createInjector(new JerseyServletModule {
                     override def configureServlets(): Unit = {
-                        bind(classOf[MidonetBackend]).toInstance(backend)
-                        bind(classOf[MidonetResource])
+                        bind(classOf[WildcardJacksonJaxbJsonProvider])
+                            .asEagerSingleton()
+                        bind(classOf[MidonetBackend])
+                            .toInstance(backend)
+                        bind(classOf[ApplicationResource])
+                        //bind(classOf[BridgeResource])
                         bind(classOf[LoginResource])
+                        bind(classOf[PortResource])
                         bind(classOf[SystemStateResource])
 
                         val initParams = new java.util.HashMap[String, String]

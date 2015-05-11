@@ -24,26 +24,18 @@ import java.util.UUID;
 import javax.annotation.Nonnull;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.Ownership;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
-import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil;
 
-@XmlRootElement
-@Resource(name = ResourceUris.HOSTS)
 @ZoomClass(clazz = Topology.Host.class)
 public class Host extends UriResource {
 
-    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -53,12 +45,10 @@ public class Host extends UriResource {
 
     public List<String> addresses;
 
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "interfaces")
-    @Subresource(name = ResourceUris.INTERFACES)
     public List<Interface> interfaces;
 
-    @Ownership
     public boolean alive;
 
     /*
@@ -75,7 +65,6 @@ public class Host extends UriResource {
     @ZoomField(name = "flooding_proxy_weight")
     public Integer floodingProxyWeight;
 
-    @Subresource(name = ResourceUris.PORTS)
     @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> portIds;
 
@@ -91,6 +80,11 @@ public class Host extends UriResource {
 
     public List<Interface> getHostInterfaces() {
         return interfaces;
+    }
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.HOSTS, id);
     }
 
     public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }

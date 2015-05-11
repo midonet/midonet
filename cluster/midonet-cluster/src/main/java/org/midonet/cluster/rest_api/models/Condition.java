@@ -41,7 +41,7 @@ import org.midonet.packets.MAC;
 import org.midonet.util.Range;
 import org.midonet.util.version.Since;
 
-public class Condition extends UriResource {
+public abstract class Condition extends UriResource {
 
     @ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
     public enum FragmentPolicy {
