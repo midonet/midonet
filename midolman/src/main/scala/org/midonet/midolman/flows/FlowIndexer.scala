@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.flows
 
-trait FlowLifecycle {
+trait FlowIndexer {
     def registerFlow(flow: ManagedFlow): Unit = { }
     def removeFlow(flow: ManagedFlow): Unit = { }
 }

@@ -17,7 +17,7 @@ package org.midonet.midolman.flows
 
 import java.util.{HashSet, ArrayList}
 
-import org.midonet.midolman.flows.FlowExpiration.Expiration
+import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.collection.{ObjectPool, PooledObject}

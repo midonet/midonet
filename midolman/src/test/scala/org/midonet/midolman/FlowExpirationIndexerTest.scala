@@ -23,13 +23,13 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
-import org.midonet.midolman.flows.{ManagedFlow, FlowExpiration, FlowLifecycle}
+import org.midonet.midolman.flows.{ManagedFlow, FlowExpirationIndexer, FlowIndexer}
 import org.midonet.midolman.util.MidolmanSpec
 
 @RunWith(classOf[JUnitRunner])
-class FlowExpirationTest extends MidolmanSpec {
+class FlowExpirationIndexerTest extends MidolmanSpec {
 
-    class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowLifecycle {
+    class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowIndexer {
         val log = Logger(NOPLogger.NOP_LOGGER)
 
         val maxFlows = 4
@@ -39,18 +39,18 @@ class FlowExpirationTest extends MidolmanSpec {
     }
 
     val removedFlows = Queue[ManagedFlow]()
-    val flowExpiration = new FlowAddRemover(removedFlows) with FlowExpiration
+    val flowExpiration = new FlowAddRemover(removedFlows) with FlowExpirationIndexer
 
     feature ("Flows are expired with a hard timeout") {
 
         scenario ("A flow is removed upon a hard timeout") {
-            val flow = createFlow(FlowExpiration.FLOW_EXPIRATION)
+            val flow = createFlow(FlowExpirationIndexer.FLOW_EXPIRATION)
             flowExpiration.registerFlow(flow)
             flow.currentRefCount should be (2)
-            clock.time = FlowExpiration.FLOW_EXPIRATION.value - 1
+            clock.time = FlowExpirationIndexer.FLOW_EXPIRATION.value - 1
             flowExpiration.checkFlowsExpiration(clock.tick)
             removedFlows should be (empty)
-            clock.time = FlowExpiration.FLOW_EXPIRATION.value
+            clock.time = FlowExpirationIndexer.FLOW_EXPIRATION.value
             flowExpiration.checkFlowsExpiration(clock.tick)
             removedFlows should have size 1
             removedFlows.dequeue() should be (flow)
@@ -58,14 +58,14 @@ class FlowExpirationTest extends MidolmanSpec {
         }
 
         scenario ("The removal of a flow is delayed") {
-            val flow = createFlow(FlowExpiration.FLOW_EXPIRATION)
+            val flow = createFlow(FlowExpirationIndexer.FLOW_EXPIRATION)
             flowExpiration.registerFlow(flow)
             flow.currentRefCount should be (2)
             flowExpiration.removeFlow(flow)
             flow.unref()
             flow.currentRefCount should be (1)
             removedFlows.clear()
-            clock.time = FlowExpiration.FLOW_EXPIRATION.value + 1
+            clock.time = FlowExpirationIndexer.FLOW_EXPIRATION.value + 1
             flowExpiration.checkFlowsExpiration(clock.tick)
             removedFlows should have size 1
             removedFlows.dequeue() should be (flow)
@@ -73,10 +73,10 @@ class FlowExpirationTest extends MidolmanSpec {
         }
 
         scenario ("There are multiple expiration types") {
-            flowExpiration.registerFlow(createFlow(FlowExpiration.ERROR_CONDITION_EXPIRATION))
-            flowExpiration.registerFlow(createFlow(FlowExpiration.FLOW_EXPIRATION))
-            flowExpiration.registerFlow(createFlow(FlowExpiration.STATEFUL_FLOW_EXPIRATION))
-            flowExpiration.registerFlow(createFlow(FlowExpiration.TUNNEL_FLOW_EXPIRATION))
+            flowExpiration.registerFlow(createFlow(FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION))
+            flowExpiration.registerFlow(createFlow(FlowExpirationIndexer.FLOW_EXPIRATION))
+            flowExpiration.registerFlow(createFlow(FlowExpirationIndexer.STATEFUL_FLOW_EXPIRATION))
+            flowExpiration.registerFlow(createFlow(FlowExpirationIndexer.TUNNEL_FLOW_EXPIRATION))
             clock.time = Long.MaxValue
             flowExpiration.checkFlowsExpiration(clock.tick)
             removedFlows should have size 4
@@ -87,12 +87,12 @@ class FlowExpirationTest extends MidolmanSpec {
 
         scenario ("The oldest flows are removed") {
             val flows = List(
-                createFlow(FlowExpiration.FLOW_EXPIRATION),
-                createFlow(FlowExpiration.FLOW_EXPIRATION),
-                createFlow(FlowExpiration.FLOW_EXPIRATION),
-                createFlow(FlowExpiration.FLOW_EXPIRATION),
-                createFlow(FlowExpiration.FLOW_EXPIRATION),
-                createFlow(FlowExpiration.FLOW_EXPIRATION))
+                createFlow(FlowExpirationIndexer.FLOW_EXPIRATION),
+                createFlow(FlowExpirationIndexer.FLOW_EXPIRATION),
+                createFlow(FlowExpirationIndexer.FLOW_EXPIRATION),
+                createFlow(FlowExpirationIndexer.FLOW_EXPIRATION),
+                createFlow(FlowExpirationIndexer.FLOW_EXPIRATION),
+                createFlow(FlowExpirationIndexer.FLOW_EXPIRATION))
             flows foreach flowExpiration.registerFlow
             flowExpiration.checkFlowsExpiration(0)
             removedFlows should have size 2
@@ -101,7 +101,7 @@ class FlowExpirationTest extends MidolmanSpec {
         }
     }
 
-    private def createFlow(exp: FlowExpiration.Expiration) = {
+    private def createFlow(exp: FlowExpirationIndexer.Expiration) = {
         val flow = new ManagedFlow(null)
         flow.ref()
         flow.absoluteExpirationNanos = exp.value

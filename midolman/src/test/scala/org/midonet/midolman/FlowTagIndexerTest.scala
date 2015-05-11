@@ -24,14 +24,14 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.midolman.flows.{ManagedFlow, FlowInvalidation, FlowLifecycle}
+import org.midonet.midolman.flows.{ManagedFlow, FlowTagIndexer, FlowIndexer}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
-class FlowInvalidationTest extends MidolmanSpec {
+class FlowTagIndexerTest extends MidolmanSpec {
 
-    class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowLifecycle {
+    class FlowAddRemover(flowsRemoved: Queue[ManagedFlow]) extends FlowIndexer {
         val log = Logger(NOPLogger.NOP_LOGGER)
 
         override def removeFlow(flow: ManagedFlow): Unit =
@@ -39,7 +39,7 @@ class FlowInvalidationTest extends MidolmanSpec {
     }
 
     val removedFlows = Queue[ManagedFlow]()
-    val flowInvalidation = new FlowAddRemover(removedFlows) with FlowInvalidation
+    val flowInvalidation = new FlowAddRemover(removedFlows) with FlowTagIndexer
 
     val tag1 = FlowTagger.tagForDpPort(1)
     val tag2 = FlowTagger.tagForDpPort(2)
