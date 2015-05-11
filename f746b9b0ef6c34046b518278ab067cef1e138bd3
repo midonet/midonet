@@ -22,6 +22,57 @@
       "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_aebd1bda",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-11T11:00:30Z",
+      "side": 1,
+      "message": "Just curious: are we expecting changes on the uplink networks? should we log.warn in case any of these happen?",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0e938f5b",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-11T11:00:30Z",
+      "side": 1,
+      "message": "where are the tests here moved to?",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6e9e8364",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 986,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-11T11:00:30Z",
+      "side": 1,
+      "message": "where does the removed test move to?",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
