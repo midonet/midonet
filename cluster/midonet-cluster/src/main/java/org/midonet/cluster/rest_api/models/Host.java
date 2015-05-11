@@ -91,10 +91,12 @@ public class Host extends UriResource {
         }
     }
 
+    @Since("3")
     public List<Interface> getHostInterfaces() {
         return interfaces;
     }
 
+    @Until("3")
     public URI getInterfaces() { return getUriFor(ResourceUris.INTERFACES); }
 
     public URI getPorts() { return getUriFor(ResourceUris.PORTS); }

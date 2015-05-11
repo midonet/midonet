@@ -34,13 +34,16 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.host.Interface;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.conversion.InterfaceDataConverter;
+import org.midonet.cluster.rest_api.models.Interface;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.cluster.rest_api.conversion.InterfaceDataConverter.*;
 
 @RequestScoped
 public class InterfaceResource extends AbstractResource {
@@ -66,17 +69,16 @@ public class InterfaceResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
-    public List<Interface> list()
-            throws StateAccessException, SerializationException {
+    public List<Interface> list() throws StateAccessException,
+                                         SerializationException,
+                                         IllegalAccessException {
 
         List<org.midonet.cluster.data.host.Interface> ifConfigs =
                 dataClient.interfacesGetByHost(hostId);
         List<Interface> interfaces = new ArrayList<>();
 
         for (org.midonet.cluster.data.host.Interface ifConfig : ifConfigs) {
-            Interface iface = new Interface(hostId, ifConfig);
-            iface.setBaseUri(getBaseUri());
-            interfaces.add(iface);
+            interfaces.add(fromData(ifConfig, getBaseUri()));
         }
 
         return interfaces;
@@ -95,18 +97,17 @@ public class InterfaceResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_INTERFACE_JSON,
                   MediaType.APPLICATION_JSON})
     public Interface get(@PathParam("name") String name)
-        throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               IllegalAccessException {
 
         org.midonet.cluster.data.host.Interface ifaceConfig =
                 dataClient.interfacesGet(hostId, name);
 
         if (ifaceConfig == null) {
             throw new NotFoundHttpException(
-                    "The requested resource was not found.");
+                    "The interface '" + name + "' was not found.");
         }
-        Interface iface = new Interface(hostId, ifaceConfig);
-        iface.setBaseUri(getBaseUri());
 
-        return iface;
+        return InterfaceDataConverter.fromData(ifaceConfig, getBaseUri());
     }
 }
