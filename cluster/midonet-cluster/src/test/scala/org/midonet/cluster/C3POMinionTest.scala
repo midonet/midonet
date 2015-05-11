@@ -41,10 +41,11 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.data.Bridge
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner.ROUTER_INTERFACE
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
@@ -575,6 +576,69 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def deleteHost(hostId: UUID): Unit = {
         backend.ownershipStore.delete(classOf[Host], hostId, hostId)
     }
+
+    protected def createTenantNetwork(taskId: Int, nwId: UUID,
+                                      external: Boolean = false): Unit = {
+        val json = networkJson(nwId, name = "tenant-network-" + nwId,
+                               tenantId = "tenant").toString
+        insertCreateTask(taskId, NetworkType, json, nwId)
+    }
+
+    protected def createUplinkNetwork(taskId: Int, nwId: UUID): Unit = {
+        val json = networkJson(nwId, name = "uplink-network-" + nwId,
+                               uplink = true).toString
+        insertCreateTask(taskId, NetworkType, json, nwId)
+    }
+
+    protected def createRouter(taskId: Int, routerId: UUID,
+                               gwPortId: UUID = null): Unit = {
+        val json = routerJson(routerId, name = "router-" + routerId,
+                              gwPortId = gwPortId).toString
+        insertCreateTask(taskId, RouterType, json, routerId)
+    }
+
+    protected def createSubnet(taskId: Int, subnetId: UUID,
+                               networkId: UUID, cidr: String): Unit = {
+        val json = subnetJson(subnetId, networkId, cidr = cidr).toString
+        insertCreateTask(taskId, SubnetType, json, subnetId)
+    }
+
+    protected def createDhcpPort(taskId: Int, portId: UUID, networkId: UUID,
+                                 subnetId: UUID, ipAddr: String): Unit = {
+        val json = portJson(portId, networkId, deviceOwner = DeviceOwner.DHCP,
+                            fixedIps = List(IPAlloc(ipAddr, subnetId.toString)))
+        insertCreateTask(taskId, PortType, json.toString, portId)
+    }
+
+    protected def createRouterGatewayPort(taskId: Int, portId: UUID,
+                                          networkId: UUID, routerId: UUID,
+                                          gwIpAddr: String, subnetId: UUID)
+    : Unit = {
+        val gwIpAlloc = IPAlloc(gwIpAddr, subnetId.toString)
+        val json = portJson(portId, networkId, fixedIps = List(gwIpAlloc),
+                            deviceId = routerId,
+                            deviceOwner = DeviceOwner.ROUTER_GATEWAY)
+        insertCreateTask(taskId, PortType, json.toString, portId)
+    }
+
+    protected def createRouterInterfacePort(taskId: Int, portId: UUID,
+                                            networkId: UUID, routerId: UUID,
+                                            ipAddr: String, macAddr: String,
+                                            subnetId: UUID, hostId: UUID = null,
+                                            ifName: String = null): Unit = {
+        val json = portJson(portId, networkId, deviceId = routerId,
+                            deviceOwner = DeviceOwner.ROUTER_INTERFACE, macAddr = macAddr,
+                            fixedIps = List(IPAlloc(ipAddr, subnetId.toString)),
+                            hostId = hostId, ifName = ifName)
+        insertCreateTask(taskId, PortType, json.toString, portId)
+    }
+
+    protected def createRouterInterface(taskId: Int, routerId: UUID,
+                                        portId: UUID, subnetId: UUID): Unit = {
+        val json = routerInterfaceJson(routerId, portId, subnetId).toString
+        insertCreateTask(taskId, RouterInterfaceType, json, routerId)
+    }
+
 }
 
 @RunWith(classOf[JUnitRunner])
