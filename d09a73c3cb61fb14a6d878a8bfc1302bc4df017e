@@ -50,6 +50,23 @@
       "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1400be32",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-11T14:06:55Z",
+      "side": 1,
+      "message": "this name is longer and less informative than zkConnWatcher",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
