@@ -1,5 +1,6 @@
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
@@ -25,7 +26,6 @@ import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 
-@Resource(name = ResourceUris.ROUTES, parents = { Router.class })
 @ZoomClass(clazz = Topology.Route.class)
 public class Route extends UriResource {
 
@@ -36,11 +36,9 @@ public class Route extends UriResource {
         @ZoomEnumValue(value = "REJECT")Reject
     }
 
-    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @ParentId
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;
 
@@ -84,6 +82,15 @@ public class Route extends UriResource {
 
     @Min(0)
     public int weight;
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.ROUTES, id);
+    }
+
+    public URI getRouter() {
+        return absoluteUri(ResourceUris.ROUTERS, routerId);
+    }
 
     @Override
     public void afterFromProto(Message message) {

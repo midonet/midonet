@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
@@ -32,14 +33,11 @@ import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 
 @XmlRootElement
-@Resource(name = ResourceUris.HOSTS, parents = { TunnelZone.class })
 @ZoomClass(clazz = Topology.TunnelZone.HostToIp.class)
 public class TunnelZoneHost extends UriResource {
 
-    @ParentId
     public UUID tunnelZoneId;
 
-    @ResourceId
     @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
     public UUID hostId;
 
@@ -48,4 +46,8 @@ public class TunnelZoneHost extends UriResource {
     @ZoomField(name = "ip", converter = IPAddressUtil.Converter.class)
     public String ipAddress;
 
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.HOSTS, hostId);
+    }
 }

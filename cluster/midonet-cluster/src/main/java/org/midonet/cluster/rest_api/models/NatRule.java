@@ -17,9 +17,10 @@
 package org.midonet.cluster.rest_api.models;
 
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.google.protobuf.Message;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
@@ -33,10 +34,10 @@ public abstract class NatRule extends Rule {
 
     @NotNull
     public String flowAction;
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "dnat")
     public boolean dnat;
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "reverse")
     public boolean reverse;
 

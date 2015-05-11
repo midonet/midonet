@@ -31,11 +31,9 @@ import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil;
 
 @XmlRootElement(name = "router")
-@Resource(name = ResourceUris.ROUTERS)
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
 
-    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -57,17 +55,20 @@ public class Router extends UriResource {
     public UUID loadBalancerId;
 
     @XmlTransient
-    @Subresource(name = ResourceUris.PORTS)
     @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> portIds;
 
     @XmlTransient
-    @Subresource(name = ResourceUris.ROUTES)
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
 
     public Router() {
         adminStateUp = true;
+    }
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.ROUTERS, id);
     }
 
     public URI getPorts() {

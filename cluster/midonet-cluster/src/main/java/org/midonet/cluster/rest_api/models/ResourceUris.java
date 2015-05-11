@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import org.codehaus.jackson.jaxrs.JacksonJsonProvider;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 

@@ -16,27 +16,19 @@
 
 package org.midonet.cluster.rest_api.models;
 
-import java.lang.reflect.Type;
+import java.net.URI;
+import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
-import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.MACUtil;
-import org.midonet.packets.MAC;
 
-@XmlRootElement
-@Resource(name = ResourceUris.DHCP_HOSTS, parents = { DhcpSubnet.class })
 @ZoomClass(clazz = Topology.Dhcp.Host.class)
 public class DhcpHost extends UriResource {
 
-    @ResourceId
     @ZoomField(name = "mac")
     public String macAddr;
     @ZoomField(name = "ip_address", converter = IPAddressUtil.Converter.class)
@@ -44,4 +36,8 @@ public class DhcpHost extends UriResource {
     @ZoomField(name = "name")
     public String name;
 
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.DHCP_HOSTS, macAddr);
+    }
 }
