@@ -18,6 +18,7 @@ package org.midonet.api.host.rest_api;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -35,20 +36,27 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
+
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.host.TunnelZone;
 import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.VTEP;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.TunnelZone;
 import org.midonet.event.topology.TunnelZoneEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.cluster.rest_api.conversion.TunnelZoneDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.TunnelZoneDataConverter.toData;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class TunnelZoneResource extends AbstractResource {
@@ -70,17 +78,13 @@ public class TunnelZoneResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
                   MediaType.APPLICATION_JSON})
-    public List<TunnelZone> list() throws StateAccessException,
-            SerializationException {
+    public List<TunnelZone> list() throws Exception {
 
         List<org.midonet.cluster.data.TunnelZone>
-                tunnelZoneDataList = dataClient.tunnelZonesGetAll();
+                tzDataList = dataClient.tunnelZonesGetAll();
         List<TunnelZone> tunnelZones = new ArrayList<>();
-        for (org.midonet.cluster.data.TunnelZone zoneData :
-                tunnelZoneDataList) {
-            TunnelZone zone = new TunnelZone(zoneData);
-            zone.setBaseUri(getBaseUri());
-            tunnelZones.add(zone);
+        for (org.midonet.cluster.data.TunnelZone zoneData : tzDataList) {
+            tunnelZones.add(fromData(zoneData, getBaseUri()));
         }
         return tunnelZones;
     }
@@ -90,19 +94,12 @@ public class TunnelZoneResource extends AbstractResource {
     @Path("{id}")
     @Produces({VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
                   MediaType.APPLICATION_JSON})
-    public TunnelZone get(@PathParam("id") UUID id)
-        throws StateAccessException,  SerializationException {
+    public TunnelZone get(@PathParam("id") UUID id) throws Exception {
 
         if (!dataClient.tunnelZonesExists(id)) {
-            throw new NotFoundHttpException();
+            throwNotFound(id, "tunnel zone");
         }
-
-        org.midonet.cluster.data.TunnelZone zoneData =
-                dataClient.tunnelZonesGet(id);
-        TunnelZone zone = new TunnelZone(zoneData);
-        zone.setBaseUri(getBaseUri());
-
-        return zone;
+        return fromData(dataClient.tunnelZonesGet(id), getBaseUri());
     }
 
     @DELETE
@@ -128,6 +125,19 @@ public class TunnelZoneResource extends AbstractResource {
         tunnelZoneEvent.delete(id);
     }
 
+    private void throwIfNameUsed(String name) throws
+                                              SerializationException,
+                                              StateAccessException,
+                                              BadRequestHttpException {
+        for (org.midonet.cluster.data.TunnelZone tz :
+            dataClient.tunnelZonesGetAll()) {
+            if (tz.getName().equalsIgnoreCase(name)) {
+                throw new BadRequestHttpException(
+                    getMessage(MessageProperty.UNIQUE_TUNNEL_ZONE_NAME_TYPE));
+            }
+        }
+    }
+
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON,
@@ -135,9 +145,11 @@ public class TunnelZoneResource extends AbstractResource {
     public Response create(TunnelZone tunnelZone)
             throws StateAccessException, SerializationException {
 
-        validate(tunnelZone, TunnelZone.TunnelZoneCreateGroupSequence.class);
+        validate(tunnelZone);
 
-        UUID id = dataClient.tunnelZonesCreate(tunnelZone.toData());
+        throwIfNameUsed(tunnelZone.name);
+
+        UUID id = dataClient.tunnelZonesCreate(toData(tunnelZone));
         tunnelZoneEvent.create(id, dataClient.tunnelZonesGet(id));
         return Response.created(
                 ResourceUriBuilder.getTunnelZone(getBaseUri(), id))
@@ -152,11 +164,13 @@ public class TunnelZoneResource extends AbstractResource {
     public void update(@PathParam("id") UUID id, TunnelZone tunnelZone)
             throws StateAccessException, SerializationException {
 
-        tunnelZone.setId(id);
+        tunnelZone.id = id;
 
-        validate(tunnelZone, TunnelZone.TunnelZoneUpdateGroupSequence.class);
+        validate(tunnelZone);
 
-        dataClient.tunnelZonesUpdate(tunnelZone.toData());
+        throwIfNameUsed(tunnelZone.name);
+
+        dataClient.tunnelZonesUpdate(toData(tunnelZone));
         tunnelZoneEvent.update(id, dataClient.tunnelZonesGet(id));
     }
 

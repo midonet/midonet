@@ -112,6 +112,9 @@ public abstract class UriResource extends ZoomObject {
             }
         } else if (isUriResourceList(field.getGenericType())) {
             List<UriResource> list = (List<UriResource>) field.get(this);
+            if (list == null) {
+                return;
+            }
             for (UriResource resource : list) {
                 resource.setBaseUri(uri);
             }

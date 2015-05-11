@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
@@ -92,7 +93,8 @@ public class TestTunnelZone {
             tunnelZone2.setName("tz1-name");
             DtoError error = dtoResource.postAndVerifyBadRequest(tunnelZonesUri,
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tunnelZone2);
-            Assert.assertEquals(1, error.getViolations().size());
+            assertErrorMatches(error,
+                               MessageProperty.UNIQUE_TUNNEL_ZONE_NAME_TYPE);
 
             // There should only be one
             DtoTunnelZone[] tunnelZones = dtoResource.getAndVerifyOk(

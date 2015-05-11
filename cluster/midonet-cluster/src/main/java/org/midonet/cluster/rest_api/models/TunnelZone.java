@@ -39,27 +39,26 @@ import org.midonet.cluster.util.UUIDUtil;
 @ZoomClass(clazz = Topology.TunnelZone.class)
 public class TunnelZone extends UriResource {
 
+    public static final int MIN_TUNNEL_ZONE_NAME_LEN = 1;
+    public static final int MAX_TUNNEL_ZONE_NAME_LEN = 255;
+
     @ZoomEnum(clazz = Topology.TunnelZone.Type.class)
     public enum TunnelZoneType {
         @ZoomEnumValue(value = "GRE") gre,
         @ZoomEnumValue(value = "VXLAN") vxlan,
-        @ZoomEnumValue(value = "VTEP") vtep
+        @ZoomEnumValue(value = "VTEP") vtep;
     }
 
-    @NotNull
     @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
     @NotNull
-    @Size(min = 1, max = 255)
-    // TODO: @UniqueTunnelZoneName
     @ZoomField(name = "name")
+    @Size(min = MIN_TUNNEL_ZONE_NAME_LEN, max = MAX_TUNNEL_ZONE_NAME_LEN)
     public String name;
 
-    // TODO: fix this
     @NotNull
-    // TODO: @AllowedValue(values = { TunnelZoneType.GRE, TunnelZoneType.VxLAN, TunnelZoneType.VTEP })
     @ZoomField(name = "type")
     public TunnelZoneType type;
 
