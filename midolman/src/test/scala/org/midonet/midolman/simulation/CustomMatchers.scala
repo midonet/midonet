@@ -146,7 +146,7 @@ trait CustomMatchers {
     implicit class FlowInvalidatorOps(val flowInvalidator: FlowInvalidator) {
         def clear(): List[FlowTag] = {
             val invalidatedTags = mutable.ListBuffer[FlowTag]()
-            flowInvalidator.processAll(new FlowInvalidation {
+            flowInvalidator.process(new FlowInvalidation {
                 override val log: Logger = Logger(NOPLogger.NOP_LOGGER)
                 override def invalidateFlowsFor(tag: FlowTag) = {
                     invalidatedTags += tag

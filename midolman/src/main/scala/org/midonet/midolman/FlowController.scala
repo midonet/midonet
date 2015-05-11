@@ -95,11 +95,11 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
 
     override def shouldProcess() =
         completedFlowOperations.size > 0 ||
-        flowInvalidator.needsToInvalidateTags(id)
+        flowInvalidator.hasInvalidations
 
     override def process(): Unit = {
         processCompletedFlowOperations()
-        flowInvalidator.process(id, this)
+        flowInvalidator.process(this)
         checkFlowsExpiration(clock.tick)
     }
 
