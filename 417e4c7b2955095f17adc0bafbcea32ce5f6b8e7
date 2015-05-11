@@ -69,6 +69,30 @@
       "revId": "417e4c7b2955095f17adc0bafbcea32ce5f6b8e7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b3caa418",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-11T08:23:28Z",
+      "side": 1,
+      "message": "Just wondering. Did you actually see error messages due to not checking whether the executor is shutting down here? If in some race it can still result in an error but that\u0027s harmless as you say, there\u0027s not much point adding check here, either?",
+      "parentUuid": "1a106d94_332994e6",
+      "range": {
+        "startLine": 219,
+        "startChar": 34,
+        "endLine": 219,
+        "endChar": 54
+      },
+      "revId": "417e4c7b2955095f17adc0bafbcea32ce5f6b8e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
