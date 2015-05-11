@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_f3341c4b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-11T08:01:05Z",
+      "side": 1,
+      "message": "not",
+      "range": {
+        "startLine": 9,
+        "startChar": 60,
+        "endLine": 9,
+        "endChar": 62
+      },
+      "revId": "417e4c7b2955095f17adc0bafbcea32ce5f6b8e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_534370ae",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-11T08:01:05Z",
+      "side": 1,
+      "message": "Can\u0027t there be a race condition here? The executor has not shut down yet but when you call unsubscribe it has. Is this a problem?",
+      "range": {
+        "startLine": 219,
+        "startChar": 34,
+        "endLine": 219,
+        "endChar": 54
+      },
+      "revId": "417e4c7b2955095f17adc0bafbcea32ce5f6b8e7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
