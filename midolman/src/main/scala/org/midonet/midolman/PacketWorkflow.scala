@@ -30,8 +30,8 @@ import org.slf4j.{LoggerFactory, MDC}
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
-import org.midonet.midolman.flows.FlowExpiration.Expiration
-import org.midonet.midolman.flows.{FlowExpiration, FlowInvalidator}
+import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
+import org.midonet.midolman.flows.{FlowExpirationIndexer, FlowInvalidator}
 import org.midonet.midolman.logging.{ActorLogWithoutPath, FlowTracingContext}
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -127,7 +127,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
                 processSimulationResult(context, TemporaryDrop)
             case dpPort =>
                 addActionsForTunnelPacket(context, dpPort)
-                addTranslatedFlow(context, FlowExpiration.TUNNEL_FLOW_EXPIRATION)
+                addTranslatedFlow(context, FlowExpirationIndexer.TUNNEL_FLOW_EXPIRATION)
         }
     }
 }
@@ -303,7 +303,7 @@ class PacketWorkflow(
         try {
             if (context.ingressed) {
                 context.prepareForDrop()
-                addTranslatedFlow(context, FlowExpiration.ERROR_CONDITION_EXPIRATION)
+                addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
             }
         } catch {
             case e: Exception =>
@@ -490,9 +490,9 @@ class PacketWorkflow(
                 NoOp
             case TemporaryDrop =>
                 context.clearFlowTags()
-                addTranslatedFlow(context, FlowExpiration.ERROR_CONDITION_EXPIRATION)
+                addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
             case Drop =>
-                addTranslatedFlow(context, FlowExpiration.FLOW_EXPIRATION)
+                addTranslatedFlow(context, FlowExpirationIndexer.FLOW_EXPIRATION)
         }
         resultLogger.debug(s"Simulation finished with result $res: " +
                            s"match ${context.origMatch}, flow actions " +
@@ -506,9 +506,9 @@ class PacketWorkflow(
             val expiration =
                 if (context.containsFlowState) {
                     applyState(context)
-                    FlowExpiration.STATEFUL_FLOW_EXPIRATION
+                    FlowExpirationIndexer.STATEFUL_FLOW_EXPIRATION
                 } else {
-                    FlowExpiration.FLOW_EXPIRATION
+                    FlowExpirationIndexer.FLOW_EXPIRATION
                 }
             addTranslatedFlow(context, expiration)
         } else {

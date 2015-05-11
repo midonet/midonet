@@ -22,7 +22,7 @@ import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.flows.FlowInvalidation
+import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.simulation.{PacketContext, PortGroup}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
@@ -93,7 +93,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                                        storage: FlowStateStorage,
                                        hostId: UUID,
                                        underlay: UnderlayResolver,
-                                       flowInvalidation: FlowInvalidation,
+                                       flowInvalidation: FlowTagIndexer,
                                        tos: Byte) {
     import FlowStatePackets._
 
@@ -377,7 +377,7 @@ class FlowStateReplicator(
         storage: FlowStateStorage,
         hostId: UUID,
         underlay: UnderlayResolver,
-        flowInvalidation: FlowInvalidation,
+        flowInvalidation: FlowTagIndexer,
         tso: Byte)(implicit as: ActorSystem)
         extends BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
                                         storage, hostId, underlay,

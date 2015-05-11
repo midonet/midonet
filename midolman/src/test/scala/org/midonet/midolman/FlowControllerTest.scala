@@ -25,7 +25,7 @@ import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.flows.{ManagedFlow, FlowExpiration}
+import org.midonet.midolman.flows.{ManagedFlow, FlowExpirationIndexer}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
@@ -107,7 +107,7 @@ class FlowControllerTest extends MidolmanSpec {
             context addFlowRemovedCallback new Callback0 {
                 def call() = flowRemoved = true
             }
-            flowController.tryAddFlow(context, FlowExpiration.FLOW_EXPIRATION)
+            flowController.tryAddFlow(context, FlowExpirationIndexer.FLOW_EXPIRATION)
             context.flow
         }
 

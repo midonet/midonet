@@ -35,7 +35,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
-import org.midonet.midolman.flows.{FlowInvalidation, FlowInvalidator}
+import org.midonet.midolman.flows.{FlowTagIndexer, FlowInvalidator}
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProviderService
@@ -92,7 +92,7 @@ trait MidolmanServices {
     def flowInvalidator =
         injector.getInstance(classOf[FlowInvalidator])
 
-    val mockFlowInvalidation = new FlowInvalidation() {
+    val mockFlowInvalidation = new FlowTagIndexer() {
         val log = Logger(NOPLogger.NOP_LOGGER)
         var tags = List[FlowTag]()
 
