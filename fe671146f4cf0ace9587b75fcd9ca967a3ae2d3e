@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_19947789",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-11T12:44:02Z",
+      "side": 1,
+      "message": "I think this can now be replaced by Arrays.equals(vips, otherVips)",
+      "revId": "fe671146f4cf0ace9587b75fcd9ca967a3ae2d3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
