@@ -51,7 +51,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         if (isOnUplinkNetwork(nPort)) return List()
 
         val midoPortBldr: Port.Builder = if (isRouterGatewayPort(nPort)) {
-            newProviderRouterGwPortBldr(nPort.getId)
+            newExternalNetworkGwPortBldr(nPort)
         } else if (!isFloatingIpPort(nPort)) {
             // For all other port types except floating IP port, create a normal
             // bridge (network) port.

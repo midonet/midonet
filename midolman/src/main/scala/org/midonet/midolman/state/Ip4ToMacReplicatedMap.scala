@@ -43,16 +43,13 @@ object Ip4ToMacReplicatedMap {
 
     def getAsMapBase[K, V](dir: Directory,
                            mapEntryConvert: (String, String, String) => (K, V))
-    : collection.immutable.Map[K, V] =
-        ZKExceptions.adapt {
-                               def makeMapEntry(path: String) = {
-                                   val parts: Array[String] =
-                                       ReplicatedMap.getKeyValueVersion(path)
-                                   mapEntryConvert(parts(0), parts(1), parts(2))
-                               }
-                               dir.getChildren("/", null).map(makeMapEntry)
-                                   .toMap
-                           }
+    : collection.immutable.Map[K, V] = ZKExceptions.adapt {
+        def makeMapEntry(path: String) = {
+            val parts = ReplicatedMap.getKeyValueVersion(path)
+            mapEntryConvert(parts(0), parts(1), parts(2))
+        }
+        dir.getChildren("/", null).map(makeMapEntry).toMap
+    }
 
     /**
      * Check if a given ip->mac pair was explicitly set.

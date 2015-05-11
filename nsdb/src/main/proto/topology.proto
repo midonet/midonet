@@ -88,6 +88,9 @@ message Dhcp {
     repeated Host hosts = 9;
 
     optional bool enabled = 10;
+
+    // Backreference
+    optional UUID router_gw_port_id = 101;
 }
 
 message Router {
@@ -155,8 +158,11 @@ message Port {
     optional UUID bgp_id = 17;
     repeated UUID route_ids = 18;
 
+    // Specific to router interface ports (not used for router gateway ports).
+    optional UUID dhcp_id = 19;
+
     // VXLAN port specific
-    optional UUID vtep_id = 19;
+    optional UUID vtep_id = 20;
 
     // Backreferences
     repeated UUID rule_ids = 101;
@@ -329,7 +335,7 @@ message TunnelZone {
     repeated HostToIp hosts = 4; // Hosts in this zone
 
     // Tunnel zone member host IDs.
-    // Note: ZOOM cannot yet handle referential integrity from / to a nested
+    // Note: ZOOM cannot yet enforce referential integrity from / to a nested
     // message field, therefore the information is duplicated here and in the
     // "hosts" field above.
     repeated UUID host_ids = 5;
