@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_53bed0ae",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-11T07:41:30Z",
+      "side": 1,
+      "message": "I don\u0027t understand what you mean by that.",
+      "parentUuid": "1a106d94_28980377",
+      "range": {
+        "startLine": 47,
+        "startChar": 55,
+        "endLine": 47,
+        "endChar": 61
+      },
+      "revId": "18596864f58b96d7ae71614acae36a52074f2222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c8adef9c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
         "patchSetId": 5
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_13c8d853",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-11T07:41:30Z",
+      "side": 1,
+      "message": "It was not necessarily a conscious decision to not respect order. For most simulation objects built that have arrays the order of the elements is not important. So it might be better to just go from array to set for those simulation objects. That would be done in a later patch of course.",
+      "parentUuid": "1a106d94_c8adef9c",
+      "revId": "18596864f58b96d7ae71614acae36a52074f2222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e8aa6b83",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
         "patchSetId": 5
@@ -53,6 +95,24 @@
       "writtenOn": "2015-05-10T11:54:34Z",
       "side": 1,
       "message": "why are we creating temporary sets to calculate the hash code?",
+      "revId": "18596864f58b96d7ae71614acae36a52074f2222",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_73c30c38",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-11T07:41:30Z",
+      "side": 1,
+      "message": "So that two pools with the same members appearing in different orders have the same hash code. We can get rid of that if we make the array a set in the pool class.",
+      "parentUuid": "1a106d94_e8aa6b83",
       "revId": "18596864f58b96d7ae71614acae36a52074f2222",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
