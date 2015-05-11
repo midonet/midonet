@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_14d9def2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-11T14:05:04Z",
+      "side": 1,
+      "message": "I find the new name more confusing. This objects are the routes we advertise to others, not necessarily entries in our routing table. The name is ambiguous. I\u0027d rather have AdRoute, or AdvertisedRoute, for example.",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b4f1ea6c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 339,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-11T14:05:04Z",
+      "side": 1,
+      "message": "why?",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_94f4ae5b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-11T14:05:04Z",
+      "side": 1,
+      "message": "why?",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
