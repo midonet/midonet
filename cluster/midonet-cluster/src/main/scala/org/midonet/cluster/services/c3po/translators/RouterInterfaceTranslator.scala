@@ -41,9 +41,9 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         // A NeutronRouterInterface is a link between a Neutron router and a
         // Neutron network, so we will need to create a Midonet port on the
         // router with ID nPort.getDeviceId. If nPort is on an uplink network,
-        // then there is no corresponding Midonet network, and the router is
-        // called an edge router.
-        val isEdgeRouter = isOnUplinkNetwork(nPort)
+        // then there is no corresponding Midonet network, and the router port
+        // is bound to a host interface.
+        val isUplink = isOnUplinkNetwork(nPort)
 
         // The router ID is given as nPort's device ID. The deviceId property is
         // a String because it's not always just a UUID (e.g. for DHCP ports
@@ -56,10 +56,18 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
 
         val routerPortBldr = newRouterPortBldr(routerPortId, routerId)
 
-        // For non-edge routers, we connect the router port to the network port,
-        // which has the same ID as nPort.
-        if (!isEdgeRouter)
-            routerPortBldr.setPeerId(nPort.getId)
+        if (isUplink) {
+            // The port will be bound to a host rather than connected to a
+            // network port. Add it to the edge router's port group.
+            routerPortBldr.addPortGroupIds(PortManager.portGroupId(routerId))
+        } else {
+            // Connect the edge router port to the network port, which has the
+            // same ID as nPort. Also add a reference to the DHCP. Zoom will add
+            // a backreference from the DHCP to the edge router port, allowing
+            // us to find it easily when creating a tenant router gateway.
+            routerPortBldr.setDhcpId(ri.getSubnetId)
+                          .setPeerId(nPort.getId)
+        }
 
         val ns = storage.get(classOf[NeutronSubnet], ri.getSubnetId).await()
         val portSubnet = IPSubnetUtil.toProto(ns.getCidr)
@@ -90,20 +98,20 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         midoOps += Create(routerPort)
         midoOps += Create(rifRoute)
 
-        if (isEdgeRouter) {
+        if (isUplink) {
             midoOps ++= bindPortOps(routerPort, nPort.getHostId,
                                     nPort.getProfile.getInterfaceName)
         } else {
-            midoOps ++= createMetadataServiceRoutes(
+            midoOps ++= createMetadataServiceRoute(
                 routerPortId, nPort.getNetworkId, portSubnet)
         }
 
         midoOps.toList
     }
 
-    private def createMetadataServiceRoutes(routerPortId: UUID,
-                                            networkId: UUID,
-                                            subnetAddr: IPSubnet)
+    private def createMetadataServiceRoute(routerPortId: UUID,
+                                           networkId: UUID,
+                                           subnetAddr: IPSubnet)
     : Option[MidoOp[Route]] = {
         // If a DHCP port exists, add a Meta Data Service Route. This requires
         // fetching all ports from ZK. We await the futures in parallel to

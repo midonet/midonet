@@ -109,10 +109,12 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
             device1 shouldBeDeviceOf portGroup1
 
             When("The port group is updated")
+            val port = createRouterPort()
+            store.create(port)
             val portGroup2 = portGroup1
                 .setName("port-group")
                 .setStateful(true)
-                .addPortId(UUID.randomUUID)
+                .addPortId(port.getId)
             store.update(portGroup2)
 
             Then("The observer should receive the update")

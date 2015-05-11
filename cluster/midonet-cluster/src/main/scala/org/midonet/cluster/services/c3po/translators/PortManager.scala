@@ -45,12 +45,6 @@ trait PortManager extends RouteManager {
             .setPortMac(mac.getOrElse(MAC.random().toString)).build()
     }
 
-    protected def newProviderRouterGwPortBldr(id: UUID): Port.Builder = {
-        newRouterPortBldr(id, RouterTranslator.providerRouterId)
-            .setPortSubnet(LL_CIDR)
-            .setPortAddress(LL_GW_IP_1)
-    }
-
     private def checkNoPeerId(port: PortOrBuilder): Unit = {
         if (port.hasPeerId)
             throw new IllegalStateException(
@@ -140,4 +134,9 @@ object PortManager {
     /** ID of Router Interface port peer. */
     def routerInterfacePortPeerId(portId: UUID): UUID =
         portId.xorWith(0x9c30300ec91f4f19L, 0x88449d37e61b60f0L)
+
+    /** ID of port group for specified device. Currently only edge routers have
+      * port groups. */
+    def portGroupId(deviceId: UUID): UUID =
+        deviceId.xorWith(0x3fb30e769f5041f1L, 0xa50c3c4fb09a6a18L)
 }

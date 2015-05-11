@@ -50,10 +50,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // Uplink networks don't exist in Midonet.
         if (isOnUplinkNetwork(nPort)) return List()
 
-        val midoPortBldr: Port.Builder = if (isRouterGatewayPort(nPort)) {
-            newProviderRouterGwPortBldr(nPort.getId)
-        } else if (!isFloatingIpPort(nPort)) {
-            // For all other port types except floating IP port, create a normal
+        val midoPortBldr: Port.Builder = if (!isFloatingIpPort(nPort)) {
+            // For all port types except floating IP port, create a normal
             // bridge (network) port.
             translateNeutronPort(nPort)
         } else null
