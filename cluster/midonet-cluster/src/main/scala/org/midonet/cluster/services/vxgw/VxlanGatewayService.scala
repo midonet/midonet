@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.vxgw
 
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{RejectedExecutionException, ConcurrentHashMap}
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.TimeUnit.SECONDS
 import java.util.{Random, UUID}
@@ -216,8 +216,13 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     /** Makes the node become passive but not stop. */
     private def becomePassive(): Unit = {
         log.info("Node suspends VxLAN Gateway management")
-        if (networkSub != null) {
-            networkSub.unsubscribe()
+        if (networkSub != null && !executor.isShutdown) {
+            try {
+                networkSub.unsubscribe()
+            } catch {
+                case e: RejectedExecutionException =>
+                    log.info("Unsubscribe irrelevant: executor is closing...")
+            }
         }
         managers.values().foreach {_.terminate() }
     }
