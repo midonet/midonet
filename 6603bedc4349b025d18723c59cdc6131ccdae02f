@@ -22,6 +22,52 @@
       "revId": "6603bedc4349b025d18723c59cdc6131ccdae02f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d35c807f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-11T08:19:06Z",
+      "side": 1,
+      "message": "Like in the the case of the Pool, I think we should investigate whether it\u0027s not possible to pass the VIPs as a set to the LoadBalancer rather than array, since the mapper uses a set to begin with. In this case:\n- making another set of every hash code wouldn\u0027t be necessary\n- equals becomes simpler\n- no need to use that O(n^2) comparison\n- we wouldn\u0027t use forall which takes a closure as is even more inefficient",
+      "range": {
+        "startLine": 160,
+        "startChar": 53,
+        "endLine": 160,
+        "endChar": 57
+      },
+      "revId": "6603bedc4349b025d18723c59cdc6131ccdae02f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d385a0cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-11T08:19:06Z",
+      "side": 1,
+      "message": "NPE?",
+      "range": {
+        "startLine": 160,
+        "startChar": 57,
+        "endLine": 160,
+        "endChar": 63
+      },
+      "revId": "6603bedc4349b025d18723c59cdc6131ccdae02f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
