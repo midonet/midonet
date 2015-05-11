@@ -16,12 +16,14 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
@@ -31,12 +33,8 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.ParentId;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.UUIDUtil;
 
-@XmlRootElement
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
 @JsonSubTypes({
@@ -50,7 +48,6 @@ import org.midonet.cluster.util.UUIDUtil;
     @JsonSubTypes.Type(value = TraceRule.class, name = Rule.Trace),
     @JsonSubTypes.Type(value = ReverseDnatRule.class, name = Rule.RevDNAT),
     @JsonSubTypes.Type(value = ReverseSnatRule.class, name = Rule.RevSNAT)})
-@Resource(name = ResourceUris.RULES, parents = { UriResource.class, Chain.class })
 @ZoomClass(clazz = Topology.Rule.class, factory = Rule.Factory.class)
 public abstract class Rule extends Condition {
 
@@ -103,19 +100,17 @@ public abstract class Rule extends Condition {
         @ZoomEnumValue(value = "RETURN") RETURN
     }
 
-    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
-    @ParentId
     @ZoomField(name = "chain_id", converter = UUIDUtil.Converter.class)
     public UUID chainId;
+    @XmlTransient
     @ZoomField(name = "type")
     public final RuleType type;
     @ZoomField(name = "action")
     public RuleAction action;
     // TODO: Add support in ZOOM
     public String meterName;
-    // TODO: Add support in ZOOM
     @Min(1)
     public int position = 1;
 
@@ -126,4 +121,20 @@ public abstract class Rule extends Condition {
 
     @NotNull
     public abstract String getType();
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.RULES, id);
+    }
+
+    @JsonIgnore
+    public void create(UUID chainId) {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+        this.chainId = chainId;
+        if (0 == position) {
+            position = 1;
+        }
+    }
 }

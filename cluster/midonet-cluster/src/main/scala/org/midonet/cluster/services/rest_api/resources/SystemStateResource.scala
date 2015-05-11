@@ -24,7 +24,6 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.models.SystemState
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes
 
-@Path("system_state") // TODO: why?!?? figure out how to use the ResourceUris one
 @RequestScoped
 class SystemStateResource {
 

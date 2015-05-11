@@ -32,14 +32,12 @@ import org.midonet.packets.IPv4;
 
 import static org.midonet.cluster.util.UUIDUtil.*;
 
-@XmlRootElement
-// TODO: needs ZOOM class
 public class VIP extends ZoomObject {
 
     @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
-    @ZoomField(name = "loadBalancerId", converter = Converter.class)
+    @ZoomField(name = "load_balancer_id", converter = Converter.class)
     public UUID loadBalancerId;
 
     @NotNull
@@ -52,7 +50,7 @@ public class VIP extends ZoomObject {
 
     @Min(0)
     @Max(65536)
-    @ZoomField(name = "protocolPort")
+    @ZoomField(name = "protocol_port")
     public int protocolPort;
 
     // TODO: @VerifyEnumValue(VipSessionPersistence.class)
