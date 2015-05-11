@@ -1,0 +1,130 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_f30edce3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ReadOnlyStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-11T04:06:51Z",
+      "side": 1,
+      "message": "I know you just copied the existing comments, but if you don\u0027t mind, can you rewrite this part as \"a future of a sequence of instances\"?",
+      "range": {
+        "startLine": 37,
+        "startChar": 46,
+        "endLine": 37,
+        "endChar": 66
+      },
+      "revId": "3b9666a2425616322110de7ff8a99f6afaab0939",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_531410e8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ReadOnlyStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-11T04:06:51Z",
+      "side": 1,
+      "message": "Is this correct? In Zoom, for instance, it internally calls Future.sequence on a list of Futures to produce a single Future, but that Future fails when any of the individual Futures fails.",
+      "range": {
+        "startLine": 38,
+        "startChar": 66,
+        "endLine": 41,
+        "endChar": 21
+      },
+      "revId": "3b9666a2425616322110de7ff8a99f6afaab0939",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d3112005",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ReadOnlyStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-11T04:06:51Z",
+      "side": 1,
+      "message": "\"a sequence of instances\"",
+      "range": {
+        "startLine": 47,
+        "startChar": 58,
+        "endLine": 47,
+        "endChar": 78
+      },
+      "revId": "3b9666a2425616322110de7ff8a99f6afaab0939",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b3d62426",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ReadOnlyStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-11T04:06:51Z",
+      "side": 1,
+      "message": "No inner Future visible from the type signature.",
+      "range": {
+        "startLine": 49,
+        "startChar": 31,
+        "endLine": 50,
+        "endChar": 45
+      },
+      "revId": "3b9666a2425616322110de7ff8a99f6afaab0939",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_736b0c85",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/Storage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-11T04:06:51Z",
+      "side": 1,
+      "message": "Out-of-place.",
+      "revId": "3b9666a2425616322110de7ff8a99f6afaab0939",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_33ea34db",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-11T04:06:51Z",
+      "side": 1,
+      "message": "This sets built to true, but that should happen after both \"initVersionNumber()\" and \"ensureClassNode()\" are called.",
+      "revId": "3b9666a2425616322110de7ff8a99f6afaab0939",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
