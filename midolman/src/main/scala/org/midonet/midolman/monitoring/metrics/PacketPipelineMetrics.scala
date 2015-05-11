@@ -16,28 +16,31 @@
 
 package org.midonet.midolman.monitoring.metrics
 
+import java.util.ArrayList
+
 import com.codahale.metrics.{Gauge, MetricRegistry}
 import com.codahale.metrics.MetricRegistry.name
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics.CompositeLongGauge
 
 object PacketPipelineMetrics {
-    class CompositeLongGauge(capacity: Int) extends Gauge[Long] {
-        private val gauges = new Array[Gauge[Long]](capacity)
+    class CompositeLongGauge() extends Gauge[Long] {
+        private val gauges = new ArrayList[Gauge[Long]]()
 
-        def register(gauge: Gauge[Long], index: Int): Unit =
-            gauges(index) = gauge
+        def register(gauge: Gauge[Long]): Unit =
+            gauges.add(gauge)
 
         override def getValue: Long = {
             var value = 0L
             var i = 0
-            while (i < gauges.length) {
-                value += gauges(i).getValue
+            while (i < gauges.size) {
+                value += gauges.get(i).getValue
                 i += 1
             }
             value
         }
     }
 }
+
 class PacketPipelineMetrics(val registry: MetricRegistry,
                             numPipelineProcessors: Int) {
 
@@ -72,7 +75,7 @@ class PacketPipelineMetrics(val registry: MetricRegistry,
 
     val currentDpFlowsMetric = registry.register(name(
             classOf[FlowTablesGauge], "currentDatapathFlows"),
-            new CompositeLongGauge(numPipelineProcessors))
+            new CompositeLongGauge())
 
     val dpFlowsMetric = registry.meter(name(
             classOf[FlowTablesMeter], "datapathFlowsCreated",

@@ -163,7 +163,6 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
 
         Props(
             classOf[PacketWorkflow],
-            index,
             config,
             hostIdProviderService.hostId(),
             dpState,
