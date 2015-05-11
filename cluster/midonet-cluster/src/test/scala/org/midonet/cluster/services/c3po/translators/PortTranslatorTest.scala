@@ -104,6 +104,9 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
     protected val tenantId = "neutron tenant"
     protected val mac = "00:11:22:33:44:55"
 
+    protected val portWithPeerId = randomUuidProto
+    protected val peerRouterPortId = randomUuidProto
+
     protected def portBase(portId: UUID = portId,
                            adminStateUp: Boolean = false) = s"""
         id { $portId }
@@ -182,6 +185,7 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
             id { $nIpv4Subnet1Id }
             network_id { $networkId }
             subnet_address { $ipv4Subnet1 }
+            router_gw_port_id { $peerRouterPortId }
         """
     val mIpv4Dhcp = mDhcpFromTxt(midoIpv4Dhcp)
 
@@ -763,9 +767,6 @@ class DhcpPortTranslationTest extends PortTranslatorTest {
           subnet_id { $nIpv6Subnet1Id }
         }
         """)
-
-    protected val portWithPeerId = randomUuidProto
-    protected val peerRouterPortId = randomUuidProto
 
     protected val mPortWithRPortPeer = mPortFromTxt(s"""
         id { $portWithPeerId }

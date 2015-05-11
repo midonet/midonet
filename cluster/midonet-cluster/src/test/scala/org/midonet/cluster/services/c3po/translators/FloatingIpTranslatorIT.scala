@@ -27,7 +27,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{FloatingIp => FloatingIpType, Network => NetworkType, Port => PortType, PortBinding => PortBindingType, Router => RouterType, Subnet => SubnetType}
-import org.midonet.cluster.data.neutron.TaskType.{Create, Delete, Update}
+import org.midonet.cluster.data.neutron.TaskType.{Create, Delete}
 import org.midonet.cluster.models.Neutron.FloatingIp
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology._
@@ -58,8 +58,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
     }
 
     "C3PO" should "set a route to GW for the floating IP." in {
-        // (#1 Flush done in before())
-        // #2 Create a private Network
+        // Create a private Network
         val privateNetworkId = UUID.randomUUID()
         val privateNetworkJson =
             networkJson(privateNetworkId, "tenant1", "private net").toString
@@ -67,7 +66,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                 id = 2, Create, NetworkType, privateNetworkJson,
                 privateNetworkId, "tx2"))
 
-        // #3 Attach a subnet to the Network
+        // Attach a subnet to the Network
         val privateSubnetId = UUID.randomUUID()
         val privateSubnetCidr = "10.0.0.0/24"
         val gatewayIp = "10.0.0.1"
@@ -86,12 +85,12 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val dhcp = storage.get(classOf[Dhcp], privateSubnetId).await()
         dhcp.getNetworkId shouldBe toProto(privateNetworkId)
 
-        // ## Set up a host. Needs to do this directly via Zoom as the Host info
+        // Set up a host. Needs to do this directly via Zoom as the Host info
         // is to be created by the Agent.
         val hostId = UUID.randomUUID()
         createHost(hostId)
 
-        // #4 Creates a VIF port.
+        // Creates a VIF port.
         val vifPortId = UUID.randomUUID()
         val fixedIp = "10.0.0.9"
         val vifPortMac = "fa:16:3e:bf:d4:56"
@@ -107,7 +106,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             storage.exists(classOf[Port], vifPortId).await() shouldBe true
         }
 
-        // #5 Creates a Port Binding
+        // Creates a Port Binding
         val bindingId = UUID.randomUUID()
         val interfaceName = "if1"
         val bindingJson = portBindingJson(
@@ -116,7 +115,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                 id = 5, Create, PortBindingType, bindingJson, bindingId, "tx5"))
         eventually(checkPortBinding(hostId, vifPortId, interfaceName))
 
-        // #6 Create an external Network
+        // Create an external Network
         val extNetworkId = UUID.randomUUID()
         val extNetworkJson = networkJson(
                 extNetworkId, "admin", "public", external = true).toString
@@ -127,7 +126,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             storage.exists(classOf[Network], extNetworkId).await() shouldBe true
         }
 
-        // #7 Attach a subnet to the external Network
+        // Attach a subnet to the external Network
         val extSubnetId = UUID.randomUUID()
         val extSubnet = IPv4Subnet.fromCidr("172.24.4.0/24")
         val extSubnetCidr = extSubnet.toString
@@ -159,8 +158,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         // #9 Create a tenant Router.
         val tRouterId = UUID.randomUUID()
-        val tRouterJson = routerJson(tRouterId, gwPortId = rgwPortId)
-                          .toString
+        val tRouterJson = routerJson(tRouterId, gwPortId = rgwPortId).toString
         executeSqlStmts(insertTaskSql(
                 id = 9, Create, RouterType, tRouterJson, tRouterId, "tx9"))
 
@@ -170,7 +168,6 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             storage.exists(classOf[Router], tRouterId).await() shouldBe true
         }
         var rgwPort = storage.get(classOf[Port], rgwPortId).await()
-        rgwPort.getRouterId shouldBe RouterTranslator.providerRouterId
         rgwPort.hasPeerId shouldBe true
         val rgwPortPeer = storage.get(classOf[Port], rgwPort.getPeerId).await()
         rgwPortPeer.hasRouterId shouldBe true
@@ -221,11 +218,6 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val fip = eventually(storage.get(classOf[FloatingIp], fipId).await())
         fip.getFloatingIpAddress shouldBe IPAddressUtil.toProto(fipIp)
 
-        // Floating IP that's not assigned shouldn't add any routes.
-        val prvRtr = storage.get(classOf[Router],
-                                 RouterTranslator.providerRouterId).await()
-        prvRtr.getRouteIdsList shouldBe empty
-
         // #13 Update the Floating IP with a port to assign to.
         val assignedFipJson = floatingIpJson(id = fipId,
                                              floatingNetworkId = extNetworkId,
@@ -233,9 +225,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                              routerId = tRouterId,
                                              portId = vifPortId,
                                              fixedIpAddress = fixedIp).toString
-        executeSqlStmts(insertTaskSql(
-                id = 13, Update, FloatingIpType, assignedFipJson, fipId,
-                "tx13"))
+        insertUpdateTask(13, FloatingIpType, assignedFipJson, fipId)
 
         // Tests that a route for the floating IP port is set on the Provider
         // Router.

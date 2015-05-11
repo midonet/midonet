@@ -47,16 +47,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
-        // Uplink networks don't exist in Midonet.
-        if (isOnUplinkNetwork(nPort)) return List()
+        // Floating IP ports and ports on uplink networks have no corresponding
+        // Midonet port.
+        if (isFloatingIpPort(nPort) || isOnUplinkNetwork(nPort)) return List()
 
-        val midoPortBldr: Port.Builder = if (isRouterGatewayPort(nPort)) {
-            newProviderRouterGwPortBldr(nPort.getId)
-        } else if (!isFloatingIpPort(nPort)) {
-            // For all other port types except floating IP port, create a normal
-            // bridge (network) port.
-            translateNeutronPort(nPort)
-        } else null
+        // All other ports have a corresponding Midonet network (bridge) port.
+        val midoPortBldr = translateNeutronPort(nPort)
 
         val portId = nPort.getId
         val midoOps = new MidoOpListBuffer
@@ -80,10 +76,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                               addDhcpServer)
             midoOps ++= configureMetaDataService(nPort)
         }
+
         addMidoOps(portContext, midoOps)
-
-        if (midoPortBldr != null) midoOps += Create(midoPortBldr.build)
-
+        midoOps += Create(midoPortBldr.build)
         midoOps.toList
     }
 
@@ -409,7 +404,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     private def configureMetaDataService(nPort: NeutronPort): MidoOpList =
         findGateway(nPort).toList.flatMap { gateway =>
             val route = newMetaDataServiceRoute(
-                srcSubnet = IPSubnetUtil.toProto(gateway.nextHopSubnet.getCidr),
+                srcSubnet = gateway.nextHopDhcp.getSubnetAddress,
                 nextHopPortId = gateway.peerRouterPortId,
                 nextHopGw = gateway.nextHop)
             List(Create(route))
@@ -428,36 +423,23 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     }
 
     /* The next hop gateway context for Neutron Port. */
-    private case class Gateway(
-            nextHop: IPAddress, nextHopSubnet: NeutronSubnet,
-            peerRouterPortId: UUID, peerRouter: Router)
+    private case class Gateway(nextHop: IPAddress, nextHopDhcp: Dhcp,
+                               peerRouterPortId: UUID, peerRouter: Router)
 
     /* Find gateway router & router port configured with the port's fixed IP. */
-    private def findGateway(nPort: NeutronPort) : Option[Gateway] =
-    if (nPort.getFixedIpsCount > 0) {
+    private def findGateway(nPort: NeutronPort): Option[Gateway] =
+    if (nPort.getFixedIpsCount == 0) None else {
         val nextHopGateway = nPort.getFixedIps(0).getIpAddress
         val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
 
-        val subnet = storage.get(classOf[NeutronSubnet],
-                                    nextHopGatewaySubnetId).await()
-        if (!subnet.hasGatewayIp) return None
+        val dhcp = storage.get(classOf[Dhcp], nextHopGatewaySubnetId).await()
+        if (!dhcp.hasRouterGwPortId) return None
 
-        // Find a first logical port that has a peer port with the gateway IP.
-        val network = storage.get(classOf[Network], subnet.getNetworkId).await()
-        for (portId <- network.getPortIdsList.asScala) {
-            val port = storage.get(classOf[Port], portId).await()
-            if (port.hasPeerId) {
-                val peer = storage.get(classOf[Port], port.getPeerId).await()
-                if (subnet.getGatewayIp == peer.getPortAddress) {
-                    val router = storage.get(classOf[Router],
-                                             peer.getRouterId).await()
-                    return Some(Gateway(
-                            nextHopGateway, subnet, peer.getId, router))
-                }
-            }
-        }
-        None
-    } else None
+        val rtrGwPort = storage.get(classOf[Port],
+                                    dhcp.getRouterGwPortId).await()
+        val router = storage.get(classOf[Router], rtrGwPort.getRouterId).await()
+        Some(Gateway(nextHopGateway, dhcp, rtrGwPort.getId, router))
+    }
 
     private def translateNeutronPort(nPort: NeutronPort): Port.Builder = {
         val bldr = Port.newBuilder.setId(nPort.getId)
