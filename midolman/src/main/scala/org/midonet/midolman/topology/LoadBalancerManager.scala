@@ -26,9 +26,8 @@ import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation
 import org.midonet.midolman.simulation.LoadBalancer
-import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.state.zkManagers.LoadBalancerZkManager.LoadBalancerConfig
-import org.midonet.packets.IPv4Addr
+import org.midonet.packets.{IPAddr, IPv4Addr}
 
 object LoadBalancerManager {
     case class TriggerUpdate(cfg: LoadBalancerConfig, vips: Set[VIP])
@@ -38,10 +37,11 @@ object LoadBalancerManager {
             dataVip.getId,
             dataVip.getAdminStateUp,
             dataVip.getPoolId,
-            IPv4Addr(dataVip.getAddress),
+            if (dataVip.getAddress eq null) null
+            else IPAddr.fromString(dataVip.getAddress),
             dataVip.getProtocolPort,
-            dataVip.getSessionPersistence == VipSessionPersistence.SOURCE_IP
-        )
+            dataVip.getSessionPersistence,
+            dataVip.getLoadBalancerId)
 }
 
 class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
@@ -61,7 +61,7 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
     }
 
     override def receive = {
-        case TriggerUpdate(cfg, vips) => {
+        case TriggerUpdate(cfg, vips) =>
             // Send the VirtualTopologyActor an updated loadbalancer.
             log.debug("Update triggered for loadBalancer ID {}", id)
 
@@ -71,7 +71,6 @@ class LoadBalancerManager(val id: UUID, val clusterClient: Client) extends Actor
 
             publishUpdate(new LoadBalancer(id, cfg.adminStateUp,
                                            cfg.routerId, simulationVips))
-        }
     }
 
     class LoadBalancerBuilderImpl(val loadBalancerMgr: ActorRef)
