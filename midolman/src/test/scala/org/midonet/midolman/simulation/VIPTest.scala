@@ -21,6 +21,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPv4Addr, TCP, UDP}
@@ -69,8 +70,9 @@ class VIPTest extends MidolmanSpec {
                       protocolPort: Int): VIP = {
         val vipId = UUID.randomUUID()
         val poolId = UUID.randomUUID()
+        val loadBalancerId = UUID.randomUUID()
 
-        new VIP(vipId, adminStateUp, poolId,address,
-            protocolPort, isStickySourceIP = true)
+        new VIP(vipId, adminStateUp, poolId,address, protocolPort,
+                VipSessionPersistence.SOURCE_IP, loadBalancerId)
     }
 }

@@ -457,9 +457,10 @@ trait TopologyBuilder {
     protected def createVIP(adminStateUp: Option[Boolean] = None,
                             loadBalancerId: Option[UUID] = None,
                             poolId: Option[UUID] = None,
-                            address: Option[String] = None,
+                            address: Option[IPAddr] = None,
                             protocolPort: Option[Int] = None,
-                            isStickySourceIp: Option[Boolean] = None) = {
+                            sessionPersistence
+                                : Option[VIP.SessionPersistence] = None) = {
 
         val builder = VIP.newBuilder
             .setId(UUID.randomUUID().asProto)
@@ -470,11 +471,11 @@ trait TopologyBuilder {
         if (poolId.isDefined)
             builder.setPoolId(poolId.get.asProto)
         if (address.isDefined)
-            builder.setAddress(IPAddressUtil.toProto(address.get))
+            builder.setAddress(address.get.asProto)
         if (protocolPort.isDefined)
             builder.setProtocolPort(protocolPort.get)
-        if (isStickySourceIp.isDefined) {
-            builder.setStickySourceIp(isStickySourceIp.get)
+        if (sessionPersistence.isDefined) {
+            builder.setSessionPersistence(sessionPersistence.get)
         }
 
         builder.build()

@@ -56,8 +56,8 @@ object PoolHealthMonitor {
             if (v.config.address == null) null
             else IPv4Addr.fromString(v.config.address),
             v.config.protocolPort,
-            v.config.sessionPersistence != null &&
-                v.config.sessionPersistence == VipSessionPersistence.SOURCE_IP))
+            v.config.sessionPersistence,
+            v.config.loadBalancerId))
 
         val lb = new LoadBalancer(phmc.loadBalancerConfig.persistedId,
                                   phmc.loadBalancerConfig.config.adminStateUp,

@@ -21,6 +21,7 @@ import com.google.protobuf.MessageOrBuilder
 
 import org.scalatest.Matchers
 
+import org.midonet.cluster.models.Topology.VIP.SessionPersistence
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, VIP => TopologyVIP}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -292,7 +293,8 @@ object TopologyMatchers {
             vip.adminStateUp shouldBe v.getAdminStateUp
             vip.address shouldBe toIPv4Addr(v.getAddress)
             vip.protocolPort shouldBe v.getProtocolPort
-            vip.isStickySourceIP shouldBe v.getStickySourceIp
+            vip.isStickySourceIP shouldBe v.getSessionPersistence ==
+                                          SessionPersistence.SOURCE_IP
             vip.poolId shouldBe v.getPoolId.asJava
         }
     }

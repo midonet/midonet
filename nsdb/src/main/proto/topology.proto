@@ -112,12 +112,16 @@ message LoadBalancer {
 }
 
 message VIP {
+    enum SessionPersistence {
+        SOURCE_IP = 1;
+    }
+
     optional UUID id = 1;
     optional bool admin_state_up = 2;
     optional UUID pool_id = 3;
     optional IPAddress address = 4;
     optional uint32 protocol_port = 5;
-    optional bool sticky_source_ip = 6;
+    optional SessionPersistence session_persistence = 6;
 
     // Backreference
     optional UUID load_balancer_id = 7;

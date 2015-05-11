@@ -16,6 +16,11 @@
 
 package org.midonet.midolman.state.l4lb;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.models.Topology;
+
+@ZoomEnum(clazz = Topology.VIP.SessionPersistence.class)
 public enum VipSessionPersistence {
-    SOURCE_IP
+    @ZoomEnumValue("SOURCE_IP") SOURCE_IP
 }
