@@ -22,26 +22,20 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
-import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil;
 
-@XmlRootElement
-@Resource(name = ResourceUris.CHAINS)
 @ZoomClass(clazz = Topology.Chain.class)
 public class Chain extends UriResource {
 
     public static final int MIN_CHAIN_NAME_LEN = 1;
     public static final int MAX_CHAIN_NAME_LEN = 255;
 
-    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -53,12 +47,25 @@ public class Chain extends UriResource {
     @ZoomField(name = "name")
     public String name;
 
-    @XmlTransient
-    @Subresource(name = ResourceUris.RULES)
+    @JsonIgnore
     @ZoomField(name = "rule_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> ruleIds;
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.CHAINS, id);
+    }
 
     public URI getRules() {
         return relativeUri(ResourceUris.RULES);
     }
+
+    @JsonIgnore
+    @Override
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+    }
+
 }

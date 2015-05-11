@@ -13,18 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.annotation;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.midonet.cluster.rest_api.models.UriResource;
-
+@Inherited
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE })
-public @interface Resource {
-    String name();
-    Class<? extends UriResource>[] parents() default { UriResource.class };
+public @interface AllowGet {
+    /**
+     * A list of media types. Each entry may specify a single type or consist
+     * of a comma separated list of types. E.g. {"image/jpeg,image/gif",
+     * "image/png"}. Use of the comma-separated form allows definition of a
+     * common string constant for use on multiple targets.
+     */
+    String[] value() default "*/*";
 }
