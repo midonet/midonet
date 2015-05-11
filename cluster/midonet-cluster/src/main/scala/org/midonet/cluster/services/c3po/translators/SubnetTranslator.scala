@@ -61,7 +61,6 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
 
         addHostRoutes(dhcp, ns.getHostRoutesList.asScala)
 
-        // TODO: connect to provider router if external
         List(Create(dhcp.build))
     }
 

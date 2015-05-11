@@ -22,7 +22,7 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Network, Route}
-import org.midonet.cluster.services.c3po.midonet.{Create, MidoOp}
+import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, MidoOp}
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -41,9 +41,9 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         // A NeutronRouterInterface is a link between a Neutron router and a
         // Neutron network, so we will need to create a Midonet port on the
         // router with ID nPort.getDeviceId. If nPort is on an uplink network,
-        // then there is no corresponding Midonet network, and the router is
-        // called an edge router.
-        val isEdgeRouter = isOnUplinkNetwork(nPort)
+        // then there is no corresponding Midonet network, and the router port
+        // is bound to a host interface.
+        val isUplink = isOnUplinkNetwork(nPort)
 
         // The router ID is given as nPort's device ID. The deviceId property is
         // a String because it's not always just a UUID (e.g. for DHCP ports
@@ -56,10 +56,14 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
 
         val routerPortBldr = newRouterPortBldr(routerPortId, routerId)
 
-        // For non-edge routers, we connect the router port to the network port,
-        // which has the same ID as nPort.
-        if (!isEdgeRouter)
-            routerPortBldr.setPeerId(nPort.getId)
+        // If this is an interface between an edge router and an uplink network,
+        // there will be no network port. Otherwise, we connect the router port
+        // to the network port, which has the same ID as nPort. Also add a
+        // reference to the Dhcp.
+        if (!isUplink) {
+            routerPortBldr.setDhcpId(ri.getSubnetId)
+                          .setPeerId(nPort.getId)
+        }
 
         val ns = storage.get(classOf[NeutronSubnet], ri.getSubnetId).await()
         val portSubnet = IPSubnetUtil.toProto(ns.getCidr)
@@ -85,25 +89,28 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
                                            srcSubnet = univSubnet4,
                                            dstSubnet = portSubnet)
 
+        if (isUplink)
+            routerPortBldr.addPortGroupIds(PortManager.portGroupId(routerId))
+
         val midoOps = new MidoOpListBuffer
         val routerPort = routerPortBldr.build()
         midoOps += Create(routerPort)
         midoOps += Create(rifRoute)
 
-        if (isEdgeRouter) {
+        if (isUplink) {
             midoOps ++= bindPortOps(routerPort, nPort.getHostId,
                                     nPort.getProfile.getInterfaceName)
         } else {
-            midoOps ++= createMetadataServiceRoutes(
+            midoOps ++= createMetadataServiceRoute(
                 routerPortId, nPort.getNetworkId, portSubnet)
         }
 
         midoOps.toList
     }
 
-    private def createMetadataServiceRoutes(routerPortId: UUID,
-                                            networkId: UUID,
-                                            subnetAddr: IPSubnet)
+    private def createMetadataServiceRoute(routerPortId: UUID,
+                                           networkId: UUID,
+                                           subnetAddr: IPSubnet)
     : Option[MidoOp[Route]] = {
         // If a DHCP port exists, add a Meta Data Service Route. This requires
         // fetching all ports from ZK. We await the futures in parallel to
