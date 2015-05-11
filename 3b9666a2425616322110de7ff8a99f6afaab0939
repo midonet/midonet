@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_33d19423",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ReadOnlyStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-11T04:30:27Z",
+      "side": 1,
+      "message": "In addition, I\u0027m not sure it\u0027s necessary to spell out the return type in English when it\u0027s right there in the signature.\n\nMaybe replace the whole comment with:\n\n\"Asynchronously gets the specified instances of the specified class from storage. The future completes when all instances have been successfully retrieved, or fails if any of the requested instances cannot be retrieved.\"",
+      "parentUuid": "1a106d94_f30edce3",
+      "range": {
+        "startLine": 37,
+        "startChar": 46,
+        "endLine": 37,
+        "endChar": 66
+      },
+      "revId": "3b9666a2425616322110de7ff8a99f6afaab0939",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_531410e8",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ReadOnlyStorage.scala",
         "patchSetId": 1
@@ -88,6 +112,23 @@
         "endLine": 50,
         "endChar": 45
       },
+      "revId": "3b9666a2425616322110de7ff8a99f6afaab0939",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_13cc5888",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ReadOnlyStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-11T04:30:27Z",
+      "side": 1,
+      "message": "Asynchronously gets all instances of the specified class. The future completes when all instances have been successfully retrieved, or fails if any of the requested instances cannot be retrieved.",
       "revId": "3b9666a2425616322110de7ff8a99f6afaab0939",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
