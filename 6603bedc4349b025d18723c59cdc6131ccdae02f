@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_2e164b4c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-11T09:58:36Z",
+      "side": 1,
+      "message": "I felt it is cleaner to place this in another method.",
+      "parentUuid": "1a106d94_bfea6b71",
+      "range": {
+        "startLine": 141,
+        "startChar": 0,
+        "endLine": 145,
+        "endChar": 9
+      },
+      "revId": "6603bedc4349b025d18723c59cdc6131ccdae02f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d35c807f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
         "patchSetId": 2
@@ -64,6 +88,54 @@
         "startChar": 57,
         "endLine": 160,
         "endChar": 63
+      },
+      "revId": "6603bedc4349b025d18723c59cdc6131ccdae02f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ce0b3722",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-11T09:58:36Z",
+      "side": 1,
+      "message": "NullPointerException",
+      "parentUuid": "1a106d94_d385a0cf",
+      "range": {
+        "startLine": 160,
+        "startChar": 57,
+        "endLine": 160,
+        "endChar": 63
+      },
+      "revId": "6603bedc4349b025d18723c59cdc6131ccdae02f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ee08b329",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-11T09:58:36Z",
+      "side": 1,
+      "message": "After talking to Duarte, vips is an array because iterating over it does not create objects like it does for a set. I kept the array and made the mapper respect the order of the protocol buffer.",
+      "parentUuid": "1a106d94_d35c807f",
+      "range": {
+        "startLine": 160,
+        "startChar": 53,
+        "endLine": 160,
+        "endChar": 57
       },
       "revId": "6603bedc4349b025d18723c59cdc6131ccdae02f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
