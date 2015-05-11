@@ -129,8 +129,7 @@ public class BridgeResource extends AbstractResource {
                 VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
                 MediaType.APPLICATION_JSON })
     public Bridge get(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException,
-                   IllegalAccessException {
+            throws StateAccessException, SerializationException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -332,8 +331,7 @@ public class BridgeResource extends AbstractResource {
             VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V3,
             MediaType.APPLICATION_JSON })
     public List<Bridge> list(@QueryParam("tenant_id") String tenantId)
-            throws StateAccessException, SerializationException,
-                   IllegalAccessException{
+            throws StateAccessException, SerializationException {
 
         List<org.midonet.cluster.data.Bridge> dataBridges;
         if (tenantId == null) {

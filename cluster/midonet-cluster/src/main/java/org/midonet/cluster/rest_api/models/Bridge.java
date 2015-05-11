@@ -20,24 +20,18 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
-import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.version.Since;
 
-@XmlRootElement(name = "bridge")
-@Resource(name = ResourceUris.BRIDGES)
 @ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
 
-    @ResourceId
     @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
 
@@ -54,6 +48,7 @@ public class Bridge extends UriResource {
 
     @ZoomField(name = "inbound_filter_id", converter = Converter.class)
     public UUID inboundFilterId;
+
     @ZoomField(name = "outbound_filter_id", converter = Converter.class)
     public UUID outboundFilterId;
 
@@ -66,13 +61,11 @@ public class Bridge extends UriResource {
     @Since("3") // after adding support to multiple vtep bindings
     public List<UUID> vxLanPortIds;
 
-    @XmlTransient
-    @Subresource(name = ResourceUris.PORTS)
+    @JsonIgnore
     @ZoomField(name = "port_ids", converter = Converter.class)
     public List<UUID> portIds;
 
-    @XmlTransient
-    @Subresource(name = ResourceUris.DHCP)
+    @JsonIgnore
     @ZoomField(name = "dhcp_ids", converter = Converter.class)
     public List<UUID> dhcpIds;
 
@@ -80,16 +73,17 @@ public class Bridge extends UriResource {
         adminStateUp = true;
     }
 
-    public String getVlanMacTableTemplate() {
-        return getUri() + "/vlans/{vlanId}/mac_table";
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.BRIDGES, id);
     }
 
-    public String getMacPortTemplate() {
-        return getUri() + "/mac_table/{macAddress}_{portId}";
+    public URI getInboundFilter() {
+        return absoluteUri(ResourceUris.CHAINS, inboundFilterId);
     }
 
-    public String getVlanMacPortTemplate() {
-        return getUri() + "/vlans/{vlanId}/mac_table/{macAddress}_{portId}";
+    public URI getOutboundFilter() {
+        return absoluteUri(ResourceUris.CHAINS, outboundFilterId);
     }
 
     public URI getPorts() {
@@ -126,4 +120,28 @@ public class Bridge extends UriResource {
         return relativeUri(ResourceUris.DHCPV6);
     }
 
+    public String getVlanMacTableTemplate() {
+        return getUri() + "/vlans/{vlanId}/mac_table";
+    }
+
+    public String getMacPortTemplate() {
+        return getUri() + "/mac_table/{macAddress}_{portId}";
+    }
+
+    public String getVlanMacPortTemplate() {
+        return getUri() + "/vlans/{vlanId}/mac_table/{macAddress}_{portId}";
+    }
+
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+    }
+
+    public void update(UUID id, Bridge from) {
+        this.id = id;
+        portIds = from.portIds;
+        vxLanPortIds = from.vxLanPortIds;
+        dhcpIds = from.dhcpIds;
+    }
 }

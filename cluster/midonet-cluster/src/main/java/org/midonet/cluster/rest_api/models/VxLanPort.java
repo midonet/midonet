@@ -17,10 +17,9 @@ package org.midonet.cluster.rest_api.models;
 
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlTransient;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.rest_api.annotation.ParentId;
 import org.midonet.cluster.util.UUIDUtil;
 
 public class VxLanPort extends Port {
@@ -34,9 +33,8 @@ public class VxLanPort extends Port {
     @ZoomField(name = "vni", converter = UUIDUtil.Converter.class)
     public int vni;
 
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
-    @ParentId
     public UUID networkId;
 
     public String getType() {

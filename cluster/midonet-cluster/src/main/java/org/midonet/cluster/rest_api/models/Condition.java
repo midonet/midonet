@@ -41,14 +41,14 @@ import org.midonet.packets.MAC;
 import org.midonet.util.Range;
 import org.midonet.util.version.Since;
 
-public class Condition extends UriResource {
+public abstract class Condition extends UriResource {
 
     @ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
     public enum FragmentPolicy {
-        @ZoomEnumValue(value = "ANY") ANY,
-        @ZoomEnumValue(value = "NONHEADER") NONHEADER,
-        @ZoomEnumValue(value = "HEADER") HEADER,
-        @ZoomEnumValue(value = "UNFRAGMENTED") UNFRAGMENTED;
+        @ZoomEnumValue(value = "ANY") any,
+        @ZoomEnumValue(value = "NONHEADER") nonheader,
+        @ZoomEnumValue(value = "HEADER") header,
+        @ZoomEnumValue(value = "UNFRAGMENTED") unfragmented;
 
         public static final String pattern = "any|nonheader|header|unfragmented";
     }
