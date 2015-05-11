@@ -515,17 +515,6 @@ class ZookeeperObjectMapper(
         log.info(s"Initialized the version number to $version.")
     }
 
-    private def updateVersionNumber() {
-        try {
-            curator.setData().forPath(versionNodePath, version.toString.getBytes)
-        } catch {
-            case ex: Exception =>
-                throw new InternalObjectMapperException(
-                        "Failure in updating version number.", ex)
-        }
-        log.info(s"Updated the version number to $version.")
-    }
-
     def isBuilt = built
 
     /**
