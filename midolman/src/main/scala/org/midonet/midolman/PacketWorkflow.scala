@@ -133,7 +133,6 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
 }
 
 class PacketWorkflow(
-            val id: Int,
             val config: MidolmanConfig,
             val hostId: UUID,
             val dpState: DatapathState,

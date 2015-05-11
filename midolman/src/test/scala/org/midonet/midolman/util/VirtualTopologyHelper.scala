@@ -274,7 +274,6 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         }
 
         TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
-            0,
             config,
             hostId,
             dpState,
