@@ -1,5 +1,6 @@
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
@@ -16,31 +17,25 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.ParentId;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 
-@Resource(name = ResourceUris.ROUTES, parents = { Router.class })
 @ZoomClass(clazz = Topology.Route.class)
 public class Route extends UriResource {
 
     @ZoomEnum(clazz = Topology.Route.NextHop.class)
-    enum NextHop {
+    public enum NextHop {
         @ZoomEnumValue(value = "PORT")Normal,
         @ZoomEnumValue(value = "BLACKHOLE")BlackHole,
         @ZoomEnumValue(value = "REJECT")Reject
     }
 
-    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @ParentId
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;
 
@@ -80,10 +75,20 @@ public class Route extends UriResource {
     public boolean learned;
 
     @NotNull
+    @ZoomField(name = "next_hop")
     public NextHop type;
 
     @Min(0)
     public int weight;
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.ROUTES, id);
+    }
+
+    public URI getRouter() {
+        return absoluteUri(ResourceUris.ROUTERS, routerId);
+    }
 
     @Override
     public void afterFromProto(Message message) {
@@ -107,5 +112,12 @@ public class Route extends UriResource {
             srcSubnet =
                 IPSubnet.fromString(srcNetworkAddr + "/" + srcNetworkLength);
         }
+    }
+
+    public void create(UUID routerId) {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+        this.routerId = routerId;
     }
 }
