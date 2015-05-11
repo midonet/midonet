@@ -15,31 +15,26 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.xml.bind.annotation.XmlRootElement;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.ParentId;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 
-@XmlRootElement
-@Resource(name = ResourceUris.HOSTS, parents = { TunnelZone.class })
 @ZoomClass(clazz = Topology.TunnelZone.HostToIp.class)
 public class TunnelZoneHost extends UriResource {
 
-    @ParentId
     public UUID tunnelZoneId;
 
-    @ResourceId
     @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
     public UUID hostId;
 
@@ -48,4 +43,14 @@ public class TunnelZoneHost extends UriResource {
     @ZoomField(name = "ip", converter = IPAddressUtil.Converter.class)
     public String ipAddress;
 
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.TUNNEL_ZONES, tunnelZoneId,
+                           ResourceUris.HOSTS, hostId);
+    }
+
+    @JsonIgnore
+    public void create(UUID tunnelZoneId) {
+        this.tunnelZoneId = tunnelZoneId;
+    }
 }
