@@ -37,6 +37,8 @@ import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.util.version.Since;
+import org.midonet.util.version.Until;
 
 @XmlRootElement
 @Resource(name = ResourceUris.HOSTS)
@@ -47,16 +49,15 @@ public class Host extends UriResource {
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @Nonnull
     @ZoomField(name = "name")
     public String name;
 
     public List<String> addresses;
 
-    @XmlTransient
     @ZoomField(name = "interfaces")
     @Subresource(name = ResourceUris.INTERFACES)
-    public List<Interface> interfaces;
+    @Since("3")
+    public List<Interface> hostInterfaces;
 
     @Ownership
     public boolean alive;
@@ -77,22 +78,20 @@ public class Host extends UriResource {
 
     @Subresource(name = ResourceUris.PORTS)
     @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
+    @XmlTransient // This is only in ZOOM, to represent bindings
     public List<UUID> portIds;
 
     @Override
     public void afterFromProto(Message proto) {
         addresses = new ArrayList<>();
-        for (Interface iface : interfaces) {
+        for (Interface iface : hostInterfaces) {
             for (InetAddress address : iface.addresses) {
                 addresses.add(address.toString());
             }
         }
     }
 
-    public List<Interface> getHostInterfaces() {
-        return interfaces;
-    }
-
+    @Until("3")
     public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }
 
     public URI getPorts() { return relativeUri(ResourceUris.PORTS); }

@@ -23,7 +23,6 @@ import java.util.UUID;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.apache.curator.framework.CuratorFramework;
 import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.type.JavaType;
 import org.junit.Before;
@@ -64,7 +63,6 @@ import static org.junit.Assert.fail;
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON_V3;
-import static org.midonet.client.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
 public class TestHost extends JerseyTest {
@@ -75,7 +73,6 @@ public class TestHost extends JerseyTest {
     private HostZkManager hostManager;
     private DtoWebResource dtoResource;
     private Topology topology;
-    private CuratorFramework curator;
     private MidonetApi api;
 
     public TestHost() {
@@ -85,10 +82,8 @@ public class TestHost extends JerseyTest {
     private DtoHost retrieveHostV3(UUID hostId) {
         URI hostUri = ResourceUriBuilder.getHost(
             topology.getApplication().getUri(), hostId);
-        DtoHost host = dtoResource.getAndVerifyOk(hostUri,
-                                                  APPLICATION_HOST_JSON_V3,
-                                                  DtoHost.class);
-        return host;
+        return dtoResource.getAndVerifyOk(hostUri, APPLICATION_HOST_JSON_V3,
+                                          DtoHost.class);
     }
 
     private List<DtoHost> retrieveHostListV3() throws Exception {
@@ -141,7 +136,6 @@ public class TestHost extends JerseyTest {
 
         topology = new Topology.Builder(dtoResource).build();
         hostManager = JerseyGuiceTestServletContextListener.getHostZkManager();
-        curator = JerseyGuiceTestServletContextListener.getCurator();
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());
         api.enableLogging();
@@ -263,8 +257,7 @@ public class TestHost extends JerseyTest {
 
         try {
             hostManager.getFloodingProxyWeight(hostId);
-            fail(
-                "Flooding proxy weight cannot be retrieved on non-existing hosts");
+            fail("Flooding proxy weight cannot be retrieved on non-existing hosts");
         } catch (NoStatePathException e) {
             // ok
         }
