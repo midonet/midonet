@@ -64,7 +64,7 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
 
     protected def manageDevice(request: DeviceRequest, createManager: Boolean): Unit
     protected def deviceRequested(request: DeviceRequest): Unit
-    protected def deviceUpdated(id: UUID, device: AnyRef): Unit
+    protected def deviceUpdated(id: UUID, device: Device): Unit
     protected def deviceDeleted(id: UUID): Unit
     protected def deviceError(id: UUID, e: Throwable): Unit
     protected def unsubscribe(id: UUID, sender: ActorRef): Unit
