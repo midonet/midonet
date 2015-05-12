@@ -16,7 +16,6 @@
 package org.midonet.midolman
 
 import java.util.{ArrayDeque, UUID}
-
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
@@ -26,7 +25,9 @@ import org.apache.zookeeper.CreateMode
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
+import org.scalatest.concurrent.PatienceConfiguration.Timeout
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.time.{Second, Span}
 
 import org.midonet.cluster.ClusterRouterManager.ArpCacheImpl
 import org.midonet.midolman.config.MidolmanConfig
@@ -57,6 +58,7 @@ class ArpRequestBrokerTest extends Suite
     private final val ARP_EXPIRATION = 200 * 1000
 
     implicit def strToIpv4(str: String): IPv4Addr = IPv4Addr.fromString(str)
+    val ZK_RTT_TIMEOUT = Timeout(Span(1, Second))
 
     def uniqueRoot = "/test-" + UUID.randomUUID().toString
     var routerId: UUID = _
@@ -298,7 +300,7 @@ class ArpRequestBrokerTest extends Suite
         }
 
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
-        eventually {
+        eventually(ZK_RTT_TIMEOUT) {
             arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
         }
 
@@ -313,7 +315,7 @@ class ArpRequestBrokerTest extends Suite
         arpBroker.process()
 
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, THEIR_MAC)
-        eventually {
+        eventually(ZK_RTT_TIMEOUT) {
             arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
             arpBroker.shouldProcess() should be (true)
         }
@@ -326,10 +328,12 @@ class ArpRequestBrokerTest extends Suite
     def testInvalidatesFlowsRemotely(): Unit = {
         intercept[NotYetException] { arpBroker.get(THEIR_IP, port, router) }
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, THEIR_MAC)
-        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
+        eventually(ZK_RTT_TIMEOUT) {
+            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+        }
 
         ArpCacheHelper.feedArpCache(remoteArpCache, THEIR_IP, MAC.random())
-        eventually {
+        eventually(ZK_RTT_TIMEOUT) {
             arpBroker.process()
             invalidations should have size 1
             invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
@@ -338,10 +342,12 @@ class ArpRequestBrokerTest extends Suite
 
     def testInvalidatesFlowsLocally(): Unit = {
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
-        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
+        eventually(ZK_RTT_TIMEOUT) {
+            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+        }
 
         arpBroker.set(THEIR_IP, MAC.random(), router)
-        eventually {
+        eventually(ZK_RTT_TIMEOUT) {
             arpBroker.process()
             invalidations should have size 1
             invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
@@ -353,7 +359,7 @@ class ArpRequestBrokerTest extends Suite
         // using the broker directly. Then, let the broker process the
         // notification
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
-        eventually {
+        eventually(ZK_RTT_TIMEOUT) {
             val e = arpCache.get(THEIR_IP)
             e should not be null
             e.macAddr should be (THEIR_MAC)
@@ -381,7 +387,9 @@ class ArpRequestBrokerTest extends Suite
         // refresh the cache entry, wait for the broker to receive the
         // notification. Then let time pass by and expect no new ARPs
         arpBroker.set(THEIR_IP, MAC.random(), router)
-        eventually { arpBroker.shouldProcess() should be (true) }
+        eventually(ZK_RTT_TIMEOUT) {
+            arpBroker.shouldProcess() should be (true)
+        }
         arpBroker.process()
         clock.time += (ARP_RETRY * RETRY_MAX_BASE_JITTER).toLong * 2
         arpBroker.process()
@@ -396,13 +404,15 @@ class ArpRequestBrokerTest extends Suite
 
     def testExpiresEntries(): Unit = {
         arpBroker.set(THEIR_IP, THEIR_MAC, router)
-        eventually { arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC) }
+        eventually(ZK_RTT_TIMEOUT) {
+            arpBroker.get(THEIR_IP, port, router) should be (THEIR_MAC)
+        }
         arpBroker.process()
         arps.clear()
 
         clock.time += ARP_EXPIRATION
         arpBroker.process()
-        eventually {
+        eventually(ZK_RTT_TIMEOUT) {
             arpCache.get(THEIR_IP) should be (null)
         }
         arps should be ('empty)
