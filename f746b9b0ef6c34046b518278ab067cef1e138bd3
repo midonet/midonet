@@ -25,6 +25,98 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_01ea3dda",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-12T02:07:19Z",
+      "side": 1,
+      "message": "s/provider/uplink/ for consistency.",
+      "range": {
+        "startLine": 42,
+        "startChar": 31,
+        "endLine": 42,
+        "endChar": 39
+      },
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e1e4410e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-12T02:07:19Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 43,
+        "startChar": 47,
+        "endLine": 43,
+        "endChar": 55
+      },
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_61c05150",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-12T02:07:19Z",
+      "side": 1,
+      "message": "This comment doesn\u0027t seem very related to the line below?",
+      "range": {
+        "startLine": 44,
+        "startChar": 20,
+        "endLine": 45,
+        "endChar": 50
+      },
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c1b30508",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-12T02:07:19Z",
+      "side": 1,
+      "message": "I think we need to decide which to use, \"provider\" or \"uplink\"",
+      "range": {
+        "startLine": 51,
+        "startChar": 62,
+        "endLine": 51,
+        "endChar": 70
+      },
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_aebd1bda",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 3
@@ -59,6 +151,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e1ce0159",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-12T02:07:19Z",
+      "side": 1,
+      "message": "Router Interface became a resource of its own, so it\u0027s been moved Router Interface IT.",
+      "parentUuid": "1a106d94_0e938f5b",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6e9e8364",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
         "patchSetId": 3
@@ -70,6 +180,41 @@
       "writtenOn": "2015-05-11T11:00:30Z",
       "side": 1,
       "message": "where does the removed test move to?",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c1fdc56f",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 986,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-12T02:07:19Z",
+      "side": 1,
+      "message": "Router Interface has become a resource of its own, and Brandon thinks that an integration test based on C3POMinionTest is sufficient for testing the translation, and I think therefore he removed it.",
+      "parentUuid": "1a106d94_6e9e8364",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2143f9af",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/ServerFrontEndTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-12T02:07:19Z",
+      "side": 1,
+      "message": "Out of order.",
       "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
