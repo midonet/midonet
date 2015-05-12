@@ -27,6 +27,9 @@ import org.midonet.util.version.VersionCheckAnnotationIntrospector;
 import javax.ws.rs.core.MediaType;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+
 /**
  * Class that providers ObjectMapper construction.
  */
@@ -78,7 +81,7 @@ public class ObjectMapperProvider {
                   .configure(
                     SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION,
                     false)
-                  .setAnnotationIntrospector(versionPair)
+                .setAnnotationIntrospector(versionPair)
                   .setVisibilityChecker(mapper.getVisibilityChecker()
                       .withFieldVisibility(JsonAutoDetect.Visibility.ANY));
             ViewMixinProvider.setViewMixins(mapper);

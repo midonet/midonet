@@ -17,6 +17,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -44,4 +45,11 @@ public class DhcpHost extends UriResource {
     @ZoomField(name = "name")
     public String name;
 
+    public DhcpHost() {
+        this(null);
+    }
+
+    public DhcpHost(URI baseUri) {
+        super(baseUri);
+    }
 }

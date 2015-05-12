@@ -15,13 +15,16 @@
  */
 package org.midonet.api.network;
 
+import java.net.URI;
+
 import org.midonet.cluster.data.Bridge.Property;
 import org.midonet.cluster.rest_api.models.Bridge;
 
 public class BridgeDataConverter {
 
-    public static Bridge fromData(org.midonet.cluster.data.Bridge bridgeData) {
-        Bridge b = new Bridge();
+    public static Bridge fromData(org.midonet.cluster.data.Bridge bridgeData,
+                                  URI baseUri) {
+        Bridge b = new Bridge(baseUri);
         b.id = bridgeData.getId();
         b.name = bridgeData.getName();
         b.tenantId = bridgeData.getProperty(Property.tenant_id);

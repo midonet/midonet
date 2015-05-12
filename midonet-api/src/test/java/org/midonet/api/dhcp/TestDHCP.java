@@ -28,11 +28,11 @@ import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoDhcpHost;
 import org.midonet.client.dto.DtoDhcpOption121;
 import org.midonet.client.dto.DtoDhcpSubnet;
 import org.midonet.client.dto.DtoExtraDhcpOpt;
+import org.midonet.cluster.rest_api.models.Bridge;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -49,7 +49,7 @@ import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
 
 public class TestDHCP extends JerseyTest {
 
-    private DtoBridge bridge;
+    private Bridge bridge;
 
     public TestDHCP() {
         super(FuncTest.appDesc);
@@ -62,15 +62,15 @@ public class TestDHCP extends JerseyTest {
         DtoApplication app = resource().path("").accept(APPLICATION_JSON_V5)
                 .get(DtoApplication.class);
 
-        bridge = new DtoBridge();
-        bridge.setName("br1234");
-        bridge.setTenantId("DhcpTenant");
+        bridge = new Bridge();
+        bridge.name = "br1234";
+        bridge.tenantId = "DhcpTenant";
         response = resource().uri(app.getBridges())
                 .type(APPLICATION_BRIDGE_JSON)
                 .post(ClientResponse.class, bridge);
         assertEquals("The bridge was created.", 201, response.getStatus());
         bridge = resource().uri(response.getLocation())
-                .accept(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
+                .accept(APPLICATION_BRIDGE_JSON).get(Bridge.class);
     }
 
     @Test

@@ -17,6 +17,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
@@ -150,6 +151,14 @@ public class Condition extends UriResource {
     public boolean invTpSrc;
     @ZoomField(name = "tp_dst_inv")
     public boolean invTpDst;
+
+    public Condition() {
+        this(null);
+    }
+
+    public Condition(URI baseUri) {
+        super(baseUri);
+    }
 
     @Override
     public void afterFromProto(Message proto) {

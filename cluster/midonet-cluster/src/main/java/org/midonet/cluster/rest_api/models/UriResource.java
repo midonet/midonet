@@ -31,8 +31,11 @@ import javax.annotation.Nullable;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
+
+import com.google.common.base.Preconditions;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.rest_api.annotation.Resource;
@@ -41,25 +44,53 @@ import org.midonet.cluster.rest_api.annotation.Subresource;
 
 public abstract class UriResource extends ZoomObject {
 
-    private URI baseUri = null;
+    protected URI baseUri;
+    protected URI uri;
+
+    public UriResource(URI baseUri) {
+        this.baseUri = baseUri;
+    }
 
     /** Retrieve the URI of this resource. */
-    @XmlElement(name = "uri")
+    @JsonProperty("uri")
     final public URI getUri() {
-        Resource resource = getResource();
-        String id = getId();
-        if (null == resource || null == id)
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-        return UriBuilder.fromUri(baseUri).segment(resource.name(), id).build();
+        if (baseUri != null) {
+            Resource resource = getResource();
+            String id = getId();
+            if (null == resource || null == id)
+                throw new WebApplicationException(
+                    Response.Status.INTERNAL_SERVER_ERROR);
+            return UriBuilder.fromUri(baseUri).segment(
+                resource.name(), id).build();
+        } else {
+            return uri;
+        }
+    }
+
+    public void setUri(URI uri) {
+        this.uri = uri;
     }
 
     final protected URI getUriFor(String path) {
-        return UriBuilder.fromUri(getUri()).segment(path).build();
+        Preconditions.checkNotNull(path);
+        if (this.uri == null) {
+            return null;
+        }
+
+        return UriBuilder.fromUri(uri).segment(path).build();
+    }
+
+    final protected URI getUriFor(String path, URI defUri) {
+        return (uri == null) ? defUri : getUriFor(path);
     }
 
     final protected URI getUriFor(String path, UUID id) {
-        if (id == null) return null;
+        if (id == null || baseUri == null) return null;
         return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
+    }
+
+    final protected URI getUriFor(String path, UUID id, URI defUri) {
+        return (baseUri == null) ? defUri : getUriFor(path, id);
     }
 
     final protected List<URI> getUrisFor(String path, List<UUID> ids) {
@@ -71,13 +102,23 @@ public abstract class UriResource extends ZoomObject {
         return uris;
     }
 
-    @XmlTransient
+    final protected List<URI> getUrisFor(String path, List<UUID> ids,
+                                         List<URI> defUris) {
+        return (uri == null) ? defUris : getUrisFor(path, ids);
+    }
+
+    final protected String getUriTemplateFor(String path, String defTemplate) {
+        return (uri == null) ? defTemplate : uri + path;
+    }
+
+    @JsonIgnore
     public void setBaseUri(URI baseUri) throws IllegalAccessException {
+        Preconditions.checkNotNull(baseUri);
         this.baseUri = baseUri;
         setSubresourcesUri(getUri());
     }
 
-    @XmlTransient
+    @JsonIgnore
     @Nullable
     final public String getId() {
         Field field = getField(getClass(), ResourceId.class);
@@ -118,7 +159,7 @@ public abstract class UriResource extends ZoomObject {
         }
     }
 
-    @XmlTransient
+    @JsonIgnore
     @Nullable
     final public Resource getResource() {
         return getResource(getClass());
@@ -165,5 +206,30 @@ public abstract class UriResource extends ZoomObject {
                List.class.isAssignableFrom((Class<?>)paramType.getRawType()) &&
                UriResource.class.isAssignableFrom(
                    (Class<?>)paramType.getActualTypeArguments()[0]);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == this) return true;
+
+        if (!(obj instanceof UriResource)) return false;
+        final UriResource other = (UriResource) obj;
+
+        return Objects.equals(baseUri, other.baseUri)
+            && Objects.equals(uri, other.uri);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(baseUri, uri);
+    }
+
+    @Override
+    public String toString() {
+        return com.google.common.base.Objects.toStringHelper(this)
+            .add("uri", uri)
+            .add("baseUri", baseUri)
+            .toString();
     }
 }

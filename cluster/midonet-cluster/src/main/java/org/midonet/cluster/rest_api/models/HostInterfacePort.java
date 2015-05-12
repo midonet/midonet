@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
@@ -54,5 +55,13 @@ public class HostInterfacePort extends UriResource {
     // This group is used for validating the create process in which
     // the interface name must be provided.
     public interface HostInterfacePortCreateGroup extends Default {
+    }
+
+    public HostInterfacePort() {
+        this(null);
+    }
+
+    public HostInterfacePort(URI baseUri) {
+        super(baseUri);
     }
 }

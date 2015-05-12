@@ -58,6 +58,14 @@ public class Chain extends UriResource {
     @ZoomField(name = "rule_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> ruleIds;
 
+    public Chain() {
+        this(null);
+    }
+
+    public Chain(URI baseUri) {
+        super(baseUri);
+    }
+
     public URI getRules() {
         return getUriFor(ResourceUris.RULES);
     }

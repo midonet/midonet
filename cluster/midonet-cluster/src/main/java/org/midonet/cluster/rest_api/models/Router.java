@@ -55,6 +55,11 @@ public class Router extends UriResource {
     public UUID loadBalancerId;
 
     public Router() {
+        this(null);
+    }
+
+    public Router(URI baseUri) {
+        super(baseUri);
         adminStateUp = true;
     }
 
