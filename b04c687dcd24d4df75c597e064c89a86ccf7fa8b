@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_7c959431",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-12T09:02:31Z",
+      "side": 1,
+      "message": "As commented on the LB patch, given that equality comparison at the Pool object level is difficult, maybe the isPoolReady here should handle that, checking for equality to the previous pool and returning false if it hasn\u0027t changed.",
+      "range": {
+        "startLine": 216,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 32
+      },
+      "revId": "b04c687dcd24d4df75c597e064c89a86ccf7fa8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
