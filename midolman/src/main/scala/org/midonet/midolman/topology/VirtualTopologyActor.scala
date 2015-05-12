@@ -27,6 +27,7 @@ import akka.actor._
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.flows.FlowInvalidator
+import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.slf4j.LoggerFactory
 
@@ -167,21 +168,21 @@ object VirtualTopologyActor extends Referenceable {
 
     case class Unsubscribe(id: UUID)
 
-    private val topology = Topology()
+    //private val topology = Topology()
 
     // useful for testing, not much else.
     def clearTopology(): Unit = {
-        topology.clear()
+        VirtualTopology.self.devices.clear()
     }
 
     // WARNING!! This code is meant to be called from outside the actor.
     // it should only access the volatile variable 'everything'
 
     @throws(classOf[NotYetException])
-    def tryAsk[D <: AnyRef](id: UUID)
+    def tryAsk[D <: Device](id: UUID)
                            (implicit tag: ClassTag[D],
                                      system: ActorSystem): D = {
-        val dev = topology.device[D](id)
+        val dev = VirtualTopology.self.devices.get(id).asInstanceOf[D]
         if (dev eq null) {
             throw NotYetException(requestFuture(id), s"Waiting for device: $id")
         }
@@ -310,7 +311,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
     }
 
     protected override def deviceRequested(req: DeviceRequest): Unit = {
-        val device = topology.get(req.id)
+        val device = VirtualTopology.self.devices.get(req.id)
         if (device eq null) {
             log.debug("Adding requester {} to unanswered clients for {}",
                       sender(), req)
@@ -326,8 +327,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         }
     }
 
-    protected override def deviceUpdated(id: UUID, device: AnyRef) {
-        topology.put(id, device)
+    protected override def deviceUpdated(id: UUID, device: Device) {
         for (client <- idToSubscribers(id)) {
             log.debug("Sending subscriber {} the device update for {}",
                       client, id)
@@ -341,15 +341,14 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
                 client ! device
             }
         }
-        idToUnansweredClients(id).clear()
+        idToUnansweredClients.remove(id)
     }
 
     protected override def deviceDeleted(id: UUID): Unit = {
-        topology.remove(id)
+        idToUnansweredClients.remove(id)
     }
 
     protected override def deviceError(id: UUID, e: Throwable): Unit = {
-        topology.remove(id)
         // Notify the error to promise sender actors that are not subscribers:
         // this allows tryAsk() futures to complete immediately with an error.
         for (client <- idToUnansweredClients(id)
@@ -359,7 +358,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
                       ": {}", client, id, e)
             client ! Status.Failure(e)
         }
-        idToUnansweredClients(id).clear()
+        idToUnansweredClients.remove(id)
     }
 
     protected override def unsubscribe(id: UUID, actor: ActorRef): Unit = {
@@ -380,42 +379,47 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         }
     }
 
+    @inline private def update(id: UUID, device: Device) = {
+        VirtualTopology.self.devices.put(id, device)
+        deviceUpdated(id, device)
+    }
+
     override def receive = super.receive orElse {
         case null =>
-            log.warn("Received null device?")
+            log.warn("Received null device")
         case r: DeviceRequest =>
-            log.debug("Received {}", r)
+            log.debug("Received: {}", r)
             manageDevice(r, createManager = true)
             deviceRequested(r)
         case u: Unsubscribe => unsubscribe(u.id, sender())
         case bridge: Bridge =>
-            log.debug("Received a Bridge for {}", bridge.id)
-            deviceUpdated(bridge.id, bridge)
+            log.debug("Received device: {}", bridge)
+            update(bridge.id, bridge)
         case chain: Chain =>
-            log.debug("Received a Chain for {}", chain.id)
-            deviceUpdated(chain.id, chain)
+            log.debug("Received device: {}", chain)
+            update(chain.id, chain)
         case ipAddrGroup: IPAddrGroup =>
-            log.debug("Received an IPAddrGroup for {}", ipAddrGroup.id)
-            deviceUpdated(ipAddrGroup.id, ipAddrGroup)
+            log.debug("Received device: {}", ipAddrGroup)
+            update(ipAddrGroup.id, ipAddrGroup)
         case loadBalancer: LoadBalancer =>
-            log.debug("Received a LoadBalancer for {}", loadBalancer.id)
-            deviceUpdated(loadBalancer.id, loadBalancer)
+            log.debug("Received device: {}", loadBalancer)
+            update(loadBalancer.id, loadBalancer)
         case pool: Pool =>
-            log.debug("Received a Pool for {}", pool.id)
-            deviceUpdated(pool.id, pool)
+            log.debug("Received device: {}", pool)
+            update(pool.id, pool)
         case port: Port =>
-            log.debug("Received a Port for {}", port.id)
-            deviceUpdated(port.id, port)
+            log.debug("Received device: {}", port)
+            update(port.id, port)
+        case portGroup: PortGroup =>
+            log.debug("Received device: {}", portGroup)
+            update(portGroup.id, portGroup)
         case router: Router =>
-            log.debug("Received a Router for {}", router.id)
-            deviceUpdated(router.id, router)
-        case pg: PortGroup =>
-            log.debug("Received a PortGroup for {}", pg.id)
-            deviceUpdated(pg.id, pg)
+            log.debug("Received device: {}", router)
+            update(router.id, router)
         case PoolHealthMonitorMap(mappings) =>
-            log.info("Received PoolHealthMonitorMappings")
-            deviceUpdated(PoolHealthMonitorMapper.PoolHealthMonitorMapKey,
-                          PoolHealthMonitorMap(mappings))
+            log.debug("Received pool health monitor mappings: {}", mappings)
+            update(PoolHealthMonitorMapper.PoolHealthMonitorMapKey,
+                   PoolHealthMonitorMap(mappings))
         case InvalidateFlowsByTag(tag) =>
             log.debug("Invalidating flows for tag {}", tag)
             flowInvalidator.scheduleInvalidationFor(tag)

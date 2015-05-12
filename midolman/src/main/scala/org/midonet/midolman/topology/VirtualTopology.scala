@@ -58,7 +58,7 @@ object VirtualTopology extends MidolmanLogging {
 
     type DeviceFactory = UUID => DeviceMapper[_]
 
-    private var self: VirtualTopology = null
+    private[topology] var self: VirtualTopology = null
 
     /**
      * Tries to get the virtual device with the specified identifier.
