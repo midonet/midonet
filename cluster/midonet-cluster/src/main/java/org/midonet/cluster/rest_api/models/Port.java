@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -78,6 +79,11 @@ public abstract class Port extends UriResource {
     public UUID peerId;
 
     public Port() {
+        this(null);
+    }
+
+    public Port(URI baseUri) {
+        super(baseUri);
         adminStateUp = true;
     }
 

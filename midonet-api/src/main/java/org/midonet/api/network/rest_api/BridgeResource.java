@@ -140,9 +140,8 @@ public class BridgeResource extends AbstractResource {
         org.midonet.cluster.data.Bridge bridgeData = getBridgeOrThrow(id, false);
 
         // Convert to the REST API DTO
-        Bridge bridge = BridgeDataConverter.fromData(bridgeData);
+        Bridge bridge = BridgeDataConverter.fromData(bridgeData, getBaseUri());
         bridge = populateLegacyVxlanPortId(bridge);
-        bridge.setBaseUri(getBaseUri());
 
         return bridge;
     }
@@ -345,8 +344,8 @@ public class BridgeResource extends AbstractResource {
         if (dataBridges != null) {
             for (org.midonet.cluster.data.Bridge dataBridge :
                     dataBridges) {
-                Bridge bridge = BridgeDataConverter.fromData(dataBridge);
-                bridge.setBaseUri(getBaseUri());
+                Bridge bridge = BridgeDataConverter.fromData(dataBridge,
+                                                             getBaseUri());
                 bridge = populateLegacyVxlanPortId(bridge);
                 bridges.add(bridge);
             }

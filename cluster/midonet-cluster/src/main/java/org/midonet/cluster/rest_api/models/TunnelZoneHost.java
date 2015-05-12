@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
@@ -48,4 +49,11 @@ public class TunnelZoneHost extends UriResource {
     @ZoomField(name = "ip", converter = IPAddressUtil.Converter.class)
     public String ipAddress;
 
+    public TunnelZoneHost() {
+        this(null);
+    }
+
+    public TunnelZoneHost(URI baseUri) {
+        super(baseUri);
+    }
 }

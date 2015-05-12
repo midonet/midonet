@@ -29,11 +29,11 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.cluster.rest_api.models.Bridge;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -170,14 +170,14 @@ public class TestChain extends JerseyTest {
         // TODO: 5) Set a chain as a filter on the other tenant's port.
     }
 
-    private DtoBridge getStockBridge(String name, UUID inbound, UUID outbound) {
-        DtoBridge bridge = new DtoBridge();
+    private Bridge getStockBridge(String name, UUID inbound, UUID outbound) {
+        Bridge bridge = new Bridge();
         UUID bId = UUID.randomUUID();
-        bridge.setId(bId);
-        bridge.setName(name);
-        bridge.setTenantId("tenant1");
-        bridge.setInboundFilterId(inbound);
-        bridge.setOutboundFilterId(outbound);
+        bridge.id = bId;
+        bridge.name = name;
+        bridge.tenantId = "tenant1";
+        bridge.inboundFilterId = inbound;
+        bridge.outboundFilterId = outbound;
         return bridge;
     }
 
@@ -249,11 +249,11 @@ public class TestChain extends JerseyTest {
                 getStockRouter("R", ruleChain1.getId(), ruleChain2.getId()),
                 DtoRouter.class);
 
-        DtoBridge bridge
+        Bridge bridge
                 = dtoResource.postAndVerifyCreated(app.getBridges(),
                 APPLICATION_BRIDGE_JSON,
                 getStockBridge("B", ruleChain1.getId(), ruleChain2.getId()),
-                DtoBridge.class);
+                                                   Bridge.class);
 
         DtoRouterPort port
                 = dtoResource.postAndVerifyCreated(router.getPorts(),
@@ -289,26 +289,29 @@ public class TestChain extends JerseyTest {
                 APPLICATION_ROUTER_JSON, DtoRouter.class);
         assertEquals(router.getInboundFilter(), null);
         bridge = dtoResource.getAndVerifyOk(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, DtoBridge.class);
-        assertEquals(bridge.getInboundFilter(), null);
+                APPLICATION_BRIDGE_JSON, Bridge.class);
+        assertEquals(bridge.inboundFilterId, null);
 
         // Set everyone's inbound filters to be the same as their
         // outbound filters.
         port.setInboundFilterId(ruleChain2.getId());
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON, port, DtoRouterPort.class);
+                                                 APPLICATION_PORT_V2_JSON, port,
+                                                 DtoRouterPort.class);
 
         router.setInboundFilterId(ruleChain2.getId());
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
-                APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+                                                   APPLICATION_ROUTER_JSON,
+                                                   router, DtoRouter.class);
 
-        bridge.setInboundFilterId(ruleChain2.getId());
+        bridge.inboundFilterId = ruleChain2.getId();
         bridge = dtoResource.putAndVerifyNoContent(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                                                   APPLICATION_BRIDGE_JSON,
+                                                   bridge, Bridge.class);
 
         // delete the chain referenced by both inbound and outbound.
         dtoResource.deleteAndVerifyNoContent(ruleChain2.getUri(),
-                APPLICATION_CHAIN_JSON);
+                                             APPLICATION_CHAIN_JSON);
 
         // Everyone's filters should have been cleaned up.
         port = dtoResource.getAndVerifyOk(port.getUri(),
@@ -320,9 +323,9 @@ public class TestChain extends JerseyTest {
         assertEquals(router.getInboundFilter(), null);
         assertEquals(router.getOutboundFilter(), null);
         bridge = dtoResource.getAndVerifyOk(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, DtoBridge.class);
-        assertEquals(bridge.getInboundFilter(), null);
-        assertEquals(bridge.getOutboundFilter(), null);
+                APPLICATION_BRIDGE_JSON, Bridge.class);
+        assertEquals(bridge.inboundFilterId, null);
+        assertEquals(bridge.outboundFilterId, null);
 
         // Create the chains again for more testing.
         ruleChain1 = dtoResource.postAndVerifyCreated(app.getChains(),
@@ -342,29 +345,34 @@ public class TestChain extends JerseyTest {
         router.setInboundFilterId(ruleChain1.getId());
         router.setOutboundFilterId(ruleChain2.getId());
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
-                APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+                                                   APPLICATION_ROUTER_JSON,
+                                                   router, DtoRouter.class);
 
-        bridge.setInboundFilterId(ruleChain1.getId());
-        bridge.setOutboundFilterId(ruleChain2.getId());
+        bridge.inboundFilterId = ruleChain1.getId();
+        bridge.outboundFilterId = ruleChain2.getId();
         bridge = dtoResource.putAndVerifyNoContent(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                                                   APPLICATION_BRIDGE_JSON,
+                                                   bridge, Bridge.class);
 
         //Reset to the same Id
         port.setInboundFilterId(ruleChain2.getId());
         port = dtoResource.putAndVerifyNoContent(port.getUri(),
-                APPLICATION_PORT_V2_JSON, port, DtoRouterPort.class);
+                                                 APPLICATION_PORT_V2_JSON, port,
+                                                 DtoRouterPort.class);
 
         router.setInboundFilterId(ruleChain2.getId());
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
-                APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+                                                   APPLICATION_ROUTER_JSON,
+                                                   router, DtoRouter.class);
 
-        bridge.setInboundFilterId(ruleChain2.getId());
+        bridge.inboundFilterId = ruleChain2.getId();
         bridge = dtoResource.putAndVerifyNoContent(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                                                   APPLICATION_BRIDGE_JSON,
+                                                   bridge, Bridge.class);
 
         // Delete the first chain. It should not affect the pointers.
         dtoResource.deleteAndVerifyNoContent(ruleChain1.getUri(),
-                APPLICATION_CHAIN_JSON);
+                                             APPLICATION_CHAIN_JSON);
 
         port = dtoResource.getAndVerifyOk(port.getUri(),
                 APPLICATION_PORT_V2_JSON, DtoRouterPort.class);
@@ -375,12 +383,12 @@ public class TestChain extends JerseyTest {
         assertEquals(router.getInboundFilterId(), ruleChain2.getId());
         assertEquals(router.getOutboundFilterId(), ruleChain2.getId());
         bridge = dtoResource.getAndVerifyOk(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, DtoBridge.class);
-        assertEquals(bridge.getInboundFilterId(), ruleChain2.getId());
-        assertEquals(bridge.getOutboundFilterId(), ruleChain2.getId());
+                APPLICATION_BRIDGE_JSON, Bridge.class);
+        assertEquals(bridge.inboundFilterId, ruleChain2.getId());
+        assertEquals(bridge.outboundFilterId, ruleChain2.getId());
 
         dtoResource.deleteAndVerifyNoContent(ruleChain2.getUri(),
-                APPLICATION_CHAIN_JSON);
+                                             APPLICATION_CHAIN_JSON);
 
         port = dtoResource.getAndVerifyOk(port.getUri(),
                 APPLICATION_PORT_V2_JSON, DtoRouterPort.class);
@@ -391,9 +399,9 @@ public class TestChain extends JerseyTest {
         assertEquals(router.getInboundFilterId(), null);
         assertEquals(router.getOutboundFilterId(), null);
         bridge = dtoResource.getAndVerifyOk(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, DtoBridge.class);
-        assertEquals(bridge.getInboundFilterId(), null);
-        assertEquals(bridge.getOutboundFilterId(), null);
+                APPLICATION_BRIDGE_JSON, Bridge.class);
+        assertEquals(bridge.inboundFilterId, null);
+        assertEquals(bridge.outboundFilterId, null);
 
         // Create these chains again for more testing.
         ruleChain1 = dtoResource.postAndVerifyCreated(app.getChains(),
@@ -413,12 +421,14 @@ public class TestChain extends JerseyTest {
         router.setInboundFilterId(ruleChain1.getId());
         router.setOutboundFilterId(ruleChain2.getId());
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
-                APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+                                                   APPLICATION_ROUTER_JSON,
+                                                   router, DtoRouter.class);
 
-        bridge.setInboundFilterId(ruleChain1.getId());
-        bridge.setOutboundFilterId(ruleChain2.getId());
+        bridge.inboundFilterId = ruleChain1.getId();
+        bridge.outboundFilterId = ruleChain2.getId();
         bridge = dtoResource.putAndVerifyNoContent(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                                                   APPLICATION_BRIDGE_JSON,
+                                                   bridge, Bridge.class);
 
         // Create these chains again for more testing.
         ruleChain1 = dtoResource.postAndVerifyCreated(app.getChains(),
@@ -434,12 +444,13 @@ public class TestChain extends JerseyTest {
         router.setInboundFilterId(ruleChain1.getId());
         router.setOutboundFilterId(null);
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
-                APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+                                                   APPLICATION_ROUTER_JSON,
+                                                   router, DtoRouter.class);
 
-        bridge.setInboundFilterId(ruleChain1.getId());
-        bridge.setOutboundFilterId(null);
+        bridge.inboundFilterId = ruleChain1.getId();
+        bridge.outboundFilterId = null;
         bridge = dtoResource.putAndVerifyNoContent(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                APPLICATION_BRIDGE_JSON, bridge, Bridge.class);
 
         // Delete to trigger the back ref delete.
         dtoResource.deleteAndVerifyNoContent(ruleChain1.getUri(),
@@ -459,12 +470,13 @@ public class TestChain extends JerseyTest {
         router.setInboundFilterId(ruleChain1.getId());
         router.setOutboundFilterId(ruleChain1.getId());
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
-                APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+                                                   APPLICATION_ROUTER_JSON,
+                                                   router, DtoRouter.class);
 
-        bridge.setInboundFilterId(ruleChain1.getId());
-        bridge.setOutboundFilterId(ruleChain1.getId());
+        bridge.inboundFilterId = ruleChain1.getId();
+        bridge.outboundFilterId = ruleChain1.getId();
         bridge = dtoResource.putAndVerifyNoContent(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                APPLICATION_BRIDGE_JSON, bridge, Bridge.class);
 
         port.setInboundFilterId(ruleChain2.getId());
         port.setOutboundFilterId(ruleChain2.getId());
@@ -474,12 +486,13 @@ public class TestChain extends JerseyTest {
         router.setInboundFilterId(ruleChain2.getId());
         router.setOutboundFilterId(ruleChain2.getId());
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
-                APPLICATION_ROUTER_JSON, router, DtoRouter.class);
+                                                   APPLICATION_ROUTER_JSON,
+                                                   router, DtoRouter.class);
 
-        bridge.setInboundFilterId(ruleChain2.getId());
-        bridge.setOutboundFilterId(ruleChain2.getId());
+        bridge.inboundFilterId = ruleChain2.getId();
+        bridge.outboundFilterId = ruleChain2.getId();
         bridge = dtoResource.putAndVerifyNoContent(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                APPLICATION_BRIDGE_JSON, bridge, Bridge.class);
 
         port.setInboundFilterId(null);
         port.setOutboundFilterId(null);
@@ -491,10 +504,10 @@ public class TestChain extends JerseyTest {
         router = dtoResource.putAndVerifyNoContent(router.getUri(),
                 APPLICATION_ROUTER_JSON, router, DtoRouter.class);
 
-        bridge.setInboundFilterId(null);
-        bridge.setOutboundFilterId(null);
+        bridge.inboundFilterId = null;
+        bridge.outboundFilterId = null;
         bridge = dtoResource.putAndVerifyNoContent(bridge.getUri(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                APPLICATION_BRIDGE_JSON, bridge, Bridge.class);
 
         // Delete the objects first. This way, if any of the back refs
         // weren't cleaned up, the delete of the chains would fail.

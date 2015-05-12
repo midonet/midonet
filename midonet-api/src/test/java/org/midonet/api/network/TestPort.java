@@ -43,7 +43,6 @@ import org.midonet.api.rest_api.Topology;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHost;
@@ -58,6 +57,7 @@ import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
+import org.midonet.cluster.rest_api.models.Bridge;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.packets.MAC;
 
@@ -294,9 +294,9 @@ public class TestPort {
             r2.setTenantId("tenant1-id");
 
             // Create a bridge
-            DtoBridge b = new DtoBridge();
-            b.setName("bridge1-name");
-            b.setTenantId("tenant1-id");
+            Bridge b = new Bridge();
+            b.name = "bridge1-name";
+            b.tenantId = "tenant1-id";
 
             topology = new Topology.Builder(dtoResource)
                     .create("router1", r1)
@@ -318,12 +318,12 @@ public class TestPort {
 
         @Test
         public void testCrudOnTheSameBridge() {
-            DtoBridge b = topology.getBridge("bridge1");
+            Bridge b = topology.getBridge("bridge1");
             verifyPortNumber(portCounter);
 
             // Create an exterior bridge port.
             DtoBridgePort bridgePort1 = new DtoBridgePort();
-            bridgePort1.setDeviceId(b.getId());
+            bridgePort1.setDeviceId(b.id);
             bridgePort1 = dtoResource.postAndVerifyCreated(b.getPorts(),
                     APPLICATION_PORT_V2_JSON, bridgePort1, DtoBridgePort.class);
             portCounter++;
@@ -331,7 +331,7 @@ public class TestPort {
 
             // Create another exterior bridge port.
             DtoBridgePort bridgePort2 = new DtoBridgePort();
-            bridgePort2.setDeviceId(b.getId());
+            bridgePort2.setDeviceId(b.id);
             bridgePort2 = dtoResource.postAndVerifyCreated(b.getPorts(),
                     APPLICATION_PORT_V2_JSON, bridgePort2, DtoBridgePort.class);
             portCounter++;
@@ -387,12 +387,12 @@ public class TestPort {
         @Test
         public void testCrudOnTheDifferentDevices() {
             DtoRouter r = topology.getRouter("router1");
-            DtoBridge b = topology.getBridge("bridge1");
+            Bridge b = topology.getBridge("bridge1");
             verifyPortNumber(portCounter);
 
             // Create an exterior bridge port.
             DtoBridgePort bridgePort = new DtoBridgePort();
-            bridgePort.setDeviceId(b.getId());
+            bridgePort.setDeviceId(b.id);
             bridgePort = dtoResource.postAndVerifyCreated(b.getPorts(),
                     APPLICATION_PORT_V2_JSON, bridgePort, DtoBridgePort.class);
             portCounter++;
@@ -423,12 +423,12 @@ public class TestPort {
         public void testCrudOfDuplicatedPortsOnTheDifferentDevices() {
             DtoRouter r1 = topology.getRouter("router1");
             DtoRouter r2 = topology.getRouter("router2");
-            DtoBridge b = topology.getBridge("bridge1");
+            Bridge b = topology.getBridge("bridge1");
             verifyPortNumber(portCounter);
 
             // Create an exterior bridge port.
             DtoBridgePort bridgePort = new DtoBridgePort();
-            bridgePort.setDeviceId(b.getId());
+            bridgePort.setDeviceId(b.id);
             bridgePort = dtoResource.postAndVerifyCreated(b.getPorts(),
                     APPLICATION_PORT_V2_JSON, bridgePort, DtoBridgePort.class);
             portCounter++;
@@ -471,7 +471,7 @@ public class TestPort {
 
         @Test
         public void testCreatePortOnBridgeWithoutDeviceId() throws Exception {
-            DtoBridge bridge1 = topology.getBridge("bridge1");
+            Bridge bridge1 = topology.getBridge("bridge1");
             URI uri = bridge1.getPorts();
             uri = new URI(uri.toString().replace(bridge1.getId().toString(),
                     UUID.randomUUID().toString()));
@@ -512,9 +512,9 @@ public class TestPort {
             dtoResource = new DtoWebResource(resource);
 
             // Create a bridge
-            DtoBridge b = new DtoBridge();
-            b.setName("bridge1-name");
-            b.setTenantId("tenant1-id");
+            Bridge b = new Bridge();
+            b.name = "bridge1-name";
+            b.tenantId = "tenant1-id";
 
             // Create a chain
             DtoRuleChain c1 = new DtoRuleChain();
@@ -547,14 +547,14 @@ public class TestPort {
         public void testCrudBridgePortSameVLAN() {
 
             // Get the bridge and chains
-            DtoBridge b = topology.getBridge("bridge1");
+            Bridge b = topology.getBridge("bridge1");
             DtoRuleChain c1 = topology.getChain("chain1");
             DtoRuleChain c2 = topology.getChain("chain2");
 
             // Create an Interior bridge port
             DtoBridgePort b1Lp1 = new DtoBridgePort();
             short vlanId = 2727;
-            b1Lp1.setDeviceId(b.getId());
+            b1Lp1.setDeviceId(b.id);
             b1Lp1.setVlanId(vlanId);
             b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
                     APPLICATION_PORT_V2_JSON, b1Lp1, DtoBridgePort.class);
@@ -574,25 +574,26 @@ public class TestPort {
 
             // Should now be able to add a port with same VLAN
             DtoBridgePort b1Lp2 = new DtoBridgePort();
-            b1Lp2.setDeviceId(b.getId());
+            b1Lp2.setDeviceId(b.id);
             b1Lp2.setVlanId(vlanId);
             b1Lp2 = dtoResource.postAndVerifyCreated(b.getPorts(),
                     APPLICATION_PORT_V2_JSON, b1Lp2, DtoBridgePort.class);
 
             // Try delete the bridge, test it deletes cleanly
-            dtoResource.deleteAndVerifyNoContent(b.getUri(), APPLICATION_BRIDGE_JSON);
+            dtoResource.deleteAndVerifyNoContent(b.getUri(),
+                                                 APPLICATION_BRIDGE_JSON);
         }
 
         @Test
         public void testCrudBridgePort() {
             // Get the bridge and chains
-            DtoBridge b = topology.getBridge("bridge1");
+            Bridge b = topology.getBridge("bridge1");
             DtoRuleChain c1 = topology.getChain("chain1");
             DtoRuleChain c2 = topology.getChain("chain2");
 
             DtoBridgePort b1Lp1 = new DtoBridgePort();
             short vlanId = 666;
-            b1Lp1.setDeviceId(b.getId());
+            b1Lp1.setDeviceId(b.id);
             b1Lp1.setVlanId(vlanId);
             b1Lp1.setAdminStateUp(false);
             b1Lp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
@@ -606,7 +607,7 @@ public class TestPort {
 
             //Create exterior bridge port
             DtoBridgePort b1Mp1 = new DtoBridgePort();
-            b1Mp1.setDeviceId(b.getId());
+            b1Mp1.setDeviceId(b.id);
             b1Mp1.setInboundFilterId(c1.getId());
             b1Mp1.setOutboundFilterId(c2.getId());
             b1Mp1 = dtoResource.postAndVerifyCreated(b.getPorts(),
@@ -972,9 +973,9 @@ public class TestPort {
             r2.setTenantId("tenant1-id");
 
             // Create a bridge
-            DtoBridge b1 = new DtoBridge();
-            b1.setName("bridge1-name");
-            b1.setTenantId("tenant1-id");
+            Bridge b1 = new Bridge();
+            b1.name = "bridge1-name";
+            b1.tenantId = "tenant1-id";
 
             // Create a Interior router1 port
             DtoRouterPort r1Lp1 = createRouterPort(null, null,
@@ -1014,7 +1015,7 @@ public class TestPort {
 
             DtoRouter router1 = topology.getRouter("router1");
             DtoRouter router2 = topology.getRouter("router2");
-            DtoBridge bridge1 = topology.getBridge("bridge1");
+            Bridge bridge1 = topology.getBridge("bridge1");
             DtoRouterPort r1p1 = topology
                 .getRouterPort("router1Port1");
             DtoRouterPort r1p2 = topology
@@ -1133,9 +1134,9 @@ public class TestPort {
             dtoResource = new DtoWebResource(resource);
 
             // Create a bridge
-            DtoBridge b1 = new DtoBridge();
-            b1.setName("bridge1-name");
-            b1.setTenantId("tenant1-id");
+            Bridge b1 = new Bridge();
+            b1.name = "bridge1-name";
+            b1.tenantId = "tenant1-id";
 
             // Create a port
             DtoBridgePort port1 = createBridgePort(null, null,
@@ -1185,9 +1186,9 @@ public class TestPort {
             pg1.setTenantId("tenant1-id");
 
             // Create a bridge
-            DtoBridge bg1 = new DtoBridge();
-            bg1.setName("bg1-name");
-            bg1.setTenantId("tenant1-id");
+            Bridge bg1 = new Bridge();
+            bg1.name = "bg1-name";
+            bg1.tenantId = "tenant1-id";
 
             // Create a port
             DtoBridgePort bridgePort = createBridgePort(null,
@@ -1261,7 +1262,7 @@ public class TestPort {
         private MidonetApi api;
 
         private DtoRouter router1;
-        private DtoBridge bridge1;
+        private Bridge bridge1;
         private DtoRouterPort port1;
         private DtoBridgePort port2;
         private DtoHost host1, host2;
@@ -1301,12 +1302,12 @@ public class TestPort {
             // Creating the topology for the exterior **bridge** port and the
             // interface.
             // Create a bridge.
-            bridge1 = new DtoBridge();
-            bridge1.setName("bridge1");
-            bridge1.setTenantId("bridge1-name");
+            bridge1 = new Bridge();
+            bridge1.name = "bridge1";
+            bridge1.tenantId = "bridge1-name";
             // Create an exterior bridge port on the bridge.
             port2 = createBridgePort(UUID.randomUUID(),
-                    bridge1.getId(), null, null, null);
+                    bridge1.id, null, null, null);
             topology = new Topology.Builder(dtoResource)
                     .create("router1", router1)
                     .create("router1", "port1", port1)
@@ -1433,7 +1434,7 @@ public class TestPort {
             Map<UUID, DtoBridgePort> portMap =
                     new HashMap<>();
 
-            DtoBridge bridge1 = topology.getBridge("bridge1");
+            Bridge bridge1 = topology.getBridge("bridge1");
             DtoBridgePort[] bridgePorts = dtoResource.getAndVerifyOk(
                     bridge1.getPorts(),
                     APPLICATION_PORT_V2_COLLECTION_JSON,

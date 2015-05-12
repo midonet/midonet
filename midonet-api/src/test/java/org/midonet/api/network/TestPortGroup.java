@@ -30,12 +30,12 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoPortGroupPort;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.cluster.rest_api.models.Bridge;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -65,9 +65,10 @@ public class TestPortGroup extends JerseyTest {
         dtoResource = new DtoWebResource(resource);
 
         // Create one bridge for tenant1
-        DtoBridge bridge = new DtoBridge();
-        bridge.setName("Bridge1");
-        bridge.setTenantId("tenant1-id");
+        Bridge bridge = new Bridge();
+        bridge.id = UUID.randomUUID();
+        bridge.name = "Bridge1";
+        bridge.tenantId = "tenant1-id";
 
         // Create one chain for tenant1
         DtoRuleChain chain = new DtoRuleChain();
@@ -83,7 +84,7 @@ public class TestPortGroup extends JerseyTest {
     public void testCreateGetListDelete() {
 
         DtoApplication app = topology.getApplication();
-        DtoBridge bridge = topology.getBridge("bridge1");
+        Bridge bridge = topology.getBridge("bridge1");
         DtoRuleChain chain = topology.getChain("chain1");
 
         // Create a port group for Tenant1
@@ -133,9 +134,8 @@ public class TestPortGroup extends JerseyTest {
         DtoBridgePort port = new DtoBridgePort();
         port = dtoResource.postAndVerifyCreated(bridge.getPorts(),
                 APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
-        assertEquals("Bridge1", bridge.
-            getName());
-        assertEquals(bridge.getId(), port.getDeviceId());
+        assertEquals("Bridge1", bridge.name);
+        assertEquals(bridge.id, port.getDeviceId());
 
         // Add this port to a port group and verify that it exists
         DtoPortGroupPort portGroupPort = new DtoPortGroupPort();

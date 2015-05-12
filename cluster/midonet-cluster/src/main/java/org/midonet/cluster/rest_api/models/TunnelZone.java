@@ -68,6 +68,14 @@ public class TunnelZone extends UriResource {
     @ZoomField(name = "hosts")
     public List<TunnelZoneHost> hosts;
 
+    public TunnelZone() {
+        this(null);
+    }
+
+    public TunnelZone(URI baseUri) {
+        super(baseUri);
+    }
+
     public URI getHosts() {
         return getUriFor(ResourceUris.HOSTS);
     }

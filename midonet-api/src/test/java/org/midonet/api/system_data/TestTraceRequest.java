@@ -40,10 +40,10 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.cluster.data.TraceRequest.DeviceType;
+import org.midonet.cluster.rest_api.models.Bridge;
 import org.midonet.midolman.state.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -93,9 +93,9 @@ public class TestTraceRequest extends JerseyTest {
         port.setPortAddress("10.0.0.1");
         builder.create(ROUTER0, PORT0, port);
 
-        DtoBridge bridge = new DtoBridge();
-        bridge.setName(BRIDGE0);
-        bridge.setTenantId("dummyTenant");
+        Bridge bridge = new Bridge();
+        bridge.name = BRIDGE0;
+        bridge.tenantId = "dummyTenant";
         builder.create(BRIDGE0, bridge);
 
         topology = builder.build();
@@ -136,7 +136,7 @@ public class TestTraceRequest extends JerseyTest {
 
         // create a second
         TraceRequest request2 = new TraceRequest(UUID.randomUUID(), "foobar2",
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).id,
                 new Condition());
         ClientResponse response2 = traceResource.post(ClientResponse.class,
                                                       request2);
@@ -198,7 +198,7 @@ public class TestTraceRequest extends JerseyTest {
                 new Condition());
         TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(),
                 "foobar2", DeviceType.BRIDGE,
-                topology.getBridge(BRIDGE0).getId(), new Condition());
+                topology.getBridge(BRIDGE0).id, new Condition());
         ClientResponse response = traceResource
             .header(HEADER_X_AUTH_TOKEN, ADMIN0)
             .post(ClientResponse.class, portTrace);
@@ -252,7 +252,7 @@ public class TestTraceRequest extends JerseyTest {
         // tenant can create trace on router, but not bridge
         TraceRequest bridgeTrace2 = new TraceRequest(
                 UUID.randomUUID(), "foobar2",
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).id,
                 new Condition());
         TraceRequest portTrace2 = new TraceRequest(
                 UUID.randomUUID(), "foobar3",
@@ -380,7 +380,7 @@ public class TestTraceRequest extends JerseyTest {
     @Test(timeout=60000)
     public void testEnableDisablePermissions() throws StateAccessException {
         TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(), "foobar",
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).id,
                 new Condition());
 
         ClientResponse response = traceResource
@@ -425,7 +425,7 @@ public class TestTraceRequest extends JerseyTest {
     @Test(timeout=60000)
     public void testEnabledOnCreation() throws StateAccessException {
         TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(), "foobar",
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).id,
                 new Condition(), System.currentTimeMillis(),
                 Long.MAX_VALUE, true);
 
@@ -446,7 +446,7 @@ public class TestTraceRequest extends JerseyTest {
     @Test(timeout=60000)
     public void testConflictingPut() throws StateAccessException {
         TraceRequest bridgeTrace = new TraceRequest(UUID.randomUUID(), "foobar",
-                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).getId(),
+                DeviceType.BRIDGE, topology.getBridge(BRIDGE0).id,
                 new Condition(), System.currentTimeMillis(),
                 Long.MAX_VALUE, true);
 

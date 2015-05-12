@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -112,6 +113,14 @@ public class Interface extends UriResource {
     public InetAddress[] addresses;
 
     public int status;
+
+    public Interface() {
+        this(null);
+    }
+
+    public Interface(URI baseUri) {
+        super(baseUri);
+    }
 
     @Override
     public void afterFromProto(Message proto) {

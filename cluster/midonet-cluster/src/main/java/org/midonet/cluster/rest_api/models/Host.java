@@ -81,6 +81,14 @@ public class Host extends UriResource {
     @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> portIds;
 
+    public Host() {
+        this(null);
+    }
+
+    public Host(URI baseUri) {
+        super(baseUri);
+    }
+
     @Override
     public void afterFromProto(Message proto) {
         addresses = new ArrayList<>();

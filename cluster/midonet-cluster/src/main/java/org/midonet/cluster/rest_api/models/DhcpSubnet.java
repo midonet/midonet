@@ -103,6 +103,14 @@ public class DhcpSubnet extends UriResource {
     @ZoomField(name = "enabled")
     public Boolean enabled = true;
 
+    public DhcpSubnet() {
+        this(null);
+    }
+
+    public DhcpSubnet(URI baseUri) {
+        super(baseUri);
+    }
+
     public URI getHosts() {
         return getUriFor(ResourceUris.HOSTS);
     }
