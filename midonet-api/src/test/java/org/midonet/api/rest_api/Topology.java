@@ -17,18 +17,30 @@ package org.midonet.api.rest_api;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.ws.rs.core.Response;
 
 import org.midonet.client.VendorMediaType;
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoLink;
+import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoPort;
+import org.midonet.client.dto.DtoPortGroup;
+import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.client.dto.DtoTenant;
+import org.midonet.cluster.rest_api.models.Bridge;
+
 import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static org.midonet.client.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORTGROUP_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_LINK_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
 
 
 /**
@@ -67,7 +79,7 @@ public class Topology {
         private final String appMediaType;
         private final Map<String, DtoTenant> tenants;
         private final Map<String, DtoRouter> routers;
-        private final Map<String, DtoBridge> bridges;
+        private final Map<String, Bridge> bridges;
         private final Map<String, DtoRuleChain> chains;
         private final Map<String, DtoRouterPort> routerPorts;
         private final Map<String, DtoBridgePort> bridgePorts;
@@ -89,7 +101,7 @@ public class Topology {
             this.resource = resource;
             this.tenants = new HashMap<String, DtoTenant>();
             this.routers = new HashMap<String, DtoRouter>();
-            this.bridges = new HashMap<String, DtoBridge>();
+            this.bridges = new HashMap<>();
             this.chains = new HashMap<String, DtoRuleChain>();
             this.routerPorts = new HashMap<String, DtoRouterPort>();
             this.bridgePorts = new HashMap<String, DtoBridgePort>();
@@ -115,7 +127,7 @@ public class Topology {
             return this;
         }
 
-        public Builder create(String tag, DtoBridge obj) {
+        public Builder create(String tag, Bridge obj) {
             this.bridges.put(tag, obj);
             return this;
         }
@@ -240,25 +252,25 @@ public class Topology {
                 entry.setValue(obj);
             }
 
-            for (Map.Entry<String, DtoBridge> entry : bridges.entrySet()) {
+            for (Map.Entry<String, Bridge> entry : bridges.entrySet()) {
 
-                DtoBridge obj = entry.getValue();
+                Bridge obj = entry.getValue();
 
                 // Set the inbound chain ID
                 String tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
                     DtoRuleChain c = chains.get(tag);
-                    obj.setInboundFilterId(c.getId());
+                    obj.inboundFilterId = c.getId();
                 }
 
                 // Set the outbound chain ID
                 tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
                     DtoRuleChain c = chains.get(tag);
-                    obj.setOutboundFilterId(c.getId());
+                    obj.outboundFilterId = c.getId();
                 }
                 obj = resource.postAndVerifyCreated(app.getBridges(),
-                    APPLICATION_BRIDGE_JSON, obj, DtoBridge.class);
+                    APPLICATION_BRIDGE_JSON, obj, Bridge.class);
                 entry.setValue(obj);
             }
 
@@ -309,8 +321,8 @@ public class Topology {
 
                 // Set the bridge ID
                 String tag = tagToBridges.get(entry.getKey());
-                DtoBridge b = bridges.get(tag);
-                obj.setDeviceId(b.getId());
+                Bridge b = bridges.get(tag);
+                obj.setDeviceId(b.id);
 
                 // Set the inbound chain ID
                 tag = tagToInChains.get(entry.getKey());
@@ -326,7 +338,7 @@ public class Topology {
                     obj.setOutboundFilterId(c.getId());
                 }
 
-                obj = resource.postAndVerifyCreated(b.getPorts(),
+                obj = resource.postAndVerifyCreated(b.ports,
                     APPLICATION_PORT_V2_JSON, entry.getValue(),
                     DtoBridgePort.class);
                 entry.setValue(obj);
@@ -373,7 +385,7 @@ public class Topology {
         return this.builder.routers.get(tag);
     }
 
-    public DtoBridge getBridge(String tag) {
+    public Bridge getBridge(String tag) {
         return this.builder.bridges.get(tag);
     }
 

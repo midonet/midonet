@@ -28,11 +28,11 @@ import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoDhcpHost;
 import org.midonet.client.dto.DtoDhcpOption121;
 import org.midonet.client.dto.DtoDhcpSubnet;
 import org.midonet.client.dto.DtoExtraDhcpOpt;
+import org.midonet.cluster.rest_api.models.Bridge;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -49,7 +49,7 @@ import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
 
 public class TestDHCP extends JerseyTest {
 
-    private DtoBridge bridge;
+    private Bridge bridge;
 
     public TestDHCP() {
         super(FuncTest.appDesc);
@@ -62,15 +62,15 @@ public class TestDHCP extends JerseyTest {
         DtoApplication app = resource().path("").accept(APPLICATION_JSON_V5)
                 .get(DtoApplication.class);
 
-        bridge = new DtoBridge();
-        bridge.setName("br1234");
-        bridge.setTenantId("DhcpTenant");
+        bridge = new Bridge();
+        bridge.name = "br1234";
+        bridge.tenantId = "DhcpTenant";
         response = resource().uri(app.getBridges())
                 .type(APPLICATION_BRIDGE_JSON)
                 .post(ClientResponse.class, bridge);
         assertEquals("The bridge was created.", 201, response.getStatus());
         bridge = resource().uri(response.getLocation())
-                .accept(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
+                .accept(APPLICATION_BRIDGE_JSON).get(Bridge.class);
     }
 
     @Test
@@ -81,7 +81,7 @@ public class TestDHCP extends JerseyTest {
         DtoDhcpSubnet subnet1 = new DtoDhcpSubnet();
         subnet1.setSubnetPrefix("10.0.0.0");
         subnet1.setSubnetLength(24);
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .type(APPLICATION_DHCP_SUBNET_JSON_V2)
                 .post(ClientResponse.class, subnet1);
         assertEquals(201, response.getStatus());
@@ -113,12 +113,12 @@ public class TestDHCP extends JerseyTest {
         subnet1.setSubnetLength(-3);
         subnet1.setDefaultGateway("172.31.0.1");
         subnet1.setServerAddr("172.31.0.118");
-        ClientResponse response = resource().uri(bridge.getDhcpSubnets())
+        ClientResponse response = resource().uri(bridge.dhcpSubnets)
             .type(APPLICATION_DHCP_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
         assertEquals(400, response.getStatus());
         subnet1.setSubnetLength(33);
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
             .type(APPLICATION_DHCP_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
         assertEquals(400, response.getStatus());
@@ -126,12 +126,12 @@ public class TestDHCP extends JerseyTest {
         // Test some bad network addresses
         subnet1.setSubnetLength(24);
         subnet1.setSubnetPrefix("10.0.0");
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
             .type(APPLICATION_DHCP_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
         assertEquals(400, response.getStatus());
         subnet1.setSubnetPrefix("321.4.5.6");
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
             .type(APPLICATION_DHCP_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
         assertEquals(400, response.getStatus());
@@ -139,12 +139,12 @@ public class TestDHCP extends JerseyTest {
         // Test some bad default gateways.
         subnet1.setSubnetPrefix("172.31.0.0");
         subnet1.setDefaultGateway("nonsense");
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
             .type(APPLICATION_DHCP_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
         assertEquals(400, response.getStatus());
         subnet1.setDefaultGateway("1.2.3.4.5");
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
             .type(APPLICATION_DHCP_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
         assertEquals(400, response.getStatus());
@@ -159,14 +159,14 @@ public class TestDHCP extends JerseyTest {
         subnet1.setSubnetLength(24);
         subnet1.setDefaultGateway("172.31.0.1");
         subnet1.setServerAddr("172.31.0.118");
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
             .type(APPLICATION_DHCP_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
 
         assertEquals(201, response.getStatus());
 
         DtoDhcpSubnet[] subnets =
-            resource().uri(bridge.getDhcpSubnets())
+            resource().uri(bridge.dhcpSubnets)
                 .type(APPLICATION_DHCP_SUBNET_COLLECTION_JSON)
                 .get(DtoDhcpSubnet[].class);
         Assert.assertNotNull(subnets);
@@ -181,7 +181,7 @@ public class TestDHCP extends JerseyTest {
         subnet1.setSubnetPrefix("172.31.0.0");
         subnet1.setSubnetLength(24);
         subnet1.setServerAddr("172.31.0.118");
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet1);
         assertEquals(201, response.getStatus());
@@ -197,7 +197,7 @@ public class TestDHCP extends JerseyTest {
         subnet2.setSubnetPrefix("172.31.1.0");
         subnet2.setSubnetLength(24);
         subnet2.setServerAddr("172.31.1.118");
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet2);
         assertEquals(201, response.getStatus());
@@ -207,7 +207,7 @@ public class TestDHCP extends JerseyTest {
         assertEquals(24, subnet2.getSubnetLength());
 
         // List the subnets
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .accept(APPLICATION_DHCP_SUBNET_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
@@ -222,7 +222,7 @@ public class TestDHCP extends JerseyTest {
                 .delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
         // There should now be only the second subnet.
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .accept(APPLICATION_DHCP_SUBNET_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
@@ -248,7 +248,7 @@ public class TestDHCP extends JerseyTest {
         subnet.setSubnetPrefix("172.31.0.0");
         subnet.setSubnetLength(24);
         subnet.setServerAddr("172.31.0.118");
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet);
         assertEquals(201, response.getStatus());
@@ -266,7 +266,7 @@ public class TestDHCP extends JerseyTest {
         assertEquals(201, response.getStatus());
 
         // List the subnets
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .accept(APPLICATION_DHCP_SUBNET_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
@@ -279,7 +279,7 @@ public class TestDHCP extends JerseyTest {
         response = resource().uri(subnet.getUri()).delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
         // Show that the list of DHCP subnet configurations is empty.
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .accept(APPLICATION_DHCP_SUBNET_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
@@ -300,7 +300,7 @@ public class TestDHCP extends JerseyTest {
                 new DtoDhcpOption121("172.31.1.0", 24, "172.0.0.253"));
         subnet1.getOpt121Routes().add(
                 new DtoDhcpOption121("172.31.2.0", 24, "172.0.0.253"));
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet1);
         assertEquals(201, response.getStatus());
@@ -360,7 +360,7 @@ public class TestDHCP extends JerseyTest {
         subnet.setSubnetPrefix("172.31.0.0");
         subnet.setSubnetLength(24);
         subnet.setServerAddr("172.31.0.118");
-        response = resource().uri(bridge.getDhcpSubnets())
+        response = resource().uri(bridge.dhcpSubnets)
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet);
         assertEquals(201, response.getStatus());

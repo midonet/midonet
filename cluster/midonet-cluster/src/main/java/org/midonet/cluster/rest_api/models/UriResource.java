@@ -34,6 +34,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
+
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.rest_api.annotation.ResourceId;
@@ -41,24 +44,25 @@ import org.midonet.cluster.rest_api.annotation.Subresource;
 
 public abstract class UriResource extends ZoomObject {
 
-    private URI baseUri = null;
-
-    /** Retrieve the URI of this resource. */
-    @XmlElement(name = "uri")
-    final public URI getUri() {
-        Resource resource = getResource();
-        String id = getId();
-        if (null == resource || null == id)
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-        return UriBuilder.fromUri(baseUri).segment(resource.name(), id).build();
-    }
+    private URI baseUri;
+    public URI uri;
 
     final protected URI getUriFor(String path) {
-        return UriBuilder.fromUri(getUri()).segment(path).build();
+        if (uri == null) {
+            return null;
+        }
+        return UriBuilder.fromUri(uri).segment(path).build();
+    }
+
+    final protected String getUriTemplateFor(String path) {
+        if (uri == null) {
+            return null;
+        }
+        return uri + path;
     }
 
     final protected URI getUriFor(String path, UUID id) {
-        if (id == null) return null;
+        if (id == null || baseUri == null) return null;
         return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
     }
 
@@ -73,8 +77,21 @@ public abstract class UriResource extends ZoomObject {
 
     @XmlTransient
     public void setBaseUri(URI baseUri) throws IllegalAccessException {
+        Preconditions.checkNotNull(baseUri);
+
+        String id = getId();
+        Preconditions.checkState(!Strings.isNullOrEmpty(id),
+                                 "Set URI(s) Error: object ID not set");
+
+        Resource resource = getResource();
+        if (resource == null) {
+            throw new IllegalStateException(
+                "Set URI(s) Error: could not instantiate resource");
+        }
+        this.uri = UriBuilder.fromUri(baseUri).segment(
+            resource.name(), id).build();
         this.baseUri = baseUri;
-        setSubresourcesUri(getUri());
+        setSubresourcesUri(this.uri);
     }
 
     @XmlTransient
@@ -165,5 +182,33 @@ public abstract class UriResource extends ZoomObject {
                List.class.isAssignableFrom((Class<?>)paramType.getRawType()) &&
                UriResource.class.isAssignableFrom(
                    (Class<?>)paramType.getActualTypeArguments()[0]);
+    }
+
+    @XmlTransient
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == this) return true;
+
+        if (!(obj instanceof UriResource)) return false;
+        final UriResource other = (UriResource) obj;
+
+        return Objects.equals(baseUri, other.baseUri)
+            && Objects.equals(uri, other.uri);
+    }
+
+    @XmlTransient
+    @Override
+    public int hashCode() {
+        return Objects.hash(baseUri, uri);
+    }
+
+    @XmlTransient
+    @Override
+    public String toString() {
+        return com.google.common.base.Objects.toStringHelper(this)
+            .add("uri", uri)
+            .add("baseUri", baseUri)
+            .toString();
     }
 }

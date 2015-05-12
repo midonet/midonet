@@ -24,9 +24,9 @@ import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoDhcpSubnet6;
 import org.midonet.client.dto.DtoDhcpV6Host;
+import org.midonet.cluster.rest_api.models.Bridge;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -41,7 +41,7 @@ import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
 
 public class TestDHCPv6 extends JerseyTest {
 
-    private DtoBridge bridge;
+    private Bridge bridge;
 
     public TestDHCPv6() {
         super(FuncTest.appDesc);
@@ -54,15 +54,15 @@ public class TestDHCPv6 extends JerseyTest {
         DtoApplication app = resource().path("").accept(APPLICATION_JSON_V5)
                 .get(DtoApplication.class);
 
-        bridge = new DtoBridge();
-        bridge.setName("br1234");
-        bridge.setTenantId("DhcpTenant");
+        bridge = new Bridge();
+        bridge.name = "br1234";
+        bridge.tenantId = "DhcpTenant";
         response = resource().uri(app.getBridges())
                 .type(APPLICATION_BRIDGE_JSON)
                 .post(ClientResponse.class, bridge);
         assertEquals("The bridge was created.", 201, response.getStatus());
         bridge = resource().uri(response.getLocation())
-                .accept(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
+                .accept(APPLICATION_BRIDGE_JSON).get(Bridge.class);
     }
 
     @Test
@@ -71,13 +71,13 @@ public class TestDHCPv6 extends JerseyTest {
         DtoDhcpSubnet6 subnet1 = new DtoDhcpSubnet6();
         subnet1.setPrefix("dead:beef:feed::");
         subnet1.setPrefixLength(-10);
-        ClientResponse response = resource().uri(bridge.getDhcpSubnet6s())
+        ClientResponse response = resource().uri(bridge.dhcpSubnet6s)
             .type(APPLICATION_DHCPV6_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
 
         assertEquals(400, response.getStatus());
         subnet1.setPrefixLength(129);
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
             .type(APPLICATION_DHCPV6_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
         assertEquals(400, response.getStatus());
@@ -85,12 +85,12 @@ public class TestDHCPv6 extends JerseyTest {
         // Test some bad network addresses
         subnet1.setPrefixLength(64);
         subnet1.setPrefix("abcd::1234::");
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
             .type(APPLICATION_DHCPV6_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
         assertEquals(400, response.getStatus());
         subnet1.setPrefix("cat:dog::");
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
             .type(APPLICATION_DHCPV6_SUBNET_JSON)
             .post(ClientResponse.class, subnet1);
         assertEquals(400, response.getStatus());
@@ -105,7 +105,7 @@ public class TestDHCPv6 extends JerseyTest {
         DtoDhcpSubnet6 subnet1 = new DtoDhcpSubnet6();
         subnet1.setPrefix("abcd:1234:dead:a1a1:a:a:a:a");
         subnet1.setPrefixLength(63);
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
                 .type(APPLICATION_DHCPV6_SUBNET_JSON)
                 .post(ClientResponse.class, subnet1);
         assertEquals(201, response.getStatus());
@@ -120,7 +120,7 @@ public class TestDHCPv6 extends JerseyTest {
         DtoDhcpSubnet6 subnet2 = new DtoDhcpSubnet6();
         subnet2.setPrefix("1234:1234:1234:1234:1234:1234:1234:1234");
         subnet2.setPrefixLength(64);
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
                 .type(APPLICATION_DHCPV6_SUBNET_JSON)
                 .post(ClientResponse.class, subnet2);
         assertEquals(201, response.getStatus());
@@ -130,7 +130,7 @@ public class TestDHCPv6 extends JerseyTest {
         assertEquals(64, subnet2.getPrefixLength());
 
         // List the subnets
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
                 .accept(APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
@@ -145,7 +145,7 @@ public class TestDHCPv6 extends JerseyTest {
                 .delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
         // There should now be only the second subnet.
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
                 .accept(APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
@@ -170,7 +170,7 @@ public class TestDHCPv6 extends JerseyTest {
         DtoDhcpSubnet6 subnet = new DtoDhcpSubnet6();
         subnet.setPrefix("dead:dead:dead:dead:0:0:0:0");
         subnet.setPrefixLength(64);
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
                 .type(APPLICATION_DHCPV6_SUBNET_JSON)
                 .post(ClientResponse.class, subnet);
         assertEquals(201, response.getStatus());
@@ -188,7 +188,7 @@ public class TestDHCPv6 extends JerseyTest {
         assertEquals(201, response.getStatus());
 
         // List the subnets
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
                 .accept(APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
@@ -201,7 +201,7 @@ public class TestDHCPv6 extends JerseyTest {
         response = resource().uri(subnet.getUri()).delete(ClientResponse.class);
         assertEquals(204, response.getStatus());
         // Show that the list of DHCP subnet configurations is empty.
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
                 .accept(APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
@@ -218,7 +218,7 @@ public class TestDHCPv6 extends JerseyTest {
         DtoDhcpSubnet6 subnet = new DtoDhcpSubnet6();
         subnet.setPrefix("abcd:abcd:abcd:dead:0:0:0:0");
         subnet.setPrefixLength(64);
-        response = resource().uri(bridge.getDhcpSubnet6s())
+        response = resource().uri(bridge.dhcpSubnet6s)
                 .type(APPLICATION_DHCPV6_SUBNET_JSON)
                 .post(ClientResponse.class, subnet);
         assertEquals(201, response.getStatus());
