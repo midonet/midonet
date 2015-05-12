@@ -23,6 +23,11 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
+
 import org.midonet.cache.LoadingCache;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
@@ -64,15 +69,20 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
         this.serializer = serializer;
     }
 
-    public <T extends PortGroupZkManager.PortGroupConfig> T get(UUID key, Class<T> clazz) {
-        PortGroupZkManager.PortGroupConfig config = get(key);
-        try {
-            return clazz.cast(config);
-        } catch (ClassCastException e) {
-            log.error("Failed to cast {} to a {}",
-                    new Object[] {config, clazz, e});
-            return null;
-        }
+    public <T extends PortGroupZkManager.PortGroupConfig>
+        Observable<T> get(UUID key, final Class<T> clazz) {
+        return get(key).map(new Func1<PortGroupZkManager.PortGroupConfig, T>() {
+                @Override
+                public T call(PortGroupZkManager.PortGroupConfig config) {
+                    try {
+                        return clazz.cast(config);
+                    } catch (ClassCastException e) {
+                        log.error("Failed to cast {} to a {}",
+                                  new Object[] {config, clazz, e});
+                        return null;
+                    }
+                }
+            });
     }
 
     public void addWatcher(Callback1<UUID> watcher) {
@@ -91,7 +101,7 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
     }
 
     @Override
-    protected PortGroupZkManager.PortGroupConfig load(UUID key) {
+    protected PortGroupZkManager.PortGroupConfig loadSync(UUID key) {
         PortGroupWatcher watcher = new PortGroupWatcher(key);
         try {
             return portGroupMgr.get(key, watcher);
@@ -102,12 +112,32 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
         } catch (SerializationException e) {
             log.error("Could not deserialize PortGroupConfig key {}", key);
         }
-
         return null;
     }
 
+    @Override
+    protected Observable<PortGroupZkManager.PortGroupConfig> load(final UUID key) {
+        final PortGroupWatcher watcher = new PortGroupWatcher(key);
+        return portGroupMgr.getWithObservable(key, watcher)
+            .observeOn(Schedulers.trampoline())
+            .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable t) {
+                        if (t instanceof StateAccessException) {
+                            log.warn("Exception retrieving PortGroupConfig", t);
+                            connectionWatcher.handleError(
+                                    "PortWatcher:" + key.toString(), watcher,
+                                    (StateAccessException)t);
+                        } else if (t instanceof SerializationException) {
+                            log.error("Could not deserialize PortGroupConfig key {}",
+                                      key);
+                        }
+                    }
+                });
+    }
+
     // This maintains consistency of the cached port configs w.r.t ZK.
-    private class PortGroupWatcher implements Runnable {
+    private class PortGroupWatcher extends Directory.DefaultTypedWatcher {
         UUID id;
 
         PortGroupWatcher(UUID id) {
@@ -117,21 +147,33 @@ public class PortGroupCache extends LoadingCache<UUID, PortGroupZkManager.PortGr
         @Override
         public void run() {
             // Update the value and re-register for ZK notifications.
-            try {
-                PortGroupZkManager.PortGroupConfig config = portGroupMgr.get(id, this);
-                put(id, config);
-                notifyWatchers(id);
-            } catch (NoStatePathException e) {
-                log.debug("PortGroup {} has been deleted", id);
-                put(id, null);
-            } catch (StateAccessException e) {
-                // If the ZK lookup fails, the cache keeps the old value.
-                log.warn("Exception refreshing PortConfig", e);
-                connectionWatcher.handleError(
-                        "PortGroupWatcher:" + id.toString(), this, e);
-            } catch (SerializationException e) {
-                log.error("Could not serialize PortGroupConfig {}", id);
-            }
+            portGroupMgr.getWithObservable(id, this)
+                .observeOn(Schedulers.trampoline())
+                .subscribe(new Action1<PortGroupZkManager.PortGroupConfig>() {
+                        @Override
+                        public void call(PortGroupZkManager.PortGroupConfig config) {
+                            put(id, config);
+                            notifyWatchers(id);
+                        }
+                    },
+                    new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable t) {
+                            if (t instanceof NoStatePathException) {
+                                log.debug("PortGroup {} has been deleted", id);
+                                put(id, null);
+                            } else if (t instanceof StateAccessException) {
+                                // If the ZK lookup fails, the cache keeps the old value.
+                                log.warn("Exception refreshing PortConfig", t);
+                                connectionWatcher.handleError(
+                                        "PortGroupWatcher:" + id.toString(),
+                                        PortGroupWatcher.this,
+                                        (StateAccessException)t);
+                            } else if (t instanceof SerializationException) {
+                                log.error("Could not serialize PortGroupConfig {}", id);
+                            }
+                        }
+                    });
         }
     }
 }
