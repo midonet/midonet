@@ -94,6 +94,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7c0bd4d5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-12T08:40:43Z",
+      "side": 1,
+      "message": "Well, the idea is that this describes why we need to get nNetwork from storage.",
+      "parentUuid": "1a106d94_61c05150",
+      "range": {
+        "startLine": 44,
+        "startChar": 20,
+        "endLine": 45,
+        "endChar": 50
+      },
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c1b30508",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 3
@@ -117,6 +141,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9c0850db",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-12T08:40:43Z",
+      "side": 1,
+      "message": "Uplink. I just forgot to change the comments.",
+      "parentUuid": "1a106d94_c1b30508",
+      "range": {
+        "startLine": 51,
+        "startChar": 62,
+        "endLine": 51,
+        "endChar": 70
+      },
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_aebd1bda",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 3
@@ -128,6 +176,24 @@
       "writtenOn": "2015-05-11T11:00:30Z",
       "side": 1,
       "message": "Just curious: are we expecting changes on the uplink networks? should we log.warn in case any of these happen?",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1cfc60b7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-12T08:40:43Z",
+      "side": 1,
+      "message": "I don\u0027t think we\u0027re expecting any, but it wouldn\u0027t be a problem if there were some, since they just don\u0027t exist in the Midonet topology. The one thing we can\u0027t handle is turning an uplink network into a regular network or vice-versa. But Ryu\u0027s told me that this won\u0027t happen, and to verify that this doesn\u0027t happen, we\u0027d have to go to Zookeeper to check, so my inclination is just to trust Neutron.",
+      "parentUuid": "1a106d94_aebd1bda",
       "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -169,6 +235,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_dcb3e807",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-12T08:40:43Z",
+      "side": 1,
+      "message": "Right. I could have tested the creation of the network port here, but it seemed redundant since I have to cover that in RouterInterfaceTranslatorIT anyway.",
+      "parentUuid": "1a106d94_e1ce0159",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6e9e8364",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
         "patchSetId": 3
@@ -204,6 +288,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3c14bce7",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 986,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-12T08:40:43Z",
+      "side": 1,
+      "message": "Right. Now when Neutron creates a router interface port, all we do in Midonet is create the corresponding network port, so this test would no longer pass.\n\nI could have replaced this with a similar test for RouterInterfaceTranslator, but I\u0027m not a big fan of the translator unit tests. I don\u0027t think it\u0027s worthwhile to test the output of the translator alone, when what I really care about is whether we correctly convert Neutron topology to Midonet topology. My view is that the C3PO integration tests cover everything a translator unit test would test (because an incorrect translator won\u0027t produce the correct Midonet topology), and more, rendering the unit tests redundant.",
+      "parentUuid": "1a106d94_c1fdc56f",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_2143f9af",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/ServerFrontEndTest.scala",
         "patchSetId": 3
@@ -215,6 +317,24 @@
       "writtenOn": "2015-05-12T02:07:19Z",
       "side": 1,
       "message": "Out of order.",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1ceaa0da",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/ServerFrontEndTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-12T08:40:43Z",
+      "side": 1,
+      "message": "No, YOU\u0027RE out of order!",
+      "parentUuid": "1a106d94_2143f9af",
       "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
