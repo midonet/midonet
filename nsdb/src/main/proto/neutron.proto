@@ -1,5 +1,5 @@
 //
-// Copyright 2014 Midokura SARL
+// Copyright 2015 Midokura SARL
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -174,10 +174,6 @@ message NeutronLoadBalancerPoolMember {
     optional int32 weight = 7;
     optional string status = 8;
     optional string status_description = 9;
-}
-
-message NeutronLoadBalancerPoolHealthMonitor {
-    optional UUID id = 1;
 }
 
 message NeutronVIP {

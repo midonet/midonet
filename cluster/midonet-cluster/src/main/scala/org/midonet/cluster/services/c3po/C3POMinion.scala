@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,8 +137,6 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
         List(classOf[FloatingIp] -> new FloatingIpTranslator(storage),
              classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
              classOf[NeutronLoadBalancerPool] -> new LoadBalancerPoolTranslator,
-             classOf[NeutronLoadBalancerPoolHealthMonitor] ->
-                new LoadBalancerPoolHealthMonitorTranslator,
              classOf[NeutronLoadBalancerPoolMember] ->
                 new LoadBalancerPoolMemberTranslator,
              classOf[NeutronNetwork] ->
