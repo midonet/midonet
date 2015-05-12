@@ -176,10 +176,6 @@ message NeutronLoadBalancerPoolMember {
     optional string status_description = 9;
 }
 
-message NeutronLoadBalancerPoolHealthMonitor {
-    optional UUID id = 1;
-}
-
 message NeutronVIP {
     optional UUID id = 1;
     optional string tenant_id = 2;

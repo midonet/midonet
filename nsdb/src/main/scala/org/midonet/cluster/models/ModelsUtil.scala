@@ -21,7 +21,6 @@ import org.midonet.cluster.models.Neutron.FloatingIp
 import org.midonet.cluster.models.Neutron.NeutronConfig
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
-import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolHealthMonitor
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Neutron.NeutronPort
@@ -106,10 +105,6 @@ object ModelsUtil {
      def nLoadBalancerPoolMemberFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, NeutronLoadBalancerPoolMember.newBuilder)
         .asInstanceOf[NeutronLoadBalancerPoolMember]
-
-     def nLoadBalancerPoolHealthMonitorFromTxt(protoTxt: String) =
-        protoFromTxt(protoTxt, NeutronLoadBalancerPoolHealthMonitor.newBuilder)
-        .asInstanceOf[NeutronLoadBalancerPoolHealthMonitor]
 
      def nHealthMonitorFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, NeutronHealthMonitor.newBuilder)
