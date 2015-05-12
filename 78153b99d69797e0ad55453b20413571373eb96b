@@ -34,6 +34,24 @@
       "revId": "78153b99d69797e0ad55453b20413571373eb96b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_37521735",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-12T14:00:22Z",
+      "side": 1,
+      "message": "We must add the id at the api layer. I\u0027ll fix this in the patch (and also see that other problem you were experiencing).",
+      "parentUuid": "1a106d94_a114094d",
+      "revId": "78153b99d69797e0ad55453b20413571373eb96b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
