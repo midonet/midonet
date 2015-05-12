@@ -17,7 +17,9 @@
 package org.midonet.odp.test
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
+import scala.util.Try
 
 import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
@@ -71,7 +73,10 @@ trait DatapathTest {
     val dpname3 = "ovsdp-baz"
 
     def datapathTests() = {
-        val dpF1 = con ensureDp dpname1
+        Try(Await.result(con.delDp(dpname1), Duration.Inf))
+        Try(Await.result(con.delDp(dpname2), Duration.Inf))
+        Try(Await.result(con.delDp(dpname3), Duration.Inf))
+        val dpF1 = con createDp dpname1
         val dpF2 = dpF1 flatMap { case _ => con ensureDp dpname2}
         val enum = dpF2 flatMap { case _ => con enumDps()}
         val dpGet1 = enum flatMap { case _ => con getDp dpname1}
