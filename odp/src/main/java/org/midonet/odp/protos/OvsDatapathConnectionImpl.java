@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.netlink.AttributeHandler;
 import org.midonet.netlink.BufferPool;
 import org.midonet.netlink.Callback;
+import org.midonet.netlink.NLFlag;
 import org.midonet.netlink.NetlinkChannel;
 import org.midonet.netlink.NetlinkMessage;
 import org.midonet.netlink.exceptions.NetlinkException;
@@ -350,8 +351,9 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
         ByteBuffer buf = getBuffer();
         FlowMask mask = datapath.supportsMegaflow() ? flow.getMask() : null;
+        short echo = callback == null ? 0 : NLFlag.ECHO;
         protocol.prepareFlowCreate(datapathId, flow.getMatch().getKeys(),
-                                   flow.getActions(), mask, buf);
+                                   flow.getActions(), mask, buf, echo);
         sendNetlinkMessage(buf, callback, Flow.deserializer, timeoutMillis);
     }
 

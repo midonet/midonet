@@ -18,6 +18,7 @@ package org.midonet.odp.test
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.util.Try
 
 import org.midonet.odp._
 import org.midonet.odp.flows._
@@ -35,6 +36,7 @@ trait TapTrafficInjectBase {
     def con: OvsConnectionOps
 
     def initTap(dpF: Future[Datapath]): Unit = {
+        Try(new TapWrapper("odp-test-tap", false).remove())
         tapWrapper = new TapWrapper("odp-test-tap")
         val tapDpPort = new NetDevPort(tapWrapper.getName)
         tapPort = Await.result(dpF flatMap { con createPort(tapDpPort, _) }, 1 second)
@@ -78,13 +80,11 @@ trait MegaFlowTest extends TapTrafficInjectBase {
         def stats() = counter.getAndSet(0)
     }
 
-    def createWFlow(dpF: Future[Datapath], f: Flow): Flow = {
-        val ff = dpF flatMap { con createFlow(f, _) }
-        Await.result(ff, 1 second)
-    }
+    def createWFlow(dpF: Future[Datapath], f: Flow): Flow =
+        Await.result(dpF flatMap { con createFlow(f, _) }, 1 second)
 
     def delWFlow(dpF: Future[Datapath], f: Flow): Unit =
-        dpF flatMap { con delFlow(f, _) }
+        Await.result(dpF flatMap { con delFlow(f, _) }, 1 second)
 
     def wflowTests(dpF: Future[Datapath]): Seq[(String, Future[Any])] = {
         initTap(dpF)
@@ -155,7 +155,7 @@ trait MegaFlowTest extends TapTrafficInjectBase {
         def checkFlow(flow: Flow, packets: Seq[EthBuilder[Ethernet]], expected: Int) = {
             val dpFlow = createWFlow(dpF, flow)
             packets foreach { packet => tapWrapper.send(packet.serialize) }
-            Thread sleep 250
+            Thread sleep 500
             delWFlow(dpF, dpFlow)
             val stats = handler.stats()
             if (stats == expected) {
