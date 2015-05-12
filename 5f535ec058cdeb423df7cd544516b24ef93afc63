@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_dce648e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/VIP.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-12T09:42:04Z",
+      "side": 1,
+      "message": "name parameters",
+      "range": {
+        "startLine": 46,
+        "startChar": 22,
+        "endLine": 46,
+        "endChar": 60
+      },
+      "revId": "5f535ec058cdeb423df7cd544516b24ef93afc63",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
