@@ -16,6 +16,24 @@
       "revId": "f60c5dd0b4b44d2296eb60737f7fe584bd4c6769",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_927cb9ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-12T16:20:02Z",
+      "side": 1,
+      "message": "we pin RoutingHandler objects to single threaded dispatchers.\n\nBut yes, this code shouldn\u0027t assume that, I\u0027m sprinkling some synchronized blocks here and there, wherever they look pretty.",
+      "parentUuid": "1a106d94_b22295a0",
+      "revId": "f60c5dd0b4b44d2296eb60737f7fe584bd4c6769",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
