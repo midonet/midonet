@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_11b8c60f",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-12T23:19:47Z",
+      "side": 1,
+      "message": "Given that the variables are public it might be better to leave just the getters for subresource uris, and only set the base uri with this method. So that the getters do compose with the base uri. What was the rationale for making them properties?",
+      "range": {
+        "startLine": 114,
+        "startChar": 16,
+        "endLine": 114,
+        "endChar": 26
+      },
+      "revId": "ab9df21e67bcb8d62a8f19db4826a25e2be81fc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d1c10e81",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-12T23:19:47Z",
+      "side": 1,
+      "message": "Or JsonIgnore? Do you know which is the best one? Alex and I had doubts about this.",
+      "range": {
+        "startLine": 181,
+        "startChar": 5,
+        "endLine": 181,
+        "endChar": 17
+      },
+      "revId": "ab9df21e67bcb8d62a8f19db4826a25e2be81fc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
