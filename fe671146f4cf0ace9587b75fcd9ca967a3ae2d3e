@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f7cebf58",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-12T13:02:14Z",
+      "side": 1,
+      "message": "After checking Arrays.equals, it seems that it can be used here because it returns false if either of the two arrays is null.",
+      "parentUuid": "1a106d94_19947789",
+      "revId": "fe671146f4cf0ace9587b75fcd9ca967a3ae2d3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_bc28ac33",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 4
@@ -30,6 +48,30 @@
       "writtenOn": "2015-05-12T08:51:42Z",
       "side": 1,
       "message": "Isn\u0027t it creating a new hash map for every LB update (even one not related to vips, or not emitting any update) a bit heavyweight? Why not:\n- check whether the VIPs have changed before copying all to the new set\n- or, even better: when creating the array in the deviceUpdated above, simply order the VIPs by their UUID\n\nHowever, I would also give some thought to the following: the equals() conundrum comes from the usage of distinctUntilChanged below to ensure that we don\u0027t emit identical LB objects. For that, I feel that now we complicate too much the way we pass the set of VIPs to the object, whereas we could simply compare here here the old and the new LBs. After all, this purpose of this method is to return true if we must emit a new LB, false otherwise. In that case, we wouldn\u0027t need either equals in the LB objects, nor the distinctUntilChanged below.",
+      "range": {
+        "startLine": 94,
+        "startChar": 16,
+        "endLine": 94,
+        "endChar": 62
+      },
+      "revId": "fe671146f4cf0ace9587b75fcd9ca967a3ae2d3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_57da3317",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-12T13:02:14Z",
+      "side": 1,
+      "message": "I uploaded a new patch set which follows your 2nd suggestion. Let me know what you think.",
+      "parentUuid": "1a106d94_bc28ac33",
       "range": {
         "startLine": 94,
         "startChar": 16,
