@@ -21,17 +21,23 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.functions.Action1;
+import rx.functions.Func1;
+
 import org.midonet.cluster.client.PortBuilder;
+import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.topology.devices.Port;
 import org.midonet.midolman.topology.devices.PortFactory;
+import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback1;
 
 public class ClusterPortsManager extends ClusterManager<PortBuilder> {
@@ -40,6 +46,10 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
     // These watchers belong to classes of the cluster (eg ClusterBridgeManager)
     // they don't implement the PortBuilder interface
     Map<UUID, Runnable> clusterWatchers = new HashMap<UUID, Runnable>();
+
+    @Inject
+    @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
+    Reactor reactorLoop;
 
     private static final Logger log = LoggerFactory
         .getLogger(ClusterPortsManager.class);
@@ -55,7 +65,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
     protected <T extends PortConfig> T getPortConfigAndRegisterWatcher(
             final UUID id, Class<T> clazz, Runnable watcher) {
-        T config = portConfigCache.get(id, clazz);
+        T config = portConfigCache.getSync(id, clazz);
         clusterWatchers.put(id, watcher);
         return config;
     }
@@ -72,10 +82,29 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
     @Override
     protected void getConfig(final UUID id) {
-        PortConfig config = portConfigCache.get(id);
-        if (config == null)
-            return;
+        portConfigCache.get(id).observeOn(reactorLoop.rxScheduler())
+            .filter(new Func1<PortConfig, Boolean>() {
+                    @Override
+                    public Boolean call(PortConfig config) {
+                        return (config != null);
+                    }
+                })
+            .subscribe(new Action1<PortConfig>() {
+                    @Override
+                    public void call(PortConfig config) {
+                        buildFromConfig(id, config);
+                    }
+                },
+                new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable t) {
+                        log.info("Exception thrown getting config for {}",
+                                 id, t);
+                    }
+                });
+    }
 
+    private void buildFromConfig(UUID id, PortConfig config) {
         PortBuilder builder = getBuilder(id);
         Port port = PortFactory.fromPortConfig(config);
 
