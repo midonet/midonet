@@ -16,6 +16,24 @@
       "revId": "78153b99d69797e0ad55453b20413571373eb96b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a114094d",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-12T05:01:46Z",
+      "side": 1,
+      "message": "So if it\u0027s null what will Zoom do?  Throw an exception or store it as null?  Isn\u0027t \u0027id\u0027 used as the key of ZK node?",
+      "parentUuid": "1a106d94_348cdad9",
+      "revId": "78153b99d69797e0ad55453b20413571373eb96b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
