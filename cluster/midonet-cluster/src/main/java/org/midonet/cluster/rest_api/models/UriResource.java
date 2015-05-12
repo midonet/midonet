@@ -48,17 +48,29 @@ public abstract class UriResource extends ZoomObject {
     final public URI getUri() {
         Resource resource = getResource();
         String id = getId();
-        if (null == resource || null == id)
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
+        if (null == resource || null == id || null == baseUri)
+            return null;
         return UriBuilder.fromUri(baseUri).segment(resource.name(), id).build();
     }
 
     final protected URI getUriFor(String path) {
+        URI uri = getUri();
+        if (uri == null) {
+            return null;
+        }
         return UriBuilder.fromUri(getUri()).segment(path).build();
     }
 
+    final protected String getUriTemplateFor(String path) {
+        URI uri = getUri();
+        if (uri == null) {
+            return null;
+        }
+        return uri + path;
+    }
+
     final protected URI getUriFor(String path, UUID id) {
-        if (id == null) return null;
+        if (id == null || baseUri == null) return null;
         return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
     }
 
@@ -74,7 +86,10 @@ public abstract class UriResource extends ZoomObject {
     @XmlTransient
     public void setBaseUri(URI baseUri) throws IllegalAccessException {
         this.baseUri = baseUri;
-        setSubresourcesUri(getUri());
+        URI uri = getUri();
+        if (uri != null) {
+            setSubresourcesUri(uri);
+        }
     }
 
     @XmlTransient
@@ -165,5 +180,21 @@ public abstract class UriResource extends ZoomObject {
                List.class.isAssignableFrom((Class<?>)paramType.getRawType()) &&
                UriResource.class.isAssignableFrom(
                    (Class<?>)paramType.getActualTypeArguments()[0]);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == this) return true;
+
+        if (!(obj instanceof UriResource)) return false;
+        final UriResource other = (UriResource) obj;
+
+        return Objects.equals(baseUri, other.baseUri);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(baseUri);
     }
 }

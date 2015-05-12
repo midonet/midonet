@@ -24,6 +24,10 @@ import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.google.common.base.Objects;
+
+import org.apache.commons.collections4.ListUtils;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
@@ -82,15 +86,15 @@ public class Bridge extends UriResource {
     }
 
     public String getVlanMacTableTemplate() {
-        return getUri() + "/vlans/{vlanId}/mac_table";
+        return getUriTemplateFor("/vlans/{vlanId}/mac_table");
     }
 
     public String getMacPortTemplate() {
-        return getUri() + "/mac_table/{macAddress}_{portId}";
+        return getUriTemplateFor("/mac_table/{macAddress}_{portId}");
     }
 
     public String getVlanMacPortTemplate() {
-        return getUri() + "/vlans/{vlanId}/mac_table/{macAddress}_{portId}";
+        return getUriTemplateFor("/vlans/{vlanId}/mac_table/{macAddress}_{portId}");
     }
 
     public URI getPorts() {
@@ -127,4 +131,33 @@ public class Bridge extends UriResource {
         return getUriFor(ResourceUris.DHCPV6);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == this) return true;
+
+        if (!(obj instanceof Bridge)) return false;
+        final Bridge other = (Bridge) obj;
+
+        return super.equals(other)
+               && Objects.equal(id, other.id)
+               && Objects.equal(name, other.name)
+               && Objects.equal(inboundFilterId, other.inboundFilterId)
+               && Objects.equal(outboundFilterId, other.outboundFilterId)
+               && Objects.equal(tenantId, other.tenantId)
+               && Objects.equal(adminStateUp, other.adminStateUp)
+               && Objects.equal(vxLanPortId, other.vxLanPortId)
+               && ListUtils.isEqualList(portIds, other.portIds)
+               && ListUtils.isEqualList(dhcpIds, other.dhcpIds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(),
+                                id, name, tenantId,
+                                inboundFilterId, outboundFilterId,
+                                adminStateUp, vxLanPortId,
+                                ListUtils.hashCodeForList(portIds),
+                                ListUtils.hashCodeForList(dhcpIds));
+    }
 }
