@@ -17,6 +17,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.breakOut
 
@@ -44,7 +45,7 @@ trait TopologyPrefetcher extends Actor with ActorLogWithoutPath {
     import context.system
 
     private[this] var subscriptions = Set.empty[UUID]
-    private[this] val topology = Topology()
+    private[this] val topology = new ConcurrentHashMap[UUID, AnyRef]()
 
     def topologyReady()
 
@@ -52,7 +53,7 @@ trait TopologyPrefetcher extends Actor with ActorLogWithoutPath {
         if (id eq null)
             null.asInstanceOf[D]
         else
-            topology device id
+            topology.get(id).asInstanceOf[D]
 
     def prefetchTopology(requests: DeviceRequest*) {
         val newSubscriptions = requests.collect {
