@@ -81,20 +81,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
-     * Gets bridges.
-     *
-     * @return Collection of bridges
-     */
-    public ResourceCollection<Bridge> getBridges(
-            MultivaluedMap<String,String> queryParams) {
-        return getChildResources(principalDto.getBridges(),
-                                 queryParams,
-                                 VendorMediaType
-                                     .APPLICATION_BRIDGE_COLLECTION_JSON,
-                                 Bridge.class, DtoBridge.class);
-    }
-
-    /**
      * Gets routers.
      *
      * @return collection of routers
@@ -171,16 +157,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         return getChildResources(principalDto.getTunnelZones(), queryParams,
             VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
             TunnelZone.class, DtoTunnelZone.class);
-    }
-
-    /**
-     * Adds a bridge.
-     *
-     * @return new Bridge resource
-     */
-    public Bridge addBridge() {
-        return new Bridge(resource, principalDto.getBridges(),
-                          new DtoBridge());
     }
 
     /**
@@ -263,20 +239,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         DtoBgp bgp = resource.get(uri, null, DtoBgp.class,
                 VendorMediaType.APPLICATION_BGP_JSON);
         return new Bgp(resource, null, bgp);
-    }
-
-    /**
-     * Returns Bridge object
-     *
-     * @param id ID of bridge
-     * @return Bridge
-     */
-    public Bridge getBridge(UUID id) {
-        URI uri = createUriFromTemplate(
-                principalDto.getBridgeTemplate(), ID_TOKEN, id);
-        DtoBridge bridge = resource.get(uri, null, DtoBridge.class,
-                VendorMediaType.APPLICATION_BRIDGE_JSON);
-        return new Bridge(resource, null, bridge);
     }
 
     /**

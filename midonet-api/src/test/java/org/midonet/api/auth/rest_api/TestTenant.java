@@ -28,8 +28,8 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.VendorMediaType;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoTenant;
+import org.midonet.cluster.rest_api.models.Bridge;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -55,10 +55,10 @@ public class TestTenant extends JerseyTest {
         Topology.Builder builder = new Topology.Builder(dtoResource);
 
         for (int i = 0 ; i < count ; i++) {
-            DtoBridge bridge = new DtoBridge();
+            Bridge bridge = new Bridge();
             String tenantId = Integer.toString(i);
-            bridge.setName(tenantId);
-            bridge.setTenantId(tenantId);
+            bridge.name = tenantId;
+            bridge.tenantId = tenantId;
             builder.create(tenantId, bridge);
         }
 

@@ -55,16 +55,6 @@ public class MidonetApi {
     }
 
     /**
-     * Adds a Bridge.
-     *
-     * @return a bridge resource
-     */
-    public Bridge addBridge() {
-        ensureApplication();
-        return application.addBridge();
-    }
-
-    /**
      * Adds a Router.
      *
      * @return a router resource
@@ -102,17 +92,6 @@ public class MidonetApi {
     public TunnelZone addGreTunnelZone() {
         ensureApplication();
         return application.addGreTunnelZone();
-    }
-
-    /**
-     * Gets Bridges.
-     *
-     * @return collection of bridge
-     */
-    public ResourceCollection<Bridge> getBridges(
-            MultivaluedMap<String,String> queryParams) {
-        ensureApplication();
-        return application.getBridges(queryParams);
     }
 
     /**
@@ -198,17 +177,6 @@ public class MidonetApi {
     public Bgp getBgp(UUID id) {
         ensureApplication();
         return application.getBgp(id);
-    }
-
-    /**
-     * Returns Bridge object
-     *
-     * @param id ID of bridge
-     * @return Bridge
-     */
-    public Bridge getBridge(UUID id) {
-        ensureApplication();
-        return application.getBridge(id);
     }
 
     /**
