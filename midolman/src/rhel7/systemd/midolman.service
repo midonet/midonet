@@ -11,6 +11,8 @@ ExecStart=/usr/share/midolman/midolman-start
 SuccessExitStatus=143
 KillMode=control-group
 Restart=on-failure
+StartLimitInterval=120s
+StartLimitBurst=2
 
 [Install]
 WantedBy=multi-user.target
