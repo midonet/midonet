@@ -27,6 +27,11 @@ bgpd_up() {
 
     kill_namespace_pids
 
+    quagga_log="$log_dir/quagga.$vtyport"
+    mkdir -p $quagga_log
+    chown quagga.quagga $quagga_log
+    pushd $quagga_log
+
     exec ip netns exec $namespace $bgpd --vty_port $vtyport \
                                         --config_file $config_file \
                                         --pid_file $pidfile \
@@ -100,7 +105,7 @@ bgpd_down() {
 
 usage() {
     echo "Usage: $0 prepare INDEX LOCAL_VTY_IP REMOTE_VTY_IP ROUTER_IP ROUTER_MAC"
-    echo "       $0 up INDEX VTY_PORT_NUMBER BGPD_CONFIG_FILE"
+    echo "       $0 up INDEX VTY_PORT_NUMBER BGPD_CONFIG_FILE LOG_DIR"
     echo "       $0 down INDEX"
     exit 1
 }
@@ -146,7 +151,8 @@ case "$1" in
     up)
         vtyport=$3
         config_file=$4
-        if [ -z "$config_file" ] || [ -z "$vtyport" ] ; then
+        log_dir=$5
+        if [ -z "$config_file" ] || [ -z "$vtyport" ] || [ -z "$log_dir" ] ; then
             usage
         fi
         bgpd_up
