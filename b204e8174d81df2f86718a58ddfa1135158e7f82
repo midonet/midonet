@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_f774fa68",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-13T08:57:19Z",
+      "side": 1,
+      "message": "magic number",
+      "revId": "b204e8174d81df2f86718a58ddfa1135158e7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d76f3e90",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-13T08:57:19Z",
+      "side": 1,
+      "message": "same magic number",
+      "range": {
+        "startLine": 132,
+        "startChar": 39,
+        "endLine": 132,
+        "endChar": 40
+      },
+      "revId": "b204e8174d81df2f86718a58ddfa1135158e7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_975ae6ef",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-13T08:57:19Z",
+      "side": 1,
+      "message": "isAvailable is ambiguous. hasWritePending or something would be clearer. (or even use hasRequestsToWrite from above)",
+      "revId": "b204e8174d81df2f86718a58ddfa1135158e7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1766f6ba",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 262,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-13T08:57:19Z",
+      "side": 1,
+      "message": "what happens when the reader.read() call throws something?",
+      "revId": "b204e8174d81df2f86718a58ddfa1135158e7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_772f6a3f",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 334,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-13T08:57:19Z",
+      "side": 1,
+      "message": "just for my own understanding. We\u0027re writing in the order of the nextSequence calls? so if a writer calls nextSequence and never publishes, the whole thing will stall?",
+      "range": {
+        "startLine": 334,
+        "startChar": 8,
+        "endLine": 334,
+        "endChar": 26
+      },
+      "revId": "b204e8174d81df2f86718a58ddfa1135158e7f82",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
