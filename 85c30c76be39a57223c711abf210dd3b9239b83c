@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_c592e855",
+        "filename": "midonet-api/src/main/java/org/midonet/api/network/RouterDataConverter.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 6,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-13T14:12:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_9ad32bd4",
+      "revId": "85c30c76be39a57223c711abf210dd3b9239b83c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3ae4b7aa",
         "filename": "midonet-api/src/main/java/org/midonet/api/network/rest_api/RouterResource.java",
         "patchSetId": 1
@@ -30,6 +48,30 @@
       "writtenOn": "2015-05-13T11:51:49Z",
       "side": 1,
       "message": "optional: add uri as a parameter and turn this into\n\nreturn RouterDataConverter.fromData(routerData, getBaseUri())\n\nhere and in other usages below",
+      "range": {
+        "startLine": 143,
+        "startChar": 44,
+        "endLine": 143,
+        "endChar": 52
+      },
+      "revId": "85c30c76be39a57223c711abf210dd3b9239b83c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_458ef82e",
+        "filename": "midonet-api/src/main/java/org/midonet/api/network/rest_api/RouterResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-13T14:12:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_3ae4b7aa",
       "range": {
         "startLine": 143,
         "startChar": 44,
