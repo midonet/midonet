@@ -19,7 +19,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import javax.portlet.ResourceURL;
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -94,37 +93,37 @@ public class Bridge extends UriResource {
     }
 
     public URI getPorts() {
-        return getUriFor(ResourceUris.PORTS);
+        return relativeUri(ResourceUris.PORTS);
     }
 
     public URI getPeerPorts() {
-        return getUriFor(ResourceUris.PEER_PORTS);
+        return relativeUri(ResourceUris.PEER_PORTS);
     }
 
     @Since("3")
     public List<URI> getVxLanPorts() {
-        return getUrisFor(ResourceUris.VXLAN_PORTS, vxLanPortIds);
+        return absoluteUris(ResourceUris.VXLAN_PORTS, vxLanPortIds);
     }
 
     @Since("2")
     public URI getVxLanPort() {
-        return getUriFor(ResourceUris.PORTS, vxLanPortId);
+        return absoluteUri(ResourceUris.PORTS, vxLanPortId);
     }
 
     public URI getMacTable() {
-        return getUriFor(ResourceUris.MAC_TABLE);
+        return relativeUri(ResourceUris.MAC_TABLE);
     }
 
     public URI getArpTable() {
-        return getUriFor(ResourceUris.ARP_TABLE);
+        return relativeUri(ResourceUris.ARP_TABLE);
     }
 
     public URI getDhcpSubnets() {
-        return getUriFor(ResourceUris.DHCP);
+        return relativeUri(ResourceUris.DHCP);
     }
 
     public URI getDhcpSubnet6s() {
-        return getUriFor(ResourceUris.DHCPV6);
+        return relativeUri(ResourceUris.DHCPV6);
     }
 
 }

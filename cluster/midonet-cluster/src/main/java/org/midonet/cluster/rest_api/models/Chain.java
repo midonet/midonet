@@ -59,6 +59,6 @@ public class Chain extends UriResource {
     public List<UUID> ruleIds;
 
     public URI getRules() {
-        return getUriFor(ResourceUris.RULES);
+        return relativeUri(ResourceUris.RULES);
     }
 }
