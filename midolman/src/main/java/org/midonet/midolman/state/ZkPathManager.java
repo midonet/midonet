@@ -1090,6 +1090,34 @@ public class ZkPathManager {
     }
 
     /**
+     * Get ZK host commands path.
+     *
+     * @param hostId Host UUID
+     * @return /hosts/&lt;hostId&gt;/commands
+     */
+    public String getHostCommandsPath(UUID hostId) {
+        return buildHostCommandsPath(hostId).toString();
+    }
+
+    private StringBuilder buildHostCommandsPath(UUID hostId) {
+        return buildHostPath(hostId).append("/commands");
+    }
+
+    /**
+     * Get ZK commands error log path
+     *
+     * @param hostId Host UUID
+     * @return /hosts/&lt;hostId&gt;/errors
+     */
+    public String getHostCommandErrorLogsPath(UUID hostId) {
+        return buildHostCommandErrorLogsPath(hostId).toString();
+    }
+
+    private StringBuilder buildHostCommandErrorLogsPath(UUID hostId) {
+        return buildHostPath(hostId).append("/errors");
+    }
+
+    /**
      * Get ZK router path.
      *
      * @param id Host UUID

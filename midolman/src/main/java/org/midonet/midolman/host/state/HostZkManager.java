@@ -265,6 +265,21 @@ public class HostZkManager
                 paths.getHostFloodingProxyWeightPath(id)));
         }
 
+        /*
+         * The 'command' and 'error' path do not get created under host
+         * as of v1.7, but it is possible that it exists anyway if this
+         * deployment has gone through an upgrade. Delete the 'command'
+         * path if it exists.
+         */
+        String commandPath = paths.getHostCommandsPath(id);
+        if (zk.exists(commandPath)) {
+            ops.add(zk.getDeleteOp(commandPath));
+        }
+        String errorPath = paths.getHostCommandErrorLogsPath(id);
+        if (zk.exists(errorPath)) {
+            ops.add(zk.getDeleteOp(errorPath));
+        }
+
         ops.addAll(zk.getDeleteOps(
                 paths.getHostInterfacesPath(id),
                 paths.getHostVrnPortMappingsPath(id),
