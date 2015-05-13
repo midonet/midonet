@@ -650,29 +650,6 @@ Deleting a health monitor that has a pool association is prohibited.
 Delete the MidoNet health monitor.
 
 
-## POOLHEALTHMONITOR
-
-### CREATE
-
-Update the Neutron and MidoNet health monitor objects with the new pool ID
-association.
-
-Update the Neutron and MidoNet pool objects with the new health monitor ID
-association.
-
-Create a pool health monitor association configuration.
-
-### DELETE
-
-Update the Neutron and MidoNet health monitor objects by removing the
-association with the pool.
-
-Update the Neutron and MidoNet pool objects by removing the association with
-the health monitor.
-
-Delete the pool health monitor association configuration.
-
-
 ## ROUTINGINSTANCE
 
 Refer to the Dynamic Routing spec[3] for the task fields.
