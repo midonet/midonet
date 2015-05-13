@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_510a3e8a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/NetworkTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-13T05:26:18Z",
+      "side": 1,
+      "message": "DeleteOp itself is idempotent (DeleteOp(ignoreIfNotExists \u003d true), so you don\u0027t need to check if it\u0027s an uplink network. With that said, we\u0027ll have a problem with deleting replicated map paths as DeleteNode, I believe, is not idempotent.",
+      "range": {
+        "startLine": 56,
+        "startChar": 8,
+        "endLine": 58,
+        "endChar": 46
+      },
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b1fd7270",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-13T05:26:18Z",
+      "side": 1,
+      "message": "Since DeleteOp is idempotent, I don\u0027t think we need to test this.",
+      "range": {
+        "startLine": 91,
+        "startChar": 7,
+        "endLine": 92,
+        "endChar": 51
+      },
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_91003667",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-13T05:26:18Z",
+      "side": 1,
+      "message": "Not necessary since this has already been tested above unless you are worried about a race, but then DeleteOp is idempotent, that should be fine.",
+      "range": {
+        "startLine": 98,
+        "startChar": 40,
+        "endLine": 98,
+        "endChar": 65
+      },
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d1f58e83",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-13T05:26:18Z",
+      "side": 1,
+      "message": "s/a/an/",
+      "range": {
+        "startLine": 51,
+        "startChar": 60,
+        "endLine": 51,
+        "endChar": 68
+      },
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_31f18295",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-13T05:26:18Z",
+      "side": 1,
+      "message": "We might want to mention that Device ID field is of string type as Neutron also uses it to pass a composite ID, therefore we need to convert it to UUID by hand.",
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f1fa4a73",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-13T05:26:18Z",
+      "side": 1,
+      "message": "This too can be omitted since DeleteOp is idempotent.",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 73,
+        "endChar": 62
+      },
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
