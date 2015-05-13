@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_bab5477f",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/templates/nsdb-new-storage.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T12:03:17Z",
+      "side": 1,
+      "message": "Is this file only meant to override parameters that are different from nsdb.conf?",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 11
+      },
+      "revId": "0573f2df1b9b393b69f06d578c2d4ca49b6af953",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7abf4f61",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/templates/nsdb-new-storage.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T12:03:17Z",
+      "side": 1,
+      "message": "add description?",
+      "range": {
+        "startLine": 19,
+        "startChar": 35,
+        "endLine": 19,
+        "endChar": 36
+      },
+      "revId": "0573f2df1b9b393b69f06d578c2d4ca49b6af953",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
