@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.network;
+package org.midonet.cluster.rest_api.conversion;
 
 import org.midonet.cluster.data.Bridge.Property;
 import org.midonet.cluster.rest_api.models.Bridge;
