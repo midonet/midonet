@@ -18,57 +18,52 @@ package org.midonet.midolman.simulation
 
 import java.util.{Objects, UUID}
 
-import org.midonet.cluster.data.{ZoomClass, ZoomField, ZoomObject}
+import org.midonet.cluster.data.ZoomConvert.ScalaZoomField
+import org.midonet.cluster.data.{ZoomClass, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
-import org.midonet.packets.{IPv4Addr, TCP}
+import org.midonet.midolman.state.l4lb.VipSessionPersistence
+import org.midonet.packets.{IPAddr, IPv4Addr, TCP}
 
 @ZoomClass(clazz = classOf[Topology.VIP])
-class VIP extends ZoomObject {
-    @ZoomField(name = "id", converter = classOf[UUIDConverter])
-    var id: UUID = _
-    @ZoomField(name = "admin_state_up")
-    var adminStateUp: Boolean = false
-    @ZoomField(name = "pool_id", converter = classOf[UUIDConverter])
-    var poolId: UUID = _
-    @ZoomField(name = "address", converter = classOf[IPAddressConverter])
-    var address: IPv4Addr = _
-    @ZoomField(name = "protocol_port")
-    var protocolPort: Int = _
-    @ZoomField(name = "sticky_source_ip")
-    var isStickySourceIP: Boolean = false
-    @ZoomField(name = "load_balancer_id", converter = classOf[UUIDConverter])
-    var loadBalancerId: UUID = _
+final class VIP(
+    @ScalaZoomField(name = "id", converter = classOf[UUIDConverter])
+    val id: UUID,
+    @ScalaZoomField(name = "admin_state_up")
+    val adminStateUp: Boolean,
+    @ScalaZoomField(name = "pool_id", converter = classOf[UUIDConverter])
+    val poolId: UUID,
+    @ScalaZoomField(name = "address", converter = classOf[IPAddressConverter])
+    val address: IPAddr,
+    @ScalaZoomField(name = "protocol_port")
+    val protocolPort: Int,
+    @ScalaZoomField(name = "session_persistence")
+    val sessionPersistence: VipSessionPersistence,
+    @ScalaZoomField(name = "load_balancer_id", converter = classOf[UUIDConverter])
+    val loadBalancerId: UUID) extends ZoomObject {
 
-    def this(id: UUID, adminStateUp: Boolean, poolId: UUID, address: IPv4Addr,
-             protocolPort: Int, isStickySourceIP: Boolean) = {
-        this()
-        this.id = id
-        this.adminStateUp = adminStateUp
-        this.poolId = poolId
-        this.address = address
-        this.protocolPort = protocolPort
-        this.isStickySourceIP = isStickySourceIP
-    }
+    def this() = this(null, false, null, null, 0, null, null)
 
     override def equals(obj: Any): Boolean = obj match {
         case vip: VIP =>
             vip.id == id && vip.adminStateUp == adminStateUp &&
             vip.poolId == poolId && vip.address == address &&
             vip.protocolPort == protocolPort &&
-            vip.isStickySourceIP == isStickySourceIP
+            vip.sessionPersistence == sessionPersistence
         case _ => false
     }
 
     override def hashCode: Int =
         Objects.hashCode(id, adminStateUp, poolId, address, protocolPort,
-                         isStickySourceIP)
+                         sessionPersistence)
 
     override def toString =
         s"VIP [id=$id adminStateUp=$adminStateUp poolId=$poolId " +
         s"address=$address port=$protocolPort " +
-        s"isStickySourceIp=$isStickySourceIP]"
+        s"sessionPersistence=$sessionPersistence]"
+
+    def isStickySourceIP = sessionPersistence == VipSessionPersistence.SOURCE_IP
 
     def matches(pktContext: PacketContext) = {
         val pktMatch = pktContext.wcmatch

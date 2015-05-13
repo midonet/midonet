@@ -28,7 +28,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.state.l4lb.{LBStatus, HealthMonitorType}
+import org.midonet.midolman.state.l4lb.{VipSessionPersistence, LBStatus, HealthMonitorType}
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigUpdated, ConfigDeleted, ConfigAdded}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.simulation.{VIP => SimVIP, LoadBalancer => SimLoadBalancer, PoolMember => SimPoolMember, CustomMatchers}
@@ -77,7 +77,9 @@ class HealthMonitorConfigWatcherTest extends TestKit(ActorSystem("HealthMonitorC
                              poolId,
                              IPv4Addr.random,
                              protocolPort = random.nextInt(65533) + 1,
-                             isStickySourceIP = true)
+                             sessionPersistence =
+                                 VipSessionPersistence.SOURCE_IP,
+                             loadBalancerId = UUID.randomUUID())
 
         val lb = new SimLoadBalancer(UUID.randomUUID(),
                                      adminStateUp = true,
