@@ -13,11 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.netlink;
-
-import org.midonet.netlink.clib.cLibrary;
-
-import javax.annotation.Nonnull;
+package org.midonet.util;
 
 public interface AfUnix {
 

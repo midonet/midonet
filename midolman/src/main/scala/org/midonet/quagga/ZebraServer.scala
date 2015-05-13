@@ -35,15 +35,17 @@ import java.nio.file.Paths
 import java.nio.file.attribute.GroupPrincipal
 import java.nio.file.attribute.PosixFileAttributeView
 import java.nio.file.attribute.UserPrincipal
+
 import scala.collection.mutable
 
 import akka.actor.{ActorContext, Props, ActorRef, Actor}
 import akka.event.LoggingReceive
 
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
+import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.eventloop.{SelectListener, SelectLoop}
+import org.midonet.util.AfUnix
 
 case class SpawnConnection(channel: ByteChannel)
 case class ConnectionClosed(reqId: Int)

@@ -19,6 +19,8 @@ import java.nio.channels.spi.SelectorProvider;
 
 import sun.nio.ch.SelChImpl;
 
+import org.midonet.util.AfUnix;
+
 /**
  * Specialization of a UnixDomainChannel that extends SelChImpl to
  * work as a SelectableChannel within sun implementation of java.nio.

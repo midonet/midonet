@@ -29,7 +29,7 @@ import com.sun.jna.Native;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.netlink.clib.cLibrary;
+import org.midonet.util.cLibrary;
 import org.midonet.netlink.exceptions.NetlinkException;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.Bucket;

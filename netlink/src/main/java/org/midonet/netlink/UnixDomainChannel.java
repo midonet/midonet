@@ -30,8 +30,9 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.netlink.clib.cLibrary.UnixDomainSockAddress;
-import org.midonet.netlink.clib.cLibrary;
+import org.midonet.util.cLibrary.UnixDomainSockAddress;
+import org.midonet.util.cLibrary;
+import org.midonet.util.AfUnix;
 import org.midonet.netlink.hacks.IOUtil;
 
 /**
