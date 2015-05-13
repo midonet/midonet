@@ -36,7 +36,8 @@ import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.LBStatus
 import LBStatus.{INACTIVE => MemberInactive}
 import LBStatus.{ACTIVE => MemberActive}
-import org.midonet.netlink.{AfUnix, NetlinkSelectorProvider, UnixDomainChannel}
+import org.midonet.netlink.{NetlinkSelectorProvider, UnixDomainChannel}
+import org.midonet.util.AfUnix
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.HashSet

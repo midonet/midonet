@@ -37,7 +37,6 @@ import org.midonet.midolman.state.{ZkConnectionAwareWatcher, StateAccessExceptio
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman._
-import org.midonet.netlink.AfUnix
 import org.midonet.odp.{DpPort, Datapath}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.{output, userspace}
@@ -47,6 +46,7 @@ import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.{FlowTagger, WildcardFlow, WildcardMatch}
 import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
+import org.midonet.util.AfUnix
 import org.midonet.util.eventloop.SelectLoop
 import org.midonet.util.functors.Callback0
 import org.midonet.util.process.ProcessHelper

@@ -28,7 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import sun.nio.ch.SelectionKeyImpl;
 
-import org.midonet.netlink.clib.cLibrary;
+import org.midonet.util.cLibrary;
 import org.midonet.netlink.hacks.*;
 
 /**

@@ -33,8 +33,9 @@ import org.scalatest.time.{Span, Seconds}
 import org.midonet.cluster.{LocalDataClientImpl, DataClient, LocalClientImpl}
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SetupFailure
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.netlink.AfUnix.Address
-import org.midonet.netlink.{AfUnix, UnixDomainChannel}
+import org.midonet.netlink.UnixDomainChannel
+import org.midonet.util.AfUnix
+import org.midonet.util.AfUnix.Address
 
 @RunWith(classOf[JUnitRunner])
 class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
