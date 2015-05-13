@@ -53,7 +53,7 @@ public class FuncTest {
         HostIdGenerator.useTemporaryHostId();
         objectMapper = new ObjectMapper();
         objectMapper.configure(
-                DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+            DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         // Randomize GrizzlyWebTestContainer's port for parallelism
         System.setProperty("jersey.test.port",
                 String.valueOf((int)(Math.random() * 1000) + 62000));

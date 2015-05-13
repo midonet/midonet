@@ -62,6 +62,7 @@ public class Route extends UriResource {
     @ZoomField(name = "attributes")
     public String attributes;
 
+    @JsonIgnore
     @ZoomField(name = "dst_subnet", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> dstSubnet;
 
@@ -73,6 +74,7 @@ public class Route extends UriResource {
     @Max(32)
     public int dstNetworkLength;
 
+    @JsonIgnore
     @ZoomField(name = "src_subnet", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> srcSubnet;
 
@@ -84,8 +86,7 @@ public class Route extends UriResource {
     @Max(32)
     public int srcNetworkLength;
 
-    @ZoomField(name = "next_hop_gateway",
-        converter = IPAddressUtil.Converter.class)
+    @ZoomField(name = "next_hop_gateway", converter = IPAddressUtil.Converter.class)
     @Pattern(regexp = IPv4.regex)
     public String nextHopGateway;
 
