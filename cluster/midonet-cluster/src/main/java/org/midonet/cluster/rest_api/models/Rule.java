@@ -52,7 +52,7 @@ import org.midonet.cluster.util.UUIDUtil;
     @JsonSubTypes.Type(value = ReverseSnatRule.class, name = Rule.RevSNAT)})
 @Resource(name = ResourceUris.RULES, parents = { UriResource.class, Chain.class })
 @ZoomClass(clazz = Topology.Rule.class, factory = Rule.Factory.class)
-public abstract class Rule extends Condition {
+public abstract class Rule extends Condition<UUID> {
 
     public static class Factory implements ZoomConvert.Factory<Rule, Topology.Rule> {
         public Class<? extends Rule> getType(Topology.Rule proto) {
@@ -105,7 +105,7 @@ public abstract class Rule extends Condition {
 
     @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    public UUID id;
+    private UUID id;
     @ParentId
     @ZoomField(name = "chain_id", converter = UUIDUtil.Converter.class)
     public UUID chainId;
@@ -122,6 +122,15 @@ public abstract class Rule extends Condition {
     public Rule(RuleType type, RuleAction action) {
         this.type = type;
         this.action = action;
+    }
+
+    @Override
+    public UUID getId() {
+        return this.id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     @NotNull

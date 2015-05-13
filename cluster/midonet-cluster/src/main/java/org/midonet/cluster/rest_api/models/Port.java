@@ -45,13 +45,13 @@ import org.midonet.cluster.util.UUIDUtil;
         @JsonSubTypes.Type(value = VxLanPort.class, name = PortType.VXLAN)})
 @Resource(name = ResourceUris.PORTS)
 @ZoomClass(clazz = Topology.Port.class, factory = Port.PortFactory.class)
-public abstract class Port extends UriResource {
+public abstract class Port extends UriResource<UUID> {
 
     private static AtomicLong tunnelKeySeed = new AtomicLong();
 
     @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    public UUID id;
+    private UUID id;
 
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
@@ -93,6 +93,15 @@ public abstract class Port extends UriResource {
             else if (proto.hasRouterId()) return RouterPort.class;
             else throw new IllegalArgumentException("Unknown port type: " + proto);
         }
+    }
+
+    @Override
+    public UUID getId() {
+        return this.id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     @Override

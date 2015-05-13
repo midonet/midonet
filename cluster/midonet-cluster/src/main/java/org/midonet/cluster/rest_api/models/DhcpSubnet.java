@@ -49,11 +49,11 @@ import org.midonet.packets.IPv4Addr;
 @XmlRootElement
 @ZoomClass(clazz = Topology.Dhcp.class)
 @Resource(name = ResourceUris.DHCP, parents = { Bridge.class })
-public class DhcpSubnet extends UriResource {
+public class DhcpSubnet extends UriResource<String> {
 
     @ResourceId
     @ZoomField(name = "id", converter = IdConverter.class)
-    public String id;
+    private String id;
 
     @ParentId
     @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
@@ -101,6 +101,15 @@ public class DhcpSubnet extends UriResource {
 
     @ZoomField(name = "enabled")
     public Boolean enabled = true;
+
+    @Override
+    public String getId() {
+        return this.id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public URI getHosts() {
         return relativeUri(ResourceUris.HOSTS);

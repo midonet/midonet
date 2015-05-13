@@ -39,18 +39,27 @@ import org.midonet.cluster.rest_api.annotation.Resource;
 import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.rest_api.annotation.Subresource;
 
-public abstract class UriResource extends ZoomObject {
+public abstract class UriResource<T> extends ZoomObject {
 
     private URI baseUri = null;
+
+    /**
+     * UriResource object has ID that uniquely identifies the object, and also
+     * can be used in the URI path to locate itself.
+     *
+     * @return ID of the object used in the URI path
+     */
+    public abstract T getId();
 
     /** Retrieve the URI of this resource. */
     @XmlElement(name = "uri")
     final public URI getUri() {
         Resource resource = getResource();
-        String id = getId();
+        T id = getId();
         if (null == resource || null == id)
             throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-        return UriBuilder.fromUri(baseUri).segment(resource.name(), id).build();
+        return UriBuilder.fromUri(baseUri).segment(resource.name(),
+                                                   id.toString()).build();
     }
 
     /** Gets an URI for the specified path relative to the URI of the current
@@ -79,18 +88,6 @@ public abstract class UriResource extends ZoomObject {
     public void setBaseUri(URI baseUri) throws IllegalAccessException {
         this.baseUri = baseUri;
         setSubresourcesUri(getUri());
-    }
-
-    @XmlTransient
-    @Nullable
-    final public String getId() {
-        Field field = getField(getClass(), ResourceId.class);
-        if (null == field) return null;
-        try {
-            return Objects.toString(field.get(this), null);
-        } catch (IllegalAccessException e) {
-            return null;
-        }
     }
 
     private void setSubresourcesUri(URI uri) throws IllegalAccessException {

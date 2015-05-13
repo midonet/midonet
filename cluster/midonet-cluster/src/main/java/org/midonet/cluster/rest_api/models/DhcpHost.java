@@ -20,6 +20,8 @@ import java.lang.reflect.Type;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
@@ -34,7 +36,7 @@ import org.midonet.packets.MAC;
 @XmlRootElement
 @Resource(name = ResourceUris.DHCP_HOSTS, parents = { DhcpSubnet.class })
 @ZoomClass(clazz = Topology.Dhcp.Host.class)
-public class DhcpHost extends UriResource {
+public class DhcpHost extends UriResource<String> {
 
     @ResourceId
     @ZoomField(name = "mac")
@@ -43,5 +45,11 @@ public class DhcpHost extends UriResource {
     public String ipAddr;
     @ZoomField(name = "name")
     public String name;
+
+    @JsonIgnore
+    @Override
+    public String getId() {
+        return this.macAddr;
+    }
 
 }

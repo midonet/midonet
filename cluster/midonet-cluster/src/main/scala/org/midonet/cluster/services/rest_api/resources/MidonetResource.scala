@@ -134,7 +134,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
                     APPLICATION_VTEP_PORT_COLLECTION_JSON,
                     MediaType.APPLICATION_JSON))
     def list(@PathParam("resource") resource: String,
-             @HeaderParam("Accept") accept: String): util.List[UriResource] = {
+             @HeaderParam("Accept") accept: String): util.List[UriResource[_]] = {
         log.info(s"LIST /$resource for media type $accept")
         listResource(resource).asJava
     }
@@ -164,7 +164,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
              @PathParam("resource2") resource2: String,
              @PathParam("id1") id1: String,
              @HeaderParam("Accept") accept: String)
-    : util.List[UriResource] = {
+    : util.List[UriResource[_]] = {
         log.info(s"LIST /$resource1/$id1/$resource2 for media type $accept")
         listResource(resource1, id1, resource2).asJava
     }
@@ -181,7 +181,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
              @PathParam("id1") id1: String,
              @PathParam("id2") id2: String,
              @HeaderParam("Accept") accept: String)
-    : util.List[UriResource] = {
+    : util.List[UriResource[_]] = {
         log.info(s"LIST /$resource1/$id1/$resource2/$id2/$resource3 for " +
                  s"media type $accept")
         listResource(resource1, id1, resource2, id2, resource3).asJava
@@ -377,7 +377,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
     /**
      * Gets a resource for a given request path.
      */
-    private def getResource(args: String*): UriResource = {
+    private def getResource(args: String*): UriResource[_] = {
         listResource(args: _*).lastOption getOrElse {
             throw new WebApplicationException(Status.NOT_FOUND)
         }
@@ -387,7 +387,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
      * Lists all resources for a given request path.
      */
     @throws[WebApplicationException]
-    private def listResource(args: String*): Seq[UriResource] = {
+    private def listResource(args: String*): Seq[UriResource[_]] = {
         if (args.length == 0) {
             throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
         }
@@ -480,7 +480,7 @@ class MidonetResource @Inject()(implicit backend: MidonetBackend) {
 
         tryWithResponse {
             val uri = UriBuilder.fromUri(uriInfo.getBaseUri)
-                .segment(args: _*).segment(dto.getId)
+                .segment(args: _*).segment(dto.getId.toString)
                 .build()
             obj = createSubresource(path, obj)
 

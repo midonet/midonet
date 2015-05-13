@@ -24,7 +24,7 @@ import org.midonet.cluster.util.UUIDUtil._
 
 object DtoRenderer {
 
-    type DtoClass = Class[_ >: Null <: UriResource]
+    type DtoClass = Class[_ >: Null <: UriResource[_]]
     type DtoPath = Seq[String]
 
     private type ZoomBuilder = Builder[_ <: Builder[_ <: AnyRef]]
@@ -47,7 +47,7 @@ object DtoRenderer {
                             parent: FieldAttribute, ownership: FieldAttribute,
                             subresources: Map[String, FieldAttribute]) {
         /** Sets the identifier for the given DTO, using the DTO value. */
-        def setId(dto: UriResource, dtoId: String): Unit = {
+        def setId(dto: UriResource[_], dtoId: String): Unit = {
             if (id eq null) return
             if (id.field.getType == classOf[UUID])
                 parent.field.set(dto, UUID.fromString(dtoId))
@@ -86,7 +86,7 @@ object DtoRenderer {
 
         /** Generates a new identifier for the given DTO, if the DTO does not
           * have one.*/
-        def generateId(dto: UriResource): Unit = {
+        def generateId(dto: UriResource[_]): Unit = {
             if (id eq null) return
             if (id.field.get(dto) == null) {
                 val uuid = UUID.randomUUID
@@ -98,7 +98,7 @@ object DtoRenderer {
         }
 
         /** Sets the parent identifier for the given DTO. */
-        def setParentId(dto: UriResource, parentId: String): Unit = {
+        def setParentId(dto: UriResource[_], parentId: String): Unit = {
             if (parent eq null) return
             if (parentId eq null) return
             if (parent.field.getType == classOf[UUID])
@@ -108,7 +108,7 @@ object DtoRenderer {
         }
 
         /** Sets the ownership for the given DTO. */
-        def setOwners(dto: UriResource, owners: Set[String]): Unit = {
+        def setOwners(dto: UriResource[_], owners: Set[String]): Unit = {
             if (ownership eq null) return
             if (ownership.field.getType == classOf[Boolean])
                 ownership.field.set(dto, owners.nonEmpty)
@@ -531,7 +531,7 @@ object DtoRenderer {
                             annotationClass: Class[_ <: Annotation])
     : FieldAttribute = {
         var c: Class[_] = clazz
-        while (classOf[UriResource] isAssignableFrom c) {
+        while (classOf[UriResource[_]] isAssignableFrom c) {
             for (field <- c.getDeclaredFields) {
                 if (field.getAnnotation(annotationClass) ne null) {
                     return FieldAttribute(
@@ -551,7 +551,7 @@ object DtoRenderer {
     : Map[String, FieldAttribute] = {
         var c: Class[_] = clazz
         val subresources = new mutable.HashMap[String, FieldAttribute]
-        while (classOf[UriResource] isAssignableFrom c) {
+        while (classOf[UriResource[_]] isAssignableFrom c) {
             for (field <- c.getDeclaredFields) {
                 val subresource = field.getAnnotation(classOf[Subresource])
                 if (subresource ne null) {
@@ -569,7 +569,7 @@ object DtoRenderer {
     private def getAnnotation[T >: Null <: Annotation]
     (clazz: DtoClass, annotationClass: Class[T]): T = {
         var c: Class[_] = clazz
-        while (classOf[UriResource] isAssignableFrom c) {
+        while (classOf[UriResource[_]] isAssignableFrom c) {
             val annotation = c.getAnnotation(annotationClass)
             if (annotation != null) return annotation
             else c = c.getSuperclass

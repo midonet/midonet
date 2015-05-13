@@ -41,11 +41,11 @@ import org.midonet.cluster.util.UUIDUtil;
 @XmlRootElement
 @Resource(name = ResourceUris.HOSTS)
 @ZoomClass(clazz = Topology.Host.class)
-public class Host extends UriResource {
+public class Host extends UriResource<UUID> {
 
     @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    public UUID id;
+    private UUID id;
 
     @Nonnull
     @ZoomField(name = "name")
@@ -78,6 +78,15 @@ public class Host extends UriResource {
     @Subresource(name = ResourceUris.PORTS)
     @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> portIds;
+
+    @Override
+    public UUID getId() {
+        return this.id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     @Override
     public void afterFromProto(Message proto) {

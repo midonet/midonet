@@ -34,7 +34,7 @@ import org.midonet.packets.IPv4;
 @XmlRootElement
 @Resource(name = ResourceUris.HOSTS, parents = { TunnelZone.class })
 @ZoomClass(clazz = Topology.TunnelZone.HostToIp.class)
-public class TunnelZoneHost extends UriResource {
+public class TunnelZoneHost extends UriResource<UUID> {
 
     @ParentId
     public UUID tunnelZoneId;
@@ -47,5 +47,10 @@ public class TunnelZoneHost extends UriResource {
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
     @ZoomField(name = "ip", converter = IPAddressUtil.Converter.class)
     public String ipAddress;
+
+    @Override
+    public UUID getId() {
+        return this.hostId;
+    }
 
 }

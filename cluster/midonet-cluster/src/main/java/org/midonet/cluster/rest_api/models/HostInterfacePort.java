@@ -33,7 +33,7 @@ import org.midonet.cluster.util.UUIDUtil;
 @XmlRootElement
 @Resource(name = ResourceUris.PORTS, parents = { Host.class })
 @ZoomClass(clazz = Topology.Port.class)
-public class HostInterfacePort extends UriResource {
+public class HostInterfacePort extends UriResource<UUID> {
 
     // TODO: @IsValidPortId
     @NotNull
@@ -50,6 +50,11 @@ public class HostInterfacePort extends UriResource {
     @NotNull(groups = HostInterfacePortCreateGroup.class)
     @ZoomField(name = "interface_name")
     public String interfaceName;
+
+    @Override
+    public UUID getId() {
+        return this.portId;
+    }
 
     // This group is used for validating the create process in which
     // the interface name must be provided.

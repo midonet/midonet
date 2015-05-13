@@ -37,7 +37,7 @@ import org.midonet.cluster.util.UUIDUtil;
 @XmlRootElement
 @Resource(name = ResourceUris.TUNNEL_ZONES)
 @ZoomClass(clazz = Topology.TunnelZone.class)
-public class TunnelZone extends UriResource {
+public class TunnelZone extends UriResource<UUID> {
 
     @ZoomEnum(clazz = Topology.TunnelZone.Type.class)
     public enum TunnelZoneType {
@@ -49,7 +49,7 @@ public class TunnelZone extends UriResource {
     @NotNull
     @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    public UUID id;
+    private UUID id;
 
     @NotNull
     @Size(min = 1, max = 255)
@@ -67,6 +67,15 @@ public class TunnelZone extends UriResource {
     @Subresource(name = ResourceUris.HOSTS)
     @ZoomField(name = "hosts")
     public List<TunnelZoneHost> hosts;
+
+    @Override
+    public UUID getId() {
+        return this.id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public URI getHosts() {
         return relativeUri(ResourceUris.HOSTS);

@@ -36,14 +36,14 @@ import org.midonet.cluster.util.UUIDUtil;
 @XmlRootElement
 @Resource(name = ResourceUris.CHAINS)
 @ZoomClass(clazz = Topology.Chain.class)
-public class Chain extends UriResource {
+public class Chain extends UriResource<UUID> {
 
     public static final int MIN_CHAIN_NAME_LEN = 1;
     public static final int MAX_CHAIN_NAME_LEN = 255;
 
     @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    public UUID id;
+    private UUID id;
 
     @NotNull
     public String tenantId;
@@ -57,6 +57,15 @@ public class Chain extends UriResource {
     @Subresource(name = ResourceUris.RULES)
     @ZoomField(name = "rule_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> ruleIds;
+
+    @Override
+    public UUID getId() {
+        return this.id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public URI getRules() {
         return relativeUri(ResourceUris.RULES);

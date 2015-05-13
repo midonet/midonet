@@ -22,7 +22,7 @@ public class BridgeDataConverter {
 
     public static Bridge fromData(org.midonet.cluster.data.Bridge bridgeData) {
         Bridge b = new Bridge();
-        b.id = bridgeData.getId();
+        b.setId(bridgeData.getId());
         b.name = bridgeData.getName();
         b.tenantId = bridgeData.getProperty(Property.tenant_id);
         b.adminStateUp = bridgeData.isAdminStateUp();
@@ -35,7 +35,7 @@ public class BridgeDataConverter {
 
     public static org.midonet.cluster.data.Bridge toData(Bridge b) {
         return new org.midonet.cluster.data.Bridge()
-            .setId(b.id)
+            .setId(b.getId())
             .setName(b.name)
             .setAdminStateUp(b.adminStateUp)
             .setInboundFilter(b.inboundFilterId)

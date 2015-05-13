@@ -35,11 +35,11 @@ import org.midonet.util.version.Since;
 @XmlRootElement(name = "bridge")
 @Resource(name = ResourceUris.BRIDGES)
 @ZoomClass(clazz = Topology.Network.class)
-public class Bridge extends UriResource {
+public class Bridge extends UriResource<UUID> {
 
     @ResourceId
     @ZoomField(name = "id", converter = Converter.class)
-    public UUID id;
+    private UUID id;
 
     @ZoomField(name = "tenant_id")
     @NotNull
@@ -78,6 +78,15 @@ public class Bridge extends UriResource {
 
     public Bridge() {
         adminStateUp = true;
+    }
+
+    @Override
+    public UUID getId() {
+        return this.id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public String getVlanMacTableTemplate() {

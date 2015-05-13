@@ -33,11 +33,11 @@ import org.midonet.cluster.util.UUIDUtil;
 @XmlRootElement(name = "router")
 @Resource(name = ResourceUris.ROUTERS)
 @ZoomClass(clazz = Topology.Router.class)
-public class Router extends UriResource {
+public class Router extends UriResource<UUID> {
 
     @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    public UUID id;
+    private UUID id;
 
     @ZoomField(name = "tenant_id")
     public String tenantId;
@@ -65,6 +65,15 @@ public class Router extends UriResource {
     @Subresource(name = ResourceUris.ROUTES)
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
+
+    @Override
+    public UUID getId() {
+        return this.id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
 
     public Router() {
         adminStateUp = true;

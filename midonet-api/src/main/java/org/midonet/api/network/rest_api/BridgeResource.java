@@ -260,7 +260,7 @@ public class BridgeResource extends AbstractResource {
     public void update(@PathParam("id") UUID id, Bridge bridge)
             throws StateAccessException, SerializationException {
 
-        bridge.id = id;
+        bridge.setId(id);
 
         validate(bridge);
 

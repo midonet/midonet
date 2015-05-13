@@ -37,7 +37,7 @@ import org.midonet.cluster.util.IPAddressUtil;
 @XmlRootElement
 @Resource(name = ResourceUris.INTERFACES, parents = { Host.class })
 @ZoomClass(clazz = Topology.Host.Interface.class)
-public class Interface extends UriResource {
+public class Interface extends UriResource<String> {
 
     @ZoomEnum(clazz = Topology.Host.Interface.Type.class)
     public enum InterfaceType {
@@ -112,6 +112,11 @@ public class Interface extends UriResource {
     public InetAddress[] addresses;
 
     public int status;
+
+    @Override
+    public String getId() {
+        return this.name;
+    }
 
     @Override
     public void afterFromProto(Message proto) {
