@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_a5f24c03",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T12:57:43Z",
+      "side": 1,
+      "message": "OK, I\u0027ll remove it.",
+      "parentUuid": "1a106d94_3a195722",
+      "revId": "d0dc6e687b172941bca9ddcaebf2b9e96ca712d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_1a145be7",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
         "patchSetId": 7
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_85cc70bc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T12:57:43Z",
+      "side": 1,
+      "message": "same comment as in the LoadBalancer.",
+      "parentUuid": "1a106d94_1a145be7",
+      "revId": "d0dc6e687b172941bca9ddcaebf2b9e96ca712d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_fab21f92",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
         "patchSetId": 7
@@ -47,6 +83,24 @@
       "writtenOn": "2015-05-13T12:04:18Z",
       "side": 1,
       "message": "nit: wrap?",
+      "revId": "d0dc6e687b172941bca9ddcaebf2b9e96ca712d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c5c14881",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T12:57:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_fab21f92",
       "revId": "d0dc6e687b172941bca9ddcaebf2b9e96ca712d6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
