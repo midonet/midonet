@@ -152,7 +152,7 @@ public class TestPortConfigCache {
     @Test
     public void testMissingPortID() {
         assertThat("The cache returns null if the portID is missing from ZK.",
-                portCache.get(UUID.randomUUID()), nullValue());
+                portCache.getSync(UUID.randomUUID()), nullValue());
     }
 
     @Test
@@ -170,7 +170,7 @@ public class TestPortConfigCache {
                 zkConfig.outboundFilter, equalTo(config.outboundFilter));
         assertThat("The config in ZK should have the expected portGroups.",
                 zkConfig.portGroupIDs, equalTo(config.portGroupIDs));
-        PortConfig cachedConfig = portCache.get(portID);
+        PortConfig cachedConfig = portCache.getSync(portID);
         assertThat("The config in the cache should be identical to ZK's.",
                 cachedConfig, equalTo(zkConfig));
     }
@@ -236,7 +236,7 @@ public class TestPortConfigCache {
         testExistingPortID();
         assertThat("The cache should contain the portID as key",
                 portCache.hasKey(portID));
-        PortConfig cachedConfig = portCache.get(portID);
+        PortConfig cachedConfig = portCache.getSync(portID);
         PortConfig config = getNewConfig(cachedConfig.tunnelKey);
         assertThat("The cached config should not equal the one we specified.",
                 cachedConfig, not(equalTo(config)));
@@ -245,7 +245,7 @@ public class TestPortConfigCache {
         PortConfig zkConfig = portMgr.get(portID);
         assertThat("ZK's config should be equal to the one we specified.",
                 zkConfig, equalTo(config));
-        cachedConfig = portCache.get(portID);
+        cachedConfig = portCache.getSync(portID);
         assertThat("Now the cached config should equal the one we specified.",
                 cachedConfig, equalTo(config));
     }
