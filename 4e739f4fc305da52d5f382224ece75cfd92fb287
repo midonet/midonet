@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_977e6668",
+        "filename": "midonet-api/src/main/java/org/midonet/api/rest_api/Authoriser.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T08:28:04Z",
+      "side": 1,
+      "message": "The main reason I didn\u0027t want to do it like that is because it would force subimplementations of Authoriser, which is what I want to avoid (in order to avoid the need for a multitude of implementations injected, and coupled to the Resource), and provide implementations to use another backend. The approach proposed here is that you have an Authoriser.\n\nSo I\u0027d lean instead towards passing the class to authorise. Eg.:\n\n\u003cT\u003e tryAuthorize(UUID id, Class\u003cT\u003e klass, String what)\n\nThat way we can keep 1 Authoriser to rule them all.\n\nThis also fits better with the ZOOM model and the mostly-generic REST API Alex is working on, as we don\u0027t really know what the object to be authorised is. So given an object o, the generic Resource can just do:\n\ntryAuthorize(id, o.getClass(), ..) \n\nWhich is what I plan to do in a later patch when we provide a ZoomAuthorizer. \n\nSounds ok?",
+      "parentUuid": "1a106d94_b7a44208",
+      "range": {
+        "startLine": 35,
+        "startChar": 22,
+        "endLine": 35,
+        "endChar": 32
+      },
+      "revId": "4e739f4fc305da52d5f382224ece75cfd92fb287",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_17455642",
         "filename": "midonet-api/src/test/java/org/midonet/api/servlet/RestApiTestJerseyServletModule.java",
         "patchSetId": 8
@@ -60,6 +84,24 @@
       "writtenOn": "2015-05-13T08:19:03Z",
       "side": 1,
       "message": "What does this do?",
+      "revId": "4e739f4fc305da52d5f382224ece75cfd92fb287",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d793bea0",
+        "filename": "midonet-api/src/test/java/org/midonet/api/servlet/RestApiTestJerseyServletModule.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T08:28:04Z",
+      "side": 1,
+      "message": "not sure why I enabled this, let me review it.",
+      "parentUuid": "1a106d94_17455642",
       "revId": "4e739f4fc305da52d5f382224ece75cfd92fb287",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
