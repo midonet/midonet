@@ -29,7 +29,7 @@ import org.scalactic.Prettifier
 import org.scalatest.matchers._
 
 import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, SimulationResult, AddVirtualWildcardFlow}
-import org.midonet.midolman.flows.{FlowInvalidation, FlowInvalidator}
+import org.midonet.midolman.flows.{FlowTagIndexer, FlowInvalidator}
 import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
 import org.midonet.packets.{Ethernet, IPv4}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -131,8 +131,8 @@ trait CustomMatchers {
         override def toString(): String = "invalidates (" + Prettifier.default(tags) + ")"
     }
 
-    def haveInvalidated (tags: FlowTag*) = new Matcher[FlowInvalidation{var tags: List[FlowTag]}] {
-        def apply(invalidation: FlowInvalidation{var tags: List[FlowTag]}): MatchResult = {
+    def haveInvalidated (tags: FlowTag*) = new Matcher[FlowTagIndexer{var tags: List[FlowTag]}] {
+        def apply(invalidation: FlowTagIndexer{var tags: List[FlowTag]}): MatchResult = {
             MatchResult(
                 tags forall invalidation.tags.contains,
                 s"${invalidation.tags} does not contain all of $tags",
@@ -146,7 +146,7 @@ trait CustomMatchers {
     implicit class FlowInvalidatorOps(val flowInvalidator: FlowInvalidator) {
         def clear(): List[FlowTag] = {
             val invalidatedTags = mutable.ListBuffer[FlowTag]()
-            flowInvalidator.process(new FlowInvalidation {
+            flowInvalidator.process(new FlowTagIndexer {
                 override val log: Logger = Logger(NOPLogger.NOP_LOGGER)
                 override def invalidateFlowsFor(tag: FlowTag) = {
                     invalidatedTags += tag

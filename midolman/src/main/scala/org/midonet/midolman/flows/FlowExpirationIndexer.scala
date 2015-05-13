@@ -22,7 +22,7 @@ import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
 
-object FlowExpiration {
+object FlowExpirationIndexer {
     sealed abstract class Expiration {
         def value: Long
         val typeId: Int
@@ -51,8 +51,8 @@ object FlowExpiration {
  * This trait deals with flow expiration. It registers all new flows and removes
  * them when the specified expiration time has elapsed.
  */
-trait FlowExpiration extends FlowLifecycle {
-    import FlowExpiration._
+trait FlowExpirationIndexer extends FlowIndexer {
+    import FlowExpirationIndexer._
 
     val log: Logger
     val maxFlows: Int

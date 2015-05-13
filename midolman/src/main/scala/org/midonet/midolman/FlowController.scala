@@ -26,8 +26,8 @@ import com.codahale.metrics.Gauge
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
-import org.midonet.midolman.flows.{FlowLifecycle, FlowInvalidation}
-import org.midonet.midolman.flows.FlowExpiration.Expiration
+import org.midonet.midolman.flows.{FlowIndexer, FlowTagIndexer}
+import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
 import org.midonet.midolman.flows._
 import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -39,8 +39,8 @@ import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
 import org.midonet.util.concurrent.{Backchannel, NanoClock}
 import org.midonet.util.concurrent.WakerUpper.Parkable
 
-trait FlowController extends FlowLifecycle with FlowInvalidation
-                     with FlowExpiration with Backchannel { this: Actor =>
+trait FlowController extends FlowIndexer with FlowTagIndexer
+                     with FlowExpirationIndexer with Backchannel { this: Actor =>
 
     protected val id: Int
     protected val config: MidolmanConfig
