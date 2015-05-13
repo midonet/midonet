@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_91a15648",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T07:50:49Z",
+      "side": 1,
+      "message": "You\u0027re right, see comment below.",
+      "parentUuid": "1a106d94_b17bb279",
+      "range": {
+        "startLine": 140,
+        "startChar": 0,
+        "endLine": 146,
+        "endChar": 5
+      },
+      "revId": "a5ed77e626f8b210300f4418aba01f7263676e26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_92631941",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-12T16:30:11Z",
       "side": 1,
       "message": "Same comment as Duarte: Can this be Arrays.equals(...) or simply \u003d\u003d?\n\nsameElements above looks to be taken to an implicit conversion to an indexed Seq.",
+      "range": {
+        "startLine": 153,
+        "startChar": 12,
+        "endLine": 153,
+        "endChar": 39
+      },
+      "revId": "a5ed77e626f8b210300f4418aba01f7263676e26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b19e1205",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T07:50:49Z",
+      "side": 1,
+      "message": "In scala \u003d\u003d for arrays is the same as in java, it performs reference equality. I take back what I said about Arrays.equals, if both arrays are null it will return true. I\u0027m using Arrays.equals now.",
+      "parentUuid": "1a106d94_92631941",
       "range": {
         "startLine": 153,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d1862eb8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T07:50:49Z",
+      "side": 1,
+      "message": "It\u0027s a good idea. Perhaps one patch that takes of this for all simulation objects would be good.",
+      "parentUuid": "1a106d94_12056945",
+      "range": {
+        "startLine": 163,
+        "startChar": 17,
+        "endLine": 163,
+        "endChar": 27
+      },
+      "revId": "a5ed77e626f8b210300f4418aba01f7263676e26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_52e401ab",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 6
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_741be880",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T07:50:49Z",
+      "side": 1,
+      "message": "I would prefer to keep it as it is to avoid the need for sorting.",
+      "parentUuid": "1a106d94_52e401ab",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 85,
+        "endChar": 62
+      },
+      "revId": "a5ed77e626f8b210300f4418aba01f7263676e26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_72665d52",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
         "patchSetId": 6
@@ -105,6 +201,30 @@
       "writtenOn": "2015-05-12T16:30:11Z",
       "side": 1,
       "message": "If you make vipIdsInOrder a Seq, then this conversion is not needed. I think Seq would be enough here.",
+      "range": {
+        "startLine": 101,
+        "startChar": 68,
+        "endLine": 101,
+        "endChar": 75
+      },
+      "revId": "a5ed77e626f8b210300f4418aba01f7263676e26",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b411e05e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T07:50:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_72665d52",
       "range": {
         "startLine": 101,
         "startChar": 68,
