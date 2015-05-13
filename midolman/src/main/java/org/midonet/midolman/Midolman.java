@@ -30,6 +30,8 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.sun.jna.LastErrorException;
+import com.sun.jna.Native;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigRenderOptions;
 import org.apache.commons.cli.CommandLine;
@@ -64,6 +66,7 @@ import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.simulation.PacketContext$;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
+import org.midonet.util.cLibrary;
 
 public class Midolman {
 
@@ -77,6 +80,24 @@ public class Midolman {
     WatchedProcess watchedProcess = new WatchedProcess();
 
     private Midolman() {
+    }
+
+    private static void lockMemory() {
+        try {
+            cLibrary.lib.mlockall(cLibrary.MCL_FUTURE | cLibrary.MCL_CURRENT);
+            log.info("Successfully locked the process address space to RAM.");
+        } catch (LastErrorException e) {
+            log.warn("Failed to lock process into RAM: {}",
+                cLibrary.lib.strerror(e.getErrorCode()));
+            log.warn("This implies that parts of the agents may be swapped out "+
+                    "causing long GC pauses that have various adverse effects. "+
+                    "It's strongly recommended that this process runs either as "+
+                    "root or with the CAP_IPC_LOCK capability and a high enough "+
+                    "memlock limit (RLIMIT_MEMLOCK).");
+            log.warn("You may disable these warnings by setting the "+
+                    "'agent.midolman.lock_memory' configuration key to 'false' "+
+                    "in mn-conf(1).");
+        }
     }
 
     /**
@@ -199,6 +220,9 @@ public class Midolman {
 
         log.info("Running manual GC to tenure preallocated objects");
         System.gc();
+
+        if (config.lockMemory())
+            lockMemory();
 
         log.info("main finish");
         serviceEvent.start();
