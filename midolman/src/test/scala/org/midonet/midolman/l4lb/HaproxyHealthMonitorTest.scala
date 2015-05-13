@@ -29,9 +29,10 @@ import org.scalatest.mock.MockitoSugar
 import org.midonet.cluster.{DataClient, LocalDataClientImpl}
 import org.midonet.midolman.l4lb.HaproxyHealthMonitor.SetupFailure
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.netlink.AfUnix.Address
-import org.midonet.netlink.{AfUnix, UnixDomainChannel}
+import org.midonet.netlink.UnixDomainChannel
 import org.midonet.util.MidonetEventually
+import org.midonet.util.AfUnix
+import org.midonet.util.AfUnix.Address
 
 @RunWith(classOf[JUnitRunner])
 class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))

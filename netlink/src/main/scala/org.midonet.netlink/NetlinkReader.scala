@@ -19,7 +19,7 @@ package org.midonet.netlink
 import java.io.IOException
 import java.nio.ByteBuffer
 
-import org.midonet.netlink.clib.cLibrary
+import org.midonet.util.cLibrary
 import org.midonet.netlink.exceptions.NetlinkException
 
 object NetlinkReader {
