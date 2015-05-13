@@ -1,0 +1,239 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_9a37ab4c",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "what if we pre-initialize the id to a random UUID? would that spare the create() in all dtos?",
+      "range": {
+        "startLine": 134,
+        "startChar": 0,
+        "endLine": 139,
+        "endChar": 5
+      },
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fa417fa9",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "is it worth adding this method to the UriResource, either as abstract (so all dtos consciously have to implement the right actions) or empty (so we provide a default value)?\n\nThe main benefit would be that it would release from many of the custom create, update, etc. in the Resource classes",
+      "range": {
+        "startLine": 141,
+        "startChar": 16,
+        "endLine": 141,
+        "endChar": 22
+      },
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_da92c355",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/UriResource.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "throw NPE? same for the methods below",
+      "range": {
+        "startLine": 44,
+        "startChar": 24,
+        "endLine": 44,
+        "endChar": 35
+      },
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ba81c7fc",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/UriResource.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "I\u0027m partly concerned about not http encoding this, but I\u0027m not sure if we can/want to actually do it, specially considering that we have stuff using : etc. in the segments \n\nwhat do you think?",
+      "range": {
+        "startLine": 52,
+        "startChar": 58,
+        "endLine": 52,
+        "endChar": 60
+      },
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1a70db3e",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/UriResource.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "the usage of this is not too evident from the method signature, I\u0027d rename (e.g., dtoClass) or at least javadoc.",
+      "range": {
+        "startLine": 90,
+        "startChar": 65,
+        "endLine": 90,
+        "endChar": 70
+      },
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dac76343",
+        "filename": "cluster/midonet-cluster/src/main/resources/logback.xml",
+        "patchSetId": 8
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "this file should probably be removed\n\nAnd I should add it to .gitignore because it happened too many times to me.",
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7ae0efcc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "nit: wrap?",
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1abe1bae",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "remove?",
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5a7ff3df",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "Is this delete-able?",
+      "range": {
+        "startLine": 33,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 5
+      },
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ba8267c5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "ditto, can be removed?",
+      "range": {
+        "startLine": 66,
+        "startChar": 11,
+        "endLine": 70,
+        "endChar": 5
+      },
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9ae96bb9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T11:43:32Z",
+      "side": 1,
+      "message": "debug, as the others?",
+      "range": {
+        "startLine": 158,
+        "startChar": 12,
+        "endLine": 158,
+        "endChar": 16
+      },
+      "revId": "2de57cf07401d2df37a46f57ee684fec803cd108",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
