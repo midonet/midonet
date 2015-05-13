@@ -59,15 +59,16 @@ class DatapathChannelTest extends MidolmanSpec {
         new DatapathStateDriver(datapath), ovsFamilies, 1024, 2048, factory, clock)
     val ringBuffer = RingBuffer.createSingleProducer[PacketContextHolder](
         DisruptorDatapathChannel.Factory, capacity)
-    val processors = Array(new BackchannelEventProcessor[PacketContextHolder](
+    val processor = new BackchannelEventProcessor[PacketContextHolder](
         ringBuffer,
         new AggregateEventPollerHandler(
             fp,
             new EventPollerHandlerAdapter(new PacketExecutor(
                 new DatapathStateDriver(datapath), ovsFamilies, 1, 0, factory))),
-        fp))
+        fp)
 
-    val dpChannel = new DisruptorDatapathChannel(ringBuffer, processors)
+    val barrier = ringBuffer.newBarrier(processor.getSequence)
+    val dpChannel = new DisruptorDatapathChannel(ringBuffer, Array(processor))
 
     val ethernet: Ethernet = ({ eth src MAC.random() dst MAC.random() } <<
                               { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
@@ -93,9 +94,8 @@ class DatapathChannelTest extends MidolmanSpec {
             context.packetActions.addAll(actions)
             dpChannel.handoff(context)
 
-            eventually {
-                nlChannel.packetsWritten.get() should be (1)
-            }
+            barrier.waitFor(0)
+            nlChannel.packetsWritten.get() should be (1)
 
             val bb = nlChannel.written.poll()
             bb.getInt(NetlinkMessage.NLMSG_PID_OFFSET) should be (10)
@@ -119,9 +119,8 @@ class DatapathChannelTest extends MidolmanSpec {
             context.flow = new ManagedFlow(null)
             dpChannel.handoff(context)
 
-            eventually {
-                nlChannel.packetsWritten.get() should be (1)
-            }
+            barrier.waitFor(0)
+            nlChannel.packetsWritten.get() should be (1)
 
             val bb = nlChannel.written.poll()
             log.debug("Messages: " + nlChannel.written.size())
@@ -152,9 +151,8 @@ class DatapathChannelTest extends MidolmanSpec {
             context.flow = new ManagedFlow(null)
             dpChannel.handoff(context)
 
-            eventually {
-                nlChannel.packetsWritten.get() should be (1)
-            }
+            barrier.waitFor(0)
+            nlChannel.packetsWritten.get() should be (1)
 
             context.flow.sequence should be (0)
 
@@ -172,14 +170,11 @@ class DatapathChannelTest extends MidolmanSpec {
             context.flow.sequence = 1
             dpChannel.handoff(context)
 
-            eventually {
-                nlChannel.packetsWritten.get() should be (2)
-            }
+            barrier.waitFor(1)
+            nlChannel.packetsWritten.get() should be (2)
 
-            eventually {
-                fp.tryEject(1, datapathId, managedFlow.flowMatch,
-                            flowDelete) should be (true)
-            }
+            fp.tryEject(1, datapathId, managedFlow.flowMatch,
+                        flowDelete) should be (true)
 
             eventually {
                 nlChannel.packetsWritten.get() should be (3)
