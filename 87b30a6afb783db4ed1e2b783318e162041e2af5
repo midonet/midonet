@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_c63e6eb7",
+        "filename": "midolman/src/main/java/org/midonet/midolman/Midolman.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-13T21:53:18Z",
+      "side": 1,
+      "message": "I was reading the code (http://lxr.free-electrons.com/source/mm/mlock.c?v\u003d3.13#L743) and it doesn\u0027t seem like we\u0027d want to mlock all future pages. In fact, that opens the door to nasty OOM exception.\n\nI\u0027m especially concerned about things like flow state that we would like to move off heap and that could potentially benefit from paging (since it would be done to the backing memory mapped file - already resident on disk).",
+      "revId": "87b30a6afb783db4ed1e2b783318e162041e2af5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
