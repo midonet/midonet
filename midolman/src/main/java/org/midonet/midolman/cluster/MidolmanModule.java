@@ -24,6 +24,7 @@ import com.google.inject.Scopes;
 import org.midonet.cluster.Client;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.flows.FlowInvalidator;
+import org.midonet.midolman.flows.ShardedFlowInvalidator;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
@@ -62,21 +63,23 @@ public class MidolmanModule extends PrivateModule {
 
         requestStaticInjection(Chain.class);
 
-        bind(FlowInvalidator.class).toProvider(new Provider<FlowInvalidator>() {
-            @Inject
-            private MidolmanConfig config;
+        bindFlowInvalidator();
+        bindAllocator();
+    }
 
+    protected void bindFlowInvalidator() {
+        bind(ShardedFlowInvalidator.class).toProvider(new Provider<ShardedFlowInvalidator>() {
             @Inject
             private MidolmanActorsService service;
 
             @Override
-            public FlowInvalidator get() {
-                return new FlowInvalidator(service, config.simulationThreads());
+            public ShardedFlowInvalidator get() {
+                return new ShardedFlowInvalidator(service);
             }
         }).asEagerSingleton();
+        bind(FlowInvalidator.class).to(ShardedFlowInvalidator.class);
         expose(FlowInvalidator.class);
-
-        bindAllocator();
+        expose(ShardedFlowInvalidator.class);
     }
 
     protected void bindAllocator() {

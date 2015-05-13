@@ -22,7 +22,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
-trait FlowInvalidation extends FlowLifecycle {
+trait FlowInvalidation extends FlowLifecycle with FlowInvalidationHandler {
     private val tagToFlows = new HashMap[FlowTag, Set[ManagedFlow]]()
     val log: Logger
 

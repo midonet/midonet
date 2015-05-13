@@ -31,7 +31,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
-import org.midonet.midolman.flows.FlowInvalidator
+import org.midonet.midolman.flows.{ShardedFlowInvalidator, FlowInvalidator}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.{DhcpConfigFromDataclient, DhcpConfigFromZoom}
@@ -101,7 +101,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     var clock: NanoClock = null
 
     @Inject
-    var flowInvalidator: FlowInvalidator = null
+    var flowInvalidator: ShardedFlowInvalidator = null
 
     @Inject
     var flowProcessor: FlowProcessor = null
@@ -171,7 +171,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             clock,
             dpChannel,
             dhcpConfig,
-            flowInvalidator,
+            flowInvalidator.registerProcessor(),
             flowProcessor,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
