@@ -28,6 +28,7 @@ import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.MacEntry;
 import org.midonet.cluster.data.vtep.model.VtepMAC;
@@ -42,15 +43,16 @@ public abstract class MacsTable extends Table {
     static private final String COL_LOGICAL_SWITCH = "logical_switch";
     static private final String COL_IPADDR = "ipaddr";
 
-    protected MacsTable(DatabaseSchema databaseSchema, String tableName) {
-        super(databaseSchema, tableName);
+    protected MacsTable(DatabaseSchema databaseSchema, String tableName,
+                        Class<? extends VtepEntry> entryClass) {
+        super(databaseSchema, tableName, entryClass);
     }
 
-    abstract public Boolean isUcastTable();
-
     /** Get the schema of the columns of this table */
-    protected List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
-        List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
+    @Override
+    protected List<ColumnSchema<GenericTableSchema, ?>> partialColumnSchemas() {
+        List<ColumnSchema<GenericTableSchema, ?>> cols =
+            super.partialColumnSchemas();
         cols.add(getMacSchema());
         cols.add(getLogicalSwitchSchema());
         cols.add(getIpaddrSchema());
@@ -118,31 +120,51 @@ public abstract class MacsTable extends Table {
     }
 
     /**
-     * Extract the mac entry from the row
-     */
-    abstract public MacEntry parseMacEntry(Row<GenericTableSchema> row);
-
-    /**
      * Generate an insert operation
      */
-    public Insert<GenericTableSchema> insert(MacEntry entry) {
-        Insert<GenericTableSchema> op = super.insert(entry.uuid());
+    @Override
+    public <E extends VtepEntry> Table.OvsdbInsert insert(E row)
+        throws IllegalArgumentException {
+        Insert<GenericTableSchema> op = newInsert(row);
+        MacEntry entry = (MacEntry)row;
         op.value(getMacSchema(), entry.macString());
         op.value(getLogicalSwitchSchema(), toOvsdb(entry.logicalSwitchId()));
         op.value(getIpaddrSchema(), entry.ipString());
         op.value(getLocationIdSchema(), toOvsdb(entry.locationId()));
-        return op;
+        return new OvsdbInsert(op);
     }
 
     /**
      * Generate a delete operation matching mac, logical switch and ip of the
      * entry.
      */
-    public Delete<GenericTableSchema> delete(MacEntry entry) {
+    public Table.OvsdbDelete delete(MacEntry entry) {
         Delete<GenericTableSchema> op = new Delete<>(tableSchema);
         op.where(getMacMatcher(entry.mac()));
         op.where(getLogicalSwitchMatcher(entry.logicalSwitchId()));
         op.where(getIpaddrMatcher(entry.ip()));
-        return op;
+        return new OvsdbDelete(op);
+    }
+
+    /**
+     * Generate a delete operation matching logical switch
+     */
+    public Table.OvsdbDelete deleteByLogicalSwitchId(
+        java.util.UUID lsId) {
+        Delete<GenericTableSchema> op = new Delete<>(tableSchema);
+        op.where(getLogicalSwitchMatcher(lsId));
+        return new OvsdbDelete(op);
+    }
+
+    @Override
+    public <E extends VtepEntry> Row<GenericTableSchema> generateRow(
+        E entry) throws IllegalArgumentException {
+        Row<GenericTableSchema> row = super.generateRow(entry);
+        MacEntry data = (MacEntry)entry;
+        addToRow(row, getMacSchema(), data.macString());
+        addToRow(row, getLogicalSwitchSchema(), toOvsdb(data.logicalSwitchId()));
+        addToRow(row, getIpaddrSchema(), data.ipString());
+        addToRow(row, getLocationIdSchema(), toOvsdb(data.locationId()));
+        return row;
     }
 }

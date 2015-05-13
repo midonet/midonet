@@ -23,21 +23,25 @@ import java.util.UUID;
 import org.opendaylight.ovsdb.lib.notation.Condition;
 import org.opendaylight.ovsdb.lib.notation.Function;
 import org.opendaylight.ovsdb.lib.notation.Row;
+import org.opendaylight.ovsdb.lib.operations.Insert;
 import org.opendaylight.ovsdb.lib.schema.ColumnSchema;
 import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
 import org.opendaylight.ovsdb.lib.schema.GenericTableSchema;
 
+import org.midonet.cluster.data.vtep.model.VtepEntry;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdb;
 import static org.midonet.vtep.OvsdbTranslator.fromOvsdbIpSet;
+import static org.midonet.vtep.OvsdbTranslator.toOvsdb;
+import static org.midonet.vtep.OvsdbTranslator.toOvsdbIpSet;
 
 /**
  * Schema for the Ovsdb physical switch table
  */
 public final class PhysicalSwitchTable extends Table {
-    static private final String TB_NAME = "Physical_Switch";
+    static public final String TB_NAME = "Physical_Switch";
     static private final String COL_NAME = "name";
     static private final String COL_DESCRIPTION = "description";
     static private final String COL_PORTS = "ports";
@@ -45,12 +49,18 @@ public final class PhysicalSwitchTable extends Table {
     static private final String COL_TUNNEL_IPS = "tunnel_ips";
 
     public PhysicalSwitchTable(DatabaseSchema databaseSchema) {
-        super(databaseSchema, TB_NAME);
+        super(databaseSchema, TB_NAME, PhysicalSwitch.class);
+    }
+
+    public String getName() {
+        return TB_NAME;
     }
 
     /** Get the schema of the columns of this table */
+    @Override
     public List<ColumnSchema<GenericTableSchema, ?>> getColumnSchemas() {
-        List<ColumnSchema<GenericTableSchema, ?>> cols = super.getColumnSchemas();
+        List<ColumnSchema<GenericTableSchema, ?>> cols =
+            super.partialColumnSchemas();
         cols.add(getNameSchema());
         cols.add(getDescriptionSchema());
         cols.add(getPortsSchema());
@@ -130,10 +140,45 @@ public final class PhysicalSwitchTable extends Table {
     /**
      * Extract the physical switch information from the table entry
      */
-    public PhysicalSwitch parsePhysicalSwitch(Row<GenericTableSchema> row) {
-        return PhysicalSwitch.apply(parseUuid(row), parseName(row),
-                                    parseDescription(row), parsePorts(row),
-                                    parseManagementIps(row),
-                                    parseTunnelIps(row));
+    @Override
+    @SuppressWarnings(value = "unckecked")
+    public <E extends VtepEntry>
+    E parseEntry(Row<GenericTableSchema> row, Class<E> clazz)
+        throws IllegalArgumentException {
+        ensureOutputClass(clazz);
+        return (row == null)? null:
+               (E)PhysicalSwitch.apply(parseUuid(row), parseName(row),
+                                      parseDescription(row), parsePorts(row),
+                                      parseManagementIps(row),
+                                      parseTunnelIps(row));
+    }
+
+    /**
+     * Insertion of physical port information
+     */
+    @Override
+    public <E extends VtepEntry> OvsdbInsert insert(E row)
+        throws IllegalArgumentException {
+        Insert<GenericTableSchema> op = newInsert(row);
+        PhysicalSwitch ps = (PhysicalSwitch)row;
+        op.value(getNameSchema(), ps.name());
+        op.value(getDescriptionSchema(), ps.description());
+        op.value(getPortsSchema(), toOvsdb(ps.ports()));
+        op.value(getManagementIpsSchema(), toOvsdbIpSet(ps.mgmtIps()));
+        op.value(getTunnelIpsSchema(), toOvsdbIpSet(ps.tunnelIps()));
+        return new OvsdbInsert(op);
+    }
+
+    @Override
+    public <E extends VtepEntry> Row<GenericTableSchema> generateRow(
+        E entry) throws IllegalArgumentException {
+        Row<GenericTableSchema> row = super.generateRow(entry);
+        PhysicalSwitch data = (PhysicalSwitch)entry;
+        addToRow(row, getNameSchema(), data.name());
+        addToRow(row, getDescriptionSchema(), data.description());
+        addToRow(row, getPortsSchema(), toOvsdb(data.ports()));
+        addToRow(row, getManagementIpsSchema(), toOvsdbIpSet(data.mgmtIps()));
+        addToRow(row, getTunnelIpsSchema(), toOvsdbIpSet(data.tunnelIps()));
+        return row;
     }
 }

@@ -22,9 +22,13 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
  * Local multicast mac table
  */
 public final class McastMacsLocalTable extends McastMacsTable {
-    static private final String TB_NAME = "Mcast_Macs_Local";
+    static public final String TB_NAME = "Mcast_Macs_Local";
 
     public McastMacsLocalTable(DatabaseSchema databaseSchema) {
         super(databaseSchema, TB_NAME);
+    }
+
+    public String getName() {
+        return TB_NAME;
     }
 }

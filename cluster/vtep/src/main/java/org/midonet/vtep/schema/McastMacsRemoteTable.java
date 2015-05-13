@@ -22,9 +22,13 @@ import org.opendaylight.ovsdb.lib.schema.DatabaseSchema;
  * Remote multicast mac table
  */
 public final class McastMacsRemoteTable extends McastMacsTable {
-    static private final String TB_NAME = "Mcast_Macs_Remote";
+    static public final String TB_NAME = "Mcast_Macs_Remote";
 
     public McastMacsRemoteTable(DatabaseSchema databaseSchema) {
         super(databaseSchema, TB_NAME);
+    }
+
+    public String getName() {
+        return TB_NAME;
     }
 }
