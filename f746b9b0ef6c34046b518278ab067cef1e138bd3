@@ -200,6 +200,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7a610fa8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T10:58:35Z",
+      "side": 1,
+      "message": "thx",
+      "parentUuid": "1a106d94_1cfc60b7",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_0e938f5b",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
         "patchSetId": 3
@@ -247,6 +265,24 @@
       "side": 1,
       "message": "Right. I could have tested the creation of the network port here, but it seemed redundant since I have to cover that in RouterInterfaceTranslatorIT anyway.",
       "parentUuid": "1a106d94_e1ce0159",
+      "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ba5707c9",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T10:58:35Z",
+      "side": 1,
+      "message": "ok thx",
+      "parentUuid": "1a106d94_dcb3e807",
       "revId": "f746b9b0ef6c34046b518278ab067cef1e138bd3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
