@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_172ef68b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-13T08:14:40Z",
+      "side": 1,
+      "message": "Actually, this shouldn\u0027t even be here, because we need to delete the peer port later on.",
+      "parentUuid": "1a106d94_b1fd7270",
+      "range": {
+        "startLine": 91,
+        "startChar": 7,
+        "endLine": 92,
+        "endChar": 51
+      },
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_91003667",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 4
@@ -59,6 +83,30 @@
       "writtenOn": "2015-05-13T05:26:18Z",
       "side": 1,
       "message": "Not necessary since this has already been tested above unless you are worried about a race, but then DeleteOp is idempotent, that should be fine.",
+      "range": {
+        "startLine": 98,
+        "startChar": 40,
+        "endLine": 98,
+        "endChar": 65
+      },
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_373332f7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-13T08:14:40Z",
+      "side": 1,
+      "message": "So I can just delete this whole if statement, right?",
+      "parentUuid": "1a106d94_91003667",
       "range": {
         "startLine": 98,
         "startChar": 40,
@@ -111,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_97594637",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-13T08:14:40Z",
+      "side": 1,
+      "message": "What do you mean \"mention?\" If this can be something other than a properly formatted string, this code will break. We can\u0027t just mention that in a comment; it has to be fixed. What else can it be?",
+      "parentUuid": "1a106d94_31f18295",
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_f1fa4a73",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
         "patchSetId": 4
@@ -122,6 +188,30 @@
       "writtenOn": "2015-05-13T05:26:18Z",
       "side": 1,
       "message": "This too can be omitted since DeleteOp is idempotent.",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 73,
+        "endChar": 62
+      },
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_d73e1eb7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SubnetTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-13T08:14:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_f1fa4a73",
       "range": {
         "startLine": 69,
         "startChar": 8,
