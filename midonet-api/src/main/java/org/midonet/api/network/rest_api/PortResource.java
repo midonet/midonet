@@ -15,6 +15,7 @@
  */
 package org.midonet.api.network.rest_api;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -41,13 +42,11 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.bgp.rest_api.BgpResource.PortBgpResource;
+import org.midonet.api.bgp.rest_api.BgpResource;
 import org.midonet.api.network.BridgePort;
 import org.midonet.api.network.Link;
 import org.midonet.api.network.Port;
 import org.midonet.api.network.PortFactory;
-import org.midonet.api.network.PortGroupPort;
-import org.midonet.api.network.PortGroupPort.PortGroupPortCreateGroupSequence;
 import org.midonet.api.network.PortType;
 import org.midonet.api.network.RouterPort;
 import org.midonet.api.rest_api.AbstractResource;
@@ -59,10 +58,14 @@ import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.PortGroupPort;
 import org.midonet.event.topology.PortEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.VlanPathExistsException;
+
+import static org.midonet.api.validation.MessageProperty.PORT_GROUP_ID_IS_INVALID;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class PortResource extends AbstractResource {
@@ -280,7 +283,7 @@ public class PortResource extends AbstractResource {
      * @return PortBgpResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.BGP)
-    public PortBgpResource getBgpResource(@PathParam("id") UUID id) {
+    public BgpResource.PortBgpResource getBgpResource(@PathParam("id") UUID id) {
         return factory.getPortBgpResource(id);
     }
 
@@ -745,20 +748,25 @@ public class PortResource extends AbstractResource {
         public Response create(PortGroupPort portGroupPort)
                 throws StateAccessException, SerializationException {
 
-            portGroupPort.setPortGroupId(portGroupId);
-            validate(portGroupPort, PortGroupPortCreateGroupSequence.class);
+            portGroupPort.portGroupId = portGroupId;
+            validate(portGroupPort);
+
+            if (!dataClient.portGroupsExists(portGroupId)) {
+                throw new NotFoundHttpException(getMessage
+                                                    (PORT_GROUP_ID_IS_INVALID));
+            }
 
             authoriser.tryAuthorisePortGroup(
                 portGroupId, "modify this port group's membership");
 
             authoriser.tryAuthorisePort(
-                portGroupPort.getPortId(), "modify this port's memberships");
+                portGroupPort.portId, "modify this port's memberships");
 
             dataClient.portGroupsAddPortMembership(portGroupId,
-                                                   portGroupPort.getPortId());
+                                                   portGroupPort.portId);
 
             return Response.created(ResourceUriBuilder.getPortGroupPort(
-                getBaseUri(), portGroupId, portGroupPort.getPortId())).build();
+                getBaseUri(), portGroupId, portGroupPort.portId)).build();
         }
 
 
@@ -789,7 +797,7 @@ public class PortResource extends AbstractResource {
                     MediaType.APPLICATION_JSON })
         @Path("{portId}")
         public PortGroupPort get(@PathParam("portId") UUID portId)
-            throws StateAccessException, SerializationException {
+            throws Exception {
 
             if (!dataClient.portGroupsIsPortMember(portGroupId, portId)) {
                 throw new NotFoundHttpException(
@@ -800,8 +808,8 @@ public class PortResource extends AbstractResource {
                 portGroupId, "view this port group's membership");
 
             PortGroupPort portGroupPort = new PortGroupPort();
-            portGroupPort.setPortGroupId(portGroupId);
-            portGroupPort.setPortId(portId);
+            portGroupPort.portGroupId = portGroupId;
+            portGroupPort.portId = portId;
             portGroupPort.setBaseUri(getBaseUri());
             return portGroupPort;
         }
@@ -810,8 +818,7 @@ public class PortResource extends AbstractResource {
         @PermitAll
         @Produces({ VendorMediaType.APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
                     MediaType.APPLICATION_JSON })
-        public List<PortGroupPort> list() throws StateAccessException,
-                                                 SerializationException {
+        public List<PortGroupPort> list() throws Exception {
 
             authoriser.tryAuthorisePortGroup(
                 portGroupId, "view this port group's membership");
@@ -821,8 +828,8 @@ public class PortResource extends AbstractResource {
             List<PortGroupPort> portGroupPorts = new ArrayList<>(list.size());
             for (org.midonet.cluster.data.Port<?, ?> portData : list) {
                 PortGroupPort portGroupPort = new PortGroupPort();
-                portGroupPort.setPortGroupId(portGroupId);
-                portGroupPort.setPortId(portData.getId());
+                portGroupPort.portGroupId = portGroupId;
+                portGroupPort.portId = portData.getId();
                 portGroupPort.setBaseUri(getBaseUri());
                 portGroupPorts.add(portGroupPort);
             }
