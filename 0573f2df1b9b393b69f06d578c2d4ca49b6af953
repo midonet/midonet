@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_5a69b3f7",
+        "filename": "nsdb/src/main/resources/org/midonet/conf/templates/nsdb-new-storage.conf",
+        "patchSetId": 3
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T12:07:16Z",
+      "side": 1,
+      "message": "Yes, for development mostly.",
+      "parentUuid": "1a106d94_bab5477f",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 11
+      },
+      "revId": "0573f2df1b9b393b69f06d578c2d4ca49b6af953",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7abf4f61",
         "filename": "nsdb/src/main/resources/org/midonet/conf/templates/nsdb-new-storage.conf",
         "patchSetId": 3
