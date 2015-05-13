@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_80e9feb8",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/conversion/RouterDataConverter.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-13T16:23:03Z",
+      "side": 1,
+      "message": "Missing copyright",
+      "revId": "df1bb0b2a66c911dd921a924771b0388b5a7bec7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c0ce5659",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-13T16:23:03Z",
+      "side": 1,
+      "message": "Missing copyright",
+      "revId": "df1bb0b2a66c911dd921a924771b0388b5a7bec7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
