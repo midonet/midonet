@@ -22,6 +22,47 @@
       "revId": "4e739f4fc305da52d5f382224ece75cfd92fb287",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_b7a44208",
+        "filename": "midonet-api/src/main/java/org/midonet/api/rest_api/Authoriser.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-13T08:19:03Z",
+      "side": 1,
+      "message": "IMO, looking at the level of abstraction defined here, it does seem more appropriate to simply have:\n\nabstract public \u003cT\u003e T tryAuthorize(UUID id, String what)\n\nBut I don\u0027t think it needs to be part of this patch.",
+      "parentUuid": "1a106d94_970b0623",
+      "range": {
+        "startLine": 35,
+        "startChar": 22,
+        "endLine": 35,
+        "endChar": 32
+      },
+      "revId": "4e739f4fc305da52d5f382224ece75cfd92fb287",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_17455642",
+        "filename": "midonet-api/src/test/java/org/midonet/api/servlet/RestApiTestJerseyServletModule.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-13T08:19:03Z",
+      "side": 1,
+      "message": "What does this do?",
+      "revId": "4e739f4fc305da52d5f382224ece75cfd92fb287",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
