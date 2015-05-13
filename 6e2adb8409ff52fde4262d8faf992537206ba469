@@ -119,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b77ba279",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-13T08:27:01Z",
+      "side": 1,
+      "message": "Actually, I\u0027d better not. We can check isFloatingIpPort without going to Zookeeper, so it makes sense to do that here.",
+      "parentUuid": "1a106d94_373332f7",
+      "range": {
+        "startLine": 98,
+        "startChar": 40,
+        "endLine": 98,
+        "endChar": 65
+      },
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_d1f58e83",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
         "patchSetId": 4
@@ -171,6 +195,24 @@
       "side": 1,
       "message": "What do you mean \"mention?\" If this can be something other than a properly formatted string, this code will break. We can\u0027t just mention that in a comment; it has to be fixed. What else can it be?",
       "parentUuid": "1a106d94_31f18295",
+      "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_175c3618",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-13T08:27:01Z",
+      "side": 1,
+      "message": "Ah, never mind. Got it.",
+      "parentUuid": "1a106d94_97594637",
       "revId": "6e2adb8409ff52fde4262d8faf992537206ba469",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
