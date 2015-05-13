@@ -24,15 +24,14 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
-import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{PortGroup => TopologyPortGroup}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{PortGroup => SimulationPortGroup}
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
@@ -49,16 +48,6 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
         store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
     }
 
-    private def assertThread(): Unit = {
-        assert(vt.vtThreadId == Thread.currentThread.getId)
-    }
-
-    private def makeObservable() = new TestObserver[SimulationPortGroup]
-                                   with AwaitableObserver[SimulationPortGroup]
-                                   with AssertableObserver[SimulationPortGroup] {
-            override def assert() = assertThread()
-    }
-
     feature("The port groups mapper emits port group devices") {
         scenario("The mapper emits error for non-existing port groups") {
             Given("A port group identifier")
@@ -68,7 +57,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortGroupMapper(id, vt)
 
             And("An observer to the port group mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimulationPortGroup](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -89,7 +78,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortGroupMapper(portGroup.getId, vt)
 
             And("An observer to the port group mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimulationPortGroup](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -109,7 +98,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortGroupMapper(portGroup1.getId, vt)
 
             And("An observer to the port group mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimulationPortGroup](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -141,7 +130,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortGroupMapper(portGroup.getId, vt)
 
             And("An observer to the port group mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimulationPortGroup](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)

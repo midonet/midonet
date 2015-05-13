@@ -24,18 +24,18 @@ import scala.concurrent.duration.DurationInt
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
-import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.StorageWithOwnership
 import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.{Host => SimHost}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPAddr
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class HostMapperTest extends MidolmanSpec
@@ -50,16 +50,6 @@ class HostMapperTest extends MidolmanSpec
         store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
     }
 
-    private def assertThread(): Unit = {
-        assert(vt.vtThreadId == Thread.currentThread.getId)
-    }
-
-    private def makeObservable() = new TestObserver[SimHost]
-                                   with AwaitableObserver[SimHost]
-                                   with AssertableObserver[SimHost] {
-            override def assert() = assertThread()
-    }
-
     feature("A host should come with its tunnel zones membership") {
         scenario("The host is in one tunnel zone") {
             Given("A host member of one tunnel zone")
@@ -70,7 +60,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             Then("We obtain a simulation host with the host's tunnel zone membership")
@@ -91,7 +81,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             And("Add a 2nd tunnel zone the host is a member of")
@@ -117,7 +107,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             And("Waiting for the host")
@@ -145,7 +135,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             And("Waiting for the host")
@@ -175,7 +165,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             And("Waiting for the host")
@@ -200,7 +190,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             Then("We obtain a simulation host with one port binding")
@@ -235,7 +225,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             And("Waiting for the host")
@@ -261,7 +251,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             Then("We receive a host update with two port bindings")
@@ -279,7 +269,7 @@ class HostMapperTest extends MidolmanSpec
 
             Then("We obtain a simulation host with one binding")
             hostObs.awaitOnNext(2, timeout) shouldBe true
-            hostObs.getOnNextEvents() should have size 2
+            hostObs.getOnNextEvents should have size 2
 
             hostObs.getOnNextEvents.last.portBindings should
                 contain only port2.getId.asJava -> "eth1"
@@ -302,7 +292,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             Then("The host must be notified")
@@ -332,7 +322,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             Then("We obtain a host that is alive")
@@ -367,7 +357,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             Then("We obtain a host update")
@@ -392,7 +382,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             Then("We obtain a host update")
@@ -422,7 +412,7 @@ class HostMapperTest extends MidolmanSpec
             val observable = Observable.create(hostMapper)
 
             When("We subscribe to the host")
-            val hostObs = makeObservable()
+            val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
             Then("We obtain a host update")

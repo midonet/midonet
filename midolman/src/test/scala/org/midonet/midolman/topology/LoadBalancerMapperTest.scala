@@ -26,7 +26,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
-import rx.observers.TestObserver
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.{NotFoundException, Storage, UpdateOp}
@@ -35,9 +34,9 @@ import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, VIP => T
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVIP}
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerMapperTest extends MidolmanSpec
@@ -53,16 +52,6 @@ class LoadBalancerMapperTest extends MidolmanSpec
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
-    private def assertThread(): Unit = {
-        assert(vt.vtThreadId == Thread.currentThread.getId)
-    }
-
-    private def makeObservable() = new TestObserver[SimLB]
-                                   with AwaitableObserver[SimLB]
-                                   with AssertableObserver[SimLB] {
-        override def assert() = assertThread()
-    }
-
     feature("The load-balancer mapper emits proper simulation objects") {
         scenario("The mapper emits error for non-existing load-balancers") {
             Given("A load-balancer identifier")
@@ -72,7 +61,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             val mapper = new LoadBalancerMapper(id, vt)
 
             And("An observer to the load-balancer mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimLB](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -91,7 +80,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("When we subscribe to the load-balancer observable")
             val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
             val observable = Observable.create(lbMapper)
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimLB](vt)
             observable.subscribe(obs)
 
             Then("We obtain a simulation load-balancer with no vips")
@@ -168,7 +157,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("When we subscribe to the load-balancer observable")
             val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
             val observable = Observable.create(lbMapper)
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimLB](vt)
             observable.subscribe(obs)
 
             Then("We obtain a simulation load-balancer with one vip")
@@ -196,7 +185,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("When we subscribe to the load-balancer observable")
             val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
             val observable = Observable.create(lbMapper)
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimLB](vt)
             observable.subscribe(obs)
 
             Then("We obtain a simulation load-balancer")
@@ -227,7 +216,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("When we subscribe to the load-balancer observable")
             val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
             val observable = Observable.create(lbMapper)
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimLB](vt)
             observable.subscribe(obs)
 
             Then("We obtain a simulation load-balancer")
@@ -255,7 +244,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("When we subscribe to the load-balancer observable")
             val lbMapper = new LoadBalancerMapper(protoLB.getId, vt)
             val observable = Observable.create(lbMapper)
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimLB](vt)
             observable.subscribe(obs)
 
             Then("We obtain a simulation load-balancer with no vips")

@@ -32,11 +32,12 @@ import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => T
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge}
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.MidonetEventually
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
+import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
@@ -69,19 +70,12 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             """.stripMargin).withFallback(config))
     }
 
-    private def createObserver() = {
+    private def createObserver(): DeviceObserver[SimulationBridge] = {
         Given("An observer for the bridge mapper")
         // It is possible to receive the initial notification on the current
         // thread, when the device was notified in the mapper's behavior subject
         // previous to the subscription.
-        new TestObserver[SimulationBridge]
-            with AwaitableObserver[SimulationBridge]
-            with AssertableObserver[SimulationBridge] {
-            override def assert() =
-                BridgeMapperTest.this.assert(
-                    vt.vtThreadId == Thread.currentThread.getId ||
-                    threadId == Thread.currentThread.getId)
-        }
+        new DeviceObserver[SimulationBridge](vt)
     }
 
     private def createHostInStore(): UUID = {

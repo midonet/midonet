@@ -18,8 +18,6 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import org.midonet.packets.IPAddr
-
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.DurationInt
 
@@ -27,15 +25,15 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
-import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{IPAddrGroup => TopologyIPAddrGroup}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{IPAddrGroup => SimAddrGroup}
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
+import org.midonet.packets.IPAddr
 
 @RunWith(classOf[JUnitRunner])
 class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
@@ -52,16 +50,6 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
-    private def assertThread(): Unit = {
-        assert(vt.vtThreadId == Thread.currentThread.getId)
-    }
-
-    private def makeObservable() = new TestObserver[SimAddrGroup]
-                                       with AwaitableObserver[SimAddrGroup]
-                                       with AssertableObserver[SimAddrGroup] {
-        override def assert(): Unit = assertThread()
-    }
-
     feature("The ipAddrGroup mapper emits IpAddrGroup objects") {
         scenario("The mapper emits error for non-existing ipAddrGroups") {
             Given("An ipAddrGroup identifier")
@@ -71,7 +59,7 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new IPAddrGroupMapper(id, vt)
 
             And("An observer to the ipAddrGroup mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimAddrGroup](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -92,7 +80,7 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new IPAddrGroupMapper(ipAddrGroup.getId.asJava, vt)
 
             And("An observer to the ipAddrGroup mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimAddrGroup](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -133,7 +121,7 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new IPAddrGroupMapper(ipAddrGroup.getId.asJava, vt)
 
             And("An observer to the ipAddrGroup mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimAddrGroup](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)

@@ -24,8 +24,8 @@ import scala.concurrent.duration._
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
-import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Route.NextHop
@@ -34,18 +34,15 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.{InvalidationTrie, Route}
 import org.midonet.midolman.simulation.{Router => SimulationRouter}
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForDestinationIp, tagForRoute}
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class RouterMapperTest extends MidolmanSpec with TopologyBuilder
                                with TopologyMatchers with Eventually {
-
-    private type RouterObserver = TestObserver[SimulationRouter]
-        with AwaitableObserver[SimulationRouter]
 
     import org.midonet.midolman.topology.TopologyBuilder._
 
@@ -73,19 +70,12 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             .setNetworkDst(IPAddr.fromString(dstAddress))
     }
 
-    private def createObserver(): RouterObserver = {
+    private def createObserver(): DeviceObserver[SimulationRouter] = {
         Given("An observer for the router mapper")
         // It is possible to receive the initial notification on the current
         // thread, when the device was notified in the mapper's behavior subject
         // previous to the subscription.
-        new TestObserver[SimulationRouter]
-            with AwaitableObserver[SimulationRouter]
-            with AssertableObserver[SimulationRouter] {
-            override def assert() =
-                RouterMapperTest.this.assert(
-                    vt.vtThreadId == Thread.currentThread.getId ||
-                    threadId == Thread.currentThread.getId)
-        }
+        new DeviceObserver[SimulationRouter](vt)
     }
 
     private def createExteriorPort(routerId: UUID, adminStateUp: Boolean = true)
@@ -98,7 +88,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
                          interfaceName = Some("iface0"))
     }
 
-    private def testRouterCreated(obs: RouterObserver)
+    private def testRouterCreated(obs: DeviceObserver[SimulationRouter])
     : (TopologyRouter, RouterMapper) = {
         Given("A router mapper")
         val routerId = UUID.randomUUID
@@ -121,7 +111,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
         (router, mapper)
     }
 
-    private def testRouterUpdated(router: TopologyRouter, obs: RouterObserver,
+    private def testRouterUpdated(router: TopologyRouter,
+                                  obs: DeviceObserver[SimulationRouter],
                                   event: Int): SimulationRouter = {
         When("The router is updated")
         store.update(router)
@@ -134,7 +125,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
         device
     }
 
-    private def testRouterDeleted(routerId: UUID, obs: RouterObserver): Unit = {
+    private def testRouterDeleted(routerId: UUID,
+                                  obs: DeviceObserver[SimulationRouter]): Unit = {
         When("The router is deleted")
         store.delete(classOf[TopologyRouter], routerId)
 
