@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_7acaaf1b",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-13T11:48:19Z",
+      "side": 1,
+      "message": "Unwanted change.",
+      "range": {
+        "startLine": 56,
+        "startChar": 12,
+        "endLine": 56,
+        "endChar": 76
+      },
+      "revId": "85c30c76be39a57223c711abf210dd3b9239b83c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
