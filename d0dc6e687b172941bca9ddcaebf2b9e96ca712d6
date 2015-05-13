@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_3a195722",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/LoadBalancer.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-13T11:03:02Z",
+      "side": 1,
+      "message": "hum.. i don\u0027t like this. we\u0027d have to apply this consistently everywhere. can we just say nothing passed to simulation objects should be null? in cases where it would make sense, we should use Null Objects.",
+      "revId": "d0dc6e687b172941bca9ddcaebf2b9e96ca712d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1a145be7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Pool.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-13T11:03:02Z",
+      "side": 1,
+      "message": "idem",
+      "revId": "d0dc6e687b172941bca9ddcaebf2b9e96ca712d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
