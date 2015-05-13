@@ -22,6 +22,30 @@
       "revId": "b04c687dcd24d4df75c597e064c89a86ccf7fa8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_f7287ae3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/PoolMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-13T10:01:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_7c959431",
+      "range": {
+        "startLine": 216,
+        "startChar": 8,
+        "endLine": 216,
+        "endChar": 32
+      },
+      "revId": "b04c687dcd24d4df75c597e064c89a86ccf7fa8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
