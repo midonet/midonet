@@ -50,7 +50,7 @@ import org.midonet.api.auth.Authorizer;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
-import org.midonet.api.network.BridgeDataConverter;
+import org.midonet.cluster.rest_api.conversion.BridgeDataConverter;
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.network.Port;
