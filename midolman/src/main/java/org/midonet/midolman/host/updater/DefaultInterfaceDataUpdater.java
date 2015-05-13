@@ -54,7 +54,6 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
         }
 
         updateDataStore(hostID, previousDescriptions, newInterfacesByName);
-        previousDescriptions = newInterfacesByName;
     }
 
     private void updateDataStore(UUID hostId,
@@ -100,6 +99,7 @@ public class DefaultInterfaceDataUpdater implements InterfaceDataUpdater {
             hostZkManager.updateHostInterfaces(hostId,
                                                updatedInterfaces,
                                                interfacesToRemove);
+            previousDescriptions = newMapByName;
         } catch (StateAccessException e) {
             log.warn("Updating of the interface data failed: ", e);
         }
