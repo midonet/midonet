@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_daac83ef",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T10:54:30Z",
+      "side": 1,
+      "message": "move the scanner.shutdown() after the if, or add an !scanner.isShutdown to the if case. We had a case in the vxgw manager where this would throw because the unsubscribe was submitted to the ex. ctx after shutdown.",
+      "revId": "05003c31163e3c054e60b4c529b7d378ceb8efc9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9a432b12",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T10:54:30Z",
+      "side": 1,
+      "message": "Any reason for not doing a get and catch the NotFound?\n\nWondering in case we have a massive host restart causing a stampede of exists and gets to ZK.",
+      "range": {
+        "startLine": 428,
+        "startChar": 8,
+        "endLine": 430,
+        "endChar": 9
+      },
+      "revId": "05003c31163e3c054e60b4c529b7d378ceb8efc9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
