@@ -49,6 +49,11 @@ arp_expiration_seconds = 3600
 max_bgp_peer_routes = 200
 
 [midolman]
+# Whether to lock the agent process to RAM to prevent swapping.
+# Swapping affects the JVM GC pauses, making the agent less responsive
+# Keeping this setting to true is strongly recommended.
+lock_memory = true
+
 disconnected_ttl_seconds = 30
 control_interface = eth0
 cache_type = cassandra

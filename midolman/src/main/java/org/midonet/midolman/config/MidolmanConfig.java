@@ -39,6 +39,9 @@ public interface MidolmanConfig
     @ConfigInt(key = "disconnected_ttl_seconds", defaultValue = 30)
     int getMidolmanDisconnectedTtlSeconds();
 
+    @ConfigBool(key = "lock_memory", defaultValue = true)
+    public boolean getLockMemory();
+
     @ConfigBool(key = "enable_bgp", defaultValue = true)
     public boolean getMidolmanBGPEnabled();
 

@@ -25,7 +25,8 @@ import java.util.concurrent.TimeUnit;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
+import com.sun.jna.LastErrorException;
+import com.sun.jna.Native;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -36,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.MidostoreSetupService;
 import org.midonet.event.agent.ServiceEvent;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.InterfaceScannerModule;
 import org.midonet.midolman.guice.MidolmanActorsModule;
 import org.midonet.midolman.guice.MidolmanModule;
@@ -50,6 +52,7 @@ import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.version.guice.VersionModule;
+import org.midonet.util.cLibrary;
 
 public class Midolman {
 
@@ -63,6 +66,24 @@ public class Midolman {
     WatchedProcess watchedProcess = new WatchedProcess();
 
     private Midolman() {
+    }
+
+    private static void lockMemory() {
+        try {
+            cLibrary.lib.mlockall(cLibrary.MCL_FUTURE | cLibrary.MCL_CURRENT);
+            log.info("Successfully locked the process address space to RAM.");
+        } catch (LastErrorException e) {
+            log.warn("Failed to lock process into RAM: {}",
+                cLibrary.lib.strerror(e.getErrorCode()));
+            log.warn("This implies that parts of the agents may be swapped out "+
+                    "causing long GC pauses that have various adverse effects. "+
+                    "It's strongly recommended that this process runs either as "+
+                    "root or with the CAP_IPC_LOCK capability and a high enough "+
+                    "memlock limit (RLIMIT_MEMLOCK).");
+            log.warn("You may disable these warnings by setting the "+
+                    "'agent.midolman.lock_memory' configuration key to 'false' "+
+                    "in mn-conf(1).");
+        }
     }
 
     /**
@@ -154,6 +175,9 @@ public class Midolman {
         injector.getInstance(MidolmanActorsService.class)
             .awaitFlowControllerRunning(30, TimeUnit.SECONDS);
         System.gc();
+
+        if (injector.getInstance(MidolmanConfig.class).getLockMemory())
+            lockMemory();
 
         log.info("main finish");
         serviceEvent.start();
