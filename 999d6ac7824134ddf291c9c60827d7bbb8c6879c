@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_57bceeba",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-13T09:54:35Z",
+      "side": 1,
+      "message": "Should we make these fields private too, and add getters/setters?",
+      "range": {
+        "startLine": 43,
+        "startChar": 4,
+        "endLine": 80,
+        "endChar": 30
+      },
+      "revId": "999d6ac7824134ddf291c9c60827d7bbb8c6879c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
