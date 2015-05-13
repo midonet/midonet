@@ -70,4 +70,12 @@ public final class Util {
     public static int findNextPositivePowerOfTwo(final int value) {
         return 1 << (32 - Integer.numberOfLeadingZeros(value - 1));
     }
+
+    public static int highestBit(int i) {
+        int r = 0;
+        while ((i >>= 1) != 0) {
+            ++r;
+        }
+        return r;
+    }
 }

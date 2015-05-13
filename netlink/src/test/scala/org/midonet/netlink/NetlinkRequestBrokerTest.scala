@@ -44,10 +44,9 @@ class NetlinkRequestBrokerTest extends FeatureSpec
     val reader = new NetlinkReader(channel)
     val writer = new MockNetlinkWriter
     val clock = new MockClock
-    val notifications = new CountingObserver()
-    val broker = new NetlinkRequestBroker(writer,reader, maxRequests, 512,
+    val broker = new NetlinkRequestBroker(writer, reader, maxRequests, 512,
                                           ByteBuffer.allocate(1024), clock,
-                                          timeout = 1 milli, notifications)
+                                          timeout = 1 milli)
 
     before {
         replyBuf.clear()
@@ -56,12 +55,12 @@ class NetlinkRequestBrokerTest extends FeatureSpec
     feature ("Can make requests to a NetlinkRequestBroker") {
         scenario ("A sequence number is added to a netlink request") {
             val seq = broker.nextSequence()
-            seq should be (1)
+            seq should be (0)
 
             NetlinkMessage.writeHeader(broker.get(seq), 256, 1, 2, 3 /* seq */, 4, 5, 6)
             broker.publishRequest(seq, null)
             broker.writePublishedRequests()
-            broker.get(seq).getInt(NetlinkMessage.NLMSG_SEQ_OFFSET) should be (1)
+            broker.get(seq).getInt(NetlinkMessage.NLMSG_SEQ_OFFSET) should be (0)
         }
 
         scenario ("Errors are communicated through the Observer") {
@@ -73,7 +72,7 @@ class NetlinkRequestBrokerTest extends FeatureSpec
         }
 
         scenario ("Number of in-flight requests is bounded") {
-            (1 to maxRequests) foreach { i =>
+            (0 until maxRequests) foreach { i =>
                 broker.nextSequence() should be (i)
                 broker.publishRequest(i, null)
             }
@@ -90,7 +89,7 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             broker.writePublishedRequests()
 
             val size = NetlinkMessage.NLMSG_ERROR_SIZE + NetlinkMessage.NLMSG_ERROR_HEADER_SIZE
-            NetlinkMessage.writeHeader(replyBuf, size, NLMessageType.ERROR, 0, seq, 0, 0, 0)
+            NetlinkMessage.writeHeader(replyBuf, size, NLMessageType.ERROR, 0, seq.toInt, 0, 0, 0)
 
             replyBuf.putInt(NetlinkMessage.NLMSG_ERROR_OFFSET, 0)
             replyBuf.limit(size)
@@ -107,7 +106,7 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             broker.writePublishedRequests()
 
             val size = NetlinkMessage.HEADER_SIZE
-            NetlinkMessage.writeHeader(replyBuf, size , 0, 0, seq, 0, 0, 0)
+            NetlinkMessage.writeHeader(replyBuf, size , 0, 0, seq.toInt, 0, 0, 0)
 
             replyBuf.limit(size)
             broker.readReply()
@@ -123,7 +122,7 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             broker.writePublishedRequests()
 
             val size = NetlinkMessage.NLMSG_ERROR_SIZE + NetlinkMessage.NLMSG_ERROR_HEADER_SIZE
-            NetlinkMessage.writeHeader(replyBuf, size, NLMessageType.ERROR, 0, seq, 0, 0, 0)
+            NetlinkMessage.writeHeader(replyBuf, size, NLMessageType.ERROR, 0, seq.toInt, 0, 0, 0)
 
             replyBuf.putInt(NetlinkMessage.NLMSG_ERROR_OFFSET, -24)
             replyBuf.limit(size)
@@ -146,7 +145,7 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             broker.writePublishedRequests()
 
             val size = NetlinkMessage.GENL_HEADER_SIZE + 16
-            NetlinkMessage.writeHeader(replyBuf, size, 160, 0, seq, 0, 0, 0)
+            NetlinkMessage.writeHeader(replyBuf, size, 160, 0, seq.toInt, 0, 0, 0)
             replyBuf.limit(size)
 
             broker.readReply()
@@ -169,9 +168,9 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             broker.writePublishedRequests()
 
             val size = NetlinkMessage.GENL_HEADER_SIZE + 16
-            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, seq1, 0, 0, 0)
+            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, seq1.toInt, 0, 0, 0)
             replyBuf.position(size)
-            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, seq2, 0, 0, 0)
+            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, seq2.toInt, 0, 0, 0)
             replyBuf.position(0)
             replyBuf.limit(size*2)
 
@@ -193,7 +192,7 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             broker.writePublishedRequests()
 
             val size = NetlinkMessage.GENL_HEADER_SIZE + 16
-            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, seq, 0, 0, 0)
+            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, seq.toInt, 0, 0, 0)
             replyBuf.putShort(NetlinkMessage.NLMSG_FLAGS_OFFSET, NLFlag.MULTI)
             replyBuf.limit(size)
 
@@ -203,24 +202,13 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             replyBuf.position(0)
 
             NetlinkMessage.writeHeader(replyBuf, NetlinkMessage.GENL_HEADER_SIZE,
-                                       NLMessageType.DONE, 0, seq, 0, 0, 0)
+                                       NLMessageType.DONE, 0, seq.toInt, 0, 0, 0)
             replyBuf.position(0)
             replyBuf.limit(NetlinkMessage.GENL_HEADER_SIZE)
             broker.readReply()
 
             obs.onNextCalls should be (2)
             obs.onCompletedCalls should be (1)
-        }
-
-        scenario ("An upcall packet is passed into the notifications observer") {
-            val size = NetlinkMessage.GENL_HEADER_SIZE + 16
-            NetlinkMessage.writeHeader(replyBuf, size, 16, 0, 0, 0, 0, 0)
-            replyBuf.limit(size)
-
-            broker.readReply()
-
-            notifications.onNextCalls should be (1)
-            notifications.onCompletedCalls should be (0)
         }
 
         scenario ("A reply without a registered observer is passed into a catch-all Observer") {
@@ -252,13 +240,44 @@ class NetlinkRequestBrokerTest extends FeatureSpec
             broker.publishRequest(seq, obs)
             broker.writePublishedRequests()
 
-            NetlinkMessage.writeHeader(replyBuf, 1024, 0, 0, seq, 0, 0, 0)
+            NetlinkMessage.writeHeader(replyBuf, 1024, 0, 0, seq.toInt, 0, 0, 0)
 
             replyBuf.limit(512)
             broker.readReply()
             obs.onErrorCalls should be (1)
         }
 
+    }
+
+    feature("Test single element broker") {
+        val broker = new NetlinkRequestBroker(
+                writer, reader, 1, 512, ByteBuffer.allocate(1024), clock)
+
+        scenario("A request is correctly carried out") {
+            val obs = new CountingObserver {
+                override def onNext(buf: ByteBuffer) = {
+                    buf.remaining() should be (16)
+                    super.onNext(buf)
+                }
+            }
+
+            val seq = broker.nextSequence()
+            broker.publishRequest(seq, obs)
+            broker.writePublishedRequests()
+
+            val size = NetlinkMessage.GENL_HEADER_SIZE + 16
+            NetlinkMessage.writeHeader(replyBuf, size, 160, 0, seq.toInt, 0, 0, 0)
+            replyBuf.limit(size)
+
+            broker.readReply()
+            obs.onNextCalls should be (1)
+            obs.onCompletedCalls should be (1)
+        }
+
+        scenario("Second request returns FULL") {
+            broker.nextSequence() should be (0)
+            broker.nextSequence() should be (NetlinkRequestBroker.FULL)
+        }
     }
 
     feature ("Requests expire") {
