@@ -366,8 +366,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                       clusterDataClient: DataClient,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
-            extends PacketWorkflow(0,
-                                   injector.getInstance(classOf[MidolmanConfig]),
+            extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
                                    hostId, new DatapathStateDriver(new Datapath(0, "midonet")),
                                    cookieGen, clock, dpChannel,
                                    new DhcpConfigFromDataclient(clusterDataClient),

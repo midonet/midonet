@@ -42,7 +42,6 @@ import org.midonet.util.concurrent.WakerUpper.Parkable
 trait FlowController extends FlowIndexer with FlowTagIndexer
                      with FlowExpirationIndexer with Backchannel { this: Actor =>
 
-    protected val id: Int
     protected val config: MidolmanConfig
     protected val clock: NanoClock
     protected val flowProcessor: FlowProcessor
@@ -70,9 +69,9 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
 
     private val dpFlows = new HashMap[FlowMatch, ManagedFlow](maxFlows)
 
-    metrics.currentDpFlowsMetric.register(new Gauge[Long] {
+    metrics.currentDpFlowsMetric register new Gauge[Long] {
         override def getValue = dpFlows.size()
-    }, id)
+    }
 
     def tryAddFlow(context: PacketContext, expiration: Expiration): Boolean = {
         val flowMatch = context.origMatch
