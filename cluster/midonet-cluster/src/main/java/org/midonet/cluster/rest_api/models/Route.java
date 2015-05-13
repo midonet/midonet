@@ -11,6 +11,7 @@ import javax.validation.constraints.Pattern;
 import com.google.protobuf.Message;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomEnum;
@@ -45,6 +46,7 @@ public class Route extends UriResource {
     @ZoomField(name = "attributes")
     public String attributes;
 
+    @JsonIgnore
     @ZoomField(name = "dst_subnet", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> dstSubnet;
 
@@ -56,6 +58,7 @@ public class Route extends UriResource {
     @Max(32)
     public int dstNetworkLength;
 
+    @JsonIgnore
     @ZoomField(name = "src_subnet", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> srcSubnet;
 
@@ -67,8 +70,7 @@ public class Route extends UriResource {
     @Max(32)
     public int srcNetworkLength;
 
-    @ZoomField(name = "next_hop_gateway",
-        converter = IPAddressUtil.Converter.class)
+    @ZoomField(name = "next_hop_gateway", converter = IPAddressUtil.Converter.class)
     @Pattern(regexp = IPv4.regex)
     public String nextHopGateway;
 

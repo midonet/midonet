@@ -15,36 +15,47 @@
  */
 package org.midonet.api.network.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.Router;
-import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.api.rest_api.*;
-import org.midonet.event.topology.RouterEvent;
-import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
 
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthAction;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.auth.Authorizer;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.cluster.rest_api.conversion.RouterDataConverter;
+import org.midonet.api.network.auth.RouterAuthorizer;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.Router;
+import org.midonet.event.topology.RouterEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
 
 /**
  * Root resource class for Virtual Router.
@@ -128,10 +139,7 @@ public class RouterResource extends AbstractResource {
         }
 
         // Convert to the REST API DTO
-        Router router = new Router(routerData);
-        router.setBaseUri(getBaseUri());
-
-        return router;
+        return RouterDataConverter.fromData(routerData, getBaseUri());
     }
 
     /**
@@ -191,16 +199,16 @@ public class RouterResource extends AbstractResource {
             throws StateAccessException,
             SerializationException {
 
-        router.setId(id);
+        router.id = id;
 
-        validate(router, Router.RouterUpdateGroupSequence.class);
+        validate(router);
 
         if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
             throw new ForbiddenHttpException(
                     "Not authorized to update this router.");
         }
 
-        dataClient.routersUpdate(router.toData());
+        dataClient.routersUpdate(RouterDataConverter.toData(router));
         routerEvent.update(id, dataClient.routersGet(id));
     }
 
@@ -222,20 +230,19 @@ public class RouterResource extends AbstractResource {
             throws StateAccessException,
             SerializationException {
 
-        validate(router, Router.RouterCreateGroupSequence.class);
+        validate(router);
 
-        if (!Authorizer.isAdminOrOwner(context, router.getTenantId())) {
+        if (!Authorizer.isAdminOrOwner(context, router.tenantId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to add router to this tenant.");
         }
 
-        UUID id = dataClient.routersCreate(router.toData());
+        UUID id = dataClient.routersCreate(RouterDataConverter.toData(router));
 
         routerEvent.create(id, dataClient.routersGet(id).toString());
 
-        return Response.created(
-                ResourceUriBuilder.getRouter(getBaseUri(), id))
-                .build();
+        return Response.created(ResourceUriBuilder.getRouter(getBaseUri(), id))
+                       .build();
     }
 
     /**
@@ -261,9 +268,7 @@ public class RouterResource extends AbstractResource {
         if (dataRouters != null) {
             for (org.midonet.cluster.data.Router dataRouter :
                     dataRouters) {
-                Router router = new Router(dataRouter);
-                router.setBaseUri(getBaseUri());
-                routers.add(router);
+                routers.add(RouterDataConverter.fromData(dataRouter, getBaseUri()));
             }
         }
         return routers;
