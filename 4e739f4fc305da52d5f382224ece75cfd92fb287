@@ -105,6 +105,24 @@
       "revId": "4e739f4fc305da52d5f382224ece75cfd92fb287",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_97cca6bc",
+        "filename": "midonet-api/src/test/java/org/midonet/api/servlet/RestApiTestJerseyServletModule.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T08:37:36Z",
+      "side": 1,
+      "message": "nothing.. reverted.",
+      "parentUuid": "1a106d94_d793bea0",
+      "revId": "4e739f4fc305da52d5f382224ece75cfd92fb287",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
