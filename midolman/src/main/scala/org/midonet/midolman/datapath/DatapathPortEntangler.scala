@@ -18,6 +18,7 @@ package org.midonet.midolman.datapath
 import java.util.{UUID, Set => JSet}
 
 import scala.concurrent.Future
+import scala.util.{Success, Failure}
 
 import com.typesafe.scalalogging.Logger
 
@@ -284,7 +285,14 @@ trait DatapathPortEntangler {
             log.debug(s"Datapath port $port added")
             interfaceToDpPort += port -> dpPort
             dpPortNumToInterface += dpPort.getPortNo -> port
-            dpPortAdded(dpPort)
+            dpPortAdded(dpPort) flatMap  {
+                case Success(_) =>
+                    Future successful null
+                case Failure(_) =>
+                    interfaceToDpPort -= port
+                    dpPortNumToInterface -= dpPort.getPortNo
+                    controller removeFromDatapath dpPort
+            }
         } recover { case t =>
             // We'll retry on the next interface scan
             log.warn(s"Failed to create port $port: ${t.getMessage}")
