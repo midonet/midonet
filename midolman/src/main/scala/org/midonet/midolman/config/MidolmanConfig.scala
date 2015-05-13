@@ -77,6 +77,8 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     def inputChannelThreading = getString(s"$PREFIX.midolman.input_channel_threading")
     def datapathName = Try(getString(s"$PREFIX.midolman.datapath")).getOrElse("midonet")
 
+    def lockMemory = getBoolean(s"$PREFIX.midolman.lock_memory")
+
     val bridge = new BridgeConfig(conf, schema)
     val router = new RouterConfig(conf, schema)
     val zookeeper = new MidonetBackendConfig(conf)
