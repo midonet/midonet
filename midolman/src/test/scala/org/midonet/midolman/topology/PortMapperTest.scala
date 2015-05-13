@@ -23,15 +23,14 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
-import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, StorageWithOwnership}
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.topology.devices.{Port => SimPort, VxLanPort, RouterPort, BridgePort}
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
+import org.midonet.midolman.topology.devices.{BridgePort, Port => SimPort, RouterPort, VxLanPort}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class PortMapperTest extends MidolmanSpec with TopologyBuilder
@@ -46,16 +45,6 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
         store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
     }
 
-    private def assertThread(): Unit = {
-        assert(vt.vtThreadId == Thread.currentThread.getId)
-    }
-
-    private def makeObservable() = new TestObserver[SimPort]
-                                   with AwaitableObserver[SimPort]
-                                   with AssertableObserver[SimPort] {
-            override def assert() = assertThread()
-    }
-
     feature("The port mapper emits port devices") {
         scenario("The mapper emits error for non-existing port") {
             Given("A port identifier")
@@ -65,7 +54,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimPort](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -91,7 +80,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimPort](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -117,7 +106,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimPort](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -141,7 +130,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimPort](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -169,7 +158,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimPort](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -206,7 +195,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimPort](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -267,7 +256,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PortMapper(id, vt)
 
             And("An observer to the port mapper")
-            val obs = makeObservable()
+            val obs = new DeviceObserver[SimPort](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)

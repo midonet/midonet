@@ -18,8 +18,6 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import org.midonet.packets.IPAddr
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.Await
@@ -27,10 +25,9 @@ import scala.concurrent.duration.DurationInt
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import com.typesafe.config.{ConfigValueFactory, Config}
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import rx.observers.TestObserver
 
 import rx.Observable
 
@@ -41,11 +38,12 @@ import org.midonet.cluster.models.Topology.Rule.JumpRuleData
 import org.midonet.cluster.models.Topology.{Chain => ProtoChain, IPAddrGroup => ProtoIPAddrGroup, Rule => ProtoRule}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.{Rule => SimRule}
 import org.midonet.midolman.simulation.{Chain => SimChain}
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.NotYetException
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
+import org.midonet.packets.IPAddr
 
 @RunWith(classOf[JUnitRunner])
 class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
@@ -64,15 +62,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
-    private def assertThread(): Unit = {
-        assert(vt.vtThreadId == Thread.currentThread.getId)
-    }
-
     private def subscribeToChain(count: Int, chainId: UUID) = {
         val mapper = new ChainMapper(chainId, vt)
-        val obs = new TestObserver[SimChain] with AwaitableObserver[SimChain] with AssertableObserver[SimChain] {
-            override def assert() = assertThread()
-        }
+        val obs = new DeviceObserver[SimChain](vt)
         val subscription = Observable.create(mapper).subscribe(obs)
         (subscription, obs)
     }
