@@ -19,12 +19,15 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import javax.validation.constraints.NotNull;
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.util.version.Since;
 
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
@@ -32,9 +35,11 @@ public class Router extends UriResource {
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
+    @NotNull
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
+    @NotNull
     @ZoomField(name = "name")
     public String name;
 
@@ -46,6 +51,7 @@ public class Router extends UriResource {
     @ZoomField(name = "outbound_filter_id", converter = UUIDUtil.Converter.class)
     public UUID outboundFilterId;
 
+    @Since("2")
     @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
     public UUID loadBalancerId;
 
@@ -66,6 +72,14 @@ public class Router extends UriResource {
         return absoluteUri(ResourceUris.ROUTERS, id);
     }
 
+    public URI getInboundFilter() {
+        return absoluteUri(ResourceUris.CHAINS, inboundFilterId);
+    }
+
+    public URI getOutboundFilter() {
+        return absoluteUri(ResourceUris.CHAINS, outboundFilterId);
+    }
+
     public URI getPorts() {
         return relativeUri(ResourceUris.PORTS);
     }
@@ -78,6 +92,7 @@ public class Router extends UriResource {
         return relativeUri(ResourceUris.ROUTES);
     }
 
+    @Since("2")
     public URI getLoadBalancer() {
         return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
     }
