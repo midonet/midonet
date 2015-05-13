@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_970b0623",
+        "filename": "midonet-api/src/main/java/org/midonet/api/rest_api/Authoriser.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-13T07:57:38Z",
+      "side": 1,
+      "message": "I\u0027m wondering whether it\u0027s worth to make this a more generic inteface, e.g.\n\ndef authorise[T](id: UUID): T\n\nSo implementations can case match on the T and do as they please, instead of having per-resource methods.\n\nIt seems cleaner should this grow too much, but I don\u0027t quite see the need to overcomplicate at this point and it\u0027s a fairly easy change to make should we chose to do it.\n\n@Ryu @Alex what do you think?",
+      "range": {
+        "startLine": 35,
+        "startChar": 22,
+        "endLine": 35,
+        "endChar": 32
+      },
+      "revId": "4e739f4fc305da52d5f382224ece75cfd92fb287",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
