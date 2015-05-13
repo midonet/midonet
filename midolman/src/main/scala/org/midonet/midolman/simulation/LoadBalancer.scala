@@ -15,7 +15,8 @@
  */
 package org.midonet.midolman.simulation
 
-import java.util.{Objects, UUID}
+import java.util
+import java.util.{Arrays, Objects, UUID}
 
 import akka.actor.ActorSystem
 
@@ -142,9 +143,8 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
             id == loadBalancer.id &&
             adminStateUp == loadBalancer.adminStateUp &&
             routerId == loadBalancer.routerId &&
-            // The order in which vips appear is irrelevant
-            vips.length == loadBalancer.vips.length &&
-            vips.forall(loadBalancer.vips.contains)
+            Arrays.equals(vips.asInstanceOf[Array[AnyRef]],
+                          loadBalancer.vips.asInstanceOf[Array[AnyRef]])
 
         case _ => false
     }
