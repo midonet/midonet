@@ -17,11 +17,13 @@ package org.midonet.odp.test
 
 import java.util.{ArrayList => JArrayList}
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Promise, Future}
+import scala.util.Try
 
 import org.midonet.odp._
 import org.midonet.odp.flows._
 import org.midonet.odp.ports._
+import org.midonet.util.concurrent._
 
 trait FlowTest {
 
@@ -42,7 +44,9 @@ trait FlowTest {
 
         val makeF = createFlow(flows.head)
 
-        val makesF = Future sequence (flows.tail map createFlow)
+        val makesF = flows.tail.foldLeft(makeF) { case (flowFuture, flow) =>
+            flowFuture flatMap { _ => createFlow(flow)}
+        }
 
         val enumF1 = for {
             dp <- dpF
@@ -52,13 +56,12 @@ trait FlowTest {
             fs
         }
 
-        val delF = makeF flatMap delFlow
-
-        val flushF = delF flatMap { case _ => dpF flatMap { con flushFlows _ } }
+        val delF = enumF1 flatMap { _ => makeF flatMap delFlow }
 
         val enumF2 = for {
             dp <- dpF
-            f <- flushF
+            _ <- delF
+            _ <- con flushFlows dp
             fs <- con enumFlows dp
         } yield {
             if (fs.nonEmpty) {
@@ -88,30 +91,42 @@ trait PortTest {
 
     def dpPortTests(dpF: Future[Datapath]) = {
 
-        def createNetDev(name: String) = dpF flatMap { con ensureNetDevPort(name, _) }
+        def createNetDev(name: String) = dpF flatMap {
+            con createPort(new NetDevPort(name), _)
+        }
 
-        val ports = Seq(portname1, portname2, portname3) map createNetDev
-        val portsF = Future sequence ports
+        val ports = List(portname1, portname2, portname3)
+        val portPromises = ports map (_ => Promise[DpPort]())
+        val portsF = portPromises map (_.future)
 
-        val getPort = portsF flatMap { case _ => dpF flatMap { con getPort(portname1, _) } }
+        val seed = Future.successful(null.asInstanceOf[DpPort])
+        val allPorts = (ports zip portPromises).foldLeft(seed) {
+            case (f, (port, promise)) =>
+                f flatMap { _ => createNetDev(port) andThen { case t =>
+                    promise complete t
+                }}
+        }
+
+        val getPort = allPorts flatMap { case _ => dpF flatMap { con getPort(portname1, _) } }
 
         val enum = for {
             dp <- dpF
-            netdevPorts <- portsF
+            netdevPorts <- allPorts
+            firstPort <- getPort
             ports <- con enumPorts dp
         } yield {
-            if (ports.size < netdevPorts.size) {
+            if (ports.size < portsF.size) {
                 throw new Exception("missing ports")
             }
             true
         }
 
         tunnelTest(dpF) ++ Seq[(String, Future[Any])](
-            ("can create a netdev port", ports.head),
-            ("can create several port", portsF),
+            ("can create a netdev port", portsF.head),
+            ("can create several port", allPorts),
             ("can get a netdev port", getPort),
             ("can list existing ports", enum)
-        ) ++ portCleanup((enum flatMap { case _ => dpF}), ports)
+        ) ++ portCleanup(enum flatMap { case _ => dpF}, portsF)
     }
 
     def tunnelTest(dpF: Future[Datapath]) = {
@@ -143,7 +158,7 @@ trait PortTest {
         )
     }
 
-    def portCleanup(dpF: Future[Datapath], ports: Seq[Future[DpPort]]) =
+    def portCleanup(dpF: Future[Datapath], ports: List[Future[DpPort]]) =
         ports match {
             case Nil => Nil
             case portF :: tail =>
