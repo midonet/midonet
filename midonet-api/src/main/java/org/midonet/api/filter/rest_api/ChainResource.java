@@ -15,38 +15,48 @@
  */
 package org.midonet.api.filter.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.filter.Chain;
-import org.midonet.api.filter.auth.ChainAuthorizer;
-import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
-import org.midonet.api.rest_api.*;
-import org.midonet.event.topology.ChainEvent;
-import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Root resource class for chains.
- */
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthAction;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.auth.Authorizer;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.filter.auth.ChainAuthorizer;
+import org.midonet.api.filter.rest_api.RuleResource.ChainRuleResource;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.conversion.ChainDataConverter;
+import org.midonet.cluster.rest_api.models.Chain;
+import org.midonet.event.topology.ChainEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+
 @RequestScoped
 public class ChainResource extends AbstractResource {
 
@@ -68,10 +78,8 @@ public class ChainResource extends AbstractResource {
     /**
      * Handler to deleting a chain.
      *
-     * @param id
-     *            Chain ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Chain ID from the request.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
@@ -97,10 +105,8 @@ public class ChainResource extends AbstractResource {
     /**
      * Handler to getting a chain.
      *
-     * @param id
-     *            Chain ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Chain ID from the request.
+     * @throws StateAccessException Data access error.
      * @return A Chain object.
      */
     @GET
@@ -108,9 +114,9 @@ public class ChainResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_CHAIN_JSON,
             MediaType.APPLICATION_JSON })
-    public Chain get(@PathParam("id") UUID id)
-            throws StateAccessException,
-            SerializationException {
+    public Chain get(@PathParam("id") UUID id) throws StateAccessException,
+                                                      SerializationException,
+                                                      IllegalAccessException {
 
         if (!authorizer.authorize(context, AuthAction.READ, id)) {
             throw new ForbiddenHttpException(
@@ -124,18 +130,13 @@ public class ChainResource extends AbstractResource {
                     "The requested resource was not found.");
         }
 
-        // Convert to the REST API DTO
-        Chain chain = new Chain(chainData);
-        chain.setBaseUri(getBaseUri());
-
-        return chain;
+        return ChainDataConverter.fromData(chainData, getBaseUri());
     }
 
     /**
      * Rule resource locator for chains.
      *
-     * @param id
-     *            Chain ID from the request.
+     * @param id Chain ID from the request.
      * @return ChainRuleResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.RULES)
@@ -146,10 +147,8 @@ public class ChainResource extends AbstractResource {
     /**
      * Handler for creating a tenant chain.
      *
-     * @param chain
-     *            Chain object.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param chain Chain object.
+     * @throws StateAccessException Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -159,14 +158,14 @@ public class ChainResource extends AbstractResource {
     public Response create(Chain chain)
             throws StateAccessException, SerializationException {
 
-        validate(chain, Chain.ChainGroupSequence.class);
+        validate(chain);
 
-        if (!Authorizer.isAdminOrOwner(context, chain.getTenantId())) {
+        if (!Authorizer.isAdminOrOwner(context, chain.tenantId)) {
             throw new ForbiddenHttpException(
                     "Not authorized to add chain to this tenant.");
         }
 
-        UUID id = dataClient.chainsCreate(chain.toData());
+        UUID id = dataClient.chainsCreate(ChainDataConverter.toData(chain));
         chainEvent.create(id, dataClient.chainsGet(id));
         return Response.created(
                 ResourceUriBuilder.getChain(getBaseUri(), id))
@@ -176,8 +175,7 @@ public class ChainResource extends AbstractResource {
     /**
      * Handler to getting a collection of chains.
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of Chain objects.
      */
     @GET
@@ -185,7 +183,8 @@ public class ChainResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<Chain> list(@QueryParam("tenant_id") String tenantId)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               IllegalAccessException{
 
         List<org.midonet.cluster.data.Chain> dataChains = (tenantId == null) ?
                 dataClient.chainsGetAll() :
@@ -193,10 +192,8 @@ public class ChainResource extends AbstractResource {
 
         List<Chain> chains = new ArrayList<>();
         if (dataChains != null) {
-            for (org.midonet.cluster.data.Chain dataChain : dataChains) {
-                Chain chain = new Chain(dataChain);
-                chain.setBaseUri(getBaseUri());
-                chains.add(chain);
+            for (org.midonet.cluster.data.Chain data : dataChains) {
+                chains.add(ChainDataConverter.fromData(data, getBaseUri()));
             }
         }
 
