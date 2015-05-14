@@ -37,6 +37,7 @@ import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.LBStatus;
+import org.midonet.cluster.rest_api.models.ResourceUris;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -312,7 +313,8 @@ public class TestPool {
             assertEquals(poolsCounter, pools.length);
 
             // POST another one to the URI of the load balancer without the
-            // explicit load balancer ID.
+            // explicit load balancer ID.:qa
+
             DtoPool pool3 = getStockPool(loadBalancer.getId());
             pool3  = dtoResource.postAndVerifyCreated(loadBalancer.getPools(),
                     APPLICATION_POOL_JSON, pool3, DtoPool.class);
@@ -346,8 +348,7 @@ public class TestPool {
         }
 
         @Test
-        public void testPoolStatusCanNotBeChanged()
-                throws Exception {
+        public void testPoolStatusCanNotBeChanged() throws Exception {
             DtoPool pool = createStockPool(loadBalancer.getId());
             assertEquals(LBStatus.ACTIVE, pool.getStatus());
 

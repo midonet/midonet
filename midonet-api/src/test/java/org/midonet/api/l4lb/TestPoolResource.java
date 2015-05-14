@@ -16,17 +16,20 @@
 
 package org.midonet.api.l4lb;
 
+import java.util.HashSet;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.HashSet;
-import java.util.UUID;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.cluster.rest_api.models.HealthMonitor;
+import org.midonet.cluster.rest_api.models.Pool;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.l4lb.MappingViolationException;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -46,17 +49,20 @@ public class TestPoolResource extends L4LBResourceTestBase {
     public void testPoolUpdateWithAnotherHealthMonitorId() throws Exception {
         // Assume the model passed the validation.
         doReturn(new HashSet<>()).when(validator).validate(any());
+        // Let the data client return the pool
+        doReturn(new org.midonet.cluster.data.l4lb.Pool())
+            .when(dataClient)
+            .poolGet(any(UUID.class));
         // Emulate the Pool-HealthMonitorMapping violation.
         doThrow(new MappingViolationException()).when(dataClient)
-                .poolUpdate(any(
-                        org.midonet.cluster.data.l4lb.Pool.class));
+                .poolUpdate(any(org.midonet.cluster.data.l4lb.Pool.class));
 
         // If users try to update a pool which is already associated with a
         // health monitor populating the ID of another health monitor, 400
         // Bad Request would be returned.
         HealthMonitor anotherHealthMonitor = getStockHealthMonitor();
-        pool.setHealthMonitorId(anotherHealthMonitor.getId());
-        poolResource.update(pool.getId(), pool);
+        pool.healthMonitorId = anotherHealthMonitor.id;
+        poolResource.update(pool.id, pool);
     }
 
     @Test(expected = ServiceUnavailableHttpException.class)
@@ -64,6 +70,10 @@ public class TestPoolResource extends L4LBResourceTestBase {
             throws Exception {
         // Assume the model passed the validation.
         doReturn(new HashSet<>()).when(validator).validate(any());
+        // Let the data client return the pool
+        doReturn(new org.midonet.cluster.data.l4lb.Pool())
+            .when(dataClient)
+            .poolGet(any(UUID.class));
         // Emulate the Pool-HealthMonitorMapping violation.
         doThrow(new MappingStatusException()).when(dataClient)
                 .poolUpdate(any(
@@ -72,7 +82,7 @@ public class TestPoolResource extends L4LBResourceTestBase {
         // PUT the pool during its mappingStatus is PENDING_*, which triggers
         // 503 Service Unavailable.
         HealthMonitor anotherHealthMonitor = getStockHealthMonitor();
-        pool.setHealthMonitorId(anotherHealthMonitor.getId());
-        poolResource.update(pool.getId(), pool);
+        pool.healthMonitorId = anotherHealthMonitor.id;
+        poolResource.update(pool.id, pool);
     }
 }
