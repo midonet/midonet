@@ -27,8 +27,8 @@ import org.midonet.util.concurrent.toFutureOps
 /**
  * Translate port binding.
  */
-class PortBindingTranslator(storage: ReadOnlyStorage)
-        extends NeutronTranslator[PortBinding] {
+class PortBindingTranslator(protected val storage: ReadOnlyStorage)
+        extends NeutronTranslator[PortBinding] with PortManager {
     /**
      * Creates a new port binding of a port to a host / interface, producing
      * an UPDATE operation on the port. Updates to the host are handled by
@@ -38,13 +38,7 @@ class PortBindingTranslator(storage: ReadOnlyStorage)
      */
     override protected def translateCreate(binding: PortBinding): MidoOpList = {
         val port = storage.get(classOf[Port], binding.getPortId).await()
-        if (port.hasHostId) throw new IllegalStateException(
-            s"Port ${port.getId} is already bound.")
-
-        val updatedPort = port.toBuilder
-            .setHostId(binding.getHostId)
-            .setInterfaceName(binding.getInterfaceName)
-        List(Update(updatedPort.build()))
+        bindPortOps(port, binding.getHostId, binding.getInterfaceName)
     }
 
     /**
