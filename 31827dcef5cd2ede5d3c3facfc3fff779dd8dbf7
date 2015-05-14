@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_5d66c82a",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-14T14:18:54Z",
+      "side": 1,
+      "message": "Thanks! My Intellij lost the copyright config, and I didn\u0027t notice.",
+      "parentUuid": "1a106d94_dd4118aa",
+      "revId": "31827dcef5cd2ede5d3c3facfc3fff779dd8dbf7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_bd3c1c30",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Rule.java",
         "patchSetId": 12
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3d694cf9",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Rule.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-14T14:18:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_bd3c1c30",
+      "revId": "31827dcef5cd2ede5d3c3facfc3fff779dd8dbf7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3d182cd2",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/UriResource.java",
         "patchSetId": 12
@@ -47,6 +83,24 @@
       "writtenOn": "2015-05-14T13:26:03Z",
       "side": 1,
       "message": "abstract method?",
+      "revId": "31827dcef5cd2ede5d3c3facfc3fff779dd8dbf7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dd7918c9",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/UriResource.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-14T14:18:54Z",
+      "side": 1,
+      "message": "This would force all resources to implement create(), event those that don\u0027t have any specific behavior on create. This method here was intended to be the default action on create, where selected resources could override it and add a custom one.",
+      "parentUuid": "1a106d94_3d182cd2",
       "revId": "31827dcef5cd2ede5d3c3facfc3fff779dd8dbf7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
