@@ -16,27 +16,9 @@
 
 package org.midonet.api.l4lb.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.LoadBalancer;
-import org.midonet.api.l4lb.VIP;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.cluster.DataClient;
-import org.midonet.event.topology.LoadBalancerEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
@@ -51,12 +33,35 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
-import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.conversion.LoadBalancerDataConverter;
+import org.midonet.cluster.rest_api.models.LoadBalancer;
+import org.midonet.cluster.rest_api.models.VIP;
+import org.midonet.event.topology.LoadBalancerEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+
+import static org.midonet.cluster.rest_api.conversion.LoadBalancerDataConverter.toData;
+import static org.midonet.cluster.rest_api.conversion.VIPDataConverter.fromData;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.ROUTER_ID_IS_INVALID_IN_LB;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class LoadBalancerResource extends AbstractResource {
@@ -83,21 +88,18 @@ public class LoadBalancerResource extends AbstractResource {
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_LOAD_BALANCER_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON })
-    public List<LoadBalancer> list()
-            throws StateAccessException, SerializationException {
+                MediaType.APPLICATION_JSON })
+    public List<LoadBalancer> list() throws StateAccessException,
+                                            SerializationException,
+                                            IllegalAccessException {
 
-        List<org.midonet.cluster.data.l4lb.LoadBalancer> dataLoadBalancers;
+        List<org.midonet.cluster.data.l4lb.LoadBalancer> lbs;
 
-        dataLoadBalancers = dataClient.loadBalancersGetAll();
+        lbs = dataClient.loadBalancersGetAll();
         List<LoadBalancer> loadBalancers = new ArrayList<>();
-        if (dataLoadBalancers != null) {
-            for (org.midonet.cluster.data.l4lb.LoadBalancer dataLoadBalancer:
-                    dataLoadBalancers) {
-                LoadBalancer loadBalancer =
-                        new LoadBalancer(dataLoadBalancer);
-                loadBalancer.setBaseUri(getBaseUri());
-                loadBalancers.add(loadBalancer);
+        if (lbs != null) {
+            for (org.midonet.cluster.data.l4lb.LoadBalancer data : lbs) {
+                loadBalancers.add(LoadBalancerDataConverter.fromData(data, getBaseUri()));
             }
         }
         return loadBalancers;
@@ -106,7 +108,7 @@ public class LoadBalancerResource extends AbstractResource {
     /**
      * Handler to GETting the specific load balancer
      *
-     * @param id         Load balancer ID from the request.
+     * @param id Load balancer ID from the request.
      * @return A Load Balancer object
      * @throws StateAccessException
      * @throws SerializationException
@@ -115,24 +117,25 @@ public class LoadBalancerResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public LoadBalancer get(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               IllegalAccessException  {
+
         org.midonet.cluster.data.l4lb.LoadBalancer loadBalancerData =
             dataClient.loadBalancerGet(id);
-        if (loadBalancerData == null)
+        if (loadBalancerData == null) {
             throwNotFound(id, "load balancer");
+        }
 
-        LoadBalancer loadBalancer = new LoadBalancer(loadBalancerData);
-        loadBalancer.setBaseUri(getBaseUri());
-
-        return loadBalancer;
+        return LoadBalancerDataConverter.fromData(loadBalancerData, getBaseUri
+            ());
     }
 
     /**
      * Handler to DELETing a load balancer.
      *
-     * @param id        Load balancer ID from the request.
+     * @param id Load balancer ID from the request.
      * @throws StateAccessException
      * @throws InvalidStateOperationException
      * @throws SerializationException
@@ -156,7 +159,7 @@ public class LoadBalancerResource extends AbstractResource {
     /**
      * Handler to POSTing a load balancer
      *
-     * @param loadBalancer The requested load balancer object.
+     * @param lb The requested load balancer object.
      * @return Response for the POST request.
      * @throws StateAccessException
      * @throws InvalidStateOperationException
@@ -166,27 +169,27 @@ public class LoadBalancerResource extends AbstractResource {
     @POST
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
-            MediaType.APPLICATION_JSON })
-    public Response create(LoadBalancer loadBalancer)
-            throws StateAccessException, InvalidStateOperationException,
-            SerializationException, ConflictHttpException {
+                MediaType.APPLICATION_JSON })
+    public Response create(LoadBalancer lb)
+        throws StateAccessException, InvalidStateOperationException,
+               SerializationException, ConflictHttpException {
 
         // Router ID can be modified only indirectly, by modifying the
         // router to set its load balancer ID.
-        if (loadBalancer.getRouterId() != null) {
-            throw new BadRequestHttpException(
-                getMessage(MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));
+        if (lb.routerId != null) {
+            throw new BadRequestHttpException(getMessage(
+                ROUTER_ID_IS_INVALID_IN_LB));
         }
 
         try {
-            UUID id = dataClient.loadBalancerCreate(loadBalancer.toData());
+            UUID id = dataClient.loadBalancerCreate(toData(lb));
             loadBalancerEvent.create(id, dataClient.loadBalancerGet(id));
             return Response.created(
                     ResourceUriBuilder.getLoadBalancer(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
             throw new ConflictHttpException(ex,
-                getMessage(RESOURCE_EXISTS, "load balancer", loadBalancer.getId()));
+                getMessage(RESOURCE_EXISTS, "load balancer",lb.id));
         }
     }
 
@@ -203,17 +206,17 @@ public class LoadBalancerResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_LOAD_BALANCER_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, LoadBalancer loadBalancer)
             throws StateAccessException, InvalidStateOperationException,
-            SerializationException {
-        loadBalancer.setId(id);
+                   SerializationException {
+        loadBalancer.id = id;
         try {
-            dataClient.loadBalancerUpdate(loadBalancer.toData());
+            dataClient.loadBalancerUpdate(toData(loadBalancer));
             loadBalancerEvent.update(id, dataClient.loadBalancerGet(id));
         } catch (InvalidStateOperationException ex) {
-            throw new BadRequestHttpException(ex,
-                getMessage(MessageProperty.ROUTER_ID_IS_INVALID_IN_LB));
+            throw new BadRequestHttpException(ex, getMessage(
+                ROUTER_ID_IS_INVALID_IN_LB));
         } catch (NoStatePathException ex) {
             throw new NotFoundHttpException(ex);
         }
@@ -241,19 +244,18 @@ public class LoadBalancerResource extends AbstractResource {
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     @Path("{id}" + ResourceUriBuilder.VIPS)
     public List<VIP> listVips(@PathParam("id") UUID loadBalancerId)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               IllegalAccessException {
         List<org.midonet.cluster.data.l4lb.VIP> vipsData;
 
         vipsData = dataClient.loadBalancerGetVips(loadBalancerId);
         List<VIP> vips = new ArrayList<>();
         if (vipsData != null) {
             for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {
-                VIP vip = new VIP(vipData);
-                vip.setBaseUri(getBaseUri());
-                vips.add(vip);
+                vips.add(fromData(vipData, getBaseUri()));
             }
         }
 

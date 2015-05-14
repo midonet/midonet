@@ -23,10 +23,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import org.midonet.api.l4lb.VIP;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
@@ -46,8 +43,6 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_N
 @RunWith(Enclosed.class)
 public class TestVip {
     public static class TestVipCrud extends L4LBTestBase {
-        private final static Logger log = LoggerFactory
-                .getLogger(VIP.class);
 
         private DtoLoadBalancer loadBalancer;
         private DtoPool pool;
@@ -260,10 +255,9 @@ public class TestVip {
 
         @Test
         public void testCreateWithBadPoolId() {
-            DtoLoadBalancer loadBalancer = createStockLoadBalancer();
+            createStockLoadBalancer();
             DtoVip vip = getStockVip(UUID.randomUUID());
-            postVipAndVerifyBadRequestError(
-                    vip, "pool", vip.getPoolId());
+            postVipAndVerifyBadRequestError(vip, "pool", vip.getPoolId());
         }
 
         @Test
@@ -278,8 +272,9 @@ public class TestVip {
         public void testUpdateWithBadPoolId() {
             vip.setPoolId(UUID.randomUUID());
             DtoError error = dtoResource.putAndVerifyBadRequest(
-                    vip.getUri(), APPLICATION_VIP_JSON, vip);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool", vip.getPoolId());
+                vip.getUri(), APPLICATION_VIP_JSON, vip);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool",
+                               vip.getPoolId());
         }
 
 
@@ -346,7 +341,7 @@ public class TestVip {
 
             // Add another pool and VIP
             DtoPool pool3 = createStockPool(loadBalancer.getId());
-            DtoVip vip3 = createStockVip(pool3.getId());
+            createStockVip(pool3.getId());
             vipCounter++;
             vipsOfLoadBalancer = getVips(loadBalancer.getVips());
 
