@@ -66,6 +66,29 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_5a7c0eec",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-14T08:30:30Z",
+      "side": 1,
+      "message": "Your choice!\n\nI think anyway that CRStrategy should be an interface (trait) that anyone can provide their own implementations for, rather than a catalogue of available (but not-expandablE) implementations.",
+      "range": {
+        "startLine": 27,
+        "startChar": 11,
+        "endLine": 27,
+        "endChar": 21
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e63c4aca",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
