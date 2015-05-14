@@ -17,7 +17,6 @@ package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
@@ -33,7 +32,6 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.*;
@@ -43,7 +41,7 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.UUID;
 
-import static org.midonet.api.validation.MessageProperty.*;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
 import static org.slf4j.LoggerFactory.getLogger;
 
 public class RouterResource extends AbstractResource {

@@ -16,7 +16,7 @@
 package org.midonet.api.network.validation;
 
 
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;

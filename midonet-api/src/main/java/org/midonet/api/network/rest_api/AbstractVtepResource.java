@@ -35,8 +35,8 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 
-import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 abstract public class AbstractVtepResource extends AbstractResource {
 

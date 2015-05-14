@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.validation;
+package org.midonet.cluster.rest_api.validation;
 
 import com.google.inject.AbstractModule;
 
 import javax.validation.Validator;
 
-/**
- * Validation module.
- */
 public class ValidationModule extends AbstractModule {
 
     @Override
     protected void configure() {
 
-        bind(Validator.class).toProvider(
-                ValidatorProvider.class).asEagerSingleton();
+        bind(Validator.class).toProvider(ValidatorProvider.class)
+                             .asEagerSingleton();
         bind(GuiceConstraintValidatorFactory.class).asEagerSingleton();
         bind(AllowedValueConstraintValidator.class);
 
