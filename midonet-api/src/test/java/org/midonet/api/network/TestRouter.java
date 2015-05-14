@@ -348,9 +348,9 @@ public class TestRouter {
             assertNotNull(updatedRouter.getId());
             assertEquals(resRouter.getTenantId(), updatedRouter.getTenantId());
             assertEquals(resRouter.getInboundFilterId(),
-                    updatedRouter.getInboundFilterId());
+                         updatedRouter.getInboundFilterId());
             assertEquals(resRouter.getOutboundFilterId(),
-                    updatedRouter.getOutboundFilterId());
+                         updatedRouter.getOutboundFilterId());
             assertEquals(resRouter.getName(), updatedRouter.getName());
             assertEquals(resRouter.isAdminStateUp(),
                          updatedRouter.isAdminStateUp());
@@ -406,14 +406,14 @@ public class TestRouter {
             assertNotNull(updatedRouter.getId());
             assertEquals(resRouter.getTenantId(), updatedRouter.getTenantId());
             assertEquals(resRouter.getInboundFilterId(),
-                    updatedRouter.getInboundFilterId());
+                         updatedRouter.getInboundFilterId());
             assertEquals(resRouter.getOutboundFilterId(),
-                    updatedRouter.getOutboundFilterId());
+                         updatedRouter.getOutboundFilterId());
             assertEquals(resRouter.getLoadBalancerId(),
-                    updatedRouter.getLoadBalancerId());
+                         updatedRouter.getLoadBalancerId());
             assertEquals(resRouter.getName(), updatedRouter.getName());
             assertEquals(resRouter.isAdminStateUp(),
-                    updatedRouter.isAdminStateUp());
+                         updatedRouter.isAdminStateUp());
 
             // Delete the router
             dtoResource.deleteAndVerifyNoContent(resRouter.getUri(),

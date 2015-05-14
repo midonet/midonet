@@ -67,7 +67,7 @@ public class MemberResource extends AbstractResource {
     @Inject
     public MemberResource(RestApiConfig config, UriInfo uriInfo,
                           SecurityContext context, LoadBalancerApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

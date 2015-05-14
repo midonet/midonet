@@ -15,84 +15,74 @@
  */
 package org.midonet.api.network.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.network.Router;
-import org.midonet.api.network.auth.RouterAuthorizer;
-import org.midonet.api.rest_api.*;
-import org.midonet.event.topology.RouterEvent;
-import org.midonet.cluster.DataClient;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
 
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.network.Router;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.event.topology.RouterEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
 
-/**
- * Root resource class for Virtual Router.
- */
 @RequestScoped
 public class RouterResource extends AbstractResource {
 
-    private final RouterAuthorizer authorizer;
     private final ResourceFactory factory;
     private final RouterEvent routerEvent = new RouterEvent() ;
 
-
     @Inject
     public RouterResource(RestApiConfig config, UriInfo uriInfo,
-                          SecurityContext context, RouterAuthorizer authorizer,
-                          Validator validator, DataClient dataClient,
-                          ResourceFactory factory) {
+                          SecurityContext context,  Validator validator,
+                          DataClient dataClient, ResourceFactory factory) {
         super(config, uriInfo, context, dataClient, validator);
-        this.authorizer = authorizer;
         this.factory = factory;
     }
 
     /**
      * Handler to deleting a router.
      *
-     * @param id
-     *            Router ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Router ID from the request.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
-    public void delete(@PathParam("id") UUID id)
-            throws StateAccessException,
-            SerializationException {
-
+    public void delete(@PathParam("id") UUID id) throws StateAccessException,
+                                                        SerializationException {
         org.midonet.cluster.data.Router routerData =
-                dataClient.routersGet(id);
+            authoriser.tryAuthoriseRouter(id, "delete this router");
         if (routerData == null) {
             return;
         }
-
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to delete this router.");
-        }
-
         dataClient.routersDelete(id);
         routerEvent.delete(id);
     }
@@ -100,45 +90,35 @@ public class RouterResource extends AbstractResource {
     /**
      * Handler to getting a router.
      *
-     * @param id
-     *            Router ID from the request.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Router ID from the request.
+     * @throws StateAccessException Data access error.
      * @return A Router object.
      */
     @GET
     @PermitAll
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_ROUTER_JSON,
-            VendorMediaType.APPLICATION_ROUTER_JSON_V2,
-            MediaType.APPLICATION_JSON })
-    public Router get(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
-
-        if (!authorizer.authorize(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this router.");
-        }
+                VendorMediaType.APPLICATION_ROUTER_JSON_V2,
+                MediaType.APPLICATION_JSON })
+    public Router get(@PathParam("id") UUID id) throws StateAccessException,
+                                                       SerializationException {
 
         org.midonet.cluster.data.Router routerData =
-                dataClient.routersGet(id);
+            authoriser.tryAuthoriseRouter(id, "view this router");
+
         if (routerData == null) {
-            throw new NotFoundHttpException(
-                    "The requested resource was not found.");
+            throwNotFound(id, "router");
         }
 
-        // Convert to the REST API DTO
         Router router = new Router(routerData);
         router.setBaseUri(getBaseUri());
-
         return router;
     }
 
     /**
      * Port resource locator for routers.
      *
-     * @param id
-     *            Router ID from the request.
+     * @param id Router ID from the request.
      * @return RouterPortResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PORTS)
@@ -149,8 +129,7 @@ public class RouterResource extends AbstractResource {
     /**
      * Route resource locator for routers.
      *
-     * @param id
-     *            Router ID from the request.
+     * @param id Router ID from the request.
      * @return RouterRouteResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.ROUTES)
@@ -161,8 +140,7 @@ public class RouterResource extends AbstractResource {
     /**
      * Peer port resource locator for bridges.
      *
-     * @param id
-     *            Router ID from the request.
+     * @param id Router ID from the request.
      * @return RouterPortResource object to handle sub-resource requests.
      */
     @Path("/{id}" + ResourceUriBuilder.PEER_PORTS)
@@ -174,31 +152,24 @@ public class RouterResource extends AbstractResource {
     /**
      * Handler to updating a router.
      *
-     * @param id
-     *            Router ID from the request.
-     * @param router
-     *            Router object.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param id Router ID from the request.
+     * @param router Router object.
+     * @throws StateAccessException Data access error.
      */
     @PUT
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
-            VendorMediaType.APPLICATION_ROUTER_JSON_V2,
-            MediaType.APPLICATION_JSON })
+                VendorMediaType.APPLICATION_ROUTER_JSON_V2,
+                MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Router router)
-            throws StateAccessException,
-            SerializationException {
+            throws StateAccessException, SerializationException {
 
         router.setId(id);
 
         validate(router, Router.RouterUpdateGroupSequence.class);
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to update this router.");
-        }
+        authoriser.tryAuthoriseRouter(id, "update this router");
 
         dataClient.routersUpdate(router.toData());
         routerEvent.update(id, dataClient.routersGet(id));
@@ -207,24 +178,21 @@ public class RouterResource extends AbstractResource {
     /**
      * Handler for creating a tenant router.
      *
-     * @param router
-     *            Router object.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param router Router object.
+     * @throws StateAccessException Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
-            VendorMediaType.APPLICATION_ROUTER_JSON_V2,
-            MediaType.APPLICATION_JSON })
-    public Response create(Router router)
-            throws StateAccessException,
-            SerializationException {
+                VendorMediaType.APPLICATION_ROUTER_JSON_V2,
+                MediaType.APPLICATION_JSON })
+    public Response create(Router router) throws StateAccessException,
+                                                 SerializationException {
 
         validate(router, Router.RouterCreateGroupSequence.class);
 
-        if (!Authorizer.isAdminOrOwner(context, router.getTenantId())) {
+        if (!authoriser.isAdminOrOwner(router.getTenantId())) {
             throw new ForbiddenHttpException(
                     "Not authorized to add router to this tenant.");
         }
@@ -233,23 +201,21 @@ public class RouterResource extends AbstractResource {
 
         routerEvent.create(id, dataClient.routersGet(id).toString());
 
-        return Response.created(
-                ResourceUriBuilder.getRouter(getBaseUri(), id))
-                .build();
+        return Response.created(ResourceUriBuilder.getRouter(getBaseUri(), id))
+                       .build();
     }
 
     /**
      * Handler to list all routers.
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of Router objects.
      */
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
-            VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON_V2,
-            MediaType.APPLICATION_JSON })
+                VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON_V2,
+                MediaType.APPLICATION_JSON })
     public List<Router> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {
 

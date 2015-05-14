@@ -16,53 +16,56 @@
 
 package org.midonet.api.dhcp.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.dhcp.DhcpV6Host;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.dhcp.V6Host;
-import org.midonet.packets.IPv6Subnet;
-
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.dhcp.DhcpV6Host;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.Authoriser;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.dhcp.V6Host;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv6Subnet;
 
 @RequestScoped
 public class DhcpV6HostsResource extends AbstractResource {
 
     private final UUID bridgeId;
     private final IPv6Subnet prefix;
-    private final BridgeAuthorizer authorizer;
 
     @Inject
     public DhcpV6HostsResource(RestApiConfig config, UriInfo uriInfo,
-                               SecurityContext context,
-                               BridgeAuthorizer authorizer,
-                               DataClient dataClient,
+                               SecurityContext context, DataClient dataClient,
                                @Assisted UUID bridgeId,
                                @Assisted IPv6Subnet prefix) {
-        super(config, uriInfo, context, dataClient);
-        this.authorizer = authorizer;
+        super(config, uriInfo, context, dataClient, null);
         this.bridgeId = bridgeId;
         this.prefix = prefix;
     }
@@ -70,10 +73,8 @@ public class DhcpV6HostsResource extends AbstractResource {
     /**
      * Handler for creating a DHCPV6 host assignment.
      *
-     * @param host
-     *            DHCPV6 host assignment object.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param host DHCPV6 host assignment object.
+     * @throws StateAccessException Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -83,10 +84,8 @@ public class DhcpV6HostsResource extends AbstractResource {
     public Response create(DhcpV6Host host)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to configure DHCP for this bridge.");
-        }
+        authoriser.tryAuthoriseBridge(bridgeId,
+                                      "configure DHCP for this bridge.");
 
         dataClient.dhcpV6HostCreate(bridgeId, prefix, host.toData());
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcpV6(getBaseUri(),
@@ -99,10 +98,8 @@ public class DhcpV6HostsResource extends AbstractResource {
     /**
      * Handler to getting a DHCPV6 host assignment.
      *
-     * @param clientId
-     *            clientId of the host.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param clientId clientId of the host.
+     * @throws StateAccessException Data access error.
      * @return A DhcpV6Host object.
      */
     @GET
@@ -113,10 +110,9 @@ public class DhcpV6HostsResource extends AbstractResource {
     public DhcpV6Host get(@PathParam("clientId") String clientId)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this bridge's dhcpV6 config.");
-        }
+
+        authoriser.tryAuthoriseBridge(bridgeId,
+                                      "view this bridge's dhcpV6 config.");
 
         // The clientId in the URI uses '-' instead of ':'
         clientId = ResourceUriBuilder.clientIdFromUri(clientId);
@@ -136,12 +132,9 @@ public class DhcpV6HostsResource extends AbstractResource {
     /**
      * Handler to updating a host assignment.
      *
-     * @param clientId
-     *            client ID of the host.
-     * @param host
-     *            Host assignment object.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param clientId client ID of the host.
+     * @param host Host assignment object.
+     * @throws StateAccessException Data access error.
      */
     @PUT
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
@@ -151,10 +144,8 @@ public class DhcpV6HostsResource extends AbstractResource {
     public Response update(@PathParam("clientId") String clientId, DhcpV6Host host)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to update this bridge's dhcpV6 config.");
-        }
+        authoriser.tryAuthoriseBridge(bridgeId,
+                                      "update this bridge's dhcpV6 config.");
 
         // The clientId in the URI uses '-' instead of ':'
         clientId = ResourceUriBuilder.clientIdFromUri(clientId);
@@ -167,10 +158,8 @@ public class DhcpV6HostsResource extends AbstractResource {
     /**
      * Handler to deleting a DHCP host assignment.
      *
-     * @param clientId
-     *            clientId address of the host.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param clientId clientId address of the host.
+     * @throws StateAccessException Data access error.
      */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
@@ -178,11 +167,8 @@ public class DhcpV6HostsResource extends AbstractResource {
     public void delete(@PathParam("clientId") String clientId)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to delete dhcpV6 configuration of "
-                            + "this bridge.");
-        }
+        authoriser.tryAuthoriseBridge(
+            bridgeId, "delete dhcpV6 configuration of this bridge.");
 
         // The clientId in the URI uses '-' instead of ':'
         clientId = ResourceUriBuilder.clientIdFromUri(clientId);
@@ -192,8 +178,7 @@ public class DhcpV6HostsResource extends AbstractResource {
     /**
      * Handler to list DHCPV6 host assignments.
      *
-     * @throws StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of DhcpV6Host objects.
      */
     @GET
@@ -202,16 +187,15 @@ public class DhcpV6HostsResource extends AbstractResource {
     public List<DhcpV6Host> list()
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.READ, bridgeId)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view DHCPV6 config of this bridge.");
-        }
+
+        authoriser.tryAuthoriseBridge(bridgeId,
+                                      "view DHCPV6 config of this bridge.");
 
         List<V6Host> hostConfigs = dataClient.dhcpV6HostsGetByPrefix(bridgeId,
-                prefix);
+                                                                     prefix);
         List<DhcpV6Host> hosts = new ArrayList<>();
-        URI dhcpUri = ResourceUriBuilder.getBridgeDhcpV6(
-                getBaseUri(), bridgeId, prefix);
+        URI dhcpUri = ResourceUriBuilder.getBridgeDhcpV6(getBaseUri(), bridgeId,
+                                                         prefix);
         for (V6Host hostConfig : hostConfigs) {
             DhcpV6Host host = new DhcpV6Host(hostConfig);
             host.setParentUri(dhcpUri);
