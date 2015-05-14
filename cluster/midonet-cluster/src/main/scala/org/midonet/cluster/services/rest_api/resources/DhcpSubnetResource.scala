@@ -43,7 +43,6 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
                                    uriInfo: UriInfo)
     extends MidonetResource[DhcpSubnet](backend, uriInfo) {
 
-
     @GET
     @Path("{subnetAddress}")
     @Produces(Array(APPLICATION_DHCP_SUBNET_JSON,
@@ -63,7 +62,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
     : JList[DhcpSubnet] = {
         getResource(classOf[Bridge], bridgeId)
             .flatMap(bridge => listResources(classOf[DhcpSubnet],
-                                             bridge.dhcpIds.asScala))
+                                             bridge.getDhcpIds.asScala))
             .getOrThrow
             .asJava
     }
@@ -110,7 +109,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
     : Future[Option[DhcpSubnet]] = {
         getResource(classOf[Bridge], bridgeId)
             .flatMap(bridge => listResources(classOf[DhcpSubnet],
-                                             bridge.dhcpIds.asScala))
+                                             bridge.getDhcpIds.asScala))
             .map(_.find(_.subnetAddress == subnetAddress))
     }
 

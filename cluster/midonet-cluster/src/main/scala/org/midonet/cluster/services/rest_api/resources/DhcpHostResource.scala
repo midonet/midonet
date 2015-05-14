@@ -137,7 +137,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
     : Future[Option[DhcpSubnet]] = {
         getResource(classOf[Bridge], bridgeId)
             .flatMap(bridge => listResources(classOf[DhcpSubnet],
-                                             bridge.dhcpIds.asScala))
+                                             bridge.getDhcpIds.asScala))
             .map(_.find(_.subnetAddress == subnetAddress))
     }
 
