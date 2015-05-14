@@ -64,7 +64,7 @@ class BridgeResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     protected override def listFilter: (Bridge) => Boolean = {
         val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
         if (tenantId eq null) (_: Bridge) => true
-        else (r: Bridge) => r.tenantId == tenantId
+        else (r: Bridge) => r.getTenantId == tenantId
     }
 
     protected override def updateFilter = (to: Bridge, from: Bridge) => {

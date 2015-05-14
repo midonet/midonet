@@ -40,10 +40,10 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.cluster.data.TraceRequest.DeviceType;
+import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
 import org.midonet.midolman.state.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -93,7 +93,7 @@ public class TestTraceRequest extends JerseyTest {
         port.setPortAddress("10.0.0.1");
         builder.create(ROUTER0, PORT0, port);
 
-        DtoBridge bridge = new DtoBridge();
+        BridgeData bridge = new BridgeData();
         bridge.setName(BRIDGE0);
         bridge.setTenantId("dummyTenant");
         builder.create(BRIDGE0, bridge);

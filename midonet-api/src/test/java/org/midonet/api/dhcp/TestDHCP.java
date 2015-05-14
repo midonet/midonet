@@ -28,28 +28,28 @@ import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoDhcpHost;
 import org.midonet.client.dto.DtoDhcpOption121;
 import org.midonet.client.dto.DtoDhcpSubnet;
 import org.midonet.client.dto.DtoExtraDhcpOpt;
+import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON_V2;
+import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2;
 import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 
 public class TestDHCP extends JerseyTest {
 
-    private DtoBridge bridge;
+    private BridgeData bridge;
 
     public TestDHCP() {
         super(FuncTest.appDesc);
@@ -62,7 +62,7 @@ public class TestDHCP extends JerseyTest {
         DtoApplication app = resource().path("").accept(APPLICATION_JSON_V5)
                 .get(DtoApplication.class);
 
-        bridge = new DtoBridge();
+        bridge = new BridgeData();
         bridge.setName("br1234");
         bridge.setTenantId("DhcpTenant");
         response = resource().uri(app.getBridges())
@@ -70,7 +70,7 @@ public class TestDHCP extends JerseyTest {
                 .post(ClientResponse.class, bridge);
         assertEquals("The bridge was created.", 201, response.getStatus());
         bridge = resource().uri(response.getLocation())
-                .accept(APPLICATION_BRIDGE_JSON).get(DtoBridge.class);
+                .accept(APPLICATION_BRIDGE_JSON).get(BridgeData.class);
     }
 
     @Test
