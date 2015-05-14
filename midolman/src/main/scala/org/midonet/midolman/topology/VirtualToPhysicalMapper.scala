@@ -69,11 +69,12 @@ object VirtualToPhysicalMapper extends Referenceable {
 
     val log = LoggerFactory.getLogger(classOf[VirtualToPhysicalMapper])
 
-    implicit val timeout: Timeout = 2000 millis
+    implicit val timeout: Timeout = 3 seconds
 
     override val Name = "VirtualToPhysicalMapper"
 
-    case class HostRequest(hostId: UUID, update: Boolean = true) extends VTPMRequest[Host] {
+    case class HostRequest(hostId: UUID, update: Boolean = true)
+        extends VTPMRequest[Host] {
         protected[topology] val tag = classTag[Host]
         override def getCached = DeviceCaches.host(hostId)
     }
@@ -422,8 +423,7 @@ abstract class VirtualToPhysicalMapperBase
         case host: Host =>
             hostsMgr.updateAndNotifySubscribers(host.id, host, createHandler)
 
-        case _ => throw new IllegalArgumentException(
-            s"Unsupported update in VTPM $update")
+        case _ => log.warn("Unknown device update {}", update)
     }
 
     protected override def deviceRequested(request: VTPMRequest[_],
@@ -436,8 +436,7 @@ abstract class VirtualToPhysicalMapperBase
             case TunnelZoneRequest(zoneId) =>
                 tunnelZonesMgr.addSubscriber(zoneId, sender(), updates=true,
                                              createHandler)
-            case _ => throw new IllegalArgumentException(
-                s"Unsupported request in VTPM: $request")
+            case _ => log.warn("Unknown device request", request)
     }
 
     protected override def unsubscribeClient(unsubscription: AnyRef, sender: ActorRef)
@@ -447,8 +446,7 @@ abstract class VirtualToPhysicalMapperBase
             hostsMgr.removeSubscriber(hostId, sender)
         case TunnelZoneUnsubscribe(zoneId) =>
             tunnelZonesMgr.removeSubscriber(zoneId, sender)
-        case _ => throw new IllegalArgumentException("Unsupported unsubscription in VTPM:"
-                                                     + s" $unsubscription")
+        case _ => log.warn("Unknown unsubscription: {}", unsubscription)
     }
 
     private def getDeviceHandler[D <: Device](t: ClassTag[D])
@@ -467,8 +465,8 @@ abstract class VirtualToPhysicalMapperBase
     : Boolean = getDeviceHandler(t) match {
         case Some(deviceHandler) => deviceHandler.hasSubscribers(id)
         case None =>
-            throw new IllegalArgumentException("The VTPM does not support"
-                                               + s" devices of type $t")
+            log.warn("The VTPM does not support devices of type {}", t)
+            false
     }
 
     protected override def removeAllClientSubscriptions[D <: Device](deviceId: UUID)
@@ -476,8 +474,7 @@ abstract class VirtualToPhysicalMapperBase
     :Unit = getDeviceHandler(t) match {
         case Some(deviceHandler) => deviceHandler.removeAllSubscriptions(deviceId)
         case None =>
-            throw new IllegalArgumentException("The VTPM does not support"
-                                               + s" devices of type $t")
+            log.warn("The VTPM does not support devices of type {}", t)
     }
 
     // TODO(nicolas): Ensure that the cache is cleared after a device
@@ -491,8 +488,7 @@ abstract class VirtualToPhysicalMapperBase
         else if (t.runtimeClass == classOf[Host])
             DeviceCaches.removeHost(deviceId)
         else
-            throw new IllegalArgumentException("The VTPM does not support"
-                                               + s" devices of type $t")
+            log.warn("The VTPM does not support devices of type {}", t)
     }
 
     override def receive = super.receive orElse {
