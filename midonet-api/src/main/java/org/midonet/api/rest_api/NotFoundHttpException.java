@@ -17,7 +17,7 @@ package org.midonet.api.rest_api;
 
 import javax.ws.rs.WebApplicationException;
 
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StatePathExceptionBase.NodeInfo;
 

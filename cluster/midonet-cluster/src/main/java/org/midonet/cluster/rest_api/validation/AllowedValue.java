@@ -13,37 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.midonet.cluster.rest_api.validation;
 
-package org.midonet.api.validation;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-import javax.validation.Constraint;
-import javax.validation.Payload;
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/**
- * A general purpose annotation used to verify
- * any Enum objects
- *
- * Borrowed from Bhakti Mehta's code on the following GitHub page:
- *
- *   http://git.io/pqWJ7Q
- *
- * @author Bhakti Mehta
- */
-@Retention(RUNTIME)
-@Target({FIELD, METHOD})
-@Documented
-@Constraint(validatedBy = VerifyEnumValueValidator.class)
-public @interface VerifyEnumValue {
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-    String message() default MessageProperty.VALUE_IS_INVALID;
+import javax.validation.Constraint;
+import javax.validation.Payload;
+
+@Target({ METHOD, FIELD, ANNOTATION_TYPE })
+@Retention(RUNTIME)
+@Constraint(validatedBy = AllowedValueConstraintValidator.class)
+@Documented
+public @interface AllowedValue {
+
+    String message() default MessageProperty.ALLOWED_VALUES;
+
     Class<?>[] groups() default {};
+
     Class<? extends Payload>[] payload() default {};
-    Class<? extends Enum<?>> value();
+
+    String[] values() default {};
 
 }

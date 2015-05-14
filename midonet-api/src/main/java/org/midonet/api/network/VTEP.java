@@ -26,7 +26,7 @@ import javax.validation.constraints.Pattern;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.host.validation.IsValidTunnelZoneId;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4Addr;
