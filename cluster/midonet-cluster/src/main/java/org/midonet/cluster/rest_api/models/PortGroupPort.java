@@ -23,7 +23,8 @@ import javax.ws.rs.core.UriBuilder;
 
 /**
  * Note that this resource doesn't have a counter part in the new storage
- * model and will be deleted. Thus, we can't have a
+ * model and will be deleted. Thus, we can't have it extend UriResource as
+ * the rest.
  */
 @Deprecated
 public class PortGroupPort {
