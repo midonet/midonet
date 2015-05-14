@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_9a43266b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-14T09:26:42Z",
+      "side": 1,
+      "message": "wouldn\u0027t it be possible that an unanswered client is waiting for a reply on this device? should we try to clean the 3 maps either way, before deciding whether to return?",
+      "range": {
+        "startLine": 360,
+        "startChar": 25,
+        "endLine": 360,
+        "endChar": 31
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3a503231",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-14T09:26:42Z",
+      "side": 1,
+      "message": "restore the NPE check?",
+      "range": {
+        "startLine": 231,
+        "startChar": 19,
+        "endLine": 231,
+        "endChar": 29
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
