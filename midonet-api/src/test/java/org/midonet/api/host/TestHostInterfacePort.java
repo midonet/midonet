@@ -28,7 +28,6 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
@@ -37,7 +36,6 @@ import org.midonet.api.rest_api.Topology;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHost;
@@ -46,11 +44,11 @@ import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
-import org.midonet.client.resource.Bridge;
-import org.midonet.client.resource.BridgePort;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.ResourceCollection;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -93,7 +91,7 @@ public class TestHostInterfacePort {
             DtoHost host1 = new DtoHost();
             host1.setName("host1");
 
-            DtoBridge bridge1 = new DtoBridge();
+            BridgeData bridge1 = new BridgeData();
             bridge1.setName("bridge1-name");
             bridge1.setTenantId("tenant1-id");
 
@@ -256,24 +254,18 @@ public class TestHostInterfacePort {
             ResourceCollection<Host> hosts = api.getHosts();
             org.midonet.client.resource.Host host = hosts.get(0);
 
-            // Create a bridge
-            Bridge b1 = api.addBridge()
-                            .tenantId("tenant-1")
-                            .name("bridge-1")
-                            .create();
-
-            BridgePort bp1 = b1.addPort().create();
-            BridgePort bp2 = b1.addPort().create();
+            DtoBridgePort bp1 = topology.getBridgePort("bridgePort1");
+            DtoBridgePort bp2 = topology.getBridgePort("bridgePort2");
 
             bindHostToTunnelZone(host.getId());
             HostInterfacePort hip1 = host.addHostInterfacePort()
-                                                      .interfaceName("tap-1")
-                                                      .portId(bp1.getId())
-                                                      .create();
+                .interfaceName("tap-1")
+                .portId(bp1.getId())
+                .create();
             HostInterfacePort hip2 = host.addHostInterfacePort()
-                                                      .interfaceName("tap-2")
-                                                      .portId(bp2.getId())
-                                                      .create();
+                .interfaceName("tap-2")
+                .portId(bp2.getId())
+                .create();
 
             ResourceCollection<HostInterfacePort> hips = host.getPorts();
 

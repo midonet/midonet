@@ -41,7 +41,6 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLink;
@@ -49,6 +48,7 @@ import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -336,7 +336,7 @@ public class TestRoute {
             r1.setTenantId("tenant1-id");
 
             // Create a bridge
-            DtoBridge b1 = new DtoBridge();
+            BridgeData b1 = new BridgeData();
             b1.setName("bridge1-name");
             b1.setTenantId("tenant1-id");
 
@@ -366,7 +366,7 @@ public class TestRoute {
         @Test
         public void testLinkAddRouteUnlink() {
             DtoRouter r1 = topology.getRouter("router1");
-            DtoBridge bridge1 = topology.getBridge("bridge1");
+            BridgeData bridge1 = topology.getBridge("bridge1");
             DtoRouterPort r1p1 = topology
                 .getRouterPort("router1Port1");
             DtoBridgePort b1p1 = topology

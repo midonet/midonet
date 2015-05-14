@@ -18,11 +18,29 @@ package org.midonet.client.resource;
 
 import java.net.URI;
 import java.util.UUID;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoAdRoute;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoBgp;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoHost;
+import org.midonet.client.dto.DtoHostVersion;
+import org.midonet.client.dto.DtoIpAddrGroup;
+import org.midonet.client.dto.DtoPort;
+import org.midonet.client.dto.DtoPortGroup;
+import org.midonet.client.dto.DtoRoute;
+import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.client.dto.DtoRule;
+import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.client.dto.DtoSystemState;
+import org.midonet.client.dto.DtoTenant;
+import org.midonet.client.dto.DtoTunnelZone;
+import org.midonet.client.dto.DtoWriteVersion;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>
@@ -78,20 +96,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
                 VendorMediaType
                         .APPLICATION_TENANT_COLLECTION_JSON,
                 Tenant.class, DtoTenant.class);
-    }
-
-    /**
-     * Gets bridges.
-     *
-     * @return Collection of bridges
-     */
-    public ResourceCollection<Bridge> getBridges(
-            MultivaluedMap<String,String> queryParams) {
-        return getChildResources(principalDto.getBridges(),
-                                 queryParams,
-                                 VendorMediaType
-                                     .APPLICATION_BRIDGE_COLLECTION_JSON,
-                                 Bridge.class, DtoBridge.class);
     }
 
     /**
@@ -174,16 +178,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
-     * Adds a bridge.
-     *
-     * @return new Bridge resource
-     */
-    public Bridge addBridge() {
-        return new Bridge(resource, principalDto.getBridges(),
-                          new DtoBridge());
-    }
-
-    /**
      * Adds a router.
      *
      * @return new Router() resource
@@ -263,20 +257,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         DtoBgp bgp = resource.get(uri, null, DtoBgp.class,
                 VendorMediaType.APPLICATION_BGP_JSON);
         return new Bgp(resource, null, bgp);
-    }
-
-    /**
-     * Returns Bridge object
-     *
-     * @param id ID of bridge
-     * @return Bridge
-     */
-    public Bridge getBridge(UUID id) {
-        URI uri = createUriFromTemplate(
-                principalDto.getBridgeTemplate(), ID_TOKEN, id);
-        DtoBridge bridge = resource.get(uri, null, DtoBridge.class,
-                VendorMediaType.APPLICATION_BRIDGE_JSON);
-        return new Bridge(resource, null, bridge);
     }
 
     /**

@@ -142,11 +142,11 @@ public class BridgeResource extends AbstractResource {
      * old property vxlanPortId, so V2 clients work.
      */
     private Bridge populateLegacyVxlanPortId(Bridge bridge) {
-        if (bridge.vxLanPortIds == null) {
+        if (bridge.getVxLanPortIds() == null) {
             return bridge;
         }
-        if (!bridge.vxLanPortIds.isEmpty()) {
-            bridge.vxLanPortId = bridge.vxLanPortIds.get(0);
+        if (!bridge.getVxLanPortIds().isEmpty()) {
+            bridge.setVxLanPortId(bridge.getVxLanPortIds().get(0));
         }
         return bridge;
     }
@@ -250,16 +250,15 @@ public class BridgeResource extends AbstractResource {
     public void update(@PathParam("id") UUID id, Bridge bridge)
             throws StateAccessException, SerializationException {
 
-        bridge.id = id;
+        bridge.setId(id);
 
         validate(bridge);
 
         authoriser.tryAuthoriseBridge(id, "update this bridge");
 
         org.midonet.cluster.data.Bridge oldB = dataClient.bridgesGet(id);
-
-        if (!Objects.equals(bridge.vxLanPortIds, oldB.getVxLanPortIds()) ||
-            !Objects.equals(bridge.vxLanPortId, oldB.getVxLanPortId())) {
+        if (!Objects.equals(bridge.getVxLanPortIds(), oldB.getVxLanPortIds()) ||
+            !Objects.equals(bridge.getVxLanPortId(), oldB.getVxLanPortId())) {
             throw new BadRequestHttpException(
                 getMessage(VXLAN_PORT_ID_NOT_SETTABLE)
             );
@@ -289,12 +288,13 @@ public class BridgeResource extends AbstractResource {
 
         validate(bridge);
 
-        if (!authoriser.isAdminOrOwner(bridge.tenantId)) {
+        if (!authoriser.isAdminOrOwner(bridge.getTenantId())) {
             throw new ForbiddenHttpException(
                     "Not authorized to add bridge to this tenant.");
         }
 
-        if (bridge.vxLanPortIds != null || bridge.vxLanPortId != null) {
+        if (bridge.getVxLanPortIds() != null
+            || bridge.getVxLanPortId() != null) {
            throw new BadRequestHttpException(
                getMessage(VXLAN_PORT_ID_NOT_SETTABLE)
            );

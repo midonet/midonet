@@ -27,7 +27,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
     def list(): JList[DhcpSubnet] = {
         getResource(classOf[Bridge], bridgeId)
             .flatMap(bridge => listResources(classOf[DhcpSubnet],
-                                             bridge.dhcpIds.asScala))
+                                             bridge.getDhcpIds.asScala))
             .getOrThrow
             .asJava
     }
@@ -88,7 +88,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
     : Future[Option[DhcpSubnet]] = {
         getResource(classOf[Bridge], bridgeId)
             .flatMap(bridge => listResources(classOf[DhcpSubnet],
-                                             bridge.dhcpIds.asScala))
+                                             bridge.getDhcpIds.asScala))
             .map(_.find(_.subnetAddress == subnetAddress))
     }
 

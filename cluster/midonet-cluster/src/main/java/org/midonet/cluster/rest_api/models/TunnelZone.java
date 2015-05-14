@@ -45,7 +45,6 @@ public class TunnelZone extends UriResource {
         @ZoomEnumValue(value = "VTEP") vtep;
     }
 
-    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 

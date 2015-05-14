@@ -24,6 +24,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.common.base.Objects;
 import com.google.protobuf.Message;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -100,4 +101,26 @@ public abstract class UriResource extends ZoomObject {
         throw new WebApplicationException(Response.Status.NOT_ACCEPTABLE);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == this) return true;
+
+        if (!(obj instanceof UriResource)) return false;
+        final UriResource other = (UriResource) obj;
+
+        return Objects.equal(baseUri, other.baseUri);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(baseUri);
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+            .add("baseUri", baseUri)
+            .toString();
+    }
 }
