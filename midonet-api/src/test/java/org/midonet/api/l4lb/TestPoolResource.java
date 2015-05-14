@@ -16,17 +16,20 @@
 
 package org.midonet.api.l4lb;
 
+import java.util.HashSet;
+import java.util.UUID;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-import org.midonet.midolman.state.l4lb.MappingViolationException;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.util.HashSet;
-import java.util.UUID;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.cluster.rest_api.models.HealthMonitor;
+import org.midonet.cluster.rest_api.models.Pool;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.l4lb.MappingViolationException;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -55,8 +58,8 @@ public class TestPoolResource extends L4LBResourceTestBase {
         // health monitor populating the ID of another health monitor, 400
         // Bad Request would be returned.
         HealthMonitor anotherHealthMonitor = getStockHealthMonitor();
-        pool.setHealthMonitorId(anotherHealthMonitor.getId());
-        poolResource.update(pool.getId(), pool);
+        pool.healthMonitorId = anotherHealthMonitor.id;
+        poolResource.update(pool.id, pool);
     }
 
     @Test(expected = ServiceUnavailableHttpException.class)
@@ -72,7 +75,7 @@ public class TestPoolResource extends L4LBResourceTestBase {
         // PUT the pool during its mappingStatus is PENDING_*, which triggers
         // 503 Service Unavailable.
         HealthMonitor anotherHealthMonitor = getStockHealthMonitor();
-        pool.setHealthMonitorId(anotherHealthMonitor.getId());
-        poolResource.update(pool.getId(), pool);
+        pool.healthMonitorId = anotherHealthMonitor.id;
+        poolResource.update(pool.id, pool);
     }
 }

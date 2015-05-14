@@ -40,17 +40,18 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.PoolMember;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.PoolMember;
+import org.midonet.cluster.rest_api.models.ResourceUris;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.event.topology.PoolMemberEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -60,6 +61,8 @@ import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 
+import static org.midonet.cluster.rest_api.conversion.PoolMemberDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.PoolMemberDataConverter.toData;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
@@ -78,20 +81,18 @@ public class PoolMemberResource extends AbstractResource {
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON })
-    public List<PoolMember> list()
-            throws StateAccessException, SerializationException {
+                MediaType.APPLICATION_JSON })
+    public List<PoolMember> list() throws StateAccessException,
+                                          SerializationException,
+                                          IllegalAccessException {
 
-        List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers = null;
+        List<org.midonet.cluster.data.l4lb.PoolMember> members;
 
-        dataPoolMembers = dataClient.poolMembersGetAll();
-        List<PoolMember> poolMembers = new ArrayList<PoolMember>();
-        if (dataPoolMembers != null) {
-            for (org.midonet.cluster.data.l4lb.PoolMember dataPoolMember :
-                    dataPoolMembers) {
-                PoolMember poolMember = new PoolMember(dataPoolMember);
-                poolMember.setBaseUri(getBaseUri());
-                poolMembers.add(poolMember);
+        members = dataClient.poolMembersGetAll();
+        List<PoolMember> poolMembers = new ArrayList<>();
+        if (members != null) {
+            for (org.midonet.cluster.data.l4lb.PoolMember data : members) {
+                poolMembers.add(fromData(data, getBaseUri()));
             }
         }
         return poolMembers;
@@ -101,20 +102,18 @@ public class PoolMemberResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public PoolMember get(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               IllegalAccessException {
 
         org.midonet.cluster.data.l4lb.PoolMember PoolMemberData =
             dataClient.poolMemberGet(id);
-        if (PoolMemberData == null)
+        if (PoolMemberData == null) {
             throwNotFound(id, "pool member");
+        }
 
-        // Convert to the REST API DTO
-        PoolMember PoolMember = new PoolMember(PoolMemberData);
-        PoolMember.setBaseUri(getBaseUri());
-
-        return PoolMember;
+        return fromData(PoolMemberData, getBaseUri());
     }
 
     @DELETE
@@ -137,15 +136,15 @@ public class PoolMemberResource extends AbstractResource {
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public Response create(PoolMember poolMember)
             throws StateAccessException, SerializationException {
         // `status` defaults to UP and users can't change it through the API.
-        poolMember.setStatus(LBStatus.ACTIVE.toString());
+        poolMember.status = LBStatus.ACTIVE.toString();
         validate(poolMember);
 
         try {
-            UUID id = dataClient.poolMemberCreate(poolMember.toData());
+            UUID id = dataClient.poolMemberCreate(toData(poolMember));
             poolMemberEvent.create(id, dataClient.poolMemberGet(id));
             return Response.created(
                     ResourceUriBuilder.getPoolMember(getBaseUri(), id))
@@ -164,11 +163,11 @@ public class PoolMemberResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, PoolMember poolMember)
             throws StateAccessException,
             InvalidStateOperationException, SerializationException {
-        poolMember.setId(id);
+        poolMember.id = id;
         validate(poolMember);
 
         try {
@@ -177,12 +176,12 @@ public class PoolMemberResource extends AbstractResource {
             if (dataClient.poolMemberExists(id)) {
                 org.midonet.cluster.data.l4lb.PoolMember oldPoolMember =
                     dataClient.poolMemberGet(id);
-                poolMember.setAddress(oldPoolMember.getAddress());
-                poolMember.setProtocolPort(oldPoolMember.getProtocolPort());
-                poolMember.setStatus(oldPoolMember.getStatus().toString());
+                poolMember.address = oldPoolMember.getAddress();
+                poolMember.protocolPort = oldPoolMember.getProtocolPort();
+                poolMember.status = oldPoolMember.getStatus().toString();
             }
 
-            dataClient.poolMemberUpdate(poolMember.toData());
+            dataClient.poolMemberUpdate(toData(poolMember));
             poolMemberEvent.update(id, dataClient.poolMemberGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
@@ -211,24 +210,22 @@ public class PoolMemberResource extends AbstractResource {
         @GET
         @RolesAllowed({ AuthRole.ADMIN })
         @Produces({ VendorMediaType.APPLICATION_POOL_MEMBER_COLLECTION_JSON,
-                MediaType.APPLICATION_JSON })
-        public List<PoolMember> list()
-                throws StateAccessException, SerializationException {
+                    MediaType.APPLICATION_JSON })
+        public List<PoolMember> list() throws StateAccessException,
+                                              SerializationException,
+                                              IllegalAccessException {
 
-            List<org.midonet.cluster.data.l4lb.PoolMember> dataPoolMembers;
+            List<org.midonet.cluster.data.l4lb.PoolMember> members;
             try {
-                dataPoolMembers = dataClient.poolGetMembers(poolId);
+                members = dataClient.poolGetMembers(poolId);
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);
             }
 
             List<PoolMember> poolMembers = new ArrayList<>();
-            if (dataPoolMembers != null) {
-                for (org.midonet.cluster.data.l4lb.PoolMember dataPoolMember :
-                        dataPoolMembers) {
-                    PoolMember poolMember = new PoolMember(dataPoolMember);
-                    poolMember.setBaseUri(getBaseUri());
-                    poolMembers.add(poolMember);
+            if (members != null) {
+                for (org.midonet.cluster.data.l4lb.PoolMember data : members) {
+                    poolMembers.add(fromData(data, getBaseUri()));
                 }
             }
             return poolMembers;
@@ -237,17 +234,17 @@ public class PoolMemberResource extends AbstractResource {
         @POST
         @RolesAllowed({ AuthRole.ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_POOL_MEMBER_JSON,
-                MediaType.APPLICATION_JSON})
+                    MediaType.APPLICATION_JSON})
         public Response create(PoolMember poolMember)
                 throws StateAccessException,
                 InvalidStateOperationException, SerializationException {
-            poolMember.setPoolId(poolId);
+            poolMember.poolId = poolId;
             // `status` defaults to UP and users can't change it through the API.
-            poolMember.setStatus(LBStatus.ACTIVE.toString());
+            poolMember.status = LBStatus.ACTIVE.toString();
             validate(poolMember);
 
             try {
-                UUID id = dataClient.poolMemberCreate(poolMember.toData());
+                UUID id = dataClient.poolMemberCreate(toData(poolMember));
                 return Response.created(
                         ResourceUriBuilder.getPoolMember(getBaseUri(), id))
                         .build();
