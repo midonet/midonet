@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.api.auth.cors;
+package org.midonet.cluster.auth;
 
 import java.io.IOException;
 
@@ -27,12 +27,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.services.rest_api.CorsFilter;
 import org.midonet.util.http.HttpSupport;
 
 /**
@@ -45,9 +45,6 @@ public final class CrossOriginResourceSharingFilter implements Filter {
 
     private final static Logger log =
             LoggerFactory.getLogger(CrossOriginResourceSharingFilter.class);
-
-    @Inject
-    private CorsConfig config;
 
     /**
      * Called by the web container to indicate to a filter that it is being
@@ -100,23 +97,22 @@ public final class CrossOriginResourceSharingFilter implements Filter {
         // This should be added in response to both the preflight and the
         // actual request
         response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_ORIGIN_KEY,
-                config.getAccessControlAllowOrigin());
+                           CorsFilter.ALLOWED_ORIGINS());
         response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_METHODS_KEY,
-                config.getAccessControlAllowMethods());
+                           CorsFilter.ALLOWED_METHODS());
         response.addHeader(HttpSupport.ACCESS_CONTROL_EXPOSE_HEADERS_KEY,
-                config.getAccessControlExposeHeaders());
+                           CorsFilter.EXPOSED_HEADERS());
 
-        if (HttpSupport.OPTIONS_METHOD.equalsIgnoreCase(
-                request.getMethod())) {
+        if (HttpSupport.OPTIONS_METHOD.equalsIgnoreCase(request.getMethod())) {
 
             // TODO: Credentials are ignored.  Handle credentials when the
             // allow origin header is not wild-carded.
             response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_CREDENTIALS_KEY,
                     null);
             response.addHeader(HttpSupport.ACCESS_CONTROL_ALLOW_HEADERS_KEY,
-                    config.getAccessControlAllowHeaders());
+                               CorsFilter.ALLOWED_HEADERS());
             log.debug("CrossOriginResourceSharingFilter.doFilter: exiting " +
-                    "after handling OPTION.");
+                      "after handling OPTION.");
             return;
         }
         filterChain.doFilter(request, response);

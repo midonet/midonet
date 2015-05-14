@@ -38,7 +38,7 @@ import org.midonet.api.auth.AuthContainerRequestFilter;
 import org.midonet.api.auth.AuthFilter;
 import org.midonet.api.auth.AuthModule;
 import org.midonet.api.auth.StateFilter;
-import org.midonet.api.auth.cors.CrossOriginResourceSharingFilter;
+import org.midonet.cluster.auth.CrossOriginResourceSharingFilter;
 import org.midonet.api.error.ErrorModule;
 import org.midonet.api.error.ExceptionFilter;
 import org.midonet.api.network.NetworkModule;
