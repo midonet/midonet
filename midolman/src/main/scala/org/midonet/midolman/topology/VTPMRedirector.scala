@@ -119,17 +119,15 @@ abstract class VTPMRedirector extends Actor with MidolmanLogging {
             case HostUnsubscribe(hostId) => hostId
         }
         if(!hasSubscribers[D](deviceId)) {
-            log.debug("Device {} has no more subscribers, trying to " +
-                      "unsubscribe from the corresponding observable.", deviceId)
-
-            removeFromCache[D](deviceId)
-
             deviceSubscriptions.remove(deviceId) match {
                 case Some(subscription) =>
+                    log.debug("Device {} has no more subscribers, " +
+                              "unsubscribing from the corresponding observable.",
+                              deviceId)
+                    removeFromCache[D](deviceId)
                     subscription.unsubscribe()
                 case None =>
-                    log.info("Trying to unsubscribe from device {} but no " +
-                             "subscriptions found", deviceId)
+                    log.debug("Device {} is already unsubscribed.", deviceId)
             }
         }
     }
