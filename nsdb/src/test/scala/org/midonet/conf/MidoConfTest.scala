@@ -250,7 +250,7 @@ class MidoConfTest extends FeatureSpecLike
          | a_string : foobar
          | a_string_type : "string"
          |
-         | an_int : foobar
+         | an_int : 10
          | an_int_type : "int"
          |
          | a_size : 1k
@@ -258,6 +258,9 @@ class MidoConfTest extends FeatureSpecLike
          |
          | a_double : 0.5
          | a_double_type : "double"
+         |
+         | a_enum : foo
+         | a_enum_type : "enum[foo , 00bar ,BAZ]"
         """.stripMargin)
 
         val schema = configurator.schema("foo")
@@ -270,6 +273,7 @@ class MidoConfTest extends FeatureSpecLike
          | an_int = 7
          | a_size = 10M
          | a_double = 1.2
+         | a_enum_type = "foo"
         """.stripMargin
 
         configurator.validate(validConfig) should be (List.empty)
@@ -279,7 +283,41 @@ class MidoConfTest extends FeatureSpecLike
         shouldBeInvalid("an_int = 10s")
         shouldBeInvalid("a_size = foo")
         shouldBeInvalid("a_double = foo")
+        shouldBeInvalid("a_enum = oof")
 
         configurator.validate("unknown = 23") should be (List("unknown"))
     }
+
+    scenario("invalid schemas validations will not load invalid enum") {
+        val schemaContent = ConfigFactory.parseString(s"""
+         | foo {
+         |     schemaVersion : 100
+         | }
+         |
+         | a_enum : foo
+         | a_enum_type : "enum[#!#!%^]"
+        """.stripMargin)
+
+        val schema = configurator.schema("foo")
+        intercept[ConfigException] {
+            schema.setAsSchema(schemaContent)
+        }
+    }
+
+    scenario("invalid schemas validations will not load invalid type") {
+        val schemaContent = ConfigFactory.parseString(s"""
+         | foo {
+         |     schemaVersion : 100
+         | }
+         |
+         | a_unknowntype : foo
+         | a_unknowntype_type : "blahblah"
+        """.stripMargin)
+
+        val schema = configurator.schema("foo")
+        intercept[ConfigException] {
+            schema.setAsSchema(schemaContent)
+        }
+    }
+
 }
