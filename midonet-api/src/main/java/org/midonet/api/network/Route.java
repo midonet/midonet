@@ -29,7 +29,7 @@ import java.util.UUID;
 import org.midonet.midolman.layer3.Route.NextHop;
 import org.midonet.api.UriResource;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.validation.AllowedValue;
+import org.midonet.cluster.rest_api.validation.AllowedValue;
 import org.midonet.api.network.Route.RouteExtended;
 import org.midonet.api.network.validation.NextHopPortValid;
 import org.midonet.packets.IPv4Addr;

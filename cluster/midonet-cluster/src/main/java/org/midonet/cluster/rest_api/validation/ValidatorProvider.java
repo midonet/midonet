@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.validation;
+package org.midonet.cluster.rest_api.validation;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -22,6 +22,8 @@ import javax.validation.Configuration;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
+
+import org.midonet.cluster.rest_api.validation.GuiceConstraintValidatorFactory;
 
 /**
  * Validator provider

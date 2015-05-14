@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.validation;
+package org.midonet.cluster.rest_api.validation;
 
 import java.util.ResourceBundle;
 
