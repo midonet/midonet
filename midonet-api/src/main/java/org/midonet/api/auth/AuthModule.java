@@ -17,25 +17,18 @@ package org.midonet.api.auth;
 
 import java.net.MalformedURLException;
 
-import javax.ws.rs.core.SecurityContext;
-
 import com.google.inject.AbstractModule;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
 
-import org.midonet.api.auth.cors.CorsConfig;
 import org.midonet.api.auth.keystone.KeystoneConfig;
 import org.midonet.api.auth.keystone.v2_0.KeystoneService;
 import org.midonet.api.auth.vsphere.VSphereClient;
 import org.midonet.api.auth.vsphere.VSphereConfig;
 import org.midonet.api.auth.vsphere.VSphereConfigurationException;
 import org.midonet.api.auth.vsphere.VSphereSSOService;
-import org.midonet.api.rest_api.Authoriser;
-import org.midonet.api.rest_api.DataClientAuthoriser;
-import org.midonet.cluster.DataClient;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.keystone.v2_0.KeystoneClient;
@@ -119,12 +112,6 @@ public class AuthModule extends AbstractModule {
     @Inject
     MockAuthConfig provideMockAuthConfig(ConfigProvider provider) {
         return provider.getConfig(MockAuthConfig.class);
-    }
-
-    @Provides @Singleton
-    @Inject
-    CorsConfig provideCorsConfig(ConfigProvider provider) {
-        return provider.getConfig(CorsConfig.class);
     }
 
 }
