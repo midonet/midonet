@@ -45,10 +45,10 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 
-import static org.midonet.api.validation.MessageProperty.PORT_NOT_VXLAN_PORT;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.PORT_NOT_VXLAN_PORT;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 public class VxLanPortBindingResource extends AbstractVtepResource {
 

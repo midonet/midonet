@@ -54,8 +54,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 
 @RequestScoped

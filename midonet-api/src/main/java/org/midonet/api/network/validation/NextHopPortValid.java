@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 import javax.validation.Constraint;
 import javax.validation.Payload;
 
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 @Target({ TYPE, ANNOTATION_TYPE })
 @Retention(RUNTIME)

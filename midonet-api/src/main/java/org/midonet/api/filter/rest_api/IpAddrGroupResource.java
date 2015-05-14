@@ -26,7 +26,7 @@ import org.midonet.api.filter.IpAddrGroupAddr;
 import org.midonet.api.filter.Ipv4AddrGroupAddr;
 import org.midonet.api.filter.Ipv6AddrGroupAddr;
 import org.midonet.api.rest_api.*;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;

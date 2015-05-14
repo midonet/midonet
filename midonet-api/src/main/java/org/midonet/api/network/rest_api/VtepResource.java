@@ -64,11 +64,11 @@ import org.slf4j.LoggerFactory;
 
 import static scala.collection.JavaConversions.asJavaCollection;
 
-import static org.midonet.api.validation.MessageProperty.VTEP_EXISTS;
-import static org.midonet.api.validation.MessageProperty.VTEP_HAS_BINDINGS;
-import static org.midonet.api.validation.MessageProperty.VTEP_HOST_IP_CONFLICT;
-import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HAS_BINDINGS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HOST_IP_CONFLICT;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 public class VtepResource extends AbstractVtepResource {
     private final static Logger log =

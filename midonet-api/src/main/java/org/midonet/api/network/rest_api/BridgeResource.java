@@ -69,13 +69,13 @@ import org.midonet.packets.MAC;
 
 import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
 import static org.midonet.api.ResourceUriBuilder.VLANS;
-import static org.midonet.api.validation.MessageProperty.ARP_ENTRY_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.BRIDGE_HAS_MAC_PORT;
-import static org.midonet.api.validation.MessageProperty.BRIDGE_HAS_VLAN;
-import static org.midonet.api.validation.MessageProperty.MAC_URI_FORMAT;
-import static org.midonet.api.validation.MessageProperty.NO_VXLAN_PORT;
-import static org.midonet.api.validation.MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.ARP_ENTRY_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.BRIDGE_HAS_MAC_PORT;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.BRIDGE_HAS_VLAN;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MAC_URI_FORMAT;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.NO_VXLAN_PORT;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 

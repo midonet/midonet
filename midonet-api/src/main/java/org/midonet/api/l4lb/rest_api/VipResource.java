@@ -29,7 +29,7 @@ import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.event.topology.VipEvent;
 import org.midonet.midolman.serialization.SerializationException;
@@ -57,7 +57,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class VipResource extends AbstractResource {
