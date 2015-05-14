@@ -81,7 +81,7 @@ class BridgeResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
 
     protected def tenantFilter(tenantId: String): (Bridge) => Boolean = {
         if (tenantId eq null) (_: Bridge) => true
-        else (b: Bridge) => b.tenantId == tenantId
+        else (b: Bridge) => b.getTenantId == tenantId
     }
 
 }

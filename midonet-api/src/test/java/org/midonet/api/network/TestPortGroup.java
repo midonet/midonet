@@ -30,12 +30,12 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoPortGroupPort;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -65,7 +65,7 @@ public class TestPortGroup extends JerseyTest {
         dtoResource = new DtoWebResource(resource);
 
         // Create one bridge for tenant1
-        DtoBridge bridge = new DtoBridge();
+        BridgeData bridge = new BridgeData();
         bridge.setName("Bridge1");
         bridge.setTenantId("tenant1-id");
 
@@ -83,7 +83,7 @@ public class TestPortGroup extends JerseyTest {
     public void testCreateGetListDelete() {
 
         DtoApplication app = topology.getApplication();
-        DtoBridge bridge = topology.getBridge("bridge1");
+        BridgeData bridge = topology.getBridge("bridge1");
         DtoRuleChain chain = topology.getChain("chain1");
 
         // Create a port group for Tenant1

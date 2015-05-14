@@ -22,27 +22,27 @@ public class BridgeDataConverter {
 
     public static Bridge fromData(org.midonet.cluster.data.Bridge bridgeData) {
         Bridge b = new Bridge();
-        b.id = bridgeData.getId();
-        b.name = bridgeData.getName();
-        b.tenantId = bridgeData.getProperty(Property.tenant_id);
-        b.adminStateUp = bridgeData.isAdminStateUp();
-        b.inboundFilterId = bridgeData.getInboundFilter();
-        b.outboundFilterId = bridgeData.getOutboundFilter();
-        b.vxLanPortId = bridgeData.getVxLanPortId();
-        b.vxLanPortIds = bridgeData.getVxLanPortIds();
+        b.setId(bridgeData.getId());
+        b.setName(bridgeData.getName());
+        b.setTenantId(bridgeData.getProperty(Property.tenant_id));
+        b.setAdminStateUp(bridgeData.isAdminStateUp());
+        b.setInboundFilterId(bridgeData.getInboundFilter());
+        b.setOutboundFilterId(bridgeData.getOutboundFilter());
+        b.setVxLanPortId(bridgeData.getVxLanPortId());
+        b.setVxLanPortIds(bridgeData.getVxLanPortIds());
         return b;
     }
 
     public static org.midonet.cluster.data.Bridge toData(Bridge b) {
         return new org.midonet.cluster.data.Bridge()
-            .setId(b.id)
-            .setName(b.name)
-            .setAdminStateUp(b.adminStateUp)
-            .setInboundFilter(b.inboundFilterId)
-            .setOutboundFilter(b.outboundFilterId)
-            .setVxLanPortId(b.vxLanPortId)
-            .setVxLanPortIds(b.vxLanPortIds)
-            .setProperty(Property.tenant_id, b.tenantId);
+            .setId(b.getId())
+            .setName(b.getName())
+            .setAdminStateUp(b.isAdminStateUp())
+            .setInboundFilter(b.getInboundFilterId())
+            .setOutboundFilter(b.getOutboundFilterId())
+            .setVxLanPortId(b.getVxLanPortId())
+            .setVxLanPortIds(b.getVxLanPortIds())
+            .setProperty(Property.tenant_id, b.getTenantId());
     }
 
 }
