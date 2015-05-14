@@ -23,7 +23,7 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.l4lb.LBStatus;

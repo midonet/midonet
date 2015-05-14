@@ -33,9 +33,9 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
 
-import static org.midonet.api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 public abstract class AbstractResource {
 

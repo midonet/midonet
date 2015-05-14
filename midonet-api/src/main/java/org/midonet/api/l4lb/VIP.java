@@ -18,7 +18,7 @@ package org.midonet.api.l4lb;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.api.validation.VerifyEnumValue;
+import org.midonet.cluster.rest_api.validation.VerifyEnumValue;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.packets.IPv4;
 

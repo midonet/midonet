@@ -22,7 +22,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.rules.FragmentPolicy;
 import org.midonet.packets.IPv4Addr;
 

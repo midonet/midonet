@@ -43,9 +43,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.midonet.api.validation.MessageProperty.HOST_FLOODING_PROXY_WEIGHT_IS_NULL;
-import static org.midonet.api.validation.MessageProperty.getMessage;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_FLOODING_PROXY_WEIGHT_IS_NULL;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 
 @RequestScoped
 public class HostResource extends AbstractResource {
