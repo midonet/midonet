@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_faa69aa9",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-14T08:00:35Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this have @JsonIgnore?",
+      "revId": "a1fb6cc7534e2753cd59fd30ae0c3d219a98a822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1aac568b",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-14T08:00:35Z",
+      "side": 1,
+      "message": "ditto",
+      "revId": "a1fb6cc7534e2753cd59fd30ae0c3d219a98a822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9ae686e6",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Link.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-14T08:00:35Z",
+      "side": 1,
+      "message": "Copyright missing",
+      "revId": "a1fb6cc7534e2753cd59fd30ae0c3d219a98a822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dad3de01",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-14T08:00:35Z",
+      "side": 1,
+      "message": "Copyright",
+      "revId": "a1fb6cc7534e2753cd59fd30ae0c3d219a98a822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fad4dae9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ApplicationResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-14T08:00:35Z",
+      "side": 1,
+      "message": "copyright",
+      "revId": "a1fb6cc7534e2753cd59fd30ae0c3d219a98a822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5a07ee81",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-14T08:00:35Z",
+      "side": 1,
+      "message": "copyright",
+      "revId": "a1fb6cc7534e2753cd59fd30ae0c3d219a98a822",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
