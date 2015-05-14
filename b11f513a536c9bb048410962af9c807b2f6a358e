@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "1a106d94_1af1f694",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-14T08:09:06Z",
+      "side": 1,
+      "message": "We need a new name! :)",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c0a01692",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -66,6 +83,74 @@
         "endLine": 29,
         "endChar": 15
       },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_baf54284",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-14T08:09:06Z",
+      "side": 1,
+      "message": "sealed trait",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1a48d6ca",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-14T08:09:06Z",
+      "side": 1,
+      "message": "There will be one SharedMap per owner and then a backing map to do the aggregation. I think there ought to be different classes (not interfaces though). You can check how we did this for the FlowStateTables",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5a2ecefb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-14T08:09:06Z",
+      "side": 1,
+      "message": "these seem like implementation details, that wouldn\u0027t need to be on the trait, right?",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3a31525a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-14T08:09:06Z",
+      "side": 1,
+      "message": "it\u0027s not clear to me what this method  does (I haven\u0027t read the document yet, don\u0027t know if it\u0027s there). i also find it strange there\u0027s not complementary start/restart methods",
       "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -141,6 +226,23 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9a34c64a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-14T08:09:06Z",
+      "side": 1,
+      "message": "def snapshot",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8670f6a4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -152,6 +254,30 @@
       "writtenOn": "2015-05-13T21:56:48Z",
       "side": 1,
       "message": "Any strong performance-related reasons as to this and other methods return V rather than Option[V]? Granted, the Option is another object, yet checking for nulls all the time...",
+      "range": {
+        "startLine": 101,
+        "startChar": 22,
+        "endLine": 101,
+        "endChar": 56
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3a1832d2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-14T08:09:06Z",
+      "side": 1,
+      "message": "get can\u0027t return an option, so i say this shouldn\u0027t return an option either.",
+      "parentUuid": "1a106d94_8670f6a4",
       "range": {
         "startLine": 101,
         "startChar": 22,
