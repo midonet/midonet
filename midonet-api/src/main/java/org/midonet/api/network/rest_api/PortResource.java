@@ -15,7 +15,6 @@
  */
 package org.midonet.api.network.rest_api;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -64,8 +63,8 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.VlanPathExistsException;
 
-import static org.midonet.api.validation.MessageProperty.PORT_GROUP_ID_IS_INVALID;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.PORT_GROUP_ID_IS_INVALID;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class PortResource extends AbstractResource {
@@ -752,8 +751,8 @@ public class PortResource extends AbstractResource {
             validate(portGroupPort);
 
             if (!dataClient.portGroupsExists(portGroupId)) {
-                throw new NotFoundHttpException(getMessage
-                                                    (PORT_GROUP_ID_IS_INVALID));
+                throw new NotFoundHttpException(
+                    getMessage(PORT_GROUP_ID_IS_INVALID));
             }
 
             authoriser.tryAuthorisePortGroup(

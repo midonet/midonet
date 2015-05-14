@@ -38,12 +38,12 @@ import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
-import static org.midonet.api.validation.MessageProperty.IP_ADDR_INVALID;
-import static org.midonet.api.validation.MessageProperty.MAX_VALUE;
-import static org.midonet.api.validation.MessageProperty.MIN_VALUE;
-import static org.midonet.api.validation.MessageProperty.NON_NULL;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MAX_VALUE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MIN_VALUE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.NON_NULL;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 
 @RunWith(Enclosed.class)
 public class TestPoolMember {

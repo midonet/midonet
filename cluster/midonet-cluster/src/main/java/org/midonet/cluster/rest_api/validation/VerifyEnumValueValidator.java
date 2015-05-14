@@ -13,12 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.validation;
+package org.midonet.cluster.rest_api.validation;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
+
+import org.slf4j.Logger;
+
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Implementation for the user-defined constraint annotation @VerifyValue
@@ -35,6 +40,8 @@ import javax.validation.ConstraintValidatorContext;
 public class VerifyEnumValueValidator
         implements ConstraintValidator<VerifyEnumValue, Object> {
 
+    private static Logger log = getLogger("org.midonet.api.validation");
+
     Class<? extends Enum<?>> enumClass;
 
     public void initialize(final VerifyEnumValue enumObject) {
@@ -45,8 +52,6 @@ public class VerifyEnumValueValidator
     /**
      * Checks if the value specified is null or valid.
      *
-     * @param myval  The value for the object
-     * @param constraintValidatorContext
      * @return true if the input is valid, otherwise false
      */
     public boolean isValid(
@@ -56,23 +61,22 @@ public class VerifyEnumValueValidator
             return true;
         } else if (enumClass != null) {
             Enum<?>[] enumValues = enumClass.getEnumConstants();
-            Object enumValue = null;
+            Object enumValue;
 
             for (Enum<?> enumerable : enumValues)   {
                 if (myval.equals(enumerable.toString())) {
                     return true;
                 }
                 enumValue = getEnumValue(enumerable);
-                if ((enumValue != null)
-                        && (myval.toString().equals(enumValue.toString())))  {
+                if ((enumValue != null) &&
+                    myval.toString().equals(enumValue.toString()))  {
                     return true;
                 }
             }
             constraintValidatorContext.disableDefaultConstraintViolation();
             constraintValidatorContext.buildConstraintViolationWithTemplate(
-                    MessageProperty.getMessage(
-                            MessageProperty.VALUE_IS_NOT_IN_ENUMS,
-                            (Object)enumValues)
+                    getMessage(MessageProperty.VALUE_IS_NOT_IN_ENUMS,
+                               (Object) enumValues)
             ).addConstraintViolation();
         }
         return false;
@@ -83,18 +87,18 @@ public class VerifyEnumValueValidator
      * Invokes the getValue() method for enum if present
      *
      * @param enumerable The Enum object
-     * @return  returns the value of enum from getValue() or
-     *          enum constant
+     * @return returns the value of enum from getValue() or enum constant
      */
     private Object getEnumValue(Enum<?> enumerable) {
         try {
-            for (Method method: enumerable.getClass().getDeclaredMethods()) {
+            for (Method method : enumerable.getClass().getDeclaredMethods()) {
                 if (method.getName().equals("getValue")) {
                     return method.invoke(enumerable);
                 }
             }
         } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+            log.warn("Failed to retrieve value for enumerable: " +
+                     enumerable, e);
         }
         return null;
     }

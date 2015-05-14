@@ -43,17 +43,17 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.conversion.RouteDataConverter;
 import org.midonet.cluster.rest_api.models.Route;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.event.topology.RouterEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class RouteResource extends AbstractResource {

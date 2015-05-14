@@ -43,7 +43,7 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;

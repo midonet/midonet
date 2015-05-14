@@ -22,7 +22,7 @@ import javax.ws.rs.core.Response;
 
 import com.google.common.collect.ImmutableMap;
 
-import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.rest_api.ResponseUtils;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 
