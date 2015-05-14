@@ -58,7 +58,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = new HashSet[FlowTag]()
-    val flowTagsOrdered = new ArrayList[UUID]()
+    val flowTagsOrdered = new ArrayList[FlowTag]()
 
     var flow: ManagedFlow = _
 
