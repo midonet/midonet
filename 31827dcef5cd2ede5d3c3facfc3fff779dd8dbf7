@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_dd4118aa",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-14T13:26:03Z",
+      "side": 1,
+      "message": "not because of this patch, but missing Copyright",
+      "revId": "31827dcef5cd2ede5d3c3facfc3fff779dd8dbf7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bd3c1c30",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Rule.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-14T13:26:03Z",
+      "side": 1,
+      "message": "@JsonIgnore",
+      "revId": "31827dcef5cd2ede5d3c3facfc3fff779dd8dbf7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3d182cd2",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/UriResource.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-14T13:26:03Z",
+      "side": 1,
+      "message": "abstract method?",
+      "revId": "31827dcef5cd2ede5d3c3facfc3fff779dd8dbf7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
