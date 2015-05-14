@@ -16,27 +16,30 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.ZoomObject;
-import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.cluster.rest_api.annotation.Resource;
+import org.midonet.cluster.rest_api.annotation.ResourceId;
+import org.midonet.cluster.rest_api.validation.VerifyEnumValue;
+import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.packets.IPv4;
 
-import static org.midonet.cluster.util.UUIDUtil.*;
+import static org.midonet.cluster.util.UUIDUtil.Converter;
 
 @XmlRootElement
-// TODO: needs ZOOM class
-public class VIP extends ZoomObject {
+@Resource(name = ResourceUris.VIPS)
+public class VIP extends UriResource {
 
     @ZoomField(name = "id", converter = Converter.class)
+    @ResourceId
     public UUID id;
 
     @ZoomField(name = "loadBalancerId", converter = Converter.class)
@@ -44,7 +47,7 @@ public class VIP extends ZoomObject {
 
     @NotNull
     @ZoomField(name = "poolId", converter = Converter.class)
-    private UUID poolId;
+    public UUID poolId;
 
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
     @ZoomField(name = "address")
@@ -55,11 +58,19 @@ public class VIP extends ZoomObject {
     @ZoomField(name = "protocolPort")
     public int protocolPort;
 
-    // TODO: @VerifyEnumValue(VipSessionPersistence.class)
+    @VerifyEnumValue(VipSessionPersistence.class)
     @ZoomField(name = "sessionPersistence")
     public String sessionPersistence;
 
     @ZoomField(name = "adminStateUp")
     public boolean adminStateUp = true;
+
+    public URI getLoadBalancer() {
+        return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
+    }
+
+    public URI getPool() {
+        return absoluteUri(ResourceUris.POOLS, poolId);
+    }
 
 }

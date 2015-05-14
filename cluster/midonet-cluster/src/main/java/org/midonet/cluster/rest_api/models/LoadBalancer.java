@@ -16,19 +16,22 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.rest_api.annotation.Resource;
+import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.UUIDUtil;
 
-// TODO: ZOOM CLASS
 @XmlRootElement
-public class LoadBalancer extends ZoomObject {
+@Resource(name = ResourceUris.LOAD_BALANCERS)
+public class LoadBalancer extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    @ResourceId
     public UUID id;
 
     @ZoomField(name = "routerId", converter = UUIDUtil.Converter.class)
@@ -36,4 +39,17 @@ public class LoadBalancer extends ZoomObject {
 
     @ZoomField(name = "adminStateUp")
     public boolean adminStateUp = true;
+
+    public URI getRouter() {
+        return absoluteUri(ResourceUris.ROUTERS, routerId);
+    }
+
+    public URI getPools() {
+        return relativeUri(ResourceUris.POOLS);
+    }
+
+    public URI getVips() {
+        return relativeUri(ResourceUris.VIPS);
+    }
+
 }

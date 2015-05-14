@@ -15,42 +15,53 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.rest_api.annotation.Resource;
+import org.midonet.cluster.rest_api.annotation.ResourceId;
+import org.midonet.cluster.rest_api.validation.VerifyEnumValue;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.midolman.state.l4lb.HealthMonitorType;
 import org.midonet.midolman.state.l4lb.LBStatus;
 
-// TODO: zoom class
 @XmlRootElement
-public class HealthMonitor extends ZoomObject {
+@Resource(name = ResourceUris.HEALTH_MONITORS)
+public class HealthMonitor extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    private UUID id;
-    @NotNull
+    @ResourceId
+    public UUID id;
 
-    // TODO: @VerifyEnumValue(HealthMonitorType.class)
+    @NotNull
+    @VerifyEnumValue(HealthMonitorType.class)
     @ZoomField(name = "type")
-    private String type;
+    public String type;
 
     @ZoomField(name = "delay")
-    private int delay;
+    public int delay;
 
     @ZoomField(name = "timeout")
-    private int timeout;
+    public int timeout;
 
     @ZoomField(name = "maxRetries")
-    private int maxRetries;
+    public int maxRetries;
 
     @ZoomField(name = "adminStateUp")
-    private boolean adminStateUp = true;
+    public boolean adminStateUp = true;
 
-    // TODO: @VerifyEnumValue(LBStatus.class)
+    @VerifyEnumValue(LBStatus.class)
     @ZoomField(name = "status")
+    @JsonIgnore // cannot be changed
     public String status = LBStatus.ACTIVE.toString();
 
+    public URI getPools() {
+        return relativeUri(ResourceUris.POOLS);
+    }
 }

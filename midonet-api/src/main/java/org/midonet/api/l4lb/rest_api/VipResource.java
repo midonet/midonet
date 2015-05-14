@@ -16,32 +16,10 @@
 
 package org.midonet.api.l4lb.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.VIP;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.cluster.DataClient;
-import org.midonet.event.topology.VipEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.InvalidStateOperationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -57,6 +35,33 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.conversion.VIPDataConverter;
+import org.midonet.cluster.rest_api.models.VIP;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.event.topology.VipEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+
+import static org.midonet.cluster.rest_api.conversion.VIPDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.VIPDataConverter.toData;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
@@ -82,17 +87,16 @@ public class VipResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
-    public List<VIP> list()
-            throws StateAccessException, SerializationException {
+    public List<VIP> list() throws StateAccessException,
+                                   SerializationException,
+                                   IllegalAccessException {
         List<org.midonet.cluster.data.l4lb.VIP> vipsData;
 
         vipsData = dataClient.vipGetAll();
-        List<VIP> vips = new ArrayList<VIP>();
+        List<VIP> vips = new ArrayList<>();
         if (vipsData != null) {
             for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {
-                VIP vip = new VIP(vipData);
-                vip.setBaseUri(getBaseUri());
-                vips.add(vip);
+                vips.add(fromData(vipData, getBaseUri()));
             }
 
         }
@@ -112,17 +116,15 @@ public class VipResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_VIP_JSON,
-            MediaType.APPLICATION_JSON })
-    public VIP get(@PathParam("id") UUID id)
-        throws StateAccessException, SerializationException {
+                MediaType.APPLICATION_JSON })
+    public VIP get(@PathParam("id") UUID id) throws StateAccessException,
+                                                    SerializationException,
+                                                    IllegalAccessException {
         org.midonet.cluster.data.l4lb.VIP vipData = dataClient.vipGet(id);
-        if (vipData == null)
+        if (vipData == null) {
             throwNotFound(id, "VIP");
-
-        VIP vip = new VIP(vipData);
-        vip.setBaseUri(getBaseUri());
-
-        return vip;
+        }
+        return VIPDataConverter.fromData(vipData, getBaseUri());
     }
 
     /**
@@ -162,14 +164,15 @@ public class VipResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_VIP_JSON,
             MediaType.APPLICATION_JSON })
-    public Response create(VIP vip)
-            throws StateAccessException, InvalidStateOperationException,
-            SerializationException, ServiceUnavailableHttpException,
-            ConflictHttpException {
+    public Response create(VIP vip) throws StateAccessException,
+                                           InvalidStateOperationException,
+                                           SerializationException,
+                                           ServiceUnavailableHttpException,
+                                           ConflictHttpException {
         validate(vip);
 
         try {
-            UUID id = dataClient.vipCreate(vip.toData());
+            UUID id = dataClient.vipCreate(toData(vip));
             vipEvent.create(id, dataClient.vipGet(id));
             return Response.created(
                     ResourceUriBuilder.getVip(getBaseUri(), id)).build();
@@ -196,15 +199,15 @@ public class VipResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_VIP_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, VIP vip)
             throws StateAccessException, InvalidStateOperationException,
-            SerializationException {
-        vip.setId(id);
+                   SerializationException {
+        vip.id = id;
         validate(vip);
 
         try {
-            dataClient.vipUpdate(vip.toData());
+            dataClient.vipUpdate(toData(vip));
             vipEvent.update(id, dataClient.vipGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
@@ -235,9 +238,10 @@ public class VipResource extends AbstractResource {
         @Produces({ VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
         public List<VIP> list()
-                throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+                   IllegalAccessException {
 
-            List<org.midonet.cluster.data.l4lb.VIP> dataVips = null;
+            List<org.midonet.cluster.data.l4lb.VIP> dataVips;
 
             try {
                 dataVips = dataClient.poolGetVips(poolId);
@@ -247,9 +251,7 @@ public class VipResource extends AbstractResource {
             List<VIP> vips = new ArrayList<>();
             if (dataVips != null) {
                 for (org.midonet.cluster.data.l4lb.VIP dataVip : dataVips) {
-                    VIP vip = new VIP(dataVip);
-                    vip.setBaseUri(getBaseUri());
-                    vips.add(vip);
+                    vips.add(VIPDataConverter.fromData(dataVip, getBaseUri()));
                 }
             }
             return vips;
@@ -258,13 +260,13 @@ public class VipResource extends AbstractResource {
         @POST
         @RolesAllowed({ AuthRole.ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_VIP_JSON,
-                MediaType.APPLICATION_JSON})
-        public Response create(VIP vip)
-                throws StateAccessException, SerializationException {
-            vip.setPoolId(poolId);
+                    MediaType.APPLICATION_JSON})
+        public Response create(VIP vip) throws StateAccessException,
+                                               SerializationException {
+            vip.poolId = poolId;
             validate(vip);
             try {
-                UUID id = dataClient.vipCreate(vip.toData());
+                UUID id = dataClient.vipCreate(toData(vip));
                 return Response.created(
                         ResourceUriBuilder.getVip(getBaseUri(), id))
                         .build();
