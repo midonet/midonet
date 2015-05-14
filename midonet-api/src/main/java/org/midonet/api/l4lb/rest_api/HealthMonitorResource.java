@@ -16,29 +16,10 @@
 
 package org.midonet.api.l4lb.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.HealthMonitor;
-import org.midonet.api.l4lb.Pool;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.cluster.DataClient;
-import org.midonet.event.topology.HealthMonitorEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -54,6 +35,32 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.conversion.HealthMonitorDataConverter;
+import org.midonet.cluster.rest_api.conversion.PoolDataConverter;
+import org.midonet.cluster.rest_api.models.HealthMonitor;
+import org.midonet.cluster.rest_api.models.Pool;
+import org.midonet.cluster.rest_api.models.ResourceUris;
+import org.midonet.event.topology.HealthMonitorEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+
+import static org.midonet.cluster.rest_api.conversion.HealthMonitorDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.HealthMonitorDataConverter.toData;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
@@ -76,19 +83,16 @@ public class HealthMonitorResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_HEALTH_MONITOR_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
     public List<HealthMonitor> list()
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               IllegalAccessException {
 
-        List<org.midonet.cluster.data.l4lb.HealthMonitor> dataHealthMonitors;
+        List<org.midonet.cluster.data.l4lb.HealthMonitor> hmonitors;
 
-        dataHealthMonitors = dataClient.healthMonitorsGetAll();
-        List<HealthMonitor> healthMonitors = new ArrayList<HealthMonitor>();
-        if (dataHealthMonitors != null) {
-            for (org.midonet.cluster.data.l4lb.HealthMonitor dataHealthMonitor :
-                    dataHealthMonitors) {
-                HealthMonitor healthMonitor
-                        = new HealthMonitor(dataHealthMonitor);
-                healthMonitor.setBaseUri(getBaseUri());
-                healthMonitors.add(healthMonitor);
+        hmonitors = dataClient.healthMonitorsGetAll();
+        List<HealthMonitor> healthMonitors = new ArrayList<>();
+        if (hmonitors != null) {
+            for (org.midonet.cluster.data.l4lb.HealthMonitor hmData : hmonitors) {
+                healthMonitors.add(fromData(hmData, getBaseUri()));
             }
         }
         return healthMonitors;
@@ -100,18 +104,16 @@ public class HealthMonitorResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
             MediaType.APPLICATION_JSON })
     public HealthMonitor get(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
+            throws StateAccessException, SerializationException,
+                   IllegalAccessException {
 
         org.midonet.cluster.data.l4lb.HealthMonitor healthMonitorData =
             dataClient.healthMonitorGet(id);
         if (healthMonitorData == null)
-            throwNotFound(id, "health monitor");
+            throwNotFound(id, ResourceUris.HEALTH_MONITORS);
 
-        // Convert to the REST API DTO
-        HealthMonitor healthMonitor = new HealthMonitor(healthMonitorData);
-        healthMonitor.setBaseUri(getBaseUri());
-
-        return healthMonitor;
+        return HealthMonitorDataConverter.fromData(healthMonitorData,
+                                                   getBaseUri());
     }
 
     @DELETE
@@ -133,19 +135,21 @@ public class HealthMonitorResource extends AbstractResource {
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
-            MediaType.APPLICATION_JSON })
-    public Response create(HealthMonitor healthMonitor)
-            throws StateAccessException, SerializationException {
-        validate(healthMonitor);
+                MediaType.APPLICATION_JSON })
+    public Response create(HealthMonitor hm)
+        throws StateAccessException, SerializationException {
+
+        validate(hm);
+
         try {
-            UUID id = dataClient.healthMonitorCreate(healthMonitor.toData());
+            UUID id = dataClient.healthMonitorCreate(toData(hm));
             healthMonitorEvent.create(id, dataClient.healthMonitorGet(id));
             return Response.created(
                     ResourceUriBuilder.getHealthMonitor(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
             throw new ConflictHttpException(ex,
-                    getMessage(RESOURCE_EXISTS, "health monitor", healthMonitor.getId()));
+                    getMessage(RESOURCE_EXISTS, "health monitor", hm.id));
         }
     }
 
@@ -153,15 +157,15 @@ public class HealthMonitorResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_HEALTH_MONITOR_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, HealthMonitor healthMonitor)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException {
 
-        healthMonitor.setId(id);
+        healthMonitor.id = id;
         validate(healthMonitor);
 
         try {
-            dataClient.healthMonitorUpdate(healthMonitor.toData());
+            dataClient.healthMonitorUpdate(toData(healthMonitor));
             healthMonitorEvent.update(id, dataClient.healthMonitorGet(id));
         } catch (NoStatePathException ex) {
             throw new NotFoundHttpException(ex);
@@ -174,22 +178,22 @@ public class HealthMonitorResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}" + ResourceUriBuilder.POOLS)
     @Produces({VendorMediaType.APPLICATION_POOL_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON})
+               MediaType.APPLICATION_JSON})
     public List<Pool> listPools(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+               IllegalAccessException {
 
-        List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
+        List<org.midonet.cluster.data.l4lb.Pool> dataPools;
         try {
             dataPools = dataClient.healthMonitorGetPools(id);
         } catch (NoStatePathException ex) {
+            throwNotFound(id, ResourceUris.POOLS);
             throw new NotFoundHttpException(ex);
         }
 
         List<Pool> pools = new ArrayList<>(dataPools.size());
         for (org.midonet.cluster.data.l4lb.Pool dataPool : dataPools) {
-            Pool pool = new Pool(dataPool);
-            pool.setBaseUri(getBaseUri());
-            pools.add(pool);
+            pools.add(PoolDataConverter.fromData(dataPool, getBaseUri()));
         }
 
         return pools;

@@ -40,17 +40,17 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.l4lb.Pool;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.Pool;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.event.topology.PoolEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -61,6 +61,9 @@ import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.MappingViolationException;
 
+import static org.midonet.cluster.rest_api.conversion.PoolDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.PoolDataConverter.toData;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_DISASSOCIATION_IS_REQUIRED;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
@@ -84,20 +87,19 @@ public class PoolResource extends AbstractResource {
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_POOL_COLLECTION_JSON,
-            MediaType.APPLICATION_JSON })
-    public List<Pool> list()
-            throws StateAccessException, SerializationException {
+                MediaType.APPLICATION_JSON })
+    public List<Pool> list() throws StateAccessException,
+                                    SerializationException,
+                                    IllegalAccessException {
 
-        List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
+        List<org.midonet.cluster.data.l4lb.Pool> dataPools;
 
         dataPools = dataClient.poolsGetAll();
-        List<Pool> pools = new ArrayList<Pool>();
+        List<Pool> pools = new ArrayList<>();
         if (dataPools != null) {
             for (org.midonet.cluster.data.l4lb.Pool dataPool :
                     dataPools) {
-                Pool pool = new Pool(dataPool);
-                pool.setBaseUri(getBaseUri());
-                pools.add(pool);
+                pools.add(fromData(dataPool, getBaseUri()));
             }
         }
         return pools;
@@ -108,8 +110,9 @@ public class PoolResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_POOL_JSON,
             MediaType.APPLICATION_JSON })
-    public Pool get(@PathParam("id") UUID id)
-            throws StateAccessException, SerializationException {
+    public Pool get(@PathParam("id") UUID id) throws StateAccessException,
+                                                     SerializationException,
+                                                     IllegalAccessException {
 
         org.midonet.cluster.data.l4lb.Pool poolData =
             dataClient.poolGet(id);
@@ -117,10 +120,7 @@ public class PoolResource extends AbstractResource {
             throwNotFound(id, "pool");
 
         // Convert to the REST API DTO
-        Pool pool = new Pool(poolData);
-        pool.setBaseUri(getBaseUri());
-
-        return pool;
+        return fromData(poolData, getBaseUri());
     }
 
     @DELETE
@@ -143,22 +143,22 @@ public class PoolResource extends AbstractResource {
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_POOL_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public Response create(Pool pool)
             throws StateAccessException, SerializationException {
         // `status` defaults to UP and users can't change it through the API.
-        pool.setStatus(LBStatus.ACTIVE.toString());
+        pool.status = LBStatus.ACTIVE.toString();
         validate(pool);
 
         try {
-            UUID id = dataClient.poolCreate(pool.toData());
+            UUID id = dataClient.poolCreate(toData(pool));
             poolEvent.create(id, dataClient.poolGet(id));
             return Response.created(
                     ResourceUriBuilder.getPool(getBaseUri(), id))
                     .build();
         } catch (StatePathExistsException ex) {
             throw new ConflictHttpException(ex,
-                    getMessage(RESOURCE_EXISTS, "pool", pool.getId()));
+                    getMessage(RESOURCE_EXISTS, "pool", pool.id));
         } catch (NoStatePathException ex) {
             throw new BadRequestHttpException(ex);
         } catch (MappingStatusException ex) {
@@ -170,20 +170,24 @@ public class PoolResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_POOL_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Pool pool)
             throws StateAccessException, SerializationException {
-        pool.setId(id);
+        pool.id = id;
         validate(pool);
 
         try {
-            dataClient.poolUpdate(pool.toData());
+            org.midonet.cluster.data.l4lb.Pool oldData = dataClient.poolGet(id);
+
+            // DISALLOW changing this from the API
+            pool.status = oldData.getStatus().toString();
+
+            dataClient.poolUpdate(toData(pool));
             poolEvent.update(id, dataClient.poolGet(id));
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingViolationException ex) {
-            throw new BadRequestHttpException(ex,
-                MessageProperty.MAPPING_DISASSOCIATION_IS_REQUIRED);
+            throw new BadRequestHttpException(ex, MAPPING_DISASSOCIATION_IS_REQUIRED);
         } catch (MappingStatusException ex) {
             throw new ServiceUnavailableHttpException(ex);
         }
@@ -233,19 +237,18 @@ public class PoolResource extends AbstractResource {
         @GET
         @RolesAllowed({ AuthRole.ADMIN })
         @Produces({ VendorMediaType.APPLICATION_POOL_COLLECTION_JSON,
-                MediaType.APPLICATION_JSON })
-        public List<Pool> list()
-                throws StateAccessException, SerializationException {
+                    MediaType.APPLICATION_JSON })
+        public List<Pool> list() throws StateAccessException,
+                                        SerializationException,
+                                        IllegalAccessException{
 
-            List<org.midonet.cluster.data.l4lb.Pool> dataPools = null;
+            List<org.midonet.cluster.data.l4lb.Pool> dataPools;
 
             dataPools = dataClient.loadBalancerGetPools(loadBalancerId);
-            List<Pool> pools = new ArrayList<Pool>();
+            List<Pool> pools = new ArrayList<>();
             if (dataPools != null) {
                 for (org.midonet.cluster.data.l4lb.Pool dataPool : dataPools) {
-                    Pool pool = new Pool(dataPool);
-                    pool.setBaseUri(getBaseUri());
-                    pools.add(pool);
+                    pools.add(fromData(dataPool, getBaseUri()));
                 }
             }
             return pools;
@@ -257,19 +260,19 @@ public class PoolResource extends AbstractResource {
                 MediaType.APPLICATION_JSON })
         public Response create(Pool pool)
                 throws StateAccessException, SerializationException {
-            pool.setLoadBalancerId(loadBalancerId);
+            pool.loadBalancerId = loadBalancerId;
             // `status` defaults to UP and users can't change it through the API.
-            pool.setStatus(LBStatus.ACTIVE.toString());
+            pool.status = LBStatus.ACTIVE.toString();
             validate(pool);
 
             try {
-                UUID id = dataClient.poolCreate(pool.toData());
+                UUID id = dataClient.poolCreate(toData(pool));
                 return Response.created(
                         ResourceUriBuilder.getPool(getBaseUri(), id))
                         .build();
             } catch (StatePathExistsException ex) {
                 throw new ConflictHttpException(ex,
-                        getMessage(RESOURCE_EXISTS, "pool", pool.getId()));
+                        getMessage(RESOURCE_EXISTS, "pool", pool.id));
             } catch (NoStatePathException ex) {
                 throw badReqOrNotFoundException(ex, loadBalancerId);
             } catch (MappingStatusException ex) {
