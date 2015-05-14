@@ -37,14 +37,13 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman._
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
-import org.midonet.netlink.AfUnix
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.odp.DpPort
 import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.FlowTagger
-import org.midonet.util.UnixClock
+import org.midonet.util.{AfUnix, UnixClock}
 import org.midonet.util.eventloop.SelectLoop
 
 object RoutingHandler {

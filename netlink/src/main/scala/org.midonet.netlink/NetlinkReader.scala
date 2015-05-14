@@ -23,7 +23,7 @@ import java.util.concurrent.TimeoutException
 
 import scala.concurrent.duration.Duration
 
-import org.midonet.netlink.clib.cLibrary
+import org.midonet.util.cLibrary
 import org.midonet.netlink.exceptions.NetlinkException
 
 object NetlinkReader {

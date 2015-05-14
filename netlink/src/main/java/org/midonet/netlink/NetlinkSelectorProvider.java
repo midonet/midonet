@@ -28,6 +28,8 @@ import java.nio.channels.spi.SelectorProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.util.AfUnix;
+
 // uncomment this and the commented method below to let it compile for jdk7 properly.
 // import java.net.ProtocolFamily
 

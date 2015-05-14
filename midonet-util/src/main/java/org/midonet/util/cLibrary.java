@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.netlink.clib;
+package org.midonet.util;
 
 import java.nio.ByteBuffer;
 
+import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Structure;
@@ -83,6 +84,15 @@ public interface cLibrary extends Library {
     public static final int NETLINK_DROP_MEMBERSHIP = 2;
     public static final int NETLINK_BROADCAST_ERROR = 4;
     public static final int NETLINK_NO_ENOBUFS = 5;
+
+    /* sys/mman.h */
+    public static final int MCL_CURRENT = 1;
+    public static final int MCL_FUTURE = 2;
+
+
+    int mlockall(int flags) throws LastErrorException;
+
+    int munlockall() throws LastErrorException;
 
     int socket(int domain, int type, int protocol);
 
