@@ -45,7 +45,7 @@ import org.midonet.api.network.NetworkModule;
 import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
-import org.midonet.api.validation.ValidationModule;
+import org.midonet.cluster.rest_api.validation.ValidationModule;
 import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.ClusterNode;
 import org.midonet.cluster.auth.LoginFilter;
