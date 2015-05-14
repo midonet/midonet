@@ -42,7 +42,6 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
@@ -50,6 +49,7 @@ import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTenant;
+import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
@@ -167,7 +167,7 @@ public class TestRouter {
         @Test
         public void testListRoutersPerTenant() throws Exception {
 
-            // Get the expected list of DtoBridge objects
+            // Get the expected list of Bridge objects
             DtoApplication app = topology.getApplication();
             DtoTenant tenant = topology.getTenant("tenant0");
             List<DtoRouter> expected = getExpectedRouters(app.getRouters(),
@@ -462,12 +462,12 @@ public class TestRouter {
                     APPLICATION_PORT_V2_JSON, port, DtoRouterPort.class);
             assertNotNull(resPort.getId());
             // Create a bridge that we can link to the router.
-            DtoBridge bridge = new DtoBridge();
+            BridgeData bridge = new BridgeData();
             bridge.setName("bridge1");
             bridge.setTenantId("tenant1");
-            DtoBridge resBridge = dtoResource.postAndVerifyCreated(
+            BridgeData resBridge = dtoResource.postAndVerifyCreated(
                 topology.getApplication().getBridges(),
-                APPLICATION_BRIDGE_JSON, bridge, DtoBridge.class);
+                APPLICATION_BRIDGE_JSON, bridge, BridgeData.class);
             assertNotNull(resBridge.getId());
             assertNotNull(resBridge.getUri());
             // Add an interior bridge port.

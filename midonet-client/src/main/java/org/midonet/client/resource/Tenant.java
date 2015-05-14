@@ -67,20 +67,7 @@ public class Tenant extends ResourceBase<Tenant, DtoTenant> {
         principalDto.setName(name);
         return this;
     }
-
-    /**
-     * Returns collection of bridges under the tenant
-     *
-     * @return collection of bridges
-     */
-    public ResourceCollection<Bridge> getBridges() {
-        return getChildResources(
-            principalDto.getBridges(),
-            null,
-            VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON,
-            Bridge.class, DtoBridge.class);
-    }
-
+    
     /**
      * Returns collection of port groups under the tenant
      *

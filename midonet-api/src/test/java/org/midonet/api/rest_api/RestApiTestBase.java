@@ -28,17 +28,17 @@ import com.sun.jersey.test.framework.JerseyTest;
 import org.junit.Before;
 
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPort;
+import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.midonet.api.validation.MessageProperty.getMessage;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON_V3;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V3;
 
 public abstract class RestApiTestBase extends JerseyTest {
 
@@ -107,28 +107,28 @@ public abstract class RestApiTestBase extends JerseyTest {
         }
     }
 
-    protected DtoBridge postBridge(String bridgeName) {
-        DtoBridge bridge = new DtoBridge();
+    protected BridgeData postBridge(String bridgeName) {
+        BridgeData bridge = new BridgeData();
         bridge.setName(bridgeName);
         bridge.setTenantId("tenant1");
         bridge = dtoResource.postAndVerifyCreated(
                 topology.getApplication().getBridges(),
-                APPLICATION_BRIDGE_JSON_V3, bridge, DtoBridge.class);
+                APPLICATION_BRIDGE_JSON_V3, bridge, BridgeData.class);
         assertNotNull(bridge.getId());
         assertNotNull(bridge.getUri());
         return bridge;
     }
 
-    protected DtoBridge getBridge(UUID id) {
+    protected BridgeData getBridge(UUID id) {
         URI uri = UriBuilder.fromPath(app.getBridgeTemplate()).build(id);
         return dtoResource.getAndVerifyOk(
-                uri, APPLICATION_BRIDGE_JSON_V3, DtoBridge.class);
+                uri, APPLICATION_BRIDGE_JSON_V3, BridgeData.class);
     }
 
-    protected DtoBridge getBridgeV1(UUID id) {
+    protected BridgeData getBridgeV1(UUID id) {
         URI uri = UriBuilder.fromPath(app.getBridgeTemplate()).build(id);
         return dtoResource.getAndVerifyOk(
-                uri, APPLICATION_BRIDGE_JSON, DtoBridge.class);
+                uri, APPLICATION_BRIDGE_JSON, BridgeData.class);
     }
 
     protected DtoPort getPort(UUID id) {
@@ -137,7 +137,7 @@ public abstract class RestApiTestBase extends JerseyTest {
                 uri, APPLICATION_PORT_V2_JSON, DtoPort.class);
     }
 
-    public DtoBridgePort postBridgePort(DtoBridgePort port, DtoBridge bridge) {
+    public DtoBridgePort postBridgePort(DtoBridgePort port, BridgeData bridge) {
         return dtoResource.postAndVerifyCreated(bridge.getPorts(),
                 APPLICATION_PORT_V2_JSON, port, DtoBridgePort.class);
     }
