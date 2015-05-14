@@ -287,6 +287,30 @@
       "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1a1f36b8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-14T08:11:30Z",
+      "side": 1,
+      "message": "can\u0027t, or should not due to GC?",
+      "parentUuid": "1a106d94_3a1832d2",
+      "range": {
+        "startLine": 101,
+        "startChar": 22,
+        "endLine": 101,
+        "endChar": 56
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
