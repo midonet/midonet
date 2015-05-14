@@ -33,7 +33,6 @@ public class HttpSupport {
     public final static String AUTH_REALM = "Midonet";
     public final static String BASIC_AUTH = "Basic";
     public final static String BASIC_AUTH_PREFIX = BASIC_AUTH + " ";
-    public final static String BASIC_AUTH_REALM = BASIC_AUTH_PREFIX + AUTH_REALM;
     public final static String BASIC_AUTH_REALM_FIELD =
             BASIC_AUTH_PREFIX + " realm=\"BASIC_AUTH_REALM\"";
 
