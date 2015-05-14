@@ -24,7 +24,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
-import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Commons.LBStatus
@@ -32,9 +31,9 @@ import org.midonet.cluster.models.Topology.{Pool => TopologyPool, PoolMember}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{Pool => SimulationPool}
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class PoolMapperTest extends MidolmanSpec with TopologyBuilder
@@ -51,18 +50,6 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
         store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
     }
 
-    private def assertThread(): Unit = {
-        assert(vt.vtThreadId == Thread.currentThread.getId)
-    }
-
-    private def createObserver() = {
-        new TestObserver[SimulationPool]
-        with AwaitableObserver[SimulationPool]
-        with AssertableObserver[SimulationPool] {
-            override def assert() = PoolMapperTest.this.assertThread()
-        }
-    }
-
     feature("The pool mapper emits pool devices") {
         scenario("The mapper emits error for non-existing pool") {
             Given("A pool identifier")
@@ -72,7 +59,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(id, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -93,7 +80,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -113,7 +100,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool1.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -142,7 +129,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -169,7 +156,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -206,7 +193,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -244,7 +231,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -276,7 +263,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -313,7 +300,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -351,7 +338,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -383,7 +370,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -416,7 +403,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -452,7 +439,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -489,7 +476,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -527,7 +514,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -565,7 +552,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -603,7 +590,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -639,7 +626,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -678,7 +665,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             val mapper = new PoolMapper(pool.getId, vt)
 
             And("An observer to the pool mapper")
-            val obs = createObserver()
+            val obs = new DeviceObserver[SimulationPool](vt)
 
             When("The observer subscribes to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
