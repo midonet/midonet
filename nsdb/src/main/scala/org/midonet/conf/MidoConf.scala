@@ -20,6 +20,7 @@ import java.io._
 import java.net.{URL, URI}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.util.regex.{Matcher, Pattern}
 import java.util.zip.ZipInputStream
 
 import org.slf4j.helpers.NOPLogger
@@ -113,6 +114,8 @@ trait WritableConf extends MidoConf {
 }
 
 object MidoNodeConfigurator {
+    private val enumPattern = Pattern.compile("enum\\[([\\w, ]+)\\]")
+
     def bootstrapConfig(inifile: Option[String] = None): Config = {
         val MIDONET_CONF_LOCATIONS = List("~/.midonetrc", "/etc/midonet/midonet.conf",
             "/etc/midolman/midolman.conf")
@@ -172,6 +175,55 @@ object MidoNodeConfigurator {
         apply(zkBootstrap(bootstrapConf.withFallback(bootstrapConfig())), None)
 
     def apply(): MidoNodeConfigurator = apply(zkBootstrap())
+
+    def validateKey(schema: Config, conf: Config, key: String): Unit = {
+        if (schema.hasPath(s"${key}_type")) {
+            schema.getString(s"${key}_type") match {
+                case "duration" => conf.getDuration(key, TimeUnit.MILLISECONDS)
+                case "duration[]" => conf.getDurationList(key, TimeUnit.MILLISECONDS)
+
+                case "bool" => conf.getBoolean(key)
+                case "bool[]" => conf.getBooleanList(key)
+
+                case "string" => conf.getString(key)
+                case "string[]" => conf.getStringList(key)
+
+                case "int" => conf.getInt(key)
+                case "int[]" => conf.getIntList(key)
+
+                case "size" => conf.getBytes(key)
+                case "size[]" => conf.getBytesList(key)
+
+                case "double" => conf.getDouble(key)
+                case "double[]" => conf.getDoubleList(key)
+
+                case t if enumPattern.matcher(t).matches => {
+                    val m = enumPattern.matcher(t)
+                    m.matches()
+                    val options = m.group(1).split(",")
+                        .map({ _.toUpperCase.trim })
+                    val value = conf.getString(key)
+                    if (!options.contains(value.toUpperCase)) {
+                        val newVal = conf.getValue(key)
+                        throw new ConfigException.WrongType(
+                            newVal.origin,
+                            s"Value for $key (${newVal.render}) " +
+                                s"should be one of ${options}")
+                    }
+                }
+
+                case t => throw new ConfigException.BugOrBroken(
+                        s"Invalid validation type ($t) in schema")
+            }
+        } else {
+            val newVal = conf.resolve().getValue(key)
+            val schemaVal = schema.resolve().getValue(key)
+            if (!newVal.valueType().equals(schemaVal.valueType()))
+                throw new ConfigException.WrongType(newVal.origin(),
+                    s"Value for $key (${newVal.render()}) does " +
+                        s"not follow schema type (${schemaVal.render()}})")
+        }
+    }
 }
 
 object MidoTestConfigurator {
@@ -305,37 +357,6 @@ class MidoNodeConfigurator(zk: CuratorFramework,
             fold(Observable.just(ConfigFactory.empty))((a, b) => combine(a, b))
     }
 
-    private def validateKey(schema: Config, conf: Config, key: String): Unit = {
-        if (schema.hasPath(s"${key}_type")) {
-            schema.getString(s"${key}_type") match {
-                case "duration" => conf.getDuration(key, TimeUnit.MILLISECONDS)
-                case "duration[]" => conf.getDurationList(key, TimeUnit.MILLISECONDS)
-
-                case "bool" => conf.getBoolean(key)
-                case "bool[]" => conf.getBooleanList(key)
-
-                case "string" => conf.getString(key)
-                case "string[]" => conf.getStringList(key)
-
-                case "int" => conf.getInt(key)
-                case "int[]" => conf.getIntList(key)
-
-                case "size" => conf.getBytes(key)
-                case "size[]" => conf.getBytesList(key)
-
-                case "double" => conf.getDouble(key)
-                case "double[]" => conf.getDoubleList(key)
-            }
-        } else {
-            val newVal = conf.getValue(key)
-            val schemaVal = schema.getValue(key)
-            if (!newVal.valueType().equals(schemaVal.valueType()))
-                throw new ConfigException.WrongType(newVal.origin(),
-                    s"Value for $key (${newVal.render()}}) does " +
-                        s"not follow schema type (${schemaVal.render()}})")
-        }
-    }
-
     /**
      * Validates a configuration snippet against the schemas. Returns a list
      * of keys that are missing from the schemas and thus could not be validated
@@ -347,7 +368,7 @@ class MidoNodeConfigurator(zk: CuratorFramework,
 
         for (entry <- newConf.entrySet) {
             try {
-                validateKey(schemas, validationConf, entry.getKey)
+                MidoNodeConfigurator.validateKey(schemas, validationConf, entry.getKey)
             } catch {
                 case e: ConfigException.Missing => unverified ::= entry.getKey
             }
@@ -697,6 +718,11 @@ class ZookeeperSchema(zk: CuratorFramework, path: String,
     def setAsSchema(schema: Config): Boolean = modify { oldSchema =>
         val oldV = oldSchema.withFallback(EMPTY).getInt(VERSION_KEY)
         val newV = schema.getInt(VERSION_KEY)
+
+        val validationConf = schema.resolve()
+        for (entry <- validationConf.entrySet) {
+            MidoNodeConfigurator.validateKey(schema, validationConf, entry.getKey)
+        }
 
         if (newV > oldV)
             schema
