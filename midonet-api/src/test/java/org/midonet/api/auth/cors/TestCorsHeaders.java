@@ -35,18 +35,15 @@ public class TestCorsHeaders extends JerseyTest {
     private final static Logger log =
         LoggerFactory.getLogger(TestCorsHeaders.class);
 
-    private WebResource resource;
-    private ClientResponse response;
-
     public TestCorsHeaders() {
         super(FuncTest.appDesc);
     }
 
     @Test
     public void testCorsHeaders() {
-        resource = resource().path("/");
+        WebResource resource = resource().path("/");
         // Test OPTIONS method returns expected response headers.
-        response = resource.options(ClientResponse.class);
+        ClientResponse response = resource.options(ClientResponse.class);
         log.debug("status: {}", response.getStatus());
         assertEquals(200, response.getStatus());
         Map<String, List<String>> headers = response.getHeaders();
