@@ -115,6 +115,15 @@ there are some prerequisites:
 * fpm (ruby gem) to build debian/rpm packages
 * rpm
 
+## Testing tools
+
+*MidoNet* is tested at both an integration and a functional level by the
+MDTS (Midonet Distributed Testing System), which can be found in the
+
+http://github.com/midonet/mdts
+
+repository.
+
 ## Building the project
 
 The `cluster` directory contains an odl-ovsdb git submodule with code that
