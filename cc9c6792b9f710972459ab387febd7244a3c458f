@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_095412c8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-15T07:50:00Z",
+      "side": 1,
+      "message": "Can\u0027t a LoadBalancer be created and bound to a Router afterwards? (I think I was told that while working in the PoolHealthMonitorMapper, but not completely sure). If so, then the \u0027cascade\u0027 setting wouldn\u0027t be adequate.",
+      "range": {
+        "startLine": 105,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 71
+      },
+      "revId": "cc9c6792b9f710972459ab387febd7244a3c458f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
