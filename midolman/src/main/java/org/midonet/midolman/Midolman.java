@@ -83,7 +83,7 @@ public class Midolman {
     private static void lockMemory() {
         try {
             cLibrary.lib.mlockall(cLibrary.MCL_FUTURE | cLibrary.MCL_CURRENT);
-            log.info("Successfully locked the processed address space to RAM.");
+            log.info("Successfully locked the process address space to RAM.");
         } catch (LastErrorException e) {
             log.warn("Failed to lock process into RAM: {}",
                 cLibrary.lib.strerror(e.getErrorCode()));
