@@ -129,9 +129,8 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
         scenario("service life cycle") {
             val reqHandler = new RequestHandler(connMgr)
             val handler = new ApiServerHandler(reqHandler)
-            val srv = new ServerFrontEnd(new ProtoBufSocketAdapter(handler, expected),
+            val srv = ServerFrontEnd.tcp(new ProtoBufSocketAdapter(handler, expected),
                                          port)
-
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
             srv.stopAsync().awaitTerminated()
@@ -219,7 +218,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
         scenario("server accepting all requests") {
             val reqHandler = new RequestHandler(connMgr)
             val handler = new ApiServerHandler(reqHandler)
-            val srv = new ServerFrontEnd(
+            val srv = ServerFrontEnd.tcp(
                 new ProtoBufSocketAdapter(handler, serverExpected), port)
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
@@ -261,9 +260,9 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
         scenario("service life cycle") {
             val reqHandler = new RequestHandler(connMgr)
             val handler = new ApiServerHandler(reqHandler)
-            val srv = new ServerFrontEnd(
-                new ProtoBufWebSocketServerAdapter(handler, expected, path), port)
-
+            val srv = ServerFrontEnd.tcp(
+                new ProtoBufWebSocketServerAdapter(handler, expected, path),
+                port)
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
             srv.stopAsync().awaitTerminated()
