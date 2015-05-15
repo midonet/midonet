@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_89b3e208",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-15T08:44:42Z",
+      "side": 1,
+      "message": "\u0027id\u0027 should either be present in both maps - when the device exists - or not - when it doesn\u0027t. This check was mainly done to accommodate the cleanup performed by the new topology when a device is deleted (either by onCompleted or onError) - the old VTA does not perform any cleanup. If a device is deleted, then id should be evicted from both maps at the same time.",
+      "parentUuid": "1a106d94_9a43266b",
+      "range": {
+        "startLine": 360,
+        "startChar": 25,
+        "endLine": 360,
+        "endChar": 31
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3a503231",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-14T09:26:42Z",
       "side": 1,
       "message": "restore the NPE check?",
+      "range": {
+        "startLine": 231,
+        "startChar": 19,
+        "endLine": 231,
+        "endChar": 29
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a9e4de0c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-15T08:44:42Z",
+      "side": 1,
+      "message": "Previously the NPE check was to call `routeIds.toSeq`. Isn\u0027t it .toSeq redundant? If so, string interpolation should handle null, isn\u0027t it?",
+      "parentUuid": "1a106d94_3a503231",
       "range": {
         "startLine": 231,
         "startChar": 19,
