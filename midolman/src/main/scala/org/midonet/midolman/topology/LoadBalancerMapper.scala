@@ -160,9 +160,9 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
     // onNext(VT.observable[VIP])                      |
     //     +--------+----------------------------------+
     //     |        |
-    //     |        |  +-------------------------+  +------------------+
-    //Obs[Obs[VIP]]-+->|filter(loadBalancerReady)|->|map(deviceUpdated)|->simLB
-    //                 +-------------------------+  +------------------+
+    //     |        |  +-------------------------+
+    //Obs[Obs[VIP]]-+->|filter(loadBalancerReady)|-> device: simLB
+    //                 +-------------------------+
     //
     protected override lazy val observable: Observable[SimLB] =
         // WARNING! The device observable merges the vips and load-balancer
