@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e4655daf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "I changed this to MergedMap for now. We can think of cool name in the mean time :-)",
+      "parentUuid": "1a106d94_1af1f694",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c0a01692",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -112,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_840e29e3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "This disappeared and class V now implements the comparable interface.",
+      "parentUuid": "1a106d94_e63c4aca",
+      "range": {
+        "startLine": 29,
+        "startChar": 12,
+        "endLine": 29,
+        "endChar": 15
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_baf54284",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -123,6 +165,24 @@
       "writtenOn": "2015-05-14T08:09:06Z",
       "side": 1,
       "message": "sealed trait",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2432d5a6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_baf54284",
       "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -146,6 +206,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e4ea7dd6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "Calls to modify the map have been moved to PrivateMap. The MergedMap (previously SharedMap) will be used to cache the map. Individual simulation threads can obtain a copy using an observable to this MergedMap.",
+      "parentUuid": "1a106d94_1a48d6ca",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_5a2ecefb",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -157,6 +235,24 @@
       "writtenOn": "2015-05-14T08:09:06Z",
       "side": 1,
       "message": "these seem like implementation details, that wouldn\u0027t need to be on the trait, right?",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_64284d33",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "The map value class V must now implement the comparable interface and this got removed.",
+      "parentUuid": "1a106d94_5a2ecefb",
       "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -198,6 +294,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_7fc9f4aa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "I originally added this because I wanted to be able to stop the caching explicitly. The idea was that a get call could also directly from the cache. We can also use heuristics to decide when we stop caching the map: after a timeout since the last get and as long as there are no subscribers of the observable.\n\nI removed it.",
+      "parentUuid": "1a106d94_8925a25d",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c6378ee1",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -209,6 +323,30 @@
       "writtenOn": "2015-05-13T21:56:48Z",
       "side": 1,
       "message": "Needed?",
+      "range": {
+        "startLine": 66,
+        "startChar": 18,
+        "endLine": 66,
+        "endChar": 20
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7f40d406",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c6378ee1",
       "range": {
         "startLine": 66,
         "startChar": 18,
@@ -244,6 +382,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_44bd51d7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_062ec68b",
+      "range": {
+        "startLine": 76,
+        "startChar": 8,
+        "endLine": 76,
+        "endChar": 15
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_69282633",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -255,6 +417,30 @@
       "writtenOn": "2015-05-15T08:28:17Z",
       "side": 1,
       "message": "I\u0027d like to have a separate type for a ReadOnlyMap primitive that exposes these getters for a single map (regardless of whether it\u0027s merged or not). In occasions the user of the map won\u0027t need to know about the fact that it\u0027s merged or not.",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 11
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7f0e14e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_69282633",
       "range": {
         "startLine": 81,
         "startChar": 8,
@@ -290,6 +476,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_24c0154f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "It\u0027s a list because they are ordered wrt the conflict resolution strategy. I updated the comment accordingly.",
+      "parentUuid": "1a106d94_46539e16",
+      "range": {
+        "startLine": 86,
+        "startChar": 30,
+        "endLine": 86,
+        "endChar": 34
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9a34c64a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -301,6 +511,24 @@
       "writtenOn": "2015-05-14T08:09:06Z",
       "side": 1,
       "message": "def snapshot",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e4c1dd4e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_9a34c64a",
       "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -378,6 +606,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_3fd3fc60",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "I kept it as is for the moment.",
+      "parentUuid": "1a106d94_1a1f36b8",
+      "range": {
+        "startLine": 101,
+        "startChar": 22,
+        "endLine": 101,
+        "endChar": 56
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_492f2a3f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -389,6 +641,30 @@
       "writtenOn": "2015-05-15T08:26:08Z",
       "side": 1,
       "message": "I think we should move these to a \"PrivateMap\" primitive type that allows having a single map. This will be a use case for both opinions, and aggregated routes.",
+      "range": {
+        "startLine": 103,
+        "startChar": 2,
+        "endLine": 115,
+        "endChar": 30
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e4bd5db2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T12:32:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_492f2a3f",
       "range": {
         "startLine": 103,
         "startChar": 2,
