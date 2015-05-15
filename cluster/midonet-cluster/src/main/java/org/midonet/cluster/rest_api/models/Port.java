@@ -19,8 +19,7 @@ import java.net.URI;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
 
@@ -28,11 +27,8 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.UUIDUtil;
 
-@XmlRootElement
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
@@ -43,13 +39,21 @@ import org.midonet.cluster.util.UUIDUtil;
         @JsonSubTypes.Type(value = ExteriorRouterPort.class, name = PortType.EXTERIOR_ROUTER),
         @JsonSubTypes.Type(value = InteriorRouterPort.class, name = PortType.INTERIOR_ROUTER),
         @JsonSubTypes.Type(value = VxLanPort.class, name = PortType.VXLAN)})
-@Resource(name = ResourceUris.PORTS)
 @ZoomClass(clazz = Topology.Port.class, factory = Port.PortFactory.class)
 public abstract class Port extends UriResource {
 
-    private static AtomicLong tunnelKeySeed = new AtomicLong();
+    public static final class PortFactory implements ZoomConvert.Factory<Port, Topology.Port> {
+        @Override
+        public Class<? extends Port> getType(Topology.Port proto) {
+            if (proto.hasVtepId()) return VxLanPort.class;
+            else if (proto.hasNetworkId()) return BridgePort.class;
+            else if (proto.hasRouterId()) return RouterPort.class;
+            else throw new IllegalArgumentException("Unknown port type: " + proto);
+        }
+    }
 
-    @ResourceId
+    private static AtomicLong tunnelKeyGenerator = new AtomicLong();
+
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -85,21 +89,9 @@ public abstract class Port extends UriResource {
 
     public abstract void setDeviceId(UUID deviceId);
 
-    public static final class PortFactory implements ZoomConvert.Factory<Port, Topology.Port> {
-        @Override
-        public Class<? extends Port> getType(Topology.Port proto) {
-            if (proto.hasVtepId()) return VxLanPort.class;
-            else if (proto.hasNetworkId()) return BridgePort.class;
-            else if (proto.hasRouterId()) return RouterPort.class;
-            else throw new IllegalArgumentException("Unknown port type: " + proto);
-        }
-    }
-
     @Override
-    public void beforeToProto() {
-        if (0 == tunnelKey) {
-            tunnelKey = tunnelKeySeed.incrementAndGet();
-        }
+    public URI getUri() {
+        return absoluteUri(ResourceUris.PORTS, id);
     }
 
     public URI getHost() {
@@ -112,5 +104,30 @@ public abstract class Port extends UriResource {
 
     public URI getLink() {
         return relativeUri(ResourceUris.LINK);
+    }
+
+    @JsonIgnore
+    @Override
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+        if (0 == tunnelKey) {
+            tunnelKey = tunnelKeyGenerator.incrementAndGet();
+        }
+    }
+
+    @JsonIgnore
+    public void update(Port from) {
+        this.id = from.id;
+        if (null != from.hostId) {
+            hostId = from.hostId;
+        }
+        if (null != from.interfaceName) {
+            interfaceName = from.interfaceName;
+        }
+        if (null != from.peerId) {
+            peerId = from.peerId;
+        }
     }
 }

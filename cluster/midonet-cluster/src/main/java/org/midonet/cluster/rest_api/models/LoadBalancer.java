@@ -16,16 +16,18 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.util.List;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 
-// TODO: ZOOM CLASS
-@XmlRootElement
+@ZoomClass(clazz = Topology.LoadBalancer.class)
 public class LoadBalancer extends ZoomObject {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -36,4 +38,9 @@ public class LoadBalancer extends ZoomObject {
 
     @ZoomField(name = "adminStateUp")
     public boolean adminStateUp = true;
+
+    @JsonIgnore
+    @ZoomField(name = "vip_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> vipIds;
+
 }

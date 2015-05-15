@@ -18,7 +18,7 @@ package org.midonet.cluster.data
 import java.lang.{Byte => JByte}
 import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, ParameterizedType, Type}
 import java.util
-import java.util.{List => JList, Set => JSet, HashSet => JHashSet}
+import java.util.{ArrayList => JArrayList, List => JList, Set => JSet, HashSet => JHashSet}
 
 import scala.annotation.meta.field
 import scala.collection.concurrent.TrieMap
@@ -640,7 +640,7 @@ object ZoomConvert {
 
         override def fromProto(value: JList[_], clazz: Type): JList[_] = {
             val elType = getElementType(clazz, classOf[JList[_]])
-            bufferAsJavaList(value.map(converter.from(_, elType)))
+            new JArrayList(value.map(converter.from(_, elType)))
         }
     }
 

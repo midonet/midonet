@@ -16,41 +16,60 @@
 
 package org.midonet.cluster.rest_api.models;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
-import javax.annotation.Nullable;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlTransient;
 
+import com.google.protobuf.Message;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomObject;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
-import org.midonet.cluster.rest_api.annotation.Subresource;
 
 public abstract class UriResource extends ZoomObject {
 
     private URI baseUri = null;
 
     /** Retrieve the URI of this resource. */
-    @XmlElement(name = "uri")
-    final public URI getUri() {
-        Resource resource = getResource();
-        String id = getId();
-        if (null == resource || null == id)
-            throw new WebApplicationException(Response.Status.INTERNAL_SERVER_ERROR);
-        return UriBuilder.fromUri(baseUri).segment(resource.name(), id).build();
+    public abstract URI getUri();
+
+    /** Gets an URI for the specified path and identifier, relative to the base
+      * URI of the current object. */
+    final protected URI absoluteUri(String path, Object id) {
+        if (id == null) return null;
+        return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
+    }
+
+    /** Gets an URI for the specified path and identifier, relative to the base
+     * URI of the current object. */
+    final protected URI absoluteUri(String path1, Object id, String path2) {
+        if (id == null) return null;
+        return UriBuilder.fromUri(baseUri).segment(path1, id.toString(), path2)
+            .build();
+    }
+
+    /** Gets an URI for the specified path and identifier, relative to the base
+     * URI of the current object. */
+    final protected URI absoluteUri(String path1, Object id1, String path2,
+                                    Object id2) {
+        if (id1 == null || id2 == null) return null;
+        return UriBuilder.fromUri(baseUri)
+            .segment(path1, id1.toString(), path2, id2.toString())
+            .build();
+    }
+
+    final protected List<URI> absoluteUris(String path, List<?> ids) {
+        if (ids == null) return null;
+        List<URI> uris = new ArrayList<>(ids.size());
+        for (Object id : ids) {
+            uris.add(absoluteUri(path, id));
+        }
+        return uris;
     }
 
     /** Gets an URI for the specified path relative to the URI of the current
@@ -59,118 +78,28 @@ public abstract class UriResource extends ZoomObject {
         return UriBuilder.fromUri(getUri()).segment(path).build();
     }
 
-    /** Gets an URI for the specified path and identifier, relative to the base
-     * URI of the current object. */
-    final protected URI absoluteUri(String path, UUID id) {
-        if (id == null) return null;
-        return UriBuilder.fromUri(baseUri).segment(path, id.toString()).build();
-    }
-
-    final protected List<URI> absoluteUris(String path, List<UUID> ids) {
-        if (ids == null) return null;
-        List<URI> uris = new ArrayList<>(ids.size());
-        for (UUID id : ids) {
-            uris.add(absoluteUri(path, id));
-        }
-        return uris;
-    }
-
-    @XmlTransient
-    public void setBaseUri(URI baseUri) throws IllegalAccessException {
+    @JsonIgnore
+    final public void setBaseUri(URI baseUri) {
         this.baseUri = baseUri;
-        setSubresourcesUri(getUri());
     }
 
-    @XmlTransient
-    @Nullable
-    final public String getId() {
-        Field field = getField(getClass(), ResourceId.class);
-        if (null == field) return null;
-        try {
-            return Objects.toString(field.get(this), null);
-        } catch (IllegalAccessException e) {
-            return null;
-        }
+    @JsonIgnore
+    final public Class<? extends Message> getZoomClass() {
+        return getZoomClass(getClass());
     }
 
-    private void setSubresourcesUri(URI uri) throws IllegalAccessException {
-        Class<?> c = getClass();
-        do {
-            for (Field field : c.getDeclaredFields()) {
-                if (field.getAnnotation(Subresource.class) == null) continue;
-                setFieldUri(field, uri);
-            }
-            c = c.getSuperclass();
-        } while (UriResource.class.isAssignableFrom(c.getSuperclass()));
-    }
+    public void create() { }
 
-    @SuppressWarnings("unchecked")
-    private void setFieldUri(Field field, URI uri)
-        throws IllegalAccessException {
-        if (isUriResource(field.getType())) {
-            ((UriResource)field.get(this)).setBaseUri(uri);
-        } else if (isUriResourceArray(field.getType())) {
-            Object array = field.get(this);
-            for (int index = 0; index < Array.getLength(array); index++) {
-                ((UriResource)Array.get(array, index)).setBaseUri(uri);
-            }
-        } else if (isUriResourceList(field.getGenericType())) {
-            List<UriResource> list = (List<UriResource>) field.get(this);
-            if (list == null) {
-                return;
-            }
-            for (UriResource resource : list) {
-                resource.setBaseUri(uri);
-            }
-        }
-    }
-
-    @XmlTransient
-    @Nullable
-    final public Resource getResource() {
-        return getResource(getClass());
-    }
-
-    private static Field getField(Class<?> clazz,
-                                  Class<? extends Annotation> annotationClass) {
+    public static Class<? extends Message> getZoomClass(Class<?> clazz) {
         Class<?> c = clazz;
-        do {
-            for (Field field : c.getDeclaredFields()) {
-                if (field.getAnnotation(annotationClass) != null) {
-                    return field;
-                }
+        while (UriResource.class.isAssignableFrom(c)) {
+            ZoomClass zoomClass = c.getAnnotation(ZoomClass.class);
+            if (null != zoomClass) {
+                return zoomClass.clazz();
             }
             c = c.getSuperclass();
-        } while (UriResource.class.isAssignableFrom(c.getSuperclass()));
-        return null;
+        }
+        throw new WebApplicationException(Response.Status.NOT_ACCEPTABLE);
     }
 
-    private static Resource getResource(Class<?> clazz) {
-        Class<?> c = clazz;
-        do {
-            Resource resource = c.getAnnotation(Resource.class);
-            if (null != resource) {
-                return resource;
-            }
-            c = c.getSuperclass();
-        } while (UriResource.class.isAssignableFrom(c.getSuperclass()));
-        return null;
-    }
-
-    private static Boolean isUriResource(Class<?> clazz) {
-        return UriResource.class.isAssignableFrom(clazz);
-    }
-
-    private static Boolean isUriResourceArray(Class<?> clazz) {
-        return clazz.isArray() &&
-               UriResource.class.isAssignableFrom(clazz.getComponentType());
-    }
-
-    private static Boolean isUriResourceList(Type type) {
-        ParameterizedType paramType = (ParameterizedType)type;
-        return (null != paramType) &&
-               List.class.isAssignableFrom((Class<?>)paramType.getRawType()) &&
-               UriResource.class.isAssignableFrom(
-                   (Class<?>)paramType.getActualTypeArguments()[0]);
-    }
 }

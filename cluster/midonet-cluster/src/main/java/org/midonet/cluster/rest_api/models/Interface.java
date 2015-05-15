@@ -16,12 +16,12 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-
 import com.google.protobuf.Message;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
@@ -29,13 +29,8 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.ParentId;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
 import org.midonet.cluster.util.IPAddressUtil;
 
-@XmlRootElement
-@Resource(name = ResourceUris.INTERFACES, parents = { Host.class })
 @ZoomClass(clazz = Topology.Host.Interface.class)
 public class Interface extends UriResource {
 
@@ -87,19 +82,17 @@ public class Interface extends UriResource {
         Lisp
     }
 
-    @ParentId
     public UUID hostId;
-    @ResourceId
     @ZoomField(name = "name")
     public String name;
     @ZoomField(name = "mac")
     public String mac;
     @ZoomField(name = "mtu")
     public int mtu;
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "up")
     public boolean up;
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "has_link")
     public boolean hasLink;
     @ZoomField(name = "type")
@@ -114,11 +107,19 @@ public class Interface extends UriResource {
     public int status;
 
     @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.HOSTS, hostId,
+                           ResourceUris.INTERFACES, name);
+    }
+
+    @JsonIgnore
+    @Override
     public void afterFromProto(Message proto) {
         super.afterFromProto(proto);
         status = (up ? 1 : 0) | (hasLink ? 2 : 0);
     }
 
+    @JsonIgnore
     public void beforeToProto() {
         throw new ZoomConvert.ConvertException("Cannot create host interface");
     }

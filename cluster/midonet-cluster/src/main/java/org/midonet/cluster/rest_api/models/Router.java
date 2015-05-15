@@ -19,23 +19,16 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
-import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil;
 
-@XmlRootElement(name = "router")
-@Resource(name = ResourceUris.ROUTERS)
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
 
-    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -56,18 +49,21 @@ public class Router extends UriResource {
     @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
     public UUID loadBalancerId;
 
-    @XmlTransient
-    @Subresource(name = ResourceUris.PORTS)
+    @JsonIgnore
     @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> portIds;
 
-    @XmlTransient
-    @Subresource(name = ResourceUris.ROUTES)
+    @JsonIgnore
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
 
     public Router() {
         adminStateUp = true;
+    }
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.ROUTERS, id);
     }
 
     public URI getPorts() {
@@ -85,4 +81,20 @@ public class Router extends UriResource {
     public URI getLoadBalancer() {
         return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
     }
+
+    @JsonIgnore
+    @Override
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+    }
+
+    @JsonIgnore
+    public void update(Router from) {
+        this.id = from.id;
+        portIds = from.portIds;
+        routeIds = from.routeIds;
+    }
+
 }

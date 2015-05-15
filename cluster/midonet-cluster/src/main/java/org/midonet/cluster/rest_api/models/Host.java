@@ -21,31 +21,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.annotation.Nonnull;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.google.protobuf.Message;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
-import org.midonet.cluster.rest_api.annotation.Ownership;
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
-import org.midonet.cluster.rest_api.annotation.Subresource;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.util.version.Since;
 import org.midonet.util.version.Until;
 
-@XmlRootElement
-@Resource(name = ResourceUris.HOSTS)
 @ZoomClass(clazz = Topology.Host.class)
 public class Host extends UriResource {
 
-    @ResourceId
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -55,11 +47,9 @@ public class Host extends UriResource {
     public List<String> addresses;
 
     @ZoomField(name = "interfaces")
-    @Subresource(name = ResourceUris.INTERFACES)
     @Since("3")
     public List<Interface> hostInterfaces;
 
-    @Ownership
     public boolean alive;
 
     /*
@@ -76,11 +66,21 @@ public class Host extends UriResource {
     @ZoomField(name = "flooding_proxy_weight")
     public Integer floodingProxyWeight;
 
-    @Subresource(name = ResourceUris.PORTS)
     @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
-    @XmlTransient // This is only in ZOOM, to represent bindings
+    @JsonIgnore
     public List<UUID> portIds;
 
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.HOSTS, id);
+    }
+
+    @Until("3")
+    public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }
+
+    public URI getPorts() { return relativeUri(ResourceUris.PORTS); }
+
+    @JsonIgnore
     @Override
     public void afterFromProto(Message proto) {
         addresses = new ArrayList<>();
@@ -91,8 +91,4 @@ public class Host extends UriResource {
         }
     }
 
-    @Until("3")
-    public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }
-
-    public URI getPorts() { return relativeUri(ResourceUris.PORTS); }
 }

@@ -16,9 +16,6 @@
 
 package org.midonet.cluster.rest_api.models;
 
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-
 /**
  * This class contains the name of all the resources that are exposed via our
  * REST API.
@@ -75,9 +72,4 @@ public final class ResourceUris {
     public static final String LICENSES = "licenses";
     public static final String LICENSE_STATUS = "licenses/status";
 
-    public static final ObjectMapper objectMapper = new ObjectMapper();
-    static {
-        objectMapper.configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.configure(DeserializationConfig.Feature.USE_GETTERS_AS_SETTERS, false);
-    }
 }

@@ -22,6 +22,7 @@ import javax.xml.bind.annotation.XmlTransient;
 import com.google.protobuf.Message;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -43,6 +44,7 @@ public class DhcpOption121 extends ZoomObject {
     @ZoomField(name = "gateway", converter = IPAddressUtil.Converter.class)
     public String gatewayAddr;
 
+    @JsonIgnore
     @Override
     public void afterFromProto(Message proto) {
         if (null != destinationSubnet) {
@@ -51,6 +53,7 @@ public class DhcpOption121 extends ZoomObject {
         }
     }
 
+    @JsonIgnore
     @Override
     public void beforeToProto() {
         if (StringUtils.isNotEmpty(destinationPrefix)) {
