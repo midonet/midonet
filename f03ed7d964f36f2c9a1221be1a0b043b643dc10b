@@ -134,6 +134,24 @@
       "revId": "f03ed7d964f36f2c9a1221be1a0b043b643dc10b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e37f12aa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-15T17:22:09Z",
+      "side": 1,
+      "message": "The value class V implements the comparable interface. That\u0027s how the winning opinion is determined. However, I was thinking that it would perhaps be better with a specific trait for values:\n\ntrait MapValue[U, V] extends Comparable[U] {\n    def discriminant: U\n    def value: V\n}\n\nIn doing so, get would just return the actual value and not the discriminant with the value.",
+      "parentUuid": "1a106d94_43b8a6e5",
+      "revId": "f03ed7d964f36f2c9a1221be1a0b043b643dc10b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
