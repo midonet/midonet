@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ffefa4e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-15T12:42:15Z",
+      "side": 1,
+      "message": "As it\u0027s private, this seems redundant",
+      "range": {
+        "startLine": 57,
+        "startChar": 11,
+        "endLine": 57,
+        "endChar": 18
+      },
+      "revId": "f03ed7d964f36f2c9a1221be1a0b043b643dc10b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1fc0c04e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-15T12:42:15Z",
+      "side": 1,
+      "message": "type MapEntry \u003d (K, V) ?\n\na deletion is (K, null)",
+      "range": {
+        "startLine": 96,
+        "startChar": 17,
+        "endLine": 96,
+        "endChar": 26
+      },
+      "revId": "f03ed7d964f36f2c9a1221be1a0b043b643dc10b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
