@@ -36,6 +36,7 @@ import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.models.Topology.Dhcp
 import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.models.Topology.IPAddrGroup
+import org.midonet.cluster.models.Topology.LoadBalancer
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.models.Topology.PortGroup
@@ -134,6 +135,10 @@ object ModelsUtil {
 
      def mChainFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Chain.newBuilder).asInstanceOf[Chain]
+
+     def mLoadBalancerFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, LoadBalancer.newBuilder)
+        .asInstanceOf[LoadBalancer]
 
      def mRouteFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Route.newBuilder).asInstanceOf[Route]
