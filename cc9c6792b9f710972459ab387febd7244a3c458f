@@ -22,6 +22,30 @@
       "revId": "cc9c6792b9f710972459ab387febd7244a3c458f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_89dc8247",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-15T08:41:16Z",
+      "side": 1,
+      "message": "Thank you for the question, Ernest. LoadBalancer in MidoNet world is just just an association node between Router and Pool (which will be created in a later patch to come), and Pool actually more closely corresponds to Load Balancer in the Neutron world.Neutron actually does NOT allow creation of LB independently of Router, but MidoNet LB API does.\n\n\nSo, 0-or-1 Router --- 1 LoadBalancer 1 --- 0-to-many Pool\n\n\nOnce Pool is associated with Router via LB, either 1) we don\u0027t allow disassociation of Pool from Rotuer, or 2) if we do allow, we\u0027d need to either just null out the reference to Router in LB if there exists no other Pool associated with LB or create a LB without Router attached and move the Pool there.\n\n\nChecked with Ryu and  he confirmed that cascading delete LB and then Pool is fine.",
+      "parentUuid": "1a106d94_095412c8",
+      "range": {
+        "startLine": 105,
+        "startChar": 0,
+        "endLine": 106,
+        "endChar": 71
+      },
+      "revId": "cc9c6792b9f710972459ab387febd7244a3c458f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
