@@ -15,28 +15,28 @@
  */
 package org.midonet.api.host.rest_api;
 
-import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
-import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoHost;
-import org.midonet.client.dto.DtoHostInterfacePort;
-import org.midonet.client.dto.DtoTunnelZone;
-import org.midonet.client.dto.DtoTunnelZoneHost;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
+import org.midonet.api.rest_api.DtoWebResource;
+import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoHostInterfacePort;
+import org.midonet.client.dto.DtoTunnelZone;
+import org.midonet.client.dto.DtoTunnelZoneHost;
+import org.midonet.cluster.rest_api.models.Host.HostData;
+import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.client.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
 import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:
@@ -73,7 +73,7 @@ public class HostTopology {
         private final HostZkManager hostZkManager;
 
         private DtoApplication app;
-        private final Map<UUID, DtoHost> hosts;
+        private final Map<UUID, HostData> hosts;
         private final Map<String, DtoTunnelZone> tunnelZones;
         private final Map<UUID, DtoTunnelZoneHost> tunnelZoneHosts;
         private final Map<UUID, DtoHostInterfacePort> hostInterfacePorts;
@@ -105,7 +105,7 @@ public class HostTopology {
          * @param host The host's client-side DTO object.
          * @return This builder object.
          */
-        public Builder create(UUID tag, DtoHost host) {
+        public Builder create(UUID tag, HostData host) {
             this.hosts.put(tag, host);
             return this;
         }
@@ -171,25 +171,25 @@ public class HostTopology {
             }
 
             if (hosts.size() > 0) {
-                for (Map.Entry<UUID, DtoHost> entry : hosts.entrySet()) {
-                    DtoHost obj = entry.getValue();
+                for (Map.Entry<UUID, HostData> entry : hosts.entrySet()) {
+                    HostData obj = entry.getValue();
                     HostDirectory.Metadata metadata
                             = new HostDirectory.Metadata();
                     metadata.setName(obj.getName());
                     hostZkManager.createHost(entry.getKey(), metadata);
                 }
 
-                // Get DtoHosts
+                // Get HostDatas
                 URI hostsUri = this.app.getHosts();
-                DtoHost[] hostList = resource.getAndVerifyOk(hostsUri,
+                HostData[] hostList = resource.getAndVerifyOk(hostsUri,
                         APPLICATION_HOST_COLLECTION_JSON_V3,
-                        DtoHost[].class);
-                Map<UUID, DtoHost> hostMap = new HashMap<UUID, DtoHost>();
-                for (DtoHost host : hostList) {
+                        HostData[].class);
+                Map<UUID, HostData> hostMap = new HashMap<UUID, HostData>();
+                for (HostData host : hostList) {
                     hostMap.put(host.getId(), host);
                 }
 
-                for (Map.Entry<UUID, DtoHost> entry : hosts.entrySet()) {
+                for (Map.Entry<UUID, HostData> entry : hosts.entrySet()) {
                     entry.setValue(hostMap.get(entry.getKey()));
                 }
 
@@ -215,7 +215,7 @@ public class HostTopology {
                     DtoHostInterfacePort hostInterfacePort = entry.getValue();
                     // Set the interface name.
                     UUID tag = tagToHosts.get(entry.getKey());
-                    DtoHost host = hosts.get(tag);
+                    HostData host = hosts.get(tag);
                     hostInterfacePort.setInterfaceName(host.getName());
                     // Set the host ID.
                     hostInterfacePort.setHostId(host.getId());
@@ -240,7 +240,7 @@ public class HostTopology {
         return this.builder.app;
     }
 
-    public DtoHost getHost(UUID id) {
+    public HostData getHost(UUID id) {
         return this.builder.hosts.get(id);
     }
 

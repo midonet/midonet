@@ -27,7 +27,6 @@ import org.midonet.client.dto.DtoAdRoute;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBgp;
 import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostVersion;
 import org.midonet.client.dto.DtoIpAddrGroup;
 import org.midonet.client.dto.DtoPort;
@@ -137,20 +136,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
-     * Gets hosts.
-     *
-     * @return collection host
-     */
-    public ResourceCollection<Host> getHosts(
-            MultivaluedMap<String,String> queryParams) {
-        return getChildResources(principalDto.getHosts(),
-                                 queryParams,
-                                 VendorMediaType
-                                     .APPLICATION_HOST_COLLECTION_JSON_V3,
-                                 Host.class, DtoHost.class);
-    }
-
-    /**
      * Gets Tunnel Zones.
      *
      * @return collection of tunnel zones
@@ -232,20 +217,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         DtoBgp bgp = resource.get(uri, null, DtoBgp.class,
                 VendorMediaType.APPLICATION_BGP_JSON);
         return new Bgp(resource, null, bgp);
-    }
-
-    /**
-     * Returns Host object
-     *
-     * @param id ID of host
-     * @return Host
-     */
-    public Host getHost(UUID id) {
-        URI uri = createUriFromTemplate(
-                principalDto.getHostTemplate(), ID_TOKEN, id);
-        DtoHost host = resource.get(uri, null, DtoHost.class,
-                VendorMediaType.APPLICATION_HOST_JSON_V3);
-        return new Host(resource, null, host);
     }
 
     /**

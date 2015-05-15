@@ -15,7 +15,6 @@
  */
 package org.midonet.api.host;
 
-import java.net.InetAddress;
 import java.net.URI;
 import java.util.UUID;
 
@@ -38,24 +37,18 @@ import org.midonet.api.validation.MessageProperty;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
-import org.midonet.client.resource.Host;
-import org.midonet.client.resource.HostInterfacePort;
-import org.midonet.client.resource.ResourceCollection;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
-import org.midonet.midolman.host.state.HostDirectory;
+import org.midonet.cluster.rest_api.models.Host.HostData;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
@@ -88,7 +81,7 @@ public class TestHostInterfacePort {
             hostManager = JerseyGuiceTestServletContextListener
                           .getHostZkManager();
 
-            DtoHost host1 = new DtoHost();
+            HostData host1 = new HostData();
             host1.setName("host1");
 
             BridgeData bridge1 = new BridgeData();
@@ -139,7 +132,7 @@ public class TestHostInterfacePort {
 
         @Test
         public void testCrud() throws Exception {
-            DtoHost host = hostTopology.getHost(host1Id);
+            HostData host = hostTopology.getHost(host1Id);
             DtoBridgePort port1 = topology.getBridgePort(
                     "bridgePort1");
 
@@ -185,7 +178,7 @@ public class TestHostInterfacePort {
 
         @Test
         public void testCreateWhenHostIsNotInAnyTunnelZone() {
-            DtoHost host = hostTopology.getHost(host1Id);
+            HostData host = hostTopology.getHost(host1Id);
             DtoBridgePort port = topology.getBridgePort("bridgePort1");
 
             // Map a tunnel zone to a host
@@ -197,17 +190,17 @@ public class TestHostInterfacePort {
                     APPLICATION_HOST_INTERFACE_PORT_JSON,
                     mapping);
             assertErrorMatchesLiteral(error,
-                    MessageProperty.getMessage(
-                            MessageProperty.HOST_IS_NOT_IN_ANY_TUNNEL_ZONE));
+                                      MessageProperty.getMessage(
+                                          MessageProperty.HOST_IS_NOT_IN_ANY_TUNNEL_ZONE));
         }
 
         @Test
         public void testCreateWhenInterfaceIsTaken() {
-            DtoHost host = hostTopology.getHost(host1Id);
+            HostData host = hostTopology.getHost(host1Id);
             DtoBridgePort port1 = topology.getBridgePort(
                     "bridgePort1");
             DtoBridgePort port2 = topology.getBridgePort(
-                    "bridgePort2");
+                "bridgePort2");
 
             bindHostToTunnelZone(host1Id);
 
@@ -222,70 +215,19 @@ public class TestHostInterfacePort {
             mapping.setPortId(port1.getId());
             mapping.setInterfaceName("eth0");
             dtoResource.postAndVerifyCreated(
-                    host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON,
-                    mapping,
-                    DtoHostInterfacePort.class);
+                host.getPorts(),
+                APPLICATION_HOST_INTERFACE_PORT_JSON,
+                mapping,
+                DtoHostInterfacePort.class);
 
             mapping = new DtoHostInterfacePort();
             mapping.setPortId(port2.getId());
             mapping.setInterfaceName("eth0");
             dtoResource.postAndVerifyBadRequest(
-                    host.getPorts(),
-                    APPLICATION_HOST_INTERFACE_PORT_JSON,
-                    mapping);
+                host.getPorts(),
+                APPLICATION_HOST_INTERFACE_PORT_JSON,
+                mapping);
 
-        }
-
-        @Test
-        public void testClient() throws Exception {
-            UUID hostId = UUID.randomUUID();
-
-            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-            metadata.setName("test");
-            metadata.setAddresses(new InetAddress[]{
-                InetAddress.getByAddress(
-                    new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
-            });
-
-            hostManager.createHost(hostId, metadata);
-            hostManager.makeAlive(hostId);
-
-            ResourceCollection<Host> hosts = api.getHosts();
-            org.midonet.client.resource.Host host = hosts.get(0);
-
-            DtoBridgePort bp1 = topology.getBridgePort("bridgePort1");
-            DtoBridgePort bp2 = topology.getBridgePort("bridgePort2");
-
-            bindHostToTunnelZone(host.getId());
-            HostInterfacePort hip1 = host.addHostInterfacePort()
-                .interfaceName("tap-1")
-                .portId(bp1.getId())
-                .create();
-            HostInterfacePort hip2 = host.addHostInterfacePort()
-                .interfaceName("tap-2")
-                .portId(bp2.getId())
-                .create();
-
-            ResourceCollection<HostInterfacePort> hips = host.getPorts();
-
-            assertThat("There are two host interface port mappings.",
-                       hips.size(), is(2));
-
-            assertThat("Correct host id is returned", hip1.getHostId(),
-                       is(host.getId()));
-            assertThat("Correct host id is returned", hip2.getHostId(),
-                       is(host.getId()));
-
-            assertThat("Correct port id is returned",
-                       hip1.getPortId(), is(bp1.getId()));
-            assertThat("Correct port id is returned",
-                       hip2.getPortId(), is(bp2.getId()));
-
-            assertThat("Correct interface name is returned",
-                       hip1.getInterfaceName(), is("tap-1"));
-            assertThat("Correct interface name is returned",
-                       hip2.getInterfaceName(), is("tap-2"));
         }
 
         @Test
@@ -303,12 +245,12 @@ public class TestHostInterfacePort {
                             port, DtoRouterPort.class);
 
             // Get the host DTO.
-            DtoHost[] hosts = dtoResource.getAndVerifyOk(
+            HostData[] hosts = dtoResource.getAndVerifyOk(
                     topology.getApplication().getHosts(),
                     APPLICATION_HOST_COLLECTION_JSON_V3,
-                    DtoHost[].class);
+                    HostData[].class);
             Assert.assertEquals(1, hosts.length);
-            DtoHost resHost = hosts[0];
+            HostData resHost = hosts[0];
             bindHostToTunnelZone(resHost.getId());
 
             // Bind the exterior port to an interface on the host.

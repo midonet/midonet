@@ -44,7 +44,7 @@ class HostInterfacePortResource @Inject()(hostId: UUID, backend: MidonetBackend,
     : HostInterfacePort = {
         val portId = UUID.fromString(id)
         getResource(classOf[Host], hostId)
-            .flatMap(_.portIds.asScala
+            .flatMap(_.getPortIds.asScala
                          .find(_ == portId)
                          .map(getResource(classOf[HostInterfacePort], _))
                          .getOrElse(throw new WebApplicationException(NOT_FOUND)))
@@ -57,7 +57,7 @@ class HostInterfacePortResource @Inject()(hostId: UUID, backend: MidonetBackend,
     : JList[HostInterfacePort] = {
         getResource(classOf[Host], hostId)
             .flatMap(host => listResources(classOf[HostInterfacePort],
-                                           host.portIds.asScala))
+                                           host.getPortIds.asScala))
             .getOrThrow
             .asJava
     }

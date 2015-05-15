@@ -18,9 +18,11 @@ package org.midonet.cluster.rest_api.conversion;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.midonet.cluster.rest_api.models.Host;
+import org.midonet.cluster.rest_api.models.Interface;
 import org.midonet.packets.MAC;
 
 public class HostDataConverter {
@@ -29,27 +31,29 @@ public class HostDataConverter {
                                 URI baseUri) throws IllegalAccessException {
         Host h = new Host();
 
-        h.id = host.getId();
-        h.name = host.getName();
-        h.floodingProxyWeight = host.getFloodingProxyWeight();
+        h.setId(host.getId());
+        h.setName(host.getName());
+        h.setFloodingProxyWeight(host.getFloodingProxyWeight());
 
-        h.addresses = new ArrayList<>();
+        List<String> addresses = new ArrayList<>();
         if (host.getAddresses() != null) {
             for (InetAddress inetAddress : host.getAddresses()) {
-                h.addresses.add(inetAddress.toString());
+                addresses.add(inetAddress.toString());
             }
         }
+        h.setAddresses(addresses);
 
-        h.alive = host.getIsAlive();
-        h.hostInterfaces = new ArrayList<>();
+        h.setAlive(host.getIsAlive());
+        List<Interface> hostInterfaces = new ArrayList<>();
         if (host.getInterfaces() != null) {
             for (org.midonet.cluster.data.host.Interface intf :
                 host.getInterfaces()) {
-                h.hostInterfaces.add(
+                hostInterfaces.add(
                     InterfaceDataConverter.fromData(intf, host.getId(), baseUri)
                 );
             }
         }
+        h.setHostInterfaces(hostInterfaces);
 
         h.setBaseUri(baseUri);
 

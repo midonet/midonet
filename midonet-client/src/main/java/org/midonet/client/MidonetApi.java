@@ -25,7 +25,6 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.resource.AdRoute;
 import org.midonet.client.resource.Application;
 import org.midonet.client.resource.Bgp;
-import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostVersion;
 import org.midonet.client.resource.Port;
 import org.midonet.client.resource.PortGroup;
@@ -121,16 +120,6 @@ public class MidonetApi {
     }
 
     /**
-     * Gets Hosts
-     *
-     * @return collection of host
-     */
-    public ResourceCollection<Host> getHosts() {
-        ensureApplication();
-        return application.getHosts(null);
-    }
-
-    /**
      * Gets Tenants
      *
      * @return collection of tenants
@@ -170,17 +159,6 @@ public class MidonetApi {
     public Bgp getBgp(UUID id) {
         ensureApplication();
         return application.getBgp(id);
-    }
-
-    /**
-     * Returns Host object
-     *
-     * @param id ID of host
-     * @return Host
-     */
-    public Host getHost(UUID id) {
-        ensureApplication();
-        return application.getHost(id);
     }
 
     /**

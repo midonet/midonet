@@ -17,8 +17,10 @@ package org.midonet.cluster.rest_api.models;
 
 import java.net.InetAddress;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.UUID;
 
+import com.google.common.base.Objects;
 import com.google.protobuf.Message;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -30,6 +32,7 @@ import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = Topology.Host.Interface.class)
 public class Interface extends UriResource {
@@ -82,29 +85,131 @@ public class Interface extends UriResource {
         Lisp
     }
 
-    public UUID hostId;
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    private UUID id;
+    @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
+    private UUID hostId;
     @ZoomField(name = "name")
-    public String name;
+    private String name;
     @ZoomField(name = "mac")
-    public String mac;
+    private String mac;
     @ZoomField(name = "mtu")
-    public int mtu;
+    private int mtu;
     @JsonIgnore
     @ZoomField(name = "up")
-    public boolean up;
+    private boolean up;
     @JsonIgnore
     @ZoomField(name = "has_link")
-    public boolean hasLink;
+    private boolean hasLink;
     @ZoomField(name = "type")
-    public InterfaceType type;
+    private InterfaceType type;
     @ZoomField(name = "endpoint")
-    public Endpoint endpoint;
+    private Endpoint endpoint;
     @ZoomField(name = "port_type")
-    public DpPortType portType;
+    private DpPortType portType;
     @ZoomField(name = "addresses", converter = IPAddressUtil.Converter.class)
-    public InetAddress[] addresses;
+    private InetAddress[] addresses;
 
-    public int status;
+    private int status;
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public UUID getHostId() {
+        return hostId;
+    }
+
+    public void setHostId(UUID hostId) {
+        this.hostId = hostId;
+    }
+
+    public String getMac() {
+        return mac;
+    }
+
+    public void setMac(String mac) {
+        this.mac = mac;
+    }
+
+    public int getMtu() {
+        return mtu;
+    }
+
+    public void setMtu(int mtu) {
+        this.mtu = mtu;
+    }
+
+    public boolean isUp() {
+        return up;
+    }
+
+    public void setUp(boolean up) {
+        this.up = up;
+    }
+
+    public boolean isHasLink() {
+        return hasLink;
+    }
+
+    public void setHasLink(boolean hasLink) {
+        this.hasLink = hasLink;
+    }
+
+    public InterfaceType getType() {
+        return type;
+    }
+
+    public void setType(
+        InterfaceType type) {
+        this.type = type;
+    }
+
+    public Endpoint getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(
+        Endpoint endpoint) {
+        this.endpoint = endpoint;
+    }
+
+    public DpPortType getPortType() {
+        return portType;
+    }
+
+    public void setPortType(
+        DpPortType portType) {
+        this.portType = portType;
+    }
+
+    public InetAddress[] getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(InetAddress[] addresses) {
+        this.addresses = addresses;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     @Override
     public URI getUri() {
@@ -124,4 +229,90 @@ public class Interface extends UriResource {
         throw new ZoomConvert.ConvertException("Cannot create host interface");
     }
 
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == this) return true;
+
+        if (!(obj instanceof Interface)) return false;
+        final Interface other = (Interface) obj;
+
+        return super.equals(other)
+               && mtu == other.mtu
+               && up == other.up
+               && hasLink == other.hasLink
+               && status == other.status
+               && endpoint == other.endpoint
+               && portType == other.portType
+               && Objects.equal(name, other.name)
+               && Objects.equal(hostId, other.hostId)
+               && Objects.equal(mac, other.mac)
+               && Objects.equal(type, other.type)
+               && Arrays.deepEquals(addresses, other.addresses);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(),
+                                mtu, name, up, hasLink, status, endpoint,
+                                portType, hostId, mac, type,
+                                Arrays.deepHashCode(addresses));
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+            .add("URI", super.toString())
+            .add("mtu", mtu)
+            .add("name", name)
+            .add("up", up)
+            .add("hasLink", hasLink)
+            .add("status", status)
+            .add("endpoint", endpoint)
+            .add("portType", portType)
+            .add("hostId", hostId)
+            .add("mac", mac)
+            .add("type", type)
+            .add("addresses", Arrays.toString(addresses))
+            .toString();
+    }
+
+    public static class InterfaceData extends Interface {
+
+        private URI uri;
+
+        @Override
+        public URI getUri() {
+            return uri;
+        }
+
+        public void setUri(URI uri) {
+            this.uri = uri;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+
+            if (obj == this) return true;
+
+            if (!(obj instanceof InterfaceData)) return false;
+            final InterfaceData other = (InterfaceData) obj;
+
+            return super.equals(other)
+                   && Objects.equal(uri, other.uri);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), uri);
+        }
+
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                .add("Interface", super.toString())
+                .add("uri", uri)
+                .toString();
+        }
+    }
 }

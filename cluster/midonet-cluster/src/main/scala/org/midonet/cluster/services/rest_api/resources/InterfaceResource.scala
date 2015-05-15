@@ -44,7 +44,7 @@ class InterfaceResource @Inject()(hostId: UUID, backend: MidonetBackend,
     override def get(@PathParam("name") name: String,
                      @HeaderParam("Accept") accept: String): Interface = {
         getResource(classOf[Host], hostId)
-            .map(_.hostInterfaces.asScala.find(_.name == name)
+            .map(_.getHostInterfaces.asScala.find(_.getName == name)
                                          .map(setInterface))
             .getOrThrow
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
@@ -56,12 +56,12 @@ class InterfaceResource @Inject()(hostId: UUID, backend: MidonetBackend,
     override def list(@HeaderParam("Accept") accept: String)
     : JList[Interface] = {
         getResource(classOf[Host], hostId)
-            .map(_.hostInterfaces.asScala.map(setInterface).asJava)
+            .map(_.getHostInterfaces.asScala.map(setInterface).asJava)
             .getOrThrow
     }
 
     private def setInterface(interface: Interface): Interface = {
-        interface.hostId = hostId
+        interface.setHostId(hostId)
         interface.setBaseUri(uriInfo.getBaseUri)
         interface
     }

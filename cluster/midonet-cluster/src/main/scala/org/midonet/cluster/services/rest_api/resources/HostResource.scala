@@ -47,7 +47,7 @@ class HostResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
             return Response.status(Response.Status.FORBIDDEN).build()
         }
         val host = getResource(classOf[Host], id).getOrThrow
-        if ((host.portIds ne null) && !host.portIds.isEmpty) {
+        if ((host.getPortIds ne null) && !host.getPortIds.isEmpty) {
             return Response.status(Response.Status.FORBIDDEN).build()
         }
         deleteResource(classOf[Host], id)
@@ -61,11 +61,11 @@ class HostResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     override def update(@PathParam("id") id: String, host: Host,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        if (host.floodingProxyWeight eq null) {
+        if (host.getFloodingProxyWeight eq null) {
             return Response.status(Response.Status.BAD_REQUEST).build()
         }
         getResource(classOf[Host], id).map(current => {
-            current.floodingProxyWeight = host.floodingProxyWeight
+            current.setFloodingProxyWeight(host.getFloodingProxyWeight)
             updateResource(current)
         }).getOrThrow
     }
@@ -89,7 +89,7 @@ class HostResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     }
 
     private def setAlive(host: Host): Host = {
-        host.alive = isAlive(host.id.toString)
+        host.setAlive(isAlive(host.getId.toString))
         host
     }
 }

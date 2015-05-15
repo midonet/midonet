@@ -53,7 +53,6 @@ import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 
 import static org.midonet.api.validation.MessageProperty.HOST_FLOODING_PROXY_WEIGHT_IS_NULL;
-import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 
 @RequestScoped
@@ -187,7 +186,7 @@ public class HostResource extends AbstractResource {
     public Response update(@PathParam("id") UUID id, Host host)
             throws StateAccessException, SerializationException {
 
-        host.id = id;
+        host.setId(id);
 
         validate(host);
 
@@ -195,7 +194,7 @@ public class HostResource extends AbstractResource {
          * currently, the only updatable host information is the flooding
          * proxy weight
          */
-        Integer weight = host.floodingProxyWeight;
+        Integer weight = host.getFloodingProxyWeight();
         if (weight != null) {
             try {
                 dataClient.hostsSetFloodingProxyWeight(id, weight);

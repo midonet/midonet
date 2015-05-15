@@ -18,6 +18,7 @@ package org.midonet.api.network;
 import java.net.InetAddress;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -45,9 +46,7 @@ import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
-import org.midonet.client.dto.DtoInterface;
 import org.midonet.client.dto.DtoLink;
 import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoPortGroup;
@@ -58,6 +57,8 @@ import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
 import org.midonet.cluster.rest_api.models.Chain.ChainData;
+import org.midonet.cluster.rest_api.models.Host.HostData;
+import org.midonet.cluster.rest_api.models.Interface.InterfaceData;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.packets.MAC;
 
@@ -155,13 +156,13 @@ public class TestPort {
      *                  host to be created
      * @return          the client-side DTO object of the host
      */
-    public static DtoHost createHost(UUID id, String name, boolean alive,
+    public static HostData createHost(UUID id, String name, boolean alive,
             String[] addresses) {
-        DtoHost host = new DtoHost();
+        HostData host = new HostData();
         host.setId(id);
         host.setName(name);
         host.setAlive(alive);
-        host.setAddresses(addresses);
+        host.setAddresses(Arrays.asList(addresses));
         return host;
     }
 
@@ -182,10 +183,11 @@ public class TestPort {
      *                  of an interface to be created
      * @return          the client-side DTO object of the interface
      */
-    public static DtoInterface createInterface(UUID id, UUID hostId,
-            String name, String mac, int mtu, int status, DtoInterface.Type type,
+    public static InterfaceData createInterface(UUID id, UUID hostId,
+            String name, String mac, int mtu, int status,
+                                                InterfaceData.InterfaceType type,
             InetAddress[] addresses) {
-        DtoInterface _interface = new DtoInterface();
+        InterfaceData _interface = new InterfaceData();
         _interface.setId(id);
         _interface.setHostId(hostId);
         _interface.setName(name);
@@ -1264,8 +1266,8 @@ public class TestPort {
         private BridgeData bridge1;
         private DtoRouterPort port1;
         private DtoBridgePort port2;
-        private DtoHost host1, host2;
-        private DtoInterface interface1, interface2;
+        private HostData host1, host2;
+        private InterfaceData interface1, interface2;
         private DtoHostInterfacePort hostInterfacePort1, hostInterfacePort2;
 
         /**
@@ -1318,18 +1320,22 @@ public class TestPort {
             host1 = createHost(UUID.randomUUID(), "host1", true, null);
             // Create an interface to be bound to the port.
             interface1 = createInterface(UUID.randomUUID(),
-                    host1.getId(), "interface1", "01:23:45:67:89:01", 1500,
-                    0x01, DtoInterface.Type.Virtual,
-                    new InetAddress[]{
-                            InetAddress.getByAddress(new byte[]{10, 10, 10, 1})
-                    });
+                                         host1.getId(), "interface1",
+                                         "01:23:45:67:89:01", 1500,
+                                         0x01,
+                                         InterfaceData.InterfaceType.Virtual,
+                                         new InetAddress[]{
+                                             InetAddress.getByAddress(
+                                                 new byte[]{10, 10, 10, 1})
+                                         });
             // Create a host that contains an interface bound to the bridge port.
             host2 = createHost(UUID.randomUUID(), "host2", true, null);
             // Create an interface to be bound to the port.
             interface2 = createInterface(UUID.randomUUID(),
                                          host2.getId(), "interface2",
                                          "01:23:45:67:89:01", 1500,
-                                         0x01, DtoInterface.Type.Virtual,
+                                         0x01,
+                                         InterfaceData.InterfaceType.Virtual,
                                          new InetAddress[]{
                                              InetAddress.getByAddress(
                                                  new byte[]{10, 10, 10, 2})

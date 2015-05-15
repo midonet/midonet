@@ -30,23 +30,23 @@ public class InterfaceDataConverter {
 
     public org.midonet.cluster.data.host.Interface toData(Interface i) {
         byte[] mac = null;
-        if (i.mac != null) {
-            mac = MAC.fromString(i.mac).getAddress();
+        if (i.getMac() != null) {
+            mac = MAC.fromString(i.getMac()).getAddress();
         }
 
         HostDirectory.Interface.Type type = null;
-        if (i.type != null) {
-            type = valueOf(i.type.name());
+        if (i.getType() != null) {
+            type = valueOf(i.getType().name());
         }
 
         return new org.midonet.cluster.data.host.Interface()
-                .setName(i.name)
+                .setName(i.getName())
                 .setMac(mac)
-                .setStatus(i.status)
-                .setMtu(i.mtu)
+                .setStatus(i.getStatus())
+                .setMtu(i.getMtu())
                 .setType(type)
-                .setAddresses(i.addresses)
-                .setEndpoint(i.endpoint.toString());
+                .setAddresses(i.getAddresses())
+                .setEndpoint(i.getEndpoint().toString());
     }
 
     public static org.midonet.cluster.rest_api.models.Interface fromData(
@@ -55,19 +55,19 @@ public class InterfaceDataConverter {
 
         org.midonet.cluster.rest_api.models.Interface i =
             new org.midonet.cluster.rest_api.models.Interface();
-        i.name = ifData.getName();
+        i.setName(ifData.getName());
         if (ifData.getMac() != null) {
-            i.mac = MAC.fromAddress(ifData.getMac()).toString();
+            i.setMac(MAC.fromAddress(ifData.getMac()).toString());
         }
-        i.status = ifData.getStatus();
-        i.mtu = ifData.getMtu();
-        i.hostId = hostId;
+        i.setStatus(ifData.getStatus());
+        i.setMtu(ifData.getMtu());
+        i.setHostId(hostId);
         if (ifData.getType() != null) {
-            i.type = InterfaceType.valueOf(ifData.getType().name());
+            i.setType(InterfaceType.valueOf(ifData.getType().name()));
         }
-        i.addresses = ifData.getAddresses();
+        i.setAddresses(ifData.getAddresses());
         if (ifData.getEndpoint() != null) {
-            i.endpoint = Endpoint.valueOf(ifData.getEndpoint());
+            i.setEndpoint(Endpoint.valueOf(ifData.getEndpoint()));
         }
         i.setBaseUri(baseUri);
         return i;

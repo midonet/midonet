@@ -25,6 +25,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
@@ -36,21 +37,21 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.Topology;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
-import org.midonet.client.resource.Host;
-import org.midonet.client.resource.HostInterface;
-import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.TunnelZone;
 import org.midonet.client.resource.TunnelZoneHost;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.Host.HostData;
+import org.midonet.cluster.rest_api.models.Interface.InterfaceData;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -60,7 +61,8 @@ import org.midonet.packets.MAC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_JSON_V3;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_INTERFACE_COLLECTION_JSON;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZoneHost {
@@ -84,9 +86,9 @@ public class TestTunnelZoneHost {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            DtoHost host1 = new DtoHost();
+            HostData host1 = new HostData();
             host1.setName("host1");
-            DtoHost host2 = new DtoHost();
+            HostData host2 = new HostData();
             host2.setName("host2");
 
             DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
@@ -200,9 +202,6 @@ public class TestTunnelZoneHost {
             hostManager.createHost(hostId, metadata);
             hostManager.makeAlive(hostId);
 
-            ResourceCollection<Host> hosts = api.getHosts();
-            org.midonet.client.resource.Host host = hosts.get(0);
-
             TunnelZone greTunnelZone = api.addGreTunnelZone()
                                            .name("gre-tunnel-zone-1")
                                            .create();
@@ -277,14 +276,29 @@ public class TestTunnelZoneHost {
 
         private HostZkManager hostManager;
         private UUID hostId = UUID.randomUUID();
+        private Topology topology;
+        private DtoWebResource dtoResource;
 
         public TestBaseUriOverride() {
             super(FuncTest.appDescOverrideBaseUri);
         }
 
+        private HostData retrieveHostV3(UUID hostId) {
+            URI hostUri = ResourceUriBuilder.getHost(
+                topology.getApplication().getUri(), hostId);
+            return dtoResource.getAndVerifyOk(hostUri, APPLICATION_HOST_JSON_V3,
+                                              HostData.class);
+        }
+
         @Before
         public void setUp() throws StateAccessException,
                 InterruptedException, KeeperException{
+            dtoResource = new DtoWebResource(resource());
+            resource().type(
+                org.midonet.client.VendorMediaType.APPLICATION_JSON_V5)
+                .accept(org.midonet.client.VendorMediaType.APPLICATION_JSON_V5)
+                .get(ClientResponse.class);
+            topology = new Topology.Builder(dtoResource).build();
             hostManager = JerseyGuiceTestServletContextListener
                 .getHostZkManager();
         }
@@ -319,9 +333,6 @@ public class TestTunnelZoneHost {
 
             hostManager.createInterface(hostId, anInterface);
 
-            ResourceCollection<Host> hosts = api.getHosts();
-            org.midonet.client.resource.Host host = hosts.get(0);
-
             TunnelZone greTunnelZone = api.addGreTunnelZone()
                     .name("gre-tunnel-zone-1")
                     .create();
@@ -329,26 +340,30 @@ public class TestTunnelZoneHost {
             // Check tunnel zone URI is overridden correctly
             URI tzUri = greTunnelZone.getUri();
             Assert.assertTrue("Should have correct base URI",
-                    tzUri.toString().startsWith(FuncTest.OVERRIDE_BASE_URI));
+                              tzUri.toString()
+                                  .startsWith(FuncTest.OVERRIDE_BASE_URI));
 
             TunnelZoneHost tzHost = greTunnelZone.addTunnelZoneHost()
                     .ipAddress("1.1.1.1")
                     .hostId(hostId).create();
 
             assertThat("There is one host entry under the tunnel zone.",
-                    greTunnelZone.getHosts().size(), is(1));
+                       greTunnelZone.getHosts().size(), is(1));
 
             // Check tunnel zone host URI is overridden correctly
             URI tzHostUri = tzHost.getUri();
             Assert.assertTrue("Should have correct base URI",
-                    tzHostUri.toString()
-                            .startsWith(FuncTest.OVERRIDE_BASE_URI));
+                              tzHostUri.toString()
+                                  .startsWith(FuncTest.OVERRIDE_BASE_URI));
 
-            List<HostInterface> hIfaces = host.getHostInterfaces();
+            HostData host = retrieveHostV3(hostId);
+            InterfaceData[] hIfaces = dtoResource.getAndVerifyOk(
+                host.getInterfaces(), APPLICATION_INTERFACE_COLLECTION_JSON,
+                InterfaceData[].class);
 
-            assertThat(hIfaces.size(), equalTo(1));
+            assertThat(hIfaces.length, equalTo(1));
 
-            HostInterface hIface = hIfaces.get(0);
+            InterfaceData hIface = hIfaces[0];
 
             // Check URI is overridden correctly
             Assert.assertTrue("Should have correct base URI",
