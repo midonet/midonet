@@ -130,7 +130,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             val reqHandler = new RequestHandler(connMgr)
             val handler = new ApiServerHandler(reqHandler)
             val srv = new ServerFrontEnd(new ProtoBufSocketAdapter(handler, expected),
-                                         port)
+                                         port, false)
 
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
@@ -220,7 +220,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             val reqHandler = new RequestHandler(connMgr)
             val handler = new ApiServerHandler(reqHandler)
             val srv = new ServerFrontEnd(
-                new ProtoBufSocketAdapter(handler, serverExpected), port)
+                new ProtoBufSocketAdapter(handler, serverExpected), port, false)
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
 
@@ -262,7 +262,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             val reqHandler = new RequestHandler(connMgr)
             val handler = new ApiServerHandler(reqHandler)
             val srv = new ServerFrontEnd(
-                new ProtoBufWebSocketServerAdapter(handler, expected, path), port)
+                new ProtoBufWebSocketServerAdapter(handler, expected, path), port, false)
 
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true

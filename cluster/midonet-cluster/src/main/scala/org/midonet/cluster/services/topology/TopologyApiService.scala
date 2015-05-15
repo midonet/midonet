@@ -56,13 +56,15 @@ class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
         if (cfg.topologyApi.socketEnabled) plainSrv = new ServerFrontEnd(
             new ProtoBufSocketAdapter(
                 srvHandler, Commands.Request.getDefaultInstance),
-            cfg.topologyApi.port
+            cfg.topologyApi.port,
+            false
         )
 
         if (cfg.topologyApi.wsEnabled) wsSrv = new ServerFrontEnd(
             new ProtoBufWebSocketServerAdapter(
                 srvHandler, Commands.Request.getDefaultInstance, cfg.topologyApi.wsPath),
-            cfg.topologyApi.wsPort
+            cfg.topologyApi.wsPort,
+            false
         )
 
         try {
