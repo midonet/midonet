@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_49928a4c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-15T08:59:39Z",
+      "side": 1,
+      "message": "I agree, that\u0027s why I was reluctant to put at the beginning since most of the time will not be doing nothing anyway. A shared thread pool would much more suitable here.",
+      "parentUuid": "1a106d94_1aebbbdc",
+      "revId": "05003c31163e3c054e60b4c529b7d378ceb8efc9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_daac83ef",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 4
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_29958e32",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-15T08:59:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_daac83ef",
+      "revId": "05003c31163e3c054e60b4c529b7d378ceb8efc9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9a432b12",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 4
@@ -47,6 +83,30 @@
       "writtenOn": "2015-05-13T10:54:30Z",
       "side": 1,
       "message": "Any reason for not doing a get and catch the NotFound?\n\nWondering in case we have a massive host restart causing a stampede of exists and gets to ZK.",
+      "range": {
+        "startLine": 428,
+        "startChar": 8,
+        "endLine": 430,
+        "endChar": 9
+      },
+      "revId": "05003c31163e3c054e60b4c529b7d378ceb8efc9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a9ce9e57",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 430,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-15T08:59:39Z",
+      "side": 1,
+      "message": "In this case it\u0027s better, agree.",
+      "parentUuid": "1a106d94_9a432b12",
       "range": {
         "startLine": 428,
         "startChar": 8,
