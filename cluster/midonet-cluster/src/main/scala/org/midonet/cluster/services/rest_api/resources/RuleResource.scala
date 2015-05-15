@@ -48,7 +48,7 @@ class RuleResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
         getResource(classOf[Rule], ruleId).flatMap(rule => {
             getResource(classOf[Chain], rule.chainId)
         }).map(chain => {
-            if (chain.ruleIds.remove(ruleId)) {
+            if (chain.getRuleIds.remove(ruleId)) {
                 multiResource(Seq(Update(chain), Delete(classOf[Rule], ruleId)))
             } else {
                 Response.status(Status.NOT_FOUND).build()
@@ -70,7 +70,7 @@ class ChainRuleResource @Inject()(chainId: UUID, backend: MidonetBackend,
     override def list(@HeaderParam("Accept") accept: String): JList[Rule] = {
         getResource(classOf[Chain], chainId)
             .flatMap(chain => listResources(classOf[Rule],
-                                            chain.ruleIds.asScala))
+                                            chain.getRuleIds.asScala))
             .getOrThrow
             .asJava
     }
@@ -85,10 +85,11 @@ class ChainRuleResource @Inject()(chainId: UUID, backend: MidonetBackend,
         getResource(classOf[Chain], chainId).map(chain => {
             rule.create(chainId)
             rule.setBaseUri(uriInfo.getBaseUri)
-            if (rule.position <= 0 || rule.position > chain.ruleIds.size() + 1) {
+            if (rule.position <= 0 ||
+                rule.position > chain.getRuleIds.size() + 1) {
                 throw new WebApplicationException(Status.BAD_REQUEST)
             }
-            chain.ruleIds.add(rule.position - 1, rule.id)
+            chain.getRuleIds.add(rule.position - 1, rule.id)
             multiResource(Seq(Create(rule), Update(chain)),
                           Response.created(rule.getUri).build())
 

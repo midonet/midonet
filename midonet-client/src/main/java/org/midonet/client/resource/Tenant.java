@@ -94,20 +94,6 @@ public class Tenant extends ResourceBase<Tenant, DtoTenant> {
                 Router.class, DtoRouter.class);
     }
 
-    /**
-     * Returns collection of chains under the tenant
-     *
-     * @return collection of chains
-     */
-    public ResourceCollection<RuleChain> getRuleChains() {
-        return getChildResources(
-                principalDto.getChains(),
-                null,
-                VendorMediaType.APPLICATION_CHAIN_COLLECTION_JSON,
-                RuleChain.class, DtoRuleChain.class);
-    }
-
-
     @Override
     public String toString() {
         return String.format("Tenant{id=%s, name=%s}", principalDto.getId(),

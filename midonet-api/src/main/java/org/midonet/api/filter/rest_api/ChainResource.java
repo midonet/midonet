@@ -141,7 +141,7 @@ public class ChainResource extends AbstractResource {
 
         validate(chain);
 
-        if(!authoriser.isAdminOrOwner(chain.tenantId)) {
+        if(!authoriser.isAdminOrOwner(chain.getTenantId())) {
             throw new ForbiddenHttpException(
                     "Not authorized to add chain to this tenant.");
         }

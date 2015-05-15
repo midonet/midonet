@@ -36,7 +36,6 @@ import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRule;
-import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoSystemState;
 import org.midonet.client.dto.DtoTenant;
 import org.midonet.client.dto.DtoTunnelZone;
@@ -113,20 +112,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
-     * Gets chains
-     *
-     * @return collection of chains
-     */
-    public ResourceCollection<RuleChain> getChains(
-            MultivaluedMap<String,String> queryParams) {
-        return getChildResources(principalDto.getChains(),
-                                 queryParams,
-                                 VendorMediaType
-                                     .APPLICATION_CHAIN_COLLECTION_JSON,
-                                 RuleChain.class, DtoRuleChain.class);
-    }
-
-    /**
      * Gets port groups.
      *
      * @return collection of port groups
@@ -185,16 +170,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     public Router addRouter() {
         return new Router(resource, principalDto.getRouters(),
                           new DtoRouter());
-    }
-
-    /**
-     * Adds a chain.
-     *
-     * @return new Chain() resource
-     */
-    public RuleChain addChain() {
-        return new RuleChain(resource, principalDto.getChains(),
-                             new DtoRuleChain());
     }
 
     /**
@@ -363,20 +338,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         DtoRule rule = resource.get(uri, null, DtoRule.class,
                 VendorMediaType.APPLICATION_RULE_JSON_V2);
         return new Rule(resource, null, rule);
-    }
-
-    /**
-     * Returns RuleChain object
-     *
-     * @param id ID of chain
-     * @return RuleChain
-     */
-    public RuleChain getRuleChain(UUID id) {
-        URI uri = createUriFromTemplate(
-                principalDto.getChainTemplate(), ID_TOKEN, id);
-        DtoRuleChain chain = resource.get(uri, null, DtoRuleChain.class,
-                VendorMediaType.APPLICATION_CHAIN_JSON);
-        return new RuleChain(resource, null, chain);
     }
 
     /**

@@ -34,8 +34,8 @@ import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoPortGroupPort;
 import org.midonet.client.dto.DtoRule;
-import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.Chain.ChainData;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -70,7 +70,7 @@ public class TestPortGroup extends JerseyTest {
         bridge.setTenantId("tenant1-id");
 
         // Create one chain for tenant1
-        DtoRuleChain chain = new DtoRuleChain();
+        ChainData chain = new ChainData();
         chain.setName("Chain1");
         chain.setTenantId("tenant1-id");
 
@@ -84,7 +84,7 @@ public class TestPortGroup extends JerseyTest {
 
         DtoApplication app = topology.getApplication();
         BridgeData bridge = topology.getBridge("bridge1");
-        DtoRuleChain chain = topology.getChain("chain1");
+        ChainData chain = topology.getChain("chain1");
 
         // Create a port group for Tenant1
         DtoPortGroup group1 = new DtoPortGroup();

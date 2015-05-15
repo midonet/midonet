@@ -54,10 +54,10 @@ import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoPortGroupPort;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
-import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.Chain.ChainData;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.packets.MAC;
 
@@ -517,12 +517,12 @@ public class TestPort {
             b.setTenantId("tenant1-id");
 
             // Create a chain
-            DtoRuleChain c1 = new DtoRuleChain();
+            ChainData c1 = new ChainData();
             c1.setName("chain1-name");
             c1.setTenantId("tenant1-id");
 
             // Create another chain
-            DtoRuleChain c2 = new DtoRuleChain();
+            ChainData c2 = new ChainData();
             c2.setName("chain2-name");
             c2.setTenantId("tenant1-id");
 
@@ -548,8 +548,8 @@ public class TestPort {
 
             // Get the bridge and chains
             BridgeData b = topology.getBridge("bridge1");
-            DtoRuleChain c1 = topology.getChain("chain1");
-            DtoRuleChain c2 = topology.getChain("chain2");
+            ChainData c1 = topology.getChain("chain1");
+            ChainData c2 = topology.getChain("chain2");
 
             // Create an Interior bridge port
             DtoBridgePort b1Lp1 = new DtoBridgePort();
@@ -587,8 +587,8 @@ public class TestPort {
         public void testCrudBridgePort() {
             // Get the bridge and chains
             BridgeData b = topology.getBridge("bridge1");
-            DtoRuleChain c1 = topology.getChain("chain1");
-            DtoRuleChain c2 = topology.getChain("chain2");
+            ChainData c1 = topology.getChain("chain1");
+            ChainData c2 = topology.getChain("chain2");
 
             DtoBridgePort b1Lp1 = new DtoBridgePort();
             short vlanId = 666;
@@ -700,12 +700,12 @@ public class TestPort {
             r.setTenantId("tenant1-id");
 
             // Create a chain
-            DtoRuleChain c1 = new DtoRuleChain();
+            ChainData c1 = new ChainData();
             c1.setName("chain1-name");
             c1.setTenantId("tenant1-id");
 
             // Create another chain
-            DtoRuleChain c2 = new DtoRuleChain();
+            ChainData c2 = new ChainData();
             c2.setName("chain2-name");
             c2.setTenantId("tenant1-id");
 
@@ -730,8 +730,8 @@ public class TestPort {
         public void testCrudRouterPort() {
             // Get the router and chains
             DtoRouter r = topology.getRouter("router1");
-            DtoRuleChain c1 = topology.getChain("chain1");
-            DtoRuleChain c2 = topology.getChain("chain2");
+            ChainData c1 = topology.getChain("chain1");
+            ChainData c2 = topology.getChain("chain2");
 
             // Create a Interior router port
             DtoRouterPort r1Lp1 = createRouterPort(null,
@@ -857,8 +857,8 @@ public class TestPort {
 
             // Get the router and chains
             DtoRouter r = topology.getRouter("router1");
-            DtoRuleChain c1 = topology.getChain("chain1");
-            DtoRuleChain c2 = topology.getChain("chain2");
+            ChainData c1 = topology.getChain("chain1");
+            ChainData c2 = topology.getChain("chain2");
 
             // Create a Interior router port
             DtoRouterPort r1Lp1 = createRouterPort(null, r.getId(), "10.0.0.0",

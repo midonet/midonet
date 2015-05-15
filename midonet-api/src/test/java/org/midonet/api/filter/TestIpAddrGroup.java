@@ -35,7 +35,7 @@ import org.midonet.client.dto.DtoIpAddrGroupAddr;
 import org.midonet.client.dto.DtoIpv4AddrGroupAddr;
 import org.midonet.client.dto.DtoIpv6AddrGroupAddr;
 import org.midonet.client.dto.DtoRule;
-import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.cluster.rest_api.models.Chain.ChainData;
 import org.midonet.packets.IPv4Addr$;
 
 import static org.junit.Assert.assertEquals;
@@ -67,7 +67,7 @@ public class TestIpAddrGroup {
             dtoResource = new DtoWebResource(resource);
 
             // Create one chain for tenant1
-            DtoRuleChain chain = new DtoRuleChain();
+            ChainData chain = new ChainData();
             chain.setName("Chain1");
             chain.setTenantId("tenant1-id");
 
@@ -81,7 +81,7 @@ public class TestIpAddrGroup {
         @Test
         public void testCreateGetListDelete() {
 
-            DtoRuleChain chain = topology.getChain("chain1");
+            ChainData chain = topology.getChain("chain1");
 
             // Create two IP address groups
             DtoIpAddrGroup group1 = createIPAddrGroup("Group1");

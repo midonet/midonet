@@ -23,12 +23,16 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.google.common.base.Objects;
+
+import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.util.collection.ListUtil;
 
 @ZoomClass(clazz = Topology.Chain.class)
 public class Chain extends UriResource {
@@ -37,19 +41,19 @@ public class Chain extends UriResource {
     public static final int MAX_CHAIN_NAME_LEN = 255;
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    public UUID id;
+    private UUID id;
 
     @NotNull
-    public String tenantId;
+    private String tenantId;
 
     @NotNull
     @Size(min = MIN_CHAIN_NAME_LEN, max = MAX_CHAIN_NAME_LEN)
     @ZoomField(name = "name")
-    public String name;
+    private String name;
 
     @JsonIgnore
     @ZoomField(name = "rule_ids", converter = UUIDUtil.Converter.class)
-    public List<UUID> ruleIds;
+    private List<UUID> ruleIds;
 
     @Override
     public URI getUri() {
@@ -68,4 +72,120 @@ public class Chain extends UriResource {
         }
     }
 
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getTenantId() {
+        return tenantId;
+    }
+
+    public void setTenantId(String tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<UUID> getRuleIds() {
+        return ruleIds;
+    }
+
+    public void setRuleIds(List<UUID> ruleIds) {
+        this.ruleIds = ruleIds;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj == this) return true;
+
+        if (!(obj instanceof Chain)) return false;
+        final Chain other = (Chain) obj;
+
+        return super.equals(other)
+               && Objects.equal(id, other.id)
+               && Objects.equal(name, other.name)
+               && Objects.equal(tenantId, other.tenantId)
+               && ListUtils.isEqualList(ruleIds, other.ruleIds);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(super.hashCode(),
+                                id, name, tenantId,
+                                ListUtils.hashCodeForList(ruleIds));
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+            .add("URI", super.toString())
+            .add("id", id)
+            .add("name", name)
+            .add("tenantId", tenantId)
+            .add("ruleIds", ListUtil.toString(ruleIds))
+            .toString();
+    }
+
+    public static class ChainData extends Chain {
+
+        private URI uri;
+        private URI rules;
+
+        @Override
+        public URI getUri() {
+            return uri;
+        }
+
+        public void setUri(URI uri) {
+            this.uri = uri;
+        }
+
+        @Override
+        public URI getRules() {
+            return rules;
+        }
+
+        public void setRules(URI rules) {
+            this.rules = rules;
+        }
+
+
+        @Override
+        public boolean equals(Object obj) {
+
+            if (obj == this) return true;
+
+            if (!(obj instanceof ChainData)) return false;
+            final ChainData other = (ChainData) obj;
+
+            return super.equals(other)
+                   && Objects.equal(uri, other.uri)
+                   && Objects.equal(rules, rules);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), uri, rules);
+        }
+
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                .add("Chain", super.toString())
+                .add("uri", uri)
+                .add("rules", rules)
+                .toString();
+        }
+    }
 }

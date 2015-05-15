@@ -25,18 +25,18 @@ public class ChainDataConverter {
     public static Chain fromData(org.midonet.cluster.data.Chain data,
                                  URI baseUri) throws IllegalAccessException {
         Chain c = new Chain();
-        c.id = data.getId();
-        c.tenantId = data.getProperty(Property.tenant_id);
-        c.name = data.getName();
+        c.setId(data.getId());
+        c.setTenantId(data.getProperty(Property.tenant_id));
+        c.setName(data.getName());
         c.setBaseUri(baseUri);
         return c;
     }
 
     public static org.midonet.cluster.data.Chain toData(Chain c) {
         return new org.midonet.cluster.data.Chain()
-                .setId(c.id)
-                .setName(c.name)
-                .setProperty(Property.tenant_id, c.tenantId);
+                .setId(c.getId())
+                .setName(c.getName())
+                .setProperty(Property.tenant_id, c.getTenantId());
     }
 
 }

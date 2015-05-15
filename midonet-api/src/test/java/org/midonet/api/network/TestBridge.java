@@ -50,9 +50,9 @@ import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoIP4MacPair;
 import org.midonet.client.dto.DtoMacPort;
 import org.midonet.client.dto.DtoPort;
-import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTenant;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.Chain.ChainData;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
@@ -210,13 +210,13 @@ public class TestBridge {
             super.extendTopology(builder);
 
             // Prepare chains that can be used to set to port
-            DtoRuleChain chain1 = new DtoRuleChain();
+            ChainData chain1 = new ChainData();
             chain1.setName("chain1");
             chain1.setTenantId("tenant1");
             builder.create("chain1", chain1);
 
             // Prepare another chain
-            DtoRuleChain chain2 = new DtoRuleChain();
+            ChainData chain2 = new ChainData();
             chain2.setName("chain2");
             chain2.setTenantId("tenant1");
             builder.create("chain2", chain2);
@@ -408,8 +408,8 @@ public class TestBridge {
         public void testCrud() throws Exception {
 
             DtoApplication app = topology.getApplication();
-            DtoRuleChain chain1 = topology.getChain("chain1");
-            DtoRuleChain chain2 = topology.getChain("chain2");
+            ChainData chain1 = topology.getChain("chain1");
+            ChainData chain2 = topology.getChain("chain2");
 
             URI bridgesUri = app.getBridges();
             assertNotNull(bridgesUri);

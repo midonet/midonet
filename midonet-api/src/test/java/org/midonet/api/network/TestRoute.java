@@ -47,8 +47,8 @@ import org.midonet.client.dto.DtoLink;
 import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
-import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.Chain.ChainData;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -341,7 +341,7 @@ public class TestRoute {
             b1.setTenantId("tenant1-id");
 
             // Create a chain
-            DtoRuleChain c1 = new DtoRuleChain();
+            ChainData c1 = new ChainData();
             c1.setId(UUID.randomUUID());
             c1.setName("chain1-name");
             c1.setTenantId("tenant1-id");

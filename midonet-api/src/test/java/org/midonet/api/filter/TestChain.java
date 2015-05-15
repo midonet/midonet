@@ -32,8 +32,8 @@ import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRule;
-import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.Chain.ChainData;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
@@ -73,7 +73,7 @@ public class TestChain extends JerseyTest {
         ClientResponse response;
 
         // Create a rule chain for Tenant1
-        DtoRuleChain ruleChain1 = new DtoRuleChain();
+        ChainData ruleChain1 = new ChainData();
         ruleChain1.setName("Chain1");
         ruleChain1.setTenantId("tenant1");
         response = resource().uri(app.getChains())
@@ -81,12 +81,12 @@ public class TestChain extends JerseyTest {
                 .post(ClientResponse.class, ruleChain1);
         assertEquals("The chain was created.", 201, response.getStatus());
         ruleChain1 = resource().uri(response.getLocation())
-                .accept(APPLICATION_CHAIN_JSON).get(DtoRuleChain.class);
+                .accept(APPLICATION_CHAIN_JSON).get(ChainData.class);
         assertEquals("Chain1", ruleChain1.getName());
         assertEquals("tenant1", ruleChain1.getTenantId());
 
         // Create another rule chain for Tenant1
-        DtoRuleChain ruleChain2 = new DtoRuleChain();
+        ChainData ruleChain2 = new ChainData();
         ruleChain2.setName("Chain2");
         ruleChain2.setTenantId("tenant1");
         response = resource().uri(app.getChains())
@@ -94,12 +94,12 @@ public class TestChain extends JerseyTest {
                 .post(ClientResponse.class, ruleChain2);
         assertEquals("The chain was created.", 201, response.getStatus());
         ruleChain2 = resource().uri(response.getLocation())
-                .accept(APPLICATION_CHAIN_JSON).get(DtoRuleChain.class);
+                .accept(APPLICATION_CHAIN_JSON).get(ChainData.class);
         assertEquals("Chain2", ruleChain2.getName());
         assertEquals("tenant1", ruleChain2.getTenantId());
 
         // Create a rule chain for Tenant2
-        DtoRuleChain ruleChain3 = new DtoRuleChain();
+        ChainData ruleChain3 = new ChainData();
         ruleChain3.setName("Chain3");
         ruleChain3.setTenantId("tenant2");
         response = resource().uri(app.getChains())
@@ -107,7 +107,7 @@ public class TestChain extends JerseyTest {
                 .post(ClientResponse.class, ruleChain3);
         assertEquals("The chain was created.", 201, response.getStatus());
         ruleChain3 = resource().uri(response.getLocation())
-                .accept(APPLICATION_CHAIN_JSON).get(DtoRuleChain.class);
+                .accept(APPLICATION_CHAIN_JSON).get(ChainData.class);
         assertEquals("Chain3", ruleChain3.getName());
         assertEquals("tenant2", ruleChain3.getTenantId());
 
@@ -117,7 +117,7 @@ public class TestChain extends JerseyTest {
                 .accept(APPLICATION_CHAIN_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
-        DtoRuleChain[] chains = response.getEntity(DtoRuleChain[].class);
+        ChainData[] chains = response.getEntity(ChainData[].class);
         assertThat("Tenant1 has 2 chains.", chains, arrayWithSize(2));
         assertThat(
                 "We expect the listed chains to match those we created.",
@@ -148,7 +148,7 @@ public class TestChain extends JerseyTest {
                 .accept(APPLICATION_CHAIN_COLLECTION_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
-        chains = response.getEntity(DtoRuleChain[].class);
+        chains = response.getEntity(ChainData[].class);
         assertThat("We expect 1 listed chain after the delete", chains,
                 arrayWithSize(1));
         assertThat(
@@ -204,8 +204,8 @@ public class TestChain extends JerseyTest {
         return port;
     }
 
-    private DtoRuleChain getStockChain(String name) {
-        DtoRuleChain ruleChain = new DtoRuleChain();
+    private ChainData getStockChain(String name) {
+        ChainData ruleChain = new ChainData();
         UUID rc1Id = UUID.randomUUID();
         ruleChain.setId(rc1Id);
         ruleChain.setName(name);
@@ -233,15 +233,15 @@ public class TestChain extends JerseyTest {
     public void testCleanup() {
         DtoApplication app = topology.getApplication();
 
-        DtoRuleChain ruleChain1
+        ChainData ruleChain1
                 = dtoResource.postAndVerifyCreated(app.getChains(),
                 APPLICATION_CHAIN_JSON, getStockChain("INBOUND"),
-                DtoRuleChain.class);
+                ChainData.class);
 
-        DtoRuleChain ruleChain2
+        ChainData ruleChain2
                 = dtoResource.postAndVerifyCreated(app.getChains(),
                 APPLICATION_CHAIN_JSON, getStockChain("OUTBOUND"),
-                DtoRuleChain.class);
+                ChainData.class);
 
         DtoRouter router
                 = dtoResource.postAndVerifyCreated(app.getRouters(),
@@ -327,11 +327,11 @@ public class TestChain extends JerseyTest {
         // Create the chains again for more testing.
         ruleChain1 = dtoResource.postAndVerifyCreated(app.getChains(),
                 APPLICATION_CHAIN_JSON, getStockChain("INBOUND"),
-                DtoRuleChain.class);
+                ChainData.class);
 
         ruleChain2 = dtoResource.postAndVerifyCreated(app.getChains(),
                 APPLICATION_CHAIN_JSON, getStockChain("OUTBOUND"),
-                DtoRuleChain.class);
+                ChainData.class);
 
         // Set the chains to different IDs.
         port.setInboundFilterId(ruleChain1.getId());
@@ -398,11 +398,11 @@ public class TestChain extends JerseyTest {
         // Create these chains again for more testing.
         ruleChain1 = dtoResource.postAndVerifyCreated(app.getChains(),
                 APPLICATION_CHAIN_JSON, getStockChain("INBOUND"),
-                DtoRuleChain.class);
+                ChainData.class);
 
         ruleChain2 = dtoResource.postAndVerifyCreated(app.getChains(),
                 APPLICATION_CHAIN_JSON, getStockChain("OUTBOUND"),
-                DtoRuleChain.class);
+                ChainData.class);
 
         // Set the chains to different IDs.
         port.setInboundFilterId(ruleChain1.getId());
@@ -423,7 +423,7 @@ public class TestChain extends JerseyTest {
         // Create these chains again for more testing.
         ruleChain1 = dtoResource.postAndVerifyCreated(app.getChains(),
                 APPLICATION_CHAIN_JSON, getStockChain("BOTH"),
-                DtoRuleChain.class);
+                ChainData.class);
 
         // Set the chains to one valid chain, and one null
         port.setInboundFilterId(ruleChain1.getId());
@@ -448,7 +448,7 @@ public class TestChain extends JerseyTest {
         // Create these chains again for more testing.
         ruleChain1 = dtoResource.postAndVerifyCreated(app.getChains(),
                 APPLICATION_CHAIN_JSON, getStockChain("BOTH"),
-                DtoRuleChain.class);
+                ChainData.class);
 
         // Set the filters to the same ruleChain
         port.setInboundFilterId(ruleChain1.getId());

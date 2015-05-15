@@ -85,10 +85,6 @@ public class VendorMediaType {
             "application/vnd.org.midonet.PortGroupPort-v1+json";
     public static final String APPLICATION_PORTGROUP_PORT_COLLECTION_JSON =
             "application/vnd.org.midonet.collection.PortGroupPort-v1+json";
-    public static final String APPLICATION_CHAIN_JSON =
-            "application/vnd.org.midonet.Chain-v1+json";
-    public static final String APPLICATION_CHAIN_COLLECTION_JSON =
-            "application/vnd.org.midonet.collection.Chain-v1+json";
     public static final String APPLICATION_RULE_JSON =
             "application/vnd.org.midonet.Rule-v1+json";
     public static final String APPLICATION_RULE_COLLECTION_JSON =

@@ -33,7 +33,6 @@ import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.Route;
 import org.midonet.client.resource.Router;
 import org.midonet.client.resource.Rule;
-import org.midonet.client.resource.RuleChain;
 import org.midonet.client.resource.SystemState;
 import org.midonet.client.resource.Tenant;
 import org.midonet.client.resource.TunnelZone;
@@ -80,16 +79,6 @@ public class MidonetApi {
     }
 
     /**
-     * Adds a Chain.
-     *
-     * @return chain resource
-     */
-    public RuleChain addChain() {
-        ensureApplication();
-        return application.addChain();
-    }
-
-    /**
      * Adds a PortGroup.
      *
      * @return port group resource
@@ -118,17 +107,6 @@ public class MidonetApi {
             MultivaluedMap<String,String> queryParams) {
         ensureApplication();
         return application.getRouters(queryParams);
-    }
-
-    /**
-     * Gets Chains.
-     *
-     * @return collection of chain
-     */
-    public ResourceCollection<RuleChain> getChains(
-            MultivaluedMap<String,String> queryParams) {
-        ensureApplication();
-        return application.getChains(queryParams);
     }
 
     /**
@@ -192,17 +170,6 @@ public class MidonetApi {
     public Bgp getBgp(UUID id) {
         ensureApplication();
         return application.getBgp(id);
-    }
-
-    /**
-     * Returns RuleChain object
-     *
-     * @param id ID of chain
-     * @return RuleChain
-     */
-    public RuleChain getChain(UUID id) {
-        ensureApplication();
-        return application.getRuleChain(id);
     }
 
     /**

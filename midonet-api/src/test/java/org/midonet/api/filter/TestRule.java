@@ -31,6 +31,7 @@ import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Suite;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.models.Chain.ChainData;
 import org.midonet.packets.Unsigned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +44,6 @@ import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRule.DtoNatTarget;
-import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.packets.ARP;
 
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
@@ -63,7 +63,7 @@ public class TestRule {
 
     public static abstract class TestRuleBase extends RestApiTestBase {
 
-        protected DtoRuleChain chain1;
+        protected ChainData chain1;
 
         protected TestRuleBase() {
             super(FuncTest.appDesc);
@@ -78,7 +78,7 @@ public class TestRule {
         protected void extendTopology(Topology.Builder builder) {
             super.extendTopology(builder);
 
-            DtoRuleChain chain = new DtoRuleChain();
+            ChainData chain = new ChainData();
             chain.setName("chain1-name");
             chain.setTenantId("tenant1-id");
 

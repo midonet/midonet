@@ -49,7 +49,7 @@ class ChainResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     protected override def listFilter: (Chain) => Boolean = {
         val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
         if (tenantId eq null) (_: Chain) => true
-        else (r: Chain) => r.tenantId == tenantId
+        else (r: Chain) => r.getTenantId == tenantId
     }
 
 }

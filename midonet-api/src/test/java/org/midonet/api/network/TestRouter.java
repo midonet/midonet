@@ -47,9 +47,9 @@ import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
-import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTenant;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.Chain.ChainData;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
 import org.midonet.midolman.state.zkManagers.RouterZkManager;
@@ -207,14 +207,14 @@ public class TestRouter {
         public void setUp() throws KeeperException, InterruptedException {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
-
+            
             // Prepare chains that can be used to set to port
-            DtoRuleChain chain1 = new DtoRuleChain();
+            ChainData chain1 = new ChainData();
             chain1.setName("chain1");
             chain1.setTenantId("tenant1-id");
 
             // Prepare another chain
-            DtoRuleChain chain2 = new DtoRuleChain();
+            ChainData chain2 = new ChainData();
             chain2.setName("chain2");
             chain2.setTenantId("tenant1-id");
 
@@ -233,8 +233,8 @@ public class TestRouter {
                 String name, String tenant, boolean withChains,
                 boolean withLoadBalancer, int routerVersion) {
             DtoApplication app = topology.getApplication();
-            DtoRuleChain chain1 = topology.getChain("chain1");
-            DtoRuleChain chain2 = topology.getChain("chain2");
+            ChainData chain1 = topology.getChain("chain1");
+            ChainData chain2 = topology.getChain("chain2");
             DtoLoadBalancer lb1 = topology.getLoadBalancer("loadBalancer1");
 
             String routerMediaType = APPLICATION_ROUTER_JSON;
@@ -316,8 +316,8 @@ public class TestRouter {
         @Test
         public void testCrudv1() throws Exception {
             DtoApplication app = topology.getApplication();
-            DtoRuleChain chain1 = topology.getChain("chain1");
-            DtoRuleChain chain2 = topology.getChain("chain2");
+            ChainData chain1 = topology.getChain("chain1");
+            ChainData chain2 = topology.getChain("chain2");
 
             assertNotNull(app.getRouters());
             DtoRouter[] routers = dtoResource.getAndVerifyOk(app.getRouters(),
@@ -372,8 +372,8 @@ public class TestRouter {
         @Test
         public void testCrudv2() throws Exception {
             DtoApplication app = topology.getApplication();
-            DtoRuleChain chain1 = topology.getChain("chain1");
-            DtoRuleChain chain2 = topology.getChain("chain2");
+            ChainData chain1 = topology.getChain("chain1");
+            ChainData chain2 = topology.getChain("chain2");
             DtoLoadBalancer lb1 = topology.getLoadBalancer("loadBalancer1");
             DtoLoadBalancer lb2 = topology.getLoadBalancer("loadBalancer2");
 

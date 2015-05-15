@@ -29,11 +29,11 @@ import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
-import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTenant;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.Chain.ChainData;
 
-import static org.midonet.client.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_CHAIN_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORTGROUP_JSON;
 import static org.midonet.client.VendorMediaType.APPLICATION_PORT_LINK_JSON;
@@ -80,7 +80,7 @@ public class Topology {
         private final Map<String, DtoTenant> tenants;
         private final Map<String, DtoRouter> routers;
         private final Map<String, BridgeData> bridges;
-        private final Map<String, DtoRuleChain> chains;
+        private final Map<String, ChainData> chains;
         private final Map<String, DtoRouterPort> routerPorts;
         private final Map<String, DtoBridgePort> bridgePorts;
         private final Map<String, DtoPortGroup> portGroups;
@@ -102,7 +102,7 @@ public class Topology {
             this.tenants = new HashMap<String, DtoTenant>();
             this.routers = new HashMap<String, DtoRouter>();
             this.bridges = new HashMap<String, BridgeData>();
-            this.chains = new HashMap<String, DtoRuleChain>();
+            this.chains = new HashMap<String, ChainData>();
             this.routerPorts = new HashMap<String, DtoRouterPort>();
             this.bridgePorts = new HashMap<String, DtoBridgePort>();
             this.portGroups = new HashMap<String, DtoPortGroup>();
@@ -132,7 +132,7 @@ public class Topology {
             return this;
         }
 
-        public Builder create(String tag, DtoRuleChain obj) {
+        public Builder create(String tag, ChainData obj) {
             this.chains.put(tag, obj);
             return this;
         }
@@ -207,10 +207,10 @@ public class Topology {
             this.app = resource.getWebResource().path("/").accept(
                     appMediaType).get(DtoApplication.class);
 
-            for (Map.Entry<String, DtoRuleChain> entry : chains.entrySet()) {
-                DtoRuleChain obj = entry.getValue();
+            for (Map.Entry<String, ChainData> entry : chains.entrySet()) {
+                ChainData obj = entry.getValue();
                 obj = resource.postAndVerifyCreated(app.getChains(),
-                    APPLICATION_CHAIN_JSON, obj, DtoRuleChain.class);
+                    APPLICATION_CHAIN_JSON, obj, ChainData.class);
                 entry.setValue(obj);
             }
 
@@ -236,14 +236,14 @@ public class Topology {
                 // Set the inbound chain ID
                 tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
-                    DtoRuleChain c = chains.get(tag);
+                    ChainData c = chains.get(tag);
                     obj.setInboundFilterId(c.getId());
                 }
 
                 // Set the outbound chain ID
                 tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
-                    DtoRuleChain c = chains.get(tag);
+                    ChainData c = chains.get(tag);
                     obj.setOutboundFilterId(c.getId());
                 }
 
@@ -259,14 +259,14 @@ public class Topology {
                 // Set the inbound chain ID
                 String tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
-                    DtoRuleChain c = chains.get(tag);
+                    ChainData c = chains.get(tag);
                     obj.setInboundFilterId(c.getId());
                 }
 
                 // Set the outbound chain ID
                 tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
-                    DtoRuleChain c = chains.get(tag);
+                    ChainData c = chains.get(tag);
                     obj.setOutboundFilterId(c.getId());
                 }
                 obj = resource.postAndVerifyCreated(app.getBridges(),
@@ -297,14 +297,14 @@ public class Topology {
                 // Set the inbound chain ID
                 tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
-                    DtoRuleChain c = chains.get(tag);
+                    ChainData c = chains.get(tag);
                     obj.setInboundFilterId(c.getId());
                 }
 
                 // Set the outbound chain ID
                 tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
-                    DtoRuleChain c = chains.get(tag);
+                    ChainData c = chains.get(tag);
                     obj.setOutboundFilterId(c.getId());
                 }
 
@@ -327,14 +327,14 @@ public class Topology {
                 // Set the inbound chain ID
                 tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
-                    DtoRuleChain c = chains.get(tag);
+                    ChainData c = chains.get(tag);
                     obj.setInboundFilterId(c.getId());
                 }
 
                 // Set the outbound chain ID
                 tag = tagToInChains.get(entry.getKey());
                 if (tag != null) {
-                    DtoRuleChain c = chains.get(tag);
+                    ChainData c = chains.get(tag);
                     obj.setOutboundFilterId(c.getId());
                 }
 
@@ -393,7 +393,7 @@ public class Topology {
         return this.builder.portGroups.get(tag);
     }
 
-    public DtoRuleChain getChain(String tag) {
+    public ChainData getChain(String tag) {
         return this.builder.chains.get(tag);
     }
 
