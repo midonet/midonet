@@ -23,6 +23,7 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -46,23 +47,23 @@ public class TunnelZone extends UriResource {
     }
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    public UUID id;
+    private UUID id;
 
     @NotNull
     @ZoomField(name = "name")
     @Size(min = MIN_TUNNEL_ZONE_NAME_LEN, max = MAX_TUNNEL_ZONE_NAME_LEN)
-    public String name;
+    private String name;
 
     @NotNull
     @ZoomField(name = "type")
-    public TunnelZoneType type;
+    private TunnelZoneType type;
 
     @XmlTransient
     @ZoomField(name = "hosts")
-    public List<TunnelZoneHost> hosts;
+    private List<TunnelZoneHost> hosts;
     @JsonIgnore
     @ZoomField(name = "host_ids", converter = UUIDUtil.Converter.class)
-    public List<UUID> hostIds;
+    private List<UUID> hostIds;
 
     @Override
     public URI getUri() {
@@ -71,6 +72,47 @@ public class TunnelZone extends UriResource {
 
     public URI getHosts() {
         return relativeUri(ResourceUris.HOSTS);
+    }
+
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public TunnelZoneType getType() {
+        return type;
+    }
+
+    public void setType(TunnelZoneType type) {
+        this.type = type;
+    }
+
+    public void setTunnelZoneHosts(List<TunnelZoneHost> hosts) {
+        this.hosts = hosts;
+    }
+
+    public List<TunnelZoneHost> getTunnelZoneHosts() {
+        return this.hosts;
+    }
+
+    public List<UUID> getHostIds() {
+        return hostIds;
+    }
+
+    public void setHostIds(List<UUID> hostIds) {
+        this.hostIds = hostIds;
     }
 
     @JsonIgnore
@@ -85,5 +127,54 @@ public class TunnelZone extends UriResource {
         this.id = from.id;
         hosts = from.hosts;
         hostIds = from.hostIds;
+    }
+
+    public static class TunnelZoneData extends TunnelZone {
+        private URI hosts;
+        private URI uri;
+
+        @Override
+        public URI getUri() {
+            return uri;
+        }
+
+        public void setUri(URI uri) {
+            this.uri = uri;
+        }
+
+        @Override
+        public URI getHosts() {
+            return this.hosts;
+        }
+
+        public void setHosts(URI hosts) {
+            this.hosts = hosts;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            TunnelZoneData that = (TunnelZoneData) o;
+
+            return super.equals(o) &&
+                Objects.equal(this.hosts, that.hosts) &&
+                Objects.equal(this.uri, that.uri);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(super.hashCode(), hosts, uri);
+        }
+
+        @Override
+        public String toString() {
+            return Objects.toStringHelper(this)
+                .add("TunnelZone", super.toString())
+                .add("hosts", hosts)
+                .add("uri", uri)
+                .toString();
+        }
     }
 }
