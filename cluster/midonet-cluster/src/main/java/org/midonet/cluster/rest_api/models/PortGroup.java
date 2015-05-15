@@ -16,28 +16,18 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import org.midonet.cluster.rest_api.annotation.Resource;
-import org.midonet.cluster.rest_api.annotation.ResourceId;
-import org.midonet.cluster.rest_api.annotation.Subresource;
 
 @XmlRootElement
-@Resource(name = ResourceUris.PORT_GROUPS)
 public class PortGroup extends UriResource {
 
     public static final int MIN_PORT_GROUP_NAME_LEN = 1;
     public static final int MAX_PORT_GROUP_NAME_LEN = 255;
 
-    @ResourceId
     public UUID id;
 
     @NotNull
@@ -49,10 +39,14 @@ public class PortGroup extends UriResource {
 
     public boolean stateful;
 
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.PORT_GROUPS, id);
+    }
+
     public URI getPorts() {
         return relativeUri(ResourceUris.PORTS);
     }
-
 
 }
 
