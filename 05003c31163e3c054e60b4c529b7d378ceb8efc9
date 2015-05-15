@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_246495b7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-15T10:08:19Z",
+      "side": 1,
+      "message": "Replaced thread with the ZK reactor.",
+      "parentUuid": "1a106d94_1aebbbdc",
+      "revId": "05003c31163e3c054e60b4c529b7d378ceb8efc9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_daac83ef",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 4
