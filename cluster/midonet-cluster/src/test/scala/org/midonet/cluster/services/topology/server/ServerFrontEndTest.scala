@@ -40,7 +40,6 @@ import org.midonet.cluster.models.{Topology, Commons}
 import org.midonet.cluster.rpc.Commands
 import org.midonet.cluster.services.topology.common._
 import org.midonet.cluster.services.topology.common.ProtocolFactory.State
-import org.midonet.cluster.services.topology.server.RequestHandler
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.functors.makeAction0
 import org.midonet.util.netty._
@@ -130,9 +129,8 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
         scenario("service life cycle") {
             val reqHandler = new RequestHandler(connMgr)
             val handler = new ApiServerHandler(reqHandler)
-            val srv = new ServerFrontEnd(new ProtoBufSocketAdapter(handler, expected),
+            val srv = ServerFrontEnd.tcp(new ProtoBufSocketAdapter(handler, expected),
                                          port)
-
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
             srv.stopAsync().awaitTerminated()
@@ -220,7 +218,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
         scenario("server accepting all requests") {
             val reqHandler = new RequestHandler(connMgr)
             val handler = new ApiServerHandler(reqHandler)
-            val srv = new ServerFrontEnd(
+            val srv = ServerFrontEnd.tcp(
                 new ProtoBufSocketAdapter(handler, serverExpected), port)
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
@@ -262,9 +260,9 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
         scenario("service life cycle") {
             val reqHandler = new RequestHandler(connMgr)
             val handler = new ApiServerHandler(reqHandler)
-            val srv = new ServerFrontEnd(
-                new ProtoBufWebSocketServerAdapter(handler, expected, path), port)
-
+            val srv = ServerFrontEnd.tcp(
+                new ProtoBufWebSocketServerAdapter(handler, expected, path),
+                port)
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
             srv.stopAsync().awaitTerminated()

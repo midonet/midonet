@@ -88,7 +88,7 @@ class FlowTracingService(cfg: FlowTracingConfig,
 
         val srvHandler = new FlowTracingHandler(flowTracingStorage)
 
-        wsSrv = new ServerFrontEnd(
+        wsSrv = ServerFrontEnd.tcp(
             new ProtoBufWebSocketServerAdapter(
                 srvHandler, Request.getDefaultInstance,
                 FlowTracingService.WebSocketPath),
