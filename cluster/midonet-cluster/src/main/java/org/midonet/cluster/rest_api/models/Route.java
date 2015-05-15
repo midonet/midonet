@@ -99,6 +99,12 @@ public class Route extends UriResource {
     @Min(0)
     public int weight;
 
+    public Route() { }
+
+    public Route(URI baseUri) {
+        setBaseUri(baseUri);
+    }
+
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.ROUTES, id);

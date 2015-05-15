@@ -49,6 +49,7 @@ import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.cluster.rest_api.models.Route;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -230,14 +231,12 @@ public class TestRoute {
     public static class TestRouteCreateBadRequest extends JerseyTest {
 
         private final DtoRoute route;
-        private final String property;
         private DtoWebResource dtoResource;
         private Topology topology;
 
-        public TestRouteCreateBadRequest(DtoRoute route, String property) {
+        public TestRouteCreateBadRequest(DtoRoute route) {
             super(FuncTest.appDesc);
             this.route = route;
-            this.property = property;
         }
 
         @Before
@@ -267,7 +266,7 @@ public class TestRoute {
             nullType.setSrcNetworkAddr("192.168.1.1");
             nullType.setSrcNetworkLength(24);
             nullType.setWeight(100);
-            params.add(new Object[] { nullType, "type" });
+            params.add(new Object[] { nullType });
 
             // Invalid type
             DtoRoute invalidType = new DtoRoute();
@@ -277,28 +276,28 @@ public class TestRoute {
             invalidType.setSrcNetworkAddr("192.168.1.1");
             invalidType.setSrcNetworkLength(24);
             invalidType.setWeight(100);
-            params.add(new Object[] { invalidType, "type" });
+            params.add(new Object[] { invalidType });
 
             // Normal type but no next hop port
             DtoRoute noNextHop = new DtoRoute();
-            noNextHop.setType(Route.Normal);
+            noNextHop.setType(Route.NextHop.Normal.toString());
             noNextHop.setDstNetworkAddr("10.0.0.1");
             noNextHop.setDstNetworkLength(24);
             noNextHop.setSrcNetworkAddr("192.168.1.1");
             noNextHop.setSrcNetworkLength(24);
             noNextHop.setWeight(100);
-            params.add(new Object[] { noNextHop, "nextHopPort" });
+            params.add(new Object[] { noNextHop });
 
             // Normal type but next hop port is not a port on the router.
             DtoRoute badNextHop = new DtoRoute();
-            badNextHop.setType(Route.Normal);
+            badNextHop.setType(Route.NextHop.Normal.toString());
             badNextHop.setNextHopPort(UUID.randomUUID());
             badNextHop.setDstNetworkAddr("10.0.0.1");
             badNextHop.setDstNetworkLength(24);
             badNextHop.setSrcNetworkAddr("192.168.1.1");
             badNextHop.setSrcNetworkLength(24);
             badNextHop.setWeight(100);
-            params.add(new Object[] { badNextHop, "nextHopPort" });
+            params.add(new Object[] { badNextHop });
 
             return params;
         }
@@ -309,11 +308,8 @@ public class TestRoute {
             DtoRouter router1 = topology.getRouter("router1");
             route.setRouterId(router1.getId());
 
-            DtoError error = dtoResource.postAndVerifyBadRequest(
-                    router1.getRoutes(), APPLICATION_ROUTE_JSON, route);
-            List<Map<String, String>> violations = error.getViolations();
-            assertEquals(1, violations.size());
-            assertEquals(property, violations.get(0).get("property"));
+            dtoResource.postAndVerifyBadRequest(
+                router1.getRoutes(), APPLICATION_ROUTE_JSON, route);
         }
     }
 

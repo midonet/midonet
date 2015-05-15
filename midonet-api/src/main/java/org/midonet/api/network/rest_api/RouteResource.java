@@ -40,14 +40,20 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.network.Route;
 import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.Port;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.conversion.RouteDataConverter;
+import org.midonet.cluster.rest_api.models.Route;
 import org.midonet.event.topology.RouterEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class RouteResource extends AbstractResource {
@@ -109,9 +115,7 @@ public class RouteResource extends AbstractResource {
         authoriser.tryAuthoriseRouter(routeData.getRouterId(),
                                       "view this route");
 
-        Route route = new Route(routeData);
-        route.setBaseUri(getBaseUri());
-        return route;
+        return RouteDataConverter.fromData(routeData, getBaseUri());
     }
 
     /**
@@ -148,14 +152,15 @@ public class RouteResource extends AbstractResource {
                 throws StateAccessException,
                 SerializationException {
 
-            route.setRouterId(routerId);
+            route.routerId = routerId;
 
-            validate(route, Route.RouteGroupSequence.class);
+            validate(route);
+            throwIfNextPortNotValid(route);
 
             authoriser.tryAuthoriseRouter(routerId,
                                           "add route to this router");
 
-            UUID id = dataClient.routesCreate(route.toData());
+            UUID id = dataClient.routesCreate(RouteDataConverter.toData(route));
             routerEvent.routeCreate(routerId, dataClient.routesGet(id));
             return Response.created(ResourceUriBuilder.getRoute(getBaseUri(), id))
                            .build();
@@ -185,11 +190,35 @@ public class RouteResource extends AbstractResource {
 
             List<Route> routes = new ArrayList<>(routeDataList.size());
             for (org.midonet.cluster.data.Route routeData : routeDataList) {
-                Route route = new Route(routeData);
-                route.setBaseUri(getBaseUri());
-                routes.add(route);
+                routes.add(RouteDataConverter.fromData(routeData, getBaseUri()));
             }
             return routes;
+        }
+
+        private void throwIfNextPortNotValid(Route route) {
+            if (route.type != Route.NextHop.Normal) {
+                // The validation only applies to 'normal' routes.
+                return;
+            }
+
+            if (null == route.nextHopPort) {
+                throw new BadRequestHttpException(getMessage(
+                    MessageProperty.ROUTE_NEXT_HOP_PORT_NOT_NULL));
+            }
+
+            try {
+                Port<?, ?> port = dataClient.portsGet(route.nextHopPort);
+                if (null == port || !port.getDeviceId().equals(route.routerId)) {
+                    throw new BadRequestHttpException(getMessage(
+                        MessageProperty.ROUTE_NEXT_HOP_PORT_NOT_NULL));
+                }
+            } catch (StateAccessException e) {
+                throw new BadRequestHttpException(getMessage(
+                    MessageProperty.ROUTE_NEXT_HOP_PORT_NOT_NULL));
+            } catch (SerializationException e) {
+                throw new RuntimeException("Serialization exception occurred "
+                                           + "in validation", e);
+            }
         }
     }
 }
