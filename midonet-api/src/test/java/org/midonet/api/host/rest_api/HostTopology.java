@@ -20,8 +20,8 @@ import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
-import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
+import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneData;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -74,7 +74,7 @@ public class HostTopology {
 
         private DtoApplication app;
         private final Map<UUID, DtoHost> hosts;
-        private final Map<String, DtoTunnelZone> tunnelZones;
+        private final Map<String, TunnelZoneData> tunnelZones;
         private final Map<UUID, DtoTunnelZoneHost> tunnelZoneHosts;
         private final Map<UUID, DtoHostInterfacePort> hostInterfacePorts;
 
@@ -117,7 +117,7 @@ public class HostTopology {
          * @param tunnelZone A client-side DTO object of the tunnel zone.
          * @return This builde object.
          */
-        public Builder create(String tag, DtoTunnelZone tunnelZone) {
+        public Builder create(String tag, TunnelZoneData tunnelZone) {
             this.tunnelZones.put(tag, tunnelZone);
             return this;
         }
@@ -161,12 +161,12 @@ public class HostTopology {
             this.app = resource.getWebResource().path("/")
                     .type(APPLICATION_JSON_V5).get(DtoApplication.class);
 
-            for (Map.Entry<String, DtoTunnelZone> entry
+            for (Map.Entry<String, TunnelZoneData> entry
                     : tunnelZones.entrySet()) {
-                DtoTunnelZone tunnelZone = entry.getValue();
+                TunnelZoneData tunnelZone = entry.getValue();
                 tunnelZone = resource.postAndVerifyCreated(app.getTunnelZones(),
                         APPLICATION_TUNNEL_ZONE_JSON, tunnelZone,
-                        DtoTunnelZone.class);
+                        TunnelZoneData.class);
                 entry.setValue(tunnelZone);
             }
 
@@ -198,7 +198,7 @@ public class HostTopology {
                     DtoTunnelZoneHost tunnelZoneHost = entry.getValue();
                     // Set the tunnel zone ID.
                     String tunnelZoneTag = tagToTunnelZone.get(entry.getKey());
-                    DtoTunnelZone tunnelZone =
+                    TunnelZoneData tunnelZone =
                             tunnelZones.get(tunnelZoneTag);
                     tunnelZoneHost.setTunnelZoneId(tunnelZone.getId());
                     tunnelZoneHost = resource.postAndVerifyCreated(
@@ -244,7 +244,7 @@ public class HostTopology {
         return this.builder.hosts.get(id);
     }
 
-    public DtoTunnelZone getGreTunnelZone(String tag) {
+    public TunnelZoneData getGreTunnelZone(String tag) {
         return this.builder.tunnelZones.get(tag);
     }
 
