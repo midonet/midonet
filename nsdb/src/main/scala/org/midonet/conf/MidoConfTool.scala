@@ -18,6 +18,8 @@ package org.midonet.conf
 import java.io.InputStreamReader
 import java.lang.{Short => JShort, Integer => JInt, Byte => JByte}
 import java.util.UUID
+import org.apache.zookeeper.KeeperException
+
 import scala.util.{Failure, Success, Try}
 import scala.collection.JavaConversions._
 
@@ -391,6 +393,8 @@ abstract class ConfigQuery(name: String) extends Subcommand(name) {
 object MidoConfTool extends App {
     System.setProperty("logback.configurationFile", "logback-disabled.xml")
 
+    val bootstrapConfig = ConfigFactory.parseString("zookeeper.bootstrap_timeout = 1s")
+
     def date = System.currentTimeMillis()
     val opts = new ScallopConf(args) {
 
@@ -412,7 +416,7 @@ object MidoConfTool extends App {
 
     val ret = opts.subcommand map {
         case subcommand: ConfCommand =>
-            Try(subcommand.run(MidoNodeConfigurator()))
+            Try(subcommand.run(MidoNodeConfigurator(bootstrapConfig)))
         case s =>
             println(s)
             Failure(invalidEx)
@@ -425,9 +429,13 @@ object MidoConfTool extends App {
                 System.err.println(s"[mn-conf] mn-conf failed to store a new host id at ${e.getMessage}.")
                 System.err.println("[mn-conf] Please retry as root.")
                 2
+            case e: KeeperException if e.code() == KeeperException.Code.CONNECTIONLOSS =>
+                val zkServer = MidoNodeConfigurator.bootstrapConfig().getString("zookeeper.zookeeper_hosts")
+                System.err.println(s"[mn-conf] Could not connect to zookeeper at '$zkServer'")
+                System.err.println(s"[mn-conf] Check the FILES and ENVIRONMENT sections of the the mn-conf(1) manual page for details.")
+                3
             case other =>
                 System.err.println("[mn-conf] Failed: " + e.getMessage)
-                throw e
                 1
         }
     }
