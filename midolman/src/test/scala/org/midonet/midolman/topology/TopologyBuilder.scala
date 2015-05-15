@@ -539,7 +539,7 @@ trait TopologyBuilder {
                                    poolId: Option[UUID] = None,
                                    status: Option[LBStatus] = None,
                                    address: Option[IPAddr] = None,
-                                   port: Option[Int] = None,
+                                   protocolPort: Option[Int] = None,
                                    weight: Option[Int] = None): PoolMember = {
         val builder = PoolMember.newBuilder
             .setId(id.asProto)
@@ -551,8 +551,8 @@ trait TopologyBuilder {
             builder.setStatus(status.get)
         if (address.isDefined)
             builder.setAddress(address.get.asProto)
-        if (port.isDefined)
-            builder.setPort(port.get)
+        if (protocolPort.isDefined)
+            builder.setProtocolPort(protocolPort.get)
         if (weight.isDefined)
             builder.setWeight(weight.get)
         builder.build()
@@ -789,8 +789,8 @@ object TopologyBuilder {
             poolMember.toBuilder.setStatus(status).build()
         def setAddress(address: IPAddr): PoolMember =
             poolMember.toBuilder.setAddress(address.asProto).build()
-        def setPort(port: Int): PoolMember =
-            poolMember.toBuilder.setPort(port).build()
+        def setProtocolPort(port: Int): PoolMember =
+            poolMember.toBuilder.setProtocolPort(port).build()
         def setWeight(weight: Int): PoolMember =
             poolMember.toBuilder.setWeight(weight).build()
     }

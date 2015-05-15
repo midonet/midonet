@@ -44,7 +44,7 @@ final class PoolMember(@ScalaZoomField(name = "id",
                        @ScalaZoomField(name = "address",
                                        converter = classOf[IPAddressConverter])
                        val address: IPv4Addr,
-                       @ScalaZoomField(name = "port")
+                       @ScalaZoomField(name = "protocol_port")
                        val protocolPort: Int,
                        @ScalaZoomField(name = "weight")
                        val weight: Int)

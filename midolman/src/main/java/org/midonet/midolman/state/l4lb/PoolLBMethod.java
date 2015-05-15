@@ -16,10 +16,15 @@
 
 package org.midonet.midolman.state.l4lb;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.models.Topology;
+
 import static org.midonet.cluster.models.Topology.Pool;
 
+@ZoomEnum(clazz = Topology.Pool.PoolLBMethod.class)
 public enum PoolLBMethod {
-    ROUND_ROBIN;
+    @ZoomEnumValue("ROUND_ROBIN") ROUND_ROBIN;
 
     public static PoolLBMethod fromProto(Pool.PoolLBMethod proto) {
         return PoolLBMethod.valueOf(proto.toString());

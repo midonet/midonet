@@ -20,28 +20,38 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 
-@XmlRootElement
+@ZoomClass(clazz = Topology.LoadBalancer.class)
 public class LoadBalancer extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @ZoomField(name = "routerId", converter = UUIDUtil.Converter.class)
+    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;
 
-    @ZoomField(name = "adminStateUp")
+    @ZoomField(name = "admin_state_up")
     public boolean adminStateUp = true;
 
     @JsonIgnore
     @ZoomField(name = "vip_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> vipIds;
+
+    public URI getUri() {
+        return absoluteUri(ResourceUris.LOAD_BALANCERS, id);
+    }
 
     public URI getRouter() {
         return absoluteUri(ResourceUris.ROUTERS, routerId);
@@ -56,8 +66,20 @@ public class LoadBalancer extends UriResource {
     }
 
     @Override
-    public URI getUri() {
-        return absoluteUri(ResourceUris.LOAD_BALANCERS, id);
+    @JsonIgnore
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+        if (null != routerId) {
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+    }
+
+    @JsonIgnore
+    public void update(LoadBalancer from) {
+        id = from.id;
+        vipIds = from.vipIds;
     }
 
 }

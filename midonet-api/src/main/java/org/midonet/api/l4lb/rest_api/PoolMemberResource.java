@@ -139,7 +139,7 @@ public class PoolMemberResource extends AbstractResource {
     public Response create(PoolMember poolMember)
             throws StateAccessException, SerializationException {
         // `status` defaults to UP and users can't change it through the API.
-        poolMember.status = LBStatus.ACTIVE.toString();
+        poolMember.status = LBStatus.ACTIVE;
         validate(poolMember);
 
         try {
@@ -177,7 +177,7 @@ public class PoolMemberResource extends AbstractResource {
                     dataClient.poolMemberGet(id);
                 poolMember.address = oldPoolMember.getAddress();
                 poolMember.protocolPort = oldPoolMember.getProtocolPort();
-                poolMember.status = oldPoolMember.getStatus().toString();
+                poolMember.status = oldPoolMember.getStatus();
             }
 
             dataClient.poolMemberUpdate(toData(poolMember));
@@ -239,7 +239,7 @@ public class PoolMemberResource extends AbstractResource {
                 InvalidStateOperationException, SerializationException {
             poolMember.poolId = poolId;
             // `status` defaults to UP and users can't change it through the API.
-            poolMember.status = LBStatus.ACTIVE.toString();
+            poolMember.status = LBStatus.ACTIVE;
             validate(poolMember);
 
             try {

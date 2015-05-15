@@ -33,11 +33,12 @@ import org.midonet.api.l4lb.rest_api.PoolResource;
 import org.midonet.api.l4lb.rest_api.VipResource;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.dto.l4lb.LBStatus;
-import org.midonet.client.dto.l4lb.PoolProtocol;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.models.HealthMonitor;
 import org.midonet.cluster.rest_api.models.Pool;
+import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.midolman.state.l4lb.PoolLBMethod;
+import org.midonet.midolman.state.l4lb.PoolProtocol;
 
 /**
  * The test class for the L4LB resource handlers.
@@ -105,10 +106,10 @@ public class L4LBResourceTestBase {
         Pool pool = new Pool();
         pool.id = UUID.randomUUID();
         pool.loadBalancerId = loadBalancerId;
-        pool.protocol = PoolProtocol.TCP.toString();
+        pool.protocol = PoolProtocol.TCP;
         pool.adminStateUp = true;
-        pool.lbMethod = "ROUND_ROBIN";
-        pool.status = LBStatus.ACTIVE.toString();
+        pool.lbMethod = PoolLBMethod.ROUND_ROBIN;
+        pool.status = LBStatus.ACTIVE;
         return pool;
     }
 

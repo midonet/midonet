@@ -148,7 +148,7 @@ public class PoolResource extends AbstractResource {
     public Response create(Pool pool)
             throws StateAccessException, SerializationException {
         // `status` defaults to UP and users can't change it through the API.
-        pool.status = LBStatus.ACTIVE.toString();
+        pool.status = LBStatus.ACTIVE;
         validate(pool);
 
         try {
@@ -184,7 +184,7 @@ public class PoolResource extends AbstractResource {
             }
 
             // DISALLOW changing this from the API
-            pool.status = oldData.getStatus().toString();
+            pool.status = oldData.getStatus();
 
             dataClient.poolUpdate(toData(pool));
             poolEvent.update(id, dataClient.poolGet(id));
@@ -266,7 +266,7 @@ public class PoolResource extends AbstractResource {
                 throws StateAccessException, SerializationException {
             pool.loadBalancerId = loadBalancerId;
             // `status` defaults to UP and users can't change it through the API.
-            pool.status = LBStatus.ACTIVE.toString();
+            pool.status = LBStatus.ACTIVE;
             validate(pool);
 
             try {
