@@ -28,7 +28,6 @@ public class NetworkModule extends AbstractModule {
     protected void configure() {
 
         requireBinding(DataClient.class);
-        bind(RouteNextHopPortConstraintValidator.class).asEagerSingleton();
 
         bind(PortsLinkableConstraintValidator.class).asEagerSingleton();
         bind(PortIdValidator.class).asEagerSingleton();
