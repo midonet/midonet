@@ -4,4 +4,3 @@ MIDO_CFG=/etc/midonet-cluster
 MIDO_LOG_DIR=/var/log/midonet-cluster/
 MIDO_DEBUG_PORT=8001
 MIDO_CFG_FILE=midonet-cluster.conf
-MIDO_LOG_BACK=logback.xml
