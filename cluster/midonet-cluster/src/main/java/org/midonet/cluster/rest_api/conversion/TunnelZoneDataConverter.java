@@ -30,9 +30,9 @@ public class TunnelZoneDataConverter {
         org.midonet.cluster.rest_api.models.TunnelZone
             tz = new org.midonet.cluster.rest_api.models.TunnelZone();
 
-        tz.id = UUID.fromString(tunnelZoneData.getId().toString());
-        tz.name = tunnelZoneData.getName();
-        tz.type = TunnelZoneType.valueOf(tunnelZoneData.getType().toString());
+        tz.setId(UUID.fromString(tunnelZoneData.getId().toString()));
+        tz.setName(tunnelZoneData.getName());
+        tz.setType(TunnelZoneType.valueOf(tunnelZoneData.getType().toString()));
         tz.setBaseUri(baseUri);
         return tz;
     }
@@ -40,19 +40,19 @@ public class TunnelZoneDataConverter {
     public static org.midonet.cluster.data.TunnelZone toData(TunnelZone tz) {
         org.midonet.cluster.data.TunnelZone.Type t = null;
 
-        if (TunnelZoneType.vxlan.equals(tz.type)) {
+        if (TunnelZoneType.vxlan.equals(tz.getType())) {
             t = org.midonet.cluster.data.TunnelZone.Type.vxlan;
-        } else if (TunnelZoneType.vtep.equals(tz.type)) {
+        } else if (TunnelZoneType.vtep.equals(tz.getType())) {
             t = org.midonet.cluster.data.TunnelZone.Type.vtep;
-        } else if (TunnelZoneType.gre.equals(tz.type)) {
+        } else if (TunnelZoneType.gre.equals(tz.getType())) {
             t = org.midonet.cluster.data.TunnelZone.Type.gre;
         } else {
             throw new IllegalArgumentException(
-                "Unknown tunnel zone type: " + tz.type);
+                "Unknown tunnel zone type: " + tz.getType());
         }
         return new org.midonet.cluster.data.TunnelZone()
-                                           .setId(tz.id)
-                                           .setName(tz.name)
+                                           .setId(tz.getId())
+                                           .setName(tz.getName())
                                            .setType(t);
     }
 

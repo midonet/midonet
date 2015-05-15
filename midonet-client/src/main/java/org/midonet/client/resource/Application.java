@@ -39,7 +39,6 @@ import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoSystemState;
 import org.midonet.client.dto.DtoTenant;
-import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoWriteVersion;
 
 /**
@@ -166,18 +165,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     }
 
     /**
-     * Gets Tunnel Zones.
-     *
-     * @return collection of tunnel zones
-     */
-    public ResourceCollection<TunnelZone>
-            getTunnelZones(MultivaluedMap<String,String> queryParams) {
-        return getChildResources(principalDto.getTunnelZones(), queryParams,
-            VendorMediaType.APPLICATION_TUNNEL_ZONE_COLLECTION_JSON,
-            TunnelZone.class, DtoTunnelZone.class);
-    }
-
-    /**
      * Adds a router.
      *
      * @return new Router() resource
@@ -215,20 +202,6 @@ public class Application extends ResourceBase<Application, DtoApplication> {
     public IpAddrGroup addIpAddrGroup() {
         return new IpAddrGroup(resource,
                 principalDto.getIpAddrGroups(), new DtoIpAddrGroup());
-    }
-
-    /**
-     * Adds a tunnel zone
-     *
-     * @return new gre tunnel zone.
-     */
-    public TunnelZone addGreTunnelZone() {
-        return new TunnelZone(resource,
-                principalDto.getTunnelZones(),
-                new DtoTunnelZone(),
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
-                VendorMediaType
-                        .APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON);
     }
 
     /**
@@ -428,22 +401,5 @@ public class Application extends ResourceBase<Application, DtoApplication> {
         return getChildResources(principalDto.getHostVersions(), null,
                                  VendorMediaType.APPLICATION_HOST_VERSION_JSON,
                                  HostVersion.class, DtoHostVersion.class);
-    }
-
-    /**
-     * Returns TunnelZone object
-     *
-     * @param id ID of tunnel zone
-     * @return TunnelZone
-     */
-    public TunnelZone getTunnelZone(UUID id) {
-        URI uri = createUriFromTemplate(
-                principalDto.getTunnelZoneTemplate(), ID_TOKEN,
-                id);
-        DtoTunnelZone tunnelZone = resource.get(uri, null, DtoTunnelZone.class,
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON);
-        return new TunnelZone(resource, null, tunnelZone,
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
-                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON);
     }
 }

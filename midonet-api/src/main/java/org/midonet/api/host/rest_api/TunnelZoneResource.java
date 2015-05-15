@@ -147,7 +147,7 @@ public class TunnelZoneResource extends AbstractResource {
 
         validate(tunnelZone);
 
-        throwIfNameUsed(tunnelZone.name);
+        throwIfNameUsed(tunnelZone.getName());
 
         UUID id = dataClient.tunnelZonesCreate(toData(tunnelZone));
         tunnelZoneEvent.create(id, dataClient.tunnelZonesGet(id));
@@ -164,11 +164,11 @@ public class TunnelZoneResource extends AbstractResource {
     public void update(@PathParam("id") UUID id, TunnelZone tunnelZone)
             throws StateAccessException, SerializationException {
 
-        tunnelZone.id = id;
+        tunnelZone.setId(id);
 
         validate(tunnelZone);
 
-        throwIfNameUsed(tunnelZone.name);
+        throwIfNameUsed(tunnelZone.getName());
 
         dataClient.tunnelZonesUpdate(toData(tunnelZone));
         tunnelZoneEvent.update(id, dataClient.tunnelZonesGet(id));

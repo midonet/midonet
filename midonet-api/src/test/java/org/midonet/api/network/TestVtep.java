@@ -34,7 +34,6 @@ import org.midonet.api.vtep.VtepMockableDataClientFactory.MockableVtep;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPort;
-import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoVtep;
 import org.midonet.client.dto.DtoVtepBinding;
 import org.midonet.client.dto.DtoVtepPort;
@@ -43,6 +42,7 @@ import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneData;
 import org.midonet.midolman.state.VtepConnectionState;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
@@ -81,11 +81,11 @@ public class TestVtep extends RestApiTestBase {
     @Before
     public void before() {
         URI tunnelZonesUri = app.getTunnelZones();
-        DtoTunnelZone tz = new DtoTunnelZone();
+        TunnelZoneData tz = new TunnelZoneData();
         tz.setName("tz");
         tz = dtoResource.postAndVerifyCreated(tunnelZonesUri,
                   VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tz,
-                  DtoTunnelZone.class);
+                  TunnelZoneData.class);
         assertNotNull(tz.getId());
         goodTunnelZone = tz.getId();
         assertEquals("tz", tz.getName());
