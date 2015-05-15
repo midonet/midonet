@@ -15,47 +15,84 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.validation.constraints.Pattern;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.ZoomObject;
-import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.packets.IPv4;
 
-import static org.midonet.cluster.util.UUIDUtil.Converter;
+@ZoomClass(clazz = Topology.PoolMember.class)
+public class PoolMember extends UriResource {
 
-// TODO: ZOOM CLASS NEEDED
-@XmlRootElement
-public class PoolMember extends ZoomObject {
-
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
     @ZoomField(name = "admin_state_up")
-    public boolean adminStateUp = true;
+    public boolean adminStateUp;
 
     @ZoomField(name = "status")
-    public String status = LBStatus.ACTIVE.toString();
+    public LoadBalancer.LBStatus status;
 
     @NotNull
-    @ZoomField(name = "poolId", converter = Converter.class)
+    @ZoomField(name = "pool_id", converter = UUIDUtil.Converter.class)
     public UUID poolId;
 
     @NotNull
-    // TODO: @Pattern(regexp = IPv4.regex, message = MessageProperty.IP_ADDR_INVALID)
-    @ZoomField(name = "address")
+    @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
+    @ZoomField(name = "address", converter = IPAddressUtil.Converter.class)
     public String address;
 
-    @Min(0) @Max(65535)
-    @ZoomField(name = "protocolPort")
+    @Min(0)
+    @Max(65535)
+    @ZoomField(name = "protocol_port")
     public int protocolPort;
 
     @Min(1)
     @ZoomField(name = "weight")
     public int weight = 1;
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.POOL_MEMBERS, id);
+    }
+
+    public URI getPool() {
+        return absoluteUri(ResourceUris.POOLS, poolId);
+    }
+
+    @Override
+    @JsonIgnore
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+        adminStateUp = true;
+        status = LoadBalancer.LBStatus.ACTIVE;
+    }
+
+    @JsonIgnore
+    public void create(UUID poolId) {
+        create();
+        this.poolId = poolId;
+    }
+
+    @JsonIgnore
+    public void update(PoolMember from) {
+        id = from.id;
+        address = from.address;
+        protocolPort = from.protocolPort;
+        status = from.status;
+    }
 
 }

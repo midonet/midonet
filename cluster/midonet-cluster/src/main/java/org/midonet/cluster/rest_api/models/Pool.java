@@ -15,40 +15,101 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.midolman.state.l4lb.LBStatus;
-import org.midonet.midolman.state.l4lb.PoolProtocol;
 
-// TODO: Make ZOOM CLASS
-@XmlRootElement
-public class Pool extends ZoomObject {
+@ZoomClass(clazz = Topology.Pool.class)
+public class Pool extends UriResource {
+
+    @ZoomEnum(clazz = Topology.Pool.PoolProtocol.class)
+    public enum PoolProtocol {
+        @ZoomEnumValue("TCP") TCP
+    }
+
+    @ZoomEnum(clazz = Topology.Pool.PoolLBMethod.class)
+    public enum PoolLBMethod {
+        @ZoomEnumValue("ROUND_ROBIN") ROUND_ROBIN
+    }
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    private UUID id;
+    public UUID id;
 
-    @ZoomField(name = "healthMonitorId", converter = UUIDUtil.Converter.class)
-    private UUID healthMonitorId;
-
-    @NotNull
-    @ZoomField(name = "loadBalancerId", converter = UUIDUtil.Converter.class)
-    private UUID loadBalancerId;
-
-    @ZoomField(name = "protocol", converter = UUIDUtil.Converter.class)
-    private String protocol = PoolProtocol.TCP.toString();
+    @ZoomField(name = "admin_state_up")
+    public boolean adminStateUp = true;
+    
+    @ZoomField(name = "health_monitor_id", converter = UUIDUtil.Converter.class)
+    public UUID healthMonitorId;
 
     @NotNull
-    private String lbMethod;
+    @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
+    public UUID loadBalancerId;
 
-    @ZoomField(name = "adminStateUp", converter = UUIDUtil.Converter.class)
-    private boolean adminStateUp = true;
+    @ZoomField(name = "protocol")
+    public PoolProtocol protocol;
 
-    @ZoomField(name = "status", converter = UUIDUtil.Converter.class)
-    private String status = LBStatus.ACTIVE.toString();
+    @NotNull
+    @ZoomField(name = "lb_method")
+    public PoolLBMethod lbMethod;
+
+    @ZoomField(name = "status")
+    public LoadBalancer.LBStatus status;
+
+    @JsonIgnore
+    @ZoomField(name = "pool_member_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> poolMemberIds;
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.POOLS, id);
+    }
+
+    public URI getHealthMonitor() {
+        return absoluteUri(ResourceUris.HEALTH_MONITORS, healthMonitorId);
+    }
+
+    public URI getLoadBalancer() {
+        return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
+    }
+
+    public URI getVips() {
+        return relativeUri(ResourceUris.VIPS);
+    }
+
+    public URI getPoolMembers() {
+        return relativeUri(ResourceUris.POOL_MEMBERS);
+    }
+
+    @Override
+    @JsonIgnore
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+        protocol = PoolProtocol.TCP;
+        status = LoadBalancer.LBStatus.ACTIVE;
+    }
+
+    @JsonIgnore
+    public void create(UUID loadBalancerId) {
+        create();
+        this.loadBalancerId = loadBalancerId;
+    }
+
+    @JsonIgnore
+    public void update(Pool from) {
+        id = from.id;
+        poolMemberIds = from.poolMemberIds;
+    }
 }

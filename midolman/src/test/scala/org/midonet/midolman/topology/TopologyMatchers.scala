@@ -317,7 +317,7 @@ object TopologyMatchers {
                 l4lb.LBStatus.fromProto(pm.getStatus) else l4lb.LBStatus.INACTIVE)
             poolMember.address shouldBe (if (pm.hasAddress)
                 pm.getAddress.asIPv4Address else null)
-            poolMember.protocolPort shouldBe pm.getPort
+            poolMember.protocolPort shouldBe pm.getProtocolPort
             poolMember.weight shouldBe pm.getWeight
         }
     }
