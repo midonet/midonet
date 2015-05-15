@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,14 @@ object UUIDUtil {
     def toProto(uuidStr: String): PUUID = {
         if (uuidStr == null) null
         else toProto(JUUID.fromString(uuidStr))
+    }
+
+    def toProtoFromProtoStr(uuidProtoStr: String): PUUID = {
+        if (uuidProtoStr == null) null
+        else {
+            ProtobufUtil.protoFromTxt(uuidProtoStr, PUUID.newBuilder)
+            .asInstanceOf[PUUID]
+        }
     }
 
     implicit def fromProto(uuid: PUUID): JUUID = {
