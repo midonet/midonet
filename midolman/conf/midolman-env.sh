@@ -22,6 +22,9 @@ MIDO_DEBUG_PORT=8001
 JMX_PORT="7200"
 MIDO_CFG_FILE=midolman.conf
 QUAGGA_DIR=/var/run/quagga
+# setting this option will make the agent not run under the watchdog
+#WATCHDOG_DISABLE=
+WATCHDOG_TIMEOUT=10
 
 # The first existing directory is used for JAVA_HOME if needed.
 JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk"
