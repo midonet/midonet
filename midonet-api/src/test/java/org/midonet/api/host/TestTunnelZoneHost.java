@@ -36,21 +36,21 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoHost;
+import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoHost;
-import org.midonet.client.dto.DtoTunnelZone;
-import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
-import org.midonet.client.resource.TunnelZone;
-import org.midonet.client.resource.TunnelZoneHost;
+import org.midonet.cluster.rest_api.models.TunnelZone;
+import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneData;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -60,7 +60,6 @@ import org.midonet.packets.MAC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZoneHost {
@@ -89,8 +88,9 @@ public class TestTunnelZoneHost {
             DtoHost host2 = new DtoHost();
             host2.setName("host2");
 
-            DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
+            TunnelZoneData tunnelZone1 = new TunnelZoneData();
             tunnelZone1.setName("tz1-name");
+            tunnelZone1.setType(TunnelZone.TunnelZoneType.gre);
 
             hostManager = JerseyGuiceTestServletContextListener
                           .getHostZkManager();
@@ -98,7 +98,7 @@ public class TestTunnelZoneHost {
                     .create(host1Id, host1).create("tz1", tunnelZone1).build();
         }
 
-        private <DTO extends DtoTunnelZone> void testCrud(DTO tz,
+        private <DTO extends TunnelZoneData> void testCrud(DTO tz,
                 String tzhCollectionMediaType,
                 String tzhMediaType) {
 
@@ -174,7 +174,7 @@ public class TestTunnelZoneHost {
 
         @Test
         public void testCrudGre() throws Exception {
-            DtoTunnelZone tz1 = topologyGre.getGreTunnelZone("tz1");
+            TunnelZoneData tz1 = topologyGre.getGreTunnelZone("tz1");
             Assert.assertNotNull(tz1);
             testCrud(tz1,
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON,
@@ -200,19 +200,22 @@ public class TestTunnelZoneHost {
             hostManager.createHost(hostId, metadata);
             hostManager.makeAlive(hostId);
 
-            ResourceCollection<Host> hosts = api.getHosts();
-            org.midonet.client.resource.Host host = hosts.get(0);
+            TunnelZoneData greTunnelZone = topologyGre.getGreTunnelZone("tz1");
 
-            TunnelZone greTunnelZone = api.addGreTunnelZone()
-                                           .name("gre-tunnel-zone-1")
-                                           .create();
+            DtoTunnelZoneHost tzhDto = new DtoTunnelZoneHost();
+            tzhDto.setHostId(hostId);
+            tzhDto.setIpAddress("1.1.1.1");
+            dtoResource.postAndVerifyCreated(greTunnelZone.getHosts(),
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON, tzhDto,
+                TunnelZoneData.class);
 
-            greTunnelZone.addTunnelZoneHost()
-                         .ipAddress("1.1.1.1")
-                         .hostId(hostId).create();
+            DtoTunnelZoneHost[] tzHosts = dtoResource.getAndVerifyOk(
+                greTunnelZone.getHosts(),
+                VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                DtoTunnelZoneHost[].class);
 
             assertThat("There is one host entry under the tunnel zone.",
-                       greTunnelZone.getHosts().size(), is(1));
+                    tzHosts.length, is(1));
         }
     }
 
@@ -238,8 +241,9 @@ public class TestTunnelZoneHost {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
 
-            DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
+            TunnelZoneData tunnelZone1 = new TunnelZoneData();
             tunnelZone1.setName("tz1-name");
+            tunnelZone1.setType(TunnelZone.TunnelZoneType.gre);
 
             topology = new HostTopology.Builder(dtoResource)
                     .create("tz1", tunnelZone1).build();
@@ -261,7 +265,7 @@ public class TestTunnelZoneHost {
 
         @Test
         public void testBadInputCreate() {
-            DtoTunnelZone tz = topology.getGreTunnelZone("tz1");
+            TunnelZoneData tz = topology.getGreTunnelZone("tz1");
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     tz.getHosts(),
@@ -275,7 +279,9 @@ public class TestTunnelZoneHost {
 
     public static class TestBaseUriOverride extends JerseyTest {
 
+        private DtoWebResource dtoResource;
         private HostZkManager hostManager;
+        private HostTopology topology;
         private UUID hostId = UUID.randomUUID();
 
         public TestBaseUriOverride() {
@@ -284,9 +290,17 @@ public class TestTunnelZoneHost {
 
         @Before
         public void setUp() throws StateAccessException,
-                InterruptedException, KeeperException{
+                InterruptedException, KeeperException,
+                SerializationException {
+            WebResource resource = resource();
+            dtoResource = new DtoWebResource(resource);
             hostManager = JerseyGuiceTestServletContextListener
                 .getHostZkManager();
+            TunnelZoneData tunnelZone1 = new TunnelZoneData();
+            tunnelZone1.setName("tz1-name");
+            tunnelZone1.setType(TunnelZone.TunnelZoneType.gre);
+            topology = new HostTopology.Builder(dtoResource)
+                    .create("tz1", tunnelZone1).build();
         }
 
         @Test
@@ -322,24 +336,41 @@ public class TestTunnelZoneHost {
             ResourceCollection<Host> hosts = api.getHosts();
             org.midonet.client.resource.Host host = hosts.get(0);
 
-            TunnelZone greTunnelZone = api.addGreTunnelZone()
-                    .name("gre-tunnel-zone-1")
-                    .create();
+            DtoApplication app = topology.getApplication();
+            URI tunnelZonesUri = app.getTunnelZones();
+
+            TunnelZoneData greTunnelZone = new TunnelZoneData();
+            greTunnelZone.setName("tz1");
+            greTunnelZone.setType(TunnelZone.TunnelZoneType.gre);
+
+            greTunnelZone = dtoResource.postAndVerifyCreated(tunnelZonesUri,
+                    VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, greTunnelZone,
+                    TunnelZoneData.class);
+
+
+            DtoTunnelZoneHost tzhDto = new DtoTunnelZoneHost();
+            tzhDto.setHostId(hostId);
+            tzhDto.setIpAddress("1.1.1.1");
+
+            tzhDto = dtoResource.postAndVerifyCreated(greTunnelZone.getHosts(),
+                    VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON, tzhDto,
+                    DtoTunnelZoneHost.class);
+
+            DtoTunnelZoneHost[] tzHosts = dtoResource.getAndVerifyOk(
+                    greTunnelZone.getHosts(),
+                    VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
+                    DtoTunnelZoneHost[].class);
 
             // Check tunnel zone URI is overridden correctly
             URI tzUri = greTunnelZone.getUri();
             Assert.assertTrue("Should have correct base URI",
                     tzUri.toString().startsWith(FuncTest.OVERRIDE_BASE_URI));
 
-            TunnelZoneHost tzHost = greTunnelZone.addTunnelZoneHost()
-                    .ipAddress("1.1.1.1")
-                    .hostId(hostId).create();
-
             assertThat("There is one host entry under the tunnel zone.",
-                    greTunnelZone.getHosts().size(), is(1));
+                    tzHosts.length, is(1));
 
             // Check tunnel zone host URI is overridden correctly
-            URI tzHostUri = tzHost.getUri();
+            URI tzHostUri = tzhDto.getUri();
             Assert.assertTrue("Should have correct base URI",
                     tzHostUri.toString()
                             .startsWith(FuncTest.OVERRIDE_BASE_URI));

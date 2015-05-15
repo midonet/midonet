@@ -42,13 +42,13 @@ import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
-import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneData;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -102,7 +102,7 @@ public class TestHostInterfacePort {
             DtoBridgePort bridgePort1 = new DtoBridgePort();
             DtoBridgePort bridgePort2 = new DtoBridgePort();
 
-            DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
+            TunnelZoneData tunnelZone1 = new TunnelZoneData();
             tunnelZone1.setName("tz1-name");
 
             topology = new Topology.Builder(dtoResource)
@@ -123,7 +123,7 @@ public class TestHostInterfacePort {
         }
 
         private void bindHostToTunnelZone(UUID hostId) {
-            DtoTunnelZone tz = hostTopology.getGreTunnelZone("tz1");
+            TunnelZoneData tz = hostTopology.getGreTunnelZone("tz1");
             Assert.assertNotNull(tz);
             // Map a tunnel zone to a host
             DtoTunnelZoneHost mapping = new DtoTunnelZoneHost();

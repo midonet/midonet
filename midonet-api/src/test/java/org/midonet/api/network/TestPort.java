@@ -55,9 +55,10 @@ import org.midonet.client.dto.DtoPortGroupPort;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
+import org.midonet.cluster.rest_api.models.TunnelZone;
+import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneData;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.packets.MAC;
 
@@ -1339,8 +1340,9 @@ public class TestPort {
             port1 = topology.getRouterPort("port1");
             port2 = topology.getBridgePort("port2");
 
-            DtoTunnelZone tunnelZone = new DtoTunnelZone();
+            TunnelZoneData tunnelZone = new TunnelZoneData();
             tunnelZone.setName("tz1-name");
+            tunnelZone.setType(TunnelZone.TunnelZoneType.gre);
 
             DtoTunnelZoneHost tzh1 = new DtoTunnelZoneHost();
             tzh1.setHostId(host1.getId());

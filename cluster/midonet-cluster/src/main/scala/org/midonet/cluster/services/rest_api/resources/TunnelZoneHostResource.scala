@@ -45,7 +45,7 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
                      @HeaderParam("Accept") accept: String): TunnelZoneHost = {
         val hostId = UUID.fromString(id)
         getResource(classOf[TunnelZone], tunnelZoneId)
-            .map(_.hosts.asScala.find(_.hostId == hostId))
+            .map(_.getTunnelZoneHosts.asScala.find(_.hostId == hostId))
             .getOrThrow
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
@@ -56,7 +56,7 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     override def list(@HeaderParam("Accept") accept: String)
     : JList[TunnelZoneHost] = {
         getResource(classOf[TunnelZone], tunnelZoneId)
-            .map(_.hosts)
+            .map(_.getTunnelZoneHosts)
             .getOrThrow
     }
 
@@ -67,14 +67,14 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
         getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
-            if (tunnelZone.hosts.asScala.find(_.hostId ==
+            if (tunnelZone.getTunnelZoneHosts.asScala.find(_.hostId ==
                                               tunnelZoneHost.hostId).nonEmpty) {
                 Response.status(Status.CONFLICT).build()
             } else {
-                tunnelZoneHost.create(tunnelZone.id)
+                tunnelZoneHost.create(tunnelZone.getId)
                 tunnelZoneHost.setBaseUri(uriInfo.getBaseUri)
-                tunnelZone.hosts.add(tunnelZoneHost)
-                tunnelZone.hostIds.add(tunnelZoneHost.hostId)
+                tunnelZone.getTunnelZoneHosts.add(tunnelZoneHost)
+                tunnelZone.getHostIds.add(tunnelZoneHost.hostId)
                 updateResource(tunnelZone,
                                Response.created(tunnelZoneHost.getUri).build())
             }
@@ -86,14 +86,13 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     override def delete(@PathParam("id") id: String): Response = {
         val hostId = UUID.fromString(id)
         getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
-            tunnelZone.hosts.asScala.find(_.hostId == hostId)
+            tunnelZone.getTunnelZoneHosts.asScala.find(_.hostId == hostId)
                 .map(tunnelZoneHost => {
-                    tunnelZone.hosts.remove(tunnelZoneHost)
-                    tunnelZone.hostIds.remove(tunnelZoneHost.hostId)
+                    tunnelZone.getTunnelZoneHosts.remove(tunnelZoneHost)
+                    tunnelZone.getHostIds.remove(tunnelZoneHost.hostId)
                     updateResource(tunnelZone)
                 })
                 .getOrElse(Response.status(Status.NOT_FOUND).build())
         }).getOrThrow
     }
-
 }

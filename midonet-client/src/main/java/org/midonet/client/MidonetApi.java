@@ -36,7 +36,6 @@ import org.midonet.client.resource.Rule;
 import org.midonet.client.resource.RuleChain;
 import org.midonet.client.resource.SystemState;
 import org.midonet.client.resource.Tenant;
-import org.midonet.client.resource.TunnelZone;
 import org.midonet.client.resource.WriteVersion;
 
 
@@ -99,15 +98,6 @@ public class MidonetApi {
         return application.addPortGroup();
     }
 
-    /**
-     * Adds a GRE tunnel zone
-     *
-     * @return gre tunnel zone resource
-     */
-    public TunnelZone addGreTunnelZone() {
-        ensureApplication();
-        return application.addGreTunnelZone();
-    }
 
     /**
      * Gets Routers.
@@ -160,16 +150,6 @@ public class MidonetApi {
     public ResourceCollection<Tenant> getTenants() {
         ensureApplication();
         return application.getTenants(null);
-    }
-
-    /**
-     * Gets Tunnel Zones
-     *
-     * @return collection of tunnel zone
-     */
-    public ResourceCollection<TunnelZone> getTunnelZones() {
-        ensureApplication();
-        return application.getTunnelZones(null);
     }
 
     /**
@@ -308,17 +288,6 @@ public class MidonetApi {
     public ResourceCollection<HostVersion> getHostVersions() {
         ensureApplication();
         return application.getHostVersions();
-    }
-
-    /**
-     * Returns TunnelZone object
-     *
-     * @param id ID of tunnel zone
-     * @return TunnelZone
-     */
-    public TunnelZone getTunnelZone(UUID id) {
-        ensureApplication();
-        return application.getTunnelZone(id);
     }
 
     private void ensureApplication() {
