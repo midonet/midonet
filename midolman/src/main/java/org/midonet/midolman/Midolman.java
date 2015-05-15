@@ -146,16 +146,8 @@ public class Midolman {
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
 
-        // TODO(mtoader): Redirected where?
-        options.addOption("redirectStdOut", true,
-                          "will cause the stdout to be redirected");
-        options.addOption("redirectStdErr", true,
-                          "will cause the stderr to be redirected");
-
         CommandLineParser parser = new GnuParser();
         CommandLine cl = parser.parse(options, args);
-
-        redirectStdOutAndErrIfRequested(cl);
 
         String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
         if (!java.nio.file.Files.isReadable(Paths.get(configFilePath))) {
@@ -241,42 +233,6 @@ public class Midolman {
         } finally {
             log.info("Exiting. BYE (signal)!");
             serviceEvent.exit();
-        }
-    }
-
-    private void redirectStdOutAndErrIfRequested(CommandLine commandLine) {
-
-        String targetStdOut = commandLine.getOptionValue("redirectStdOut");
-        if (targetStdOut != null) {
-            try {
-                File targetStdOutFile = new File(targetStdOut);
-                if (targetStdOutFile.isFile() && targetStdOutFile.canWrite()) {
-                    PrintStream newStdOutStr = new PrintStream(
-                        targetStdOutFile);
-                    newStdOutStr.println("[Begin redirected output]");
-
-                    System.setOut(newStdOutStr);
-                }
-            } catch (FileNotFoundException e) {
-                log.error("Could not redirect stdout to {}", targetStdOut, e);
-            }
-        }
-
-        String targetStdErr = commandLine.getOptionValue("redirectStdErr");
-
-        if (targetStdErr != null) {
-            try {
-                File targetStdErrFile = new File(targetStdErr);
-                if (targetStdErrFile.isFile() && targetStdErrFile.canWrite()) {
-                    PrintStream newStdErrStr = new PrintStream(
-                        targetStdErrFile);
-                    newStdErrStr.println("[Begin redirected output]");
-
-                    System.setErr(newStdErrStr);
-                }
-            } catch (FileNotFoundException e) {
-                log.error("Could not redirect stderr to {}", targetStdErr, e);
-            }
         }
     }
 
