@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,35 @@ package org.midonet.cluster.services.c3po.translators
 
 import com.google.protobuf.Message
 
-import org.midonet.cluster.services.c3po.midonet.MidoOp
+import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
+import org.midonet.cluster.models.Topology.LoadBalancer
+import org.midonet.cluster.services.c3po.midonet.{Create, MidoOp}
+import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPool. */
-class LoadBalancerPoolTranslator
-        extends NeutronTranslator[NeutronLoadBalancerPool]{
+class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
+        extends NeutronTranslator[NeutronLoadBalancerPool] {
 
-    override protected def translateCreate(nm: NeutronLoadBalancerPool)
-    : List[MidoOp[_ <: Message]] = List()
+    override protected def translateCreate(nPool: NeutronLoadBalancerPool)
+    : MidoOpList = {
+        if (!nPool.hasRouterId)
+            throw new IllegalArgumentException("No router ID is specified.")
+
+        // If no Load Balancer has been created for the Router, create one.
+        val lbId = nPool.getRouterId // LB and Router share the same ID.
+        val midoOps = new MidoOpListBuffer
+        if (!storage.exists(classOf[LoadBalancer], lbId).await()) {
+            val lb = LoadBalancer.newBuilder()
+                                 .setId(lbId)
+                                 .setAdminStateUp(nPool.getAdminStateUp)
+                                 .setRouterId(nPool.getRouterId).build()
+            midoOps += Create(lb)
+        }
+
+        midoOps.toList
+    }
 
     override protected def translateDelete(id: UUID)
     : List[MidoOp[_ <: Message]] = List()
