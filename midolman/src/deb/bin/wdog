@@ -27,6 +27,7 @@ import signal
 import struct
 import sys
 import tempfile
+import time
 
 
 def corefile_timestamp():
@@ -139,6 +140,10 @@ class ProcMon(ISelectLoopObserver):
                     (len(dumps), self.dump_path))
                 return
 
+            if self.youngest_dump_age() < 3600:
+                err('SKIPPING MEMORY DUMP, a core was already dumped less than one hour ago')
+                return
+
             filename = "%s/core_%s_%d.hprof" % (self.dump_path,
                                                 corefile_timestamp(), pid)
             err("dumping core into %s" % filename)
@@ -155,6 +160,12 @@ class ProcMon(ISelectLoopObserver):
             files.extend(filenames)
             break
         return filter(lambda f: f.endswith(".hprof"), files)
+
+    def youngest_dump_age(self):
+        dumps = map(lambda f: os.path.getmtime("%s/%s" % (self.dump_path, f)), self.list_dumps())
+        most_recent = reduce(lambda l,r: l if l > r else r, dumps, 0)
+        current_time = time.mktime(time.localtime())
+        return int(current_time) - int(most_recent)
 
     def run(self):
         self.select_loop = SelectLoop(self)
