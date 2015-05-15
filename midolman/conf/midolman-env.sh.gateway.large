@@ -14,75 +14,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-check_for_java7() {
-    [ "x" = "x$1" ] && return 1
-    [ -x "$1" ] || return 1
-    $1 -version 2>&1 | grep '^java version' | sed -e 's/^[^"]*"\(.*\)"$/\1/' \
-        | grep '^1.7.' >/dev/null 2>&1
-}
+MIDO_HOME=/usr/share/midolman
+MIDO_AKKA_CFG=/etc/midolman/midolman-akka.conf
+MIDO_CFG=/etc/midolman
+MIDO_LOG_DIR=/var/log/midolman/
+MIDO_DEBUG_PORT=8001
+JMX_PORT="7200"
+MIDO_CFG_FILE=midolman.conf
+QUAGGA_DIR=/var/run/quagga
 
 # The first existing directory is used for JAVA_HOME if needed.
 JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk"
 
-if [ -n "`which java`" ]; then
-        java=`which java`
-        # Dereference symlink(s)
-        while true; do
-            if [ -h "$java" ]; then
-                java=`readlink "$java"`
-                continue
-            fi
-            break
-        done
-        JVM_SEARCH_DIRS="`dirname $java`/../ $JVM_SEARCH_DIRS"
-fi
-if [ ! -z "$JAVA_HOME" ]; then
-    JVM_SEARCH_DIRS="$JAVA_HOME $JVM_SEARCH_DIRS"
-fi
-
-oldopts=$-
-set +e
-JAVA_HOME=
-for jdir in $JVM_SEARCH_DIRS; do
-    check_for_java7 "$jdir/bin/java"
-    if [ $? -eq 0 ]; then
-        JAVA_HOME="$jdir"
-        break
-    fi
-done
-echo $oldopts | grep 'e' 2>&1 >/dev/null && set -e
-
-if [ -z "$JAVA_HOME" ] ; then
-    echo "No suitable JVM found (at least v1.7 required)"
-    exit 1
-fi
-JAVA="$JAVA_HOME/bin/java"
-
-# Override these to set the amount of memory to allocate to the JVM at
-# start-up. For production use you almost certainly want to adjust
-# this for your environment. MAX_HEAP_SIZE is the total amount of
-# memory dedicated to the Java heap; HEAP_NEWSIZE refers to the size
-# of the young generation. Both MAX_HEAP_SIZE and HEAP_NEWSIZE should
-# be either set or not (if you set one, set the other).
-#
-# The main trade-off for the young generation is that the larger it
-# is, the longer GC pause times will be. The shorter it is, the more
-# expensive GC will be (usually).
-#
-# The example HEAP_NEWSIZE assumes a modern 8-core+ machine for decent pause
-# times. If in doubt, and if you do not particularly want to tweak, go with
-# 100 MB per physical CPU core.
+# Amount of memory to allocate for the JVM heap.
 MAX_HEAP_SIZE="10240M"
+
+# Amount of memory, out of the total size defined by MAX_HEAP_SIZE, to 
+# allocate to the eden generation withih
 HEAP_NEWSIZE="6656M"
 
 if [ "x$MAX_HEAP_SIZE" = "x" ] ||  [ "x$HEAP_NEWSIZE" = "x" ]; then
     echo "please set or unset MAX_HEAP_SIZE and HEAP_NEWSIZE in pairs (see midolman-env.sh)"
     exit 1
 fi
-
-# Specifies the default port over which Midolman will be available for
-# JMX connections.
-JMX_PORT="7200"
 
 # Here we create the arguments that will get passed to the jvm when
 # starting midolman.
@@ -162,4 +116,10 @@ if [ "x$JMXDISABLE" = "x" ] ; then
     JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.authenticate=false"
     HOSTNAME=`hostname`
     JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=$HOSTNAME"
+fi
+
+if [ "$MIDOLMAN_HPROF" = "1" ] ; then
+    DATE=$(date +'%H%M%S')
+    HPROF_FILENAME=${HPROF_FILENAME:-/tmp/midolman-$DATE.hprof}
+    JVM_OPTS="$JVM_OPTS -agentlib:hprof=cpu=samples,depth=100,interval=1,lineno=y,thread=y,file=$HPROF_FILENAME"
 fi

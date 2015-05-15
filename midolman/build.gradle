@@ -146,9 +146,6 @@ task preparePkg(type: Copy, dependsOn: installApp) {
     from("src/deb/init/midolman-start") {
         into "usr/share/midolman"
     }
-    from("src/deb/init/midolman-env.sh") {
-        into "usr/share/midolman"
-    }
     into "${pkgDestDir}"
 
     doLast {
