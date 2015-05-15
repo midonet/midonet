@@ -180,6 +180,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_8925a25d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-15T08:28:17Z",
+      "side": 1,
+      "message": "I\u0027m not sure we need it either. It doesn\u0027t hurt having it, but probably not worth it until we do have a clear purpose.",
+      "parentUuid": "1a106d94_3a31525a",
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c6378ee1",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
         "patchSetId": 1
@@ -219,6 +237,29 @@
         "startChar": 8,
         "endLine": 76,
         "endChar": 15
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_69282633",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-15T08:28:17Z",
+      "side": 1,
+      "message": "I\u0027d like to have a separate type for a ReadOnlyMap primitive that exposes these getters for a single map (regardless of whether it\u0027s merged or not). In occasions the user of the map won\u0027t need to know about the fact that it\u0027s merged or not.",
+      "range": {
+        "startLine": 81,
+        "startChar": 8,
+        "endLine": 81,
+        "endChar": 11
       },
       "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
