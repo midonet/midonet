@@ -16,36 +16,48 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 
-import static org.midonet.cluster.util.UUIDUtil.*;
+@ZoomClass(clazz = Topology.VIP.class)
+public class VIP extends UriResource {
 
-public class VIP extends ZoomObject {
+    @ZoomEnum(clazz = Topology.VIP.SessionPersistence.class)
+    public enum SessionPersistence {
+        @ZoomEnumValue("SOURCE_IP") SOURCE_IP
+    }
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @ZoomField(name = "load_balancer_id", converter = Converter.class)
+    @ZoomField(name = "admin_state_up")
+    public boolean adminStateUp = true;
+
+    @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
     public UUID loadBalancerId;
 
     @NotNull
-    @ZoomField(name = "poolId", converter = Converter.class)
-    private UUID poolId;
+    @ZoomField(name = "pool_id", converter = UUIDUtil.Converter.class)
+    public UUID poolId;
 
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
-    @ZoomField(name = "address")
+    @ZoomField(name = "address", converter = IPAddressUtil.Converter.class)
     public String address;
 
     @Min(0)
@@ -53,11 +65,38 @@ public class VIP extends ZoomObject {
     @ZoomField(name = "protocol_port")
     public int protocolPort;
 
-    // TODO: @VerifyEnumValue(VipSessionPersistence.class)
-    @ZoomField(name = "sessionPersistence")
-    public String sessionPersistence;
+    @ZoomField(name = "session_persistence")
+    public SessionPersistence sessionPersistence;
 
-    @ZoomField(name = "adminStateUp")
-    public boolean adminStateUp = true;
+    public URI getUri() {
+        return absoluteUri(ResourceUris.VIPS, id);
+    }
+
+    public URI getLoadBalancer() {
+        return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
+    }
+
+    public URI getPool() {
+        return absoluteUri(ResourceUris.POOLS, poolId);
+    }
+
+    @Override
+    @JsonIgnore
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+    }
+
+    @JsonIgnore
+    public void create(UUID poolId) {
+        create();
+        this.poolId = poolId;
+    }
+
+    @JsonIgnore
+    public void update(VIP from) {
+        id = from.id;
+    }
 
 }

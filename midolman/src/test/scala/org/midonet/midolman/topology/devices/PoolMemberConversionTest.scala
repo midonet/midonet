@@ -45,7 +45,7 @@ class PoolMemberConversionTest extends FeatureSpec with Matchers
                 poolId = Some(UUID.randomUUID),
                 status = Some(LBStatus.ACTIVE),
                 address = Some(IPv4Addr.random),
-                port = Some(random.nextInt()),
+                protocolPort = Some(random.nextInt()),
                 weight = Some(random.nextInt()))
             val device = ZoomConvert.fromProto(poolMember, classOf[PoolMember])
 
