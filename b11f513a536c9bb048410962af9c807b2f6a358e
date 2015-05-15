@@ -334,6 +334,29 @@
       "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_492f2a3f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/SharedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-15T08:26:08Z",
+      "side": 1,
+      "message": "I think we should move these to a \"PrivateMap\" primitive type that allows having a single map. This will be a use case for both opinions, and aggregated routes.",
+      "range": {
+        "startLine": 103,
+        "startChar": 2,
+        "endLine": 115,
+        "endChar": 30
+      },
+      "revId": "b11f513a536c9bb048410962af9c807b2f6a358e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
