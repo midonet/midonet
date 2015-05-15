@@ -36,6 +36,7 @@ import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.rest_api.annotation.{AllowUpdate, AllowCreate, AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.UriResource
@@ -64,32 +65,36 @@ object MidonetResource {
             f
         } catch {
             case e: NotFoundException =>
-                throw new WebApplicationException(Status.NOT_FOUND)
+                throw new WebApplicationException(e, Status.NOT_FOUND)
             case e: ObjectReferencedException =>
-                throw new WebApplicationException(Status.NOT_ACCEPTABLE)
+                throw new WebApplicationException(e, Status.NOT_ACCEPTABLE)
             case e: ReferenceConflictException =>
-                throw new WebApplicationException(Status.CONFLICT)
+                throw new WebApplicationException(e, Status.CONFLICT)
             case e: ObjectExistsException =>
-                throw new WebApplicationException(Status.CONFLICT)
+                throw new WebApplicationException(e, Status.CONFLICT)
         }
     }
 
-    protected def tryWrite[R](f: => Response): Response = {
-        var attempt = StorageAttempts
-        while (attempt > 0) {
+    protected def tryWrite[R](f: => Response)(implicit log: Logger): Response = {
+        var attempt = 1
+        while (attempt <= StorageAttempts) {
             try {
                 return f
             } catch {
                 case e: NotFoundException =>
+                    log.error(s"Write $attempt of $StorageAttempts", e)
                     return Response.status(HttpStatus.NOT_FOUND_404).build()
                 case e: ObjectReferencedException =>
+                    log.error(s"Write $attempt of $StorageAttempts", e)
                     return Response.status(HttpStatus.NOT_ACCEPTABLE_406).build()
                 case e: ReferenceConflictException =>
+                    log.error(s"Write $attempt of $StorageAttempts", e)
                     return Response.status(HttpStatus.CONFLICT_409).build()
                 case e: ObjectExistsException =>
+                    log.error(s"Write $attempt of $StorageAttempts", e)
                     return Response.status(HttpStatus.CONFLICT_409).build()
                 case e: ConcurrentModificationException =>
-                    attempt -= 1
+                    attempt += 1
             }
         }
         Response.status(HttpStatus.CONFLICT_409).build()
@@ -103,7 +108,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected implicit val executionContext =
         ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
-    protected final val log =
+    protected final implicit val log =
         Logger(LoggerFactory.getLogger(getClass))
 
     @GET
@@ -201,7 +206,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     protected def createResource[U >: Null <: UriResource](resource: U)
     : Response = {
         resource.setBaseUri(uriInfo.getBaseUri)
-        val message = ZoomConvert.toProto(resource, resource.getZoomClass)
+        val message = toProto(resource)
         log.info("CREATE: {}\n{}", message.getClass, message)
         tryWrite {
             backend.store.create(message)
@@ -212,7 +217,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     protected def updateResource[U >: Null <: UriResource]
                                 (resource: U, response: Response = OkResponse)
     : Response = {
-        val message = ZoomConvert.toProto(resource, resource.getZoomClass)
+        val message = toProto(resource)
         log.info("UPDATE: {}\n{}", message.getClass, message)
         tryWrite {
             backend.store.update(message)
@@ -235,11 +240,11 @@ abstract class MidonetResource[T >: Null <: UriResource]
     : Response = {
         val zoomOps = ops.map {
             case Create(resource) =>
-                val msg = ZoomConvert.toProto(resource, resource.getZoomClass)
+                val msg = toProto(resource)
                 log.info("CREATE: {}\n{}", msg.getClass, msg)
                 CreateOp(msg)
             case Update(resource) =>
-                val msg = ZoomConvert.toProto(resource, resource.getZoomClass)
+                val msg = toProto(resource)
                 log.info("UPDATE: {}\n{}", msg.getClass, msg)
                 UpdateOp(msg)
             case Delete(clazz, id) =>
@@ -255,9 +260,27 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     private def fromProto[U >: Null <: UriResource](message: Message,
                                                     clazz: Class[U]): U = {
-        val resource = ZoomConvert.fromProto(message, clazz)
+        val resource = try {
+            ZoomConvert.fromProto(message, clazz)
+        } catch {
+            case e: ConvertException =>
+                log.error("Failed to convert message {} to class {}", message,
+                          clazz, e)
+                throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+        }
         resource.setBaseUri(uriInfo.getBaseUri)
         resource
+    }
+
+    private def toProto[U >: Null <: UriResource](resource: U): Message = {
+        try {
+            ZoomConvert.toProto(resource, resource.getZoomClass)
+        } catch {
+            case e: ConvertException =>
+                log.error("Failed to convert resource {} to message {}",
+                          resource, resource.getZoomClass, e)
+                throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+        }
     }
 
     private def getAnnotation[U >: Null <: Annotation](clazz: Class[U]): U = {

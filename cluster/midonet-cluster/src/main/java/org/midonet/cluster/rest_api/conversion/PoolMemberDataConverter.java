@@ -32,7 +32,7 @@ public class PoolMemberDataConverter {
         pm.protocolPort = poolMember.getProtocolPort();
         pm.weight = poolMember.getWeight();
         pm.adminStateUp = poolMember.getAdminStateUp();
-        pm.status = poolMember.getStatus().toString();
+        pm.status = poolMember.getStatus();
         pm.id = poolMember.getId();
         pm.setBaseUri(baseUri);
         return pm;
@@ -46,7 +46,7 @@ public class PoolMemberDataConverter {
                 .setProtocolPort(pm.protocolPort)
                 .setWeight(pm.weight)
                 .setAdminStateUp(pm.adminStateUp)
-                .setStatus(LBStatus.valueOf(pm.status))
+                .setStatus(pm.status)
                 .setId(pm.id);
     }
 

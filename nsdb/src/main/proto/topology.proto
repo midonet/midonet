@@ -412,6 +412,7 @@ message Pool {
 
     optional PoolProtocol protocol = 5;
     optional PoolLBMethod lb_method = 6;
+    optional LBStatus status = 7;
 
     repeated UUID pool_member_ids = 101;
 }
@@ -422,7 +423,7 @@ message PoolMember {
     optional UUID pool_id = 3;
     optional LBStatus status = 4;
     optional IPAddress address = 5;
-    optional int32 port = 6;
+    optional int32 protocol_port = 6;
     optional int32 weight = 7;
 }
 

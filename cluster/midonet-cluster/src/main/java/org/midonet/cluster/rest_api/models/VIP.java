@@ -23,30 +23,35 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.xml.bind.annotation.XmlRootElement;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.rest_api.validation.VerifyEnumValue;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.packets.IPv4;
 
-import static org.midonet.cluster.util.UUIDUtil.Converter;
-
-@XmlRootElement
+@ZoomClass(clazz = Topology.VIP.class)
 public class VIP extends UriResource {
 
-    @ZoomField(name = "id", converter = Converter.class)
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @ZoomField(name = "load_balancer_id", converter = Converter.class)
+    @ZoomField(name = "admin_state_up")
+    public boolean adminStateUp = true;
+
+    @ZoomField(name = "load_balancer_id", converter = UUIDUtil.Converter.class)
     public UUID loadBalancerId;
 
     @NotNull
-    @ZoomField(name = "poolId", converter = Converter.class)
+    @ZoomField(name = "pool_id", converter = UUIDUtil.Converter.class)
     public UUID poolId;
 
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
-    @ZoomField(name = "address")
+    @ZoomField(name = "address", converter = IPAddressUtil.Converter.class)
     public String address;
 
     @Min(0)
@@ -54,12 +59,12 @@ public class VIP extends UriResource {
     @ZoomField(name = "protocol_port")
     public int protocolPort;
 
-    @VerifyEnumValue(VipSessionPersistence.class)
-    @ZoomField(name = "sessionPersistence")
-    public String sessionPersistence;
+    @ZoomField(name = "session_persistence")
+    public VipSessionPersistence sessionPersistence;
 
-    @ZoomField(name = "adminStateUp")
-    public boolean adminStateUp = true;
+    public URI getUri() {
+        return absoluteUri(ResourceUris.VIPS, id);
+    }
 
     public URI getLoadBalancer() {
         return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
@@ -69,8 +74,23 @@ public class VIP extends UriResource {
         return absoluteUri(ResourceUris.POOLS, poolId);
     }
 
-    public URI getUri() {
-        return absoluteUri(ResourceUris.VIPS, id);
+    @Override
+    @JsonIgnore
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+    }
+
+    @JsonIgnore
+    public void create(UUID poolId) {
+        create();
+        this.poolId = poolId;
+    }
+
+    @JsonIgnore
+    public void update(VIP from) {
+        id = from.id;
     }
 
 }
