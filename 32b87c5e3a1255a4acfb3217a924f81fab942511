@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_69b82675",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/PortGroupPort.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-15T09:24:39Z",
+      "side": 1,
+      "message": "Unfinished comment.  You can just fix this in the next patch.",
+      "revId": "32b87c5e3a1255a4acfb3217a924f81fab942511",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
