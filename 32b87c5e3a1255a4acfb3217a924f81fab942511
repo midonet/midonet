@@ -16,6 +16,24 @@
       "revId": "32b87c5e3a1255a4acfb3217a924f81fab942511",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a95b3e52",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/PortGroupPort.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-15T09:27:16Z",
+      "side": 1,
+      "message": "Oh :( thx, I\u0027ll do so.",
+      "parentUuid": "1a106d94_69b82675",
+      "revId": "32b87c5e3a1255a4acfb3217a924f81fab942511",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
