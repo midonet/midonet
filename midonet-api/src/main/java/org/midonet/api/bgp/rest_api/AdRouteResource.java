@@ -39,14 +39,18 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.bgp.AdRoute;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.conversion.AdRouteDataConverter;
+import org.midonet.cluster.rest_api.models.AdRoute;
 import org.midonet.event.topology.BgpEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.cluster.rest_api.conversion.AdRouteDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.AdRouteDataConverter.toData;
 
 /**
  * Root resource class for advertising routes.
@@ -99,7 +103,7 @@ public class AdRouteResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_AD_ROUTE_JSON,
-            MediaType.APPLICATION_JSON })
+                MediaType.APPLICATION_JSON })
     public AdRoute get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
@@ -110,11 +114,7 @@ public class AdRouteResource extends AbstractResource {
             throwNotFound(id, "ad route");
         }
 
-        // Convert to the REST API DTO
-        AdRoute adRoute = new AdRoute(adRouteData);
-        adRoute.setBaseUri(getBaseUri());
-
-        return adRoute;
+        return AdRouteDataConverter.fromData(adRouteData, getBaseUri());
     }
 
     /**
@@ -148,16 +148,16 @@ public class AdRouteResource extends AbstractResource {
         public Response create(AdRoute adRoute) throws StateAccessException,
                                                        SerializationException {
 
-            adRoute.setBgpId(bgpId);
+            adRoute.bgpId = bgpId;
 
             authoriser.tryAuthoriseBgp(bgpId,
                                        "add ad route to this BGP.");
 
-            UUID id = dataClient.adRoutesCreate(adRoute.toData());
+            UUID id = dataClient.adRoutesCreate(toData(adRoute));
             bgpEvent.routeCreate(bgpId, dataClient.adRoutesGet(id));
-            return Response.created(
-                    ResourceUriBuilder.getAdRoute(getBaseUri(), id))
-                    .build();
+            return Response.created(ResourceUriBuilder.getAdRoute(getBaseUri(),
+                                                                  id))
+                           .build();
         }
 
         /**
@@ -177,15 +177,12 @@ public class AdRouteResource extends AbstractResource {
 
             List<org.midonet.cluster.data.AdRoute> adRouteDataList =
                     dataClient.adRoutesFindByBgp(bgpId);
-            List<AdRoute> adRoutes = new ArrayList<AdRoute>();
+            List<AdRoute> adRoutes = new ArrayList<>();
             if (adRouteDataList != null) {
                 for (org.midonet.cluster.data.AdRoute adRouteData :
                         adRouteDataList) {
-                    AdRoute adRoute = new AdRoute(adRouteData);
-                    adRoute.setBaseUri(getBaseUri());
-                    adRoutes.add(adRoute);
+                    adRoutes.add(fromData(adRouteData, getBaseUri()));
                 }
-
             }
             return adRoutes;
         }
