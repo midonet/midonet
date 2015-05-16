@@ -183,7 +183,6 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private final val BGP_VTY_PORT = 2605 + bgpIdx
 
     private var zebra: ActorRef = null
-    private var bgpVty: BgpConnection = null
 
     private var theBgpSession: Option[BGP] = None
 
@@ -192,7 +191,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private var socketAddress: AfUnix.Address = null
 
     // At this moment we only support one bgpd process
-    private var bgpdProcess: BgpdProcess = null
+    private var bgpd: BgpdProcess = null
 
     private val dpPorts = mutable.Map[String, NetDevPort]()
 
@@ -368,8 +367,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         case FETCH_BGPD_STATUS => // ignored
 
         case BGPD_SHOW(cmd) =>
-            if (bgpVty != null)
-                sender ! BgpStatus(bgpVty.showGeneric(cmd).toArray)
+            if (bgpd.isAlive)
+                sender ! BgpStatus(bgpd.vty.showGeneric(cmd).toArray)
             else
                 sender ! BgpStatus(Array[String]("BGP session is not ready"))
 
@@ -424,16 +423,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             transition(Started)
             unstashAll()
 
-            bgpVty = new BgpVtyConnection(
-                addr = BGP_VTY_MIRROR_IP.getAddress.toString,
-                port = BGP_VTY_PORT,
-                password = "zebra_password",
-                keepAliveTime = config.bgpKeepAlive,
-                holdTime = config.bgpHoldTime,
-                connectRetryTime = config.bgpConnectRetry)
-
             if (log.underlying.isDebugEnabled)
-                bgpVty.setDebug(isEnabled = true)
+                bgpd.vty.setDebug(enabled = true)
 
             // BGP routes are added on:
             // - createSession method
@@ -470,7 +461,8 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     log.error(s"($phase) new sessions must have same AS")
                 } else {
                     theBgpSession = Some(bgp)
-                    bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
+                    bgpd.vty.addPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS,
+                        config.bgpKeepAlive, config.bgpHoldTime, config.bgpConnectRetry)
                 }
 
             case None =>
@@ -479,15 +471,16 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     "up so far", phase)
         }
 
-        case FETCH_BGPD_STATUS if bgpdProcess ne null =>
+        case FETCH_BGPD_STATUS if bgpd ne null =>
             theBgpSession foreach {
                 case bgp =>
                     log.debug("querying bgpd neighbour information")
                     try {
                         var status: String = "bgpd daemon is not ready"
-                        if ((bgpVty ne null) && bgpdProcess.isAlive) {
-                            status = bgpVty.showGeneric("nei").
+                        if (bgpd.isAlive) {
+                            status = bgpd.vty.showGeneric("show ip bgp nei").
                                 filterNot(_.startsWith("bgpd#")).
+                                filterNot(_.startsWith("bgpd>")).
                                 filterNot(_.startsWith("show ip bgp nei")).
                                 foldRight("")((a, b) => s"$a\n$b")
                         }
@@ -504,7 +497,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 transition(Stopping)
                 theBgpSession = None
 
-                bgpVty.deletePeer(bgp.getLocalAS, bgp.getPeerAddr)
+                bgpd.vty.deletePeer(bgp.getLocalAS, bgp.getPeerAddr)
                 RoutingWorkflow.routerPortToBgp.remove(bgp.getPortId)
                 RoutingWorkflow.inputPortToBgp.remove(bgp.getQuaggaPortNumber)
                 invalidateFlows(bgp)
@@ -527,7 +520,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             case Some(bgp) if bgp.getId == rt.getBgpId =>
                 log.info(s"({$phase}) Advertise: ${rt.getNwPrefix}/${rt.getPrefixLength}")
                 adRoutes += rt
-                bgpVty.setNetwork(bgp.getLocalAS, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
+                bgpd.vty.addNetwork(bgp.getLocalAS, rt.getNwPrefix.getHostAddress, rt.getPrefixLength)
 
             case Some(bgp) =>
                 log.error(s"Ignoring advertised route, belongs to another BGP "+
@@ -543,9 +536,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             adRoutes -= rt
             theBgpSession match {
                 case Some(bgp) if bgp.getId == rt.getBgpId =>
-                    bgpVty.deleteNetwork(bgp.getLocalAS,
-                                         rt.getNwPrefix.getHostAddress,
-                                         rt.getPrefixLength)
+                    bgpd.vty.deleteNetwork(bgp.getLocalAS,
+                                           rt.getNwPrefix.getHostAddress,
+                                           rt.getPrefixLength)
                 case Some(bgp) =>
                     log.error(s"Ignoring stop-advertised route, belongs to another BGP "+
                         s"(mine=${bgp.getId}, theirs=${rt.getBgpId})")
@@ -603,9 +596,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                 log.info(s"($phase) New BGP session ${bgp}")
                 theBgpSession = Some(bgp)
                 adRoutes = adRoutes filter (bgp.getId == _.getBgpId)
-                bgpdProcess = new BgpdProcess(bgpIdx,
-                                    BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
-                                    rport.portAddr, rport.portMac, BGP_VTY_PORT)
+                bgpd = new BgpdProcess(bgpIdx,
+                                       BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
+                                       rport.portAddr, rport.portMac, BGP_VTY_PORT)
                 startBGP()
                 transition(Starting)
         }
@@ -719,7 +712,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
 
         /* Bgp namespace configuration */
-        bgpdProcess.prepare()
+        bgpd.prepare()
 
         log.debug(s"($phase) Adding port to datapath: $BGP_NETDEV_PORT_NAME")
         createDpPort(BGP_NETDEV_PORT_NAME)
@@ -732,7 +725,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         context.stop(zebra)
 
         log.debug("({}) stopping bgpd", phase)
-        bgpdProcess.stop()
+        bgpd.stop()
 
         // Delete port from datapath
         dpPorts.get(BGP_NETDEV_PORT_NAME) foreach removeDpPort
@@ -760,21 +753,22 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         RoutingWorkflow.inputPortToBgp.put(bgp.getQuaggaPortNumber, bgp)
         invalidateFlows(bgp)
 
-        if (bgpdProcess.start())
+        if (bgpd.start())
             self ! BGPD_READY
     }
 
     private def createSession(localAddr: IPAddr, bgp: BGP) {
         log.debug(s"({$phase}) create bgp session to peer " +
                   s"AS ${bgp.getPeerAS} at ${bgp.getPeerAddr}")
-        bgpVty.setAs(bgp.getLocalAS)
-        bgpVty.setLocalNw(bgp.getLocalAS, localAddr)
-        bgpVty.setPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS)
+        bgpd.vty.setAs(bgp.getLocalAS)
+        bgpd.vty.setRouterId(bgp.getLocalAS, localAddr)
+        bgpd.vty.addPeer(bgp.getLocalAS, bgp.getPeerAddr, bgp.getPeerAS,
+            config.bgpKeepAlive, config.bgpHoldTime, config.bgpConnectRetry)
 
         for (adRoute <- adRoutes) {
             // If an adRoute is already configured in bgp, it will be
             // silently ignored
-            bgpVty.setNetwork(bgp.getLocalAS, adRoute.getNwPrefix.getHostAddress,
+            bgpd.vty.addNetwork(bgp.getLocalAS, adRoute.getNwPrefix.getHostAddress,
                 adRoute.getPrefixLength)
             log.debug(s"($phase) added advertised route: " +
                 s"${adRoute.getData.nwPrefix}/${adRoute.getData.prefixLength}")
