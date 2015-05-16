@@ -16,6 +16,47 @@
       "revId": "eda0d3270fecec74aaf01e3a0805227cf8e4ee8a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e91ed1ba",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-16T06:03:15Z",
+      "side": 1,
+      "message": "I\u0027d personally prefer to just expose the properties as public to save the boilerplate.\n\n@Ryu is there any reason for having getters/setters?",
+      "parentUuid": "1a106d94_24f49559",
+      "revId": "eda0d3270fecec74aaf01e3a0805227cf8e4ee8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_c91b15c9",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-16T06:03:15Z",
+      "side": 1,
+      "message": "What is this class for?",
+      "range": {
+        "startLine": 281,
+        "startChar": 24,
+        "endLine": 281,
+        "endChar": 34
+      },
+      "revId": "eda0d3270fecec74aaf01e3a0805227cf8e4ee8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
