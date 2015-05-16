@@ -39,17 +39,24 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.bgp.Bgp;
 import org.midonet.api.bgp.rest_api.AdRouteResource.BgpAdRouteResource;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.BGP;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.conversion.BgpDataConverter;
+import org.midonet.cluster.rest_api.models.Bgp;
 import org.midonet.event.topology.BgpEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.cluster.rest_api.conversion.BgpDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.BgpDataConverter.toData;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.BGP_NOT_UNIQUE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 /**
  * Root resource class for bgps.
@@ -111,11 +118,7 @@ public class BgpResource extends AbstractResource {
             throw notFoundException(id, "bgp");
         }
 
-        // Convert to the REST API DTO
-        Bgp bgp = new Bgp(bgpData);
-        bgp.setBaseUri(getBaseUri());
-
-        return bgp;
+        return BgpDataConverter.fromData(bgpData, getBaseUri());
     }
 
     /**
@@ -160,15 +163,18 @@ public class BgpResource extends AbstractResource {
         public Response create(Bgp bgp) throws StateAccessException,
                                                SerializationException {
 
-            bgp.setPortId(portId);
+            bgp.portId = portId;
 
             authoriser.tryAuthorisePort(portId, "add BGP to this port.");
 
-            UUID id = dataClient.bgpCreate(bgp.toData());
+            if (!dataClient.bgpFindByPort(bgp.portId).isEmpty()) {
+                throw new BadRequestHttpException(getMessage(BGP_NOT_UNIQUE));
+            }
+
+            UUID id = dataClient.bgpCreate(toData(bgp));
             bgpEvent.create(id, dataClient.bgpGet(id));
-            return Response.created(
-                    ResourceUriBuilder.getBgp(getBaseUri(), id))
-                    .build();
+            return Response.created(ResourceUriBuilder.getBgp(getBaseUri(), id))
+                           .build();
         }
 
         /**
@@ -190,9 +196,7 @@ public class BgpResource extends AbstractResource {
             List<Bgp> bgpList = new ArrayList<>();
             if (bgpDataList != null) {
                 for (BGP bgpData : bgpDataList) {
-                    Bgp bgp = new Bgp(bgpData);
-                    bgp.setBaseUri(getBaseUri());
-                    bgpList.add(bgp);
+                    bgpList.add(fromData(bgpData, getBaseUri()));
                 }
             }
             return bgpList;
