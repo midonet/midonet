@@ -1,0 +1,61 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_0ccb7b1f",
+        "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-16T17:47:32Z",
+      "side": 1,
+      "message": "It seems cleaner to make this private, and add 2 static constructors:\n\nServerFrontEnd.udp(adapter, port)\nServerFrontEnd.tcp(adapter, port)",
+      "range": {
+        "startLine": 49,
+        "startChar": 72,
+        "endLine": 49,
+        "endChar": 90
+      },
+      "revId": "53db58538a1dd6e255d0b3065b6d05f8669f08a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_8c4f6bbe",
+        "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-16T17:47:32Z",
+      "side": 1,
+      "message": "style",
+      "revId": "53db58538a1dd6e255d0b3065b6d05f8669f08a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ec4c1fcb",
+        "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-16T17:47:32Z",
+      "side": 1,
+      "message": "wrap \u0026 space after }",
+      "revId": "53db58538a1dd6e255d0b3065b6d05f8669f08a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
