@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_72af667e",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/VtyConnection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-17T22:38:29Z",
+      "side": 1,
+      "message": "i was hoping for somewhat diluted scala",
+      "revId": "c7f5ee6809c5f5f6f89efd94b85165cda218d030",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
