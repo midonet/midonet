@@ -16,6 +16,9 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
+import java.util.Objects;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -32,6 +35,9 @@ import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.packets.IPSubnet;
 
+import static java.util.Objects.hash;
+import static java.util.Objects.hashCode;
+
 @XmlRootElement
 @ZoomClass(clazz = Topology.Dhcp.Opt121Route.class)
 public class DhcpOption121 extends ZoomObject {
@@ -44,7 +50,6 @@ public class DhcpOption121 extends ZoomObject {
     @ZoomField(name = "gateway", converter = IPAddressUtil.Converter.class)
     public String gatewayAddr;
 
-    @JsonIgnore
     @Override
     public void afterFromProto(Message proto) {
         if (null != destinationSubnet) {
@@ -61,4 +66,40 @@ public class DhcpOption121 extends ZoomObject {
                 IPSubnet.fromString(destinationPrefix + "/" + destinationLength);
         }
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        DhcpOption121 that = (DhcpOption121) o;
+
+        if (destinationLength != that.destinationLength) {
+            return false;
+        }
+
+        if (destinationPrefix != null
+            ? !destinationPrefix.equals(that.destinationPrefix)
+            : that.destinationPrefix != null) {
+            return false;
+        }
+        if (gatewayAddr != null
+            ? !gatewayAddr.equals(that.gatewayAddr)
+            : that.gatewayAddr != null) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return hash(destinationPrefix, destinationLength, gatewayAddr);
+    }
+
 }
