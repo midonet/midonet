@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_8c8126fe",
+        "filename": "midolman/src/main/java/org/midonet/midolman/cluster/zookeeper/ZkConnectionProvider.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-18T16:05:37Z",
+      "side": 1,
+      "message": ", and",
+      "range": {
+        "startLine": 39,
+        "startChar": 57,
+        "endLine": 39,
+        "endChar": 61
+      },
+      "revId": "52131c970432e20b437aa01e536de2ca6cb7d9b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2c8c7235",
+        "filename": "midolman/src/main/java/org/midonet/midolman/cluster/zookeeper/ZkConnectionProvider.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-18T16:05:37Z",
+      "side": 1,
+      "message": "replace \" and \" with \", \"",
+      "range": {
+        "startLine": 39,
+        "startChar": 31,
+        "endLine": 39,
+        "endChar": 36
+      },
+      "revId": "52131c970432e20b437aa01e536de2ca6cb7d9b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6c02ea70",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-18T16:05:37Z",
+      "side": 1,
+      "message": "Should we log an error here?",
+      "range": {
+        "startLine": 134,
+        "startChar": 59,
+        "endLine": 134,
+        "endChar": 60
+      },
+      "revId": "52131c970432e20b437aa01e536de2ca6cb7d9b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_cca15e97",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-18T16:05:37Z",
+      "side": 1,
+      "message": "Add warning as Galo suggested?",
+      "range": {
+        "startLine": 305,
+        "startChar": 12,
+        "endLine": 305,
+        "endChar": 23
+      },
+      "revId": "52131c970432e20b437aa01e536de2ca6cb7d9b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
