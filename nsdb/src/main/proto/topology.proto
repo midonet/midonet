@@ -108,7 +108,8 @@ message LoadBalancer {
     repeated UUID vip_ids = 3;
 
     // Backreference
-    optional UUID router_id = 4;
+    optional UUID router_id = 101;
+    repeated UUID pool_ids = 102;
 }
 
 message VIP {
@@ -404,14 +405,23 @@ message Host {
 message Pool {
     enum PoolProtocol { TCP = 1; }
     enum PoolLBMethod { ROUND_ROBIN = 1; }
+    enum PoolHealthMonitorMappingStatus {
+        ACTIVE = 1;
+        INACTIVE = 2;
+        PENDING_CREATE = 3;
+        PENDING_UPDATE = 4;
+        PENDING_DELETE = 5;
+        ERROR = 6;
+    }
 
     optional UUID id = 1;
     optional UUID health_monitor_id = 2;
     optional UUID load_balancer_id = 3;
     optional bool admin_state_up = 4;
 
-    optional PoolProtocol protocol = 5;
-    optional PoolLBMethod lb_method = 6;
+    optional PoolProtocol protocol = 5 [default = TCP];
+    optional PoolLBMethod lb_method = 6 [default = ROUND_ROBIN];
+    optional PoolHealthMonitorMappingStatus mapping_status = 7;
 
     repeated UUID pool_member_ids = 101;
 }
