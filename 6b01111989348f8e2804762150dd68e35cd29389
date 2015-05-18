@@ -1,0 +1,487 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_dd7c6bb8",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/HealthMonitor.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "Is this compatible with Jackson 1.x:\n\n  org.codehaus.jackson.annotate.JsonIgnore\n\n?",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 51
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bd5c0f4e",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/HealthMonitor.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "max_retries",
+      "range": {
+        "startLine": 49,
+        "startChar": 23,
+        "endLine": 49,
+        "endChar": 33
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9d59535e",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/HealthMonitor.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "admin_state_up",
+      "range": {
+        "startLine": 52,
+        "startChar": 23,
+        "endLine": 52,
+        "endChar": 35
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bd0a4f25",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/HealthMonitor.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "I set this to the LBStatus enum.",
+      "range": {
+        "startLine": 58,
+        "startChar": 11,
+        "endLine": 58,
+        "endChar": 17
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fd568729",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/LoadBalancer.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "router_id",
+      "range": {
+        "startLine": 36,
+        "startChar": 23,
+        "endLine": 36,
+        "endChar": 31
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dd53cb37",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/LoadBalancer.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "admin_state_up",
+      "range": {
+        "startLine": 39,
+        "startChar": 23,
+        "endLine": 39,
+        "endChar": 35
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3d301f07",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "health_monitor_id",
+      "range": {
+        "startLine": 39,
+        "startChar": 23,
+        "endLine": 39,
+        "endChar": 38
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7d3a97e8",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "load_balancer_id",
+      "range": {
+        "startLine": 43,
+        "startChar": 23,
+        "endLine": 43,
+        "endChar": 37
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1d1c4377",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "I set this to the PoolProtocol enum.",
+      "range": {
+        "startLine": 48,
+        "startChar": 11,
+        "endLine": 48,
+        "endChar": 17
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7d11f75c",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 52,
+        "startChar": 11,
+        "endLine": 52,
+        "endChar": 17
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5d3fdbd6",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "admin_state_up",
+      "range": {
+        "startLine": 54,
+        "startChar": 23,
+        "endLine": 54,
+        "endChar": 35
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5d16bb56",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 59,
+        "startChar": 11,
+        "endLine": 59,
+        "endChar": 17
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5d487b87",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Pool.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "Should this be JsonIgnore?",
+      "range": {
+        "startLine": 61,
+        "startChar": 4,
+        "endLine": 61,
+        "endChar": 17
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bd236fbd",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/PoolMember.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "pool_id",
+      "range": {
+        "startLine": 49,
+        "startChar": 23,
+        "endLine": 49,
+        "endChar": 29
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dd2aab8f",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/PoolMember.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "IPAddressUtil.Converter",
+      "range": {
+        "startLine": 54,
+        "startChar": 4,
+        "endLine": 54,
+        "endChar": 32
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9d2033b2",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/PoolMember.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "Currently, this is \"port\" in the protobuf, but I changed it to \"protocol_port\" in my patch.",
+      "range": {
+        "startLine": 58,
+        "startChar": 23,
+        "endLine": 58,
+        "endChar": 35
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fd04c719",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/VIP.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "pool_id",
+      "range": {
+        "startLine": 45,
+        "startChar": 23,
+        "endLine": 45,
+        "endChar": 29
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9d07931d",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/VIP.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "IP address converter.",
+      "range": {
+        "startLine": 49,
+        "startChar": 4,
+        "endLine": 49,
+        "endChar": 32
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dd010b08",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/VIP.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "session_persistence",
+      "range": {
+        "startLine": 58,
+        "startChar": 23,
+        "endLine": 58,
+        "endChar": 41
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_38fe6d06",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/VIP.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "I set this to the enum class.",
+      "range": {
+        "startLine": 59,
+        "startChar": 11,
+        "endLine": 59,
+        "endChar": 17
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7808e528",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/VIP.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T09:56:34Z",
+      "side": 1,
+      "message": "admin_state_up",
+      "range": {
+        "startLine": 61,
+        "startChar": 23,
+        "endLine": 61,
+        "endChar": 35
+      },
+      "revId": "6b01111989348f8e2804762150dd68e35cd29389",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
