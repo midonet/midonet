@@ -75,7 +75,6 @@ public class TryCatchReactor implements Reactor {
         final long startTime;
         if (log.isDebugEnabled()) {
             startTime = System.currentTimeMillis();
-            log.debug("Enqueuing ({})", runnable);
         } else {
             startTime = 0;
         }
@@ -113,7 +112,6 @@ public class TryCatchReactor implements Reactor {
         final long startTime;
         if (log.isDebugEnabled()) {
             startTime = System.currentTimeMillis();
-            log.debug("Enqueuing ({})", callable);
         } else {
             startTime = 0;
         }
