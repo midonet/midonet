@@ -15,40 +15,71 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.rest_api.validation.VerifyEnumValue;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.state.l4lb.LBStatus;
+import org.midonet.midolman.state.l4lb.PoolLBMethod;
 import org.midonet.midolman.state.l4lb.PoolProtocol;
 
-// TODO: Make ZOOM CLASS
 @XmlRootElement
-public class Pool extends ZoomObject {
+public class Pool extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    private UUID id;
+    public UUID id;
 
     @ZoomField(name = "healthMonitorId", converter = UUIDUtil.Converter.class)
-    private UUID healthMonitorId;
+    public UUID healthMonitorId;
 
     @NotNull
     @ZoomField(name = "loadBalancerId", converter = UUIDUtil.Converter.class)
-    private UUID loadBalancerId;
+    public UUID loadBalancerId;
 
+    @VerifyEnumValue(PoolProtocol.class)
     @ZoomField(name = "protocol", converter = UUIDUtil.Converter.class)
-    private String protocol = PoolProtocol.TCP.toString();
+    public String protocol = PoolProtocol.TCP.toString();
 
     @NotNull
-    private String lbMethod;
+    @VerifyEnumValue(PoolLBMethod.class)
+    public String lbMethod;
 
     @ZoomField(name = "adminStateUp", converter = UUIDUtil.Converter.class)
-    private boolean adminStateUp = true;
+    public boolean adminStateUp = true;
 
+    @VerifyEnumValue(LBStatus.class)
     @ZoomField(name = "status", converter = UUIDUtil.Converter.class)
-    private String status = LBStatus.ACTIVE.toString();
+    public String status = LBStatus.ACTIVE.toString();
+
+    @XmlTransient
+    @ZoomField(name = "pool_member_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> poolMemberIds;
+
+    public URI getHealthMonitor() {
+        return absoluteUri(ResourceUris.HEALTH_MONITORS, healthMonitorId);
+    }
+
+    public URI getLoadBalancer() {
+        return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
+    }
+
+    public URI getVips() {
+        return relativeUri(ResourceUris.VIPS);
+    }
+
+    public URI getPoolMembers() {
+        return relativeUri(ResourceUris.POOL_MEMBERS);
+    }
+
+    public URI getUri() {
+        return absoluteUri(ResourceUris.POOLS, id);
+    }
+
 }

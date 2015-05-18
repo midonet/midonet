@@ -157,7 +157,8 @@ public class TestLoadBalancer {
             // Update the pool associating it with another load balancer and
             // see if it is moved appropriately.
             pool.setLoadBalancerId(loadBalancer2.getId());
-            pool = updatePool(pool);
+            updatePool(pool);
+
             DtoPool[] newPools = getPools(loadBalancer2.getPools());
             // The number of the pools doesn't change.
             assertEquals(poolCounter, newPools.length);
