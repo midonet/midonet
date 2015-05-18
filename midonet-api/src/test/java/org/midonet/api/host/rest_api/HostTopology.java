@@ -20,7 +20,7 @@ import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
-import org.midonet.client.dto.DtoTunnelZoneHost;
+import org.midonet.cluster.rest_api.models.TunnelZoneHost.TunnelZoneHostData;
 import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneData;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
@@ -75,7 +75,7 @@ public class HostTopology {
         private DtoApplication app;
         private final Map<UUID, DtoHost> hosts;
         private final Map<String, TunnelZoneData> tunnelZones;
-        private final Map<UUID, DtoTunnelZoneHost> tunnelZoneHosts;
+        private final Map<UUID, TunnelZoneHostData> tunnelZoneHosts;
         private final Map<UUID, DtoHostInterfacePort> hostInterfacePorts;
 
         private final Map<UUID, UUID> tagToHosts;
@@ -150,7 +150,7 @@ public class HostTopology {
          * @return This builder object.
          */
         public Builder create(String tunnelZoneTag, UUID tag,
-                              DtoTunnelZoneHost tunnelZoneHost) {
+                              TunnelZoneHostData tunnelZoneHost) {
             this.tunnelZoneHosts.put(tag, tunnelZoneHost);
             this.tagToTunnelZone.put(tag, tunnelZoneTag);
             return this;
@@ -193,9 +193,9 @@ public class HostTopology {
                     entry.setValue(hostMap.get(entry.getKey()));
                 }
 
-                for (Map.Entry<UUID, DtoTunnelZoneHost> entry :
+                for (Map.Entry<UUID, TunnelZoneHostData> entry :
                         tunnelZoneHosts.entrySet()) {
-                    DtoTunnelZoneHost tunnelZoneHost = entry.getValue();
+                    TunnelZoneHostData tunnelZoneHost = entry.getValue();
                     // Set the tunnel zone ID.
                     String tunnelZoneTag = tagToTunnelZone.get(entry.getKey());
                     TunnelZoneData tunnelZone =
@@ -205,7 +205,7 @@ public class HostTopology {
                             tunnelZone.getHosts(),
                             APPLICATION_TUNNEL_ZONE_HOST_JSON,
                             tunnelZoneHost,
-                            DtoTunnelZoneHost.class);
+                            TunnelZoneHostData.class);
                     entry.setValue(tunnelZoneHost);
                 }
 

@@ -42,13 +42,13 @@ import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
-import org.midonet.client.dto.DtoTunnelZoneHost;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Bridge.BridgeData;
 import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneData;
+import org.midonet.cluster.rest_api.models.TunnelZoneHost.TunnelZoneHostData;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -126,15 +126,15 @@ public class TestHostInterfacePort {
             TunnelZoneData tz = hostTopology.getGreTunnelZone("tz1");
             Assert.assertNotNull(tz);
             // Map a tunnel zone to a host
-            DtoTunnelZoneHost mapping = new DtoTunnelZoneHost();
+            TunnelZoneHostData mapping = new TunnelZoneHostData();
             mapping.setHostId(hostId);
             // Now set the ip address and the create should succeed.
             mapping.setIpAddress("192.168.100.2");
-            DtoTunnelZoneHost tzHost = dtoResource.postAndVerifyCreated(
+            TunnelZoneHostData tzHost = dtoResource.postAndVerifyCreated(
                     tz.getHosts(),
                     VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
                     mapping,
-                    DtoTunnelZoneHost.class);
+                    TunnelZoneHostData.class);
         }
 
         @Test

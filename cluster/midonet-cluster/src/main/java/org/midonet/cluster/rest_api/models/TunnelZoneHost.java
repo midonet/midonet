@@ -33,15 +33,39 @@ import org.midonet.packets.IPv4;
 @ZoomClass(clazz = Topology.TunnelZone.HostToIp.class)
 public class TunnelZoneHost extends UriResource {
 
-    public UUID tunnelZoneId;
+    private UUID tunnelZoneId;
 
     @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
-    public UUID hostId;
+    private UUID hostId;
 
     @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
     @ZoomField(name = "ip", converter = IPAddressUtil.Converter.class)
     public String ipAddress;
+
+    public UUID getTunnelZoneId() {
+        return this.tunnelZoneId;
+    }
+
+    public void setTunnelZoneId(UUID tunnelZoneId) {
+        this.tunnelZoneId = tunnelZoneId;
+    }
+
+    public UUID getHostId() {
+        return this.hostId;
+    }
+
+    public void setHostId(UUID hostId) {
+        this.hostId = hostId;
+    }
+
+    public String getIpAddress() {
+        return this.ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
 
     @Override
     public URI getUri() {
@@ -52,5 +76,20 @@ public class TunnelZoneHost extends UriResource {
     @JsonIgnore
     public void create(UUID tunnelZoneId) {
         this.tunnelZoneId = tunnelZoneId;
+    }
+
+    public static class TunnelZoneHostData extends TunnelZoneHost {
+
+        private URI uri;
+
+        @Override
+        public URI getUri() {
+            return uri;
+        }
+
+        public void setUri(URI uri) {
+            this.uri = uri;
+        }
+
     }
 }

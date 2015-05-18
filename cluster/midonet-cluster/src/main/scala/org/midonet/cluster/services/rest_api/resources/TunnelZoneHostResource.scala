@@ -45,7 +45,7 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
                      @HeaderParam("Accept") accept: String): TunnelZoneHost = {
         val hostId = UUID.fromString(id)
         getResource(classOf[TunnelZone], tunnelZoneId)
-            .map(_.getTunnelZoneHosts.asScala.find(_.hostId == hostId))
+            .map(_.getTunnelZoneHosts.asScala.find(_.getHostId == hostId))
             .getOrThrow
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
@@ -67,14 +67,14 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
         getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
-            if (tunnelZone.getTunnelZoneHosts.asScala.find(_.hostId ==
-                                              tunnelZoneHost.hostId).nonEmpty) {
+            if (tunnelZone.getTunnelZoneHosts.asScala.find(_.getHostId ==
+                                              tunnelZoneHost.getHostId).nonEmpty) {
                 Response.status(Status.CONFLICT).build()
             } else {
                 tunnelZoneHost.create(tunnelZone.getId)
                 tunnelZoneHost.setBaseUri(uriInfo.getBaseUri)
                 tunnelZone.getTunnelZoneHosts.add(tunnelZoneHost)
-                tunnelZone.getHostIds.add(tunnelZoneHost.hostId)
+                tunnelZone.getHostIds.add(tunnelZoneHost.getHostId)
                 updateResource(tunnelZone,
                                Response.created(tunnelZoneHost.getUri).build())
             }
@@ -86,10 +86,10 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     override def delete(@PathParam("id") id: String): Response = {
         val hostId = UUID.fromString(id)
         getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
-            tunnelZone.getTunnelZoneHosts.asScala.find(_.hostId == hostId)
+            tunnelZone.getTunnelZoneHosts.asScala.find(_.getHostId == hostId)
                 .map(tunnelZoneHost => {
                     tunnelZone.getTunnelZoneHosts.remove(tunnelZoneHost)
-                    tunnelZone.getHostIds.remove(tunnelZoneHost.hostId)
+                    tunnelZone.getHostIds.remove(tunnelZoneHost.getHostId)
                     updateResource(tunnelZone)
                 })
                 .getOrElse(Response.status(Status.NOT_FOUND).build())

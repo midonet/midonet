@@ -36,21 +36,21 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoError;
-import org.midonet.client.dto.DtoHost;
-import org.midonet.client.dto.DtoTunnelZoneHost;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoError;
+import org.midonet.client.dto.DtoHost;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
+import org.midonet.cluster.rest_api.models.TunnelZoneHost.TunnelZoneHostData;
 import org.midonet.cluster.rest_api.models.TunnelZone;
 import org.midonet.cluster.rest_api.models.TunnelZone.TunnelZoneData;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -103,13 +103,13 @@ public class TestTunnelZoneHost {
                 String tzhMediaType) {
 
             // List mappings.  There should be none.
-            DtoTunnelZoneHost[] tzHosts = dtoResource.getAndVerifyOk(
+            TunnelZoneHostData[] tzHosts = dtoResource.getAndVerifyOk(
                     tz.getHosts(), tzhCollectionMediaType,
-                    DtoTunnelZoneHost[].class);
+                    TunnelZoneHostData[].class);
             Assert.assertEquals(0, tzHosts.length);
 
             // Map a tunnel zone to a host
-            DtoTunnelZoneHost mapping = new DtoTunnelZoneHost();
+            TunnelZoneHostData mapping = new TunnelZoneHostData();
             mapping.setHostId(host1Id);
             // Verify that forgetting to set the IP address returns bad request
             dtoResource.postAndVerifyBadRequest(
@@ -118,11 +118,11 @@ public class TestTunnelZoneHost {
                     mapping);
             // Now set the ip address and the create should succeed.
             mapping.setIpAddress("192.168.100.2");
-            DtoTunnelZoneHost tzHost = dtoResource.postAndVerifyCreated(
+            TunnelZoneHostData tzHost = dtoResource.postAndVerifyCreated(
                     tz.getHosts(),
                     tzhMediaType,
                     mapping,
-                    DtoTunnelZoneHost.class);
+                    TunnelZoneHostData.class);
             // Verify that trying to create again fails with a 400 error.
             dtoResource.postAndVerifyBadRequest(
                     tz.getHosts(),
@@ -133,22 +133,22 @@ public class TestTunnelZoneHost {
             tzHosts = dtoResource.getAndVerifyOk(
                     tz.getHosts(),
                     tzhCollectionMediaType,
-                    DtoTunnelZoneHost[].class);
+                    TunnelZoneHostData[].class);
             Assert.assertEquals(1, tzHosts.length);
 
             // List the hosts using untyped tunnel zone media type.
             tzHosts = dtoResource.getAndVerifyOk(
                 tz.getHosts(),
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_COLLECTION_JSON,
-                DtoTunnelZoneHost[].class);
+                TunnelZoneHostData[].class);
             Assert.assertEquals(1, tzHosts.length);
 
             // Get the single host using the specific media type.
-            DtoTunnelZoneHost h = dtoResource.getAndVerifyOk(
+            TunnelZoneHostData h = dtoResource.getAndVerifyOk(
                 UriBuilder.fromUri(tz.getHosts())
                     .path(tzHost.getHostId().toString()).build(),
                 tzhMediaType,
-                DtoTunnelZoneHost.class);
+                TunnelZoneHostData.class);
             Assert.assertEquals(tzHost.getIpAddress(), h.getIpAddress());
             Assert.assertEquals(tzHost.getTunnelZoneId(), h.getTunnelZoneId());
 
@@ -157,7 +157,7 @@ public class TestTunnelZoneHost {
                 UriBuilder.fromUri(tz.getHosts())
                     .path(tzHost.getHostId().toString()).build(),
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
-                DtoTunnelZoneHost.class);
+                TunnelZoneHostData.class);
             Assert.assertEquals(tzHost.getIpAddress(), h.getIpAddress());
             Assert.assertEquals(tzHost.getTunnelZoneId(), h.getTunnelZoneId());
 
@@ -168,7 +168,7 @@ public class TestTunnelZoneHost {
             tzHosts = dtoResource.getAndVerifyOk(
                     tz.getHosts(),
                     tzhCollectionMediaType,
-                    DtoTunnelZoneHost[].class);
+                    TunnelZoneHostData[].class);
             Assert.assertEquals(0, tzHosts.length);
         }
 
@@ -202,17 +202,17 @@ public class TestTunnelZoneHost {
 
             TunnelZoneData greTunnelZone = topologyGre.getGreTunnelZone("tz1");
 
-            DtoTunnelZoneHost tzhDto = new DtoTunnelZoneHost();
+            TunnelZoneHostData tzhDto = new TunnelZoneHostData();
             tzhDto.setHostId(hostId);
             tzhDto.setIpAddress("1.1.1.1");
             dtoResource.postAndVerifyCreated(greTunnelZone.getHosts(),
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON, tzhDto,
                 TunnelZoneData.class);
 
-            DtoTunnelZoneHost[] tzHosts = dtoResource.getAndVerifyOk(
+            TunnelZoneHostData[] tzHosts = dtoResource.getAndVerifyOk(
                 greTunnelZone.getHosts(),
                 VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
-                DtoTunnelZoneHost[].class);
+                TunnelZoneHostData[].class);
 
             assertThat("There is one host entry under the tunnel zone.",
                     tzHosts.length, is(1));
@@ -224,11 +224,11 @@ public class TestTunnelZoneHost {
 
         private HostTopology topology;
         private DtoWebResource dtoResource;
-        private final DtoTunnelZoneHost tunnelZoneHost;
+        private final TunnelZoneHostData tunnelZoneHost;
         private final String property;
 
         public TestBadRequestTunnelHostCreate(
-                DtoTunnelZoneHost tunnelZoneHost, String property) {
+                TunnelZoneHostData tunnelZoneHost, String property) {
             super(FuncTest.appDesc);
             this.tunnelZoneHost = tunnelZoneHost;
             this.property = property;
@@ -255,7 +255,7 @@ public class TestTunnelZoneHost {
             List<Object[]> params = new ArrayList<>();
 
             // Invalid host ID
-            DtoTunnelZoneHost badHostId = new DtoTunnelZoneHost();
+            TunnelZoneHostData badHostId = new TunnelZoneHostData();
             badHostId.setHostId(UUID.randomUUID()); // non-existent
             badHostId.setIpAddress("10.10.10.10");
             params.add(new Object[] { badHostId, "hostId" });
@@ -348,18 +348,18 @@ public class TestTunnelZoneHost {
                     TunnelZoneData.class);
 
 
-            DtoTunnelZoneHost tzhDto = new DtoTunnelZoneHost();
+            TunnelZoneHostData tzhDto = new TunnelZoneHostData();
             tzhDto.setHostId(hostId);
             tzhDto.setIpAddress("1.1.1.1");
 
             tzhDto = dtoResource.postAndVerifyCreated(greTunnelZone.getHosts(),
                     VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON, tzhDto,
-                    DtoTunnelZoneHost.class);
+                    TunnelZoneHostData.class);
 
-            DtoTunnelZoneHost[] tzHosts = dtoResource.getAndVerifyOk(
+            TunnelZoneHostData[] tzHosts = dtoResource.getAndVerifyOk(
                     greTunnelZone.getHosts(),
                     VendorMediaType.APPLICATION_GRE_TUNNEL_ZONE_HOST_COLLECTION_JSON,
-                    DtoTunnelZoneHost[].class);
+                    TunnelZoneHostData[].class);
 
             // Check tunnel zone URI is overridden correctly
             URI tzUri = greTunnelZone.getUri();

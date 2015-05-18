@@ -28,6 +28,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.cluster.rest_api.models.TunnelZone;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.api.vtep.VtepMockableDataClientFactory.MockableVtep;
@@ -92,6 +93,7 @@ public class TestVtep extends RestApiTestBase {
         URI tunnelZonesUri = app.getTunnelZones();
         TunnelZoneData tz = new TunnelZoneData();
         tz.setName("tz");
+        tz.setType(TunnelZone.TunnelZoneType.gre);
         tz = dtoResource.postAndVerifyCreated(tunnelZonesUri,
                   VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON, tz,
                   TunnelZoneData.class);
