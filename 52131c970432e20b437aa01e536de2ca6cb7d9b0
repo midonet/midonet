@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_2f0904de",
+        "filename": "midolman/src/main/java/org/midonet/midolman/cluster/zookeeper/ZkConnectionProvider.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T17:00:22Z",
+      "side": 1,
+      "message": "This is minor, but will do if I have to resubmit.",
+      "parentUuid": "1a106d94_8c8126fe",
+      "range": {
+        "startLine": 39,
+        "startChar": 57,
+        "endLine": 39,
+        "endChar": 61
+      },
+      "revId": "52131c970432e20b437aa01e536de2ca6cb7d9b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6c02ea70",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 8
@@ -71,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_0f6b6886",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T17:00:22Z",
+      "side": 1,
+      "message": "Copied as is from the old code. Taku should help on whether this is important and worth logging.",
+      "parentUuid": "1a106d94_6c02ea70",
+      "range": {
+        "startLine": 134,
+        "startChar": 59,
+        "endLine": 134,
+        "endChar": 60
+      },
+      "revId": "52131c970432e20b437aa01e536de2ca6cb7d9b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_cca15e97",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 8
@@ -82,6 +130,30 @@
       "writtenOn": "2015-05-18T16:05:37Z",
       "side": 1,
       "message": "Add warning as Galo suggested?",
+      "range": {
+        "startLine": 305,
+        "startChar": 12,
+        "endLine": 305,
+        "endChar": 23
+      },
+      "revId": "52131c970432e20b437aa01e536de2ca6cb7d9b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_6f5c9cee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 305,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T17:00:22Z",
+      "side": 1,
+      "message": "I don\u0027t think we should add a log here. This method is called when either the V1 or V2 stack is enabled (see the method create above). Hence, a warning is not justified, since passing through this if branch should be expected when the new stack is disabled.",
+      "parentUuid": "1a106d94_cca15e97",
       "range": {
         "startLine": 305,
         "startChar": 12,
