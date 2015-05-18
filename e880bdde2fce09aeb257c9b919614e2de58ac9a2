@@ -263,6 +263,23 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_fd9167f2",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:25:20Z",
+      "side": 1,
+      "message": "this is for notifications, so we can expect a datagram to contain just one message, unlike the broker, which can have multiple partial messages, right? so, i don\u0027t think you need the loop. i also don\u0027t think you need the class because without the loop it just becomes the netlink reader.",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9dfdd33e",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
