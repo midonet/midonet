@@ -34,6 +34,40 @@
       "revId": "c7f5ee6809c5f5f6f89efd94b85165cda218d030",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a2906b4f",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/VtyConnection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002752
+      },
+      "writtenOn": "2015-05-18T20:05:13Z",
+      "side": 1,
+      "message": "the password should ideally be configurable, although we use always the same and it is hardcoded. Al alternate proposal is to declare it as const.",
+      "revId": "c7f5ee6809c5f5f6f89efd94b85165cda218d030",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_029e9f63",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/VtyConnection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002752
+      },
+      "writtenOn": "2015-05-18T20:05:13Z",
+      "side": 1,
+      "message": "This should have been done long time ago, but I\u0027d prefer this class lives in a separate file. The imports will look cleaner.",
+      "revId": "c7f5ee6809c5f5f6f89efd94b85165cda218d030",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
