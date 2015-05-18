@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,16 +42,19 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.dhcp.DhcpHost;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Host;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.DhcpHost;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Subnet;
+
+import static org.midonet.cluster.rest_api.conversion.DhcpHostDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.DhcpHostDataConverter.toData;
 
 @RequestScoped
 public class DhcpHostsResource extends AbstractResource {
@@ -71,11 +74,7 @@ public class DhcpHostsResource extends AbstractResource {
     }
 
     /**
-     * Handler for creating a DHCP host assignment.
-     *
-     * @param host DHCP host assignment object.
-     * @throws StateAccessException Data access error.
-     * @returns Response object with 201 status code set if successful.
+     * @return Response object with 201 status code set if successful.
      */
     @POST
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
@@ -88,24 +87,17 @@ public class DhcpHostsResource extends AbstractResource {
         authoriser.tryAuthoriseBridge(bridgeId,
                                       "configure DHCP for this bridge.");
 
-        Host h = host.toData();
+        Host h = toData(host);
         dataClient.dhcpHostsCreate(bridgeId, subnet, h);
         // Update the Bridge's ARP table.
         dataClient.bridgeAddIp4Mac(bridgeId, h.getIp(), h.getMAC());
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
                                                        bridgeId, subnet);
         return Response.created(
-                ResourceUriBuilder.getDhcpHost(dhcpUri, host.getMacAddr()))
+                ResourceUriBuilder.getDhcpHost(dhcpUri, host.macAddr))
                 .build();
     }
 
-    /**
-     * Handler to getting a DHCP host assignment.
-     *
-     * @param mac mac address of the host.
-     * @throws StateAccessException Data access error.
-     * @return A DhcpHost object.
-     */
     @GET
     @PermitAll
     @Path("/{mac}")
@@ -125,20 +117,11 @@ public class DhcpHostsResource extends AbstractResource {
             throw new NotFoundHttpException("Host was not found.");
         }
 
-        DhcpHost host = new DhcpHost(hostConfig);
-        host.setParentUri(ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
-                                                           bridgeId, subnet));
-
-        return host;
+        return fromData(hostConfig,
+                        ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
+                                                         bridgeId, subnet));
     }
 
-    /**
-     * Handler to updating a host assignment.
-     *
-     * @param mac mac address of the host.
-     * @param host Host assignment object.
-     * @throws StateAccessException Data access error.
-     */
     @PUT
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{mac}")
@@ -153,13 +136,13 @@ public class DhcpHostsResource extends AbstractResource {
 
         // The mac in the URI uses '-' instead of ':'
         mac = ResourceUriBuilder.macStrFromUri(mac);
-        // Make sure that the DhcpHost has the same mac address as the URI.
-        host.setMacAddr(mac);
+        // Make sure that the DHCPHost has the same mac address as the URI.
+        host.macAddr = mac;
 
         // Get the old host info so it's not lost.
         Host oldHost = dataClient.dhcpHostsGet(bridgeId, subnet, mac);
 
-        Host newHost = host.toData();
+        Host newHost = toData(host);
         dataClient.dhcpHostsUpdate(bridgeId, subnet, newHost);
 
         // Update the bridge's arp table.
@@ -170,12 +153,6 @@ public class DhcpHostsResource extends AbstractResource {
         return Response.ok().build();
     }
 
-    /**
-     * Handler to deleting a DHCP host assignment.
-     *
-     * @param mac mac address of the host.
-     * @throws StateAccessException Data access error.
-     */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{mac}")
@@ -194,12 +171,6 @@ public class DhcpHostsResource extends AbstractResource {
         dataClient.bridgeDeleteIp4Mac(bridgeId, h.getIp(), h.getMAC());
     }
 
-    /**
-     * Handler to list DHCP host assignments.
-     *
-     * @throws StateAccessException Data access error.
-     * @return A list of DhcpHost objects.
-     */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON,
@@ -215,9 +186,7 @@ public class DhcpHostsResource extends AbstractResource {
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(), bridgeId,
                                                        subnet);
         for (Host hostConfig : hostConfigs) {
-            DhcpHost host = new DhcpHost(hostConfig);
-            host.setParentUri(dhcpUri);
-            hosts.add(host);
+            hosts.add(fromData(hostConfig, dhcpUri));
         }
         return hosts;
     }

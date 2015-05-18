@@ -42,16 +42,19 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.dhcp.DhcpV6Host;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.V6Host;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.DhcpV6Host;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv6Subnet;
+
+import static org.midonet.cluster.rest_api.conversion.DhcpHostDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.DhcpHostDataConverter.toData;
 
 @RequestScoped
 public class DhcpV6HostsResource extends AbstractResource {
@@ -70,10 +73,6 @@ public class DhcpV6HostsResource extends AbstractResource {
     }
 
     /**
-     * Handler for creating a DHCPV6 host assignment.
-     *
-     * @param host DHCPV6 host assignment object.
-     * @throws StateAccessException Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -86,21 +85,14 @@ public class DhcpV6HostsResource extends AbstractResource {
         authoriser.tryAuthoriseBridge(bridgeId,
                                       "configure DHCP for this bridge.");
 
-        dataClient.dhcpV6HostCreate(bridgeId, prefix, host.toData());
+        dataClient.dhcpV6HostCreate(bridgeId, prefix, toData(host));
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcpV6(getBaseUri(),
                 bridgeId, prefix);
         return Response.created(
-                ResourceUriBuilder.getDhcpV6Host(dhcpUri, host.getClientId()))
+                ResourceUriBuilder.getDhcpV6Host(dhcpUri, host.clientId))
                 .build();
     }
 
-    /**
-     * Handler to getting a DHCPV6 host assignment.
-     *
-     * @param clientId clientId of the host.
-     * @throws StateAccessException Data access error.
-     * @return A DhcpV6Host object.
-     */
     @GET
     @PermitAll
     @Path("/{clientId}")
@@ -114,27 +106,16 @@ public class DhcpV6HostsResource extends AbstractResource {
                                       "view this bridge's dhcpV6 config.");
 
         // The clientId in the URI uses '-' instead of ':'
-        clientId = ResourceUriBuilder.clientIdFromUri(clientId);
+        clientId = DhcpV6Host.clientIdFromUri(clientId);
         V6Host hostConfig = dataClient.dhcpV6HostGet(bridgeId, prefix, clientId);
         if (hostConfig == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
         }
 
-        DhcpV6Host host = new DhcpV6Host(hostConfig);
-        host.setParentUri(ResourceUriBuilder.getBridgeDhcpV6(
-              getBaseUri(), bridgeId, prefix));
-
-        return host;
+        return fromData(hostConfig, bridgeId, prefix, getBaseUri());
     }
 
-    /**
-     * Handler to updating a host assignment.
-     *
-     * @param clientId client ID of the host.
-     * @param host Host assignment object.
-     * @throws StateAccessException Data access error.
-     */
     @PUT
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{clientId}")
@@ -147,19 +128,12 @@ public class DhcpV6HostsResource extends AbstractResource {
                                       "update this bridge's dhcpV6 config.");
 
         // The clientId in the URI uses '-' instead of ':'
-        clientId = ResourceUriBuilder.clientIdFromUri(clientId);
-        // Make sure that the DhcpV6Host has the same clientId address as the URI.
-        host.setClientId(clientId);
-        dataClient.dhcpV6HostUpdate(bridgeId, prefix, host.toData());
+        // Make sure that the DHCPV6Host has the same clientId address as the URI.
+        host.clientId = DhcpV6Host.clientIdFromUri(clientId);
+        dataClient.dhcpV6HostUpdate(bridgeId, prefix, toData(host));
         return Response.ok().build();
     }
 
-    /**
-     * Handler to deleting a DHCP host assignment.
-     *
-     * @param clientId clientId address of the host.
-     * @throws StateAccessException Data access error.
-     */
     @DELETE
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{clientId}")
@@ -170,16 +144,10 @@ public class DhcpV6HostsResource extends AbstractResource {
             bridgeId, "delete dhcpV6 configuration of this bridge.");
 
         // The clientId in the URI uses '-' instead of ':'
-        clientId = ResourceUriBuilder.clientIdFromUri(clientId);
+        clientId = DhcpV6Host.clientIdFromUri(clientId);
         dataClient.dhcpV6HostDelete(bridgeId, prefix, clientId);
     }
 
-    /**
-     * Handler to list DHCPV6 host assignments.
-     *
-     * @throws StateAccessException Data access error.
-     * @return A list of DhcpV6Host objects.
-     */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECTION_JSON })
@@ -193,12 +161,8 @@ public class DhcpV6HostsResource extends AbstractResource {
         List<V6Host> hostConfigs = dataClient.dhcpV6HostsGetByPrefix(bridgeId,
                                                                      prefix);
         List<DhcpV6Host> hosts = new ArrayList<>();
-        URI dhcpUri = ResourceUriBuilder.getBridgeDhcpV6(getBaseUri(), bridgeId,
-                                                         prefix);
         for (V6Host hostConfig : hostConfigs) {
-            DhcpV6Host host = new DhcpV6Host(hostConfig);
-            host.setParentUri(dhcpUri);
-            hosts.add(host);
+            hosts.add(fromData(hostConfig, bridgeId, prefix, getBaseUri()));
         }
         return hosts;
     }
