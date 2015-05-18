@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_8fc918af",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-18T16:53:58Z",
+      "side": 1,
+      "message": "I don\u0027t feel strongly, but the reason for the getters/setters was so that it would be consistent across the board when we have getters for the URI fields.  In addition, though I think it works, Jackson may get confused with such mix.  Also, as a consequence, it makes this work easier since the previous client DTO classes had getters/setters.  \n\nAnyone here prefers one way strongly?  I don\u0027t mind changing.",
+      "parentUuid": "1a106d94_e91ed1ba",
+      "revId": "eda0d3270fecec74aaf01e3a0805227cf8e4ee8a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c91b15c9",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
         "patchSetId": 3
