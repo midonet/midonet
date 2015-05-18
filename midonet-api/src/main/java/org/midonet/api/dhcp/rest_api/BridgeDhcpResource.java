@@ -43,17 +43,20 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.dhcp.DhcpSubnet;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Subnet;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.DHCPSubnet;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Subnet;
+
+import static org.midonet.cluster.rest_api.conversion.DHCPSubnetDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.DHCPSubnetDataConverter.toData;
 
 @RequestScoped
 public class BridgeDhcpResource extends AbstractResource {
@@ -96,7 +99,7 @@ public class BridgeDhcpResource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
                 VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2,
                 MediaType.APPLICATION_JSON })
-    public Response create(DhcpSubnet subnet) throws StateAccessException,
+    public Response create(DHCPSubnet subnet) throws StateAccessException,
                                                      SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
@@ -104,13 +107,13 @@ public class BridgeDhcpResource extends AbstractResource {
 
         validate(subnet);
 
-        dataClient.dhcpSubnetsCreate(bridgeId, subnet.toData());
+        dataClient.dhcpSubnetsCreate(bridgeId, toData(subnet));
 
         URI dhcpsUri = ResourceUriBuilder.getBridgeDhcps(getBaseUri(),
                                                          bridgeId);
 
-        IPv4Subnet subnetAddr = new IPv4Subnet(subnet.getSubnetPrefix(),
-                                               subnet.getSubnetLength());
+        IPv4Subnet subnetAddr = new IPv4Subnet(subnet.subnetPrefix,
+                                               subnet.subnetLength);
 
         return Response.created(ResourceUriBuilder.getBridgeDhcp(dhcpsUri,
                                                                  subnetAddr))
@@ -131,16 +134,16 @@ public class BridgeDhcpResource extends AbstractResource {
                 VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2,
                 MediaType.APPLICATION_JSON })
     public Response update(@PathParam("subnetAddr") IPv4Subnet subnetAddr,
-            DhcpSubnet subnet) throws StateAccessException,
+            DHCPSubnet subnet) throws StateAccessException,
                                       SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
                                       "update this bridge's dhcp config.");
 
-        // Make sure that the DhcpSubnet has the same IP address as the URI.
-        subnet.setSubnetPrefix(subnetAddr.toUnicastString());
-        subnet.setSubnetLength(subnetAddr.getPrefixLen());
-        dataClient.dhcpSubnetsUpdate(bridgeId, subnet.toData());
+        // Make sure that the DHCPSubnet has the same IP address as the URI.
+        subnet.subnetPrefix = subnetAddr.toUnicastString();
+        subnet.subnetLength = subnetAddr.getPrefixLen();
+        dataClient.dhcpSubnetsUpdate(bridgeId, toData(subnet));
         return Response.ok().build();
     }
 
@@ -155,9 +158,9 @@ public class BridgeDhcpResource extends AbstractResource {
     @PermitAll
     @Path("/{subnetAddr}")
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_JSON,
-            VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2,
-            MediaType.APPLICATION_JSON })
-    public DhcpSubnet get(@PathParam("subnetAddr") IPv4Subnet subnetAddr)
+                VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2,
+                MediaType.APPLICATION_JSON })
+    public DHCPSubnet get(@PathParam("subnetAddr") IPv4Subnet subnetAddr)
             throws StateAccessException, SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
@@ -166,15 +169,10 @@ public class BridgeDhcpResource extends AbstractResource {
         Subnet subnetConfig = dataClient.dhcpSubnetsGet(bridgeId, subnetAddr);
 
         if (subnetConfig == null) {
-            throw new NotFoundHttpException(
-                    "The requested resource was not found.");
+            throw new NotFoundHttpException("The subnet was not found.");
         }
 
-        DhcpSubnet subnet = new DhcpSubnet(subnetConfig);
-        subnet.setParentUri(ResourceUriBuilder.getBridgeDhcps(getBaseUri(),
-                                                              bridgeId));
-
-        return subnet;
+        return fromData(subnetConfig, bridgeId, getBaseUri());
     }
 
     /**
@@ -196,14 +194,14 @@ public class BridgeDhcpResource extends AbstractResource {
      * Handler to list DHCP subnet configurations.
      *
      * @throws StateAccessException Data access error.
-     * @return A list of DhcpSubnet objects.
+     * @return A list of DHCPSubnet objects.
      */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON,
-        VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2})
-    public List<DhcpSubnet> list()
-            throws StateAccessException, SerializationException {
+                VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2})
+    public List<DHCPSubnet> list() throws StateAccessException,
+                                          SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
                                       "view DHCP config of this bridge.");
@@ -211,13 +209,10 @@ public class BridgeDhcpResource extends AbstractResource {
         List<Subnet> subnetConfigs =
             dataClient.dhcpSubnetsGetByBridge(bridgeId);
 
-        List<DhcpSubnet> subnets = new ArrayList<>();
-        URI dhcpsUri = ResourceUriBuilder.getBridgeDhcps(getBaseUri(),
-                bridgeId);
+        List<DHCPSubnet> subnets = new ArrayList<>();
+
         for (Subnet subnetConfig : subnetConfigs) {
-            DhcpSubnet subnet = new DhcpSubnet(subnetConfig);
-            subnet.setParentUri(dhcpsUri);
-            subnets.add(subnet);
+            subnets.add(fromData(subnetConfig, bridgeId, getBaseUri()));
         }
 
         return subnets;
