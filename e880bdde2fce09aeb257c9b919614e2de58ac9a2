@@ -36,6 +36,23 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_cf0af026",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-18T18:55:11Z",
+      "side": 1,
+      "message": "might it be simpler to use blocking IO for rtnetlink? It doesn\u0027t sound like it needs multiplexing.",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7d59f78d",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
@@ -115,6 +132,24 @@
       "writtenOn": "2015-05-18T09:17:32Z",
       "side": 1,
       "message": "what write thread?\n\nwhy are we passing closures to a trait when we can just have a simple method channelIsReady(key)?",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_821f2f5b",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-18T18:55:11Z",
+      "side": 1,
+      "message": "same comment here, wouldn\u0027t it be simpler if this layer just offered blocking ops and didn\u0027t have to worry about threading?",
+      "parentUuid": "1a106d94_5d87dbd7",
       "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -257,6 +292,23 @@
       "writtenOn": "2015-05-18T09:17:32Z",
       "side": 1,
       "message": "what is the seq used for?",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a2aa2bd0",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-18T18:55:11Z",
+      "side": 1,
+      "message": "can we avoid the back-ticks?",
       "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
