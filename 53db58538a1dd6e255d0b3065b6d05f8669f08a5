@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9dc9537c",
+        "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-18T08:46:46Z",
+      "side": 1,
+      "message": "+1 on Galo\u0027s suggestion. Boolean parameters are completely opaque from the caller side. It tells you nothing about what the parameter should do. Breaking it in two provides the context.",
+      "parentUuid": "1a106d94_0ccb7b1f",
+      "range": {
+        "startLine": 49,
+        "startChar": 72,
+        "endLine": 49,
+        "endChar": 90
+      },
+      "revId": "53db58538a1dd6e255d0b3065b6d05f8669f08a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_8c4f6bbe",
         "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
         "patchSetId": 1
@@ -42,6 +66,29 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_fd74c737",
+        "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-18T08:46:46Z",
+      "side": 1,
+      "message": "what\u0027s the usecase for broadcast?",
+      "range": {
+        "startLine": 65,
+        "startChar": 28,
+        "endLine": 65,
+        "endChar": 41
+      },
+      "revId": "53db58538a1dd6e255d0b3065b6d05f8669f08a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_ec4c1fcb",
         "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
         "patchSetId": 1
@@ -53,6 +100,69 @@
       "writtenOn": "2015-05-16T17:47:32Z",
       "side": 1,
       "message": "wrap \u0026 space after }",
+      "revId": "53db58538a1dd6e255d0b3065b6d05f8669f08a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3d8e5f28",
+        "filename": "midonet-util/src/test/java/org/midonet/util/netty/TestServerFrontEndUPD.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-18T08:46:46Z",
+      "side": 1,
+      "message": "year",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "53db58538a1dd6e255d0b3065b6d05f8669f08a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1d93a350",
+        "filename": "midonet-util/src/test/java/org/midonet/util/netty/TestServerFrontEndUPD.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-18T08:46:46Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 49,
+        "startChar": 19,
+        "endLine": 49,
+        "endChar": 30
+      },
+      "revId": "53db58538a1dd6e255d0b3065b6d05f8669f08a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7d98d76a",
+        "filename": "midonet-util/src/test/java/org/midonet/util/netty/TestServerFrontEndUPD.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-18T08:46:46Z",
+      "side": 1,
+      "message": "formatting. should be a space between { and this. likewise at the end.",
       "revId": "53db58538a1dd6e255d0b3065b6d05f8669f08a5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
