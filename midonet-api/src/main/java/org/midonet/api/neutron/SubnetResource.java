@@ -41,7 +41,7 @@ import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.UUID;
 
-import static org.midonet.api.validation.MessageProperty.*;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
 
 public class SubnetResource extends AbstractResource {
 

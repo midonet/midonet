@@ -56,14 +56,14 @@ import org.midonet.packets.IPv4Addr;
 
 import static scala.collection.JavaConversions.mapAsJavaMap;
 
-import static org.midonet.api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.VTEP_INACCESSIBLE;
-import static org.midonet.api.validation.MessageProperty.VTEP_MUST_USE_SAME_TUNNEL_ZONE;
-import static org.midonet.api.validation.MessageProperty.VTEP_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
-import static org.midonet.api.validation.MessageProperty.VTEP_TUNNEL_IP_NOT_FOUND;
-import static org.midonet.api.validation.MessageProperty.getMessage;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_INACCESSIBLE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_MUST_USE_SAME_TUNNEL_ZONE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_PORT_VLAN_PAIR_ALREADY_USED;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_TUNNEL_IP_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 import static org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
 

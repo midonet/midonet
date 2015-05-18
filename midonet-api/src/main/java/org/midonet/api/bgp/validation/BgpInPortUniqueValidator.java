@@ -16,14 +16,15 @@
 
 package org.midonet.api.bgp.validation;
 
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
+
 import com.google.inject.Inject;
+
 import org.midonet.api.bgp.Bgp;
 import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
-
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 
 public class BgpInPortUniqueValidator implements
         ConstraintValidator<IsUniqueBgpInPort, Bgp>
