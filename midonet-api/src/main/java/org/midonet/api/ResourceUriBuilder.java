@@ -19,11 +19,13 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.UUID;
+
 import javax.ws.rs.core.UriBuilder;
 
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.rest_api.models.DhcpV6Host;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -112,12 +114,12 @@ public class ResourceUriBuilder {
 
     public static URI getTenantChains(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getChains(baseUri)).queryParam(
-                TENANT_ID_PARAM, tenantId).build();
+            TENANT_ID_PARAM, tenantId).build();
     }
 
     public static URI getTenantPortGroups(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getPortGroups(baseUri)).queryParam(
-                TENANT_ID_PARAM, tenantId).build();
+            TENANT_ID_PARAM, tenantId).build();
     }
 
 
@@ -298,17 +300,9 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(bridgeDhcpV6Uri).path(DHCPV6_HOSTS).build();
     }
 
-    public static String clientIdToUri(String clientId) {
-        return clientId.replace(':', '-');
-    }
-
-    public static String clientIdFromUri(String clientId) {
-        return clientId.replace('-', ':');
-    }
-
     public static URI getDhcpV6Host(URI bridgeDhcpV6Uri, String clientId) {
         return UriBuilder.fromUri(getDhcpV6Hosts(bridgeDhcpV6Uri))
-                .path(clientIdToUri(clientId)).build();
+                .path(DhcpV6Host.clientIdToUri(clientId)).build();
     }
 
     public static URI getRouterPorts(URI baseUri, UUID routerId) {
