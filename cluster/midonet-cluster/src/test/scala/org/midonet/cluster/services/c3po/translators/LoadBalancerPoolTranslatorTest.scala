@@ -37,13 +37,21 @@ class LoadBalancerPoolTranslatorTestBase extends FlatSpec with BeforeAndAfter
 
     protected val poolId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")
     protected val routerId = UUIDUtil.toProtoFromProtoStr("msb: 2 lsb: 1")
+    protected val healthMonitorId =
+        UUIDUtil.toProtoFromProtoStr("msb: 3 lsb: 1")
     protected val lbId = routerId
 
-    protected val pool = nLoadBalancerPoolFromTxt(s"""
-        id { $poolId }
-        router_id { $routerId }
-        admin_state_up: true
-        """)
+    protected def neutronPoolProtoStr(healthMonitorId: UUID = null) = {
+        val protoStr = s"""
+            id { $poolId }
+            router_id { $routerId }
+            admin_state_up: true
+            """
+        if (healthMonitorId == null) protoStr
+        else protoStr + s"health_monitor_ids { $healthMonitorId }"
+    }
+    protected def neutronPool(healthMonitorId: UUID = null) =
+        nLoadBalancerPoolFromTxt(neutronPoolProtoStr(healthMonitorId))
 
     protected val poolNoRouterId = nLoadBalancerPoolFromTxt(s"""
         id { $poolId }
@@ -55,6 +63,19 @@ class LoadBalancerPoolTranslatorTestBase extends FlatSpec with BeforeAndAfter
         admin_state_up: true
         router_id { $routerId }
         """)
+
+    protected def midoPoolProtoStr(healthMonitorId: UUID = null) = {
+       val protoStr = s"""
+           id { $poolId }
+           admin_state_up: true
+           load_balancer_id { $routerId }
+           """
+        if (healthMonitorId == null) protoStr
+        else protoStr + s"""health_monitor_id { $healthMonitorId }
+                            mapping_status: PENDING_CREATE"""
+    }
+    protected def midoPool(healthMonitorId: UUID = null) =
+        mPoolFromTxt(midoPoolProtoStr(healthMonitorId))
 
     protected def bindLb(id: UUID, lb: LoadBalancer) {
         val lbExists = lb != null
@@ -78,18 +99,32 @@ class LoadBalancerPoolTranslatorCreateTest
         translator = new LoadBalancerPoolTranslator(storage)
     }
 
-    "Creation of a Pool" should "create a Load Balancer if not exists." in {
-        bindLb(lbId, null)
-        val midoOps = translator.translate(neutron.Create(pool))
+    val poolNoHm = neutronPool()
+    val poolWithHm = neutronPool(healthMonitorId)
+    val mPoolNoHm = midoPool()
+    val mPoolWithHm = midoPool(healthMonitorId)
 
-        midoOps should contain only (midonet.Create(lb))
+    "Creation of a Pool" should "create an LB if it does not exists." in {
+        bindLb(lbId, null)
+        val midoOps = translator.translate(neutron.Create(poolNoHm))
+
+        midoOps should contain inOrderOnly (
+                midonet.Create(lb), midonet.Create(mPoolNoHm))
     }
 
-    "Creation of a Pool" should "not create a Load Balancer if one exists." in {
+    it should "create just a Pool if an LB already exists." in {
         bindLb(lbId, lb)
-        val midoOps = translator.translate(neutron.Create(pool))
+        val midoOps = translator.translate(neutron.Create(poolNoHm))
 
-        midoOps shouldBe empty
+        midoOps should contain only (midonet.Create(mPoolNoHm))
+    }
+
+    "Creation of a Pool with a Health Monitor ID" should "set the Pool " +
+    "Health Monitor Mapping Status to PENDING CREATE." in {
+        bindLb(lbId, lb)
+        val midoOps = translator.translate(neutron.Create(poolWithHm))
+
+        midoOps should contain only (midonet.Create(mPoolWithHm))
     }
 
     "Creation of a Pool without Router ID specified" should "throw an " +

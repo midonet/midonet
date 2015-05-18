@@ -96,7 +96,9 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[Host], "tunnel_zone_ids", CLEAR,
                              classOf[TunnelZone], "host_ids", CLEAR)
 
-        store.declareBinding(classOf[Pool], "pool_member_ids", CASCADE,
+        store.declareBinding(classOf[LoadBalancer], "pool_ids", CASCADE,
+                             classOf[Pool], "load_balancer_id", CLEAR)
+        store.declareBinding(classOf[Pool], "pool_member_ids", ERROR,
                              classOf[PoolMember], "pool_id", CLEAR)
 
         store.declareBinding(classOf[Router], "load_balancer_id", CASCADE,
