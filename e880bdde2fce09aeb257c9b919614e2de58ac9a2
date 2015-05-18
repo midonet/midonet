@@ -1,0 +1,265 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_1d2f23f8",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "constants are UPPER_CASE",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7d8297c9",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "lets not have traits create threads.\n\nalso, is this code really necessary to be in the trait? it\u0027s making the code hard to read and i\u0027m not sure we have an use case to have this code factored out.",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7d59f78d",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "why are we passing a timeout if the thread goes back to selecting?",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fd47a7ba",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "clear at the end is clearer :p",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_dded8bb9",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "System.exit?!",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3d2adfe7",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "the thread should also be a daemon",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5d87dbd7",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "what write thread?\n\nwhy are we passing closures to a trait when we can just have a simple method channelIsReady(key)?",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_9d683323",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "what are readClosure and writeClosure?",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3d5f7f77",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "isn\u0027t this the same as above but with a default value for writeClosure?",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3d781ff8",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "i\u0027m pretty sure this causes a call to System.exit. you should also call selector.wakeUp",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bd524f66",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "there are much better ways to solve the problem. for example, why is this even a trait and not a class that takes the NetlinkReader as a ctor argument?",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_bdd9aff6",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "what if users of this class don\u0027t want to use a selector and want to make blocking read calls? selector registrations feels like it should be done outside",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7d0bb77d",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "read buf size sounds like it should be a field of the trait",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_1d1603a8",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "notificationChannel.headerSize",
+      "range": {
+        "startLine": 127,
+        "startChar": 39,
+        "endLine": 127,
+        "endChar": 58
+      },
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7dd0d7c9",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-18T09:17:32Z",
+      "side": 1,
+      "message": "what is the seq used for?",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
