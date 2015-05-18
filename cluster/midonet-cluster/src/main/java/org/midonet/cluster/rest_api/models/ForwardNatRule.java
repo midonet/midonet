@@ -21,13 +21,14 @@ import javax.validation.constraints.Size;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPAddressUtil;
 
 public abstract class ForwardNatRule extends NatRule {
 
     @ZoomClass(clazz = Topology.Rule.NatTarget.class)
-    public static class NatTarget {
+    public static class NatTarget extends ZoomObject {
         @NotNull
         @ZoomField(name = "nw_start", converter = IPAddressUtil.Converter.class)
         public String addressFrom;

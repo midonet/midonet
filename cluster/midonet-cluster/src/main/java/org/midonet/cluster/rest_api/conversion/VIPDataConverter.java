@@ -32,8 +32,7 @@ public class VIPDataConverter {
         vip.poolId = vipData.getPoolId();
         vip.address = vipData.getAddress();
         vip.protocolPort = vipData.getProtocolPort();
-        vip.sessionPersistence = vipData.getSessionPersistence() != null ?
-                vipData.getSessionPersistence().toString() : null;
+        vip.sessionPersistence = vipData.getSessionPersistence();
         vip.adminStateUp = vipData.getAdminStateUp();
         vip.setBaseUri(baseUri);
         return vip;
@@ -46,8 +45,7 @@ public class VIPDataConverter {
                 .setPoolId(vip.poolId)
                 .setAddress(vip.address)
                 .setProtocolPort(vip.protocolPort)
-                .setSessionPersistence(vip.sessionPersistence != null
-                    ? valueOf(vip.sessionPersistence) : null)
+                .setSessionPersistence(vip.sessionPersistence)
                 .setAdminStateUp(vip.adminStateUp);
     }
 

@@ -34,13 +34,17 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
                                     bridgeResource: BridgeResource,
                                     chainResource: ChainResource,
                                     hostResource: HostResource,
+                                    loadBalancerResource: LoadBalancerResource,
                                     loginResource: LoginResource,
+                                    poolResource: PoolResource,
+                                    poolMemberResource: PoolMemberResource,
                                     portResource: PortResource,
                                     routeResource: RouteResource,
                                     routerResource: RouterResource,
                                     ruleResource: RuleResource,
                                     systemStateResource: SystemStateResource,
-                                    tunnelZoneResource: TunnelZoneResource)
+                                    tunnelZoneResource: TunnelZoneResource,
+                                    vipResource: VIPResource)
     extends MidonetResource(backend, uriInfo) {
 
     @GET
@@ -60,8 +64,17 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
     @Path("hosts")
     def hosts = hostResource
 
+    @Path("load_balancers")
+    def loadBalancers = loadBalancerResource
+
     @Path("login")
     def login = loginResource
+
+    @Path("pools")
+    def pools = poolResource
+
+    @Path("pool_members")
+    def poolMembers = poolMemberResource
 
     @Path("ports")
     def ports = portResource
@@ -80,5 +93,8 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
 
     @Path("tunnel_zones")
     def tunnelZones = tunnelZoneResource
+
+    @Path("vips")
+    def vips = vipResource
 
 }

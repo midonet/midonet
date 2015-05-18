@@ -29,15 +29,10 @@ public class PoolDataConverter {
         Pool pool = new Pool();
         pool.loadBalancerId = data.getLoadBalancerId();
         pool.healthMonitorId = data.getHealthMonitorId();
-        pool.protocol = data.getProtocol() != null ?
-                        data.getProtocol().toString()
-                        : null;
-        pool.lbMethod = data.getLbMethod() != null ?
-                        data.getLbMethod().toString()
-                        : null;
+        pool.protocol = data.getProtocol();
+        pool.lbMethod = data.getLbMethod();
         pool.adminStateUp = data.isAdminStateUp();
-        pool.status = (data.getStatus() != null ? data.getStatus().toString()
-                                                : null);
+        pool.status = data.getStatus();
         pool.id = data.getId();
         pool.setBaseUri(baseUri);
         return pool;
@@ -48,10 +43,10 @@ public class PoolDataConverter {
                 .setId(pool.id)
                 .setLoadBalancerId(pool.loadBalancerId)
                 .setHealthMonitorId(pool.healthMonitorId)
-                .setProtocol(PoolProtocol.valueOf(pool.protocol))
-                .setLbMethod(PoolLBMethod.valueOf(pool.lbMethod))
+                .setProtocol(pool.protocol)
+                .setLbMethod(pool.lbMethod)
                 .setAdminStateUp(pool.adminStateUp)
-                .setStatus(LBStatus.valueOf(pool.status));
+                .setStatus(pool.status);
     }
 
 }
