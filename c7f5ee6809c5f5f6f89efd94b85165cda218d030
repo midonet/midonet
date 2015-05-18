@@ -16,6 +16,24 @@
       "revId": "c7f5ee6809c5f5f6f89efd94b85165cda218d030",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3dbbff76",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/VtyConnection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-18T09:27:19Z",
+      "side": 1,
+      "message": ":D. The comment is not mine.",
+      "parentUuid": "1a106d94_72af667e",
+      "revId": "c7f5ee6809c5f5f6f89efd94b85165cda218d030",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
