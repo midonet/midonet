@@ -72,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_0f76c806",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-18T17:36:27Z",
+      "side": 1,
+      "message": "Hey Alex,\n\nAbout the naming:\n\nYes: AdRoute, AdvertisedRoute, or even AdvertisedNetwork all sound more clear to me.\n\nOn the scoping by protocol:\n\nMaybe the same type of object can be used in two different lists: ospf-advertised routes, bgp-advertised routes. If we want to use different types, we can add a \u0027bgp\u0027 prefix the the names above. To know which option is best, maybe we should talk with midokureans who are more versed in routing protocols.\n\nRelated:\n\nI recently posted to our mailing list that our BGP model is broken. Maybe we should chat about fixing that in v1.10 along with this change? I\u0027m already preparing low-level changes to take advantage of the new model that will enable several sessions per port.",
+      "parentUuid": "1a106d94_ecec1af6",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b4f1ea6c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 12
