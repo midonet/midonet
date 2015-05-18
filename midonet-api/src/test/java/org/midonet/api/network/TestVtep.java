@@ -134,8 +134,7 @@ public class TestVtep extends RestApiTestBase {
                                                         APPLICATION_VTEP_JSON,
                                                         vtep,
                                                         Status.BAD_REQUEST);
-        assertErrorMatchesPropMsg(error, "tunnelZoneId",
-                                  TUNNEL_ZONE_ID_IS_INVALID);
+        assertErrorMatches(error, TUNNEL_ZONE_ID_IS_INVALID);
     }
 
     @Test
@@ -148,8 +147,7 @@ public class TestVtep extends RestApiTestBase {
                                                         APPLICATION_VTEP_JSON,
                                                         vtep,
                                                         Status.BAD_REQUEST);
-        assertErrorMatchesPropMsg(error, "tunnelZoneId",
-                                  TUNNEL_ZONE_ID_IS_INVALID);
+        assertErrorMatches(error, TUNNEL_ZONE_ID_IS_INVALID);
     }
 
     @Test
