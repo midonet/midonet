@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
@@ -30,6 +31,7 @@ import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4;
 
+@XmlRootElement
 @ZoomClass(clazz = Topology.TunnelZone.HostToIp.class)
 public class TunnelZoneHost extends UriResource {
 

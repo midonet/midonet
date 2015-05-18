@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -35,19 +36,28 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.host.TunnelZoneHost;
-import org.midonet.api.host.TunnelZoneHostFactory;
 import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.event.topology.TunnelZoneEvent;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.TunnelZone;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.TunnelZoneHost;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.event.topology.TunnelZoneEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.cluster.rest_api.conversion.TunnelZoneHostDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.TunnelZoneHostDataConverter.toData;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_ID_IS_INVALID;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.TUNNEL_ZONE_ID_IS_INVALID;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.TUNNEL_ZONE_MEMBER_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 /**
  * REST API handler for tunnel zone - host mapping.
@@ -71,19 +81,31 @@ public class TunnelZoneHostResource extends AbstractResource {
 
     private <T extends TunnelZoneHost> Response createTunnelZoneHost(T tzHost)
             throws StateAccessException, SerializationException {
-        tzHost.setTunnelZoneId(tunnelZoneId);
 
-        validate(tzHost, TunnelZoneHost.TunnelZoneHostCreateGroupSequence.class);
+        tzHost.tunnelZoneId = tunnelZoneId;
 
-        dataClient.tunnelZonesAddMembership(tunnelZoneId,
-                tzHost.toData());
+        validate(tzHost);
+
+        if (!dataClient.hostsExists(tzHost.hostId)) {
+            throw new BadRequestHttpException(getMessage(HOST_ID_IS_INVALID));
+        }
+        if (!dataClient.tunnelZonesExists(tunnelZoneId)) {
+            throw new BadRequestHttpException(
+                getMessage(TUNNEL_ZONE_ID_IS_INVALID));
+        }
+        if (dataClient.tunnelZonesGetMembership(tunnelZoneId,
+                                                tzHost.hostId) != null) {
+            throw new BadRequestHttpException(
+                getMessage(TUNNEL_ZONE_MEMBER_EXISTS));
+        }
+
+        dataClient.tunnelZonesAddMembership(tunnelZoneId, toData(tzHost));
         tunnelZoneEvent.memberCreate(tunnelZoneId,
                 dataClient.tunnelZonesGetMembership(
-                        tunnelZoneId, tzHost.getHostId()));
+                        tunnelZoneId, tzHost.hostId));
         return Response.created(
-                ResourceUriBuilder.getTunnelZoneHost(getBaseUri(),
-                        tunnelZoneId, tzHost.getHostId()))
-                .build();
+            ResourceUriBuilder.getTunnelZoneHost(getBaseUri(), tunnelZoneId,
+                                                 tzHost.hostId)).build();
     }
 
     @POST
@@ -103,8 +125,7 @@ public class TunnelZoneHostResource extends AbstractResource {
         List<TunnelZoneHost> tunnelZoneHosts = new ArrayList<>(dataList.size());
 
         for (TunnelZone.HostConfig data : dataList) {
-            TunnelZoneHost tzh = TunnelZoneHostFactory.createTunnelZoneHost(
-                            tunnelZoneId, data);
+            TunnelZoneHost tzh = fromData(tunnelZoneId, data);
             if (clazz == null || tzh.getClass().equals(clazz)) {
                 tzh.setBaseUri(getBaseUri());
                 tunnelZoneHosts.add(tzh);
@@ -140,13 +161,13 @@ public class TunnelZoneHostResource extends AbstractResource {
         TunnelZone.HostConfig data =
                 dataClient.tunnelZonesGetMembership(tunnelZoneId, hostId);
         if (data == null) {
-            throw new NotFoundHttpException("The resource was not found");
+            throw new NotFoundHttpException("Tunnel zone member was not found");
         }
 
-        TunnelZoneHost tzh = TunnelZoneHostFactory.createTunnelZoneHost(
-                tunnelZoneId, data);
-        if (clazz != null && !tzh.getClass().equals(clazz))
-            throw new NotFoundHttpException("The resource was not found");
+        TunnelZoneHost tzh = fromData(tunnelZoneId, data);
+        if (clazz != null && !tzh.getClass().equals(clazz)) {
+            throw new NotFoundHttpException("Tunnel zone was not found");
+        }
 
         tzh.setBaseUri(getBaseUri());
         return tzh;

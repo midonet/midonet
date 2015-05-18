@@ -25,7 +25,6 @@ import javax.validation.constraints.Pattern;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.api.host.validation.IsValidTunnelZoneId;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
 import org.midonet.midolman.state.VtepConnectionState;
@@ -49,7 +48,6 @@ public class VTEP extends UriResource {
     private String description;
     private VtepConnectionState connectionState;
 
-    @IsValidTunnelZoneId
     private UUID tunnelZoneId;
 
     private List<String> tunnelIpAddrs;

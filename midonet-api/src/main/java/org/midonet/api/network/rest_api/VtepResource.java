@@ -50,6 +50,7 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.vtep.VtepNotConnectedException;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.NodeNotEmptyStateException;
@@ -91,6 +92,11 @@ public class VtepResource extends AbstractVtepResource {
             throws SerializationException, StateAccessException {
 
         validate(vtep);
+
+        if (!dataClient.tunnelZonesExists(vtep.getTunnelZoneId())) {
+            throw new BadRequestHttpException(
+                getMessage(MessageProperty.TUNNEL_ZONE_ID_IS_INVALID));
+        }
 
         org.midonet.cluster.data.VTEP dataVtep = vtep.toData();
         List<InetAddress> vtepIps = new ArrayList<>();
