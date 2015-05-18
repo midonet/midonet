@@ -43,18 +43,21 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.dhcp.DhcpSubnet6;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.Subnet6;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.DHCPSubnet6;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.IPv6Subnet;
+
+import static org.midonet.cluster.rest_api.conversion.DHCPSubnetDataConverter.fromDataV6;
+import static org.midonet.cluster.rest_api.conversion.DHCPSubnetDataConverter.toData;
 
 @RequestScoped
 public class BridgeDhcpV6Resource extends AbstractResource {
@@ -96,7 +99,7 @@ public class BridgeDhcpV6Resource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCPV6_SUBNET_JSON,
                 MediaType.APPLICATION_JSON })
-    public Response create(DhcpSubnet6 subnet)
+    public Response create(DHCPSubnet6 subnet)
             throws StateAccessException, SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
@@ -104,7 +107,7 @@ public class BridgeDhcpV6Resource extends AbstractResource {
 
         validate(subnet);
 
-        dataClient.dhcpSubnet6Create(bridgeId, subnet.toData());
+        dataClient.dhcpSubnet6Create(bridgeId, toData(subnet));
 
         URI dhcpsUri = ResourceUriBuilder.getBridgeDhcpV6s(getBaseUri(),
                 bridgeId);
@@ -128,16 +131,16 @@ public class BridgeDhcpV6Resource extends AbstractResource {
     @Consumes({ VendorMediaType.APPLICATION_DHCPV6_SUBNET_JSON,
             MediaType.APPLICATION_JSON })
     public Response update(@PathParam("prefix") IPv6Subnet prefix,
-            DhcpSubnet6 subnet)
+            DHCPSubnet6 subnet)
             throws StateAccessException, SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
                                       "update this bridge's dhcpv6 config.");
 
-        // Make sure that the DhcpSubnet6 has the same IP address as the URI.
+        // Make sure that the DHCPSubnet6 has the same IP address as the URI.
         subnet.setPrefix(prefix.getAddress().toString());
         subnet.setPrefixLength(prefix.getPrefixLen());
-        dataClient.dhcpSubnet6Update(bridgeId, subnet.toData());
+        dataClient.dhcpSubnet6Update(bridgeId, toData(subnet));
         return Response.ok().build();
     }
 
@@ -153,7 +156,7 @@ public class BridgeDhcpV6Resource extends AbstractResource {
     @Path("/{prefix}")
     @Produces({ VendorMediaType.APPLICATION_DHCPV6_SUBNET_JSON,
             MediaType.APPLICATION_JSON })
-    public DhcpSubnet6 get(@PathParam("prefix") IPv6Subnet prefix)
+    public DHCPSubnet6 get(@PathParam("prefix") IPv6Subnet prefix)
             throws StateAccessException, SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
@@ -165,11 +168,7 @@ public class BridgeDhcpV6Resource extends AbstractResource {
                     "The requested resource was not found.");
         }
 
-        DhcpSubnet6 subnet = new DhcpSubnet6(subnetConfig);
-        subnet.setParentUri(ResourceUriBuilder.getBridgeDhcpV6s(getBaseUri(),
-                                                                bridgeId));
-
-        return subnet;
+        return fromDataV6(subnetConfig, bridgeId, getBaseUri());
     }
 
     /**
@@ -193,12 +192,12 @@ public class BridgeDhcpV6Resource extends AbstractResource {
      * Handler to list DHCPV6 subnet configurations.
      *
      * @throws StateAccessException Data access error.
-     * @return A list of DhcpSubnet6 objects.
+     * @return A list of DHCPSubnet6 objects.
      */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON })
-    public List<DhcpSubnet6> list()
+    public List<DHCPSubnet6> list()
             throws StateAccessException, SerializationException {
 
         authoriser.tryAuthoriseBridge(
@@ -207,13 +206,9 @@ public class BridgeDhcpV6Resource extends AbstractResource {
         List<Subnet6> subnetConfigs =
                 dataClient.dhcpSubnet6sGetByBridge(bridgeId);
 
-        List<DhcpSubnet6> subnets = new ArrayList<>();
-        URI dhcpsUri = ResourceUriBuilder.getBridgeDhcpV6s(getBaseUri(),
-                                                           bridgeId);
+        List<DHCPSubnet6> subnets = new ArrayList<>();
         for (Subnet6 subnetConfig : subnetConfigs) {
-            DhcpSubnet6 subnet = new DhcpSubnet6(subnetConfig);
-            subnet.setParentUri(dhcpsUri);
-            subnets.add(subnet);
+            subnets.add(fromDataV6(subnetConfig, bridgeId, getBaseUri()));
         }
 
         return subnets;
