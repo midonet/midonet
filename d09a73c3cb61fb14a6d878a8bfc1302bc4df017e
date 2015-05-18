@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_0cf096c8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 376,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T15:33:02Z",
+      "side": 1,
+      "message": "It is the same comparison that was done in the method `IPAddr.equalsInetAddress`, which was only used here.",
+      "parentUuid": "1a106d94_54f6b65d",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_14d9def2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
         "patchSetId": 12
@@ -30,6 +48,24 @@
       "writtenOn": "2015-05-11T14:05:04Z",
       "side": 1,
       "message": "I find the new name more confusing. This objects are the routes we advertise to others, not necessarily entries in our routing table. The name is ambiguous. I\u0027d rather have AdRoute, or AdvertisedRoute, for example.",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_ecec1af6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T15:33:02Z",
+      "side": 1,
+      "message": "I agree that the name does not convey that the route is advertised. However, wouldn\u0027t it be ambiguous if will ever use a routing protocol other than BGP?\n\nI was planning to use the same name for the ZOOM object, do you think AdRoute is better for this purpose too?",
+      "parentUuid": "1a106d94_14d9def2",
       "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -81,6 +117,24 @@
       "writtenOn": "2015-05-11T14:06:55Z",
       "side": 1,
       "message": "this name is longer and less informative than zkConnWatcher",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4cb9eeeb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T15:33:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_1400be32",
       "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false

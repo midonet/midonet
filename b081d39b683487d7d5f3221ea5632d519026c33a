@@ -16,6 +16,24 @@
       "revId": "b081d39b683487d7d5f3221ea5632d519026c33a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_0c753632",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-18T15:33:02Z",
+      "side": 0,
+      "message": "I agree, the integration with the Routing handler can be done in a different patch.",
+      "parentUuid": "1a106d94_54dfd6d5",
+      "revId": "b081d39b683487d7d5f3221ea5632d519026c33a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
