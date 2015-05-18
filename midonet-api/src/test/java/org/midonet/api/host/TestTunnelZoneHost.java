@@ -20,7 +20,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
@@ -36,7 +35,6 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
@@ -51,6 +49,7 @@ import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.TunnelZone;
 import org.midonet.client.resource.TunnelZoneHost;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
@@ -60,7 +59,8 @@ import org.midonet.packets.MAC;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_ID_IS_INVALID;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RunWith(Enclosed.class)
 public class TestTunnelZoneHost {
@@ -264,12 +264,11 @@ public class TestTunnelZoneHost {
             DtoTunnelZone tz = topology.getGreTunnelZone("tz1");
 
             DtoError error = dtoResource.postAndVerifyBadRequest(
-                    tz.getHosts(),
-                    VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
-                    tunnelZoneHost);
-            List<Map<String, String>> violations = error.getViolations();
-            Assert.assertEquals(1, violations.size());
-            Assert.assertEquals(property, violations.get(0).get("property"));
+                tz.getHosts(),
+                VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
+                tunnelZoneHost);
+            Assert.assertEquals(getMessage(HOST_ID_IS_INVALID),
+                                error.getMessage());
         }
     }
 

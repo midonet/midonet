@@ -19,8 +19,6 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
 import org.midonet.api.host.validation.IsHostIdInAnyTunnelZone;
 import org.midonet.api.host.validation.IsHostInterfaceUnused;
-import org.midonet.api.host.validation.IsUniqueTunnelZoneMember;
-import org.midonet.api.host.validation.IsValidHostId;
 import org.midonet.api.network.validation.IsValidPortId;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 
