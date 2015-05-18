@@ -17,6 +17,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.google.protobuf.Message;
@@ -38,9 +40,10 @@ import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
+import org.midonet.util.version.Since;
 
 @ZoomClass(clazz = Topology.Dhcp.class)
-public class DhcpSubnet extends UriResource {
+public class DHCPSubnet extends UriResource {
 
     @JsonIgnore
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -83,14 +86,19 @@ public class DhcpSubnet extends UriResource {
     public int interfaceMTU;
 
     @ZoomField(name = "opt121_routes")
-    public List<DhcpOption121> opt121Routes;
+    public List<DHCPOption121> opt121Routes;
 
     @XmlTransient
     @ZoomField(name = "hosts")
-    public List<DhcpHost> hosts;
+    public List<DHCPHost> hosts;
 
+    @Since("2")
     @ZoomField(name = "enabled")
     public Boolean enabled = true;
+
+    public DHCPSubnet() {
+        opt121Routes = new ArrayList<>();
+    }
 
     @Override
     public URI getUri() {
@@ -99,7 +107,7 @@ public class DhcpSubnet extends UriResource {
     }
 
     public URI getHosts() {
-        return relativeUri(ResourceUris.HOSTS);
+        return UriBuilder.fromUri(getUri()).path(ResourceUris.HOSTS).build();
     }
 
     @JsonIgnore
@@ -124,7 +132,7 @@ public class DhcpSubnet extends UriResource {
     }
 
     @JsonIgnore
-    public void update(DhcpSubnet from) {
+    public void update(DHCPSubnet from) {
         id = from.id;
         subnetAddress = from.subnetAddress;
         bridgeId = from.bridgeId;

@@ -42,16 +42,18 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.dhcp.DhcpV6Host;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.dhcp.V6Host;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.DHCPV6Host;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv6Subnet;
+
+import static org.midonet.cluster.rest_api.conversion.DHCPHostDataConverter.*;
 
 @RequestScoped
 public class DhcpV6HostsResource extends AbstractResource {
@@ -80,17 +82,17 @@ public class DhcpV6HostsResource extends AbstractResource {
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCPV6_HOST_JSON,
             MediaType.APPLICATION_JSON })
-    public Response create(DhcpV6Host host)
+    public Response create(DHCPV6Host host)
             throws StateAccessException, SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
                                       "configure DHCP for this bridge.");
 
-        dataClient.dhcpV6HostCreate(bridgeId, prefix, host.toData());
+        dataClient.dhcpV6HostCreate(bridgeId, prefix, toData(host));
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcpV6(getBaseUri(),
                 bridgeId, prefix);
         return Response.created(
-                ResourceUriBuilder.getDhcpV6Host(dhcpUri, host.getClientId()))
+                ResourceUriBuilder.getDhcpV6Host(dhcpUri, host.clientId))
                 .build();
     }
 
@@ -99,14 +101,14 @@ public class DhcpV6HostsResource extends AbstractResource {
      *
      * @param clientId clientId of the host.
      * @throws StateAccessException Data access error.
-     * @return A DhcpV6Host object.
+     * @return A DHCPV6Host object.
      */
     @GET
     @PermitAll
     @Path("/{clientId}")
     @Produces({ VendorMediaType.APPLICATION_DHCPV6_HOST_JSON,
             MediaType.APPLICATION_JSON })
-    public DhcpV6Host get(@PathParam("clientId") String clientId)
+    public DHCPV6Host get(@PathParam("clientId") String clientId)
             throws StateAccessException, SerializationException {
 
 
@@ -114,18 +116,14 @@ public class DhcpV6HostsResource extends AbstractResource {
                                       "view this bridge's dhcpV6 config.");
 
         // The clientId in the URI uses '-' instead of ':'
-        clientId = ResourceUriBuilder.clientIdFromUri(clientId);
+        clientId = DHCPV6Host.clientIdFromUri(clientId);
         V6Host hostConfig = dataClient.dhcpV6HostGet(bridgeId, prefix, clientId);
         if (hostConfig == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
         }
 
-        DhcpV6Host host = new DhcpV6Host(hostConfig);
-        host.setParentUri(ResourceUriBuilder.getBridgeDhcpV6(
-              getBaseUri(), bridgeId, prefix));
-
-        return host;
+        return fromData(hostConfig, bridgeId, prefix, getBaseUri());
     }
 
     /**
@@ -140,17 +138,16 @@ public class DhcpV6HostsResource extends AbstractResource {
     @Path("/{clientId}")
     @Consumes({ VendorMediaType.APPLICATION_DHCPV6_HOST_JSON,
             MediaType.APPLICATION_JSON })
-    public Response update(@PathParam("clientId") String clientId, DhcpV6Host host)
+    public Response update(@PathParam("clientId") String clientId, DHCPV6Host host)
             throws StateAccessException, SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
                                       "update this bridge's dhcpV6 config.");
 
         // The clientId in the URI uses '-' instead of ':'
-        clientId = ResourceUriBuilder.clientIdFromUri(clientId);
-        // Make sure that the DhcpV6Host has the same clientId address as the URI.
-        host.setClientId(clientId);
-        dataClient.dhcpV6HostUpdate(bridgeId, prefix, host.toData());
+        // Make sure that the DHCPV6Host has the same clientId address as the URI.
+        host.clientId = DHCPV6Host.clientIdFromUri(clientId);
+        dataClient.dhcpV6HostUpdate(bridgeId, prefix, toData(host));
         return Response.ok().build();
     }
 
@@ -170,7 +167,7 @@ public class DhcpV6HostsResource extends AbstractResource {
             bridgeId, "delete dhcpV6 configuration of this bridge.");
 
         // The clientId in the URI uses '-' instead of ':'
-        clientId = ResourceUriBuilder.clientIdFromUri(clientId);
+        clientId = DHCPV6Host.clientIdFromUri(clientId);
         dataClient.dhcpV6HostDelete(bridgeId, prefix, clientId);
     }
 
@@ -178,12 +175,12 @@ public class DhcpV6HostsResource extends AbstractResource {
      * Handler to list DHCPV6 host assignments.
      *
      * @throws StateAccessException Data access error.
-     * @return A list of DhcpV6Host objects.
+     * @return A list of DHCPV6Host objects.
      */
     @GET
     @PermitAll
     @Produces({ VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECTION_JSON })
-    public List<DhcpV6Host> list()
+    public List<DHCPV6Host> list()
             throws StateAccessException, SerializationException {
 
 
@@ -192,13 +189,9 @@ public class DhcpV6HostsResource extends AbstractResource {
 
         List<V6Host> hostConfigs = dataClient.dhcpV6HostsGetByPrefix(bridgeId,
                                                                      prefix);
-        List<DhcpV6Host> hosts = new ArrayList<>();
-        URI dhcpUri = ResourceUriBuilder.getBridgeDhcpV6(getBaseUri(), bridgeId,
-                                                         prefix);
+        List<DHCPV6Host> hosts = new ArrayList<>();
         for (V6Host hostConfig : hostConfigs) {
-            DhcpV6Host host = new DhcpV6Host(hostConfig);
-            host.setParentUri(dhcpUri);
-            hosts.add(host);
+            hosts.add(fromData(hostConfig, bridgeId, prefix, getBaseUri()));
         }
         return hosts;
     }

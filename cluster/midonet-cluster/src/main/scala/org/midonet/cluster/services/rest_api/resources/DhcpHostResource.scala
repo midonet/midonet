@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response.Status
@@ -29,7 +28,7 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.models.{DhcpSubnet, DhcpHost, Bridge}
+import org.midonet.cluster.rest_api.models.{Bridge, DHCPHost, DHCPSubnet}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.packets.{IPv4Subnet, MAC}
@@ -37,7 +36,7 @@ import org.midonet.packets.{IPv4Subnet, MAC}
 @RequestScoped
 class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
                                  backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[DhcpHost](backend, uriInfo) {
+    extends MidonetResource[DHCPHost](backend, uriInfo) {
 
     @GET
     @Path("/{mac}")
@@ -45,7 +44,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
                     APPLICATION_DHCP_HOST_JSON_V2,
                     APPLICATION_JSON))
     override def get(@PathParam("mac") mac: String,
-                     @HeaderParam("Accept") accept: String): DhcpHost = {
+                     @HeaderParam("Accept") accept: String): DHCPHost = {
         val m = MAC.fromString(mac)
         getSubnet(subnetAddress).map(_.flatMap(subnet => {
             val host = subnet.hosts.asScala.find(host => {
@@ -62,7 +61,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
     @Produces(Array(APPLICATION_DHCP_HOST_COLLECTION_JSON,
                     APPLICATION_DHCP_HOST_COLLECTION_JSON_V2))
     override def list(@HeaderParam("Accept") accept: String)
-    : JList[DhcpHost] = {
+    : JList[DHCPHost] = {
         getSubnet(subnetAddress).map(_.map(subnet => {
             val hosts = subnet.hosts.asScala
             hosts.foreach(_.setBaseUri(subnet.getUri))
@@ -76,7 +75,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
     @Consumes(Array(APPLICATION_DHCP_HOST_JSON,
                     APPLICATION_DHCP_HOST_JSON_V2,
                     APPLICATION_JSON))
-    override def create(host: DhcpHost,
+    override def create(host: DHCPHost,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
         getSubnet(subnetAddress).map(_.map(subnet => {
@@ -99,7 +98,7 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
     @Consumes(Array(APPLICATION_DHCP_HOST_JSON,
                     APPLICATION_DHCP_HOST_JSON_V2,
                     APPLICATION_JSON))
-    override def update(@PathParam("mac") mac: String, host: DhcpHost,
+    override def update(@PathParam("mac") mac: String, host: DHCPHost,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
         val m = MAC.fromString(mac)
@@ -134,9 +133,9 @@ class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
     }
 
     private def getSubnet(subnetAddress: IPv4Subnet)
-    : Future[Option[DhcpSubnet]] = {
+    : Future[Option[DHCPSubnet]] = {
         getResource(classOf[Bridge], bridgeId)
-            .flatMap(bridge => listResources(classOf[DhcpSubnet],
+            .flatMap(bridge => listResources(classOf[DHCPSubnet],
                                              bridge.dhcpIds.asScala))
             .map(_.find(_.subnetAddress == subnetAddress))
     }
