@@ -17,12 +17,20 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
+import com.google.common.base.Preconditions;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.util.version.Since;
 
 @ZoomClass(clazz = Topology.Dhcp.Host.class)
 public class DhcpHost extends UriResource {
@@ -34,8 +42,26 @@ public class DhcpHost extends UriResource {
     @ZoomField(name = "name")
     public String name;
 
+    @Since("2")
+    @Nonnull
+    private List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
+
+    @Nonnull
+    public List<ExtraDhcpOpt> getExtraDhcpOpts() {
+        return extraDhcpOpts;
+    }
+
+    public void setExtraDhcpOpts(@Nonnull List<ExtraDhcpOpt> newOpts) {
+        Preconditions.checkNotNull(newOpts,
+            "Extra DHCP options should not be null. Use an empty list to "
+           + "express the absense of them.");
+        extraDhcpOpts.clear();
+        extraDhcpOpts.addAll(newOpts);
+    }
+
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.DHCP_HOSTS, macAddr);
     }
+
 }
