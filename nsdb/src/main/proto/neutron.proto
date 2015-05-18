@@ -164,7 +164,7 @@ message NeutronLoadBalancerPool {
     repeated UUID members = 7;
     optional UUID subnet_id = 8;
     optional UUID vip_id = 9;
-    repeated UUID health_monitors = 10;
+    repeated UUID health_monitor_ids = 10;
     optional string protocol = 11;
     optional string provider = 12;
     optional UUID router_id = 13;

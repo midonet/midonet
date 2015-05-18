@@ -38,6 +38,7 @@ import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.models.Topology.IPAddrGroup
 import org.midonet.cluster.models.Topology.LoadBalancer
 import org.midonet.cluster.models.Topology.Network
+import org.midonet.cluster.models.Topology.Pool
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.models.Topology.PortGroup
 import org.midonet.cluster.models.Topology.Route
@@ -123,6 +124,9 @@ object ModelsUtil {
 
      def mRouterFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Router.newBuilder).asInstanceOf[Router]
+
+     def mPoolFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, Pool.newBuilder).asInstanceOf[Pool]
 
      def mPortFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Port.newBuilder).asInstanceOf[Port]

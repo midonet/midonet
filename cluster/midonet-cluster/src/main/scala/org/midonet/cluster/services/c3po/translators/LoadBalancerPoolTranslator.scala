@@ -21,7 +21,8 @@ import com.google.protobuf.Message
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
-import org.midonet.cluster.models.Topology.LoadBalancer
+import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
+import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 import org.midonet.cluster.services.c3po.midonet.{Create, MidoOp}
 import org.midonet.util.concurrent.toFutureOps
 
@@ -44,6 +45,18 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
                                  .setRouterId(nPool.getRouterId).build()
             midoOps += Create(lb)
         }
+
+        // Create a MidoNet Pool.
+        val midoPoolBldr = Pool.newBuilder()
+                               .setId(nPool.getId)
+                               .setLoadBalancerId(lbId)
+                               .setAdminStateUp(nPool.getAdminStateUp)
+        // In practice there's at most 1 Health Monitor associated.
+        if (nPool.getHealthMonitorIdsCount > 0)
+            midoPoolBldr.setHealthMonitorId(nPool.getHealthMonitorIds(0))
+                        .setMappingStatus(PENDING_CREATE)
+
+        midoOps += Create(midoPoolBldr.build())
 
         midoOps.toList
     }
