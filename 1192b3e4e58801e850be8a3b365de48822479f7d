@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_4c2bae33",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-18T14:44:12Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be an IllegalArgumentException? IllegalStateException means that the arguments passed to the function could be valid under certain conditions, but are not valid given some aspect of the current state. IllegalArgumentException means that the arguments passed to the function are not valid regardless of state.",
+      "range": {
+        "startLine": 35,
+        "startChar": 22,
+        "endLine": 35,
+        "endChar": 43
+      },
+      "revId": "1192b3e4e58801e850be8a3b365de48822479f7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2ced9226",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-18T14:44:12Z",
+      "side": 1,
+      "message": "Do we also need to do this in the case where the LoadBalancer already exists?",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 67
+      },
+      "revId": "1192b3e4e58801e850be8a3b365de48822479f7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2cd47246",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-18T14:44:12Z",
+      "side": 1,
+      "message": "Router",
+      "range": {
+        "startLine": 48,
+        "startChar": 24,
+        "endLine": 48,
+        "endChar": 30
+      },
+      "revId": "1192b3e4e58801e850be8a3b365de48822479f7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_2c30f29d",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-18T14:44:12Z",
+      "side": 1,
+      "message": "Why not include this as a case below?",
+      "range": {
+        "startLine": 102,
+        "startChar": 8,
+        "endLine": 102,
+        "endChar": 40
+      },
+      "revId": "1192b3e4e58801e850be8a3b365de48822479f7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
