@@ -28,11 +28,9 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import org.midonet.api.auth.AuthConfig;
-import org.midonet.api.auth.cors.CorsConfig;
 import org.midonet.api.serialization.ObjectMapperProvider;
 import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
-import org.midonet.api.version.VersionParser;
 import org.midonet.conf.HostIdGenerator;
 
 public class FuncTest {
@@ -76,17 +74,6 @@ public class FuncTest {
                 .contextListenerClass(JerseyGuiceTestServletContextListener.class)
                 .filterClass(GuiceFilter.class)
                 .servletPath("/")
-                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
-                                           CorsConfig.ALLOW_ORIGIN_KEY), "*")
-                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
-                                           CorsConfig.ALLOW_HEADERS_KEY),
-                              "Origin, X-Auth-Token, Content-Type, Accept")
-                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
-                                           CorsConfig.ALLOW_METHODS_KEY),
-                              "GET, POST, PUT, DELETE, OPTIONS")
-                .contextParam(getConfigKey(CorsConfig.GROUP_NAME,
-                                           CorsConfig.EXPOSE_HEADERS_KEY),
-                              "Location")
                 .contextParam(getConfigKey(AuthConfig.GROUP_NAME,
                                            AuthConfig.AUTH_PROVIDER),
                               "org.midonet.api.auth.MockAuthService")
@@ -96,7 +83,8 @@ public class FuncTest {
                 .contextParam(getConfigKey("zookeeper", "curator_enabled"), "true")
                 .contextParam(getConfigKey("zookeeper", "midolman_root_key"), zkRoot)
                 .contextParam(getConfigKey("zookeeper", "root_key"), zkRoot)
-                .contextParam(getConfigKey("zookeeper", "use_new_stack"), "false")
+                .contextParam(getConfigKey("zookeeper", "use_new_stack"),
+                              "false")
                 .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 
