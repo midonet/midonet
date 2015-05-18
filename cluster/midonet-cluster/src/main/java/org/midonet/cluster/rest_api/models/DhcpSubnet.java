@@ -17,6 +17,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +25,7 @@ import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.protobuf.Message;
@@ -37,6 +39,7 @@ import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
+import org.midonet.util.version.Since;
 
 @ZoomClass(clazz = Topology.Dhcp.class)
 public class DhcpSubnet extends UriResource {
@@ -88,8 +91,13 @@ public class DhcpSubnet extends UriResource {
     @ZoomField(name = "hosts")
     public List<DhcpHost> dhcpHosts;
 
+    @Since("2")
     @ZoomField(name = "enabled")
     public Boolean enabled = true;
+
+    public DhcpSubnet() {
+        opt121Routes = new ArrayList<>();
+    }
 
     @Override
     public URI getUri() {
@@ -98,7 +106,7 @@ public class DhcpSubnet extends UriResource {
     }
 
     public URI getHosts() {
-        return relativeUri(ResourceUris.HOSTS);
+        return UriBuilder.fromUri(getUri()).path(ResourceUris.HOSTS).build();
     }
 
     @JsonIgnore
