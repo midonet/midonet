@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_ef188c77",
+        "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-18T16:27:33Z",
+      "side": 1,
+      "message": "I think that neither BACKLOG nor KEEPALIVE are useful for UDP...",
+      "range": {
+        "startLine": 77,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 58
+      },
+      "revId": "735fb9350fa493774106b91095817e438bc8ba2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4ffe0007",
+        "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-18T16:27:33Z",
+      "side": 1,
+      "message": "npe if (datagram) \nshould be:\nif (datagram)\n    boss.shutdownGracefully();",
+      "range": {
+        "startLine": 103,
+        "startChar": 8,
+        "endLine": 103,
+        "endChar": 12
+      },
+      "revId": "735fb9350fa493774106b91095817e438bc8ba2c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
