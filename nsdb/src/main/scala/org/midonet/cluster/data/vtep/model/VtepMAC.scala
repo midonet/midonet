@@ -28,7 +28,7 @@ final class VtepMAC private (val mac: MAC) {
     import VtepMAC._
     private val str: String = if (mac == null) S_UNKNOWN_DST else mac.toString
 
-    def isMcast: Boolean = mac == null || Ethernet.isMcast(mac)
+    def isMcast: Boolean = mac == null || mac.mcast
     def isUcast: Boolean = mac != null && mac.unicast
 
     override def toString: String = str

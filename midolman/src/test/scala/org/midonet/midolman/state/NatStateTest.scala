@@ -334,12 +334,13 @@ class NatStateTest extends MidolmanSpec {
     }
 
     feature("ICMP errors are NATed") {
+        val srcIp = IPv4Addr.random
         val underlying: IPv4 =
-            { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
+            { ip4 src srcIp dst IPv4Addr.random } <<
             { tcp src 10 dst 88 }
         val error: Ethernet =
             { eth src MAC.random() dst MAC.random() } <<
-            { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
+            { ip4 src IPv4Addr.random dst srcIp } <<
             { icmp.unreach culprit underlying port}
 
         scenario("New bindings are created") {

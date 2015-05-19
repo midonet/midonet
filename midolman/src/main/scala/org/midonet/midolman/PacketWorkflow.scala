@@ -491,6 +491,8 @@ class PacketWorkflow(
                 context.clearFlowTags()
                 addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
             case Drop =>
+                if (context.containsFlowState)
+                    applyState(context)
                 addTranslatedFlow(context, FlowExpirationIndexer.FLOW_EXPIRATION)
         }
         resultLogger.debug(s"Simulation finished with result $res: " +
