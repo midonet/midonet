@@ -90,6 +90,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_820e3a33",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-19T07:44:27Z",
+      "side": 1,
+      "message": "Thanks Guillermo, I just read the email the day before, and I\u0027ve also been given some though on the naming. AdRoute will be okay I think, with a field specifying the routing protocol.\n\nRight now the name derived from the fact that in the new storage model, all routes will be children of the same ZK node, e.g. AdRoute if we keep the old name. We should give some thought on whether this would raise some performance issues later on.",
+      "parentUuid": "1a106d94_0f76c806",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b4f1ea6c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 12
