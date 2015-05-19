@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_452b5c82",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/VtyConnection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-19T14:09:55Z",
+      "side": 1,
+      "message": "It was already hard coded before, I feel it\u0027s out of scope for this patch.\n\nBesides, I question the usefulness of making it configurable, you must have root access to the machine if you hope to get telnet access to the VTY port.",
+      "parentUuid": "1a106d94_a2906b4f",
+      "revId": "c7f5ee6809c5f5f6f89efd94b85165cda218d030",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_029e9f63",
         "filename": "midolman/src/main/scala/org/midonet/quagga/VtyConnection.scala",
         "patchSetId": 3
