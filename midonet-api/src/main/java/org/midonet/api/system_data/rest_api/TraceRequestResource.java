@@ -46,7 +46,7 @@ import com.google.inject.servlet.RequestScoped;
 import org.slf4j.Logger;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
