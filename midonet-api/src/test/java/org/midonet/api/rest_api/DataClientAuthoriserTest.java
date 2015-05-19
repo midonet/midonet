@@ -29,7 +29,7 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.AdRoute;

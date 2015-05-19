@@ -20,7 +20,7 @@ import java.util.UUID;
 
 import javax.ws.rs.core.SecurityContext;
 
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
