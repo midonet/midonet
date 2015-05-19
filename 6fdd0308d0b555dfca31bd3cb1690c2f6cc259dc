@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_282b8fec",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/VtyConnection.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-19T19:56:37Z",
+      "side": 1,
+      "message": "class NotConnectedException extends Exception",
+      "range": {
+        "startLine": 32,
+        "startChar": 4,
+        "endLine": 32,
+        "endChar": 8
+      },
+      "revId": "6fdd0308d0b555dfca31bd3cb1690c2f6cc259dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_08efabb1",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/VtyConnection.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-19T19:56:37Z",
+      "side": 1,
+      "message": "Script",
+      "range": {
+        "startLine": 34,
+        "startChar": 19,
+        "endLine": 34,
+        "endChar": 26
+      },
+      "revId": "6fdd0308d0b555dfca31bd3cb1690c2f6cc259dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
