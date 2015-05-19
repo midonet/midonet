@@ -38,9 +38,9 @@ public abstract class NatRule
 
     @Override
     public Self setAction(RuleResult.Action action) {
-        if (!action.equals(RuleResult.Action.ACCEPT)
-                && !action.equals(RuleResult.Action.CONTINUE)
-                && !action.equals(RuleResult.Action.RETURN))
+        if (!action.equals(RuleResult.Action.ACCEPT) &&
+            !action.equals(RuleResult.Action.CONTINUE) &&
+            !action.equals(RuleResult.Action.RETURN))
             throw new IllegalArgumentException("A nat rule's action "
                     + "must be one of: ACCEPT, CONTINUE, or RETURN.");
         super.setAction(action);

@@ -30,6 +30,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Suite;
 import org.midonet.api.rest_api.RestApiTestBase;
+import org.midonet.cluster.rest_api.models.Rule;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.packets.Unsigned;
 import org.slf4j.Logger;
@@ -459,13 +460,6 @@ public class TestRule {
                     { revSnatRule, null }, { filteringRule, "portgroup1" } });
         }
 
-        private void verifyPropertiesExist(DtoRule rule) {
-            assertNotNull(rule.getProperties());
-            assertEquals(2, rule.getProperties().size());
-            assertEquals("bar", rule.getProperties().get("foo"));
-            assertEquals("boo", rule.getProperties().get("baz"));
-        }
-
         @Test
         public void testCreateGetListDelete() {
 
@@ -484,7 +478,6 @@ public class TestRule {
             // TODO: Implement 'equals' for DtoRule
             assertEquals(rule.getType(), outRule.getType());
             assertEquals(1, outRule.getPosition());
-            verifyPropertiesExist(outRule);
             URI rule1Uri = outRule.getUri();
 
             // List the rule
@@ -498,7 +491,6 @@ public class TestRule {
                     APPLICATION_RULE_JSON_V2, rule, DtoRule.class);
             assertEquals(rule.getType(), outRule.getType());
             assertEquals(1, outRule.getPosition());
-            verifyPropertiesExist(outRule);
             URI rule2Uri = outRule.getUri();
 
             // Get the original rule
@@ -506,7 +498,6 @@ public class TestRule {
                     APPLICATION_RULE_JSON_V2, DtoRule.class);
             assertEquals(rule.getType(), outRule.getType());
             assertEquals(2, outRule.getPosition());
-            verifyPropertiesExist(outRule);
 
             // List both rules
             rules = dtoResource.getAndVerifyOk(rulesUri,

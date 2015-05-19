@@ -66,9 +66,6 @@ public class FuncTest {
             new WildCardJacksonJaxbJsonProvider(mapperProvider);
         config.getSingletons().add(jacksonJaxbJsonProvider);
 
-
-        UUID testRunUuid = UUID.randomUUID();
-
         String zkRoot = ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID();
         return new WebAppDescriptor.Builder()
                 .contextListenerClass(JerseyGuiceTestServletContextListener.class)
