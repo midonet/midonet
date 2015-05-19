@@ -142,7 +142,8 @@ project.ext {
             "com.sun.jersey.jersey-test-framework:jersey-test-framework-core:${versions.jersey}") {
                 exclude group: 'junit', module: 'junit'},
 
-        mysql_jdbc: "mysql:mysql-connector-java:5.1.34",
+        jna_platform: "net.java.dev.jna:jna-platform:4.1.0",
+        mysql_jdbc: "org.mariadb.jdbc:mariadb-java-client:1.1.8",
         sqlite: "org.xerial:sqlite-jdbc:3.8.7",
 
         vmware_midoapi: [ "com.vmware:vijava:5.1", "dom4j:dom4j:1.6.1" ],
