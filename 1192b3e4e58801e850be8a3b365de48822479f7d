@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_251645a8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T01:36:39Z",
+      "side": 1,
+      "message": "You\u0027re right, IllegalArgumentException is more appropriate. Changed.",
+      "parentUuid": "1a106d94_4c2bae33",
+      "range": {
+        "startLine": 35,
+        "startChar": 22,
+        "endLine": 35,
+        "endChar": 43
+      },
+      "revId": "1192b3e4e58801e850be8a3b365de48822479f7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_2ced9226",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-18T14:44:12Z",
       "side": 1,
       "message": "Do we also need to do this in the case where the LoadBalancer already exists?",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 67
+      },
+      "revId": "1192b3e4e58801e850be8a3b365de48822479f7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_a52195fe",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T01:36:39Z",
+      "side": 1,
+      "message": "I guess I was confused by the proto def. It seems that on Pool CREATE, no VIP should be associated with the Pool and LB should just be created with Router ID and admin status.\n\nWe may not even need back references to VIPs in Pool at all. I\u0027ll double check that with Joe / Ryu.",
+      "parentUuid": "1a106d94_2ced9226",
       "range": {
         "startLine": 45,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_e5442db9",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T01:36:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_2cd47246",
+      "range": {
+        "startLine": 48,
+        "startChar": 24,
+        "endLine": 48,
+        "endChar": 30
+      },
+      "revId": "1192b3e4e58801e850be8a3b365de48822479f7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_2c30f29d",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2015-05-18T14:44:12Z",
       "side": 1,
       "message": "Why not include this as a case below?",
+      "range": {
+        "startLine": 102,
+        "startChar": 8,
+        "endLine": 102,
+        "endChar": 40
+      },
+      "revId": "1192b3e4e58801e850be8a3b365de48822479f7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_4511c1ae",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T01:36:39Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_2c30f29d",
       "range": {
         "startLine": 102,
         "startChar": 8,
