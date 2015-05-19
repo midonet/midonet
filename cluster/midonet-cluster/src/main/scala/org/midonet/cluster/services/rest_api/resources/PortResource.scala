@@ -16,19 +16,24 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.UUID
+import java.util.{List => JList, UUID}
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core.{Response, UriInfo}
+
+import scala.collection.JavaConverters._
+import scala.util.{Failure, Success}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{BridgePort, Link, Port, RouterPort}
+import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.Update
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_PORT_JSON,
@@ -64,12 +69,18 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
         }).getOrThrow
     }
 
+    @Path("{id}/port_groups")
+    def portGroups(@PathParam("id") id: UUID): PortPortGroupResource = {
+        new PortPortGroupResource(id, backend, uriInfo)
+    }
+
     protected override def updateFilter = (to: Port, from: Port) => {
         to.update(from)
     }
 
 }
 
+@RequestScoped
 @AllowList(Array(APPLICATION_PORT_COLLECTION_JSON,
                  APPLICATION_PORT_V2_COLLECTION_JSON,
                  APPLICATION_JSON))
@@ -89,6 +100,7 @@ class BridgePortResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
     }
 }
 
+@RequestScoped
 @AllowList(Array(APPLICATION_PORT_COLLECTION_JSON,
                  APPLICATION_PORT_V2_COLLECTION_JSON,
                  APPLICATION_JSON))
@@ -107,4 +119,88 @@ class RouterPortResource @Inject()(routerId: UUID, backend: MidonetBackend,
         port.create(routerId)
     }
 
+}
+
+@RequestScoped
+class PortGroupPortResource @Inject()(portGroupId: UUID,
+                                      backend: MidonetBackend, uriInfo: UriInfo)
+    extends MidonetResource[PortGroupPort](backend, uriInfo) {
+
+    @GET
+    @Produces(Array(APPLICATION_PORTGROUP_PORT_JSON,
+                    APPLICATION_JSON))
+    @Path("{id}")
+    override def get(@PathParam("id") id: String,
+                     @HeaderParam("Accept") accept: String): PortGroupPort = {
+        val portId = UUID.fromString(id)
+        getResource(classOf[PortGroupPort], portId)
+            .map(pgp => { pgp.create(portGroupId); pgp; } )
+            .getOrThrow
+    }
+
+    @GET
+    @Produces(Array(APPLICATION_PORTGROUP_PORT_COLLECTION_JSON,
+                    APPLICATION_JSON))
+    override def list(@HeaderParam("Accept") accept: String)
+    : JList[PortGroupPort] = {
+        getResource(classOf[PortGroup], portGroupId)
+            .flatMap(pg => listResources(classOf[PortGroupPort],
+                                         pg.portIds.asScala))
+            .getOrThrow
+            .map(pgp => { pgp.create(portGroupId); pgp })
+            .asJava
+    }
+
+    @POST
+    @Consumes(Array(APPLICATION_PORTGROUP_PORT_JSON,
+                    APPLICATION_JSON))
+    override def create(portGroupPort: PortGroupPort,
+                        @HeaderParam("Content-Type") contentType: String)
+    : Response = {
+        portGroupPort.portGroupId = portGroupId
+        getResource(classOf[Port], portGroupPort.portId).flatMap(port => {
+            getResource(classOf[PortGroup], portGroupPort.portGroupId).map(pg => {
+                if (port.portGroupIds.contains(portGroupPort.portGroupId)) {
+                    throw new WebApplicationException(Status.CONFLICT)
+                }
+                if (pg.portIds.contains(portGroupPort.portId)) {
+                    throw new WebApplicationException(Status.CONFLICT)
+                }
+                portGroupPort.setBaseUri(uriInfo.getBaseUri)
+                port.portGroupIds.add(portGroupPort.portGroupId)
+                pg.portIds.add(portGroupPort.portId)
+                multiResource(Seq(Update(port), Update(pg)),
+                              Response.created(portGroupPort.getUri).build())
+            })
+        }).getOrThrow
+    }
+
+    @DELETE
+    @Path("{id}")
+    override def delete(@PathParam("id") id: String): Response = {
+        val portId = UUID.fromString(id)
+        // If the port still exists, delete the port group ID from the port,
+        // otherwise delete only the port ID from the port group.
+        getResource(classOf[Port], portId).flatMap(port => {
+            getResource(classOf[PortGroup], portGroupId).map(pg => {
+                if (!port.portGroupIds.contains(portGroupId)) {
+                    throw new WebApplicationException(Status.NOT_FOUND)
+                }
+                if (!pg.portIds.contains(portId)) {
+                    throw new WebApplicationException(Status.NOT_FOUND)
+                }
+                port.portGroupIds.remove(portGroupId)
+                pg.portIds.remove(portId)
+                multiResource(Seq(Update(port), Update(pg)))
+            })
+        }).fallbackTo(
+            getResource(classOf[PortGroup], portGroupId).map(pg => {
+                if (!pg.portIds.contains(portId)) {
+                    throw new WebApplicationException(Status.NOT_FOUND)
+                }
+                pg.portIds.remove(portId)
+                updateResource(pg)
+            }))
+        .getOrThrow
+    }
 }

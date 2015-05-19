@@ -40,7 +40,7 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     @GET
     @Produces(Array(APPLICATION_TUNNEL_ZONE_HOST_JSON,
                     APPLICATION_GRE_TUNNEL_ZONE_HOST_JSON))
-    @Path("/{id}")
+    @Path("{id}")
     override def get(@PathParam("id") id: String,
                      @HeaderParam("Accept") accept: String): TunnelZoneHost = {
         val hostId = UUID.fromString(id)
@@ -82,7 +82,7 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     }
 
     @DELETE
-    @Path("/{id}")
+    @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = {
         val hostId = UUID.fromString(id)
         getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
