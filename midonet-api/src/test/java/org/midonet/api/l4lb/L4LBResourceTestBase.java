@@ -36,6 +36,7 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.models.HealthMonitor;
 import org.midonet.cluster.rest_api.models.Pool;
+import org.midonet.midolman.state.l4lb.HealthMonitorType;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.PoolLBMethod;
 import org.midonet.midolman.state.l4lb.PoolProtocol;
@@ -94,7 +95,7 @@ public class L4LBResourceTestBase {
     protected static HealthMonitor getStockHealthMonitor() {
         HealthMonitor healthMonitor = new HealthMonitor();
         healthMonitor.id = UUID.randomUUID();
-        healthMonitor.type = "TCP";
+        healthMonitor.type = HealthMonitorType.TCP;
         healthMonitor.delay = 5;
         healthMonitor.timeout = 10;
         healthMonitor.maxRetries = 10;

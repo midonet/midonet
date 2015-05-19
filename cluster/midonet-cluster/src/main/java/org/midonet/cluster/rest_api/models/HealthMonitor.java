@@ -19,26 +19,32 @@ import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.rest_api.validation.VerifyEnumValue;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.state.l4lb.HealthMonitorType;
 import org.midonet.midolman.state.l4lb.LBStatus;
 
-@XmlRootElement
+@ZoomClass(clazz = Topology.HealthMonitor.class)
 public class HealthMonitor extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
+    @ZoomField(name = "admin_state_up")
+    public boolean adminStateUp;
+
     @NotNull
-    @VerifyEnumValue(HealthMonitorType.class)
     @ZoomField(name = "type")
-    public String type;
+    public HealthMonitorType type;
+
+    @ZoomField(name = "status")
+    @JsonIgnore
+    public LBStatus status;
 
     @ZoomField(name = "delay")
     public int delay;
@@ -46,22 +52,30 @@ public class HealthMonitor extends UriResource {
     @ZoomField(name = "timeout")
     public int timeout;
 
-    @ZoomField(name = "maxRetries")
+    @ZoomField(name = "max_retries")
     public int maxRetries;
 
-    @ZoomField(name = "adminStateUp")
-    public boolean adminStateUp = true;
-
-    @VerifyEnumValue(LBStatus.class)
-    @ZoomField(name = "status")
-    @JsonIgnore // cannot be changed
-    public String status = LBStatus.ACTIVE.toString();
+    public URI getUri() {
+        return absoluteUri(ResourceUris.HEALTH_MONITORS, id);
+    }
 
     public URI getPools() {
         return relativeUri(ResourceUris.POOLS);
     }
 
-    public URI getUri() {
-        return absoluteUri(ResourceUris.HEALTH_MONITORS, id);
+    @Override
+    @JsonIgnore
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+        adminStateUp = true;
+        status = LBStatus.ACTIVE;
+    }
+
+    @JsonIgnore
+    public void update(HealthMonitor from) {
+        id = from.id;
+        status = from.status;
     }
 }
