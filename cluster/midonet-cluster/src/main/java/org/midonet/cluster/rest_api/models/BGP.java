@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,56 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil;
 
-@ZoomClass(clazz = Topology.PortGroup.class)
-public class PortGroup extends UriResource {
-
-    public static final int MIN_PORT_GROUP_NAME_LEN = 1;
-    public static final int MAX_PORT_GROUP_NAME_LEN = 255;
+@ZoomClass(clazz = Topology.BGP.class)
+public class BGP extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @NotNull
-    @ZoomField(name = "tenant_id")
-    public String tenantId;
+    @ZoomField(name = "local_as")
+    public int localAS;
 
-    @NotNull
-    @Size(min = MIN_PORT_GROUP_NAME_LEN, max = MAX_PORT_GROUP_NAME_LEN)
-    @ZoomField(name = "name")
-    public String name;
+    @ZoomField(name = "peer_as")
+    public int peerAS;
 
-    @ZoomField(name = "stateful")
-    public boolean stateful;
+    @ZoomField(name = "peer_address", converter = IPAddressUtil.Converter.class)
+    public String peerAddr;
+
+    @ZoomField(name = "port_id", converter = UUIDUtil.Converter.class)
+    public UUID portId;
 
     @JsonIgnore
-    @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
-    public List<UUID> portIds;
+    @ZoomField(name = "bgp_route_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> adRouteIds;
+
+    public String status;
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.PORT_GROUPS, id);
+        return absoluteUri(ResourceUris.BGP, id);
     }
 
-    public URI getPorts() {
-        return relativeUri(ResourceUris.PORTS);
+    public URI getPort() {
+        return absoluteUri(ResourceUris.PORTS, portId);
     }
 
+    public URI getAdRoutes() {
+        return absoluteUri(ResourceUris.AD_ROUTES, id);
+    }
+
+    @Override
     @JsonIgnore
     public void create() {
         if (null == id) {
@@ -71,10 +74,15 @@ public class PortGroup extends UriResource {
     }
 
     @JsonIgnore
-    public void update(PortGroup from) {
+    public void create(UUID portId) {
+        create();
+        this.portId = portId;
+    }
+
+    @JsonIgnore
+    public void update(BGP from) {
         id = from.id;
-        portIds = from.portIds;
+        adRouteIds = from.adRouteIds;
     }
 
 }
-

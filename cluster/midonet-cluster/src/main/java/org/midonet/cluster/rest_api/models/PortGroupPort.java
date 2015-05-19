@@ -16,54 +16,58 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
 
 /**
  * Note that this resource doesn't have a counter part in the new storage
- * model and will be deleted. Thus, we can't have it extend UriResource.
+ * model and will be deleted.
  */
-@Deprecated
-public class PortGroupPort {
+@ZoomClass(clazz = Topology.Port.class)
+public class PortGroupPort extends UriResource {
 
     @NotNull
     public UUID portGroupId;
 
     @NotNull
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID portId;
 
-    // We need to handle it ourselves as PortGroupPort does not exist in the
-    // ZOOM model.
-    private URI baseUri = null;
+    @JsonIgnore
+    @ZoomField(name = "port_group_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> portGroupIds;
+
+    @Override
+    public URI getUri() {
+        return absoluteUri(ResourceUris.PORT_GROUPS, portGroupId,
+                           ResourceUris.PORTS, portId);
+    }
 
     public URI getPort() {
-        return UriBuilder.fromUri(baseUri)
-                         .segment(ResourceUris.PORTS)
-                         .segment(portId.toString())
-                         .build();
+        return absoluteUri(ResourceUris.PORTS, portId);
     }
 
     @SuppressWarnings("unused")
     public URI getPortGroup() {
-        return UriBuilder.fromUri(baseUri)
-                         .segment(ResourceUris.PORT_GROUPS)
-                         .segment(portGroupId.toString())
-                         .build();
+        return absoluteUri(ResourceUris.PORT_GROUPS, portGroupId);
     }
 
-    public void setBaseUri(URI baseUri) throws IllegalAccessException {
-        this.baseUri = baseUri;
+    @JsonIgnore
+    public void create(UUID portGroupId) {
+        if (!portGroupIds.contains(portGroupId)) {
+            throw new WebApplicationException(Response.Status.NOT_FOUND);
+        }
+        this.portGroupId = portGroupId;
     }
-
-    public URI getUri() {
-        return UriBuilder.fromUri(baseUri)
-            .segment(ResourceUris.PORT_GROUPS)
-            .segment(portGroupId.toString())
-            .segment(ResourceUris.PORTS)
-            .segment(portId.toString())
-            .build();
-    }
-
 }

@@ -16,9 +16,6 @@
 
 package org.midonet.cluster.rest_api.models;
 
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-
 import com.google.protobuf.Message;
 
 import org.apache.commons.lang.StringUtils;
@@ -32,11 +29,10 @@ import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.packets.IPSubnet;
 
-@XmlRootElement
 @ZoomClass(clazz = Topology.Dhcp.Opt121Route.class)
-public class DhcpOption121 extends ZoomObject {
+public class DHCPOption121 extends ZoomObject {
 
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "dst_subnet", converter = IPSubnetUtil.Converter.class)
     public IPSubnet<?> destinationSubnet;
     public String destinationPrefix;

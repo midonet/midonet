@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -81,6 +82,10 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "peer_id", converter = UUIDUtil.Converter.class)
     public UUID peerId;
 
+    @JsonIgnore
+    @ZoomField(name = "port_group_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> portGroupIds;
+
     public Port() {
         adminStateUp = true;
     }
@@ -129,5 +134,6 @@ public abstract class Port extends UriResource {
         if (null != from.peerId) {
             peerId = from.peerId;
         }
+        portGroupIds = from.portGroupIds;
     }
 }
