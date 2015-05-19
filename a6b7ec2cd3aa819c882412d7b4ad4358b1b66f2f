@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_45bb5cc4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/conf/ConfMinion.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-19T15:44:04Z",
+      "side": 1,
+      "message": "remove the last 2 lines",
+      "range": {
+        "startLine": 76,
+        "startChar": 12,
+        "endLine": 76,
+        "endChar": 35
+      },
+      "revId": "a6b7ec2cd3aa819c882412d7b4ad4358b1b66f2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_85b564cf",
+        "filename": "midonet-api/src/main/java/org/midonet/api/servlet/RestApiJerseyServletModule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-19T15:44:04Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 195,
+        "startChar": 12,
+        "endLine": 195,
+        "endChar": 63
+      },
+      "revId": "a6b7ec2cd3aa819c882412d7b4ad4358b1b66f2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
