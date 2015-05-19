@@ -15,19 +15,19 @@
  */
 package org.midonet.cluster.data.rules;
 
+import java.util.UUID;
+
+import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.RuleResult;
-import org.midonet.cluster.data.Rule;
-
-import java.util.UUID;
 
 /**
  * Basic abstraction for a literal rule
  */
 public class LiteralRule extends Rule<Rule.Data, LiteralRule> {
 
-    public LiteralRule(Condition condition, RuleResult.Action action) {
-        this(null, condition, action, new Data());
+    public LiteralRule(Condition condition) {
+        super(null, condition, new Data());
     }
 
     public LiteralRule(UUID uuid, Condition condition, RuleResult.Action action,

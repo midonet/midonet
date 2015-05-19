@@ -34,6 +34,12 @@ public class JumpRule extends Rule {
         super(RuleType.JUMP, RuleAction.JUMP);
     }
 
+    public JumpRule(UUID jumpChainId, String jumpChainName) {
+        super(RuleType.JUMP, RuleAction.JUMP);
+        this.jumpChainId = jumpChainId;
+        this.jumpChainName = jumpChainName;
+    }
+
     @Override
     public String getType() {
         return Rule.Jump;

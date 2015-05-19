@@ -28,6 +28,28 @@ import java.util.UUID;
 public class ForwardNatRule
         extends NatRule<ForwardNatRule.Data, ForwardNatRule> {
 
+    public static ForwardNatRule dnat(Condition condition,
+                                      RuleResult.Action action,
+                                      Set<NatTarget> targets) {
+        return new ForwardNatRule(null, condition, action, targets, true,
+                                  new Data());
+    }
+
+    public static ForwardNatRule snat(Condition condition,
+                                      RuleResult.Action action,
+                                      Set<NatTarget> targets) {
+        return new ForwardNatRule(null, condition, action, targets, false,
+                                  new Data());
+    }
+
+    /** Avoid this one and prefer the static constructors */
+    public ForwardNatRule(UUID uuid, Condition condition,
+                          RuleResult.Action action, Set<NatTarget> targets,
+                          boolean isDnat) {
+        super(uuid, condition, action, isDnat, new Data());
+        setTargets(targets);
+    }
+
     public ForwardNatRule(Condition condition, RuleResult.Action action,
                           Set<NatTarget> targets, boolean isDnat) {
         this(null, condition, action, targets, isDnat, new Data());
@@ -35,7 +57,7 @@ public class ForwardNatRule
 
     public ForwardNatRule(UUID uuid, Condition condition,
                           RuleResult.Action action, Set<NatTarget> targets,
-                          boolean isDnat, ForwardNatRule.Data ruleData){
+                          boolean isDnat, ForwardNatRule.Data ruleData) {
         super(uuid, condition, action, isDnat, ruleData);
         setTargets(targets);
     }

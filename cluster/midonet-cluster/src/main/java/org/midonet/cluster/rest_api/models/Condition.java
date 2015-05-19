@@ -17,22 +17,28 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.lang.reflect.Type;
+import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
+import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.google.protobuf.Message;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.validation.IsValidFragmentType;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.RangeUtil;
 import org.midonet.cluster.util.UUIDUtil;
@@ -43,7 +49,8 @@ import org.midonet.packets.MAC;
 import org.midonet.util.Range;
 import org.midonet.util.version.Since;
 
-public abstract class Condition extends UriResource {
+@IsValidFragmentType
+public class Condition extends UriResource {
 
     @ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
     public enum FragmentPolicy {
@@ -138,10 +145,11 @@ public abstract class Condition extends UriResource {
     @ZoomField(name = "nw_dst_inv")
     public boolean invNwDst;
 
+    @Since("2")
     @Pattern(regexp = FragmentPolicy.pattern,
-             message = "is an invalid fragment policy")
+             message = MessageProperty.FRAG_POLICY_UNDEFINED)
     @ZoomField(name = "fragment_policy")
-    public FragmentPolicy fragmentPolicy;
+    public String fragmentPolicy;
 
     @ZoomField(name = "tp_src", converter = RangeUtil.Converter.class)
     public Range<Integer> tpSrc;
@@ -182,4 +190,14 @@ public abstract class Condition extends UriResource {
             return MAC.parseMask(value);
         }
     }
+
+    public boolean hasL4Fields() {
+        return this.tpDst != null || this.tpSrc != null;
+    }
+
+    public URI getUri() {
+        // not in love with this model, but this is how it was done before.
+        return null;
+    }
+
 }

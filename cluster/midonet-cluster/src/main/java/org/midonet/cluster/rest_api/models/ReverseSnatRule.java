@@ -19,8 +19,7 @@ package org.midonet.cluster.rest_api.models;
 public class ReverseSnatRule extends NatRule {
 
     @Override
-    public String getType() {
+    public final String getType() {
         return Rule.RevSNAT;
     }
-
 }

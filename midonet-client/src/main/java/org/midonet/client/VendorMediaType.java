@@ -209,4 +209,10 @@ public class VendorMediaType {
     public static final String APPLICATION_POOL_JSON =
             "application/vnd.org.midonet.Pool-v1+json";
 
+
+    public static final String APPLICATION_TRACE_REQUEST_JSON =
+        "application/vnd.org.midonet.TraceRequest-v1+json";
+    public static final String APPLICATION_TRACE_REQUEST_COLLECTION_JSON =
+        "application/vnd.org.midonet.collection.TraceRequest-v1+json";
+
 }
