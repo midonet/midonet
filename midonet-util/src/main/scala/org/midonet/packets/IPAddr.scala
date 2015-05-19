@@ -54,6 +54,8 @@ trait IPAddr {
      * IPAddr.
      */
     def equalsInetAddress(inetAddress: InetAddress): Boolean
+
+    def isMcast: Boolean
 }
 
 object IPAddr {

@@ -115,6 +115,10 @@ public class MAC {
         return 0 == (addr & MULTICAST_BIT);
     }
 
+    public boolean mcast() {
+        return !unicast();
+    }
+
     @JsonValue
     @Override
     public String toString() {
