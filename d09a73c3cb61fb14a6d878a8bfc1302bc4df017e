@@ -108,6 +108,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_6220569c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BGPRoute.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-19T07:54:05Z",
+      "side": 1,
+      "message": "Ah, yes, and another issue was that of the bindings between classes of objects in the ZOOM storage. Since each \u0027AdRoute\u0027 will have a backreference to the BGP object, like:\n\n  store.declareBinding(classOf[Bgp], \"bgp_route_ids\", CASCADE, classOf[BgpRoute], \"bgp_id\", CLEAR)\n\nThis will make it an AdRoute class only for BGP peering. Initially I tried to refactor, but then running into these problems I postponed pending further discussion.",
+      "parentUuid": "facab960_820e3a33",
+      "revId": "d09a73c3cb61fb14a6d878a8bfc1302bc4df017e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_b4f1ea6c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 12
