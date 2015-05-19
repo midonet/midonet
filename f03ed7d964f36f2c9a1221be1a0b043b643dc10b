@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_a51fc808",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T15:29:22Z",
+      "side": 1,
+      "message": "An owner can over-write its opinion for a given key. This is explained in the doc for putOpinion.",
+      "parentUuid": "1a106d94_9d35d3dd",
+      "range": {
+        "startLine": 28,
+        "startChar": 30,
+        "endLine": 29,
+        "endChar": 56
+      },
+      "revId": "f03ed7d964f36f2c9a1221be1a0b043b643dc10b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_ffefa4e6",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 2
@@ -120,6 +144,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_05eeb4ec",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T15:29:22Z",
+      "side": 1,
+      "message": "We typically speak of opinions for a given key. If you define an opinion as a key-value pair then it does not make sense to speak about a winning opinion in that case. Let me know what you think.",
+      "parentUuid": "1a106d94_3d4c9f76",
+      "range": {
+        "startLine": 57,
+        "startChar": 11,
+        "endLine": 57,
+        "endChar": 18
+      },
+      "revId": "f03ed7d964f36f2c9a1221be1a0b043b643dc10b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_5d5b5b2e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 2
@@ -131,6 +179,30 @@
       "writtenOn": "2015-05-18T07:09:58Z",
       "side": 1,
       "message": "s/the content of/updates to/",
+      "range": {
+        "startLine": 72,
+        "startChar": 40,
+        "endLine": 72,
+        "endChar": 54
+      },
+      "revId": "f03ed7d964f36f2c9a1221be1a0b043b643dc10b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_45bfdcd0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T15:29:22Z",
+      "side": 1,
+      "message": "The observable indeed emits the content of the map followed by updates to it ;-)",
+      "parentUuid": "1a106d94_5d5b5b2e",
       "range": {
         "startLine": 72,
         "startChar": 40,
@@ -190,6 +262,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_a5cd0889",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T15:29:22Z",
+      "side": 1,
+      "message": "The observable is now just: Observable[(K, V)]",
+      "parentUuid": "1a106d94_bfb24c91",
+      "range": {
+        "startLine": 96,
+        "startChar": 17,
+        "endLine": 96,
+        "endChar": 26
+      },
+      "revId": "f03ed7d964f36f2c9a1221be1a0b043b643dc10b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_bd3fefb4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 2
@@ -201,6 +297,30 @@
       "writtenOn": "2015-05-18T07:09:58Z",
       "side": 1,
       "message": "If the map is read-only, it seems to me that there shouldn\u0027t be methods such as \"merge\" and \"unmerge\" that implicitly modify the map.",
+      "range": {
+        "startLine": 102,
+        "startChar": 52,
+        "endLine": 103,
+        "endChar": 54
+      },
+      "revId": "f03ed7d964f36f2c9a1221be1a0b043b643dc10b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_25a1f8a9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T15:29:22Z",
+      "side": 1,
+      "message": "The merged map can be modified indirectly using the private maps. Such private maps can now be obtained using the join interface method.",
+      "parentUuid": "1a106d94_bd3fefb4",
       "range": {
         "startLine": 102,
         "startChar": 52,
