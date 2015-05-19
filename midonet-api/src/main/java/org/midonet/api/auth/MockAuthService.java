@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.google.inject.Inject;
 
+import org.midonet.cluster.auth.AuthRole;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
