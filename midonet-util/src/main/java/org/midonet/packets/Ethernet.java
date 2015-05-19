@@ -298,18 +298,6 @@ public class Ethernet extends BasePacket {
         return this;
     }
 
-    public boolean isMcast() {
-        return isMcast(destinationMACAddress);
-    }
-
-    public static boolean isMcast(MAC mac) {
-        return (mac == null) ? false : isMcast(mac.getAddress());
-    }
-
-    private static boolean isMcast(byte[] mac) {
-        return 0 != (mac[0] & 0x01);
-    }
-
     public boolean isBroadcast() {
         return isBroadcast(destinationMACAddress);
     }
