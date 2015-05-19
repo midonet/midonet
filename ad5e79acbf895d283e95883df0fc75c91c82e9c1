@@ -22,6 +22,30 @@
       "revId": "ad5e79acbf895d283e95883df0fc75c91c82e9c1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e5726d10",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T01:44:01Z",
+      "side": 1,
+      "message": "To make the test case less brittle. In this particular scenario, yes, the list should contain only this ID. But in general, we are just creating a Pool and testing if the LB has a back reference to the Pool. In that sense, all we need to know is if the LB\u0027s Pool IDs list contains this particular ID.",
+      "parentUuid": "1a106d94_ac6342dc",
+      "range": {
+        "startLine": 60,
+        "startChar": 41,
+        "endLine": 60,
+        "endChar": 42
+      },
+      "revId": "ad5e79acbf895d283e95883df0fc75c91c82e9c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
