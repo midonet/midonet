@@ -24,7 +24,8 @@ import com.typesafe.config._
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.nio.BlockingChannelConnector
-import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.servlet.{FilterHolder, FilterMapping, ServletContextHandler, ServletHolder}
+import org.midonet.cluster.auth.{AuthFilter, AuthService}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
@@ -37,6 +38,9 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: ClusterConf
 
     var server: Server = _
     var zk: CuratorFramework = _
+
+    @Inject(optional = true)
+    var auth: AuthService = _
 
     override def doStart(): Unit = {
         val configurator = MidoNodeConfigurator(config.conf)
@@ -64,6 +68,19 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: ClusterConf
         def addServlet(endpoint: ConfigApiEndpoint, path: String): Unit = {
             log.info(s"Registering config service servlet at /$path")
             ctx.addServlet(new ServletHolder(endpoint), s"/$path")
+        }
+
+        val ContainerResponseFiltersClass = "com.sun.jersey.spi.container.ContainerResponseFilters"
+        val ContainerRequestFiltersClass = "com.sun.jersey.spi.container.ContainerRequestFilters"
+        val LoggingFilterClass = "com.sun.jersey.api.container.filter.LoggingFilter"
+        val POJOMappingFeatureClass = "com.sun.jersey.api.json.POJOMappingFeature"
+
+        if (auth ne null) {
+            val filter = new AuthFilter()
+            filter.service = auth
+            ctx.addFilter(new FilterHolder(filter), "/*", FilterMapping.REQUEST)
+            ctx.setInitParameter(ContainerResponseFiltersClass, LoggingFilterClass)
+            ctx.setInitParameter(ContainerRequestFiltersClass, LoggingFilterClass)
         }
 
         addServlet(new SchemaEndpoint(c), "schema")

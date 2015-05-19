@@ -35,7 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthContainerRequestFilter;
-import org.midonet.api.auth.AuthFilter;
+import org.midonet.cluster.auth.AuthFilter;
 import org.midonet.api.auth.AuthModule;
 import org.midonet.api.auth.StateFilter;
 import org.midonet.cluster.auth.CrossOriginResourceSharingFilter;
@@ -192,6 +192,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
             ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
                 MidoNodeConfigurator.apply(zkConf).runtimeConfig(hostId)));
             ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
+            ConfMinion conf = new ConfMinion(ctx, clusterConf);
             bind(ConfMinion.class).toInstance(new ConfMinion(ctx, clusterConf));
         } catch (Exception e) {
             log.error("Failed to start config API", e);
