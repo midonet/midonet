@@ -91,6 +91,29 @@
       "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a2409e36",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-19T08:05:03Z",
+      "side": 1,
+      "message": "Is there a 1:1 mapping from the old LBStatus and this PoolHealthMonitorMappingStatus? Does the field translate the same, from the old API?",
+      "range": {
+        "startLine": 424,
+        "startChar": 4,
+        "endLine": 424,
+        "endChar": 63
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
