@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_65fea06d",
+        "filename": "midonet-util/src/main/java/org/midonet/util/netty/ServerFrontEnd.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-19T15:49:42Z",
+      "side": 1,
+      "message": "I think it is the boss who should be shut down if (!datagram)",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 38
+      },
+      "revId": "110484724168e14d8b81a33053b3722f06e1514d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
