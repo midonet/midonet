@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_08e40b3a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T17:20:19Z",
+      "side": 1,
+      "message": "The next patch fixes the first issue you raised. Regarding your 2nd point, I will address race conditions in a subsequent patch.",
+      "parentUuid": "facab960_65e8607d",
+      "range": {
+        "startLine": 36,
+        "startChar": 8,
+        "endLine": 36,
+        "endChar": 47
+      },
+      "revId": "9166ab64c875c282ef0a11a05a1d316dc345f04b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_45cc3c36",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-19T16:21:09Z",
       "side": 1,
       "message": "If a concurrent call to `removeOpinion` would remove the winning key opinion between the call of the previous line and this one, wouldn\u0027t this fail?",
+      "range": {
+        "startLine": 37,
+        "startChar": 8,
+        "endLine": 37,
+        "endChar": 31
+      },
+      "revId": "9166ab64c875c282ef0a11a05a1d316dc345f04b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_28d0ef52",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T17:20:19Z",
+      "side": 1,
+      "message": "same",
+      "parentUuid": "facab960_45cc3c36",
       "range": {
         "startLine": 37,
         "startChar": 8,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_68caf7a2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T17:20:19Z",
+      "side": 1,
+      "message": "This has been modified in the next patch.",
+      "parentUuid": "facab960_a5da68e7",
+      "range": {
+        "startLine": 46,
+        "startChar": 16,
+        "endLine": 46,
+        "endChar": 33
+      },
+      "revId": "9166ab64c875c282ef0a11a05a1d316dc345f04b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c55a0c50",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2015-05-19T16:21:09Z",
       "side": 1,
       "message": "Why not doing here:\n\n  val opinionsMap \u003d mergedMap.getOrElse(key, {\n    val newMap \u003d new TrieMap\n    mergedMap.putIfAbsent(key, newMap).getOrElse(newMap)\n  })",
+      "range": {
+        "startLine": 175,
+        "startChar": 0,
+        "endLine": 187,
+        "endChar": 9
+      },
+      "revId": "9166ab64c875c282ef0a11a05a1d316dc345f04b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e8bd2704",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T17:20:19Z",
+      "side": 1,
+      "message": "This became more complex in the next patch but I will see If I can simplify it with what you suggest.",
+      "parentUuid": "facab960_c55a0c50",
       "range": {
         "startLine": 175,
         "startChar": 0,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_483c5394",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T17:20:19Z",
+      "side": 1,
+      "message": "This got deleted.",
+      "parentUuid": "facab960_4517dca3",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 32,
+        "endChar": 1
+      },
+      "revId": "9166ab64c875c282ef0a11a05a1d316dc345f04b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_258f3825",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 4
@@ -128,6 +248,30 @@
       "writtenOn": "2015-05-19T16:21:09Z",
       "side": 1,
       "message": "Is this used now?",
+      "range": {
+        "startLine": 91,
+        "startChar": 10,
+        "endLine": 91,
+        "endChar": 15
+      },
+      "revId": "9166ab64c875c282ef0a11a05a1d316dc345f04b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6841170b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T17:20:19Z",
+      "side": 1,
+      "message": "This will be used by the Cassandara/Zookeeper based implementation. I\u0027m thinking of defining a method toString in this trait.",
+      "parentUuid": "facab960_258f3825",
       "range": {
         "startLine": 91,
         "startChar": 10,
