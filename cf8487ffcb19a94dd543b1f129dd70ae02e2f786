@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_c2912254",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/TunnelZoneHost.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-19T09:46:16Z",
+      "side": 1,
+      "message": "Nit: unused, let\u0027s remove it later.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 23,
+        "endChar": 48
+      },
+      "revId": "cf8487ffcb19a94dd543b1f129dd70ae02e2f786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
