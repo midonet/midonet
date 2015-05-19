@@ -28,12 +28,12 @@ public class HealthMonitorDataConverter {
             URI baseUri) throws IllegalAccessException {
         HealthMonitor hm = new HealthMonitor();
         hm.id = healthMonitor.getId();
-        hm.type = healthMonitor.getType().toString();
+        hm.type = healthMonitor.getType();
         hm.delay = healthMonitor.getDelay();
         hm.timeout = healthMonitor.getTimeout();
         hm.maxRetries = healthMonitor.getMaxRetries();
         hm.adminStateUp = healthMonitor.isAdminStateUp();
-        hm.status = healthMonitor.getStatus().toString();
+        hm.status = healthMonitor.getStatus();
         hm.setBaseUri(baseUri);
         return hm;
     }
@@ -42,11 +42,11 @@ public class HealthMonitorDataConverter {
     toData(HealthMonitor hm) {
         return new org.midonet.cluster.data.l4lb.HealthMonitor()
             .setId(hm.id)
-            .setType(HealthMonitorType.valueOf(hm.type))
+            .setType(hm.type)
             .setDelay(hm.delay)
             .setTimeout(hm.timeout)
             .setMaxRetries(hm.maxRetries)
             .setAdminStateUp(hm.adminStateUp)
-            .setStatus(Enum.valueOf(LBStatus.class, hm.status));
+            .setStatus(hm.status);
     }
 }
