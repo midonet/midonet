@@ -31,6 +31,8 @@ import org.midonet.api.auth.vsphere.VSphereConfigurationException;
 import org.midonet.api.auth.vsphere.VSphereSSOService;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.MockAuthConfig;
+import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.auth.keystone.v2_0.KeystoneClient;
 import org.midonet.config.ConfigProvider;
 

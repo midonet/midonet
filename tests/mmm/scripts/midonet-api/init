@@ -29,7 +29,7 @@ if ! grep -q "zookeeper-curator_enabled" /usr/share/midonet-api/WEB-INF/web.xml;
         -i /usr/share/midonet-api/WEB-INF/web.xml
 fi
 
-sed -i 's/org.midonet.api.auth.keystone.v2_0.KeystoneService/org.midonet.api.auth.MockAuthService/g' /usr/share/midonet-api/WEB-INF/web.xml
+sed -i 's/org.midonet.api.auth.keystone.v2_0.KeystoneService/org.midonet.cluster.auth.MockAuthService/g' /usr/share/midonet-api/WEB-INF/web.xml
 
 # Enable vxlan gw
 awk '/midocluster-vxgw_enabled/{vxgw_section++};{if(vxgw_section && $0 !~ /.*vxgw.*/){print "    <param-value>true</param-value>"; vxgw_section=0 ; } else{ print}}' /usr/share/midonet-api/WEB-INF/web.xml > /tmp/web.xml.$$

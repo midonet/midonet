@@ -103,7 +103,7 @@ element as follows:
   &lt;context-param&gt;
     &lt;param-name&gt;auth-auth_provider&lt;/param-name&gt;
     &lt;param-value&gt;
-      org.midonet.api.auth.MockAuthService
+      org.midonet.cluster.auth.MockAuthService
     &lt;/param-value&gt;
   &lt;/context-param&gt;
   ...
@@ -111,7 +111,7 @@ element as follows:
 
 For the value, specify the fully qualified name of the class that implements
 <i>org.midonet.cluster.southbound.auth.AuthService</i> interface.  In the example above,
-<i>org.midonet.api.auth.MockAuthService</i> class is specified which is a
+<i>org.midonet.cluster.auth.MockAuthService</i> class is specified which is a
 service that provides as a way to mock the auth service for testing or
 disabling auth.  See the 'Mocking auth service' section below for more details.
 For authentication with OpenStack Keystone, specify
