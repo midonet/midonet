@@ -24,33 +24,33 @@ import javax.ws.rs.core.UriInfo
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
-import org.midonet.cluster.rest_api.models.Route
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowList, AllowDelete, AllowGet}
+import org.midonet.cluster.rest_api.models.AdRoute
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 @RequestScoped
-@AllowGet(Array(APPLICATION_ROUTE_JSON,
+@AllowGet(Array(APPLICATION_AD_ROUTE_JSON,
                 APPLICATION_JSON))
 @AllowDelete
-class RouteResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Route](backend, uriInfo)
+class AdRouteResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
+    extends MidonetResource[AdRoute](backend, uriInfo)
 
 @RequestScoped
-@AllowList(Array(APPLICATION_ROUTE_COLLECTION_JSON,
+@AllowList(Array(APPLICATION_AD_ROUTE_COLLECTION_JSON,
                  APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_ROUTE_JSON,
+@AllowCreate(Array(APPLICATION_AD_ROUTE_JSON,
                    APPLICATION_JSON))
-class RouterRouteResource @Inject()(routerId: UUID, backend: MidonetBackend,
-                                    uriInfo: UriInfo)
-    extends MidonetResource[Route](backend, uriInfo) {
+class BGPAdRouteResource @Inject()(bgpId: UUID, backend: MidonetBackend,
+                                   uriInfo: UriInfo)
+    extends MidonetResource[AdRoute](backend, uriInfo) {
 
-    protected override def listFilter = (route: Route) => {
-        route.routerId == routerId
+    protected override def listFilter = (adRoute: AdRoute) => {
+        adRoute.bgpId == bgpId
     }
 
-    protected override def createFilter = (route: Route) => {
-        route.create(routerId)
+    protected override def createFilter = (adRoute: AdRoute) => {
+        adRoute.create(bgpId)
     }
 
 }

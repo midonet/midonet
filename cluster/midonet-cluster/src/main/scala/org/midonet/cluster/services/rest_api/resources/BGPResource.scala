@@ -18,39 +18,47 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 
+import javax.ws.rs.{PathParam, Path}
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.UriInfo
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
-import org.midonet.cluster.rest_api.models.Route
+import org.midonet.cluster.rest_api.annotation.{AllowList, AllowCreate, AllowDelete, AllowGet}
+import org.midonet.cluster.rest_api.models.BGP
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 @RequestScoped
-@AllowGet(Array(APPLICATION_ROUTE_JSON,
+@AllowGet(Array(APPLICATION_BGP_JSON,
                 APPLICATION_JSON))
 @AllowDelete
-class RouteResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Route](backend, uriInfo)
+class BGPResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
+    extends MidonetResource[BGP](backend, uriInfo) {
 
-@RequestScoped
-@AllowList(Array(APPLICATION_ROUTE_COLLECTION_JSON,
-                 APPLICATION_JSON))
-@AllowCreate(Array(APPLICATION_ROUTE_JSON,
-                   APPLICATION_JSON))
-class RouterRouteResource @Inject()(routerId: UUID, backend: MidonetBackend,
-                                    uriInfo: UriInfo)
-    extends MidonetResource[Route](backend, uriInfo) {
-
-    protected override def listFilter = (route: Route) => {
-        route.routerId == routerId
+    @Path("{id}/ad_routes")
+    def adRoutes(@PathParam("id") id: UUID): BGPAdRouteResource = {
+        new BGPAdRouteResource(id, backend, uriInfo)
     }
 
-    protected override def createFilter = (route: Route) => {
-        route.create(routerId)
+}
+
+@RequestScoped
+@AllowList(Array(APPLICATION_BGP_COLLECTION_JSON,
+                 APPLICATION_JSON))
+@AllowCreate(Array(APPLICATION_BGP_JSON,
+                   APPLICATION_JSON))
+class PortBGPResource @Inject()(portId: UUID, backend: MidonetBackend,
+                                uriInfo: UriInfo)
+    extends MidonetResource[BGP](backend, uriInfo) {
+
+    protected override def listFilter = (bgp: BGP) => {
+        bgp.portId == portId
+    }
+
+    protected override def createFilter = (bgp: BGP) => {
+        bgp.create(portId)
     }
 
 }
