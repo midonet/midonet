@@ -20,7 +20,6 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
@@ -54,4 +53,5 @@ public class TunnelZoneHost extends UriResource {
     public void create(UUID tunnelZoneId) {
         this.tunnelZoneId = tunnelZoneId;
     }
+
 }

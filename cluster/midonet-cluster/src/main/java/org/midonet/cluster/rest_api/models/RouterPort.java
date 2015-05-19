@@ -63,6 +63,10 @@ public class RouterPort extends Port {
     public UUID routerId;
 
     @JsonIgnore
+    @ZoomField(name = "bgp_id", converter = UUIDUtil.Converter.class)
+    public UUID bgpId;
+
+    @JsonIgnore
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
 
@@ -105,6 +109,7 @@ public class RouterPort extends Port {
         super.update(from);
         RouterPort routerPort = (RouterPort)from;
         routerId = routerPort.routerId;
+        bgpId = routerPort.bgpId;
         routeIds = routerPort.routeIds;
     }
 }

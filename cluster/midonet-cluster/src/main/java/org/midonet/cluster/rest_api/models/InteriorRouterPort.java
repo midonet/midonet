@@ -17,9 +17,6 @@ package org.midonet.cluster.rest_api.models;
 
 import java.util.UUID;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement
 public class InteriorRouterPort extends RouterPort implements InteriorPort {
 
     public InteriorRouterPort() {

@@ -16,9 +16,6 @@
 
 package org.midonet.cluster.rest_api.models;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement
 public class SystemState {
 
     public String state = null;

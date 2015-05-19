@@ -16,28 +16,43 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement
+import org.codehaus.jackson.annotate.JsonIgnore;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
+
+@ZoomClass(clazz = Topology.PortGroup.class)
 public class PortGroup extends UriResource {
 
     public static final int MIN_PORT_GROUP_NAME_LEN = 1;
     public static final int MAX_PORT_GROUP_NAME_LEN = 255;
 
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
     @NotNull
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @NotNull
     @Size(min = MIN_PORT_GROUP_NAME_LEN, max = MAX_PORT_GROUP_NAME_LEN)
+    @ZoomField(name = "name")
     public String name;
 
+    @ZoomField(name = "stateful")
     public boolean stateful;
+
+    @JsonIgnore
+    @ZoomField(name = "port_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> portIds;
 
     @Override
     public URI getUri() {
@@ -46,6 +61,19 @@ public class PortGroup extends UriResource {
 
     public URI getPorts() {
         return relativeUri(ResourceUris.PORTS);
+    }
+
+    @JsonIgnore
+    public void create() {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+    }
+
+    @JsonIgnore
+    public void update(PortGroup from) {
+        id = from.id;
+        portIds = from.portIds;
     }
 
 }

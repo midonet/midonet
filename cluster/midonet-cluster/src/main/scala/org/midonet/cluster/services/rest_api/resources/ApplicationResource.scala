@@ -31,6 +31,8 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @Path("/")
 class ApplicationResource @Inject()(backend: MidonetBackend,
                                     uriInfo: UriInfo,
+                                    adRouteResource: AdRouteResource,
+                                    bgpResource: BGPResource,
                                     bridgeResource: BridgeResource,
                                     chainResource: ChainResource,
                                     hostResource: HostResource,
@@ -39,6 +41,7 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
                                     poolResource: PoolResource,
                                     poolMemberResource: PoolMemberResource,
                                     portResource: PortResource,
+                                    portGroupResource: PortGroupResource,
                                     routeResource: RouteResource,
                                     routerResource: RouterResource,
                                     ruleResource: RuleResource,
@@ -54,6 +57,12 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
         log.debug(s"${getClass.getName} entered on ${uriInfo.getAbsolutePath}")
         new Application(uriInfo.getAbsolutePathBuilder.build())
     }
+
+    @Path("ad_routes")
+    def adRoutes = adRouteResource
+
+    @Path("bgps")
+    def bgps = bgpResource
 
     @Path("bridges")
     def bridges = bridgeResource
@@ -78,6 +87,9 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
 
     @Path("ports")
     def ports = portResource
+
+    @Path("port_groups")
+    def portGroups = portGroupResource
 
     @Path("routers")
     def routers = routerResource
