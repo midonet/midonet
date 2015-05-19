@@ -46,6 +46,30 @@
       "revId": "ad5e79acbf895d283e95883df0fc75c91c82e9c1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_e0389bd6",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-19T03:28:46Z",
+      "side": 1,
+      "message": "It\u0027s your decision, but IMO tests should be brittle. If the behavior of the code changes, then any affected tests may need to be reevaluated.",
+      "parentUuid": "1a106d94_e5726d10",
+      "range": {
+        "startLine": 60,
+        "startChar": 41,
+        "endLine": 60,
+        "endChar": 42
+      },
+      "revId": "ad5e79acbf895d283e95883df0fc75c91c82e9c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
