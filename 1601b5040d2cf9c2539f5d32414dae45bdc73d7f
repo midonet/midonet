@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_250578c2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-19T15:22:08Z",
+      "side": 1,
+      "message": "I would favor leaving this to CASCADE. The reason is that in the old API it is allowed to delete a Pool along will all pool members by requesting a delete for the pool alone.",
+      "range": {
+        "startLine": 101,
+        "startChar": 63,
+        "endLine": 101,
+        "endChar": 68
+      },
+      "revId": "1601b5040d2cf9c2539f5d32414dae45bdc73d7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
