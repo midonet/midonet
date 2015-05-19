@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_42043215",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T07:50:04Z",
+      "side": 1,
+      "message": "associated with the pool?",
+      "range": {
+        "startLine": 54,
+        "startChar": 56,
+        "endLine": 54,
+        "endChar": 66
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c20f622d",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T07:50:04Z",
+      "side": 1,
+      "message": "What\u0027s the difference between this and the midoPoolProtoStr method below? Does this build a neutron pool?",
+      "range": {
+        "startLine": 44,
+        "startChar": 18,
+        "endLine": 44,
+        "endChar": 30
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_021a2a6e",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T07:50:04Z",
+      "side": 1,
+      "message": "it does not exist.",
+      "range": {
+        "startLine": 107,
+        "startChar": 59,
+        "endLine": 107,
+        "endChar": 69
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_22264ebb",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-19T07:50:04Z",
+      "side": 1,
+      "message": "to",
+      "range": {
+        "startLine": 123,
+        "startChar": 34,
+        "endLine": 123,
+        "endChar": 35
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
