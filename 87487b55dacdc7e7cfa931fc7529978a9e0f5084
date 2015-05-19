@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_42a0b2f4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T08:44:11Z",
+      "side": 1,
+      "message": "Seems clear enough from the context.",
+      "parentUuid": "facab960_42043215",
+      "range": {
+        "startLine": 54,
+        "startChar": 56,
+        "endLine": 54,
+        "endChar": 66
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c20f622d",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-19T07:50:04Z",
       "side": 1,
       "message": "What\u0027s the difference between this and the midoPoolProtoStr method below? Does this build a neutron pool?",
+      "range": {
+        "startLine": 44,
+        "startChar": 18,
+        "endLine": 44,
+        "endChar": 30
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_82aabad2",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T08:44:11Z",
+      "side": 1,
+      "message": "Yes, this one is for Neutron Pool, which I agree, may not be clear from the context. Renamed it.",
+      "parentUuid": "facab960_c20f622d",
       "range": {
         "startLine": 44,
         "startChar": 18,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_a2c33e89",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T08:44:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_021a2a6e",
+      "range": {
+        "startLine": 107,
+        "startChar": 59,
+        "endLine": 107,
+        "endChar": 69
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_22264ebb",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
         "patchSetId": 2
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_c2c0427f",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T08:44:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_22264ebb",
+      "range": {
+        "startLine": 123,
+        "startChar": 34,
+        "endLine": 123,
+        "endChar": 35
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_a2409e36",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 2
@@ -105,6 +201,30 @@
       "writtenOn": "2015-05-19T08:05:03Z",
       "side": 1,
       "message": "Is there a 1:1 mapping from the old LBStatus and this PoolHealthMonitorMappingStatus? Does the field translate the same, from the old API?",
+      "range": {
+        "startLine": 424,
+        "startChar": 4,
+        "endLine": 424,
+        "endChar": 63
+      },
+      "revId": "87487b55dacdc7e7cfa931fc7529978a9e0f5084",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a2dc1e76",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-19T08:44:11Z",
+      "side": 1,
+      "message": "I think I mixed up two distinct fields into one. I resurrected the old field so that it won\u0027t affect the existing field.",
+      "parentUuid": "facab960_a2409e36",
       "range": {
         "startLine": 424,
         "startChar": 4,
