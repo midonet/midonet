@@ -33,8 +33,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.MockAuthService;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.Tenant;

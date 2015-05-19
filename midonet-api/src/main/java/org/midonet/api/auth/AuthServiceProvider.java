@@ -38,7 +38,7 @@ public class AuthServiceProvider implements Provider<AuthService> {
     public final static String KEYSTONE_PLUGIN =
             "org.midonet.api.auth.keystone.v2_0.KeystoneService";
     public final static String MOCK_PLUGIN =
-            "org.midonet.api.auth.MockAuthService";
+            "org.midonet.cluster.auth.MockAuthService";
     public final static String VSPHERE_PLUGIN =
             "org.midonet.api.auth.vsphere.VSphereSSOService";
 

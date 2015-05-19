@@ -30,7 +30,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.Tenant;
 import org.midonet.cluster.auth.Token;

@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.conf
 
 import java.util.UUID
+import javax.servlet._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import java.util.EnumSet
 
@@ -25,7 +26,9 @@ import com.typesafe.config._
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.server.nio.BlockingChannelConnector
-import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
+import org.eclipse.jetty.servlet.{FilterHolder, FilterMapping, ServletContextHandler, ServletHolder}
+import org.midonet.cluster.auth.{AuthRole, UserIdentity, AuthFilter, AuthService}
+import org.midonet.cluster.rest_api.ResponseUtils
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
@@ -39,6 +42,9 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: ClusterConf
 
     var server: Server = _
     var zk: CuratorFramework = _
+
+    @Inject(optional = true)
+    var auth: AuthService = _
 
     override def doStart(): Unit = {
         val configurator = MidoNodeConfigurator(config.conf)
@@ -62,11 +68,48 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: ClusterConf
         notifyStarted()
     }
 
+    private def adminFilter: Filter = {
+        new Filter {
+            override def init(filterConfig: FilterConfig) {}
+
+            override def doFilter(req: ServletRequest,
+                                  resp: ServletResponse,
+                                  chain: FilterChain) {
+
+                val user: UserIdentity = req.getAttribute(
+                        AuthFilter.USER_IDENTITY_ATTR_KEY).asInstanceOf[UserIdentity]
+
+                if ((user ne null) && user.hasRole(AuthRole.ADMIN)) {
+                    chain.doFilter(req, resp)
+                } else {
+                    ResponseUtils.setAuthErrorResponse(
+                        resp.asInstanceOf[HttpServletResponse],
+                        "Authentication error: 'admin' role required")
+                }
+            }
+
+            override def destroy() {}
+        }
+    }
+
     private def addServletsFor(c: MidoNodeConfigurator,
                                ctx: ServletContextHandler): Unit = {
         def addServlet(endpoint: ConfigApiEndpoint, path: String): Unit = {
             log.info(s"Registering config service servlet at /$path")
             ctx.addServlet(new ServletHolder(endpoint), s"/$path")
+        }
+
+        val ContainerResponseFiltersClass = "com.sun.jersey.spi.container.ContainerResponseFilters"
+        val ContainerRequestFiltersClass = "com.sun.jersey.spi.container.ContainerRequestFilters"
+        val LoggingFilterClass = "com.sun.jersey.api.container.filter.LoggingFilter"
+
+        if (auth ne null) {
+            val filter = new AuthFilter()
+            filter.service = auth
+            ctx.addFilter(new FilterHolder(filter), "/*", FilterMapping.REQUEST)
+            ctx.addFilter(new FilterHolder(adminFilter), "/*", FilterMapping.REQUEST)
+            ctx.setInitParameter(ContainerResponseFiltersClass, LoggingFilterClass)
+            ctx.setInitParameter(ContainerRequestFiltersClass, LoggingFilterClass)
         }
 
         addServlet(new SchemaEndpoint(c), "schema")

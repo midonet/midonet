@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.cluster.auth;
 
 import java.io.IOException;
 
@@ -32,9 +32,6 @@ import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.auth.AuthException;
-import org.midonet.cluster.auth.AuthService;
-import org.midonet.cluster.auth.UserIdentity;
 import org.midonet.cluster.rest_api.ResponseUtils;
 
 /**
@@ -57,7 +54,7 @@ public final class AuthFilter implements Filter {
     public final static String HEADER_X_AUTH_TOKEN = "X-Auth-Token";
 
     @Inject
-    private AuthService service;
+    public AuthService service;
 
     /**
      * Called by the web container to indicate to a filter that it is being

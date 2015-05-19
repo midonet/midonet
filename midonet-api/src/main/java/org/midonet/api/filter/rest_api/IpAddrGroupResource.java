@@ -20,7 +20,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.filter.IpAddrGroup;
 import org.midonet.api.filter.IpAddrGroupAddr;
 import org.midonet.api.filter.Ipv4AddrGroupAddr;

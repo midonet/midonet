@@ -76,7 +76,7 @@ public class FuncTest {
                 .servletPath("/")
                 .contextParam(getConfigKey(AuthConfig.GROUP_NAME,
                                            AuthConfig.AUTH_PROVIDER),
-                              "org.midonet.api.auth.MockAuthService")
+                              "org.midonet.cluster.auth.MockAuthService")
                 .contextParam(getConfigKey("zookeeper",
                                            "zookeeper_hosts"),
                                            FuncTest.ZK_TEST_SERVER)
