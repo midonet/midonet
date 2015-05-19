@@ -32,7 +32,7 @@ public interface AuthConfig {
     String TENANT_USER_ROLE_KEY = "tenant_user_role";
 
     @ConfigString(key = AUTH_PROVIDER,
-            defaultValue = "org.midonet.api.auth.MockAuthService")
+            defaultValue = "org.midonet.cluster.auth.MockAuthService")
     String getAuthProvider();
 
     @ConfigString(key = ADMIN_ROLE_KEY, defaultValue = "mido_admin")
