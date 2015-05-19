@@ -27,18 +27,15 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 
-// TODO: @IsHostInterfaceUnused(groups = HostInterfacePort.HostInterfacePortCreateGroup.class)
 @ZoomClass(clazz = Topology.Port.class)
 public class HostInterfacePort extends UriResource {
 
-    // TODO: @IsValidPortId
     @NotNull
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID portId;
 
     @NotNull
     @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
-    // TODO: @IsHostIdInAnyTunnelZone(groups = HostInterfacePortCreateGroup.class)
     public UUID hostId;
 
     @NotNull
@@ -49,6 +46,14 @@ public class HostInterfacePort extends UriResource {
     public URI getUri() {
         return absoluteUri(ResourceUris.HOSTS, hostId,
                            ResourceUris.PORTS, portId);
+    }
+
+    public URI getHost() {
+        return absoluteUri(ResourceUris.HOSTS, hostId);
+    }
+
+    public URI getPort() {
+        return absoluteUri(ResourceUris.PORTS, portId);
     }
 
     @JsonIgnore
