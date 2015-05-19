@@ -25,6 +25,8 @@ import com.google.inject.util.Modules;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.midonet.cluster.auth.MockAuthConfig;
+import org.midonet.cluster.auth.MockAuthService;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
