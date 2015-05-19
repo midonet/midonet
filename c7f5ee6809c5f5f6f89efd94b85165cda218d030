@@ -68,6 +68,24 @@
       "revId": "c7f5ee6809c5f5f6f89efd94b85165cda218d030",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e51c706d",
+        "filename": "midolman/src/main/scala/org/midonet/quagga/VtyConnection.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-19T14:08:37Z",
+      "side": 1,
+      "message": "can we wait until there\u0027s at least a second child of VtyConnection? As it stands to day all the VTY code is for bgpd.",
+      "parentUuid": "1a106d94_029e9f63",
+      "revId": "c7f5ee6809c5f5f6f89efd94b85165cda218d030",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
