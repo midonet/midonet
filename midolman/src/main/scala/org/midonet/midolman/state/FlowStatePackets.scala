@@ -25,7 +25,7 @@ import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState._
 import org.midonet.midolman.state.TraceState.TraceKey
 import org.midonet.odp.FlowMatch
-import org.midonet.odp.flows.{IPFragmentType,FlowKeyEtherType}
+import org.midonet.odp.flows.FlowKeyEtherType
 import org.midonet.packets._
 import org.midonet.rpc.{FlowStateProto => Proto}
 

@@ -42,14 +42,14 @@ import org.slf4j.Logger;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.filter.Rule;
-import org.midonet.api.filter.RuleFactory;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.conversion.RuleDataConverter;
+import org.midonet.cluster.rest_api.models.Rule;
 import org.midonet.event.topology.RuleEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
@@ -65,7 +65,6 @@ import static org.slf4j.LoggerFactory.getLogger;
 @RequestScoped
 public class RuleResource extends AbstractResource {
 
-    private final static Logger log = getLogger(RuleResource.class);
     private final static RuleEvent ruleEvent = new RuleEvent();
 
     @Inject
@@ -120,11 +119,7 @@ public class RuleResource extends AbstractResource {
             throw notFoundException(id, "rule");
         }
 
-        // Convert to the REST API DTO
-        Rule rule = RuleFactory.createRule(ruleData);
-        rule.setBaseUri(getBaseUri());
-
-        return rule;
+        return RuleDataConverter.fromData(ruleData, getBaseUri());
     }
 
     /**
@@ -159,9 +154,9 @@ public class RuleResource extends AbstractResource {
         public Response create(Rule rule) throws StateAccessException,
                                                  SerializationException {
 
-            rule.setChainId(chainId);
-            if (rule.getPosition() == 0) {
-                rule.setPosition(1);
+            rule.chainId = chainId;
+            if (rule.position == 0) {
+                rule.position = 1;
             }
 
             validate(rule);
@@ -169,7 +164,7 @@ public class RuleResource extends AbstractResource {
             authoriser.tryAuthoriseChain(chainId, "add rule to this chain.");
 
             try {
-                UUID id = dataClient.rulesCreate(rule.toData());
+                UUID id = dataClient.rulesCreate(RuleDataConverter.toData(rule));
                 ruleEvent.create(id, dataClient.rulesGet(id));
                 return Response.created(
                         ResourceUriBuilder.getRule(getBaseUri(), id))
@@ -210,9 +205,7 @@ public class RuleResource extends AbstractResource {
 
             List<Rule> rules = new ArrayList<>();
             for (org.midonet.cluster.data.Rule<?, ?> ruleData : ruleDataList) {
-                Rule rule = RuleFactory.createRule(ruleData);
-                rule.setBaseUri(getBaseUri());
-                rules.add(rule);
+                rules.add(RuleDataConverter.fromData(ruleData, getBaseUri()));
             }
 
             return rules;

@@ -28,6 +28,7 @@ import org.midonet.odp.OpenVSwitch.FlowKey.Attr;
 import org.midonet.packets.ARP;
 import org.midonet.packets.Ethernet;
 import org.midonet.packets.ICMP;
+import org.midonet.packets.IPFragmentType;
 import org.midonet.packets.IPacket;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;

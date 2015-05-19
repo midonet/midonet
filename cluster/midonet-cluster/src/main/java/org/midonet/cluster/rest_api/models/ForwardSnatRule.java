@@ -23,7 +23,7 @@ public class ForwardSnatRule extends ForwardNatRule {
     }
 
     @Override
-    public String getType() {
+    public final String getType() {
         return Rule.SNAT;
     }
 

@@ -31,8 +31,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
-import org.midonet.odp.flows.IPFragmentType
-import org.midonet.packets.{Ethernet, IPAddr, MAC, Unsigned}
+import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 
 /**
