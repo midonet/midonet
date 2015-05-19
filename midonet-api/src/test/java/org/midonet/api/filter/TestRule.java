@@ -30,6 +30,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Suite;
 import org.midonet.api.rest_api.RestApiTestBase;
+import org.midonet.cluster.rest_api.models.Rule;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.packets.Unsigned;
 import org.slf4j.Logger;

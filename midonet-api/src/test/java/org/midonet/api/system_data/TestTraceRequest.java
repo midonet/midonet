@@ -16,8 +16,8 @@
 package org.midonet.api.system_data;
 
 import java.net.URI;
-import java.util.UUID;
 import java.util.List;
+import java.util.UUID;
 
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.ClientResponse.Status;
@@ -28,31 +28,26 @@ import com.sun.jersey.test.framework.JerseyTest;
 import org.apache.zookeeper.KeeperException;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.ResourceUriBuilder;
-import static org.midonet.api.auth.AuthFilter.HEADER_X_AUTH_TOKEN;
 import org.midonet.api.auth.MockAuthConfig;
-import org.midonet.api.filter.Condition;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.cluster.data.TraceRequest.DeviceType;
+import org.midonet.cluster.rest_api.models.Condition;
 import org.midonet.midolman.state.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.is;
+import static org.midonet.api.auth.AuthFilter.HEADER_X_AUTH_TOKEN;
 
 public class TestTraceRequest extends JerseyTest {
-    private final static Logger log
-        = LoggerFactory.getLogger(TestTraceRequest.class);
 
     private static final String ADMIN0 = "admin0";
     private static final String TENANT0 = "no_auth_tenant_id";
@@ -283,8 +278,8 @@ public class TestTraceRequest extends JerseyTest {
     @Test(timeout=60000)
     public void testConditionStorage() throws StateAccessException {
         Condition condition = new Condition();
-        condition.setNwDstAddress("10.0.0.1");
-        condition.setNwSrcAddress("10.0.0.2");
+        condition.nwDstAddress = "10.0.0.1";
+        condition.nwSrcAddress = "10.0.0.2";
 
         TraceRequest portTrace = new TraceRequest(
                 UUID.randomUUID(), "foobar",
@@ -304,9 +299,8 @@ public class TestTraceRequest extends JerseyTest {
         assertThat("The content is the same",
                    portTrace.toData().equals(readRequest.toData()));
         assertThat("Addresses are set correctly",
-                readRequest.getCondition().getNwDstAddress().equals("10.0.0.1")
-                && readRequest.getCondition()
-                   .getNwSrcAddress().equals("10.0.0.2"));
+                readRequest.getCondition().nwDstAddress.equals("10.0.0.1") &&
+                readRequest.getCondition().nwSrcAddress.equals("10.0.0.2"));
     }
 
     @Test(timeout=60000)

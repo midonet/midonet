@@ -17,15 +17,17 @@ package org.midonet.api.system_data;
 
 import java.net.URI;
 import java.util.UUID;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import javax.validation.constraints.NotNull;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.api.filter.Condition;
-
 import org.midonet.cluster.data.TraceRequest.DeviceType;
+import org.midonet.cluster.rest_api.models.Condition;
+
+import static org.midonet.cluster.rest_api.conversion.ConditionDataConverter.makeCondition;
+import static org.midonet.cluster.rest_api.conversion.ConditionDataConverter.setFromSimulation;
 
 /* Class representing trace info */
 @XmlRootElement
@@ -85,7 +87,8 @@ public class TraceRequest extends UriResource {
         this.deviceType = traceRequest.getDeviceType();
         this.deviceId = traceRequest.getDeviceId();
         this.condition = new Condition();
-        this.condition.setFromCondition(traceRequest.getCondition());
+        this.condition = setFromSimulation(this.condition,
+                                           traceRequest.getCondition());
         this.creationTimestampMs = traceRequest.getCreationTimestampMs();
         this.limit = traceRequest.getLimit();
         this.enabled = (traceRequest.getEnabledRule() != null);
@@ -156,7 +159,7 @@ public class TraceRequest extends UriResource {
     }
 
     public org.midonet.cluster.data.TraceRequest toData() {
-        org.midonet.midolman.rules.Condition c = condition.makeCondition();
+        org.midonet.midolman.rules.Condition c = makeCondition(condition);
         return new org.midonet.cluster.data.TraceRequest()
             .setId(id)
             .setName(name)

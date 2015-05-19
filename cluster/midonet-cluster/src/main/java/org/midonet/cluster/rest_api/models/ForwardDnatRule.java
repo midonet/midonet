@@ -19,7 +19,7 @@ package org.midonet.cluster.rest_api.models;
 public class ForwardDnatRule extends ForwardNatRule {
 
     @Override
-    public String getType() {
+    public final String getType() {
         return Rule.DNAT;
     }
 
