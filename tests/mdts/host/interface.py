@@ -22,7 +22,7 @@ import shlex
 import string
 import subprocess
 
-from threading import BoundedSemaphore
+from threading import Semaphore
 
 from mdts.lib import subprocess_compat
 
@@ -108,7 +108,7 @@ class Netns(object):
     def __init__(self, interface):
         LOG.debug('interface=%s', interface)
         self._interface = interface
-        self._tcpdump_sem = BoundedSemaphore(value=1)
+        self._tcpdump_sem = Semaphore(value=0)
 
     def _get_ifname(self):
         return self._interface['ifname']
