@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_b77b7a28",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-20T17:00:11Z",
+      "side": 1,
+      "message": "in Condition.java",
+      "parentUuid": "facab960_f7198223",
+      "revId": "7a530a35d014f1b237f6ce1aa51f0d49d5a44539",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d7471e1c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
         "patchSetId": 1
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "why wouldn\u0027t it?",
       "parentUuid": "facab960_d7471e1c",
+      "revId": "7a530a35d014f1b237f6ce1aa51f0d49d5a44539",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7782d201",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-20T17:00:11Z",
+      "side": 1,
+      "message": "a FlowTag is not a UUID; I saw you fix this in a later patch.",
+      "parentUuid": "facab960_7726526a",
       "revId": "7a530a35d014f1b237f6ce1aa51f0d49d5a44539",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
