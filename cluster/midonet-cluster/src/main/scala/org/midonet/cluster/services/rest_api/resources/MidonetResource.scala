@@ -43,7 +43,7 @@ import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList, AllowUpdate}
 import org.midonet.cluster.rest_api.models.UriResource
-import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.util.reactivex._
@@ -111,9 +111,18 @@ object MidonetResource {
         Response.status(HttpStatus.CONFLICT_409).build()
     }
 
+    protected def tryResponse(f: => Response): Response = {
+        try {
+            return f
+        } catch {
+            case e: WebApplicationException => e.getResponse
+        }
+    }
+
     case class ResourceContext @Inject() (backend: MidonetBackend,
                                           uriInfo: UriInfo,
                                           validator: Validator)
+
 }
 
 abstract class MidonetResource[T >: Null <: UriResource]
@@ -168,8 +177,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
         throwIfViolationsOn(t)
 
-        createFilter(t)
-        createResource(t)
+        tryResponse {
+            createFilter(t)
+            createResource(t)
+        }
     }
 
     @PUT
@@ -194,7 +205,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
     @DELETE
     @Path("{id}")
     def delete(@PathParam("id") id: String): Response = {
-        deleteResource(tag.runtimeClass.asInstanceOf[Class[T]], id)
+        tryResponse {
+            deleteFilter(id)
+            deleteResource(tag.runtimeClass.asInstanceOf[Class[T]], id)
+        }
     }
 
     protected def throwIfViolationsOn[T](t: T): Unit = {
@@ -215,6 +229,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
     protected def createFilter: (T) => Unit = (t: T) => { t.create() }
 
     protected def updateFilter: (T, T) => Unit = (_,_) => { }
+
+    protected def deleteFilter: (String) => Unit = (_) => { }
 
     protected def listResources[U >: Null <: UriResource](clazz: Class[U])
     : Future[Seq[U]] = {
@@ -241,6 +257,12 @@ abstract class MidonetResource[T >: Null <: UriResource]
     : Future[StateKey] = {
         backend.stateStore.getKey(UriResource.getZoomClass(clazz), id, key)
             .asFuture
+    }
+
+    protected def hasResource[U >: Null <: UriResource](clazz: Class[U],
+                                                        id: Any)
+    : Future[Boolean] = {
+        backend.store.exists(UriResource.getZoomClass(clazz), id)
     }
 
     protected def createResource[U >: Null <: UriResource](resource: U)

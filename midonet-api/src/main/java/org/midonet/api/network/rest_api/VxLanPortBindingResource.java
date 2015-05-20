@@ -17,6 +17,7 @@ package org.midonet.api.network.rest_api;
 
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.GET;
@@ -30,17 +31,17 @@ import javax.ws.rs.core.UriInfo;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.network.VtepBinding;
-import org.midonet.cluster.rest_api.BadRequestHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.VTEPBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
@@ -71,7 +72,7 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                MediaType.APPLICATION_JSON})
     @Path("{portName}/{vlanId}")
-    public VtepBinding get(@PathParam("portName") String portName,
+    public VTEPBinding get(@PathParam("portName") String portName,
                            @PathParam("vlanId") short vlanId)
             throws SerializationException, StateAccessException {
 
@@ -87,8 +88,11 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
                     VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
         }
 
-        VtepBinding b = new VtepBinding(ipAddr.toString(), portName,
-                                        vlanId, boundBridgeId);
+        VTEPBinding b = new VTEPBinding();
+        b.mgmtIp = ipAddr.toString();
+        b.portName = portName;
+        b.vlanId = vlanId;
+        b.networkId = boundBridgeId;
         b.setBaseUri(getBaseUri());
         return b;
     }
@@ -97,7 +101,7 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON,
             MediaType.APPLICATION_JSON})
-    public List<VtepBinding> list() throws StateAccessException,
+    public List<VTEPBinding> list() throws StateAccessException,
             SerializationException {
 
         VxLanPort vxLanPort = getVxLanPort(vxLanPortId);
