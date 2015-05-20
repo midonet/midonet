@@ -16,7 +16,8 @@
 package org.midonet.midolman
 
 import java.lang.{Integer => JInteger}
-import java.util.{Set => JSet, HashMap, UUID}
+import java.util.concurrent.ConcurrentHashMap
+import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -409,10 +410,10 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     var tunnelOverlayVxLan: VxLanTunnelPort = _
     var tunnelVtepVxLan: VxLanTunnelPort = _
 
-    val interfaceToTriad = new HashMap[String, DpTriad]()
-    val vportToTriad = new HashMap[UUID, DpTriad]()
-    val keyToTriad = new HashMap[Long, DpTriad]()
-    val dpPortNumToTriad = new HashMap[Int, DpTriad]
+    val interfaceToTriad = new ConcurrentHashMap[String, DpTriad]()
+    val vportToTriad = new ConcurrentHashMap[UUID, DpTriad]()
+    val keyToTriad = new ConcurrentHashMap[Long, DpTriad]()
+    val dpPortNumToTriad = new ConcurrentHashMap[Int, DpTriad]
 
     override def vtepTunnellingOutputAction = tunnelVtepVxLan.toOutputAction
 
