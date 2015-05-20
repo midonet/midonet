@@ -32,12 +32,12 @@ import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_HOST_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCPV6_SUBNET_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCPV6_HOST_COLLECTION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCPV6_HOST_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCPV6_SUBNET_COLLECTION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCPV6_SUBNET_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
 
 public class TestDHCPv6 extends JerseyTest {
 

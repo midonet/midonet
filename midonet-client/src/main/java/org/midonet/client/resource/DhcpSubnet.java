@@ -18,11 +18,11 @@ package org.midonet.client.resource;
 import java.net.URI;
 import java.util.List;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoDhcpHost;
 import org.midonet.client.dto.DtoDhcpOption121;
 import org.midonet.client.dto.DtoDhcpSubnet;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class DhcpSubnet extends ResourceBase<DhcpSubnet, DtoDhcpSubnet> {
 

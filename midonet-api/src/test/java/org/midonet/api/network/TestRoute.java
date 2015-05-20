@@ -19,7 +19,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.ws.rs.core.Response;
@@ -43,7 +42,6 @@ import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
-import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLink;
 import org.midonet.client.dto.DtoRoute;
 import org.midonet.client.dto.DtoRouter;
@@ -53,12 +51,12 @@ import org.midonet.cluster.rest_api.models.Route;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_ROUTE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTE_COLLECTION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTE_JSON;
 
 @RunWith(Enclosed.class)
 public class TestRoute {
@@ -362,7 +360,7 @@ public class TestRoute {
         @Test
         public void testLinkAddRouteUnlink() {
             DtoRouter r1 = topology.getRouter("router1");
-            DtoBridge bridge1 = topology.getBridge("bridge1");
+            topology.getBridge("bridge1");
             DtoRouterPort r1p1 = topology
                 .getRouterPort("router1Port1");
             DtoBridgePort b1p1 = topology

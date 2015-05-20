@@ -21,17 +21,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
 import org.midonet.client.dto.DtoInterface;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
-/**
- * Author: Tomoe Sugihara <tomoe@midokura.com>
- * Date: 9/5/12
- * Time: 10:15 PM
- */
 public class Host extends ResourceBase<Host, DtoHost> {
 
     public Host(WebResource resource, URI uriForCreation, DtoHost host) {

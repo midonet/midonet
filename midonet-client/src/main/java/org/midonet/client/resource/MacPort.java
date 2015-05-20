@@ -16,9 +16,9 @@
 
 package org.midonet.client.resource;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoMacPort;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 import java.net.URI;
 import java.util.UUID;

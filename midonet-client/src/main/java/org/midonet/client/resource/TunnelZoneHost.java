@@ -19,15 +19,9 @@ package org.midonet.client.resource;
 import java.net.URI;
 import java.util.UUID;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoTunnelZoneHost;
 
-/**
- * Author: Tomoe Sugihara <tomoe@midokura.com>
- * Date: 9/18/12
- * Time: 11:02 PM
- */
 public class TunnelZoneHost extends ResourceBase<TunnelZoneHost,
     DtoTunnelZoneHost> {
 

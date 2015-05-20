@@ -20,12 +20,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
 
-/**
- * Author: Toader Mihai Claudiu <mtoader@gmail.com>
- * <p/>
- * Date: 11/28/11
- * Time: 5:54 PM
- */
 @XmlRootElement
 public class DtoAdRoute {
 

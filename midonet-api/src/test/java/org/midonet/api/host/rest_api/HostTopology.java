@@ -15,6 +15,11 @@
  */
 package org.midonet.api.host.rest_api;
 
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.dto.DtoApplication;
@@ -27,16 +32,12 @@ import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
 
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
-import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_TUNNEL_ZONE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 
 /**
  * Class to assist creating a network topology in unit tests. An example usage:

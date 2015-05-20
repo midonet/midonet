@@ -16,12 +16,11 @@
 package org.midonet.client.resource;
 
 import java.net.URI;
-import java.util.List;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
-import org.midonet.client.dto.DtoDhcpV6Host;
 import org.midonet.client.dto.DtoDhcpSubnet6;
+import org.midonet.client.dto.DtoDhcpV6Host;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 /*
  * The reason the number 6 is at the end is to make the user think of
