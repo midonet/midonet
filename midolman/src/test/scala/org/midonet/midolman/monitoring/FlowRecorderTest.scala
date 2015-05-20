@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 
 import java.net.{DatagramPacket, DatagramSocket}
 import java.nio.ByteBuffer
-import java.util.{Map => JMap, UUID}
+import java.util.{Collections, Comparator, List, Map => JMap, Objects, UUID}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -135,6 +135,51 @@ class FlowRecorderTest extends MidolmanSpec {
         }
     }
 
+    feature("Binary flow records") {
+        scenario("data is encoded/decoded correctly") {
+
+            val confStr =
+                """
+                |agent.flow_history.enabled=true
+                |agent.flow_history.encoding=binary
+                |agent.flow_history.udp_endpoint="localhost:50023"
+                """.stripMargin
+            val conf = MidolmanConfig.forTests(confStr)
+            val factory = new FlowRecorderFactory(conf)
+
+            val recorder = factory.newFlowRecorder()
+
+            val data = new Array[Byte](409600)
+            val datagram = new DatagramPacket(data, data.length)
+
+            val sock = getListeningSocket(conf)
+
+            try {
+                val ctx1 = newContext()
+                val shouldMatch = new FlowRecord
+                shouldMatch.reset(ctx1, PacketWorkflow.NoOp)
+                recorder.record(ctx1, PacketWorkflow.NoOp)
+
+                sock.receive(datagram)
+                val rec = new BinaryFlowRecord()
+                rec.reset(ByteBuffer.wrap(data))
+
+                checkFlowRecord(rec, shouldMatch)
+
+                val ctx2 = newContext()
+                shouldMatch.reset(ctx2, PacketWorkflow.GeneratedPacket)
+                recorder.record(ctx2, PacketWorkflow.GeneratedPacket)
+
+                sock.receive(datagram)
+                rec.reset(ByteBuffer.wrap(data))
+
+                checkFlowRecord(rec, shouldMatch)
+            } finally {
+                sock.close()
+            }
+        }
+    }
+
     private def newContext(): PacketContext = {
         val ethernet = { eth addr MAC.random -> MAC.random } <<
             { ip4 addr IPv4Addr.random --> IPv4Addr.random } <<
@@ -166,6 +211,53 @@ class FlowRecorderTest extends MidolmanSpec {
         val sock = new DatagramSocket(hostAndPort.getPort)
         sock.setSoTimeout(5000)
         sock
+    }
+
+    private def flowMatchEquals(a: FlowMatch, b: FlowMatch): Boolean = {
+        Objects.equals(a.getInputPortNumber, b.getInputPortNumber) &&
+        Objects.equals(a.getTunnelKey, b.getTunnelKey) &&
+        Objects.equals(a.getTunnelSrc, b.getTunnelSrc) &&
+        Objects.equals(a.getTunnelDst, b.getTunnelDst) &&
+        Objects.equals(a.getEthSrc, b.getEthSrc) &&
+        Objects.equals(a.getEthDst, b.getEthDst) &&
+        Objects.equals(a.getEtherType, b.getEtherType) &&
+        Objects.equals(a.getNetworkSrcIP, b.getNetworkSrcIP) &&
+        Objects.equals(a.getNetworkDstIP, b.getNetworkDstIP) &&
+        Objects.equals(a.getNetworkProto, b.getNetworkProto) &&
+        Objects.equals(a.getNetworkTOS, b.getNetworkTOS) &&
+        Objects.equals(a.getNetworkTTL, b.getNetworkTTL) &&
+        Objects.equals(a.getIcmpIdentifier, b.getIcmpIdentifier) &&
+        Objects.deepEquals(a.getIcmpData, b.getIcmpData) &&
+        Objects.deepEquals(a.getVlanIds, b.getVlanIds)
+    }
+
+    private def flowActionsEquals(a: List[FlowAction],
+                                  b: List[FlowAction]): Boolean = {
+        val comparator = new Comparator[FlowAction]() {
+            def compare(a: FlowAction, b: FlowAction): Int = {
+                a.toString.compareTo(b.toString)
+            }
+        }
+        Collections.sort(a, comparator)
+        Collections.sort(b, comparator)
+        Objects.deepEquals(a, b)
+    }
+
+    private def checkFlowRecord(received: FlowRecord,
+                                shouldMatch: FlowRecord): Unit = {
+        flowMatchEquals(received.flowMatch,
+                        shouldMatch.flowMatch) should be (true)
+        received.cookie should be (shouldMatch.cookie)
+        received.inPort should be (new UUID(0, 0))
+        received.simResult should be (shouldMatch.simResult)
+        Objects.deepEquals(received.outPorts,
+                           shouldMatch.outPorts) should be (true)
+        Objects.deepEquals(received.rules,
+                           shouldMatch.rules) should be (true)
+        Objects.deepEquals(received.devices,
+                           shouldMatch.devices) should be (true)
+        flowActionsEquals(received.actions,
+                          shouldMatch.actions) should be (true)
     }
 
     class TestFlowRecorder(conf: FlowHistoryConfig)
