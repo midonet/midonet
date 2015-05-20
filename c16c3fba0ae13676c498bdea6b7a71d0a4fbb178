@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_d121eeb5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T13:51:44Z",
+      "side": 1,
+      "message": "Is it worth adding a v2.x feature to v1.x code? `deviceError` and `deviceDeleted` will only be used when using v2.x storage, and for that subscribers should subscribe to the VT observable directly rather than via the VTA/VTRedirector.\n\nEven if we add support for Error/Deleted messages to all the actors currently subscribing to the VTA, currently those notifications wouldn\u0027t be used for anything (maybe except logging), and any change that would benefit from them would probably be a sizable refactor of agent code.\n\nIn my opinion, I think it\u0027s better to refactor the agent to use the VT directly. Anyway, thanks for raising this point, and I\u0027m open to discussion/suggestions.\n\nNote: Below I\u0027m using a trick to complete the futures for tryAsk as soon as an error occurred, rather that allowing the futures to expire, which was the default behavior previously.",
+      "parentUuid": "facab960_f14d12c6",
+      "range": {
+        "startLine": 360,
+        "startChar": 25,
+        "endLine": 360,
+        "endChar": 31
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3a503231",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 6
@@ -179,6 +203,30 @@
       "side": 1,
       "message": "You\u0027re right.",
       "parentUuid": "1a106d94_a9e4de0c",
+      "range": {
+        "startLine": 231,
+        "startChar": 19,
+        "endLine": 231,
+        "endChar": 29
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5c041515",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T13:51:44Z",
+      "side": 1,
+      "message": "Then, this change is okay, right?",
+      "parentUuid": "1a106d94_89d63dc2",
       "range": {
         "startLine": 231,
         "startChar": 19,
