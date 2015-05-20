@@ -22,6 +22,138 @@
       "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6bb031de",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T06:40:22Z",
+      "side": 1,
+      "message": "The comment should mention this this is a private view / copy of MergedMap for a specific owner earlier.",
+      "range": {
+        "startLine": 27,
+        "startChar": 3,
+        "endLine": 27,
+        "endChar": 61
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8bb575cf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T06:40:22Z",
+      "side": 1,
+      "message": "It\u0027s be helpful for the reader if the comment explains what K, D, and V stands for (particularly D).",
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_abc9595c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T06:40:22Z",
+      "side": 1,
+      "message": "Why it\u0027s Unit now instead of V?",
+      "range": {
+        "startLine": 47,
+        "startChar": 55,
+        "endLine": 47,
+        "endChar": 59
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2bdd4915",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T06:40:22Z",
+      "side": 1,
+      "message": "Saying this without knowing what D is for, but do we need to send D in each update?",
+      "range": {
+        "startLine": 65,
+        "startChar": 20,
+        "endLine": 65,
+        "endChar": 41
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6be751e5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T06:40:22Z",
+      "side": 1,
+      "message": "This doesn\u0027t need \"D\"?",
+      "range": {
+        "startLine": 118,
+        "startChar": 20,
+        "endLine": 118,
+        "endChar": 38
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4be28dd6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T06:40:22Z",
+      "side": 1,
+      "message": "MapValue?",
+      "range": {
+        "startLine": 133,
+        "startChar": 21,
+        "endLine": 133,
+        "endChar": 22
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
