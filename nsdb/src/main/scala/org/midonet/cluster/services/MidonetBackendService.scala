@@ -143,6 +143,9 @@ abstract class MidonetBackend extends AbstractService {
         stateStore.registerKey(classOf[Port], HostsKey, Multiple)
         stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
 
+        store.declareBinding(classOf[Vtep], "bindings", CASCADE,
+                             classOf[VtepBinding], "vtep_id", CLEAR)
+
         store.build()
     }
 
