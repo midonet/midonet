@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!--
+  ~ Copyright 2015 Midokura SARL
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<sbe:messageSchema xmlns:sbe="http://www.fixprotocol.org/ns/simple/1.0"
+                   package="org.midonet.cluster.flowhistory.proto"
+                   id="1"
+                   version="0"
+                   semanticVersion="5.2"
+                   description="Code generation unit test support"
+                   byteOrder="littleEndian">
+  <types>
+    <composite name="messageHeader" description="Message identifiers and length of message root">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="templateId" primitiveType="uint16"/>
+      <type name="schemaId" primitiveType="uint16"/>
+      <type name="version" primitiveType="uint16"/>
+    </composite>
+    <composite name="groupSizeEncoding" description="Repeating group dimensions">
+      <type name="blockLength" primitiveType="uint16"/>
+      <type name="numInGroup" primitiveType="uint8"/>
+    </composite>
+    <composite name="varDataEncoding">
+      <type name="length" primitiveType="uint8"/>
+      <type name="varData" primitiveType="uint8" length="0" characterEncoding="UTF-8"/>
+    </composite>
+  </types>
+  <types>
+    <enum name="SimulationResult" encodingType="uint8">
+      <validValue name="NoOp">1</validValue>
+      <validValue name="Drop">2</validValue>
+      <validValue name="ErrorDrop">3</validValue>
+      <validValue name="ShortDrop">4</validValue>
+      <validValue name="AddVirtualWildcardFlow">5</validValue>
+      <validValue name="StateMessage">6</validValue>
+      <validValue name="UserspaceFlow">7</validValue>
+      <validValue name="FlowCreated">8</validValue>
+      <validValue name="DuplicatedFlow">9</validValue>
+      <validValue name="GeneratedPacket">10</validValue>
+    </enum>
+    <type name="UUID" primitiveType="uint64" length="2" />
+    <enum name="InetAddrType" encodingType="uint8">
+      <validValue name="IPv4">1</validValue>
+      <validValue name="IPv6">2</validValue>
+    </enum>
+    <type name="InetAddr" primitiveType="uint64" length="2" />
+    <type name="MAC" primitiveType="uint8" length="6" />
+    <enum name="RuleResult" encodingType="uint8">
+      <validValue name="ACCEPT">1</validValue>
+      <validValue name="CONTINUE">2</validValue>
+      <validValue name="DROP">3</validValue>
+      <validValue name="JUMP">4</validValue>
+      <validValue name="REJECT">5</validValue>
+      <validValue name="RETURN">6</validValue>
+    </enum>
+    <enum name="IPFragType" encodingType="uint8">
+      <validValue name="Unset">0</validValue>
+      <validValue name="None">1</validValue>
+      <validValue name="First">2</validValue>
+      <validValue name="Last">3</validValue>
+    </enum>
+  </types>
+  <sbe:message name="FlowSummary" id="1" description="Summary of a flow">
+    <field name="simResult" id="1" type="SimulationResult" />
+    <field name="cookie" id="2" type="uint32" />
+    <field name="flowMatchInputPort" id="3" type="uint32" />
+    <field name="flowMatchTunnelKey" id="4" type="uint64" />
+    <field name="flowMatchTunnelSrc" id="5" type="uint32" />
+    <field name="flowMatchTunnelDst" id="6" type="uint32" />
+    <field name="flowMatchEthernetSrc" id="7" type="MAC" />
+    <field name="flowMatchEthernetDst" id="8" type="MAC" />
+    <field name="flowMatchEtherType" id="9" type="uint16" />
+    <field name="flowMatchNetworkSrcType" id="10" type="InetAddrType" />
+    <field name="flowMatchNetworkSrc" id="11" type="InetAddr" />
+    <field name="flowMatchNetworkDstType" id="12" type="InetAddrType" />
+    <field name="flowMatchNetworkDst" id="13" type="InetAddr" />
+    <field name="flowMatchNetworkProto" id="14" type="uint8" />
+    <field name="flowMatchNetworkTOS" id="15" type="uint8" />
+    <field name="flowMatchNetworkTTL" id="16" type="uint8" />
+    <field name="flowMatchIPFragType" id="17" type="IPFragType" />
+    <field name="flowMatchSrcPort" id="18" type="uint16" />
+    <field name="flowMatchDstPort" id="19" type="uint16" />
+    <field name="flowMatchIcmpId" id="20" type="uint16" />
+    <field name="inPort" id="21" type="UUID" />
+    <field name="hostId" id="22" type="UUID" />
+
+    <group name="flowMatchIcmpData" id="100">
+      <field name="data" id="101" type="uint8" />
+    </group>
+
+    <group name="flowMatchVlanIds" id="102">
+      <field name="vlanId" id="103" type="uint16" />
+    </group>
+
+    <group name="outPorts" id="104">
+      <field name="port" id="105" type="UUID" />
+    </group>
+
+    <group name="traversedRules" id="106">
+      <field name="rule" id="107" type="UUID" />
+      <field name="result" id="108" type="RuleResult" />
+    </group>
+
+    <group name="traversedDevices" id="109">
+      <field name="device" id="110" type="UUID" />
+    </group>
+
+    <data name="flowActions" id="201" type="varDataEncoding" />
+  </sbe:message>
+
+</sbe:messageSchema>

@@ -28,6 +28,7 @@ import org.codehaus.jackson.map.ObjectMapper
 import com.google.common.io.BaseEncoding
 import com.google.common.net.HostAndPort
 
+import org.midonet.cluster.flowhistory._
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
@@ -137,6 +138,52 @@ class FlowRecorderTest extends MidolmanSpec {
         }
     }
 
+    feature("Binary flow records") {
+        scenario("data is encoded/decoded correctly") {
+
+            val confStr =
+                """
+                |agent.flow_history.enabled=true
+                |agent.flow_history.encoding=binary
+                |agent.flow_history.udp_endpoint="localhost:50023"
+                """.stripMargin
+            val conf = MidolmanConfig.forTests(confStr)
+            val factory = new FlowRecorderFactory(conf)
+
+            val recorder = factory.newFlowRecorder()
+
+            val data = new Array[Byte](409600)
+            val datagram = new DatagramPacket(data, data.length)
+
+            val sock = getListeningSocket(conf)
+
+            val binSerializer = new BinarySerialization
+            try {
+                val ctx1 = newContext()
+                recorder.record(ctx1, PacketWorkflow.NoOp)
+
+                sock.receive(datagram)
+
+                val shouldMatch1 = FlowRecordBuilder.buildRecord(
+                    recorder.asInstanceOf[BinaryFlowRecorder].hostId,
+                    ctx1, PacketWorkflow.NoOp)
+                shouldMatch1 should be (binSerializer.bufferToFlowRecord(data))
+
+                val ctx2 = newContext()
+                recorder.record(ctx2, PacketWorkflow.GeneratedPacket)
+
+                sock.receive(datagram)
+                val shouldMatch2 = FlowRecordBuilder.buildRecord(
+                    recorder.asInstanceOf[BinaryFlowRecorder].hostId,
+                    ctx2, PacketWorkflow.GeneratedPacket)
+
+                shouldMatch2 should be (binSerializer.bufferToFlowRecord(data))
+            } finally {
+                sock.close()
+            }
+        }
+    }
+
     private def newContext(): PacketContext = {
         val ethernet = { eth addr MAC.random -> MAC.random } <<
             { ip4 addr IPv4Addr.random --> IPv4Addr.random } <<
@@ -144,6 +191,7 @@ class FlowRecorderTest extends MidolmanSpec {
         val wcmatch = new FlowMatch(FlowKeys.fromEthernetPacket(ethernet))
         val packet = new Packet(ethernet, wcmatch)
         val ctx = new PacketContext(0, packet, wcmatch)
+        ctx.inPortId = UUID.randomUUID
 
         for (i <- 1.until(5)) {
             ctx.addFlowTag(FlowTagger.tagForDevice(UUID.randomUUID))
