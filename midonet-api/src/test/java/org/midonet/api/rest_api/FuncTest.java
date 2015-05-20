@@ -18,20 +18,41 @@ package org.midonet.api.rest_api;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.servlet.ServletContextEvent;
+
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.servlet.GuiceFilter;
+import com.google.inject.servlet.GuiceServletContextListener;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.WebAppDescriptor;
+import com.typesafe.config.ConfigFactory;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.retry.RetryNTimes;
+import org.apache.curator.test.TestingServer;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import org.midonet.api.auth.AuthConfig;
 import org.midonet.api.serialization.ObjectMapperProvider;
 import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
+import org.midonet.api.servlet.JerseyGuiceServletContextListener;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.cluster.ClusterConfig;
+import org.midonet.cluster.ClusterNode;
+import org.midonet.cluster.services.MidonetBackend;
+import org.midonet.cluster.services.MidonetBackendService;
+import org.midonet.cluster.services.rest_api.Vladimir;
+import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.conf.HostIdGenerator;
+
+import static java.util.UUID.randomUUID;
+import static org.apache.curator.framework.CuratorFrameworkFactory.newClient;
 
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
@@ -59,17 +80,14 @@ public class FuncTest {
 
     public static WildCardJacksonJaxbJsonProvider jacksonJaxbJsonProvider;
 
-    public static WebAppDescriptor.Builder getBuilder() {
+    public static WebAppDescriptor.Builder getBuilderX() {
 
         ObjectMapperProvider mapperProvider = new ObjectMapperProvider();
         jacksonJaxbJsonProvider =
             new WildCardJacksonJaxbJsonProvider(mapperProvider);
         config.getSingletons().add(jacksonJaxbJsonProvider);
 
-
-        UUID testRunUuid = UUID.randomUUID();
-
-        String zkRoot = ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID();
+        String zkRoot = ZK_ROOT_MIDOLMAN + "_" + randomUUID();
         return new WebAppDescriptor.Builder()
                 .contextListenerClass(JerseyGuiceTestServletContextListener.class)
                 .filterClass(GuiceFilter.class)
@@ -81,11 +99,80 @@ public class FuncTest {
                                            "zookeeper_hosts"),
                                            FuncTest.ZK_TEST_SERVER)
                 .contextParam(getConfigKey("zookeeper", "curator_enabled"), "true")
-                .contextParam(getConfigKey("zookeeper", "midolman_root_key"), zkRoot)
+                .contextParam(getConfigKey("zookeeper", "midolman_root_key"),
+                              zkRoot)
                 .contextParam(getConfigKey("zookeeper", "root_key"), zkRoot)
                 .contextParam(getConfigKey("zookeeper", "use_new_stack"),
                               "false")
                 .contextPath(CONTEXT_PATH).clientConfig(config);
+    }
+
+    public static class Meh extends GuiceServletContextListener {
+
+        private TestingServer testZk;
+
+        public Meh() {
+            try {
+                testZk = new TestingServer(FuncTest.ZK_TEST_PORT);
+            } catch (Exception e) {
+                throw new IllegalStateException("Can't start Zookeeper server at " +
+                                                FuncTest.ZK_TEST_PORT);
+            }
+        }
+
+        @Override
+        public void contextInitialized(ServletContextEvent sce) {
+            super.contextInitialized(sce);
+            try {
+                testZk.start();
+            } catch (Exception e) {
+                throw new IllegalStateException("Can't start Zookeeper server at " +
+                                                FuncTest.ZK_TEST_PORT);
+            }
+        }
+
+        @Override
+        public void contextDestroyed(ServletContextEvent sce) {
+            try {
+                testZk.close();
+            } catch (Exception e) {
+            }
+            super.contextDestroyed(sce);
+        }
+
+        @Override
+        protected Injector getInjector() {
+            return Guice.createInjector(
+                new Vladimir.VladimirJerseyModule(makeMidonetBackend())
+            );
+        }
+    }
+
+    public static WebAppDescriptor.Builder getBuilder() {
+        config.getSingletons()
+              .add(new Vladimir.WildcardJacksonJaxbJsonProvider());
+        return new WebAppDescriptor.Builder()
+            .contextListenerClass(Meh.class)
+            .filterClass(GuiceFilter.class)
+            .servletPath("/")
+            .contextPath(CONTEXT_PATH).clientConfig(config);
+    }
+
+    public static MidonetBackend makeMidonetBackend() {
+
+        CuratorFramework curator = newClient(ZK_TEST_SERVER,
+                                             new RetryNTimes(10, 500));
+
+        MidonetBackendConfig cfg = new MidonetBackendConfig(
+            ConfigFactory.parseString ("zookeeper.use_new_stack = true \n" +
+                                       "zookeeper.curator_enabled = true \n" +
+                                       "zookeeper.root_key = " + ZK_ROOT_MIDOLMAN
+            )
+        );
+
+        MidonetBackendService backend = new MidonetBackendService(cfg, curator);
+        backend.startAsync().awaitRunning();
+        return backend;
     }
 
     public static final AppDescriptor appDesc = getBuilder().build();
