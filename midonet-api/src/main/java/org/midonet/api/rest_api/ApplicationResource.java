@@ -51,7 +51,7 @@ import org.midonet.api.system_data.rest_api.HostVersionResource;
 import org.midonet.api.system_data.rest_api.SystemStateResource;
 import org.midonet.api.system_data.rest_api.TraceRequestResource;
 import org.midonet.api.system_data.rest_api.WriteVersionResource;
-import org.midonet.api.version.Version;
+import org.midonet.cluster.rest_api.version.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

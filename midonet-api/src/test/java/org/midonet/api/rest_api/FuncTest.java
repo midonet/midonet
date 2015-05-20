@@ -28,8 +28,8 @@ import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import org.midonet.api.auth.AuthConfig;
-import org.midonet.api.serialization.ObjectMapperProvider;
-import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
+import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
+import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.conf.HostIdGenerator;
 

@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.serialization;
+package org.midonet.cluster.rest_api.serialization;
+
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.ws.rs.core.MediaType;
 
 import org.codehaus.jackson.annotate.JsonAutoDetect;
 import org.codehaus.jackson.map.AnnotationIntrospector;
@@ -22,10 +26,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
-import org.midonet.util.version.VersionCheckAnnotationIntrospector;
 
-import javax.ws.rs.core.MediaType;
-import java.util.concurrent.ConcurrentHashMap;
+import org.midonet.util.version.VersionCheckAnnotationIntrospector;
 
 /**
  * Class that providers ObjectMapper construction.
@@ -43,9 +45,9 @@ public class ObjectMapperProvider {
      *  View-configured ObjectMappers.
      */
     private static ConcurrentHashMap<Integer, ObjectMapper> mapperMap =
-            new ConcurrentHashMap<Integer, ObjectMapper>();
+            new ConcurrentHashMap<>();
     private static ConcurrentHashMap<Integer, ObjectMapper> viewMapperMap =
-            new ConcurrentHashMap<Integer, ObjectMapper>();
+            new ConcurrentHashMap<>();
 
     private ObjectMapper getMapper(int version, MediaType mediaType) {
 
@@ -106,10 +108,6 @@ public class ObjectMapperProvider {
 
     /**
      * Construct ObjectMapper object given the media type and version.
-     *
-     * @param version
-     * @param mediaType
-     * @return
      */
     public ObjectMapper get(int version, MediaType mediaType) {
         ObjectMapper mapper = getMapperMap(mediaType).get(version);

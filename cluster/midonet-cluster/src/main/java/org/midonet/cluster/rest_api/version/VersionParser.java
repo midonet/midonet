@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.version;
+package org.midonet.cluster.rest_api.version;
 
 import javax.ws.rs.core.MediaType;
 import java.util.regex.Matcher;

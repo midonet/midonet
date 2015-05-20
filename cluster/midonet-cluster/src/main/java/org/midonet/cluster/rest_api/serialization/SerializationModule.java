@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.serialization;
+package org.midonet.cluster.rest_api.serialization;
 
 import com.google.inject.AbstractModule;
+
+import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 
 /**
  * Bindings specific to serialization in api.

@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.version;
+package org.midonet.cluster.rest_api.serialization;
 
 /**
- *  Version of MidoNet API
+ * Defines serialization views used in API
  */
-public class Version {
+public class Views {
 
-    /**
-     * Indicates the current version of the REST API.
-     */
-    public static final String CURRENT = "v1.9";
+    public class Public {};
 
 }

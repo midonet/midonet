@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.midonet.cluster.rest_api.version.VersionParser;
+
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)

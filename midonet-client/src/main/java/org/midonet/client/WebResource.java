@@ -34,13 +34,8 @@ import org.midonet.client.exception.HttpForbiddenException;
 import org.midonet.client.exception.HttpInternalServerError;
 import org.midonet.client.exception.HttpNotFoundException;
 import org.midonet.client.exception.HttpUnauthorizedException;
-import org.midonet.client.jaxrs.WildCardJacksonJaxbJsonProvider;
+import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 
-/**
- * Author: Tomoe Sugihara <tomoe@midokura.com>
- * Date: 8/15/12
- * Time: 12:52 PM
- */
 public class WebResource {
 
     private Client client;
@@ -50,23 +45,18 @@ public class WebResource {
     public WebResource(URI baseUri) {
 
         ClientConfig cc = new DefaultClientConfig();
-        cc.getSingletons().add(new WildCardJacksonJaxbJsonProvider());
+        cc.getSingletons().add(new WildCardJacksonJaxbJsonProvider(null));
         client = Client.create(cc);
         this.baseUri = baseUri;
     }
 
     private void handleHttpError(ClientResponse r) {
         switch (r.getStatus()) {
-            case 400:
-                throw new HttpBadRequestException(r);
-            case 401:
-                throw new HttpUnauthorizedException(r);
-            case 403:
-                throw new HttpForbiddenException(r);
-            case 404:
-                throw new HttpNotFoundException(r);
-            case 500:
-                throw new HttpInternalServerError(r);
+            case 400: throw new HttpBadRequestException(r);
+            case 401: throw new HttpUnauthorizedException(r);
+            case 403: throw new HttpForbiddenException(r);
+            case 404: throw new HttpNotFoundException(r);
+            case 500: throw new HttpInternalServerError(r);
         }
         throw new UniformInterfaceException(r);
     }
