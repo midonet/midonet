@@ -18,15 +18,21 @@ package org.midonet.midolman.monitoring
 import java.net.{InetAddress,InetSocketAddress}
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
+import java.util.{ArrayList, List, UUID}
 
 import com.google.common.net.HostAndPort
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
 
+import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.PacketWorkflow.SimulationResult
+import org.midonet.odp.FlowMatch
+import org.midonet.odp.flows.FlowAction
+import org.midonet.sdn.flows.FlowTagger.DeviceTag
 
 trait FlowRecorder {
     def record(pktContext: PacketContext, simRes: SimulationResult): Unit
@@ -36,7 +42,30 @@ class FlowRecorderFactory @Inject() (config : MidolmanConfig) {
     val log = Logger(LoggerFactory.getLogger(classOf[FlowRecorderFactory]))
 
     def newFlowRecorder(): FlowRecorder = {
-        new NullFlowRecorder
+        val hostUuid = try {
+            HostIdGenerator.getHostId
+        } catch {
+            case t: HostIdGenerator.PropertiesFileNotWritableException => {
+                log.warn("Couldn't get host id for flow recorded," +
+                             " using random uuid")
+                UUID.randomUUID()
+            }
+        }
+        log.info("Creating flow recorder with " +
+                     s"(${config.flowHistory.encoding}) encoding")
+        if (config.flowHistory.enabled) {
+            config.flowHistory.encoding match {
+                case "json" => new JsonFlowRecorder(
+                    hostUuid, config.flowHistory)
+                case "none" => new NullFlowRecorder
+                case other => {
+                    log.error(s"Invalid encoding (${other}) specified")
+                    new NullFlowRecorder
+                }
+            }
+        } else {
+            new NullFlowRecorder
+        }
     }
 }
 
@@ -86,4 +115,65 @@ abstract class AbstractFlowRecorder(config: FlowHistoryConfig) extends FlowRecor
 
     def encodeRecord(pktContext: PacketContext,
                      simRes: SimulationResult): ByteBuffer
+}
+
+case class TraversedRule(rule: UUID, result: RuleResult) {
+    def getRule = rule
+    def getResult = result
+    override def toString(): String = s"$rule ($result)"
+}
+
+class FlowRecord {
+    var simResult : SimulationResult = null
+    var cookie : Int = 0
+    var inPort : UUID = null
+    val outPorts = new ArrayList[UUID]
+    val rules = new ArrayList[TraversedRule]
+    val devices = new ArrayList[UUID]
+
+    val flowMatch: FlowMatch = new FlowMatch
+    val actions: List[FlowAction] = new ArrayList[FlowAction]
+
+    def reset(ctx: PacketContext, res: SimulationResult) {
+        clear()
+
+        simResult = res
+        cookie = ctx.cookie
+        flowMatch.reset(ctx.origMatch)
+        actions.addAll(ctx.flowActions)
+        inPort = ctx.inputPort
+
+        var i = 0
+        while (i < ctx.outPorts.size) {
+            outPorts.add(ctx.outPorts.get(i))
+            i += 1
+        }
+
+        i = 0
+        while (i < ctx.traversedRules.size) {
+            rules.add(new TraversedRule(ctx.traversedRules.get(i),
+                                        ctx.traversedRuleResults.get(i)))
+            i += 1
+        }
+
+        i = 0
+        while (i < ctx.flowTagsOrdered.size) {
+            ctx.flowTagsOrdered.get(i) match {
+                case d: DeviceTag => devices.add(d.device)
+                case _ =>
+            }
+            i += 1
+        }
+    }
+
+    def clear(): Unit = {
+        cookie = 0
+        simResult = null
+        inPort = null
+        outPorts.clear()
+        rules.clear()
+        devices.clear()
+        flowMatch.clear()
+        actions.clear()
+    }
 }
