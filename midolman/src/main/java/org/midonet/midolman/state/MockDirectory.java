@@ -233,7 +233,7 @@ public class MockDirectory implements Directory {
 
     private Node rootNode;
     private final Map<Watcher, WatchedEvent> multiDataWatchers;
-    public boolean enableDebugLog = true;
+    public boolean enableDebugLog = false;
 
     private MockDirectory(Node root, Map<Watcher, WatchedEvent> multiWatchers) {
         rootNode = root;
