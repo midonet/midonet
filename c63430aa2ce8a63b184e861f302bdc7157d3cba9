@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_b7c37a89",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T16:27:19Z",
+      "side": 1,
+      "message": "Agree. A solution would be to implement a private member extending OnSubscribe, that will emit the current state for each subscription during call(subscriber: Subscriber[_ \u003e: (K, D, V)]). The code in the call method might need to be synchronized to make sure you\u0027re not loosing updates.\n\nThen, this method may return: Observable.create(... your OnSubscribe object)",
+      "parentUuid": "facab960_fc4a4954",
+      "range": {
+        "startLine": 271,
+        "startChar": 28,
+        "endLine": 272,
+        "endChar": 80
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_1c48cd5a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
         "patchSetId": 6
