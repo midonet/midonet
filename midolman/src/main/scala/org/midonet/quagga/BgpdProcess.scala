@@ -20,7 +20,7 @@ import akka.actor.ActorRef
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.netlink.AfUnix
+import org.midonet.util.AfUnix
 import org.midonet.util.Waiters.sleepBecause
 import org.midonet.util.process.ProcessHelper
 
