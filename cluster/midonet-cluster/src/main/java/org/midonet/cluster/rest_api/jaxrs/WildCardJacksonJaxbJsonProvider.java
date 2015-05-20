@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.serialization;
+package org.midonet.cluster.rest_api.jaxrs;
 
-import com.google.inject.Inject;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.midonet.api.version.VersionParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
-import java.util.concurrent.ConcurrentHashMap;
+
+import com.google.inject.Inject;
+
+import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
+import org.midonet.cluster.rest_api.version.VersionParser;
 
 
 /**
@@ -46,10 +50,9 @@ public class WildCardJacksonJaxbJsonProvider
     private final ObjectMapperProvider objectMapperProvider;
 
     @Inject
-    public WildCardJacksonJaxbJsonProvider(
-            ObjectMapperProvider objectMapperProvider) {
+    public WildCardJacksonJaxbJsonProvider(ObjectMapperProvider omProvider) {
         super();
-        this.objectMapperProvider = objectMapperProvider;
+        this.objectMapperProvider = omProvider;
     }
 
     /**
@@ -64,6 +67,11 @@ public class WildCardJacksonJaxbJsonProvider
     public ObjectMapper locateMapper(Class<?> type, MediaType mediaType) {
         log.debug("WildCardJacksonJaxbJsonProvider.locateMapper entered: " +
                 "media type=" + mediaType);
+
+        if (this.objectMapperProvider == null) {
+            log.debug("No object mapper available");
+            return super.locateMapper(type, mediaType);
+        }
 
         int version = versionParser.getVersion(mediaType);
         if (version <= 0) {
