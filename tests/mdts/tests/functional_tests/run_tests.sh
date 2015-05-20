@@ -32,6 +32,7 @@ OPTIONS:
  -V VERSION  Runs only tests compatible with this MidoNet version
  -x          Runs all tests but flaky ones
  -X          Runs only flaky tests
+ -r DIR      Use DIR as the Python root (to determine imported modules)
 
 TEST:
   test_file           Runs all the tests in the test file.
@@ -56,9 +57,10 @@ $0 -s -v v1.2.1
 EOF
 }
 
+DIR=../../..
 ATTR=""
 ARGS=""  # passed directly to nosetests runner
-while getopts "e:ht:sSv:V:xX" OPTION
+while getopts "e:ht:sSv:V:xX:r:" OPTION
 do
     case $OPTION in
         h)
@@ -125,6 +127,9 @@ do
                 ATTR="$ATTR and flaky"
             fi
             ;;
+        r)
+            DIR=$OPTARG
+             ;;
         ?)
             usage
             exit 1
@@ -142,4 +147,4 @@ then
     exit 1
 fi
 
-sudo PYTHONPATH=../../../ ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
+sudo PYTHONPATH=$DIR ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
