@@ -36,12 +36,12 @@ import com.google.inject.assistedinject.Assisted;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.network.VtepBinding;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.rest_api.models.VTEPBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
@@ -66,14 +66,14 @@ public class VtepBindingResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Consumes({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                MediaType.APPLICATION_JSON})
-    public Response create(VtepBinding binding)
+    public Response create(VTEPBinding binding)
         throws StateAccessException, SerializationException {
         validate(binding);
         IPv4Addr ipAddr = parseIPv4Addr(ipAddrStr);
-        Bridge bridge = getBridgeOrThrow(binding.getNetworkId(), true);
+        Bridge bridge = getBridgeOrThrow(binding.networkId, true);
         vtepClient.createBinding(binding, ipAddr, bridge);
         URI uri = ResourceUriBuilder.getVtepBinding(getBaseUri(),
-                ipAddrStr, binding.getPortName(), binding.getVlanId());
+                ipAddrStr, binding.portName, binding.vlanId);
         return Response.created(uri).build();
     }
 
@@ -82,13 +82,17 @@ public class VtepBindingResource extends AbstractVtepResource {
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                MediaType.APPLICATION_JSON})
     @Path("{portName}/{vlanId}")
-    public VtepBinding get(@PathParam("portName") String portName,
+    public VTEPBinding get(@PathParam("portName") String portName,
                            @PathParam("vlanId") short vlanId)
         throws SerializationException, StateAccessException {
 
         java.util.UUID bridgeId = vtepClient.getBoundBridgeId(
                 parseIPv4Addr(ipAddrStr), portName, vlanId);
-        VtepBinding b = new VtepBinding(ipAddrStr, portName, vlanId, bridgeId);
+        VTEPBinding b = new VTEPBinding();
+        b.mgmtIp = ipAddrStr;
+        b.portName = portName;
+        b.vlanId = vlanId;
+        b.networkId = bridgeId;
         b.setBaseUri(getBaseUri());
         return b;
     }
@@ -97,7 +101,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON,
                MediaType.APPLICATION_JSON})
-    public List<VtepBinding> list() throws StateAccessException,
+    public List<VTEPBinding> list() throws StateAccessException,
                                            SerializationException {
         return listVtepBindings(this.ipAddrStr, null);
     }
