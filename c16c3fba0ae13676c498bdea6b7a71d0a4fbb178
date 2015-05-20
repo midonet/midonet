@@ -164,6 +164,30 @@
       "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_89d63dc2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-20T13:49:19Z",
+      "side": 1,
+      "message": "You\u0027re right.",
+      "parentUuid": "1a106d94_a9e4de0c",
+      "range": {
+        "startLine": 231,
+        "startChar": 19,
+        "endLine": 231,
+        "endChar": 29
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
