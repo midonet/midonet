@@ -33,6 +33,29 @@
       "revId": "b19adef1c0d8d23943361dacf702b0e75a87fc59",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_51795e92",
+        "filename": "midonet-api/src/test/java/org/midonet/api/network/TestBridge.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-20T11:23:58Z",
+      "side": 1,
+      "message": "I don\u0027t really understand what this is doing. The same function as this could be done by the bridge class alone (which already composes the URIs by itself from the values it has). This has also the risk that it duplicates uri composition, so we risk errors, etc.\n\nWhy not just use the Bridge, instead of the BridgeData?\n\nI\u0027ve just started to look into the client, so I\u0027ll try to see if I can push a more concrete proposal here.",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 21
+      },
+      "revId": "b19adef1c0d8d23943361dacf702b0e75a87fc59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
