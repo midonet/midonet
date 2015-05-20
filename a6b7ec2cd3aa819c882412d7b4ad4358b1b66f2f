@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_d19f2e4f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/conf/ConfMinion.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-20T15:30:05Z",
+      "side": 1,
+      "message": "Only the last one. Done.",
+      "parentUuid": "facab960_45bb5cc4",
+      "range": {
+        "startLine": 76,
+        "startChar": 12,
+        "endLine": 76,
+        "endChar": 35
+      },
+      "revId": "a6b7ec2cd3aa819c882412d7b4ad4358b1b66f2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_084b2bb1",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/conf/ConfMinion.scala",
         "patchSetId": 1
