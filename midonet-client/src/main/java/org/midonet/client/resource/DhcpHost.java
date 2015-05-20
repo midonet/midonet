@@ -17,9 +17,9 @@ package org.midonet.client.resource;
 
 import java.net.URI;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoDhcpHost;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class DhcpHost extends ResourceBase<DhcpHost, DtoDhcpHost> {
 

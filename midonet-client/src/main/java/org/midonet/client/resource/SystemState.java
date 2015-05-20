@@ -18,9 +18,9 @@ package org.midonet.client.resource;
 
 import java.net.URI;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
-import org.midonet.client.dto.*;
+import org.midonet.client.dto.DtoSystemState;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class SystemState extends ResourceBase<SystemState, DtoSystemState> {
 

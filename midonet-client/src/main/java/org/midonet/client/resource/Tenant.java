@@ -16,11 +16,15 @@
 
 package org.midonet.client.resource;
 
-import org.midonet.client.VendorMediaType;
-import org.midonet.client.WebResource;
-import org.midonet.client.dto.*;
-
 import java.net.URI;
+
+import org.midonet.client.WebResource;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoPortGroup;
+import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.client.dto.DtoTenant;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class Tenant extends ResourceBase<Tenant, DtoTenant> {
 

@@ -19,15 +19,10 @@ package org.midonet.client.resource;
 import java.net.URI;
 import java.util.UUID;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoHostInterfacePort;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
-/**
- * Author: Tomoe Sugihara <tomoe@midokura.com>
- * Date: 9/13/12
- * Time: 9:39 PM
- */
 public class HostInterfacePort
     extends ResourceBase<HostInterfacePort, DtoHostInterfacePort> {
 

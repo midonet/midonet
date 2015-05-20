@@ -18,12 +18,11 @@ package org.midonet.client.resource;
 
 import java.net.InetAddress;
 import java.net.URI;
-import java.util.Map;
 import java.util.UUID;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoInterface;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 /**
  * Author: Tomoe Sugihara <tomoe@midokura.com>

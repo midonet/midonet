@@ -19,10 +19,10 @@ package org.midonet.client.resource;
 import java.net.URI;
 import java.util.UUID;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class RuleChain extends ResourceBase<RuleChain, DtoRuleChain> {
 

@@ -20,9 +20,9 @@ import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoRule;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class Rule extends ResourceBase<Rule, DtoRule> {
 

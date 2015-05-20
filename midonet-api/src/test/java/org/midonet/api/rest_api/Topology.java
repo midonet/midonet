@@ -17,18 +17,30 @@ package org.midonet.api.rest_api;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.ws.rs.core.Response;
 
-import org.midonet.client.VendorMediaType;
-import org.midonet.client.dto.*;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_CHAIN_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORTGROUP_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_LINK_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
+import org.midonet.client.dto.DtoApplication;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.client.dto.DtoLink;
+import org.midonet.client.dto.DtoLoadBalancer;
+import org.midonet.client.dto.DtoPort;
+import org.midonet.client.dto.DtoPortGroup;
+import org.midonet.client.dto.DtoRouter;
+import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.client.dto.DtoTenant;
+import org.midonet.cluster.rest_api.VendorMediaType;
+
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_CHAIN_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_LOAD_BALANCER_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORTGROUP_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON;
 
 
 /**
@@ -75,7 +87,6 @@ public class Topology {
         private final Map<String, DtoLoadBalancer> loadBalancers;
 
         private final Map<String, String> tagToInChains;
-        private final Map<String, String> tagToOutChains;
         private final Map<String, String> tagToRouters;
         private final Map<String, String> tagToBridges;
         private final Map<String, String> tagToLoadBalancers;
@@ -87,21 +98,20 @@ public class Topology {
 
         public Builder(DtoWebResource resource, String appMediaType) {
             this.resource = resource;
-            this.tenants = new HashMap<String, DtoTenant>();
-            this.routers = new HashMap<String, DtoRouter>();
-            this.bridges = new HashMap<String, DtoBridge>();
-            this.chains = new HashMap<String, DtoRuleChain>();
-            this.routerPorts = new HashMap<String, DtoRouterPort>();
-            this.bridgePorts = new HashMap<String, DtoBridgePort>();
-            this.portGroups = new HashMap<String, DtoPortGroup>();
-            this.loadBalancers = new HashMap<String, DtoLoadBalancer>();
+            this.tenants = new HashMap<>();
+            this.routers = new HashMap<>();
+            this.bridges = new HashMap<>();
+            this.chains = new HashMap<>();
+            this.routerPorts = new HashMap<>();
+            this.bridgePorts = new HashMap<>();
+            this.portGroups = new HashMap<>();
+            this.loadBalancers = new HashMap<>();
 
-            this.links = new HashMap<String, String>();
-            this.tagToInChains = new HashMap<String, String>();
-            this.tagToOutChains = new HashMap<String, String>();
-            this.tagToRouters = new HashMap<String, String>();
-            this.tagToBridges = new HashMap<String, String>();
-            this.tagToLoadBalancers = new HashMap<String, String>();
+            this.links = new HashMap<>();
+            this.tagToInChains = new HashMap<>();
+            this.tagToRouters = new HashMap<>();
+            this.tagToBridges = new HashMap<>();
+            this.tagToLoadBalancers = new HashMap<>();
 
             this.appMediaType = appMediaType;
         }
@@ -149,45 +159,9 @@ public class Topology {
             return this;
         }
 
-        public Builder link(String portTag1, String portTag2) {
-
-            if (!this.routerPorts.containsKey(portTag1)
-                && !this.bridgePorts.containsKey(portTag1)) {
-                throw new IllegalArgumentException(
-                    "portTag1 is not a valid port");
-            }
-
-            if (!this.routerPorts.containsKey(portTag2)
-                && !this.bridgePorts.containsKey(portTag2)) {
-                throw new IllegalArgumentException(
-                    "portTag2 is not a valid port");
-            }
-
-            this.links.put(portTag1, portTag2);
-            return this;
-        }
-
-        public Builder applyInChain(String tag, String chainTag) {
-            this.tagToInChains.put(tag, chainTag);
-            return this;
-        }
-
-        public Builder applyOutChain(String tag, String chainTag) {
-            this.tagToOutChains.put(tag, chainTag);
-            return this;
-        }
-
-        public Builder setLoadBalancer(String tag, String loadBalancerTag) {
-            this.tagToLoadBalancers.put(tag, loadBalancerTag);
-            return this;
-        }
-
         private DtoPort findPort(String tag) {
-            if (bridgePorts.containsKey(tag)) {
-                return bridgePorts.get(tag);
-            } else {
-                return routerPorts.get(tag);
-            }
+            return bridgePorts.containsKey(tag) ? bridgePorts.get(tag)
+                                                : routerPorts.get(tag);
         }
 
         public Topology build() {

@@ -20,15 +20,10 @@ import java.net.URI;
 import java.util.UUID;
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.*;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
-/**
- * Author: Tomoe Sugihara <tomoe@midokura.com>
- * Date: 8/15/12
- * Time: 12:31 PM
- */
 public class Application extends ResourceBase<Application, DtoApplication> {
 
     DtoApplication app;

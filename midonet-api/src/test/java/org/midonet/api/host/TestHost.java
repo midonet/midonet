@@ -34,7 +34,6 @@ import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.MidonetApi;
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoHost;
@@ -44,6 +43,7 @@ import org.midonet.client.exception.HttpForbiddenException;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.state.NoStatePathException;
@@ -60,10 +60,10 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.Assert.fail;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
-import static org.midonet.client.VendorMediaType.APPLICATION_HOST_JSON_V3;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_JSON_V3;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
 public class TestHost extends JerseyTest {
 

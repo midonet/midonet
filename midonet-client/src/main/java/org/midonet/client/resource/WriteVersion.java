@@ -17,14 +17,10 @@
 package org.midonet.client.resource;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.UUID;
 
-import javax.ws.rs.core.MultivaluedMap;
-
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.*;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class WriteVersion extends ResourceBase<WriteVersion, DtoWriteVersion> {
 

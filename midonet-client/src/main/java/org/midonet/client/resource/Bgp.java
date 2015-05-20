@@ -21,10 +21,10 @@ import java.util.UUID;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoAdRoute;
 import org.midonet.client.dto.DtoBgp;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class Bgp extends ResourceBase<Bgp, DtoBgp> {
 
