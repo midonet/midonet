@@ -1,5 +1,0 @@
-#! /bin/sh
-
-sh make_graphs.1
-sh make_graphs.2
-sh make_graphs.3

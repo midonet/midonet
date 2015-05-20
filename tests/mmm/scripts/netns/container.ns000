@@ -1,2 +1,0 @@
-#! /bin/sh
-cd ../quagga && sh container.0 ${*:-"/bin/bash"}

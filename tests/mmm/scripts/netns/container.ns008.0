@@ -1,2 +1,0 @@
-#! /bin/sh
-ip netns exec ns008.0 ${*:-"/bin/bash"}

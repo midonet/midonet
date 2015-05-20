@@ -1,2 +1,0 @@
-#! /bin/sh
-cd ../scratch && sh container.1 ${*:-"/bin/bash"}

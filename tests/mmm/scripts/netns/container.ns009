@@ -1,2 +1,0 @@
-#! /bin/sh
-cd ../midolman && sh container.2 ${*:-"/bin/bash"}
