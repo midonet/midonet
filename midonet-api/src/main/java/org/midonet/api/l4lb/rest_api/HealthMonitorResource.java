@@ -41,11 +41,10 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.conversion.HealthMonitorDataConverter;
 import org.midonet.cluster.rest_api.conversion.PoolDataConverter;
@@ -61,6 +60,7 @@ import org.midonet.midolman.state.l4lb.MappingStatusException;
 
 import static org.midonet.cluster.rest_api.conversion.HealthMonitorDataConverter.fromData;
 import static org.midonet.cluster.rest_api.conversion.HealthMonitorDataConverter.toData;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_STATUS_IS_PENDING;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
@@ -109,8 +109,9 @@ public class HealthMonitorResource extends AbstractResource {
 
         org.midonet.cluster.data.l4lb.HealthMonitor healthMonitorData =
             dataClient.healthMonitorGet(id);
-        if (healthMonitorData == null)
-            throwNotFound(id, ResourceUris.HEALTH_MONITORS);
+        if (healthMonitorData == null) {
+            throw notFoundException(id, ResourceUris.HEALTH_MONITORS);
+        }
 
         return HealthMonitorDataConverter.fromData(healthMonitorData,
                                                    getBaseUri());
@@ -128,7 +129,8 @@ public class HealthMonitorResource extends AbstractResource {
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -168,9 +170,10 @@ public class HealthMonitorResource extends AbstractResource {
             dataClient.healthMonitorUpdate(toData(healthMonitor));
             healthMonitorEvent.update(id, dataClient.healthMonitorGet(id));
         } catch (NoStatePathException ex) {
-            throw new NotFoundHttpException(ex);
+            throw notFoundException(id, "health monitor");
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -187,8 +190,7 @@ public class HealthMonitorResource extends AbstractResource {
         try {
             dataPools = dataClient.healthMonitorGetPools(id);
         } catch (NoStatePathException ex) {
-            throwNotFound(id, ResourceUris.POOLS);
-            throw new NotFoundHttpException(ex);
+            throw notFoundException(id, "health monitor");
         }
 
         List<Pool> pools = new ArrayList<>(dataPools.size());

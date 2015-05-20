@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.midonet.api.rest_api;
+package org.midonet.cluster.rest_api;
 
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import com.google.common.collect.ImmutableMap;
-
-import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.cluster.rest_api.ResponseUtils;
-import org.midonet.midolman.state.l4lb.MappingStatusException;
 
 /**
  * WebApplicationException class to represent 503 status. It contains
@@ -52,16 +48,10 @@ public class ServiceUnavailableHttpException extends WebApplicationException {
     }
 
     /**
-     * Create a ServiceUnavailableHttpException object with a message based on
-     * the mappingStatus of the pool and a retryAfter header set as the three
-     * seconds after this exception is created by default.
-     *
-     * @param ex MappingStatusException thrown by the data client.
+     * Will set the default retry_after value.
      */
-    public ServiceUnavailableHttpException(MappingStatusException ex) {
-        this(MessageProperty.getMessage(
-                MessageProperty.MAPPING_STATUS_IS_PENDING, ex.getMessage()),
-                RETRY_AFTER_HEADER_DEFAULT_VALUE);
+    public ServiceUnavailableHttpException(String message) {
+        this(message, RETRY_AFTER_HEADER_DEFAULT_VALUE);
     }
 
 }

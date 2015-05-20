@@ -45,21 +45,21 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
-import org.midonet.cluster.rest_api.conversion.BridgeDataConverter;
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.network.Port;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.conversion.BridgeDataConverter;
 import org.midonet.cluster.rest_api.models.Bridge;
 import org.midonet.event.topology.BridgeEvent;
 import org.midonet.midolman.serialization.SerializationException;
@@ -69,6 +69,7 @@ import org.midonet.packets.MAC;
 
 import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
 import static org.midonet.api.ResourceUriBuilder.VLANS;
+import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.ARP_ENTRY_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.BRIDGE_HAS_MAC_PORT;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.BRIDGE_HAS_VLAN;
@@ -76,7 +77,6 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.MAC_URI_FO
 import static org.midonet.cluster.rest_api.validation.MessageProperty.NO_VXLAN_PORT;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VXLAN_PORT_ID_NOT_SETTABLE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
-import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 
 
 /**
@@ -127,7 +127,7 @@ public class BridgeResource extends AbstractResource {
             authoriser.tryAuthoriseBridge(id, "view this bridge");
 
         if (bridgeData == null) {
-            throwNotFound(id, "bridge");
+            throw notFoundException(id, "bridge");
         }
 
         Bridge bridge = BridgeDataConverter.fromData(bridgeData);
@@ -709,7 +709,7 @@ public class BridgeResource extends AbstractResource {
 
     private void assertBridgeExists(UUID id) throws StateAccessException {
         if (!dataClient.bridgeExists(id))
-            throwNotFound(id, "bridge");
+            throw notFoundException(id, "bridge");
     }
 
     private void assertBridgeHasVlan(UUID id, short vlanId)

@@ -35,7 +35,7 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.conversion.InterfaceDataConverter;

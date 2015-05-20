@@ -26,7 +26,7 @@ import com.google.inject.Inject;
 
 import org.midonet.api.network.VtepBinding;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;

@@ -67,10 +67,10 @@ public class ResponseUtils {
         ValidationErrorEntity errors = new ValidationErrorEntity();
         errors.setMessage("Validation error(s) found");
         errors.setCode(Response.Status.BAD_REQUEST.getStatusCode());
-        List<Map<String, String>> messages = new ArrayList<Map<String, String>>(
+        List<Map<String, String>> messages = new ArrayList<>(
                 violations.size());
         for (ConstraintViolation<T> c : violations) {
-            Map<String, String> msg = new HashMap<String, String>(2);
+            Map<String, String> msg = new HashMap<>(2);
             msg.put("property", c.getPropertyPath().toString());
             msg.put("message", c.getMessage());
             messages.add(msg);

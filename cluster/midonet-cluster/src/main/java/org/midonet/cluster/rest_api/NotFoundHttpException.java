@@ -13,25 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.midonet.api.rest_api;
+package org.midonet.cluster.rest_api;
 
 import javax.ws.rs.WebApplicationException;
 
-import org.midonet.cluster.rest_api.ResponseUtils;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
 
-/**
- * WebApplicationException class to represent 504 status. Thrown when
- * an upstream service is not accessible.
- */
-public class GatewayTimeoutHttpException extends WebApplicationException {
+public class NotFoundHttpException extends WebApplicationException {
+
     private static final long serialVersionUID = 1L;
 
-    public GatewayTimeoutHttpException(String message) {
-        this(message, null);
+    public NotFoundHttpException(String message) {
+        super(buildErrorResponse(NOT_FOUND.getStatusCode(), message));
     }
 
-    public GatewayTimeoutHttpException(String message, Throwable cause) {
-        super(cause, ResponseUtils.buildErrorResponse(504, message));
+    public NotFoundHttpException(Throwable throwable, String message) {
+        super(throwable,
+            buildErrorResponse(NOT_FOUND.getStatusCode(), message));
+    }
+
+    public NotFoundHttpException(Throwable cause) {
+        super(cause);
     }
 }

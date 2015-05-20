@@ -21,7 +21,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 
 import org.midonet.api.UriResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.rules.FragmentPolicy;
 import org.midonet.odp.flows.IPFragmentType;

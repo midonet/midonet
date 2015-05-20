@@ -38,8 +38,8 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.loadbalancer.LBMediaType;
 import org.midonet.cluster.data.neutron.LoadBalancerApi;
@@ -84,7 +84,7 @@ public class PoolResource extends AbstractResource {
 
         Pool pool = api.getPool(id);
         if (pool == null) {
-            throwNotFound(id, "pool");
+            throw notFoundException(id, "pool");
         }
 
         log.info("PoolResource.get exiting {}", pool);
