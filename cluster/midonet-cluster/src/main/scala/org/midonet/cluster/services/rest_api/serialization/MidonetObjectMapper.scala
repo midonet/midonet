@@ -46,8 +46,7 @@ class MidonetObjectMapper extends ObjectMapper {
                                       valueType: JavaType): AnyRef = {
         try {
             super._readValue(cfg, jp, valueType)
-        }
-        catch {
+        } catch {
             case e: JsonMappingException if e.getPath.size() > 0 =>
                 val ref = e.getPath.get(0)
                 if (ref eq null) throw e
