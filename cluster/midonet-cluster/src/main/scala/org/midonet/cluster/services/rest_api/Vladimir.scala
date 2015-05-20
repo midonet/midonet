@@ -65,25 +65,14 @@ object Vladimir {
             mapper
         }
     }
-}
 
-class Vladimir @Inject()(nodeContext: ClusterNode.Context,
-                         backend: MidonetBackend,
-                         config: ClusterConfig)
-    extends ClusterMinion(nodeContext) {
-
-    import Vladimir._
-
-    private val log = LoggerFactory.getLogger("org.midonet.rest-api")
-
-    private var server: Server = _
-
-    def servletModule = new JerseyServletModule {
+    def servletModule(backend: MidonetBackend,
+                      config: ClusterConfig) = new JerseyServletModule {
         override def configureServlets(): Unit = {
             bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[AuthService]).to(classOf[MockAuthService])
-                                      .asEagerSingleton()
+                .asEagerSingleton()
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
             bind(classOf[ApplicationResource])
             val initParams = new java.util.HashMap[String, String]
@@ -98,6 +87,19 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
         }
     }
 
+}
+
+class Vladimir @Inject()(nodeContext: ClusterNode.Context,
+                         backend: MidonetBackend,
+                         config: ClusterConfig)
+    extends ClusterMinion(nodeContext) {
+
+    import Vladimir._
+
+    private val log = LoggerFactory.getLogger("org.midonet.rest-api")
+
+    private var server: Server = _
+
     override def doStart(): Unit = {
         log.info(s"Starting REST API service at ${config.restApi.httpPort}")
 
@@ -107,7 +109,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                                                 ServletContextHandler.SESSIONS)
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
-                Guice.createInjector(servletModule)
+                Guice.createInjector(Vladimir.servletModule(backend, config))
             }
         })
         context.addFilter(classOf[GuiceFilter], "/*",
