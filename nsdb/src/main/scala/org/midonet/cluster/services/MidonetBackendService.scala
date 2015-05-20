@@ -114,6 +114,9 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[BGP], "bgp_route_ids", CASCADE,
                              classOf[BGPRoute], "bgp_id", CLEAR)
 
+        store.declareBinding(classOf[Vtep], "bindings", CASCADE,
+                             classOf[VtepBinding], "vtep_id", CLEAR)
+
         store.build()
     }
 
