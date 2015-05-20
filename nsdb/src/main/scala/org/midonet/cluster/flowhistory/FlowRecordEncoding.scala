@@ -25,7 +25,8 @@ object RuleResult extends Enumeration {
 
 object SimulationResult extends Enumeration {
     type SimulationResult = Value
-    val NOOP, DROP, TEMP_DROP, SEND_PACKET, ADD_VIRTUAL_WILDCARD_FLOW,
+    val NOOP, DROP, ERROR_DROP, SHORT_DROP,
+        SEND_PACKET, ADD_VIRTUAL_WILDCARD_FLOW,
         STATE_MESSAGE, USERSPACE_FLOW, FLOW_CREATED, DUPE_FLOW,
         GENERATED_PACKET, UNKNOWN = Value
 }
@@ -78,11 +79,13 @@ object Actions {
     case class IPv4(src: Int, dst: Int, proto: Byte,
                     tos: Byte, ttl: Byte, frag: Byte) extends FlowAction
     case class TCP(src: Short, dst: Short) extends FlowAction
-    case class Tunnel(id: Int, ipv4_src: Int, ipv4_dst: Int,
+    case class Tunnel(id: Long, ipv4_src: Int, ipv4_dst: Int,
                       flags: Short, ipv4_tos: Byte,
                       ipv4_ttl: Byte) extends FlowAction
     case class UDP(src: Short, dst: Short) extends FlowAction
     case class VLan(id: Short) extends FlowAction
+
+    case class Unknown() extends FlowAction
 }
 
 case class TraversedRule(rule: UUID, result: RuleResult.RuleResult)
@@ -140,7 +143,7 @@ object FlowRecord {
         implicit val r = new Random
 
         import SimulationResult._
-        val simRes = Arrays.asList(NOOP, DROP, TEMP_DROP, SEND_PACKET,
+        val simRes = Arrays.asList(NOOP, DROP, ERROR_DROP, SHORT_DROP, SEND_PACKET,
                                    ADD_VIRTUAL_WILDCARD_FLOW, STATE_MESSAGE,
                                    USERSPACE_FLOW, FLOW_CREATED, DUPE_FLOW,
                                    GENERATED_PACKET)

@@ -52,6 +52,7 @@ dependencies {
             libraries.netty,
             libraries.protobuf,
             libraries.rx,
+            libraries.sbe,
             libraries.scala,
             libraries.scala_async,
             libraries.scala_logging,
@@ -83,3 +84,37 @@ task jarTest (type: Jar, dependsOn: testClasses) {
 artifacts {
     tests jarTest
 }
+
+task sbetool(type:JavaExec) {
+    def targetDir = "$buildDir/generated-resources/main"
+    main = "uk.co.real_logic.sbe.SbeTool"
+    args = [ "src/main/resources/flowhistory.schema.xml" ]
+
+    systemProperty 'sbe.output.dir', targetDir
+    classpath = sourceSets.main.compileClasspath
+
+    sourceSets {
+        sbeGen {
+            java {
+                srcDir targetDir
+            }
+            compileClasspath = sourceSets.main.compileClasspath
+        }
+    }
+    sourceSets {
+        main {
+            compileClasspath += sbeGen.output
+            runtimeClasspath += sbeGen.output
+        }
+        test {
+            compileClasspath += sbeGen.output
+            runtimeClasspath += sbeGen.output
+        }
+    }
+
+    jar {
+        from sourceSets.sbeGen.output
+    }
+}
+compileSbeGenJava.dependsOn sbetool
+
