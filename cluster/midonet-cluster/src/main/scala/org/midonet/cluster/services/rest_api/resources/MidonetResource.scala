@@ -38,6 +38,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.rest_api.{ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.annotation.{AllowUpdate, AllowCreate, AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.UriResource
 import org.midonet.cluster.services.MidonetBackend
@@ -66,11 +67,13 @@ object MidonetResource {
             f
         } catch {
             case e: NotFoundException =>
-                throw new WebApplicationException(e, Status.NOT_FOUND)
+                throw new NotFoundHttpException("Resource not found")
+                // throw new WebApplicationException(e, Status.NOT_FOUND)
             case e: ObjectReferencedException =>
                 throw new WebApplicationException(e, Status.NOT_ACCEPTABLE)
             case e: ReferenceConflictException =>
-                throw new WebApplicationException(e, Status.CONFLICT)
+                throw new ConflictHttpException("Conflicting read")
+                // throw new WebApplicationException(e, Status.CONFLICT)
             case e: ObjectExistsException =>
                 throw new WebApplicationException(e, Status.CONFLICT)
         }
@@ -84,16 +87,19 @@ object MidonetResource {
             } catch {
                 case e: NotFoundException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
+                    throw new NotFoundHttpException("Resource not found")
                     return Response.status(HttpStatus.NOT_FOUND_404).build()
                 case e: ObjectReferencedException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
                     return Response.status(HttpStatus.NOT_ACCEPTABLE_406).build()
                 case e: ReferenceConflictException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
-                    return Response.status(HttpStatus.CONFLICT_409).build()
+                    throw new ConflictHttpException("Conflicting write")
+                    // return Response.status(HttpStatus.CONFLICT_409).build()
                 case e: ObjectExistsException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
-                    return Response.status(HttpStatus.CONFLICT_409).build()
+                    throw new ConflictHttpException("Conflicting write")
+                    // return Response.status(HttpStatus.CONFLICT_409).build()
                 case e: ConcurrentModificationException =>
                     attempt += 1
             }
