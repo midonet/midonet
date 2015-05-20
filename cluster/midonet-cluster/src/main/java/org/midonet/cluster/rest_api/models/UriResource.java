@@ -63,6 +63,15 @@ public abstract class UriResource extends ZoomObject {
             .build();
     }
 
+    /** Gets an URI for the specified path and identifier, relative to the base
+     * URI of the current object. */
+    final protected URI absoluteUri(String path1, Object id1,
+                                    String... segments) {
+        if (id1 == null ) return null;
+        return UriBuilder.fromUri(baseUri)
+            .segment(path1, id1.toString()).segment(segments).build();
+    }
+
     final protected List<URI> absoluteUris(String path, List<?> ids) {
         if (ids == null) return null;
         List<URI> uris = new ArrayList<>(ids.size());
