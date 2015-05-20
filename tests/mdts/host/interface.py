@@ -22,6 +22,8 @@ import shlex
 import string
 import subprocess
 
+from threading import Semaphore
+
 from mdts.lib import subprocess_compat
 
 LOG = logging.getLogger(__name__)
@@ -106,6 +108,7 @@ class Netns(object):
     def __init__(self, interface):
         LOG.debug('interface=%s', interface)
         self._interface = interface
+        self._tcpdump_sem = Semaphore(value=0)
 
     def _get_ifname(self):
         return self._interface['ifname']
@@ -323,16 +326,30 @@ class Netns(object):
             False: when packet doesn't arrive within timeout
         """
 
-        cmdline = 'timeout %s tcpdump -n -l -i %s -c %s %s 2>&1' % (
+        base_cmdline = 'timeout %s tcpdump -n -l -i %s -c %s %s 2>&1' % (
             timeout,
             self._get_peer_ifname(),
             EXPECT_FRAME_COUNT, pcap_filter_string)
 
         try:
-            output = self.execute(cmdline)
+            cmdline = self._process_cmdline(base_cmdline)
+            LOG.debug('running tcp dump=%s', cmdline)
+            p = subprocess.Popen(cmdline, stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE, shell=True)
+
+            # We are running tcpdump, set the flag to continue main thread
+            LOG.debug('tcp dump running OK')
+            self._tcpdump_sem.release()
+
+            stdout, stderr = p.communicate()
+            retcode = p.poll()
+
+            # Retcode will return non-zero if the timeout passed and no packet came
+            if retcode:
+                raise subprocess.CalledProcessError(retcode, str(("tcpdump", stdout, stderr)))
+
+            LOG.debug('output=%r', stdout)
             retval = True
-            for l in output.split('\n'):
-                LOG.debug('output=%r', l)
         except subprocess.CalledProcessError as e:
             LOG.debug('expect failed=%s', e)
             retval = False
