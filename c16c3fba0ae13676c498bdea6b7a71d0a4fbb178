@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_d1f48e89",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 6
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-20T13:21:42Z",
+      "side": 1,
+      "message": "Without reading the code, it\u0027s hard to understand what this patch is trying to do. Could you please clarify this?",
+      "range": {
+        "startLine": 9,
+        "startChar": 0,
+        "endLine": 11,
+        "endChar": 8
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9a43266b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
         "patchSetId": 6
@@ -49,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_f14d12c6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 360,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-20T13:21:42Z",
+      "side": 1,
+      "message": "I know the code did not previously notify the subscribers but would it not be better to do it?",
+      "parentUuid": "1a106d94_89b3e208",
+      "range": {
+        "startLine": 360,
+        "startChar": 25,
+        "endLine": 360,
+        "endChar": 31
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3a503231",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 6
@@ -84,6 +131,30 @@
       "side": 1,
       "message": "Previously the NPE check was to call `routeIds.toSeq`. Isn\u0027t it .toSeq redundant? If so, string interpolation should handle null, isn\u0027t it?",
       "parentUuid": "1a106d94_3a503231",
+      "range": {
+        "startLine": 231,
+        "startChar": 19,
+        "endLine": 231,
+        "endChar": 29
+      },
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_91d686c4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-20T13:21:42Z",
+      "side": 1,
+      "message": "if routeIds is null it should just print null.",
+      "parentUuid": "1a106d94_a9e4de0c",
       "range": {
         "startLine": 231,
         "startChar": 19,
