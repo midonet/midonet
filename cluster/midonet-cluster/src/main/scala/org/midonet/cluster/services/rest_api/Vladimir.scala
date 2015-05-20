@@ -65,6 +65,27 @@ object Vladimir {
             mapper
         }
     }
+
+    class VladimirJerseyModule(backend: MidonetBackend) extends
+    JerseyServletModule {
+        override def configureServlets(): Unit = {
+            bind(classOf[WildcardJacksonJaxbJsonProvider])
+                .asEagerSingleton()
+            bind(classOf[MidonetBackend]).toInstance(backend)
+            bind(classOf[ApplicationResource])
+
+            val initParams = new java.util.HashMap[String, String]
+            initParams.put(ContainerResponseFiltersClass,
+                           classOf[CorsFilter].getName)
+            initParams.put(ContainerRequestFiltersClass,
+                           LoggingFilterClass)
+            initParams.put(ContainerResponseFiltersClass,
+                           LoggingFilterClass)
+            initParams.put(POJOMappingFeatureClass, "true")
+
+            serve("/*").`with`(classOf[GuiceContainer], initParams)
+        }
+    }
 }
 
 class Vladimir @Inject()(nodeContext: ClusterNode.Context,
@@ -89,26 +110,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                                                 ServletContextHandler.SESSIONS)
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
-                Guice.createInjector(new JerseyServletModule {
-                    override def configureServlets(): Unit = {
-                        bind(classOf[WildcardJacksonJaxbJsonProvider])
-                            .asEagerSingleton()
-                        bind(classOf[MidonetBackend])
-                            .toInstance(backend)
-                        bind(classOf[ApplicationResource])
-
-                        val initParams = new java.util.HashMap[String, String]
-                        initParams.put(ContainerResponseFiltersClass,
-                                       classOf[CorsFilter].getName)
-                        initParams.put(ContainerRequestFiltersClass,
-                                       LoggingFilterClass)
-                        initParams.put(ContainerResponseFiltersClass,
-                                       LoggingFilterClass)
-                        initParams.put(POJOMappingFeatureClass, "true")
-
-                        serve("/*").`with`(classOf[GuiceContainer], initParams)
-                    }
-                })
+                Guice.createInjector(new VladimirJerseyModule(backend))
             }
         })
         context.addFilter(classOf[GuiceFilter], "/*",
