@@ -42,12 +42,12 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.conversion.VIPDataConverter;
 import org.midonet.cluster.rest_api.models.VIP;
@@ -57,11 +57,15 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExceptionBase;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 
 import static org.midonet.cluster.rest_api.conversion.VIPDataConverter.fromData;
 import static org.midonet.cluster.rest_api.conversion.VIPDataConverter.toData;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_STATUS_IS_PENDING;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
@@ -122,7 +126,7 @@ public class VipResource extends AbstractResource {
                                                     IllegalAccessException {
         org.midonet.cluster.data.l4lb.VIP vipData = dataClient.vipGet(id);
         if (vipData == null) {
-            throwNotFound(id, "VIP");
+            throw notFoundException(id, "VIP");
         }
         return VIPDataConverter.fromData(vipData, getBaseUri());
     }
@@ -146,7 +150,8 @@ public class VipResource extends AbstractResource {
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -178,11 +183,12 @@ public class VipResource extends AbstractResource {
                     ResourceUriBuilder.getVip(getBaseUri(), id)).build();
         } catch (StatePathExistsException ex) {
             throw new ConflictHttpException(ex,
-                getMessage(MessageProperty.RESOURCE_EXISTS, "VIP", vip.id));
+                getMessage(RESOURCE_EXISTS, "VIP", vip.id));
         } catch (NoStatePathException ex) {
-            throw new BadRequestHttpException(ex);
+            throw badReqOrNotFoundException(ex, vip.id);
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -206,13 +212,24 @@ public class VipResource extends AbstractResource {
         vip.id = id;
         validate(vip);
 
+        if (dataClient.vipGet(vip.id) == null) {
+            throw new NotFoundHttpException(getMessage(RESOURCE_NOT_FOUND,
+                                                       "VIP", id));
+        }
+
+        if (dataClient.poolGet(vip.poolId) == null) {
+            throw new BadRequestHttpException(getMessage(RESOURCE_NOT_FOUND,
+                                                         "pool", vip.poolId));
+        }
+
         try {
             dataClient.vipUpdate(toData(vip));
             vipEvent.update(id, dataClient.vipGet(id));
         } catch (NoStatePathException ex) {
-            throw badReqOrNotFoundException(ex, id);
+            throw badReqOrNotFoundException(ex, vip.id);
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -246,7 +263,8 @@ public class VipResource extends AbstractResource {
             try {
                 dataVips = dataClient.poolGetVips(poolId);
             } catch (NoStatePathException ex) {
-                throw new NotFoundHttpException(ex);
+                StatePathExceptionBase.NodeInfo node = ex.getNodeInfo();
+                throw notFoundException(node.id, node.nodeType.name);
             }
             List<VIP> vips = new ArrayList<>();
             if (dataVips != null) {
@@ -272,11 +290,12 @@ public class VipResource extends AbstractResource {
                         .build();
             } catch (StatePathExistsException ex) {
                 throw new ConflictHttpException(ex,
-                    getMessage(MessageProperty.RESOURCE_EXISTS, "VIP"));
+                    getMessage(RESOURCE_EXISTS, "VIP"));
             } catch (NoStatePathException ex) {
                 throw new NotFoundHttpException(ex);
             } catch (MappingStatusException ex) {
-                throw new ServiceUnavailableHttpException(ex);
+                throw new ServiceUnavailableHttpException(
+                    getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
             }
         }
     }

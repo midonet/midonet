@@ -49,8 +49,8 @@ import org.midonet.api.network.PortFactory;
 import org.midonet.api.network.PortType;
 import org.midonet.api.network.RouterPort;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
@@ -122,7 +122,7 @@ public class PortResource extends AbstractResource {
             authoriser.tryAuthorisePort(id, "view this port");
 
         if (portData == null) {
-            throwNotFound(id, "port");
+            throw notFoundException(id, "port");
         }
 
         return portData;
@@ -329,7 +329,7 @@ public class PortResource extends AbstractResource {
 
             if (null == authoriser.tryAuthoriseBridge(
                 bridgeId, "add port to the bridge")) {
-                throwNotFound(bridgeId, "bridge");
+                throw notFoundException(bridgeId, "bridge");
             }
 
             // If we are running on a pre-1.2 version, the VLANs path

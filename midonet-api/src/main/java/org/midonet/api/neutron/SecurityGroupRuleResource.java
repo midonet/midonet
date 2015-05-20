@@ -18,7 +18,7 @@ package org.midonet.api.neutron;
 import com.google.inject.Inject;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.Rule;
@@ -123,7 +123,7 @@ public class SecurityGroupRuleResource extends AbstractResource {
 
         SecurityGroupRule rule = api.getSecurityGroupRule(id);
         if (rule == null) {
-            throwNotFound(id, "security group rule");
+            throw notFoundException(id, "security group rule");
         }
 
         log.info("SecurityGroupRuleResource.get exiting {}", rule);

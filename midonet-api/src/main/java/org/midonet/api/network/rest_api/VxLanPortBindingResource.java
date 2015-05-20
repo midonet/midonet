@@ -33,8 +33,8 @@ import com.google.inject.assistedinject.Assisted;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.network.VtepBinding;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.vtep.VtepClusterClient;
@@ -108,10 +108,10 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
     /**
      * Gets a VxLanPort with the specified ID.
      *
-     * @throws org.midonet.api.rest_api.NotFoundHttpException
+     * @throws NotFoundHttpException
      *         if no port with the specified ID exists.
      *
-     * @throws org.midonet.api.rest_api.BadRequestHttpException
+     * @throws BadRequestHttpException
      *         if the port with the specified ID is not a VxLanPort.
      */
     private VxLanPort getVxLanPort(UUID vxLanPortId)

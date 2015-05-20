@@ -41,7 +41,7 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
@@ -107,7 +107,7 @@ public class PortGroupResource extends AbstractResource {
         org.midonet.cluster.data.PortGroup pg =
             authoriser.tryAuthorisePortGroup(id, "view this port group");
         if (pg == null) {
-            throwNotFound(id, "port group");
+            throw notFoundException(id, "port group");
         }
 
         return fromData(pg, getBaseUri());

@@ -48,12 +48,8 @@ public class ViewMixinProvider {
         }
     }
 
-    public static void registerMediaType(MediaType mediaType) {
-        registerMediaType(mediaType.toString());
-    }
-
     public static void registerMediaType(String mediaType) {
-        viewMediaTypes.add(mediaType.toString());
+        viewMediaTypes.add(mediaType);
     }
 
     public static boolean isRegisteredMediaType(MediaType mediaType) {

@@ -35,6 +35,7 @@ import org.midonet.client.dto.l4lb.LBStatus;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_MEMBER_JSON;
@@ -195,9 +196,9 @@ public class TestPoolMember {
             DtoPoolMember member = getStockPoolMember(UUID.randomUUID());
             DtoError error = dtoResource.postAndVerifyError(
                     topLevelPoolMembersUri, APPLICATION_POOL_MEMBER_JSON,
-                    member, BAD_REQUEST);
-            assertErrorMatches(
-                    error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
+                    member, NOT_FOUND);
+            assertErrorMatches(error, RESOURCE_NOT_FOUND, "pool",
+                               member.getPoolId());
         }
 
         @Test
@@ -268,10 +269,10 @@ public class TestPoolMember {
         public void testUpdateWithBadPoolMemberId() throws Exception {
             member.setId(UUID.randomUUID());
             member.setUri(addIdToUri(topLevelPoolMembersUri, member.getId()));
-            DtoError error = dtoResource.putAndVerifyNotFound(
-                    member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
+            DtoError error = dtoResource.putAndVerifyBadRequest(
+                member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
-                    "pool member", member.getId());
+                               "pool member", member.getId());
         }
 
         @Test
