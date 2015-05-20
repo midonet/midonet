@@ -119,7 +119,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                 case CONNECTION_RECONNECTED =>
                     log.debug(s"connection restored $path")
                 case CONNECTION_LOST =>
-                    lostConnection(new PathCacheDisconnectedException())
+                    failWith(new PathCacheDisconnectedException())
                 case INITIALIZED =>
                     initialized = true
                     doInitialize = null // gc the callback
@@ -136,7 +136,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                                   newState: ConnectionState): Unit = {
             newState match {
                 case ConnectionState.LOST =>
-                    lostConnection(new PathCacheDisconnectedException())
+                    failWith(new PathCacheDisconnectedException())
                 case _ =>
             }
         }
@@ -154,7 +154,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                                    e: CuratorEvent): Unit = e.getType match {
             case CuratorEventType.EXISTS if !initialized =>
                 if (e.getResultCode == NONODE.intValue()) {
-                    lostConnection(new NoNodeException(path))
+                    failWith(new NoNodeException(path))
                 } else if (e.getResultCode == OK.intValue()) {
                     cache.start(StartMode.POST_INITIALIZED_EVENT)
                 }
@@ -225,7 +225,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
       *
       * Runs on the connection event thread.
       */
-    private def lostConnection(e: Throwable): Unit = {
+    private def failWith(e: Throwable): Unit = {
         connectionLost = true
         cache.getListenable.removeListener(cacheListener)
         zk.getConnectionStateListenable.removeListener(connListener)
@@ -286,7 +286,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
       * loss. The parent and child observables will emit a
       * PathCacheDisconnectedException signalling that the observables are
       * no longer listening ZK updates. */
-    def close(): Unit = lostConnection(new PathCacheDisconnectedException())
+    def close(): Unit = failWith(new PathCacheDisconnectedException())
 
     /** Expose the ChildData of the children under the given absolute path. */
     def child(path: String): ChildData = cache.getCurrentData(path)

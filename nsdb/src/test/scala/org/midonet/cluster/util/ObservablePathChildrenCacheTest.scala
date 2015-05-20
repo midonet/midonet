@@ -19,10 +19,12 @@ import java.util.concurrent._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration._
 
 import ch.qos.logback.classic.Level
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.retry.RetryOneTime
+import org.apache.zookeeper.KeeperException.NoNodeException
 import org.junit.After
 import org.junit.runner.RunWith
 import org.scalatest._
@@ -31,9 +33,9 @@ import org.slf4j.LoggerFactory
 import rx.Observable
 import rx.observers.{TestObserver, TestSubscriber}
 
-import org.midonet.cluster.util.ObservableTestUtils.observer
 import org.midonet.util.MidonetEventually
 import org.midonet.util.functors.makeRunnable
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class ObservablePathChildrenCacheTest extends Suite
@@ -103,6 +105,11 @@ class ObservablePathChildrenCacheTest extends Suite
         val latch = new CountDownLatch(nChildren)
         val collector = new ChildDataAccumulator(latch)
         makePaths(nChildren)
+
+        eventually {    // avoid races with the subscription
+            curator.getChildren.forPath(ZK_ROOT) should have size nChildren
+        }
+
         val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
         opcc.subscribe(collector)
         assert(latch.await(timeout, TimeUnit.SECONDS))
@@ -119,39 +126,40 @@ class ObservablePathChildrenCacheTest extends Suite
 
     def testOnNonExistentPath(): Unit = {
         val o = ObservablePathChildrenCache.create(curator, "/NOT_EXISTS")
-        val l1 = new CountDownLatch(1)
-        val l2 = new CountDownLatch(1)
-        def observer = (l: CountDownLatch) =>
-            new TestObserver[Observable[ChildData]] {
-            override def onError(t: Throwable) = {
-                super.onError(t)
-                l.countDown()
-            }
-        }
-        val ts1 = observer(l1)
-        val ts2 = observer(l2)
-        o.subscribe(ts1) // the subscribers are told about the dodgy observable
-        assert(l1.await(timeout, TimeUnit.SECONDS))
+        val ts1 = new TestAwaitableObserver[Observable[ChildData]]
+        val ts2 = new TestAwaitableObserver[Observable[ChildData]]
+        o.subscribe(ts1) // the subscriber is told about the dodgy observable
+        ts1.awaitCompletion(timeout.seconds)
         ts1.getOnErrorEvents should have size 1
-        ts1.getOnNextEvents shouldBe empty
+        assert(ts1.getOnErrorEvents.get(0).isInstanceOf[NoNodeException])
+
         curator.create().forPath("/NOT_EXISTS")
         curator.create().forPath("/NOT_EXISTS/1")
+
         o.subscribe(ts2) // any new subscriber keeps getting the onError
-        assert(l2.await(timeout, TimeUnit.SECONDS))
-        ts2.getOnErrorEvents should have size 1
+        ts2.awaitCompletion(timeout.seconds)
+
+        ts1.getOnCompletedEvents shouldBe empty
+        ts1.getOnNextEvents shouldBe empty
+
+        ts2.getOnCompletedEvents shouldBe empty
         ts2.getOnNextEvents shouldBe empty
     }
 
     def testObservableChildForNonExistingChild(): Unit = {
-        val ts = new TestObserver[ChildData]()
+        val ts = new TestAwaitableObserver[ChildData]()
+
         makePaths(1)
         ObservablePathChildrenCache.create(curator, ZK_ROOT)
                                    .observableChild("NOT_A_REAL_CHILD")
                                    .subscribe(ts)
-        ts.assertTerminalEvent()
+
+        ts.awaitCompletion(timeout.seconds)
+
         ts.getOnCompletedEvents shouldBe empty
         ts.getOnNextEvents shouldBe empty
         ts.getOnErrorEvents should have size 1
+
         assert(ts.getOnErrorEvents.get(0).isInstanceOf[ChildNotExistsException])
     }
 
@@ -160,24 +168,21 @@ class ObservablePathChildrenCacheTest extends Suite
       * informing that the observable is no longer connected to ZK. */
     def testCloseErrorsObservable() {
         val nItems = 10
-        val count = new CountDownLatch(10)
-        val error = new CountDownLatch(1)
-        val ts = new TestSubscriber[Observable[ChildData]] {
-            override def onError(e: Throwable): Unit = {
-                super.onError(e)
-                error.countDown()
-            }
-            override def onNext(t: Observable[ChildData]): Unit = {
-                super.onNext(t)
-                count.countDown()
-            }
-        }
+        val ts = new TestAwaitableObserver[Observable[ChildData]]
+
         makePaths(nItems)
+
+        eventually {    // avoid races with the subscription
+            curator.getChildren.forPath(ZK_ROOT) should have size nItems
+        }
+
         val opcc = ObservablePathChildrenCache.create(curator, ZK_ROOT)
         opcc.asObservable().subscribe(ts)
-        assert(count.await(timeout, TimeUnit.SECONDS))
+        ts.awaitOnNext(nItems, timeout.seconds)
         opcc close()
-        assert(error.await(timeout, TimeUnit.SECONDS))
+
+        ts.awaitCompletion(timeout.seconds)
+
         ts.getOnCompletedEvents shouldBe empty
         ts.getOnNextEvents should have size nItems
         ts.getOnErrorEvents should have size 1
@@ -211,7 +216,6 @@ class ObservablePathChildrenCacheTest extends Suite
         }
 
         val delPath = collector.children.head.getOnNextEvents.get(0).getPath
-        log.debug(s"Deleting $delPath")
         curator.delete().forPath(delPath)
 
         eventually {
@@ -392,15 +396,15 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
     val timeout = 5
 
     def testOnErrorEmittedWhenCacheLosesConnection(): Unit = {
-        val ts1 = observer[Observable[ChildData]](2, 1, 0)
+        val ts1 = new TestAwaitableObserver[Observable[ChildData]]
         makePaths(2)
         val o = ObservablePathChildrenCache.create(curator, ZK_ROOT)
         o.subscribe(ts1)
-        assert(ts1.c.await(timeout, TimeUnit.SECONDS))
+        ts1.awaitOnNext(2, timeout.seconds)
         ts1.getOnErrorEvents shouldBe empty
         ts1.getOnCompletedEvents shouldBe empty
         zk.stop() // interrupt the connection
-        assert(ts1.e.await(cnxnTimeoutMs * 5, TimeUnit.MILLISECONDS))
+        ts1.awaitCompletion(cnxnTimeoutMs * 5, TimeUnit.MILLISECONDS)
         ts1.getOnErrorEvents should have size 1
         assert(
             ts1.getOnErrorEvents.get(0).isInstanceOf[PathCacheDisconnectedException]
@@ -408,9 +412,9 @@ class ObservablePathChildrenCacheConnectionTest extends Suite
         zk.restart()
 
         // Prove that the observable is unusable
-        val ts2 = observer[Observable[ChildData]](0, 0, 0)
+        val ts2 = new TestAwaitableObserver[Observable[ChildData]]
         o.subscribe(ts2)
-        assert(ts2.e.await(timeout, TimeUnit.SECONDS))
+        ts2.awaitCompletion(timeout.seconds)
         assert(ts2.getOnErrorEvents.get(0).isInstanceOf[PathCacheDisconnectedException])
         ts2.getOnNextEvents shouldBe empty
         ts2.getOnCompletedEvents shouldBe empty
