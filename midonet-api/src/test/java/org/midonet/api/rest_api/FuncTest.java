@@ -1,3 +1,4 @@
+
 /*
  * Copyright 2014 Midokura SARL
  *
@@ -18,22 +19,36 @@ package org.midonet.api.rest_api;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.servlet.ServletContextEvent;
+
+import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
+import com.google.inject.servlet.GuiceServletContextListener;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.WebAppDescriptor;
+import com.typesafe.config.ConfigFactory;
 
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.retry.RetryNTimes;
+import org.apache.curator.test.TestingServer;
 import org.codehaus.jackson.map.DeserializationConfig;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthConfig;
-import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
-import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.cluster.ClusterConfig;
+import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
+import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
+import org.midonet.cluster.services.MidonetBackendService;
+import org.midonet.cluster.services.rest_api.Vladimir;
 import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.conf.HostIdGenerator;
+
+import static org.apache.curator.framework.CuratorFrameworkFactory.newClient;
 
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
@@ -71,7 +86,21 @@ public class FuncTest {
 
     public static WildCardJacksonJaxbJsonProvider jacksonJaxbJsonProvider;
 
+    /**
+     * Choose the right Builder.  Defaults to the old midonet-api, but will
+     * return the new cluster-based midonet-api if the withVladimir env.
+     * variable is set to "true".
+     */
     public static WebAppDescriptor.Builder getBuilder() {
+        boolean withVlad = Boolean.parseBoolean(System.getenv("withVladimir"));
+        if (withVlad) {
+            return getBuilderForLegacyApi();
+        } else {
+            return getBuilderForVladimir();
+        }
+    }
+
+    private static WebAppDescriptor.Builder getBuilderForLegacyApi() {
 
         ObjectMapperProvider mapperProvider = new ObjectMapperProvider();
         jacksonJaxbJsonProvider =
@@ -90,11 +119,81 @@ public class FuncTest {
                                            "zookeeper_hosts"),
                                            FuncTest.ZK_TEST_SERVER)
                 .contextParam(getConfigKey("zookeeper", "curator_enabled"), "true")
-                .contextParam(getConfigKey("zookeeper", "midolman_root_key"), zkRoot)
+                .contextParam(getConfigKey("zookeeper", "midolman_root_key"),
+                              zkRoot)
                 .contextParam(getConfigKey("zookeeper", "root_key"), zkRoot)
                 .contextParam(getConfigKey("zookeeper", "use_new_stack"),
                               "false")
                 .contextPath(CONTEXT_PATH).clientConfig(config);
+    }
+
+    public static class VladimirServletContextListener extends GuiceServletContextListener {
+
+        private TestingServer testZk;
+
+        public VladimirServletContextListener () {
+            try {
+                testZk = new TestingServer(FuncTest.ZK_TEST_PORT);
+            } catch (Exception e) {
+                throw new IllegalStateException("Can't start Zookeeper server at " +
+                                                FuncTest.ZK_TEST_PORT);
+            }
+        }
+
+        @Override
+        public void contextInitialized(ServletContextEvent sce) {
+            super.contextInitialized(sce);
+            try {
+                testZk.start();
+            } catch (Exception e) {
+                throw new IllegalStateException("Can't start Zookeeper server at " +
+                                                FuncTest.ZK_TEST_PORT);
+            }
+        }
+
+        @Override
+        public void contextDestroyed(ServletContextEvent sce) {
+            try {
+                testZk.close();
+            } catch (Exception e) {
+                // OK
+            }
+            super.contextDestroyed(sce);
+        }
+
+        @Override
+        protected Injector getInjector() {
+            CuratorFramework curator = newClient(ZK_TEST_SERVER,
+                                                 new RetryNTimes(10, 500));
+
+            ClusterConfig cfg = new ClusterConfig(
+                ConfigFactory.parseString (
+                    "zookeeper.use_new_stack = true \n" +
+                    "zookeeper.curator_enabled = true \n" +
+                    "zookeeper.root_key = " + ZK_ROOT_MIDOLMAN + "\n" +
+                    "cluster.rest_api.root_uri = " + CONTEXT_PATH
+                )
+            );
+
+            MidonetBackendService backend =
+                new MidonetBackendService(cfg.backend(), curator);
+            backend.startAsync().awaitRunning();
+            return Guice.createInjector(
+                Vladimir.servletModule(backend, cfg)
+            );
+        }
+    }
+
+    public static WebAppDescriptor.Builder getBuilderForVladimir() {
+        config.getSingletons()
+              .add(new Vladimir.WildcardJacksonJaxbJsonProvider());
+        LoggerFactory.getLogger(FuncTest.class)
+                     .info("TESTING MIDONET API AGAINST VLADIMIR");
+        return new WebAppDescriptor.Builder()
+            .contextListenerClass(VladimirServletContextListener.class)
+            .filterClass(GuiceFilter.class)
+            .servletPath("/")
+            .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 
     public static final AppDescriptor appDesc = getBuilder().build();
