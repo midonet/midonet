@@ -57,6 +57,8 @@ class FlowRecorderFactory @Inject() (config : MidolmanConfig) {
             config.flowHistory.encoding match {
                 case "json" => new JsonFlowRecorder(
                     hostUuid, config.flowHistory)
+                case "binary" => new BinaryFlowRecorder(hostUuid,
+                                                        config.flowHistory)
                 case "none" => new NullFlowRecorder
                 case other => {
                     log.error(s"Invalid encoding (${other}) specified")
