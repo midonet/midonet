@@ -41,7 +41,6 @@ import org.midonet.cluster.{ClusterConfig, ClusterNode}
 
 object Vladimir {
 
-    final val RootUri = "/midonet-api"
     final val ContainerResponseFiltersClass =
         "com.sun.jersey.spi.container.ContainerResponseFilters"
     final val ContainerRequestFiltersClass =
@@ -66,6 +65,26 @@ object Vladimir {
             mapper
         }
     }
+
+    def servletModule(backend: MidonetBackend,
+                      config: ClusterConfig) = new JerseyServletModule {
+        override def configureServlets(): Unit = {
+            bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
+            bind(classOf[MidonetBackend]).toInstance(backend)
+            bind(classOf[AuthService]).to(classOf[MockAuthService])
+                .asEagerSingleton()
+            bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
+            bind(classOf[ApplicationResource])
+            val initParams = new java.util.HashMap[String, String]
+            initParams.put(ContainerRequestFiltersClass,
+                           LoggingFilterClass)
+            initParams.put(ContainerResponseFiltersClass,
+                           LoggingFilterClass)
+            initParams.put(POJOMappingFeatureClass, "true")
+            serve("/*").`with`(classOf[GuiceContainer], initParams)
+        }
+    }
+
 }
 
 @ClusterService(name = "rest_api")
@@ -76,46 +95,27 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
 
     import Vladimir._
 
-    private val log = LoggerFactory.getLogger("org.midonet.rest-api")
-
     private var server: Server = _
-
-    def servletModule = new JerseyServletModule {
-        override def configureServlets(): Unit = {
-            bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
-            bind(classOf[MidonetBackend]).toInstance(backend)
-            bind(classOf[AuthService]).to(classOf[MockAuthService])
-                                      .asEagerSingleton()
-            bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
-            bind(classOf[ApplicationResource])
-            val initParams = new java.util.HashMap[String, String]
-            initParams.put(ContainerResponseFiltersClass,
-                           classOf[CorsFilter].getName)
-            initParams.put(ContainerRequestFiltersClass,
-                           LoggingFilterClass)
-            initParams.put(ContainerResponseFiltersClass,
-                           LoggingFilterClass)
-            initParams.put(POJOMappingFeatureClass, "true")
-            serve("/*").`with`(classOf[GuiceContainer], initParams)
-        }
-    }
+    private val log = LoggerFactory.getLogger("org.midonet.rest-api")
 
     override def isEnabled = config.restApi.isEnabled
 
     override def doStart(): Unit = {
-        log.info(s"Starting REST API service at ${config.restApi.httpPort}")
+        log.info(s"Starting REST API service at port: " +
+                 s"${config.restApi.httpPort} and " +
+                 s"root uri = ${config.restApi.rootUri}")
 
         server = new Server(config.restApi.httpPort)
 
-        val context = new ServletContextHandler(server, RootUri,
+        val context = new ServletContextHandler(server, config.restApi.rootUri,
                                                 ServletContextHandler.SESSIONS)
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
-                Guice.createInjector(servletModule)
+                Guice.createInjector(servletModule(backend, config))
             }
         })
-        context.addFilter(classOf[GuiceFilter], "/*",
-                          util.EnumSet.allOf(classOf[DispatcherType]))
+        context.addFilter(classOf[GuiceFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
+        context.addFilter(classOf[CorsFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
         context.addServlet(classOf[DefaultServlet], "/*")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
 
