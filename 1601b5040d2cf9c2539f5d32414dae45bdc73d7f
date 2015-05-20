@@ -22,6 +22,30 @@
       "revId": "1601b5040d2cf9c2539f5d32414dae45bdc73d7f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_cbe3fd03",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T01:15:53Z",
+      "side": 1,
+      "message": "You\u0027re correct, I confirmed that the Delete of a pool with the old API cascading-deleted its members. Changed to CASCADE.",
+      "parentUuid": "facab960_250578c2",
+      "range": {
+        "startLine": 101,
+        "startChar": 63,
+        "endLine": 101,
+        "endChar": 68
+      },
+      "revId": "1601b5040d2cf9c2539f5d32414dae45bdc73d7f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
