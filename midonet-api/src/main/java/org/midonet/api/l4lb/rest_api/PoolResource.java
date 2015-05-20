@@ -42,16 +42,14 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.Pool;
-import org.midonet.cluster.rest_api.models.ResourceUris;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.event.topology.PoolEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -65,7 +63,9 @@ import org.midonet.midolman.state.l4lb.MappingViolationException;
 import static org.midonet.cluster.rest_api.conversion.PoolDataConverter.fromData;
 import static org.midonet.cluster.rest_api.conversion.PoolDataConverter.toData;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_DISASSOCIATION_IS_REQUIRED;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_STATUS_IS_PENDING;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
@@ -117,8 +117,9 @@ public class PoolResource extends AbstractResource {
 
         org.midonet.cluster.data.l4lb.Pool poolData =
             dataClient.poolGet(id);
-        if (poolData == null)
-            throwNotFound(id, "pool");
+        if (poolData == null) {
+            throw notFoundException(id, "pool");
+        }
 
         // Convert to the REST API DTO
         return fromData(poolData, getBaseUri());
@@ -137,7 +138,8 @@ public class PoolResource extends AbstractResource {
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so just ignore.
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -161,9 +163,10 @@ public class PoolResource extends AbstractResource {
             throw new ConflictHttpException(ex,
                     getMessage(RESOURCE_EXISTS, "pool", pool.id));
         } catch (NoStatePathException ex) {
-            throw new BadRequestHttpException(ex);
+            throw notFoundException(pool.healthMonitorId, "health monitor");
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -180,7 +183,7 @@ public class PoolResource extends AbstractResource {
         try {
             org.midonet.cluster.data.l4lb.Pool oldData = dataClient.poolGet(id);
             if (oldData == null) {
-                throwNotFound(id, "pool");
+                throw notFoundException(id, "pool");
             }
 
             // DISALLOW changing this from the API
@@ -189,11 +192,14 @@ public class PoolResource extends AbstractResource {
             dataClient.poolUpdate(toData(pool));
             poolEvent.update(id, dataClient.poolGet(id));
         } catch (NoStatePathException ex) {
-            throw badReqOrNotFoundException(ex, id);
+            throw new BadRequestHttpException(
+                getMessage(RESOURCE_NOT_FOUND, "health monitor",
+                           pool.healthMonitorId));
         } catch (MappingViolationException ex) {
             throw new BadRequestHttpException(ex, MAPPING_DISASSOCIATION_IS_REQUIRED);
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -280,7 +286,8 @@ public class PoolResource extends AbstractResource {
             } catch (NoStatePathException ex) {
                 throw badReqOrNotFoundException(ex, loadBalancerId);
             } catch (MappingStatusException ex) {
-                throw new ServiceUnavailableHttpException(ex);
+                throw new ServiceUnavailableHttpException(
+                    getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
             }
         }
     }

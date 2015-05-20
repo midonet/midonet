@@ -17,6 +17,7 @@
 package org.midonet.client;
 
 import java.net.URI;
+
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
@@ -29,11 +30,11 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.ClientFilter;
 import com.sun.jersey.api.client.filter.LoggingFilter;
 
-import org.midonet.client.exception.HttpBadRequestException;
-import org.midonet.client.exception.HttpForbiddenException;
-import org.midonet.client.exception.HttpInternalServerError;
-import org.midonet.client.exception.HttpNotFoundException;
-import org.midonet.client.exception.HttpUnauthorizedException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ForbiddenHttpException;
+import org.midonet.cluster.rest_api.InternalServerErrorHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.UnauthorizedHttpException;
 import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 
 public class WebResource {
@@ -52,11 +53,11 @@ public class WebResource {
 
     private void handleHttpError(ClientResponse r) {
         switch (r.getStatus()) {
-            case 400: throw new HttpBadRequestException(r);
-            case 401: throw new HttpUnauthorizedException(r);
-            case 403: throw new HttpForbiddenException(r);
-            case 404: throw new HttpNotFoundException(r);
-            case 500: throw new HttpInternalServerError(r);
+            case 400: throw new BadRequestHttpException(r.toString());
+            case 401: throw new UnauthorizedHttpException(r.toString());
+            case 403: throw new ForbiddenHttpException(r.toString());
+            case 404: throw new NotFoundHttpException(r.toString());
+            case 500: throw new InternalServerErrorHttpException(r.toString());
         }
         throw new UniformInterfaceException(r);
     }

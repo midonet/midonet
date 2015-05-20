@@ -14,21 +14,26 @@
  * limitations under the License.
  */
 
-package org.midonet.api.rest_api;
+package org.midonet.cluster.rest_api;
 
 import javax.ws.rs.WebApplicationException;
 
-import org.midonet.cluster.rest_api.ResponseUtils;
+import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
 
 /**
- * WebApplicationException class to represent 504 status. Thrown when
- * an upstream service returns an invalid response.
+ * WebApplicationException class to represent 409 status.
  */
-public class BadGatewayHttpException  extends WebApplicationException {
+public class ConflictHttpException extends WebApplicationException {
     private static final long serialVersionUID = 1L;
 
-    public BadGatewayHttpException(String message) {
-        super(ResponseUtils.buildErrorResponse(502, message));
+    public ConflictHttpException(String message) {
+        super(buildErrorResponse(CONFLICT.getStatusCode(), message));
     }
-}
 
+    public ConflictHttpException(Throwable throwable, String message) {
+        super(throwable,
+            buildErrorResponse(CONFLICT.getStatusCode(), message));
+    }
+
+}

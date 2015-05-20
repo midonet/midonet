@@ -38,10 +38,10 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
@@ -110,7 +110,7 @@ public class HostResource extends AbstractResource {
         org.midonet.cluster.data.host.Host hostConfig =
                 dataClient.hostsGet(id);
         if (hostConfig == null) {
-            throwNotFound(id, "host");
+            throw notFoundException(id, "host");
         }
         return HostDataConverter.fromData(hostConfig, getBaseUri());
     }
@@ -200,12 +200,10 @@ public class HostResource extends AbstractResource {
                 dataClient.hostsSetFloodingProxyWeight(id, weight);
                 return Response.ok().build();
             } catch (NoStatePathException e) {
-                throwNotFound(id, "host");
-                return null; // unreachable
+                throw notFoundException(id, "host");
             }
         } else if (!dataClient.hostsExists(id)) {
-            throwNotFound(id, "host");
-            return null; // unreachable
+            throw notFoundException(id, "host");
         } else {
             throw new BadRequestHttpException(
                 getMessage(HOST_FLOODING_PROXY_WEIGHT_IS_NULL));

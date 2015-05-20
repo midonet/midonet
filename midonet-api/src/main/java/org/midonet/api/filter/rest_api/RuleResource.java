@@ -45,8 +45,8 @@ import org.midonet.api.auth.AuthRole;
 import org.midonet.api.filter.Rule;
 import org.midonet.api.filter.RuleFactory;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.VendorMediaType;
@@ -117,7 +117,7 @@ public class RuleResource extends AbstractResource {
             authoriser.tryAuthoriseRule(id, "view this rule");
 
         if (ruleData == null) {
-            throwNotFound(id, "rule");
+            throw notFoundException(id, "rule");
         }
 
         // Convert to the REST API DTO

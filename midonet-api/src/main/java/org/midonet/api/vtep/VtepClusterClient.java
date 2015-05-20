@@ -33,11 +33,11 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.api.network.VTEPPort;
 import org.midonet.api.network.VtepBinding;
-import org.midonet.api.rest_api.BadGatewayHttpException;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.GatewayTimeoutHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.BadGatewayHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.GatewayTimeoutHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.southbound.vtep.VtepDataClient;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 import org.midonet.cluster.DataClient;
@@ -223,7 +223,7 @@ public class VtepClusterClient {
         PhysicalSwitch ps = getPhysicalSwitch(vtepClient, mgmtIp);
         if (ps == null) {
             throw new GatewayTimeoutHttpException(getMessage(
-                    VTEP_INACCESSIBLE, mgmtIp, mgmtPort));
+                VTEP_INACCESSIBLE, mgmtIp, mgmtPort));
         }
 
         // TODO: Handle error if this fails or returns null.
@@ -566,7 +566,7 @@ public class VtepClusterClient {
      * Tries to store a binding in the Midonet store, but will throw if the
      * port/vlan is already taken by any bridge (including the given one)
      *
-     * @throws org.midonet.api.rest_api.ConflictHttpException if the binding
+     * @throws ConflictHttpException if the binding
      * already exsts.
      */
     private void tryStoreBinding(IPv4Addr mgmtIp, int mgmtPort,

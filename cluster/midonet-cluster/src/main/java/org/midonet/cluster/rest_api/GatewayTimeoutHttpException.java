@@ -13,25 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+
+package org.midonet.cluster.rest_api;
 
 import javax.ws.rs.WebApplicationException;
 
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
-
 /**
- * WebApplicationException class to represent 403 status.
+ * WebApplicationException class to represent 504 status. Thrown when
+ * an upstream service is not accessible.
  */
-public class ForbiddenHttpException extends WebApplicationException {
-
+public class GatewayTimeoutHttpException extends WebApplicationException {
     private static final long serialVersionUID = 1L;
 
-    public ForbiddenHttpException() {
-        this("");
+    public GatewayTimeoutHttpException(String message) {
+        this(message, null);
     }
 
-    public ForbiddenHttpException(String message) {
-        super(buildErrorResponse(FORBIDDEN.getStatusCode(), message));
+    public GatewayTimeoutHttpException(String message, Throwable cause) {
+        super(cause, ResponseUtils.buildErrorResponse(504, message));
     }
 }

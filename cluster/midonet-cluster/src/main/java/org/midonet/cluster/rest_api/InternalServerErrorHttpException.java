@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package org.midonet.client.exception;
+package org.midonet.cluster.rest_api;
 
-import com.sun.jersey.api.client.ClientResponse;
+import javax.ws.rs.WebApplicationException;
 
-/**
- * User: tomoe
- * Date: 8/14/12
- * Time: 2:22 PM
- */
-public class HttpBadRequestException extends HttpException {
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
+public class InternalServerErrorHttpException extends WebApplicationException {
 
     static final long serialVersionUID = 1L;
 
-    public HttpBadRequestException(ClientResponse response) {
-        super(response);
+    public InternalServerErrorHttpException(String message) {
+        super(buildErrorResponse(INTERNAL_SERVER_ERROR.getStatusCode(),
+                                 message));
     }
 }

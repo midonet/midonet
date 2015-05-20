@@ -41,7 +41,7 @@ import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
@@ -107,7 +107,7 @@ public class RouterResource extends AbstractResource {
             authoriser.tryAuthoriseRouter(id, "view this router");
 
         if (routerData == null) {
-            throwNotFound(id, "router");
+            throw notFoundException(id, "router");
         }
 
         return RouterDataConverter.fromData(routerData, getBaseUri());

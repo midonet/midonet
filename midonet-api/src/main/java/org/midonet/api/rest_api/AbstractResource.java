@@ -28,9 +28,13 @@ import javax.ws.rs.core.UriInfo;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExceptionBase;
 import org.midonet.packets.IPv4Addr;
 
 import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
@@ -94,7 +98,16 @@ public abstract class AbstractResource {
         if (primaryResourceId.equals(ex.getNodeInfo().id)) {
             return new NotFoundHttpException(ex);
         } else {
-            return new BadRequestHttpException(ex);
+            StatePathExceptionBase.NodeInfo node = ex.getNodeInfo();
+            String msg;
+            if (node == null) {
+                msg = MessageProperty.getMessage(RESOURCE_NOT_FOUND);
+            } else {
+                msg = MessageProperty.getMessage(RESOURCE_NOT_FOUND,
+                                                 node.nodeType.name,
+                                                 node.id);
+            }
+            return new BadRequestHttpException(ex, msg);
         }
     }
 
@@ -114,8 +127,8 @@ public abstract class AbstractResource {
         }
     }
 
-    protected void throwNotFound(UUID id, String resourceType) {
-        throw new NotFoundHttpException(
+    protected NotFoundHttpException notFoundException(UUID id, String resourceType) {
+        return new NotFoundHttpException(
                 getMessage(RESOURCE_NOT_FOUND, resourceType, id));
     }
 
