@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_1c4b6db1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T15:41:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_96259cad",
+      "range": {
+        "startLine": 77,
+        "startChar": 11,
+        "endLine": 77,
+        "endChar": 49
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_f64a6854",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 9
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-20T10:09:16Z",
       "side": 1,
       "message": "s/according/accordingly/",
+      "range": {
+        "startLine": 92,
+        "startChar": 30,
+        "endLine": 92,
+        "endChar": 39
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5ccc1536",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T15:41:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_f64a6854",
       "range": {
         "startLine": 92,
         "startChar": 30,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_9cd69dc4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T15:41:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_16526cdd",
+      "range": {
+        "startLine": 257,
+        "startChar": 55,
+        "endLine": 257,
+        "endChar": 75
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b6cd4089",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 9
@@ -82,6 +154,30 @@
       "writtenOn": "2015-05-20T10:09:16Z",
       "side": 1,
       "message": "This seems createInV2 will always fail after createInV1 successfully returned true?",
+      "range": {
+        "startLine": 298,
+        "startChar": 8,
+        "endLine": 298,
+        "endChar": 47
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b139cada",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T15:41:13Z",
+      "side": 1,
+      "message": "Previously this was possible. But not V1 and V2 stacks should be mutually exclusive.",
+      "parentUuid": "facab960_b6cd4089",
       "range": {
         "startLine": 298,
         "startChar": 8,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_bcda81e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T15:41:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_b6946045",
+      "range": {
+        "startLine": 324,
+        "startChar": 15,
+        "endLine": 330,
+        "endChar": 17
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_f69ee862",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 9
@@ -128,6 +248,30 @@
       "writtenOn": "2015-05-20T10:09:16Z",
       "side": 1,
       "message": "In essence, this is the exactly the same as \"newHost\" above as newHost is guaranteed to have hostId as an ID.",
+      "range": {
+        "startLine": 336,
+        "startChar": 16,
+        "endLine": 340,
+        "endChar": 28
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_fc57a924",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T15:41:13Z",
+      "side": 1,
+      "message": "Yes, you\u0027re right, but above I want to preserve any other data of the host object (flooding proxy weight, tunnel zones, bindings) and only update the interfaces. Setting the name is not necessary - this is a leftover from before when I wasn\u0027t sure how to test whether a host is distinct.",
+      "parentUuid": "facab960_f69ee862",
       "range": {
         "startLine": 336,
         "startChar": 16,
