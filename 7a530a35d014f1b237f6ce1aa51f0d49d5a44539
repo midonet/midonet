@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_175266dd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-20T16:35:41Z",
+      "side": 1,
+      "message": "i think you can just replace the flowTags with the flowTagsOrdered. we already filter out duplicates in the FlowTagIndexer.\n\nwe\u0027ll do a linear search in matchTraversedDevices but since the number of tag is low, that\u0027s okay and fast. \n\nthis way we don\u0027t even have to generate garbage :)",
+      "revId": "7a530a35d014f1b237f6ce1aa51f0d49d5a44539",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d7471e1c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-20T16:35:41Z",
+      "side": 1,
+      "message": "this compiles?",
+      "revId": "7a530a35d014f1b237f6ce1aa51f0d49d5a44539",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
