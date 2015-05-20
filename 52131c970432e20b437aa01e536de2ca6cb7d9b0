@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_3c183184",
+        "filename": "midolman/src/main/java/org/midonet/midolman/cluster/zookeeper/ZkConnectionProvider.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T15:46:40Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_2f0904de",
+      "range": {
+        "startLine": 39,
+        "startChar": 57,
+        "endLine": 39,
+        "endChar": 61
+      },
+      "revId": "52131c970432e20b437aa01e536de2ca6cb7d9b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_6c02ea70",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 8
