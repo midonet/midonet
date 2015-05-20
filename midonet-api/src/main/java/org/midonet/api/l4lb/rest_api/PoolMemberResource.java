@@ -42,27 +42,29 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.PoolMember;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.event.topology.PoolMemberEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExceptionBase;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 
 import static org.midonet.cluster.rest_api.conversion.PoolMemberDataConverter.fromData;
 import static org.midonet.cluster.rest_api.conversion.PoolMemberDataConverter.toData;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_STATUS_IS_PENDING;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
@@ -109,7 +111,7 @@ public class PoolMemberResource extends AbstractResource {
         org.midonet.cluster.data.l4lb.PoolMember PoolMemberData =
             dataClient.poolMemberGet(id);
         if (PoolMemberData == null) {
-            throwNotFound(id, "pool member");
+            throw notFoundException(id, "pool member");
         }
 
         return fromData(PoolMemberData, getBaseUri());
@@ -128,7 +130,8 @@ public class PoolMemberResource extends AbstractResource {
         } catch (NoStatePathException ex) {
             // Delete is idempotent, so do nothing.
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -154,7 +157,8 @@ public class PoolMemberResource extends AbstractResource {
             throw new ConflictHttpException(ex, getMessage(
                     RESOURCE_EXISTS, "pool member", poolMember.id));
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -185,7 +189,8 @@ public class PoolMemberResource extends AbstractResource {
         } catch (NoStatePathException ex) {
             throw badReqOrNotFoundException(ex, id);
         } catch (MappingStatusException ex) {
-            throw new ServiceUnavailableHttpException(ex);
+            throw new ServiceUnavailableHttpException(
+                getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
         }
     }
 
@@ -218,7 +223,9 @@ public class PoolMemberResource extends AbstractResource {
             try {
                 members = dataClient.poolGetMembers(poolId);
             } catch (NoStatePathException ex) {
-                throw new NotFoundHttpException(ex);
+                StatePathExceptionBase.NodeInfo n = ex.getNodeInfo();
+                throw new NotFoundHttpException(
+                    getMessage(RESOURCE_NOT_FOUND, n.nodeType.name, n.id));
             }
 
             List<PoolMember> poolMembers = new ArrayList<>();
@@ -249,11 +256,14 @@ public class PoolMemberResource extends AbstractResource {
                         .build();
             } catch (StatePathExistsException ex) {
                 throw new ConflictHttpException(ex, getMessage(
-                        MessageProperty.RESOURCE_EXISTS, "pool member"));
+                        RESOURCE_EXISTS, "pool member"));
             } catch (NoStatePathException ex) {
-                throw new NotFoundHttpException(ex);
+                StatePathExceptionBase.NodeInfo n = ex.getNodeInfo();
+                throw new NotFoundHttpException(
+                    getMessage(RESOURCE_NOT_FOUND, n.nodeType.name, n.id));
             } catch (MappingStatusException ex) {
-                throw new ServiceUnavailableHttpException(ex);
+                throw new ServiceUnavailableHttpException(
+                    getMessage(MAPPING_STATUS_IS_PENDING, ex.getMessage()));
             }
         }
     }

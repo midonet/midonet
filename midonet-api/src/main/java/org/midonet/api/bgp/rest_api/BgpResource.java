@@ -108,7 +108,7 @@ public class BgpResource extends AbstractResource {
 
         BGP bgpData = dataClient.bgpGet(id);
         if (bgpData == null) {
-            throwNotFound(id, "bgp");
+            throw notFoundException(id, "bgp");
         }
 
         // Convert to the REST API DTO

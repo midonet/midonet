@@ -30,14 +30,13 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.LBStatus;
-import org.midonet.cluster.rest_api.models.ResourceUris;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
