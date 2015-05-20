@@ -22,7 +22,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.host.HostInterfacePort;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.event.topology.PortEvent;

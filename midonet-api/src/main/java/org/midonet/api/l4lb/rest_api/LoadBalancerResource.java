@@ -40,9 +40,9 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
@@ -125,7 +125,7 @@ public class LoadBalancerResource extends AbstractResource {
         org.midonet.cluster.data.l4lb.LoadBalancer loadBalancerData =
             dataClient.loadBalancerGet(id);
         if (loadBalancerData == null) {
-            throwNotFound(id, "load balancer");
+            throw notFoundException(id, "load balancer");
         }
 
         return LoadBalancerDataConverter.fromData(loadBalancerData, getBaseUri

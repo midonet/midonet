@@ -41,7 +41,7 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
@@ -109,7 +109,7 @@ public class RouteResource extends AbstractResource {
         org.midonet.cluster.data.Route routeData = dataClient.routesGet(id);
 
         if (routeData == null || routeData.getRouterId() == null) {
-            throwNotFound(id, "route");
+            notFoundException(id, "route");
         }
 
         authoriser.tryAuthoriseRouter(routeData.getRouterId(),
