@@ -107,7 +107,7 @@ public class AdRouteResource extends AbstractResource {
             authoriser.tryAuthoriseAdRoute(id, "view this ad route.");
 
         if (adRouteData == null) {
-            throwNotFound(id, "ad route");
+            throw notFoundException(id, "ad route");
         }
 
         // Convert to the REST API DTO

@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.midonet.api.rest_api;
+package org.midonet.cluster.rest_api;
 
 import javax.ws.rs.WebApplicationException;
 
-import org.midonet.cluster.rest_api.ResponseUtils;
-
 /**
  * WebApplicationException class to represent 504 status. Thrown when
- * an upstream service returns an invalid response.
+ * an upstream service is not accessible.
  */
-public class BadGatewayHttpException  extends WebApplicationException {
+public class GatewayTimeoutHttpException extends WebApplicationException {
     private static final long serialVersionUID = 1L;
 
-    public BadGatewayHttpException(String message) {
-        super(ResponseUtils.buildErrorResponse(502, message));
+    public GatewayTimeoutHttpException(String message) {
+        this(message, null);
+    }
+
+    public GatewayTimeoutHttpException(String message, Throwable cause) {
+        super(cause, ResponseUtils.buildErrorResponse(504, message));
     }
 }
-

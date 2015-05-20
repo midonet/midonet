@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.midonet.cluster.rest_api;
 
-package org.midonet.client.exception;
+import javax.ws.rs.WebApplicationException;
 
-import com.sun.jersey.api.client.ClientResponse;
+import static javax.ws.rs.core.Response.Status.FORBIDDEN;
+import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
 
 /**
- * User: tomoe
- * Date: 8/14/12
- * Time: 2:22 PM
+ * WebApplicationException class to represent 403 status.
  */
-public class HttpForbiddenException extends HttpException {
+public class ForbiddenHttpException extends WebApplicationException {
 
-    static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-    public HttpForbiddenException(ClientResponse response) {
-        super(response);
+    public ForbiddenHttpException(String message) {
+        super(buildErrorResponse(FORBIDDEN.getStatusCode(), message));
     }
 }
