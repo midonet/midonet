@@ -28,6 +28,8 @@ import javax.ws.rs.core.UriInfo;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -114,8 +116,8 @@ public abstract class AbstractResource {
         }
     }
 
-    protected void throwNotFound(UUID id, String resourceType) {
-        throw new NotFoundHttpException(
+    protected NotFoundHttpException notFoundException(UUID id, String resourceType) {
+        return new NotFoundHttpException(
                 getMessage(RESOURCE_NOT_FOUND, resourceType, id));
     }
 

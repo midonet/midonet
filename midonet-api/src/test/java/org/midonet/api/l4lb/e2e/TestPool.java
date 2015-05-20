@@ -30,19 +30,19 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.LBStatus;
-import org.midonet.cluster.rest_api.models.ResourceUris;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_POOL_COLLECTION_JSON;
@@ -185,7 +185,7 @@ public class TestPool {
             pool.setHealthMonitorId(UUID.randomUUID());
             dtoResource.postAndVerifyError(topLevelPoolsUri,
                                            APPLICATION_POOL_JSON, pool,
-                                           BAD_REQUEST);
+                                           NOT_FOUND);
         }
 
         @Test

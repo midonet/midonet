@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.rest_api;
+package org.midonet.cluster.rest_api;
 
 import javax.ws.rs.WebApplicationException;
 
@@ -28,13 +28,6 @@ public class NotFoundHttpException extends WebApplicationException {
 
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Create a NotFoundHttpException object with no message.
-     */
-    public NotFoundHttpException() {
-        this("");
-    }
-
     public NotFoundHttpException(String message) {
         super(buildErrorResponse(NOT_FOUND.getStatusCode(), message));
     }
@@ -44,13 +37,7 @@ public class NotFoundHttpException extends WebApplicationException {
             buildErrorResponse(NOT_FOUND.getStatusCode(), message));
     }
 
-    public NotFoundHttpException(NoStatePathException ex) {
-        this(getMessage(ex));
-    }
-
-    private static String getMessage(NoStatePathException ex) {
-        NodeInfo node = ex.getNodeInfo();
-        return MessageProperty.getMessage(MessageProperty.RESOURCE_NOT_FOUND,
-                                          node.nodeType.name, node.id);
+    public NotFoundHttpException(Throwable cause) {
+        super(cause);
     }
 }

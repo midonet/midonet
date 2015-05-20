@@ -13,29 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.rest_api;
+package org.midonet.cluster.rest_api;
 
 import java.util.Set;
 
 import javax.validation.ConstraintViolation;
 import javax.ws.rs.WebApplicationException;
 
-import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.cluster.rest_api.ResponseUtils;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StatePathExceptionBase;
-
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
 
 public class BadRequestHttpException extends WebApplicationException {
 
     private static final long serialVersionUID = 1L;
-
-    public BadRequestHttpException() {
-        this("");
-    }
 
     public BadRequestHttpException(String message) {
         super(buildErrorResponse(BAD_REQUEST.getStatusCode(), message));
@@ -51,19 +41,5 @@ public class BadRequestHttpException extends WebApplicationException {
 
     public <T> BadRequestHttpException(Set<ConstraintViolation<T>> violations) {
         super(ResponseUtils.buildValidationErrorResponse(violations));
-    }
-
-    public BadRequestHttpException(NoStatePathException ex) {
-        this(getMessage(ex));
-    }
-
-    private static String getMessage(NoStatePathException ex) {
-        StatePathExceptionBase.NodeInfo node = ex.getNodeInfo();
-        if (node == null) {
-            return MessageProperty.getMessage(RESOURCE_NOT_FOUND);
-        } else {
-            return MessageProperty.getMessage(
-                RESOURCE_NOT_FOUND, node.nodeType.name, node.id);
-        }
     }
 }

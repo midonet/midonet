@@ -24,8 +24,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ServiceUnavailableHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.rest_api.models.HealthMonitor;
 import org.midonet.cluster.rest_api.models.Pool;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
