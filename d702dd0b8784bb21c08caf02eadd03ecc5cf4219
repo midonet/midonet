@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_9c25bdad",
+        "filename": "midonet-client/src/main/java/org/midonet/client/resource/Bridge.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T13:58:11Z",
+      "side": 1,
+      "message": "Trivial issue: move these to the top.",
+      "range": {
+        "startLine": 23,
+        "startChar": 0,
+        "endLine": 26,
+        "endChar": 22
+      },
+      "revId": "d702dd0b8784bb21c08caf02eadd03ecc5cf4219",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_dc3665e7",
+        "filename": "midonet-client/src/main/java/org/midonet/client/resource/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-20T13:58:11Z",
+      "side": 1,
+      "message": "Same here",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 20
+      },
+      "revId": "d702dd0b8784bb21c08caf02eadd03ecc5cf4219",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
