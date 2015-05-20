@@ -40,9 +40,9 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
@@ -97,7 +97,7 @@ public class TunnelZoneResource extends AbstractResource {
     public TunnelZone get(@PathParam("id") UUID id) throws Exception {
 
         if (!dataClient.tunnelZonesExists(id)) {
-            throwNotFound(id, "tunnel zone");
+            throw notFoundException(id, "tunnel zone");
         }
         return fromData(dataClient.tunnelZonesGet(id), getBaseUri());
     }
@@ -178,7 +178,7 @@ public class TunnelZoneResource extends AbstractResource {
     public TunnelZoneHostResource getTunnelZoneHostResource(
             @PathParam("id") UUID id) throws StateAccessException {
         if (!dataClient.tunnelZonesExists(id)) {
-            throw new NotFoundHttpException();
+            throw notFoundException(id, "tunnel zone");
         }
         return factory.getTunnelZoneHostResource(id);
     }

@@ -39,10 +39,10 @@ import org.midonet.client.dto.DtoBridgePort;
 import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoInterface;
 import org.midonet.client.dto.DtoPort;
-import org.midonet.client.exception.HttpForbiddenException;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
+import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
@@ -414,7 +414,7 @@ public class TestHost extends JerseyTest {
         boolean caught403 = false;
         try {
             deadHost.delete();
-        } catch (HttpForbiddenException ex) {
+        } catch (ForbiddenHttpException ex) {
             caught403 = true;
         }
         assertThat("Deletion of host got 403", caught403, is(true));
@@ -564,7 +564,7 @@ public class TestHost extends JerseyTest {
         boolean caught403 = false;
         try {
             h1.delete();
-        } catch (HttpForbiddenException ex) {
+        } catch (ForbiddenHttpException ex) {
             caught403 = true;
         }
         assertThat("Deletion of host got 403", caught403, is(true));

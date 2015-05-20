@@ -14,20 +14,19 @@
  * limitations under the License.
  */
 
-package org.midonet.client.exception;
+package org.midonet.cluster.rest_api;
 
-import com.sun.jersey.api.client.ClientResponse;
+import javax.ws.rs.WebApplicationException;
 
 /**
- * User: tomoe
- * Date: 8/14/12
- * Time: 2:22 PM
+ * WebApplicationException class to represent 504 status. Thrown when
+ * an upstream service returns an invalid response.
  */
-public class HttpNotFoundException extends HttpException {
+public class BadGatewayHttpException  extends WebApplicationException {
+    private static final long serialVersionUID = 1L;
 
-    static final long serialVersionUID = 1L;
-
-    public HttpNotFoundException(ClientResponse response) {
-        super(response);
+    public BadGatewayHttpException(String message) {
+        super(ResponseUtils.buildErrorResponse(502, message));
     }
 }
+
