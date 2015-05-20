@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_96259cad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T10:09:16Z",
+      "side": 1,
+      "message": "\"Instance\" and \"agent\" seem repetitive. \"For this MidoNet agent\" or \"for the MidoNet agent\"?",
+      "range": {
+        "startLine": 77,
+        "startChar": 11,
+        "endLine": 77,
+        "endChar": 49
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f64a6854",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T10:09:16Z",
+      "side": 1,
+      "message": "s/according/accordingly/",
+      "range": {
+        "startLine": 92,
+        "startChar": 30,
+        "endLine": 92,
+        "endChar": 39
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_16526cdd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T10:09:16Z",
+      "side": 1,
+      "message": "Should this be Int.box(maxAttempts - 1) for logging?",
+      "range": {
+        "startLine": 257,
+        "startChar": 55,
+        "endLine": 257,
+        "endChar": 75
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b6cd4089",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T10:09:16Z",
+      "side": 1,
+      "message": "This seems createInV2 will always fail after createInV1 successfully returned true?",
+      "range": {
+        "startLine": 298,
+        "startChar": 8,
+        "endLine": 298,
+        "endChar": 47
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b6946045",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 330,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T10:09:16Z",
+      "side": 1,
+      "message": "Perhaps this check can come before building newHost completely?",
+      "range": {
+        "startLine": 324,
+        "startChar": 15,
+        "endLine": 330,
+        "endChar": 17
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f69ee862",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-20T10:09:16Z",
+      "side": 1,
+      "message": "In essence, this is the exactly the same as \"newHost\" above as newHost is guaranteed to have hostId as an ID.",
+      "range": {
+        "startLine": 336,
+        "startChar": 16,
+        "endLine": 340,
+        "endChar": 28
+      },
+      "revId": "b4e6d5206e3f0f6658d05c44f69b051a3d164709",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
