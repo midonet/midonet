@@ -18,9 +18,7 @@ from nose.plugins.attrib import attr
 from mdts.lib.binding_manager import BindingManager
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
-from mdts.tests.utils.asserts import receives
-from mdts.tests.utils.asserts import should_NOT_receive
-from mdts.tests.utils.asserts import within_sec
+from mdts.tests.utils.asserts import *
 from mdts.tests.utils.utils import start_midolman_agents
 from mdts.tests.utils.utils import stop_midolman_agents
 from mdts.tests.utils.utils import get_midonet_api
@@ -59,7 +57,7 @@ binding_l4state = {
 
 def get_random_port_num():
     '''Returns a random port number from a free port range.
-    
+
     NOTE: Using a random number may cause test indeterminacy on a rare occasion.
     '''
     return random.randint(49152, 65535)
@@ -67,7 +65,7 @@ def get_random_port_num():
 
 ##############################################################################
 #
-# Scenario: 
+# Scenario:
 #
 #          host-2                                 host-3
 #            |                                      |
@@ -79,7 +77,7 @@ def get_random_port_num():
 #                                | 1 - 192.168.0.254/24
 #                                |
 #                                |
-#                              host-1 
+#                              host-1
 #
 #   * 2 & 3 form a port group.
 #   * This chain will apply to all traffic:
@@ -146,29 +144,30 @@ def teardown():
 
 def check_forward_flow(src_port_no):
     dst_mac = mac_for(downlink_port())
+    fs = expect_forward()
     f = downlink_iface().send_udp(dst_mac, '21.42.84.168', 41,
                                      src_port=src_port_no, dst_port=1080)
-    expect_forward()
-    wait_on_futures([f])
+    wait_on_futures([f, fs])
 
 def check_return_flow(port, iface, dst_port_no, dropped = False):
     dst_mac = mac_for(port)
+    fs = None
+    if dropped:
+        fs = expect_return_dropped(dst_port_no)
+    else:
+        fs = expect_return(dst_port_no)
     f = iface.send_udp(dst_mac, '192.168.0.1', 41,
                           src_port=80, dst_port=dst_port_no,
                           src_ipv4 = '172.16.42.1')
-    if dropped:
-        expect_return_dropped(dst_port_no)
-    else:
-        expect_return(dst_port_no)
-    wait_on_futures([f])
+    wait_on_futures([f, fs])
 
 def forward_filter():
     return 'dst host 172.16.42.1 and udp port 80'
 
 def expect_forward():
-    assert_that(left_uplink_iface(),
-            receives(forward_filter(), within_sec(5)),
-                     'Forward flow is DNATed and gets through.')
+    return async_assert_that(left_uplink_iface(),
+                             receives(forward_filter(), within_sec(5)),
+                             'Forward flow is DNATed and gets through.')
 
 def return_filter(dst_port_no):
     filter_ = 'udp'
@@ -177,14 +176,14 @@ def return_filter(dst_port_no):
     return filter_
 
 def expect_return(dst_port_no):
-    assert_that(downlink_iface(),
-            receives(return_filter(dst_port_no), within_sec(5)),
-                     'Return flow is rev-DNATed and gets through.')
+    return async_assert_that(downlink_iface(),
+                             receives(return_filter(dst_port_no), within_sec(5)),
+                             'Return flow is rev-DNATed and gets through.')
 
 def expect_return_dropped(dst_port_no):
-    assert_that(downlink_iface(),
-            should_NOT_receive(return_filter(dst_port_no), within_sec(5)),
-                     'Return flow gets dropped.')
+    return async_assert_that(downlink_iface(),
+                             should_NOT_receive(return_filter(dst_port_no), within_sec(5)),
+                             'Return flow gets dropped.')
 
 def reboot_agents(sleep_secs):
     midonet_api = get_midonet_api()
