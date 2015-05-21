@@ -83,11 +83,8 @@ class IPv4Addr(val addr: Int) extends IPAddr with Ordered[IPv4Addr] {
         inetAddress.isInstanceOf[Inet4Address] &&
             ByteBuffer.wrap(inetAddress.getAddress).getInt == addr
 
-    def isMcast: Boolean = {
-        val byte1: Int = addr >>> 24
-        // TODO(pino): check on this range.
-        byte1 >= 224 && byte1 < 240
-    }
+    def isMcast: Boolean =
+        (addr >>> 28) == 0xE
 }
 
 object IPv4Addr {
