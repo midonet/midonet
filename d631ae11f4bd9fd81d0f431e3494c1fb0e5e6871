@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_422b47eb",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-21T09:32:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_bf0b502a",
+      "revId": "d631ae11f4bd9fd81d0f431e3494c1fb0e5e6871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_8220ef9c",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/auth/AuthFilter.java",
         "patchSetId": 2
