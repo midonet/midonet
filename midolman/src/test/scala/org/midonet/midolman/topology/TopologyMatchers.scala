@@ -314,7 +314,7 @@ object TopologyMatchers {
             poolMember.id shouldBe pm.getId.asJava
             poolMember.adminStateUp shouldBe pm.getAdminStateUp
             poolMember.status shouldBe (if (pm.hasStatus)
-                l4lb.LBStatus.fromProto(pm.getStatus) else l4lb.LBStatus.INACTIVE)
+                l4lb.LBStatus.fromProto(pm.getStatus) else l4lb.LBStatus.ACTIVE)
             poolMember.address shouldBe (if (pm.hasAddress)
                 pm.getAddress.asIPv4Address else null)
             poolMember.protocolPort shouldBe pm.getProtocolPort

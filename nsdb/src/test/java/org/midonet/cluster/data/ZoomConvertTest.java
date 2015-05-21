@@ -21,7 +21,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-
 import static org.midonet.cluster.models.TestModels.TestFlatMessage;
 import static org.midonet.cluster.models.TestModels.TestFlatMessage.Enum.FIRST_VALUE;
 import static org.midonet.cluster.models.TestModels.TestFlatMessage.Enum.SECOND_VALUE;

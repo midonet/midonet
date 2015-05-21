@@ -21,48 +21,31 @@ import java.util.UUID
 import scala.util.Random
 
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FlatSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons.LBStatus
-import org.midonet.cluster.models.Topology
 import org.midonet.midolman.simulation.PoolMember
-import org.midonet.midolman.state.l4lb
 import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
-class PoolMemberConversionTest extends FeatureSpec with Matchers
+class PoolMemberConversionTest extends FlatSpec with Matchers
                                with TopologyBuilder with TopologyMatchers {
 
     private val random = new Random()
 
-    feature("Conversion for pool members") {
-        scenario("Test conversion from Protocol Buffers message") {
-            val poolMember = createPoolMember(
-                adminStateUp = Some(random.nextBoolean()),
-                poolId = Some(UUID.randomUUID),
-                status = Some(LBStatus.ACTIVE),
-                address = Some(IPv4Addr.random),
-                protocolPort = Some(random.nextInt()),
-                weight = Some(random.nextInt()))
-            val device = ZoomConvert.fromProto(poolMember, classOf[PoolMember])
+    "PoolMember" should "convert from Protocol Buffers message" in {
+        val poolMember = createPoolMember(
+            adminStateUp = Some(random.nextBoolean()),
+            poolId = Some(UUID.randomUUID),
+            status = Some(LBStatus.ACTIVE),
+            address = Some(IPv4Addr.random),
+            protocolPort = Some(random.nextInt() & 0xFFFF),
+            weight = Some(random.nextInt()))
+        val device = ZoomConvert.fromProto(poolMember, classOf[PoolMember])
 
-            device shouldBeDeviceOf poolMember
-        }
-
-        scenario("Test conversion to Protocol Buffers message") {
-            val poolMember = new PoolMember(UUID.randomUUID,
-                                            random.nextBoolean(),
-                                            l4lb.LBStatus.ACTIVE,
-                                            IPv4Addr.random,
-                                            random.nextInt(),
-                                            random.nextInt())
-            val proto = ZoomConvert.toProto(poolMember,
-                                            classOf[Topology.PoolMember])
-
-            poolMember shouldBeDeviceOf proto
-        }
+        device shouldBeDeviceOf poolMember
     }
 }

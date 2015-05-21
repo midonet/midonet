@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.UUID;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
@@ -69,6 +70,16 @@ public class ZoomObjectTest {
 
         TestableZoomObject2 convertedPojo = ZoomConvert.fromProto(proto, TestableZoomObject2.class);
         assertEquals(pojo, convertedPojo);
+    }
+
+    @Test
+    public void testConversionWithConstructor() {
+        FakeDevice message = buildDevice();
+
+        DeviceWithConstructor pojo =
+            ZoomConvert.fromProto(message, DeviceWithConstructor.class);
+
+        message.getId() ;
     }
 
     static TestMessage buildMessage() {
@@ -204,11 +215,27 @@ public class ZoomObjectTest {
     @ZoomClass(clazz = TestModels.FakeDevice.class)
     static class Device extends ZoomObject {
         @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-        private java.util.UUID id;
+        private UUID id;
         @ZoomField(name = "name")
         private String name;
         @ZoomField(name = "port_ids")
         private List<String> portIds;
+    }
+
+    @ZoomClass(clazz = TestModels.FakeDevice.class)
+    public static class DeviceWithConstructor extends ZoomObject {
+        public UUID id;
+        public String name;
+        public List<String> portIds;
+        @Zoom
+        private DeviceWithConstructor(
+            @ZoomField(name = "id", converter = UUIDUtil.Converter.class) UUID id,
+            @ZoomField(name = "name") String name,
+            @ZoomField(name = "port_ids") List<String> portIds) {
+            this.id = id;
+            this.name = name;
+            this.portIds = portIds;
+        }
     }
 
     static abstract class BaseZoomObject extends ZoomObject {
