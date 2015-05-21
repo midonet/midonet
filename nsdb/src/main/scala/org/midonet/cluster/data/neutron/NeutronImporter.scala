@@ -68,6 +68,8 @@ object NeutronResourceType extends Enumeration {
     val Config = NeutronResourceType("CONFIG", classOf[NeutronConfig])
     val FloatingIp = NeutronResourceType("FLOATINGIP",
                                          classOf[Neutron.FloatingIp])
+    val HealthMonitor = NeutronResourceType(
+            "HEALTHMONITOR", classOf[Neutron.NeutronHealthMonitor])
     val Network = NeutronResourceType("NETWORK", classOf[NeutronNetwork])
     val Pool = NeutronResourceType("POOL", classOf[NeutronLoadBalancerPool])
     val Port = NeutronResourceType("PORT", classOf[NeutronPort])
@@ -86,6 +88,7 @@ object NeutronResourceType extends Enumeration {
         AgentMembership.id -> AgentMembership,
         Config.id -> Config,
         FloatingIp.id -> FloatingIp,
+        HealthMonitor.id -> HealthMonitor,
         Network.id -> Network,
         Pool.id -> Pool,
         Port.id -> Port,
