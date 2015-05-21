@@ -34,6 +34,7 @@ import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.auth.{MockAuthService, AuthService}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
@@ -73,6 +74,8 @@ object Vladimir {
                 .asEagerSingleton()
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[ApplicationResource])
+            bind(classOf[AuthService]).to(classOf[MockAuthService])
+                                      .asEagerSingleton()
 
             val initParams = new java.util.HashMap[String, String]
             initParams.put(ContainerResponseFiltersClass,
