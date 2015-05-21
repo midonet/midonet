@@ -18,6 +18,7 @@ package org.midonet.api.rest_api;
 import java.net.URI;
 import java.util.UUID;
 
+import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -47,6 +48,16 @@ public class FuncTest {
 
     public static ObjectMapper objectMapper;
 
+    // Can be used to access the Guice context that is created for the
+    // embedded API.  The right place to set it is the
+    // GuiceServletContextListener that is implemented to start up the API.
+    public static Injector _injector = null;
+
+    // This is required at some of the tests to be able to manipulate the
+    // ZK configuration through a backend-agnostic interface for objects
+    // that cannot be modified through the REST API.
+    public static TopologyBackdoor topologyBackdoor;
+
     static {
         HostIdGenerator.useTemporaryHostId();
         objectMapper = new ObjectMapper();
@@ -65,9 +76,6 @@ public class FuncTest {
         jacksonJaxbJsonProvider =
             new WildCardJacksonJaxbJsonProvider(mapperProvider);
         config.getSingletons().add(jacksonJaxbJsonProvider);
-
-
-        UUID testRunUuid = UUID.randomUUID();
 
         String zkRoot = ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID();
         return new WebAppDescriptor.Builder()
