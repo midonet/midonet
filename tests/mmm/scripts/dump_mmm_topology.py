@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Copyright 2014 Midokura SARL
 #
@@ -80,7 +80,7 @@ def check_ethtool():
 
 
 def main():
-    check_ethtool() 
+    check_ethtool()
 
     check_rootns()
 

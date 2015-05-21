@@ -102,7 +102,7 @@ do
             fi
             ;;
         r)
-            DIR=$OPTARG
+            PDIR=$OPTARG
              ;;
         ?)
             usage
@@ -121,4 +121,4 @@ then
     exit 1
 fi
 
-sudo PYTHONPATH=$DIR ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
+sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
