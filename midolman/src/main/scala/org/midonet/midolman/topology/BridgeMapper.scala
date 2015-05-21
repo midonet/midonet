@@ -641,7 +641,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
                         // The peer is the VLAN aware bridge.
                         log.debug("Peer port {} mapped to VLAN ID {}",
                                   peerPort.id, Short.box(peerPort.vlanId))
-                        vlanBridgePeerPortId = Some(peerPort.id)
+                        vlanBridgePeerPortId = Some(localPort.id)
                     } else {
                         log.warn("Peer port {} has no VLAN ID", peerPort.id)
                     }
