@@ -32,7 +32,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -44,9 +44,6 @@ import org.midonet.client.resource.HostInterface;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.CoreMatchers.allOf;
@@ -70,7 +67,7 @@ public class TestHost extends JerseyTest {
     public static final int DEFAULT_FLOODING_PROXY_WEIGHT = 1;
     public static final int FLOODING_PROXY_WEIGHT = 42;
 
-    private HostZkManager hostManager;
+    private TopologyBackdoor topologyBackdoor;
     private DtoWebResource dtoResource;
     private Topology topology;
     private MidonetApi api;
@@ -135,7 +132,8 @@ public class TestHost extends JerseyTest {
                 .get(ClientResponse.class);
 
         topology = new Topology.Builder(dtoResource).build();
-        hostManager = JerseyGuiceTestServletContextListener.getHostZkManager();
+        topologyBackdoor = FuncTest._injector
+                                   .getInstance(TopologyBackdoor.class);
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());
         api.enableLogging();
@@ -169,13 +167,10 @@ public class TestHost extends JerseyTest {
     public void testAliveHost() throws Exception {
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("semporiki");
-
         ResourceCollection<Host> hosts = api.getHosts();
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("Hosts should be empty", hosts.size(), equalTo(0));
-        hostManager.createHost(hostId, metadata);
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
 
         hosts = api.getHosts();
 
@@ -187,7 +182,7 @@ public class TestHost extends JerseyTest {
         assertThat("The host should not be alive",
                    hosts.get(0).isAlive(), equalTo(false));
 
-        hostManager.makeAlive(hostId);
+        topologyBackdoor.makeHostAlive(hostId);
 
         hosts = api.getHosts();
 
@@ -204,13 +199,10 @@ public class TestHost extends JerseyTest {
     public void testFloodingProxyWeight() throws Exception {
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("semporiki");
-
         ResourceCollection<Host> hosts = api.getHosts();
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("Hosts should be empty", hosts.size(), equalTo(0));
-        hostManager.createHost(hostId, metadata);
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
 
         hosts = api.getHosts();
 
@@ -220,19 +212,19 @@ public class TestHost extends JerseyTest {
         assertThat("The returned host should have the same UUID",
                    hosts.get(0).getId(), equalTo(hostId));
 
-        Integer weight = hostManager.getFloodingProxyWeight(hostId);
+        Integer weight = topologyBackdoor.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should be null",
                    weight, is(nullValue()));
 
-        hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
-        weight = hostManager.getFloodingProxyWeight(hostId);
+        topologyBackdoor.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+        weight = topologyBackdoor.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should not be null",
                    weight, is(notNullValue()));
         assertThat("The flooding proxy weight has the proper value",
                    weight, equalTo(FLOODING_PROXY_WEIGHT));
 
-        hostManager.setFloodingProxyWeight(hostId, 0);
-        weight = hostManager.getFloodingProxyWeight(hostId);
+        topologyBackdoor.setFloodingProxyWeight(hostId, 0);
+        weight = topologyBackdoor.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should not be null",
                    weight, is(notNullValue()));
         assertThat("The flooding proxy weight has the proper value",
@@ -248,17 +240,17 @@ public class TestHost extends JerseyTest {
         assertThat("Hosts should be empty", hosts.size(), equalTo(0));
 
         try {
-            hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+            topologyBackdoor.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
             fail(
                 "Flooding proxy weight cannot be set on non-existing hosts");
-        } catch (NoStatePathException e) {
+        } catch (RuntimeException e) {
             // ok
         }
 
         try {
-            hostManager.getFloodingProxyWeight(hostId);
+            topologyBackdoor.getFloodingProxyWeight(hostId);
             fail("Flooding proxy weight cannot be retrieved on non-existing hosts");
-        } catch (NoStatePathException e) {
+        } catch (RuntimeException e) {
             // ok
         }
     }
@@ -267,14 +259,11 @@ public class TestHost extends JerseyTest {
     public void testDeleteFloodingProxyWeight() throws Exception {
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("semporiki");
-
         ResourceCollection<Host> hosts = api.getHosts();
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
         assertThat("Hosts should be empty", hosts.size(), equalTo(0));
-        hostManager.createHost(hostId, metadata);
-        hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
+        topologyBackdoor.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
 
         hosts = api.getHosts();
 
@@ -284,7 +273,7 @@ public class TestHost extends JerseyTest {
         assertThat("The returned host should have the same UUID",
                    hosts.get(0).getId(), equalTo(hostId));
 
-        Integer weight = hostManager.getFloodingProxyWeight(hostId);
+        Integer weight = topologyBackdoor.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should not be null",
                    weight, is(notNullValue()));
         assertThat("The flooding proxy weight has the proper value",
@@ -293,12 +282,12 @@ public class TestHost extends JerseyTest {
         hosts.get(0).delete();
 
         assertThat("Host should have been removed from ZooKeeper.",
-                   hostManager.getHostIds().isEmpty());
+                   topologyBackdoor.getHostIds().isEmpty());
 
         try {
-            hostManager.getFloodingProxyWeight(hostId);
+            topologyBackdoor.getFloodingProxyWeight(hostId);
             fail("Host flooding proxy weight should be removed from ZK.");
-        } catch (NoStatePathException e) {
+        } catch (RuntimeException e) {
             // ok
         }
     }
@@ -306,9 +295,7 @@ public class TestHost extends JerseyTest {
     @Test
     public void testGetFloodingProxyWeightDefault() throws Exception {
         UUID hostId = UUID.randomUUID();
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("semporiki");
-        hostManager.createHost(hostId, metadata);
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
 
         DtoHost dtoHost = retrieveHostV3(hostId);
         assertThat("Retrieved host info is not null",
@@ -321,10 +308,8 @@ public class TestHost extends JerseyTest {
     @Test
     public void testGetFloodingProxyWeight() throws Exception {
         UUID hostId = UUID.randomUUID();
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("semporiki");
-        hostManager.createHost(hostId, metadata);
-        hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
+        topologyBackdoor.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
 
         DtoHost dtoHost = retrieveHostV3(hostId);
         assertThat("Retrieved host info is not null",
@@ -337,10 +322,8 @@ public class TestHost extends JerseyTest {
     @Test
     public void testListHostsWithFloodingProxyWeight() throws Exception {
         UUID hostId = UUID.randomUUID();
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("semporiki");
-        hostManager.createHost(hostId, metadata);
-        hostManager.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
+        topologyBackdoor.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
 
         List<DtoHost> hostListV2 = retrieveHostListV3();
         DtoHost dtoHost = hostListV2.iterator().next();
@@ -354,27 +337,25 @@ public class TestHost extends JerseyTest {
     @Test
     public void testUpdate() throws Exception {
         UUID hostId = UUID.randomUUID();
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("semporiki");
-        hostManager.createHost(hostId, metadata);
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
         DtoHost dtoHost = retrieveHostV3(hostId);
         assertThat("Retrieved host info is not null",
                    dtoHost, is(notNullValue()));
 
         putHostV3(dtoHost);
-        Integer weight = hostManager.getFloodingProxyWeight(hostId);
+        Integer weight = topologyBackdoor.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should be the default value",
                    weight, equalTo(DEFAULT_FLOODING_PROXY_WEIGHT));
 
         dtoHost.setFloodingProxyWeight(FLOODING_PROXY_WEIGHT);
         putHostV3(dtoHost);
-        weight = hostManager.getFloodingProxyWeight(hostId);
+        weight = topologyBackdoor.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should be properly set",
                    weight, equalTo(FLOODING_PROXY_WEIGHT));
 
         dtoHost.setFloodingProxyWeight(null);
         putHostV3(dtoHost, ClientResponse.Status.BAD_REQUEST);
-        weight = hostManager.getFloodingProxyWeight(hostId);
+        weight = topologyBackdoor.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should be properly set",
                    weight, equalTo(FLOODING_PROXY_WEIGHT));
     }
@@ -382,9 +363,7 @@ public class TestHost extends JerseyTest {
     @Test
     public void testUpdateNoHost() throws Exception {
         UUID hostId = UUID.randomUUID();
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("semporiki");
-        hostManager.createHost(hostId, metadata);
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
         DtoHost dtoHost = retrieveHostV3(hostId);
         assertThat("Retrieved host info is not null",
                    dtoHost, is(notNullValue()));
@@ -398,16 +377,12 @@ public class TestHost extends JerseyTest {
     public void testDeadHostWithPortMapping() throws Exception {
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("testDeadhost");
-        hostManager.createHost(hostId, metadata);
+        topologyBackdoor.createHost(hostId, "testDead", new InetAddress[]{});
         // Don't make this host alive. We are testing deleting while dead.
 
         DtoBridge bridge = addBridge("testBridge");
         DtoPort port = addPort(bridge);
-        hostManager.addVirtualPortMapping(hostId,
-                                          new HostDirectory.VirtualPortMapping(
-                                              port.getId(), "BLAH"));
+        topologyBackdoor.addVirtualPortMapping(hostId, port.getId(), "BLAH");
 
         ResourceCollection<Host> hosts = api.getHosts();
         Host deadHost = hosts.get(0);
@@ -419,22 +394,20 @@ public class TestHost extends JerseyTest {
         }
         assertThat("Deletion of host got 403", caught403, is(true));
         assertThat("Host was not removed from zk",
-                   hostManager.getHostIds(), contains(hostId));
+                   topologyBackdoor.getHostIds(), contains(hostId));
 
-        hostManager.delVirtualPortMapping(hostId, port.getId());
+        topologyBackdoor.delVirtualPortMapping(hostId, port.getId());
         deadHost.delete();
 
         assertThat("Host was removed from zk",
-                   hostManager.getHostIds(), not(contains(hostId)));
+                   topologyBackdoor.getHostIds(), not(contains(hostId)));
     }
 
     @Test
     public void testOneHostNoAddresses() throws Exception {
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("testhost");
-        hostManager.createHost(hostId, metadata);
+        topologyBackdoor.createHost(hostId, "testhost", new InetAddress[]{});
 
         ResourceCollection<Host> hosts = api.getHosts();
 
@@ -454,14 +427,13 @@ public class TestHost extends JerseyTest {
 
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("testhost");
-        metadata.setAddresses(new InetAddress[]{
+        String hostName = "testhost";
+        InetAddress[] addrs = new InetAddress[]{
             InetAddress.getByAddress(new byte[]{127, 0, 0, 1}),
             InetAddress.getByAddress(
                 new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 127, 0, 0, 1}),
-        });
-        hostManager.createHost(hostId, metadata);
+        };
+        topologyBackdoor.createHost(hostId, hostName, addrs);
 
         ResourceCollection<Host> hosts = api.getHosts();
 
@@ -476,17 +448,15 @@ public class TestHost extends JerseyTest {
             host.getId(), equalTo(hostId));
         assertThat(
             "The returned host should have the same name as the one in ZK",
-            host.getName(), equalTo(metadata.getName()));
+            host.getName(), equalTo(hostName));
         assertThat("The returned host should have a not null address list",
                    host.getAddresses(), not(nullValue()));
         assertThat(
             "The returned host should have the same number of addresses as the metadata",
-            host.getAddresses().length,
-            equalTo(metadata.getAddresses().length));
+            host.getAddresses().length, equalTo(addrs.length));
         assertThat("The host should not be alive",
                    host.isAlive(), equalTo(false));
 
-        InetAddress[] addrs = metadata.getAddresses();
         for (int i = 0; i < addrs.length; i++) {
             InetAddress inetAddress = addrs[i];
 
@@ -501,13 +471,11 @@ public class TestHost extends JerseyTest {
     @Test
     public void testDeleteDeadHost() throws Exception {
         UUID hostId = UUID.randomUUID();
-
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("testhost");
-        metadata.setAddresses(new InetAddress[]{
+        String hostName = "testhost";
+        InetAddress[] addrs = new InetAddress[]{
             InetAddress.getByAddress(new byte[]{127, 0, 0, 1}),
-        });
-        hostManager.createHost(hostId, metadata);
+        };
+        topologyBackdoor.createHost(hostId, hostName, addrs);
 
         ResourceCollection<Host> hosts = api.getHosts();
 
@@ -530,21 +498,15 @@ public class TestHost extends JerseyTest {
         hosts.get(0).delete();
 
         assertThat("Host should have been removed from ZooKeeper.",
-                   hostManager.getHostIds(), not(contains(hostId)));
+                   topologyBackdoor.getHostIds(), not(contains(hostId)));
     }
 
     @Test
     public void testDeleteAliveHost() throws Exception {
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("testhost");
-        metadata.setAddresses(new InetAddress[]{
-            InetAddress.getByAddress(new byte[]{127, 0, 0, 1}),
-        });
-        hostManager.createHost(hostId, metadata);
-        hostManager.makeAlive(hostId);
-
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{});
+        topologyBackdoor.makeHostAlive(hostId);
 
         ResourceCollection<Host> hosts = api.getHosts();
 
@@ -569,22 +531,18 @@ public class TestHost extends JerseyTest {
         }
         assertThat("Deletion of host got 403", caught403, is(true));
         assertThat("Host was not removed from zk",
-                   hostManager.getHostIds(), contains(hostId));
+                   topologyBackdoor.getHostIds(), contains(hostId));
     }
 
     @Test
     public void testHostWithoutInterface() throws Exception {
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("test");
-        metadata.setAddresses(new InetAddress[]{
+        topologyBackdoor.createHost(hostId, "test", new InetAddress[]{
             InetAddress.getByAddress(
                 new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
         });
-
-        hostManager.createHost(hostId, metadata);
-        hostManager.makeAlive(hostId);
+        topologyBackdoor.makeHostAlive(hostId);
 
         DtoHost host = resource()
             .path("hosts/" + hostId.toString())
@@ -607,27 +565,18 @@ public class TestHost extends JerseyTest {
     public void testHostWithOneInterface() throws Exception {
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("test");
-        metadata.setAddresses(new InetAddress[]{
+        topologyBackdoor.createHost(hostId, "semporiki", new InetAddress[]{
             InetAddress.getByAddress(
                 new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
         });
+        topologyBackdoor.makeHostAlive(hostId);
 
-        hostManager.createHost(hostId, metadata);
-        hostManager.makeAlive(hostId);
-
-        HostDirectory.Interface anInterface = new HostDirectory.Interface();
-
-        anInterface.setName("eth0");
-        anInterface.setMac(MAC.fromString("16:1f:5c:19:a0:60").getAddress());
-        anInterface.setMtu(123);
-        anInterface.setType(HostDirectory.Interface.Type.Physical);
-        anInterface.setAddresses(new InetAddress[]{
-            InetAddress.getByAddress(new byte[]{10, 10, 10, 1})
+        String name = "eth0";
+        int mtu = 213;
+        MAC mac = MAC.fromString("16:1f:5c:19:a0:60");
+        topologyBackdoor.createInterface(hostId, name, mac, mtu,
+            new InetAddress[]{InetAddress.getByAddress(new byte[]{10,10,10,1})
         });
-
-        hostManager.createInterface(hostId, anInterface);
 
         ResourceCollection<Host> hosts = api.getHosts();
         Host host = hosts.get(0);
@@ -645,12 +594,11 @@ public class TestHost extends JerseyTest {
         assertThat("The DtoInterface object should have a proper host id",
                    hIface.getHostId(), equalTo(hostId));
         assertThat("The DtoInterface object should have a proper name",
-                   hIface.getName(), equalTo(anInterface.getName()));
+                   hIface.getName(), equalTo(name));
         assertThat("The DtoInterface should have a proper MTU valued",
-                   hIface.getMtu(), equalTo(anInterface.getMtu()));
+                   hIface.getMtu(), equalTo(mtu));
         assertThat("The DtoInterface should have the proper mac address",
-                   hIface.getMac(),
-                   equalTo(new MAC(anInterface.getMac()).toString()));
+                   hIface.getMac(), equalTo(mac.toString()));
         assertThat("The DtoInterface type should be returned properly",
                    hIface.getType(), equalTo(DtoInterface.Type.Physical));
     }
@@ -660,14 +608,8 @@ public class TestHost extends JerseyTest {
         UUID host1 = UUID.randomUUID();
         UUID host2 = UUID.randomUUID();
 
-        HostDirectory.Metadata metadata1 = new HostDirectory.Metadata();
-        metadata1.setName("host1");
-
-        HostDirectory.Metadata metadata2 = new HostDirectory.Metadata();
-        metadata1.setName("host2");
-
-        hostManager.createHost(host1, metadata1);
-        hostManager.createHost(host2, metadata2);
+        topologyBackdoor.createHost(host1, "host1", new InetAddress[]{});
+        topologyBackdoor.createHost(host2, "host2", new InetAddress[]{});
 
         ResourceCollection<Host> hosts = api.getHosts();
 
@@ -679,14 +621,14 @@ public class TestHost extends JerseyTest {
     public void testInterfaceUriIsValid() throws Exception {
         UUID hostId = UUID.randomUUID();
 
-        HostDirectory.Metadata hostMetadata = new HostDirectory.Metadata();
-        hostMetadata.setName("host1");
+        topologyBackdoor.createHost(hostId, "host1", new InetAddress[]{});
 
-        hostManager.createHost(hostId, hostMetadata);
-
-        HostDirectory.Interface hostInterface = new HostDirectory.Interface();
-        hostInterface.setName("test");
-        hostManager.createInterface(hostId, hostInterface);
+        String name = "eth0";
+        int mtu = 213;
+        MAC mac = MAC.fromString("16:1f:5c:19:a0:60");
+        topologyBackdoor.createInterface(hostId, name, mac, mtu,
+            new InetAddress[]{InetAddress.getByAddress(new byte[]{10,10,10,1})
+        });
 
         DtoHost host = resource()
             .path("hosts/" + hostId.toString())

@@ -36,11 +36,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -50,9 +49,7 @@ import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTenant;
-import org.midonet.midolman.state.ArpCacheEntry;
-import org.midonet.midolman.state.ArpTable;
-import org.midonet.midolman.state.zkManagers.RouterZkManager;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -436,13 +433,12 @@ public class TestRouter {
             DtoRouter resRouter = createRouter("router1", "tenant1-id",
                     false, false, 2);
             // Add an ARP entry in this router's ARP cache.
-            RouterZkManager routerMgr = JerseyGuiceTestServletContextListener
-                .getRouterZkManager();
-            ArpTable arpTable =
-                new ArpTable(routerMgr.getArpTableDirectory(resRouter.getId()));
-            arpTable.put(IPv4Addr.fromString("10.0.0.3"),
-                new ArpCacheEntry(MAC.fromString("02:00:dd:ee:ee:55"),
-                    1000, 1000, 3000));
+            FuncTest._injector
+                .getInstance(TopologyBackdoor.class)
+                .addArpTableEntryToRouter(resRouter.getId(),
+                                          IPv4Addr.fromString("10.0.0.3"),
+                                          MAC.fromString("02:00:dd:ee:ee:55"));
+
             dtoResource.deleteAndVerifyNoContent(
                 resRouter.getUri(), APPLICATION_ROUTER_JSON_V2);
         }
