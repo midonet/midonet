@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_b8f8c6e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "It is autonomous now and I\u0027m using observables of private maps to do the merging instead.",
+      "parentUuid": "facab960_fc3329f4",
+      "range": {
+        "startLine": 242,
+        "startChar": 22,
+        "endLine": 242,
+        "endChar": 60
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_fc4a4954",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
         "patchSetId": 6
@@ -95,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_582c1a4b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "I\u0027m using this approach now. I\u0027m using a snapshot from the TrieMap in method snapshot to avoid race conditions.",
+      "parentUuid": "facab960_b7c37a89",
+      "range": {
+        "startLine": 271,
+        "startChar": 28,
+        "endLine": 272,
+        "endChar": 80
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_1c48cd5a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
         "patchSetId": 6
@@ -106,6 +154,30 @@
       "writtenOn": "2015-05-20T14:11:34Z",
       "side": 1,
       "message": "Who needs this?",
+      "range": {
+        "startLine": 277,
+        "startChar": 4,
+        "endLine": 277,
+        "endChar": 40
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_181a9217",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "Nobody actually... removed",
+      "parentUuid": "facab960_1c48cd5a",
       "range": {
         "startLine": 277,
         "startChar": 4,
@@ -141,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_381756ef",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 286,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "facab960_9c73fdb0",
+      "range": {
+        "startLine": 286,
+        "startChar": 24,
+        "endLine": 286,
+        "endChar": 31
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_bc67e1e9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
         "patchSetId": 6
@@ -164,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_58d33a38",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "removed.",
+      "parentUuid": "facab960_bc67e1e9",
+      "range": {
+        "startLine": 287,
+        "startChar": 7,
+        "endLine": 288,
+        "endChar": 51
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_fc6169d4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
         "patchSetId": 6
@@ -175,6 +295,30 @@
       "writtenOn": "2015-05-20T14:11:34Z",
       "side": 1,
       "message": "Ditto. This responsibility should be outside this map (probably via composition of individual observables).\n\nWith an in memory implementation of the private map, this should be simple to add to your merged map no?",
+      "range": {
+        "startLine": 295,
+        "startChar": 8,
+        "endLine": 295,
+        "endChar": 63
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_98ddc245",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "done",
+      "parentUuid": "facab960_fc6169d4",
       "range": {
         "startLine": 295,
         "startChar": 8,
@@ -234,6 +378,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_b82526ad",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "Without talking too much about the merged map I can maybe add a little to clarify this.",
+      "parentUuid": "facab960_5ca095f4",
+      "range": {
+        "startLine": 27,
+        "startChar": 3,
+        "endLine": 27,
+        "endChar": 61
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_9caa1dd3",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 6
@@ -245,6 +413,30 @@
       "writtenOn": "2015-05-20T14:11:34Z",
       "side": 1,
       "message": "Ditto in the other class, I don\u0027t think this belongs here as the abstraction we\u0027re modelling here is a single map.",
+      "range": {
+        "startLine": 29,
+        "startChar": 30,
+        "endLine": 32,
+        "endChar": 15
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7852be14",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_9caa1dd3",
       "range": {
         "startLine": 29,
         "startChar": 30,
@@ -292,6 +484,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_98578202",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "I added a comment to clarify this.",
+      "parentUuid": "facab960_bcae01e6",
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_dcabc5d4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 6
@@ -303,6 +513,30 @@
       "writtenOn": "2015-05-20T14:11:34Z",
       "side": 1,
       "message": "ditto",
+      "range": {
+        "startLine": 44,
+        "startChar": 6,
+        "endLine": 45,
+        "endChar": 51
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_385f5610",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_dcabc5d4",
       "range": {
         "startLine": 44,
         "startChar": 6,
@@ -338,6 +572,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_78a0fef4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "V got restored.",
+      "parentUuid": "facab960_abc9595c",
+      "range": {
+        "startLine": 47,
+        "startChar": 55,
+        "endLine": 47,
+        "endChar": 59
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7c7c7973",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 6
@@ -349,6 +607,30 @@
       "writtenOn": "2015-05-20T14:11:34Z",
       "side": 1,
       "message": "Complete the observable instead.",
+      "range": {
+        "startLine": 62,
+        "startChar": 61,
+        "endLine": 63,
+        "endChar": 68
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_38b6763e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "I clarified my comment. What I meant is that the observable emits a null value for a given key to mean that the key has been removed.",
+      "parentUuid": "facab960_7c7c7973",
       "range": {
         "startLine": 62,
         "startChar": 61,
@@ -384,6 +666,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_987ce274",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "Hopefully, my clarification on what D is used for will make things clear.",
+      "parentUuid": "facab960_2bdd4915",
+      "range": {
+        "startLine": 65,
+        "startChar": 20,
+        "endLine": 65,
+        "endChar": 41
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_dc92e59e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 6
@@ -395,6 +701,30 @@
       "writtenOn": "2015-05-20T14:11:34Z",
       "side": 1,
       "message": "would covariants make sense?",
+      "range": {
+        "startLine": 96,
+        "startChar": 15,
+        "endLine": 96,
+        "endChar": 40
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_588fba23",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "I was thinking of defining V as a covariant type but then the compiler complained about methods taking parameters of type V. To be honest I\u0027m not sure how to fix this despite Duarte\u0027s explanation ;-)",
+      "parentUuid": "facab960_dc92e59e",
       "range": {
         "startLine": 96,
         "startChar": 15,
@@ -430,6 +760,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_b881a64c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "D is only used to merge opinions.",
+      "parentUuid": "facab960_6be751e5",
+      "range": {
+        "startLine": 118,
+        "startChar": 20,
+        "endLine": 118,
+        "endChar": 38
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4be28dd6",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 6
@@ -441,6 +795,30 @@
       "writtenOn": "2015-05-20T06:40:22Z",
       "side": 1,
       "message": "MapValue?",
+      "range": {
+        "startLine": 133,
+        "startChar": 21,
+        "endLine": 133,
+        "endChar": 22
+      },
+      "revId": "c63430aa2ce8a63b184e861f302bdc7157d3cba9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1890d294",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:05:41Z",
+      "side": 1,
+      "message": "Why would V not be ok? (I actually forgot to remove the MapValue trait, it\u0027s not used anymore)",
+      "parentUuid": "facab960_4be28dd6",
       "range": {
         "startLine": 133,
         "startChar": 21,
