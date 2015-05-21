@@ -22,6 +22,30 @@
       "revId": "3320fdf9327cf8523d6debfe3680bc766b93d38b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ee91a453",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslatorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-21T23:51:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_983b02eb",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 16
+      },
+      "revId": "3320fdf9327cf8523d6debfe3680bc766b93d38b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
