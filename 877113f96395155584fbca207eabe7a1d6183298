@@ -46,6 +46,30 @@
       "revId": "877113f96395155584fbca207eabe7a1d6183298",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_98ca22a0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-21T14:35:49Z",
+      "side": 1,
+      "message": "More than garbage I\u0027m thinking that constructing a NatTarget that cannot be really used is not correct.\n\nIs the this() constructor required, or would it make more sense to throw IllegalArgumentException if a PoolMember is constructed with null addr/protocol?",
+      "parentUuid": "facab960_f836cee6",
+      "range": {
+        "startLine": 59,
+        "startChar": 29,
+        "endLine": 60,
+        "endChar": 77
+      },
+      "revId": "877113f96395155584fbca207eabe7a1d6183298",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
