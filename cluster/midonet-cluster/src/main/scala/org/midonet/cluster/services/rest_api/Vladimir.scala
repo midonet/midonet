@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api
 
 import java.util
-
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.ext.Provider
 import javax.ws.rs.{Consumes, Produces}
@@ -26,7 +25,6 @@ import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
 import com.google.inject.{Guice, Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
-
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider
 import org.codehaus.jackson.map.DeserializationConfig.Feature._
 import org.codehaus.jackson.map.ObjectMapper
@@ -34,6 +32,7 @@ import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
@@ -63,6 +62,29 @@ object Vladimir {
         override def locateMapper(`type`: Class[_], mediaType: MediaType)
         :ObjectMapper = {
             mapper
+        }
+    }
+
+    class VladimirJerseyModule(backend: MidonetBackend) extends
+    JerseyServletModule {
+        override def configureServlets(): Unit = {
+            bind(classOf[WildcardJacksonJaxbJsonProvider])
+                .asEagerSingleton()
+            bind(classOf[MidonetBackend]).toInstance(backend)
+            bind(classOf[ApplicationResource])
+            bind(classOf[AuthService]).to(classOf[MockAuthService])
+                                      .asEagerSingleton()
+
+            val initParams = new java.util.HashMap[String, String]
+            initParams.put(ContainerResponseFiltersClass,
+                           classOf[CorsFilter].getName)
+            initParams.put(ContainerRequestFiltersClass,
+                           LoggingFilterClass)
+            initParams.put(ContainerResponseFiltersClass,
+                           LoggingFilterClass)
+            initParams.put(POJOMappingFeatureClass, "true")
+
+            serve("/*").`with`(classOf[GuiceContainer], initParams)
         }
     }
 }
