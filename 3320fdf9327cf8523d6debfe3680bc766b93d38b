@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_983b02eb",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslatorTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-21T16:53:25Z",
+      "side": 1,
+      "message": "You have this string repeated three times. You could declare a val for this string and then reuse and append.",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 37,
+        "endChar": 16
+      },
+      "revId": "3320fdf9327cf8523d6debfe3680bc766b93d38b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
