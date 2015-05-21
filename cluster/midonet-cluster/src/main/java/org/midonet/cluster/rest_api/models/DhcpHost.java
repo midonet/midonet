@@ -24,7 +24,7 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPAddressUtil;
 
 @ZoomClass(clazz = Topology.Dhcp.Host.class)
-public class DHCPHost extends UriResource {
+public class DhcpHost extends UriResource {
 
     @ZoomField(name = "mac")
     public String macAddr;

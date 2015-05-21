@@ -32,7 +32,7 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 class ApplicationResource @Inject()(backend: MidonetBackend,
                                     uriInfo: UriInfo,
                                     adRouteResource: AdRouteResource,
-                                    bgpResource: BGPResource,
+                                    bgpResource: BgpResource,
                                     bridgeResource: BridgeResource,
                                     chainResource: ChainResource,
                                     hostResource: HostResource,
@@ -47,7 +47,7 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
                                     ruleResource: RuleResource,
                                     systemStateResource: SystemStateResource,
                                     tunnelZoneResource: TunnelZoneResource,
-                                    vipResource: VIPResource)
+                                    vipResource: VipResource)
     extends MidonetResource(backend, uriInfo) {
 
     @GET

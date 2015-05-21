@@ -18,15 +18,15 @@ package org.midonet.cluster.rest_api.conversion;
 
 import java.net.URI;
 
-import org.midonet.cluster.rest_api.models.VIP;
+import org.midonet.cluster.rest_api.models.Vip;
 
 import static org.midonet.midolman.state.l4lb.VipSessionPersistence.valueOf;
 
 public class VIPDataConverter {
 
-    public static VIP fromData(org.midonet.cluster.data.l4lb.VIP vipData,
+    public static Vip fromData(org.midonet.cluster.data.l4lb.VIP vipData,
                                URI baseUri) throws IllegalAccessException {
-        VIP vip = new VIP();
+        Vip vip = new Vip();
         vip.id = vipData.getId();
         vip.loadBalancerId = vipData.getLoadBalancerId();
         vip.poolId = vipData.getPoolId();
@@ -38,7 +38,7 @@ public class VIPDataConverter {
         return vip;
     }
 
-    public static org.midonet.cluster.data.l4lb.VIP toData(VIP vip) {
+    public static org.midonet.cluster.data.l4lb.VIP toData(Vip vip) {
         return new org.midonet.cluster.data.l4lb.VIP()
                 .setId(vip.id)
                 .setLoadBalancerId(vip.loadBalancerId)

@@ -25,7 +25,7 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.VIP
+import org.midonet.cluster.rest_api.models.Vip
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
@@ -39,10 +39,10 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowUpdate(Array(APPLICATION_VIP_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class VIPResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[VIP](backend, uriInfo) {
+class VipResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
+    extends MidonetResource[Vip](backend, uriInfo) {
 
-    protected override def updateFilter = (to: VIP, from: VIP) => {
+    protected override def updateFilter = (to: Vip, from: Vip) => {
         to.update(from)
     }
 
@@ -53,15 +53,15 @@ class VIPResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_VIP_JSON,
                    APPLICATION_JSON))
-class PoolVIPResource @Inject()(poolId: UUID, backend: MidonetBackend,
+class PoolVipResource @Inject()(poolId: UUID, backend: MidonetBackend,
                                 uriInfo: UriInfo)
-    extends MidonetResource[VIP](backend, uriInfo) {
+    extends MidonetResource[Vip](backend, uriInfo) {
 
-    protected override def listFilter = (vip: VIP) => {
+    protected override def listFilter = (vip: Vip) => {
         vip.poolId == poolId
     }
 
-    protected override def createFilter = (vip: VIP) => {
+    protected override def createFilter = (vip: Vip) => {
         vip.create(poolId)
     }
 
@@ -70,12 +70,12 @@ class PoolVIPResource @Inject()(poolId: UUID, backend: MidonetBackend,
 @RequestScoped
 @AllowList(Array(APPLICATION_VIP_COLLECTION_JSON,
                  APPLICATION_JSON))
-class LoadBalancerVIPResource @Inject()(loadBalancerId: UUID,
+class LoadBalancerVipResource @Inject()(loadBalancerId: UUID,
                                         backend: MidonetBackend,
                                         uriInfo: UriInfo)
-    extends MidonetResource[VIP](backend, uriInfo) {
+    extends MidonetResource[Vip](backend, uriInfo) {
 
-    protected override def listFilter = (vip: VIP) => {
+    protected override def listFilter = (vip: Vip) => {
         vip.loadBalancerId == loadBalancerId
     }
 

@@ -21,8 +21,8 @@ import com.google.protobuf.MessageOrBuilder
 
 import org.scalatest.Matchers
 
-import org.midonet.cluster.models.Topology.VIP.SessionPersistence
-import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, VIP => TopologyVIP}
+import org.midonet.cluster.models.Topology.Vip.SessionPersistence
+import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -287,8 +287,8 @@ object TopologyMatchers {
         }
     }
 
-    class VIPMatcher(vip: VIP) extends Matchers with DeviceMatcher[TopologyVIP] {
-        override def shouldBeDeviceOf(v: TopologyVIP): Unit = {
+    class VIPMatcher(vip: VIP) extends Matchers with DeviceMatcher[TopologyVip] {
+        override def shouldBeDeviceOf(v: TopologyVip): Unit = {
             vip.id shouldBe v.getId.asJava
             vip.adminStateUp shouldBe v.getAdminStateUp
             vip.address shouldBe toIPv4Addr(v.getAddress)

@@ -49,8 +49,8 @@ class LoadBalancerResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     }
 
     @Path("{id}/vips")
-    def vips(@PathParam("id") id: UUID): LoadBalancerVIPResource = {
-        new LoadBalancerVIPResource(id, backend, uriInfo)
+    def vips(@PathParam("id") id: UUID): LoadBalancerVipResource = {
+        new LoadBalancerVipResource(id, backend, uriInfo)
     }
 
     protected override def updateFilter = (to: LoadBalancer, from: LoadBalancer) => {
