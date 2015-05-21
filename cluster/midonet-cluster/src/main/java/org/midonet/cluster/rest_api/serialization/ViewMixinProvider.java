@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.serialization;
+package org.midonet.cluster.rest_api.serialization;
 
-import org.codehaus.jackson.map.ObjectMapper;
-
-import javax.ws.rs.core.MediaType;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.ws.rs.core.MediaType;
+
+import org.codehaus.jackson.map.ObjectMapper;
 
 /**
  * Class that allows registration of view mixins to be used for serialization.
@@ -29,10 +30,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ViewMixinProvider {
 
     private static ConcurrentHashMap<Class<?>, Class<?>> mixinMap =
-            new ConcurrentHashMap<Class<?>, Class<?>>();
+            new ConcurrentHashMap<>();
 
     // Those that want to use the View ObjectMapper must register in this Set.
-    private static Set<String> viewMediaTypes = new HashSet<String>();
+    private static Set<String> viewMediaTypes = new HashSet<>();
 
     public synchronized static void registerViewMixin(
             Class<?> target, Class<?> mixin) {

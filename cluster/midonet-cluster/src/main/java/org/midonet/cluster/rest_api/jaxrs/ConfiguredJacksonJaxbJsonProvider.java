@@ -13,19 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.client.jaxrs;
+package org.midonet.cluster.rest_api.jaxrs;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 
-/**
- * A ConfiguredJacksonJaxbJsonProvider that consumes and produces wildcard media types.
- */
+import org.codehaus.jackson.jaxrs.Annotations;
+import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
+import org.codehaus.jackson.map.DeserializationConfig;
+import org.codehaus.jackson.map.ObjectMapper;
+
 @Provider
-@Consumes(MediaType.WILDCARD)
-@Produces(MediaType.WILDCARD)
-public class WildCardJacksonJaxbJsonProvider
-        extends ConfiguredJacksonJaxbJsonProvider {
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
+public class ConfiguredJacksonJaxbJsonProvider extends JacksonJaxbJsonProvider {
+
+    public ConfiguredJacksonJaxbJsonProvider() {
+        super();
+        configure();
+    }
+
+    private void configure() {
+        configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES,
+                  false);
+    }
 }
