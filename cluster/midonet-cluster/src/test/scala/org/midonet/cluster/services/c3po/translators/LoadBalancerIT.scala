@@ -22,14 +22,14 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Pool => PoolType, Router => RouterType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{HealthMonitor => HealthMonitorType, Pool => PoolType, Router => RouterType}
 import org.midonet.cluster.data.neutron.TaskType.Create
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-class LoadBalancerPoolTranslatorIT extends C3POMinionTestBase {
+class LoadBalancerIT extends C3POMinionTestBase {
     private def lbPoolJson(id: UUID,
                            adminStateUp: Boolean,
                            routerId: UUID): JsonNode = {
@@ -38,6 +38,16 @@ class LoadBalancerPoolTranslatorIT extends C3POMinionTestBase {
         pool.put("admin_state_up", adminStateUp)
         if (routerId != null) pool.put("router_id", routerId.toString)
         pool
+    }
+
+    private def healthMonitorJson(id: UUID,
+                                  adminStateUp: Boolean,
+                                  maxRetries: Int): JsonNode = {
+        val hm = nodeFactory.objectNode
+        hm.put("id", id.toString)
+        hm.put("admin_state_up", adminStateUp)
+        hm.put("max_retries", maxRetries)
+        hm
     }
 
     "C3PO" should "create a LoadBalancer for the router when a first Load " +
@@ -65,5 +75,14 @@ class LoadBalancerPoolTranslatorIT extends C3POMinionTestBase {
         val pool = storage.get(classOf[Pool], poolId).await()
         pool.getLoadBalancerId shouldBe toProto(routerId)
         pool.getAdminStateUp shouldBe true
+
+        // #3 Create a Health Monitor.
+        val hmId = UUID.randomUUID()
+        val hmJson = healthMonitorJson(hmId, true, 10).toString
+        insertCreateTask(3, HealthMonitorType, hmJson, hmId)
+
+        val hm = eventually(storage.get(classOf[HealthMonitor], hmId).await())
+        hm.getAdminStateUp shouldBe true
+        hm.getMaxRetries shouldBe 10
     }
 }
