@@ -17,14 +17,14 @@ package org.midonet.cluster.util
 
 import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Neutron.NeutronSubnetOrBuilder
-import org.midonet.cluster.models.Topology.DhcpOrBuilder
-import org.midonet.packets.{ARP, IPv4, IPv6}
+import org.midonet.cluster.models.Topology.DHCPOrBuilder
+import org.midonet.packets.{IPv4, IPv6}
 
 object DhcpUtil {
 
-    implicit def asRichDhcp(dhcp: DhcpOrBuilder): RichDhcp = new RichDhcp(dhcp)
+    implicit def asRichDhcp(dhcp: DHCPOrBuilder): RichDhcp = new RichDhcp(dhcp)
 
-    class RichDhcp private[DhcpUtil](val dhcp: DhcpOrBuilder) extends AnyVal {
+    class RichDhcp private[DhcpUtil](val dhcp: DHCPOrBuilder) extends AnyVal {
         def isIpv4 = dhcp.getSubnetAddress.getVersion == IPVersion.V4
         def isIpv6 = dhcp.getSubnetAddress.getVersion == IPVersion.V6
         def etherType = if (isIpv4) IPv4.ETHERTYPE else IPv6.ETHERTYPE

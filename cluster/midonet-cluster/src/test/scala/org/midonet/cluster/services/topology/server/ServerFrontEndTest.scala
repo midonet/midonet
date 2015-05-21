@@ -149,8 +149,8 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
 
         val messages = List(
             genHandshake(genUUID(0, 1), UUIDUtil.toProto(UUID.randomUUID())),
-            genGet(genUUID(0, 2), Topology.Type.NETWORK),
-            genUnsubscribe(genUUID(0, 3), Topology.Type.NETWORK),
+            genGet(genUUID(0, 2), Topology.Type.NETWORK_TYPE),
+            genUnsubscribe(genUUID(0, 3), Topology.Type.NETWORK_TYPE),
             genBye(genUUID(0, 4))
         )
 

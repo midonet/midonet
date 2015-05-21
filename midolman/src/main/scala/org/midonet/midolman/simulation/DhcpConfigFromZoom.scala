@@ -48,7 +48,7 @@ class DhcpConfigFromZoom(vt: VirtualTopology)
     override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = {
         val f = Future.sequence (
             tryGet[Bridge](deviceId).subnetIds.map {
-                vt.store.get(classOf[Topology.Dhcp], _) map toSubnet
+                vt.store.get(classOf[Topology.DHCP], _) map toSubnet
             }
         ) recover { case _ => Seq.empty[Subnet] }
         Await.result(f, timeout)
@@ -56,14 +56,14 @@ class DhcpConfigFromZoom(vt: VirtualTopology)
 
     override def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String)
     : Option[Host] = {
-        val f = vt.store.get(classOf[Topology.Dhcp], subnet.getId) map {
+        val f = vt.store.get(classOf[Topology.DHCP], subnet.getId) map {
             _.getHostsList.find(_.getMac == srcMac).map(toHost)
         } recover { case _ => None }
         Await.result(f, timeout)
     }
 
     @VisibleForTesting
-    private[simulation] def toHost(protoHost: Topology.Dhcp.Host): Host = {
+    private[simulation] def toHost(protoHost: Topology.DHCP.Host): Host = {
         val h = new Host()
         h.setId(h.getId)
         if (protoHost.hasIpAddress)
@@ -80,7 +80,7 @@ class DhcpConfigFromZoom(vt: VirtualTopology)
       * the Agent.
       */
     @VisibleForTesting
-    private[simulation] def toSubnet(dhcp: Topology.Dhcp): Subnet = {
+    private[simulation] def toSubnet(dhcp: Topology.DHCP): Subnet = {
         val subnet = new Subnet
         // Mandatory fields.
         subnet.setId(dhcp.getId.asJava.toString)

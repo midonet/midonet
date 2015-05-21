@@ -24,7 +24,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronSubnet}
-import org.midonet.cluster.models.Topology.Dhcp
+import org.midonet.cluster.models.Topology.DHCP
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.ModelsUtil._
@@ -162,7 +162,7 @@ class SubnetTranslatorTest extends FlatSpec with BeforeAndAfter
     "DELETE subnet" should "delete the DHCP" in {
         val midoOps = translator.translate(
             neutron.Delete(classOf[NeutronSubnet], subnetId))
-        midoOps should contain only midonet.Delete(classOf[Dhcp], subnetId)
+        midoOps should contain only midonet.Delete(classOf[DHCP], subnetId)
     }
 
     private def mockNetwork(nn: NeutronNetwork): Unit = {

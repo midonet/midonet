@@ -182,7 +182,7 @@ message Response {
             BGP bgp = 1;
             BGPRoute bgpRoute = 2;
             Chain chain = 3;
-            Dhcp dhcp = 4;
+            DHCP dhcp = 4;
             HealthMonitor health_monitor = 5;
             Host host = 6;
             IPAddrGroup ip_addr_group = 7;
@@ -197,8 +197,8 @@ message Response {
             Rule rule = 16;
             TunnelZone tunnel_zone = 17;
             VIP vip = 18;
-            Vtep vtep = 19;
-            VtepBinding vtep_binding = 20;
+            VTEP vtep = 19;
+            VTEPBinding vtep_binding = 20;
         }
     }
     message Snapshot {

@@ -39,7 +39,7 @@ import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 
-@ZoomClass(clazz = Topology.Dhcp.class)
+@ZoomClass(clazz = Topology.DHCP.class)
 public class DHCPSubnet extends UriResource {
 
     @JsonIgnore

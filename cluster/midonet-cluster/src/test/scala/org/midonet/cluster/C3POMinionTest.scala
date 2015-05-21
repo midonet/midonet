@@ -827,7 +827,7 @@ class C3POMinionTest extends C3POMinionTestBase {
                                       sJson.toString, sId, "tx2"))
 
         // Verify the created subnet
-        val dhcp = eventually(storage.get(classOf[Dhcp], sId).await())
+        val dhcp = eventually(storage.get(classOf[DHCP], sId).await())
         dhcp should not be null
         dhcp.getDefaultGateway.getAddress should be(gatewayIp)
         dhcp.getEnabled shouldBe true
@@ -864,7 +864,7 @@ class C3POMinionTest extends C3POMinionTestBase {
 
         // Verify the updated subnet
         eventually {
-            val dhcp2 = storage.get(classOf[Dhcp], sId).await()
+            val dhcp2 = storage.get(classOf[DHCP], sId).await()
             dhcp2 should not be null
             dhcp2.getDefaultGateway.getAddress shouldBe gatewayIp2
             dhcp2.getEnabled shouldBe true
@@ -883,7 +883,7 @@ class C3POMinionTest extends C3POMinionTestBase {
 
         // Verify deletion
         eventually {
-            storage.getAll(classOf[Dhcp]).await().size shouldBe 0
+            storage.getAll(classOf[DHCP]).await().size shouldBe 0
         }
     }
 

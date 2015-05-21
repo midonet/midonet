@@ -58,30 +58,30 @@ class ServerStateTest extends FlatSpec with Matchers {
                    .setReqId(reqId)
                    .setSubscribe(subscribe)
                    .setId(randId)
-                   .setType(Topology.Type.NETWORK)
+                   .setType(Topology.Type.NETWORK_TYPE)
         ).build()
     def genGetAll(reqId: Commons.UUID = randUuid) =
         req.clear().setGet(Get.newBuilder()
                    .setReqId(reqId)
-                   .setType(Topology.Type.NETWORK)
+                   .setType(Topology.Type.NETWORK_TYPE)
         ).build()
     def genSub(reqId: Commons.UUID = randUuid) = genGet(reqId, subscribe = true)
     def genSubAll(reqId: Commons.UUID = randUuid) =
         req.clear().setGet(Get.newBuilder()
                    .setReqId(reqId)
                    .setSubscribe(true)
-                   .setType(Topology.Type.NETWORK)
+                   .setType(Topology.Type.NETWORK_TYPE)
         ).build()
     def genUnsub(reqId: Commons.UUID = randUuid) =
         req.clear().setUnsubscribe(Unsubscribe.newBuilder()
                    .setReqId(reqId)
-                   .setType(Topology.Type.NETWORK)
+                   .setType(Topology.Type.NETWORK_TYPE)
                    .setId(randId)
         ).build()
     def genUnsubAll(reqId: Commons.UUID = randUuid) =
         req.clear().setUnsubscribe(Unsubscribe.newBuilder()
                    .setReqId(reqId)
-                   .setType(Topology.Type.NETWORK)
+                   .setType(Topology.Type.NETWORK_TYPE)
         ).build()
 
     val someId = randId
