@@ -34,6 +34,7 @@ import org.midonet.cluster.models.Neutron.SecurityGroupRule
 import org.midonet.cluster.models.Neutron.NeutronVIP
 import org.midonet.cluster.models.Topology.Chain
 import org.midonet.cluster.models.Topology.Dhcp
+import org.midonet.cluster.models.Topology.HealthMonitor
 import org.midonet.cluster.models.Topology.Host
 import org.midonet.cluster.models.Topology.IPAddrGroup
 import org.midonet.cluster.models.Topology.LoadBalancer
@@ -139,6 +140,10 @@ object ModelsUtil {
 
      def mChainFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Chain.newBuilder).asInstanceOf[Chain]
+
+     def mHealthMonitorFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, HealthMonitor.newBuilder)
+        .asInstanceOf[HealthMonitor]
 
      def mLoadBalancerFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, LoadBalancer.newBuilder)
