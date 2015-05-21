@@ -36,7 +36,7 @@ import org.midonet.cluster.util._
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.midolman.{layer3 => l3}
-import org.midonet.packets._
+import org.midonet.packets.{IPAddr, IPv4Addr, IPSubnet, IPv4Subnet, MAC}
 import org.midonet.util.Range
 
 trait TopologyBuilder {
@@ -454,15 +454,15 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createVIP(adminStateUp: Option[Boolean] = None,
+    protected def createVip(adminStateUp: Option[Boolean] = None,
                             loadBalancerId: Option[UUID] = None,
                             poolId: Option[UUID] = None,
                             address: Option[IPAddr] = None,
                             protocolPort: Option[Int] = None,
                             sessionPersistence
-                                : Option[VIP.SessionPersistence] = None) = {
+                                : Option[Vip.SessionPersistence] = None) = {
 
-        val builder = VIP.newBuilder
+        val builder = Vip.newBuilder
             .setId(UUID.randomUUID().asProto)
         if (adminStateUp.isDefined)
             builder.setAdminStateUp(adminStateUp.get)
@@ -800,8 +800,8 @@ object TopologyBuilder {
             loadBalancer.toBuilder.setAdminStateUp(adminStateUp).build()
     }
 
-    class RichVIP(vip: VIP) {
-        def setAddress(ipAddress: IPAddress): VIP =
+    class RichVip(vip: Vip) {
+        def setAddress(ipAddress: IPAddress): Vip =
             vip.toBuilder.setAddress(ipAddress).build()
     }
 
@@ -850,8 +850,8 @@ object TopologyBuilder {
     implicit def asRichLoadBalancer(loadBalancer: LoadBalancer): RichLoadBalancer =
         new RichLoadBalancer(loadBalancer)
 
-    implicit def asRichVIP(vip: VIP): RichVIP =
-        new RichVIP(vip)
+    implicit def asRichVip(vip: Vip): RichVip =
+        new RichVip(vip)
 
     implicit def asRichHealthMonitor(healthMonitor: HealthMonitor): RichHealthMonitor =
         new RichHealthMonitor(healthMonitor)

@@ -27,12 +27,10 @@ import org.midonet.cluster.models.Topology
 class TopologyMappingsTest extends FeatureSpec with Matchers {
 
     val types: List[Topology.Type] = Topology.Type.values().toList
-        .sortBy({_.name})
 
     val classes: List[Class[_ <: Message]] = classOf[Topology].getClasses.toList
         .filterNot(_.getSimpleName.matches("(.*)OrBuilder"))
         .filterNot(_.getSimpleName.matches("Type"))
-        .sortBy({_.getSimpleName})
         .asInstanceOf[List[Class[_ <: Message]]]
 
     feature("map topology classes to type ids")
@@ -44,13 +42,15 @@ class TopologyMappingsTest extends FeatureSpec with Matchers {
         }
 
         scenario("convert from type to class") {
-            types.zip(classes)
-                .forall(x => TopologyMappings.klassOf(x._1) == Some(x._2)) shouldBe true
+            types.forall(t => {
+                TopologyMappings.typeOf(TopologyMappings.klassOf(t).get).contains(t)
+            }) shouldBe true
         }
 
         scenario("convert from class to type") {
-            classes.zip(types)
-                .forall(x => TopologyMappings.typeOf(x._1) == Some(x._2)) shouldBe true
+            classes.forall(c => {
+                TopologyMappings.klassOf(TopologyMappings.typeOf(c).get).contains(c)
+            }) shouldBe true
         }
     }
 }

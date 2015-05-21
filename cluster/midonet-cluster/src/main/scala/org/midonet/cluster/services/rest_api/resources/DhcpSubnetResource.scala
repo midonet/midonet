@@ -29,7 +29,7 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.annotation.AllowCreate
-import org.midonet.cluster.rest_api.models.{DHCPSubnet, Bridge}
+import org.midonet.cluster.rest_api.models.{DhcpSubnet, Bridge}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.packets.IPv4Subnet
@@ -38,9 +38,9 @@ import org.midonet.packets.IPv4Subnet
 @AllowCreate(Array(APPLICATION_DHCP_SUBNET_JSON,
                    APPLICATION_DHCP_SUBNET_JSON_V2,
                    APPLICATION_JSON))
-class DHCPSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
+class DhcpSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
                                    uriInfo: UriInfo)
-    extends MidonetResource[DHCPSubnet](backend, uriInfo) {
+    extends MidonetResource[DhcpSubnet](backend, uriInfo) {
 
 
     @GET
@@ -49,7 +49,7 @@ class DHCPSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
                     APPLICATION_DHCP_SUBNET_JSON_V2,
                     APPLICATION_JSON))
     override def get(@PathParam("subnetAddress") subnetAddress: String,
-                     @HeaderParam("Accept") accept: String): DHCPSubnet = {
+                     @HeaderParam("Accept") accept: String): DhcpSubnet = {
         getSubnet(IPv4Subnet.fromZkString(subnetAddress))
             .getOrThrow
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
@@ -59,9 +59,9 @@ class DHCPSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
     @Produces(Array(APPLICATION_DHCP_SUBNET_COLLECTION_JSON,
                     APPLICATION_DHCP_SUBNET_COLLECTION_JSON_V2))
     override def list(@HeaderParam("Accept") accept: String)
-    : JList[DHCPSubnet] = {
+    : JList[DhcpSubnet] = {
         getResource(classOf[Bridge], bridgeId)
-            .flatMap(bridge => listResources(classOf[DHCPSubnet],
+            .flatMap(bridge => listResources(classOf[DhcpSubnet],
                                              bridge.dhcpIds.asScala))
             .getOrThrow
             .asJava
@@ -73,7 +73,7 @@ class DHCPSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
                     APPLICATION_DHCP_SUBNET_JSON_V2,
                     APPLICATION_JSON))
     override def update(@PathParam("subnetAddress") subnetAddress: String,
-                        subnet: DHCPSubnet,
+                        subnet: DhcpSubnet,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
         getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(_.map(current => {
@@ -89,7 +89,7 @@ class DHCPSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
     override def delete(@PathParam("subnetAddress") subnetAddress: String)
     : Response = {
         getSubnet(IPv4Subnet.fromZkString(subnetAddress)).map(_.map(subnet => {
-            deleteResource(classOf[DHCPSubnet], subnet.id)
+            deleteResource(classOf[DhcpSubnet], subnet.id)
         }))
             .getOrThrow
             .getOrElse(Response.status(Status.NOT_FOUND).build())
@@ -97,18 +97,18 @@ class DHCPSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
 
     @Path("{subnetAddress}/hosts")
     def hosts(@PathParam("subnetAddress") subnetAddress: IPv4Subnet)
-    : DHCPHostResource = {
-        new DHCPHostResource(bridgeId, subnetAddress, backend, uriInfo)
+    : DhcpHostResource = {
+        new DhcpHostResource(bridgeId, subnetAddress, backend, uriInfo)
     }
 
-    protected override def createFilter = (subnet: DHCPSubnet) => {
+    protected override def createFilter = (subnet: DhcpSubnet) => {
         subnet.create(bridgeId)
     }
 
     private def getSubnet(subnetAddress: IPv4Subnet)
-    : Future[Option[DHCPSubnet]] = {
+    : Future[Option[DhcpSubnet]] = {
         getResource(classOf[Bridge], bridgeId)
-            .flatMap(bridge => listResources(classOf[DHCPSubnet],
+            .flatMap(bridge => listResources(classOf[DhcpSubnet],
                                              bridge.dhcpIds.asScala))
             .map(_.find(_.subnetAddress == subnetAddress))
     }

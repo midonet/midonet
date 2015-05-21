@@ -40,7 +40,7 @@ import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 
 @ZoomClass(clazz = Topology.Dhcp.class)
-public class DHCPSubnet extends UriResource {
+public class DhcpSubnet extends UriResource {
 
     @JsonIgnore
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -83,11 +83,11 @@ public class DHCPSubnet extends UriResource {
     public int interfaceMTU;
 
     @ZoomField(name = "opt121_routes")
-    public List<DHCPOption121> opt121Routes;
+    public List<DhcpOption121> opt121Routes;
 
     @XmlTransient
     @ZoomField(name = "hosts")
-    public List<DHCPHost> hosts;
+    public List<DhcpHost> hosts;
 
     @ZoomField(name = "enabled")
     public Boolean enabled = true;
@@ -124,7 +124,7 @@ public class DHCPSubnet extends UriResource {
     }
 
     @JsonIgnore
-    public void update(DHCPSubnet from) {
+    public void update(DhcpSubnet from) {
         id = from.id;
         subnetAddress = from.subnetAddress;
         bridgeId = from.bridgeId;

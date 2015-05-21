@@ -26,8 +26,8 @@ import org.midonet.cluster.models.Topology
 object TopologyMappings {
     /** Mapping Topology entity types to their container class */
     val typeToKlass: Map[Topology.Type, Class[_ <: Message]] = Map(
-        Topology.Type.BGP_PEERING -> classOf[Topology.BGP],
-        Topology.Type.BGP_ROUTE -> classOf[Topology.BGPRoute],
+        Topology.Type.BGP -> classOf[Topology.Bgp],
+        Topology.Type.BGP_ROUTE -> classOf[Topology.BgpRoute],
         Topology.Type.CHAIN  -> classOf[Topology.Chain],
         Topology.Type.DHCP -> classOf[Topology.Dhcp],
         Topology.Type.HEALTH_MONITOR -> classOf[Topology.HealthMonitor],
@@ -41,7 +41,7 @@ object TopologyMappings {
         Topology.Type.ROUTE -> classOf[Topology.Route],
         Topology.Type.ROUTER -> classOf[Topology.Router],
         Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
-        Topology.Type.VIRTUAL_IP -> classOf[Topology.VIP],
+        Topology.Type.VIP -> classOf[Topology.Vip],
         Topology.Type.RULE -> classOf[Topology.Rule],
         Topology.Type.TUNNEL_ZONE -> classOf[Topology.TunnelZone],
         Topology.Type.VTEP -> classOf[Topology.Vtep],

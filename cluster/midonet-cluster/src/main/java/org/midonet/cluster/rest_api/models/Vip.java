@@ -34,8 +34,8 @@ import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.state.l4lb.VipSessionPersistence;
 import org.midonet.packets.IPv4;
 
-@ZoomClass(clazz = Topology.VIP.class)
-public class VIP extends UriResource {
+@ZoomClass(clazz = Topology.Vip.class)
+public class Vip extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
@@ -89,7 +89,7 @@ public class VIP extends UriResource {
     }
 
     @JsonIgnore
-    public void update(VIP from) {
+    public void update(Vip from) {
         id = from.id;
     }
 

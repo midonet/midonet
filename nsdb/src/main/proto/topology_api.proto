@@ -179,8 +179,8 @@ message Response {
     }
     message Update {          // the latest known state of an entity
         oneof update {
-            BGP bgp = 1;
-            BGPRoute bgpRoute = 2;
+            Bgp bgp = 1;
+            BgpRoute bgpRoute = 2;
             Chain chain = 3;
             Dhcp dhcp = 4;
             HealthMonitor health_monitor = 5;
@@ -196,7 +196,7 @@ message Response {
             Router router = 15;
             Rule rule = 16;
             TunnelZone tunnel_zone = 17;
-            VIP vip = 18;
+            Vip vip = 18;
             Vtep vtep = 19;
             VtepBinding vtep_binding = 20;
         }

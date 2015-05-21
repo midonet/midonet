@@ -22,12 +22,12 @@ import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
 import org.midonet.util.concurrent.toFutureOps
