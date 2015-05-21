@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_c8d783be",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/auth/AuthFilter.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-05-21T07:32:02Z",
+      "side": 1,
+      "message": "Why move it in this patch?",
+      "revId": "a6b7ec2cd3aa819c882412d7b4ad4358b1b66f2f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_45bb5cc4",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/conf/ConfMinion.scala",
         "patchSetId": 1
