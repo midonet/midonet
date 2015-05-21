@@ -274,7 +274,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
                     case (null, _) =>
                         newTriad.vport should not be null
                         newTriad.dpPort should be (null)
-                        entangler.dpPortNumToTriad containsKey newTriad.dpPortNo should be (false)
+                        newTriad.dpPortNo should be (null)
                         entangler.vportToTriad containsKey newTriad.vport should be (true)
                         entangler.keyToTriad containsKey newTriad.tunnelKey should be (false)
                     case (_, null) =>
