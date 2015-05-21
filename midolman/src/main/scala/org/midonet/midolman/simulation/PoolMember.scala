@@ -18,6 +18,9 @@ package org.midonet.midolman.simulation
 
 import java.util.{Objects, UUID}
 
+import com.google.common.annotations.VisibleForTesting
+import com.google.protobuf.Message
+
 import org.midonet.cluster.data.ZoomConvert.ScalaZoomField
 import org.midonet.cluster.data.ZoomObject
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
@@ -50,9 +53,10 @@ final class PoolMember(@ScalaZoomField(name = "id",
                        val weight: Int)
     extends ZoomObject with HasWeight {
 
-    def this() = this(null, false, LBStatus.INACTIVE, null, 0, 0)
+    def this() = this(id = null, adminStateUp = false, LBStatus.INACTIVE,
+                      address = null, protocolPort = 0, weight = 0)
 
-    private val natTargets = Array(new NatTarget(address, address,
+    private var natTargets = Array(new NatTarget(address, address,
                                                  protocolPort, protocolPort))
 
     protected[simulation] def applyDnat(pktContext: PacketContext,
@@ -64,6 +68,14 @@ final class PoolMember(@ScalaZoomField(name = "id",
             pktContext.applyDnat(loadBalancer, natTargets)
 
     def isUp: Boolean = weight > 0 && adminStateUp && status == LBStatus.ACTIVE
+
+    @VisibleForTesting
+    protected[midolman] def natTarget = natTargets(0)
+
+    override def afterFromProto(proto: Message): Unit = {
+        natTargets = Array(new NatTarget(address, address,
+                                         protocolPort, protocolPort))
+    }
 
     override def toString =
         s"PoolMember [id=$id adminStateUp=$adminStateUp status=$status " +
@@ -80,4 +92,5 @@ final class PoolMember(@ScalaZoomField(name = "id",
     override def hashCode =
         Objects.hash(id, Boolean.box(adminStateUp), status, address,
                      Int.box(protocolPort), Int.box(weight))
+
 }

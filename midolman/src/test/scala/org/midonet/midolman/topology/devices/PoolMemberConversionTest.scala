@@ -27,6 +27,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.midolman.simulation.PoolMember
 import org.midonet.midolman.state.l4lb
 import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
@@ -45,11 +46,15 @@ class PoolMemberConversionTest extends FeatureSpec with Matchers
                 poolId = Some(UUID.randomUUID),
                 status = Some(LBStatus.ACTIVE),
                 address = Some(IPv4Addr.random),
-                protocolPort = Some(random.nextInt()),
+                protocolPort = Some(random.nextInt() & 0xFFFF),
                 weight = Some(random.nextInt()))
             val device = ZoomConvert.fromProto(poolMember, classOf[PoolMember])
 
             device shouldBeDeviceOf poolMember
+            device.natTarget.nwStart shouldBe poolMember.getAddress.asIPv4Address
+            device.natTarget.nwEnd shouldBe poolMember.getAddress.asIPv4Address
+            device.natTarget.tpStart shouldBe poolMember.getProtocolPort
+            device.natTarget.tpEnd shouldBe poolMember.getProtocolPort
         }
 
         scenario("Test conversion to Protocol Buffers message") {
