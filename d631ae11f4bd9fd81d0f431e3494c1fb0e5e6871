@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_bf0b502a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-05-21T07:32:02Z",
+      "side": 1,
+      "message": "We already have Keystone auth :-)\n\nMind making this commit message more informative?",
+      "revId": "d631ae11f4bd9fd81d0f431e3494c1fb0e5e6871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8220ef9c",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/auth/AuthFilter.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-05-21T07:32:02Z",
+      "side": 1,
+      "message": "You answered in the previous patch, but I still don\u0027t understand...\n\nAuthFilter moves to the Cluster package... so now midonet-api depends on midonet-cluster? And midonet-api already had other dependencies on midonet-cluster, so you couldn\u0027t have midonet-cluster depend on midonet-api?\n\nWhat other dependencies (unrelated to Auth and UserIdentity) does midonet-api have on midonet-cluster?",
+      "revId": "d631ae11f4bd9fd81d0f431e3494c1fb0e5e6871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e2361be7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/conf/ConfMinion.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-05-21T07:32:02Z",
+      "side": 1,
+      "message": "Authorization error? At this point the user has already been successfully authenticated by token.",
+      "revId": "d631ae11f4bd9fd81d0f431e3494c1fb0e5e6871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c2403738",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/conf/ConfMinion.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-05-21T07:32:02Z",
+      "side": 1,
+      "message": "This approach looks good. If I\u0027m understanding correctly, since you don\u0027t need to discriminate based on the API path (method) being called, you don\u0027t need to implement this in the SecurityContext (the way the Legacy API does in the Resource classes). And that makes the implementation neat and tidy.",
+      "revId": "d631ae11f4bd9fd81d0f431e3494c1fb0e5e6871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
