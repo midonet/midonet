@@ -614,7 +614,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
 
         val vlanPortMap = new VlanPortMapImpl
         val vlanSet = new mutable.HashSet[Short]
-        var vlanBridgePeerPortId: Option[UUID] = None
+        var vlanPeerBridgePortId: Option[UUID] = None
         val routerMacToPortMap = new mutable.HashMap[MAC, UUID]
         val routerIpToMacMap = new mutable.HashMap[IPAddr, MAC]
 
@@ -639,9 +639,10 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
                         vlanSet += localPort.vlanId
                     } else if (UntaggedVlanId != peerPort.vlanId) {
                         // The peer is the VLAN aware bridge.
-                        log.debug("Peer port {} mapped to VLAN ID {}",
-                                  peerPort.id, Short.box(peerPort.vlanId))
-                        vlanBridgePeerPortId = Some(peerPort.id)
+                        log.debug("Local port {} to peer port {} mapped to " +
+                                  "VLAN ID {}", localPort.id, peerPort.id,
+                                  Short.box(peerPort.vlanId))
+                        vlanPeerBridgePortId = Some(localPort.id)
                     } else {
                         log.warn("Peer port {} has no VLAN ID", peerPort.id)
                     }
@@ -719,7 +720,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             else None,
             if (bridge.hasOutboundFilterId) Some(bridge.getOutboundFilterId)
             else None,
-            vlanBridgePeerPortId,
+            vlanPeerBridgePortId,
             bridge.getVxlanPortIdsList.map(_.asJava),
             flowCallbackGenerator,
             oldRouterMacPortMap,
