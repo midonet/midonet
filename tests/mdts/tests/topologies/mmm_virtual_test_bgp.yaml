@@ -63,6 +63,15 @@ virtual_topology:
               id: 3
               type: exterior
 
+  port_groups:
+    - port_group:
+        id: 1
+        name: pg-1
+        stateful: true
+        ports:
+          - port: [router-000-001, 2]
+          - port: [router-000-001, 3]
+
   chains:
     - chain:
         id: 1
