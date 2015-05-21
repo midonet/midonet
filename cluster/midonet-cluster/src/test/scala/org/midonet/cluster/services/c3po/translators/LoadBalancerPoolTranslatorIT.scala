@@ -57,7 +57,13 @@ class LoadBalancerPoolTranslatorIT extends C3POMinionTestBase {
         lb.getId shouldBe toProto(routerId)
         lb.getAdminStateUp shouldBe true
         lb.getRouterId shouldBe toProto(routerId)
+        lb.getPoolIdsList should contain (toProto(poolId))
+
         val router = storage.get(classOf[Router], routerId).await()
         router.getLoadBalancerId shouldBe toProto(routerId)
+
+        val pool = storage.get(classOf[Pool], poolId).await()
+        pool.getLoadBalancerId shouldBe toProto(routerId)
+        pool.getAdminStateUp shouldBe true
     }
 }
