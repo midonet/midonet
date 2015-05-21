@@ -28,6 +28,7 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.flows.FlowInvalidator;
 import org.midonet.midolman.logging.FlowTracingAppender;
 import org.midonet.midolman.logging.FlowTracingSchema$;
+import org.midonet.midolman.monitoring.FlowRecorderFactory;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
@@ -60,6 +61,9 @@ public class MidolmanModule extends PrivateModule {
 
         bind(MetricRegistry.class).toInstance(new MetricRegistry());
         expose(MetricRegistry.class);
+
+        bind(FlowRecorderFactory.class).asEagerSingleton();
+        expose(FlowRecorderFactory.class);
 
         bind(SelectLoopService.class)
             .asEagerSingleton();

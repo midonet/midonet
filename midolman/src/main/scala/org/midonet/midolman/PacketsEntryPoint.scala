@@ -36,6 +36,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
 import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
@@ -109,6 +110,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
     @Inject
     var natBlockAllocator: NatBlockAllocator = _
 
+    @Inject
+    var flowRecorderFactory: FlowRecorderFactory = _
+
     var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
     var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
@@ -156,6 +160,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath
             natStateTable.addShard(log = shardLogger(natStateTable)),
             traceStateTable.addShard(log = shardLogger(traceStateTable)),
             storageFactory.create(), natLeaser, metrics,
+            flowRecorderFactory.newFlowRecorder(),
             counter.addAndGet(index, _: Int))
     }
 

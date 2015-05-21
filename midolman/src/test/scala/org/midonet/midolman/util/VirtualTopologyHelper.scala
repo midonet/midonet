@@ -40,6 +40,7 @@ import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman._
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
+import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.simulation.{Coordinator, PacketContext, PacketEmitter}
@@ -270,6 +271,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             Future.successful(new MockStateStorage),
             HappyGoLuckyLeaser,
             metrics,
+            injector.getInstance(classOf[FlowRecorderFactory]).newFlowRecorder,
             _ => { }) {
 
             override def runWorkflow(pktCtx: PacketContext) = {
