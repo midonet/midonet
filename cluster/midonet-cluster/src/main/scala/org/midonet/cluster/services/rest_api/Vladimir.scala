@@ -32,6 +32,7 @@ import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.rest_api.neutron.resources.NeutronResource
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources._
@@ -82,6 +83,8 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
         override def configureServlets(): Unit = {
             bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
             bind(classOf[MidonetBackend]).toInstance(backend)
+            bind(classOf[AuthService]).to(classOf[MockAuthService])
+                                      .asEagerSingleton()
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
             bind(classOf[ApplicationResource])
             bind(classOf[NeutronResource])

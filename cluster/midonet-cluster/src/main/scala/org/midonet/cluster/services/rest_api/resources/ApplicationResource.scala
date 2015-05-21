@@ -16,9 +16,8 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.UriInfo
-import javax.ws.rs.{GET, Path, Produces}
+import javax.ws.rs.{Path, Produces}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
@@ -49,12 +48,11 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
                                     ruleResource: RuleResource,
                                     systemStateResource: SystemStateResource,
                                     tunnelZoneResource: TunnelZoneResource,
-                                    vipResource: VipResource)
+                                    vipResource: VipResource,
+                                    tenantResource: TenantResource)
     extends MidonetResource(backend, uriInfo) {
 
-    @GET
-    @Produces(Array(APPLICATION_JSON,
-                    APPLICATION_JSON_V5))
+    @Produces(Array(APPLICATION_JSON_V5))
     def application: Application = {
         log.debug(s"${getClass.getName} entered on ${uriInfo.getAbsolutePath}")
         new Application(uriInfo.getAbsolutePathBuilder.build())
@@ -113,5 +111,8 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
 
     @Path("vips")
     def vips = vipResource
+
+    @Path("tenants")
+    def tenants = tenantResource
 
 }
