@@ -24,8 +24,8 @@ import org.midonet.cluster.data.neutron.DeviceOwner
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Dhcp, Network}
-import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
+import org.midonet.cluster.models.Topology.{DHCP, Network}
+import org.midonet.cluster.models.Topology.DHCP.Opt121Route
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.util.concurrent.toFutureOps
@@ -44,7 +44,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
             throw new TranslationException(  // Doesn't handle IPv6 yet.
                     neutron.Create(ns), msg = "Cannot handle an IPv6 Subnet.")
 
-        val dhcp = Dhcp.newBuilder
+        val dhcp = DHCP.newBuilder
                        .setId(ns.getId)
                        .setNetworkId(ns.getNetworkId)
         if (ns.hasGatewayIp) {
@@ -66,7 +66,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
     }
 
     override protected def translateDelete(id: UUID): MidoOpList = {
-        List(Delete(classOf[Dhcp], id))
+        List(Delete(classOf[DHCP], id))
     }
 
     override protected def translateUpdate(ns: NeutronSubnet): MidoOpList = {
@@ -77,7 +77,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
             throw new TranslationException(  // Doesn't handle IPv6 yet.
                     neutron.Update(ns), msg = "Cannot handle an IPv6 Subnet.")
 
-        val origDhcp = storage.get(classOf[Dhcp], ns.getId).await()
+        val origDhcp = storage.get(classOf[DHCP], ns.getId).await()
         val newDhcp = origDhcp.toBuilder
             .setDefaultGateway(ns.getGatewayIp)
             .setEnabled(ns.getEnableDhcp)
@@ -98,7 +98,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
         List(Update(newDhcp.build))
     }
 
-    private def addHostRoutes(dhcp: Dhcp.Builder,
+    private def addHostRoutes(dhcp: DHCP.Builder,
                               hostRoutes: mutable.Buffer[NeutronRoute]) {
         for (hostRoute <- hostRoutes) {
             dhcp.addOpt121RoutesBuilder().setDstSubnet(hostRoute.getDestination)
