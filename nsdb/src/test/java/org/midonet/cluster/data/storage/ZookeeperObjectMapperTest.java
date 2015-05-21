@@ -1026,7 +1026,7 @@ public class ZookeeperObjectMapperTest {
             chainId.equals(chain1.id) ? obs1 : obs2;
 
         zom.delete(PojoChain.class, chain1.id);
-        chain1Obs.awaitOnNext(1, TIMEOUT);
+        chain1Obs.awaitCompletion(TIMEOUT);
         assertEquals(1, chain1Obs.getOnNextEvents().size());
         assertEquals(1, chain1Obs.getOnCompletedEvents().size());
 
