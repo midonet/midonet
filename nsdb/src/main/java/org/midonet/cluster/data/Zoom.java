@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.data;
 
 import java.lang.annotation.ElementType;
@@ -21,23 +22,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * An annotation for a ZOOM object field. The annotation creates a mapping
- * between a Java object field and the corresponding Protocol Buffers message
- * field. Currently, the mapping is done by name, however a future update may
- * allow the mapping by field number (as field numbers are unique keys).
+ * This annotates the class constructor that should be used by ZoomConvert.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.FIELD, ElementType.PARAMETER })
-public @interface ZoomField {
-
-    /**
-     * The field name in the Protocol Buffers message.
-     */
-    String name();
-
-    /**
-     * Specifies the converter for this field.
-     */
-    Class<? extends ZoomConvert.Converter<?,?>> converter()
-        default ZoomConvert.DefaultConverter.class;
-}
+@Target({ ElementType.CONSTRUCTOR })
+public @interface Zoom { }
