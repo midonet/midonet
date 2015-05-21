@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_b817e650",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:58:10Z",
+      "side": 1,
+      "message": "I tried to strike a good balance between simplicity and reasonable efficiency. I\u0027m using a lock to update the map (methods removeOpinionFromOwner and newOpinionFromOwner) and snapshots of the triemap for methods that just read it. Let me know what you think.",
+      "range": {
+        "startLine": 54,
+        "startChar": 42,
+        "endLine": 57,
+        "endChar": 14
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d80bca29",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:58:10Z",
+      "side": 1,
+      "message": "removeOwnerOpinion",
+      "range": {
+        "startLine": 217,
+        "startChar": 16,
+        "endLine": 217,
+        "endChar": 39
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f8088e2f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 250,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-21T16:58:10Z",
+      "side": 1,
+      "message": "newOwnerOpinion",
+      "range": {
+        "startLine": 250,
+        "startChar": 16,
+        "endLine": 250,
+        "endChar": 35
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
