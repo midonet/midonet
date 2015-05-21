@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_e2929b9e",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/auth/AuthFilter.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-21T07:48:43Z",
+      "side": 1,
+      "message": "Exactly, midonet-api depends on -cluster and not the other way around. The ConfMinion sits in midonet-cluster, thus any classes I wanted to use that were in midonet-api had to be moved. Regardless, it\u0027s the right place for them, as they\u0027ll be used by other cluster services.\n\n\"What other dependencies (unrelated to Auth and UserIdentity) does midonet-api have on midonet-cluster?\"\n\n\n~/code/midonet$ git grep \"import org.midonet.cluster\" -- midonet-api/ | sed -e \u0027s/^.*://\u0027  | sort | uniq\nimport org.midonet.cluster.Client;\nimport org.midonet.cluster.ClusterConfig;\nimport org.midonet.cluster.ClusterNode;\nimport org.midonet.cluster.DataClient;\nimport org.midonet.cluster.ZookeeperLockFactory;\nimport org.midonet.cluster.ZookeeperTest;\nimport org.midonet.cluster.auth.AuthDataAccessException;\nimport org.midonet.cluster.auth.AuthException;\nimport org.midonet.cluster.auth.AuthService;\nimport org.midonet.cluster.auth.CrossOriginResourceSharingFilter;\nimport org.midonet.cluster.auth.InvalidCredentialsException;\nimport org.midonet.cluster.auth.KeystoneAccess;\nimport org.midonet.cluster.auth.KeystoneAuthCredentials;\nimport org.midonet.cluster.auth.KeystoneTenant;\nimport org.midonet.cluster.auth.KeystoneTenantList;\nimport org.midonet.cluster.auth.LoginFilter;\nimport org.midonet.cluster.auth.Tenant;\nimport org.midonet.cluster.auth.Token;\nimport org.midonet.cluster.auth.UserIdentity;\nimport org.midonet.cluster.auth.keystone.v2_0.KeystoneClient;\nimport org.midonet.cluster.auth.keystone.v2_0.KeystoneInvalidFormatException;\nimport org.midonet.cluster.config.ConfigProviderModule;\nimport org.midonet.cluster.config.ZookeeperConfig;\nimport org.midonet.cluster.data.*;\nimport org.midonet.cluster.data.AdRoute;\nimport org.midonet.cluster.data.BGP;\nimport org.midonet.cluster.data.Bridge;\nimport org.midonet.cluster.data.Chain;\nimport org.midonet.cluster.data.Converter;\nimport org.midonet.cluster.data.IpAddrGroup;\nimport org.midonet.cluster.data.Port.Property;\nimport org.midonet.cluster.data.Port;\nimport org.midonet.cluster.data.PortGroup;\nimport org.midonet.cluster.data.Router;\nimport org.midonet.cluster.data.Rule;\nimport org.midonet.cluster.data.SystemState;\nimport org.midonet.cluster.data.TraceRequest.DeviceType;\nimport org.midonet.cluster.data.TunnelZone;\nimport org.midonet.cluster.data.VTEP;\nimport org.midonet.cluster.data.ZoomObject;\nimport org.midonet.cluster.data.dhcp.ExtraDhcpOpt;\nimport org.midonet.cluster.data.dhcp.Host;\nimport org.midonet.cluster.data.dhcp.Opt121;\nimport org.midonet.cluster.data.dhcp.Subnet6;\nimport org.midonet.cluster.data.dhcp.Subnet;\nimport org.midonet.cluster.data.dhcp.V6Host;\nimport org.midonet.cluster.data.host.Host;\nimport org.midonet.cluster.data.host.VirtualPortMapping;\nimport org.midonet.cluster.data.neutron.FloatingIp;\nimport org.midonet.cluster.data.neutron.L3Api;\nimport org.midonet.cluster.data.neutron.LoadBalancerApi;\nimport org.midonet.cluster.data.neutron.Network;\nimport org.midonet.cluster.data.neutron.NetworkApi;\nimport org.midonet.cluster.data.neutron.NeutronClusterApiModule;\nimport org.midonet.cluster.data.neutron.NeutronPlugin;\nimport org.midonet.cluster.data.neutron.Port;\nimport org.midonet.cluster.data.neutron.Router;\nimport org.midonet.cluster.data.neutron.RouterInterface;\nimport org.midonet.cluster.data.neutron.SecurityGroup;\nimport org.midonet.cluster.data.neutron.SecurityGroupApi;\nimport org.midonet.cluster.data.neutron.SecurityGroupRule;\nimport org.midonet.cluster.data.neutron.Subnet;\nimport org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;\nimport org.midonet.cluster.data.neutron.loadbalancer.Member;\nimport org.midonet.cluster.data.neutron.loadbalancer.Pool;\nimport org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;\nimport org.midonet.cluster.data.neutron.loadbalancer.VIP;\nimport org.midonet.cluster.data.ports.BridgePort;\nimport org.midonet.cluster.data.ports.RouterPort;\nimport org.midonet.cluster.data.ports.VlanMacPort;\nimport org.midonet.cluster.data.ports.VxLanPort;\nimport org.midonet.cluster.data.rules.ForwardNatRule;\nimport org.midonet.cluster.data.rules.JumpRule;\nimport org.midonet.cluster.data.rules.LiteralRule;\nimport org.midonet.cluster.data.rules.ReverseNatRule;\nimport org.midonet.cluster.data.util.ZkOpLock;\nimport org.midonet.cluster.data.vtep.VtepNotConnectedException;\nimport org.midonet.cluster.data.vtep.VtepStateException;\nimport org.midonet.cluster.data.vtep.model.LogicalSwitch;\nimport org.midonet.cluster.data.vtep.model.PhysicalPort;\nimport org.midonet.cluster.data.vtep.model.PhysicalSwitch;\nimport org.midonet.cluster.rest_api.ResponseUtils;\nimport org.midonet.cluster.rest_api.VendorMediaType;\nimport org.midonet.cluster.rest_api.conversion.BridgeDataConverter;\nimport org.midonet.cluster.rest_api.conversion.ChainDataConverter;\nimport org.midonet.cluster.rest_api.conversion.HealthMonitorDataConverter;\nimport org.midonet.cluster.rest_api.conversion.HostDataConverter;\nimport org.midonet.cluster.rest_api.conversion.InterfaceDataConverter;\nimport org.midonet.cluster.rest_api.conversion.LoadBalancerDataConverter;\nimport org.midonet.cluster.rest_api.conversion.PoolDataConverter;\nimport org.midonet.cluster.rest_api.conversion.RouteDataConverter;\nimport org.midonet.cluster.rest_api.conversion.RouterDataConverter;\nimport org.midonet.cluster.rest_api.conversion.VIPDataConverter;\nimport org.midonet.cluster.rest_api.models.Bridge;\nimport org.midonet.cluster.rest_api.models.Chain;\nimport org.midonet.cluster.rest_api.models.HealthMonitor;\nimport org.midonet.cluster.rest_api.models.Host;\nimport org.midonet.cluster.rest_api.models.Interface;\nimport org.midonet.cluster.rest_api.models.LoadBalancer;\nimport org.midonet.cluster.rest_api.models.Pool;\nimport org.midonet.cluster.rest_api.models.PoolMember;\nimport org.midonet.cluster.rest_api.models.PortGroup;\nimport org.midonet.cluster.rest_api.models.PortGroupPort;\nimport org.midonet.cluster.rest_api.models.ResourceUris;\nimport org.midonet.cluster.rest_api.models.Route;\nimport org.midonet.cluster.rest_api.models.Router;\nimport org.midonet.cluster.rest_api.models.TunnelZone;\nimport org.midonet.cluster.rest_api.models.TunnelZoneHost;\nimport org.midonet.cluster.rest_api.models.VIP;\nimport org.midonet.cluster.rest_api.validation.MessageProperty;\nimport org.midonet.cluster.rest_api.validation.ValidationModule;\nimport org.midonet.cluster.services.LegacyStorageService;\nimport org.midonet.cluster.services.MidonetBackendService;\nimport org.midonet.cluster.services.conf.ConfMinion;\nimport org.midonet.cluster.services.vxgw.VxlanGatewayService;\nimport org.midonet.cluster.southbound.vtep.VtepDataClient;\nimport org.midonet.cluster.southbound.vtep.VtepDataClientFactory;\nimport org.midonet.cluster.southbound.vtep.VtepDataClientMock;\nimport org.midonet.cluster.storage.MidonetBackendConfig;\nimport org.midonet.cluster.storage.MidonetBackendModule;\n~/code/midonet$",
+      "parentUuid": "facab960_8220ef9c",
+      "revId": "d631ae11f4bd9fd81d0f431e3494c1fb0e5e6871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e2361be7",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/conf/ConfMinion.scala",
         "patchSetId": 2
@@ -47,6 +65,24 @@
       "writtenOn": "2015-05-21T07:32:02Z",
       "side": 1,
       "message": "Authorization error? At this point the user has already been successfully authenticated by token.",
+      "revId": "d631ae11f4bd9fd81d0f431e3494c1fb0e5e6871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_82f38f09",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/conf/ConfMinion.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-21T07:48:43Z",
+      "side": 1,
+      "message": "This is what our REST API does, the code was simply copied. I can change it, but it *is* an authentication error, if you are not an admin you are not authenticated to admin-only apis.",
+      "parentUuid": "facab960_e2361be7",
       "revId": "d631ae11f4bd9fd81d0f431e3494c1fb0e5e6871",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
