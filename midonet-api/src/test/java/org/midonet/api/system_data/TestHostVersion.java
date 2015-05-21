@@ -26,12 +26,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.resource.HostVersion;
 import org.midonet.client.resource.ResourceCollection;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.version.DataWriteVersion;
 
@@ -44,8 +43,6 @@ public class TestHostVersion extends JerseyTest {
 
     private MidonetApi api;
 
-    private HostZkManager hostManager;
-
     public TestHostVersion() {
         super(FuncTest.appDesc);
     }
@@ -56,10 +53,13 @@ public class TestHostVersion extends JerseyTest {
                                StateAccessException {
         resource().accept(VendorMediaType.APPLICATION_JSON_V5)
                 .get(ClientResponse.class);
-        hostManager = JerseyGuiceTestServletContextListener.getHostZkManager();
         URI baseUri = resource().getURI();
         api = new MidonetApi(baseUri.toString());
         api.enableLogging();
+    }
+
+    public TopologyBackdoor getTopologyBackdoor() {
+        return FuncTest._injector.getInstance(TopologyBackdoor.class);
     }
 
     @Test
@@ -71,7 +71,7 @@ public class TestHostVersion extends JerseyTest {
         assertThat("Hosts array should not be null", hostVersions, is(notNullValue()));
         assertThat("Hosts should be empty", hostVersions.size(), equalTo(0));
 
-        hostManager.setHostVersion(myUuid);
+        getTopologyBackdoor().setHostVersion(myUuid);
         hostVersions = api.getHostVersions();
 
         assertThat("Hosts should be empty", hostVersions.size(), equalTo(1));
@@ -80,7 +80,7 @@ public class TestHostVersion extends JerseyTest {
         assertThat("Host Version should not have changed",
                 hostVersions.get(0).getVersion().equals(DataWriteVersion.CURRENT));
 
-        hostManager.setHostVersion(anotherUuid);
+        getTopologyBackdoor().setHostVersion(anotherUuid);
         hostVersions = api.getHostVersions();
 
         assertThat("Hosts should be empty", hostVersions.size(), equalTo(2));
