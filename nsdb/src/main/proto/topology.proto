@@ -431,7 +431,7 @@ message PoolMember {
     optional UUID id = 1;
     optional bool admin_state_up = 2;
     optional UUID pool_id = 3;
-    optional LBStatus status = 4;
+    optional LBStatus status = 4 [default = ACTIVE];
     optional IPAddress address = 5;
     optional int32 protocol_port = 6;
     optional int32 weight = 7;

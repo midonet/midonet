@@ -15,15 +15,15 @@
  */
 package org.midonet.cluster.data
 
+import java.lang.reflect.{Array => JArray, _}
 import java.lang.{Byte => JByte}
-import java.lang.reflect.{Array => JArray, Field, InvocationTargetException, ParameterizedType, Type}
-import java.util
-import java.util.{ArrayList => JArrayList, List => JList, Set => JSet, HashSet => JHashSet}
+import java.util.{ArrayList => JArrayList, HashSet => JHashSet, List => JList, Set => JSet}
 
-import scala.annotation.meta.field
-import scala.collection.concurrent.TrieMap
+import scala.annotation.meta.{field, param}
 import scala.collection.JavaConversions._
+import scala.collection.concurrent.TrieMap
 
+import com.google.common.base.Defaults
 import com.google.protobuf.Descriptors.{EnumDescriptor, EnumValueDescriptor}
 import com.google.protobuf.GeneratedMessage.Builder
 import com.google.protobuf.{ByteString, Descriptors, Message}
@@ -40,7 +40,7 @@ import com.google.protobuf.{ByteString, Descriptors, Message}
  */
 object ZoomConvert {
 
-    type ScalaZoomField = ZoomField @field
+    type ScalaZoomField = ZoomField @param @field
 
     private final val BuilderMethod = "newBuilder"
     private final val DescriptorMethod = "getDescriptor"
@@ -66,6 +66,8 @@ object ZoomConvert {
     private val listConverters = new TrieMap[Class[_], ListConverter]
     private val setConverters = new TrieMap[Class[_], SetConverter]
     private val jSetConverters = new TrieMap[Class[_], JavaSetConverter]
+
+    private val factories = new TrieMap[Class[_ <: Factory[_,_]], Factory[_,_]]
 
     /**
      * Converts a Java object to a Protocol Buffers message.
@@ -96,10 +98,18 @@ object ZoomConvert {
         if (proto eq null) {
             return null
         }
-        val pojo = newFactory(proto, pojoClass).newInstance().asInstanceOf[T]
-        from(proto, pojo, pojo.getClass)
-        pojo.afterFromProto(proto)
-        pojo
+        val clazz = newFactory(proto, pojoClass)
+        val defaultConstructor = getDefaultConstructor(clazz)
+        if (defaultConstructor ne null) {
+            val pojo = clazz.newInstance().asInstanceOf[T]
+            from(proto, pojo, pojo.getClass)
+            pojo.afterFromProto(proto)
+            pojo
+        } else {
+            val pojo = fromNew(proto, clazz.asInstanceOf[Class[T]])
+            pojo.afterFromProto(proto)
+            pojo
+        }
     }
 
     /**
@@ -157,8 +167,9 @@ object ZoomConvert {
                 val pojoValue = pojo.getField(pojoField)
                 // Ignore the null fields.
                 if (null != pojoValue) {
-                    val converter = getConverter(pojoField, protoField,
-                                                 zoomField)
+                    val converter = getConverter(pojoField.getType,
+                                                 pojoField.getGenericType,
+                                                 protoField, zoomField)
                     val protoValue = converter.to(pojoValue,
                                                   pojoField.getGenericType)
                     thisBuilder.setField(protoField, protoValue)
@@ -193,8 +204,8 @@ object ZoomConvert {
      * @param clazz The Java class corresponding to the current inheritance
      *              level.
      */
-    private def from[T <: ZoomObject, U <: Message](
-        proto: U, pojo: T, clazz: Class[_]): Message = {
+    private def from[T <: ZoomObject, U <: Message]
+                    (proto: U, pojo: T, clazz: Class[_]): Message = {
 
         // Recursively iterate over all superclasses in the objects inheritance
         // hierarchy, and get the corresponding Protocol Buffers message.
@@ -244,8 +255,9 @@ object ZoomConvert {
                 // Java object field set to the its type-default value.
                 try {
                     val protoValue = message.getField(protoField)
-                    val converter = getConverter(pojoField, protoField,
-                                                 zoomField)
+                    val converter = getConverter(pojoField.getType,
+                                                 pojoField.getGenericType,
+                                                 protoField, zoomField)
                     val pojoValue = converter.from(protoValue,
                                                    pojoField.getGenericType)
                     pojo.setField(pojoField, pojoValue)
@@ -264,6 +276,77 @@ object ZoomConvert {
         }
 
         message
+    }
+
+    /**
+     * Internal method to convert a Protocol Buffers message to the
+     * corresponding Java object using a non-default constructor.
+     *
+     * @param proto The Protocol Buffers message.
+     * @param clazz The Java object class.
+     * @return The converted object.
+     */
+    private def fromNew[T <: ZoomObject, U <: Message]
+                       (proto: U, clazz: Class[T]): T = {
+        val constructor = getZoomConstructor(clazz)
+        if (constructor eq null) {
+            throw new ConvertException(
+                s"Class $clazz requires a default constructor or a " +
+                s"constructor annotated with @Zoom annotation.")
+        }
+
+        // Get the descriptor for the current message.
+        val descriptor = proto.getDescriptorForType
+
+        val paramTypes = constructor.getParameterTypes
+        val paramGenericTypes = constructor.getGenericParameterTypes
+        val paramAnnotations = constructor.getParameterAnnotations
+        val params = new Array[Object](paramTypes.length)
+
+        for (index <- params.indices) {
+            val zoomField = paramAnnotations(index)
+                .find(_.annotationType() == classOf[ZoomField])
+                .getOrElse(throw new ConvertException(
+                    s"Constructor parameter $index requires a ZoomField " +
+                    s"annotation"))
+                .asInstanceOf[ZoomField]
+
+            val protoField = descriptor.findFieldByName(zoomField.name)
+
+            // Verify the field exists.
+            if (protoField eq null) {
+                throw new ConvertException(
+                    s"Message ${descriptor.getName} does not have a " +
+                    s"field ${zoomField.name}")
+            } else if (protoField.isRepeated || protoField.hasDefaultValue ||
+                       proto.hasField(protoField)) {
+                // We ignore unset message fields, and let the corresponding
+                // Java object field set to the its type-default value.
+                try {
+                    val protoValue = proto.getField(protoField)
+                    val converter = getConverter(paramTypes(index),
+                                                 paramGenericTypes(index),
+                                                 protoField, zoomField)
+                    params(index) = converter.from(protoValue,
+                                                   paramGenericTypes(index))
+                                             .asInstanceOf[AnyRef]
+                } catch {
+                    case e @ (_ : InstantiationException |
+                              _ : IllegalAccessException |
+                              _ : IllegalArgumentException |
+                              _ : NullPointerException) =>
+                        throw new ConvertException(
+                            s"Class $clazz failed to convert constructor" +
+                            s"parameter ${zoomField.name} from Protocol Buffers " +
+                            s"type ${protoField.getType} to Java type " +
+                            s"${paramTypes(index)}", e)
+                }
+            } else {
+                params(index) = Defaults.defaultValue(paramTypes(index)).asInstanceOf[Object]
+            }
+        }
+
+        constructor.newInstance(params: _*).asInstanceOf[T]
     }
 
     /**
@@ -294,15 +377,19 @@ object ZoomConvert {
      *              to specify abstract classes.
      * @return A factory class.
      */
-    private def newFactory[U <: Message](proto: U, clazz: Class[_]): Class[_] = {
+    private def newFactory[T <: ZoomObject, U <: Message]
+                          (proto: U, clazz: Class[_]): Class[_] = {
         var factory = clazz
         val zoomClass = clazz.getAnnotation(classOf[ZoomClass])
 
         if (null != zoomClass &&
             !zoomClass.factory().equals(classOf[DefaultFactory])) {
-            zoomClass.factory().newInstance().asInstanceOf[Factory[_, U]]
+            factories.getOrElseUpdate(zoomClass.factory(),
+                                      zoomClass.factory().newInstance())
+                .asInstanceOf[Factory[_, U]]
                 .getType(proto) match {
-                case c: Class[_] if clazz != c => factory = newFactory(proto, c)
+                case c: Class[_] if clazz != c =>
+                    factory = newFactory(proto, c)
                 case _ =>
             }
         }
@@ -310,24 +397,48 @@ object ZoomConvert {
     }
 
     /**
-     * Gets a converter instance for a field with the given ZoomField
-     * annotation.
+     * Returns the default constructor for the given class.
+     */
+    private def getDefaultConstructor(clazz: Class[_]): Constructor[_] = {
+        for (constructor <- clazz.getDeclaredConstructors
+             if constructor.getParameterTypes.isEmpty) {
+            constructor.setAccessible(true)
+            return constructor
+        }
+        null
+    }
+
+    /**
+     * Returns the [[Zoom]] constructor for the given class.
+     */
+    private def getZoomConstructor(clazz: Class[_]): Constructor[_] = {
+        for (constructor <- clazz.getDeclaredConstructors
+             if constructor.getAnnotation(classOf[Zoom]) ne null) {
+            constructor.setAccessible(true)
+            return constructor
+        }
+        null
+    }
+
+    /**
+     * Gets a converter instance for a field or parameter with the given
+     * ZoomField annotation.
      *
-     * @param pojoField The field.
+     * @param fieldType The field or parameter type.
+     * @param genericFieldType The field or parameter generic type.
      * @param protoField The message field descriptor.
      * @param zoomField The field's annotation.
      * @return A converter instance.
      */
-    private def getConverter(pojoField: Field,
+    private def getConverter(fieldType: Class[_], genericFieldType: Type,
                              protoField: Descriptors.FieldDescriptor,
                              zoomField: ZoomField): Converter[_,_] = {
         if (!protoField.isRepeated) {
-            return getScalarConverter(pojoField.getType, zoomField)
+            return getScalarConverter(fieldType, zoomField)
         }
-
-        pojoField.getGenericType match {
+        genericFieldType match {
             case c: Class[_] if c.isArray =>
-                getArrayConverter(pojoField.getType.getComponentType, zoomField)
+                getArrayConverter(fieldType.getComponentType, zoomField)
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[JList[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
@@ -346,7 +457,7 @@ object ZoomConvert {
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[Map[_,_]]) =>
                 getMapConverter(zoomField)
-            case _ => getScalarConverter(pojoField.getType, zoomField)
+            case _ => getScalarConverter(fieldType, zoomField)
         }
     }
 
@@ -596,7 +707,7 @@ object ZoomConvert {
 
         override def toProto(value: Array[_], clazz: Type): JList[_] = {
             val elClass = clazz.asInstanceOf[Class[_]].getComponentType
-            util.Arrays.asList(
+            java.util.Arrays.asList(
                 value.map(el => converter.to(el, elClass)): _*)
         }
 
