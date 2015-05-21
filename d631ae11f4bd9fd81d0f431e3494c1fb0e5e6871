@@ -54,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_c2dcb777",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/auth/AuthFilter.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-21T07:50:10Z",
+      "side": 1,
+      "message": "Basically: anything from the midonet-api that is going to be reused at the compat api, or shared between other components and midonet-api (auth is an example), is moving to cluster.",
+      "parentUuid": "facab960_e2929b9e",
+      "revId": "d631ae11f4bd9fd81d0f431e3494c1fb0e5e6871",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e2361be7",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/conf/ConfMinion.scala",
         "patchSetId": 2
