@@ -30,7 +30,7 @@ import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.packets.IPSubnet;
 
 @ZoomClass(clazz = Topology.Dhcp.Opt121Route.class)
-public class DHCPOption121 extends ZoomObject {
+public class DhcpOption121 extends ZoomObject {
 
     @JsonIgnore
     @ZoomField(name = "dst_subnet", converter = IPSubnetUtil.Converter.class)

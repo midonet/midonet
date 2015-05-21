@@ -20,7 +20,7 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.models.Topology;
 
-@ZoomEnum(clazz = Topology.VIP.SessionPersistence.class)
+@ZoomEnum(clazz = Topology.Vip.SessionPersistence.class)
 public enum VipSessionPersistence {
     @ZoomEnumValue("SOURCE_IP") SOURCE_IP
 }

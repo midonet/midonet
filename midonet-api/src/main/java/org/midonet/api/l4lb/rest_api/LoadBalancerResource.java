@@ -49,7 +49,7 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.conversion.LoadBalancerDataConverter;
 import org.midonet.cluster.rest_api.models.LoadBalancer;
-import org.midonet.cluster.rest_api.models.VIP;
+import org.midonet.cluster.rest_api.models.Vip;
 import org.midonet.event.topology.LoadBalancerEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -246,13 +246,13 @@ public class LoadBalancerResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
     @Path("{id}" + ResourceUriBuilder.VIPS)
-    public List<VIP> listVips(@PathParam("id") UUID loadBalancerId)
+    public List<Vip> listVips(@PathParam("id") UUID loadBalancerId)
         throws StateAccessException, SerializationException,
                IllegalAccessException {
         List<org.midonet.cluster.data.l4lb.VIP> vipsData;
 
         vipsData = dataClient.loadBalancerGetVips(loadBalancerId);
-        List<VIP> vips = new ArrayList<>();
+        List<Vip> vips = new ArrayList<>();
         if (vipsData != null) {
             for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {
                 vips.add(fromData(vipData, getBaseUri()));

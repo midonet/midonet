@@ -26,7 +26,7 @@ import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
-import org.midonet.cluster.models.Topology.VIP.SessionPersistence
+import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.midolman.simulation.VIP
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
@@ -42,7 +42,7 @@ class VipConversionTest extends FeatureSpec
 
     feature("Conversion for VIP") {
         scenario("From Protocol Buffer message") {
-            val proto = createVIP(adminStateUp = Some(true),
+            val proto = createVip(adminStateUp = Some(true),
                                   loadBalancerId = Some(UUID.randomUUID()),
                                   poolId = Some(UUID.randomUUID()),
                                   address = Some(IPv4Addr.random),
@@ -62,7 +62,7 @@ class VipConversionTest extends FeatureSpec
                                   sessionPersistence =
                                       VipSessionPersistence.SOURCE_IP,
                                   loadBalancerId = UUID.randomUUID())
-            val proto = ZoomConvert.toProto(zoomObj, classOf[Topology.VIP])
+            val proto = ZoomConvert.toProto(zoomObj, classOf[Topology.Vip])
             zoomObj shouldBeDeviceOf proto
         }
     }

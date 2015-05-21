@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronVIP
-import org.midonet.cluster.models.Topology.{Pool, VIP}
+import org.midonet.cluster.models.Topology.{Pool, Vip}
 import org.midonet.cluster.services.c3po.midonet.Create
 import org.midonet.util.concurrent.toFutureOps
 
@@ -29,7 +29,7 @@ class VipTranslator(protected val storage: ReadOnlyStorage)
 
     override protected def translateCreate(nVip: NeutronVIP)
     : MidoOpList = {
-        val mVipBldr = VIP.newBuilder
+        val mVipBldr = Vip.newBuilder
                       .setId(nVip.getId)
                       .setAdminStateUp(nVip.getAdminStateUp)
         if (nVip.hasAddress) mVipBldr.setAddress(nVip.getAddress)
@@ -37,7 +37,7 @@ class VipTranslator(protected val storage: ReadOnlyStorage)
         if (nVip.hasSessionPersistence &&
             nVip.getSessionPersistence.getType ==
                 NeutronVIP.SessionPersistence.Type.SOURCE_IP) {
-            mVipBldr.setSessionPersistence(VIP.SessionPersistence.SOURCE_IP)
+            mVipBldr.setSessionPersistence(Vip.SessionPersistence.SOURCE_IP)
         }
         if (nVip.hasPoolId) {
             val pool = storage.get(classOf[Pool], nVip.getPoolId).await()

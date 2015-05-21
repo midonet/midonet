@@ -22,7 +22,7 @@ option java_outer_classname = "Topology";
 
 // One per type
 enum Type {
-    BGP_PEERING = 1;
+    BGP = 1;
     BGP_ROUTE = 2;
     CHAIN = 3;
     DHCP = 4;
@@ -39,30 +39,40 @@ enum Type {
     ROUTER = 15;
     RULE = 16;
     TUNNEL_ZONE = 17;
-    VIRTUAL_IP = 18;
+    VIP = 18;
     VTEP = 19;
     VTEP_BINDING = 20;
 }
 
-message Network {
-    // Neutron / MidoNet common attributes
+message Bgp {
     optional UUID id = 1;
-    optional string tenant_id = 2;
-    optional string name = 3;
-    optional bool admin_state_up = 4;
+    optional int32 local_as = 2;
+    optional int32 peer_as = 3;
+    optional IPAddress peer_address = 4;
+    repeated UUID bgp_route_ids = 5;
 
-    // MidoNet-specific fields
-    optional uint64 tunnel_key = 5;
-    optional UUID inbound_filter_id = 6;
-    optional UUID outbound_filter_id = 7;
-    // If the Network is bound to any VTEPs, it'll be assigned a VNI
-    // that is used for all bindings to all VTEPs
-    optional uint32 vni = 8;
+    // Backreference
+    optional UUID port_id = 6;
+}
+
+message BgpRoute {
+
+    optional UUID id = 1;
+    optional IPSubnet subnet = 2;
+
+    // Backreference
+    optional UUID bgp_id = 3;
+}
+
+message Chain {
+    optional UUID id = 1;
+    optional string name = 2;
 
     // Backreferences
-    repeated UUID port_ids = 101;
-    repeated UUID vxlan_port_ids = 102;
-    repeated UUID dhcp_ids = 103;
+    repeated UUID rule_ids = 101;
+    repeated UUID network_ids = 102;
+    repeated UUID router_ids = 103;
+    repeated UUID port_ids = 104;
 }
 
 message Dhcp {
@@ -93,18 +103,84 @@ message Dhcp {
     optional UUID router_gw_port_id = 101;
 }
 
-message Router {
+message HealthMonitor {
+    enum HealthMonitorType { TCP = 1; }
+
     optional UUID id = 1;
-    optional string tenant_id = 2;
-    optional string name = 3;
-    optional bool admin_state_up = 4;
-    optional UUID inbound_filter_id = 5;
-    optional UUID outbound_filter_id = 6;
-    optional UUID load_balancer_id = 7;
-    repeated UUID route_ids = 8;
+    optional bool admin_state_up = 2;
+    optional HealthMonitorType type = 3 [default = TCP];
+    optional LBStatus status = 4 [default = INACTIVE];
+    optional int32 delay = 5;
+    optional int32 timeout = 6;
+    optional int32 max_retries = 7;
+}
+
+message Host {
+    optional UUID id = 1;
+    optional string name = 2;
+
+    message Interface {
+        enum Type {
+            PHYSICAL = 1;
+            VIRTUAL = 2;
+            TUNNEL = 3;
+            UNKNOWN = 4;
+        }
+        enum Endpoint {
+            DATAPATH_EP = 1;
+            PHYSICAL_EP = 2;
+            VM_EP = 3;
+            GRE_EP = 4;
+            CAPWAP_EP = 5;
+            LOCALHOST_EP = 6;
+            TUNTAP_EP = 7;
+            UNKNOWN_EP = 8;
+        }
+        enum DpPortType {
+            NET_DEV_DP = 1;
+            INTERNAL_DP = 2;
+            GRE_DP = 3;
+            VXLAN_DP = 4;
+            GRE64_DP = 5;
+            LISP_DP = 6;
+        }
+
+        optional string name = 1;
+        optional Type type = 2;
+        optional string mac = 3;
+        repeated IPAddress addresses = 4;
+        optional bool up = 5;
+        optional bool has_link = 6;
+        optional int32 mtu = 7;
+        optional Endpoint endpoint = 8;
+        optional DpPortType port_type = 9;
+    }
+    repeated Interface interfaces = 3;
+
+    optional int32 flooding_proxy_weight = 4;
+
+    // Backreference. Expected to be set from the Tunnel Zone side.
+    repeated UUID tunnel_zone_ids = 101;
+
+    // Backreference. Expected to be set from the Port side.
+    repeated UUID port_ids = 102;
+}
+
+message IPAddrGroup {
+    optional UUID id = 1;
+    optional string name = 2;
+
+    message IPAddrPorts {
+        optional IPAddress ip_address = 1;
+        repeated UUID port_ids = 2;
+    }
+    repeated IPAddrPorts ip_addr_ports = 3;
+
+    optional UUID inbound_chain_id = 4;
+    optional UUID outbound_chain_id = 5;
 
     // Backreferences
-    repeated UUID port_ids = 101;
+    repeated UUID rule_ids = 6;
 }
 
 message LoadBalancer {
@@ -117,20 +193,60 @@ message LoadBalancer {
     repeated UUID pool_ids = 102;
 }
 
-message VIP {
-    enum SessionPersistence {
-        SOURCE_IP = 1;
+message Network {
+    // Neutron / MidoNet common attributes
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional bool admin_state_up = 4;
+
+    // MidoNet-specific fields
+    optional uint64 tunnel_key = 5;
+    optional UUID inbound_filter_id = 6;
+    optional UUID outbound_filter_id = 7;
+    // If the Network is bound to any VTEPs, it'll be assigned a VNI
+    // that is used for all bindings to all VTEPs
+    optional uint32 vni = 8;
+
+    // Backreferences
+    repeated UUID port_ids = 101;
+    repeated UUID vxlan_port_ids = 102;
+    repeated UUID dhcp_ids = 103;
+}
+
+message Pool {
+    enum PoolProtocol { TCP = 1; }
+    enum PoolLBMethod { ROUND_ROBIN = 1; }
+    enum PoolHealthMonitorMappingStatus {
+        ACTIVE = 1;
+        INACTIVE = 2;
+        PENDING_CREATE = 3;
+        PENDING_UPDATE = 4;
+        PENDING_DELETE = 5;
+        ERROR = 6;
     }
 
     optional UUID id = 1;
+    optional UUID health_monitor_id = 2;
+    optional UUID load_balancer_id = 3;
+    optional bool admin_state_up = 4;
+
+    optional PoolProtocol protocol = 5 [default = TCP];
+    optional PoolLBMethod lb_method = 6 [default = ROUND_ROBIN];
+    optional LBStatus status = 7 [default = ACTIVE];
+    optional PoolHealthMonitorMappingStatus mapping_status = 8;
+
+    repeated UUID pool_member_ids = 101;
+}
+
+message PoolMember {
+    optional UUID id = 1;
     optional bool admin_state_up = 2;
     optional UUID pool_id = 3;
-    optional IPAddress address = 4;
-    optional uint32 protocol_port = 5;
-    optional SessionPersistence session_persistence = 6;
-
-    // Backreference
-    optional UUID load_balancer_id = 7;
+    optional LBStatus status = 4 [default = ACTIVE];
+    optional IPAddress address = 5;
+    optional int32 protocol_port = 6;
+    optional int32 weight = 7;
 }
 
 message Port {
@@ -178,34 +294,6 @@ message PortGroup {
     repeated UUID port_ids = 101;
 }
 
-message IPAddrGroup {
-    optional UUID id = 1;
-    optional string name = 2;
-
-    message IPAddrPorts {
-        optional IPAddress ip_address = 1;
-        repeated UUID port_ids = 2;
-    }
-    repeated IPAddrPorts ip_addr_ports = 3;
-
-    optional UUID inbound_chain_id = 4;
-    optional UUID outbound_chain_id = 5;
-
-    // Backreferences
-    repeated UUID rule_ids = 6;
-}
-
-message Chain {
-    optional UUID id = 1;
-    optional string name = 2;
-
-    // Backreferences
-    repeated UUID rule_ids = 101;
-    repeated UUID network_ids = 102;
-    repeated UUID router_ids = 103;
-    repeated UUID port_ids = 104;
-}
-
 message Route {
     optional UUID id = 1;
     optional IPSubnet src_subnet = 2;
@@ -222,6 +310,20 @@ message Route {
     optional int32 weight = 7;
     optional string attributes = 8;
     optional UUID router_id = 9;
+}
+
+message Router {
+    optional UUID id = 1;
+    optional string tenant_id = 2;
+    optional string name = 3;
+    optional bool admin_state_up = 4;
+    optional UUID inbound_filter_id = 5;
+    optional UUID outbound_filter_id = 6;
+    optional UUID load_balancer_id = 7;
+    repeated UUID route_ids = 8;
+
+    // Backreferences
+    repeated UUID port_ids = 101;
 }
 
 message Rule {
@@ -317,7 +419,6 @@ message Rule {
     }
 }
 
-// Next available ID is: 6
 message TunnelZone {
     optional UUID id = 1;
     optional string name = 2;
@@ -341,6 +442,22 @@ message TunnelZone {
     repeated UUID host_ids = 5;
 }
 
+message Vip {
+    enum SessionPersistence {
+        SOURCE_IP = 1;
+    }
+
+    optional UUID id = 1;
+    optional bool admin_state_up = 2;
+    optional UUID pool_id = 3;
+    optional IPAddress address = 4;
+    optional uint32 protocol_port = 5;
+    optional SessionPersistence session_persistence = 6;
+
+    // Backreference
+    optional UUID load_balancer_id = 7;
+}
+
 message Vtep {
     optional UUID id = 1;
     optional IPAddress management_ip = 2;
@@ -357,123 +474,4 @@ message VtepBinding {
     optional uint32 vlan_id = 3;    // A VLAN ID is a short int.
     optional UUID network_id = 4;
     optional UUID vtep_id = 5;      // A forward ref to VtEP.
-}
-
-// Next available ID: 6
-message Host {
-    optional UUID id = 1;
-    optional string name = 2;
-
-    message Interface {
-        enum Type {
-            PHYSICAL = 1;
-            VIRTUAL = 2;
-            TUNNEL = 3;
-            UNKNOWN = 4;
-        }
-        enum Endpoint {
-            DATAPATH_EP = 1;
-            PHYSICAL_EP = 2;
-            VM_EP = 3;
-            GRE_EP = 4;
-            CAPWAP_EP = 5;
-            LOCALHOST_EP = 6;
-            TUNTAP_EP = 7;
-            UNKNOWN_EP = 8;
-        }
-        enum DpPortType {
-            NET_DEV_DP = 1;
-            INTERNAL_DP = 2;
-            GRE_DP = 3;
-            VXLAN_DP = 4;
-            GRE64_DP = 5;
-            LISP_DP = 6;
-        }
-
-        optional string name = 1;
-        optional Type type = 2;
-        optional string mac = 3;
-        repeated IPAddress addresses = 4;
-        optional bool up = 5;
-        optional bool has_link = 6;
-        optional int32 mtu = 7;
-        optional Endpoint endpoint = 8;
-        optional DpPortType port_type = 9;
-    }
-    repeated Interface interfaces = 3;
-
-    optional int32 flooding_proxy_weight = 4;
-
-    // Backreference. Expected to be set from the Tunnel Zone side.
-    repeated UUID tunnel_zone_ids = 101;
-
-    // Backreference. Expected to be set from the Port side.
-    repeated UUID port_ids = 102;
-}
-
-message Pool {
-    enum PoolProtocol { TCP = 1; }
-    enum PoolLBMethod { ROUND_ROBIN = 1; }
-    enum PoolHealthMonitorMappingStatus {
-        ACTIVE = 1;
-        INACTIVE = 2;
-        PENDING_CREATE = 3;
-        PENDING_UPDATE = 4;
-        PENDING_DELETE = 5;
-        ERROR = 6;
-    }
-
-    optional UUID id = 1;
-    optional UUID health_monitor_id = 2;
-    optional UUID load_balancer_id = 3;
-    optional bool admin_state_up = 4;
-
-    optional PoolProtocol protocol = 5 [default = TCP];
-    optional PoolLBMethod lb_method = 6 [default = ROUND_ROBIN];
-    optional LBStatus status = 7 [default = ACTIVE];
-    optional PoolHealthMonitorMappingStatus mapping_status = 8;
-
-    repeated UUID pool_member_ids = 101;
-}
-
-message PoolMember {
-    optional UUID id = 1;
-    optional bool admin_state_up = 2;
-    optional UUID pool_id = 3;
-    optional LBStatus status = 4 [default = ACTIVE];
-    optional IPAddress address = 5;
-    optional int32 protocol_port = 6;
-    optional int32 weight = 7;
-}
-
-message HealthMonitor {
-    enum HealthMonitorType { TCP = 1; }
-
-    optional UUID id = 1;
-    optional bool admin_state_up = 2;
-    optional HealthMonitorType type = 3 [default = TCP];
-    optional LBStatus status = 4 [default = INACTIVE];
-    optional int32 delay = 5;
-    optional int32 timeout = 6;
-    optional int32 max_retries = 7;
-}
-
-message BGP {
-    optional UUID id = 1;
-    optional int32 local_as = 2;
-    optional int32 peer_as = 3;
-    optional IPAddress peer_address = 4;
-    repeated UUID bgp_route_ids = 5;
-
-    // Backreference
-    optional UUID port_id = 6;
-}
-
-message BGPRoute {
-
-    optional UUID id = 1;
-    optional IPSubnet subnet = 2;
-
-    // Backreference
-    optional UUID bgp_id = 3;
 }

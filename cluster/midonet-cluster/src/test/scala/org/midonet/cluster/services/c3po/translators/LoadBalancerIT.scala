@@ -17,15 +17,12 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
 
-import scala.collection.JavaConverters._
-
 import com.fasterxml.jackson.databind.JsonNode
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{HealthMonitor => HealthMonitorType, Pool => PoolType, Router => RouterType, VIP => VIPType}
-import org.midonet.cluster.data.neutron.TaskType.Create
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.util.concurrent.toFutureOps
@@ -42,7 +39,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         if (routerId != null) pool.put("router_id", routerId.toString)
         if (healthMonitors != null) {
             val monitorsNode = pool.putArray("health_monitors")
-            healthMonitors.foreach { hmId => monitorsNode.add(hmId.toString()) }
+            healthMonitors.foreach { hmId => monitorsNode.add(hmId.toString) }
         }
         pool
     }
@@ -136,13 +133,13 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val vipId = UUID.randomUUID()
         val vJson = vipJson(vipId, poolId = poolId).toString
         insertCreateTask(5, VIPType, vJson, vipId)
-        val vip = eventually(storage.get(classOf[VIP], vipId).await())
+        val vip = eventually(storage.get(classOf[Vip], vipId).await())
         vip.getLoadBalancerId shouldBe lb.getId
         vip.getAdminStateUp shouldBe true
         vip.getPoolId shouldBe toProto(poolId)
         vip.getProtocolPort shouldBe 12345
         vip.hasSessionPersistence shouldBe true
-        vip.getSessionPersistence shouldBe VIP.SessionPersistence.SOURCE_IP
+        vip.getSessionPersistence shouldBe Vip.SessionPersistence.SOURCE_IP
         val lbWithVip = storage.get(classOf[LoadBalancer], routerId).await()
         lbWithVip.getVipIdsList should contain (toProto(vipId))
     }

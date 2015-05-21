@@ -26,7 +26,7 @@ import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, VIP => TopologyVIP}
+import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, Vip => TopologyVip}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVip}
 import org.midonet.midolman.topology.LoadBalancerMapper.VipState
@@ -41,12 +41,12 @@ object LoadBalancerMapper {
     private final class VipState(vipId: UUID, vt: VirtualTopology) {
         private var currentVip: SimVip = null
 
-        private val mark = PublishSubject.create[TopologyVIP]
+        private val mark = PublishSubject.create[TopologyVip]
         /** The vip observable, notifications on the VT thread.
           * The filter discards any vip without a back-reference to the
           * load balancer, which may occur when removing the VIP from the
           * load balancer. */
-        val observable = vt.store.observable(classOf[TopologyVIP], vipId)
+        val observable = vt.store.observable(classOf[TopologyVip], vipId)
             .filter(makeFunc1(_.hasLoadBalancerId))
             .map[SimVip](makeFunc1(ZoomConvert.fromProto(_, classOf[SimVip])))
             .observeOn(vt.vtScheduler)
