@@ -420,6 +420,13 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
     }
 }
 
+configure(subprojects) {
+    repositories {
+        maven { url "http://nexus.opendaylight.org/content/groups/public/" }
+        maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
+    }
+}
+
 // Utility methods start here
 
 def getOrAddComponent(iml, name) {
