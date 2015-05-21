@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_9f5f6c72",
+        "filename": "tests/mdts/tests/utils/asserts.py",
+        "patchSetId": 1
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1003629
+      },
+      "writtenOn": "2015-05-21T02:20:49Z",
+      "side": 1,
+      "message": "This looks very clean and I like it a lot (I will probably use this method in the actual MDTS code)!  One question here, though.  This seems like it can deadlock if the tcpdump thread encounters an exception before releasing the semahphore (like if the Popen throws).  Do you see that as being a possible issue?",
+      "range": {
+        "startLine": 98,
+        "startChar": 4,
+        "endLine": 98,
+        "endChar": 41
+      },
+      "revId": "b5d5121f3d783806ea29875a86f475376cde9d64",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
