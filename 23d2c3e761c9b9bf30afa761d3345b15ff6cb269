@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_82e70fe4",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/PortGroupPort.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-21T09:32:42Z",
+      "side": 1,
+      "message": "You\u0027re right, we should do this validation inside the resource.",
+      "parentUuid": "facab960_026cdf9b",
+      "range": {
+        "startLine": 68,
+        "startChar": 8,
+        "endLine": 70,
+        "endChar": 9
+      },
+      "revId": "23d2c3e761c9b9bf30afa761d3345b15ff6cb269",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_2269e38b",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-21T08:43:43Z",
       "side": 1,
       "message": "why invoke create on the get?",
+      "range": {
+        "startLine": 136,
+        "startChar": 26,
+        "endLine": 136,
+        "endChar": 49
+      },
+      "revId": "23d2c3e761c9b9bf30afa761d3345b15ff6cb269",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_22d8031d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 136,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-21T09:32:42Z",
+      "side": 1,
+      "message": "This was just a short-cut, but maybe it\u0027s not needed. The PortGroupPort is converted from the Port protobuf, which doesn\u0027t set its portGroupId (because the protobuf doesn\u0027t have any). So this was a  sort of `create` the PortGroupPort DTO instance, while setting the portGroupId and validate it.\n\nI will resubmit addressing these.",
+      "parentUuid": "facab960_2269e38b",
       "range": {
         "startLine": 136,
         "startChar": 26,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_a23a5334",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-21T09:32:42Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "facab960_420507c1",
+      "range": {
+        "startLine": 149,
+        "startChar": 26,
+        "endLine": 149,
+        "endChar": 50
+      },
+      "revId": "23d2c3e761c9b9bf30afa761d3345b15ff6cb269",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e2f53bcc",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2015-05-21T08:43:43Z",
       "side": 1,
       "message": "Not now, but we should sometime enrich this with the resource name and id that hasn\u0027t been found",
+      "range": {
+        "startLine": 186,
+        "startChar": 19,
+        "endLine": 186,
+        "endChar": 71
+      },
+      "revId": "23d2c3e761c9b9bf30afa761d3345b15ff6cb269",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_02dbff1b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-21T09:32:42Z",
+      "side": 1,
+      "message": "Agree. When I submitted the custom http exceptions were not available yet. I shall add it now that they have been moved to this module.",
+      "parentUuid": "facab960_e2f53bcc",
       "range": {
         "startLine": 186,
         "startChar": 19,
