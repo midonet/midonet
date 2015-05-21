@@ -70,6 +70,23 @@
       "revId": "877113f96395155584fbca207eabe7a1d6183298",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_98b4e2f3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-21T15:04:18Z",
+      "side": 1,
+      "message": "eek. we shouldn\u0027t unit test private state.",
+      "revId": "877113f96395155584fbca207eabe7a1d6183298",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
