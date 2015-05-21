@@ -40,7 +40,6 @@ import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
@@ -58,7 +57,6 @@ import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
-import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.packets.MAC;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -229,7 +227,7 @@ public class TestPort {
         @Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Bad network address
             DtoRouterPort badNetworkAddr = createRouterPort(null, null,
@@ -548,8 +546,8 @@ public class TestPort {
 
             // Get the bridge and chains
             DtoBridge b = topology.getBridge("bridge1");
-            DtoRuleChain c1 = topology.getChain("chain1");
-            DtoRuleChain c2 = topology.getChain("chain2");
+            topology.getChain("chain1");
+            topology.getChain("chain2");
 
             // Create an Interior bridge port
             DtoBridgePort b1Lp1 = new DtoBridgePort();
@@ -576,11 +574,13 @@ public class TestPort {
             DtoBridgePort b1Lp2 = new DtoBridgePort();
             b1Lp2.setDeviceId(b.getId());
             b1Lp2.setVlanId(vlanId);
-            b1Lp2 = dtoResource.postAndVerifyCreated(b.getPorts(),
-                    APPLICATION_PORT_V2_JSON, b1Lp2, DtoBridgePort.class);
+            dtoResource.postAndVerifyCreated(b.getPorts(),
+                                             APPLICATION_PORT_V2_JSON, b1Lp2,
+                                             DtoBridgePort.class);
 
             // Try delete the bridge, test it deletes cleanly
-            dtoResource.deleteAndVerifyNoContent(b.getUri(), APPLICATION_BRIDGE_JSON);
+            dtoResource.deleteAndVerifyNoContent(b.getUri(),
+                                                 APPLICATION_BRIDGE_JSON);
         }
 
         @Test
@@ -1257,7 +1257,6 @@ public class TestPort {
         private DtoWebResource dtoResource;
         private Topology topology;
         private HostTopology hostTopology;
-        private HostZkManager hostManager;
         private MidonetApi api;
 
         private DtoRouter router1;
@@ -1285,8 +1284,6 @@ public class TestPort {
         public void setUp() throws Exception {
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
-            hostManager = JerseyGuiceTestServletContextListener
-                          .getHostZkManager();
 
             // Creating the topology for the exterior **router** port and the
             // interface.

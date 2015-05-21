@@ -19,12 +19,14 @@ import javax.servlet.ServletContext;
 
 import com.typesafe.config.Config;
 
+import org.midonet.api.rest_api.DataclientTopologyBackdoor;
 import org.midonet.api.rest_api.RestApiModule;
+import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 
 /**
- * Jersey servlet module for MidoNet REST API application.
+ * Jersey servlet module for MidoNet REST API application, for testing.
  */
 public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
 
@@ -44,6 +46,10 @@ public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
                 bind(VtepDataClientFactory.class)
                     .to(VtepMockableDataClientFactory.class)
                     .asEagerSingleton();
+
+                // Gives access to the backend storage, based on the dataclient
+                bind(TopologyBackdoor.class)
+                    .to(DataclientTopologyBackdoor.class);
             }
         });
     }
