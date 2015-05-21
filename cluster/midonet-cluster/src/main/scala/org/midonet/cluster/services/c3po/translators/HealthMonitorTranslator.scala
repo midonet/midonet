@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,31 @@ package org.midonet.cluster.services.c3po.translators
 
 import com.google.protobuf.Message
 
-import org.midonet.cluster.services.c3po.midonet.MidoOp
+import org.midonet.cluster.services.c3po.midonet.Create
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
+import org.midonet.cluster.models.Topology.HealthMonitor
 
 /** Provides a Neutron model translator for NeutronHealthMonitor. */
 class HealthMonitorTranslator extends NeutronTranslator[NeutronHealthMonitor]{
-    override protected def translateCreate(nm: NeutronHealthMonitor)
-    : List[MidoOp[_ <: Message]] = List()
+    override protected def translateCreate(nhm: NeutronHealthMonitor)
+    : MidoOpList = {
+        // The legacy plugin doesn't allow Load Balancer Pools to be associated
+        // with a Pool in creation (mainly for simplifying implementations.)
+        if (nhm.getPoolsCount > 0) throw new IllegalArgumentException(
+                "Load Balancer Pool cannot be associated.")
+
+        List(Create(HealthMonitor.newBuilder()
+                                 .setId(nhm.getId)
+                                 .setAdminStateUp(nhm.getAdminStateUp)
+                                 .setDelay(nhm.getDelay)
+                                 .setTimeout(nhm.getTimeout)
+                                 .setMaxRetries(nhm.getMaxRetries).build()))
+    }
 
     override protected def translateDelete(id: UUID)
-    : List[MidoOp[_ <: Message]] = List()
+    : MidoOpList = List()
 
     override protected def translateUpdate(nm: NeutronHealthMonitor)
-    : List[MidoOp[_ <: Message]] = List()
+    : MidoOpList = List()
 }
