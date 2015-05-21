@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_42d34738",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TopologyPrefetcher.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-21T09:00:09Z",
+      "side": 1,
+      "message": "I wanted to free that name, maybe rename VirtualTopology -\u003e Topology later, since that class is used both for the virtual and physical devices.",
+      "parentUuid": "facab960_c21f5708",
+      "revId": "c16c3fba0ae13676c498bdea6b7a71d0a4fbb178",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_9a43266b",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
         "patchSetId": 6
