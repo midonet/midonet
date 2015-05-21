@@ -195,8 +195,8 @@ message Response {
             Rule rule = 14;
             TunnelZone tunnel_zone = 15;
             VIP vip = 16;
-            Vtep vtep = 17;
-            VtepBinding vtep_binding = 18;
+            VTEP vtep = 17;
+            VTEPBinding vtep_binding = 18;
         }
     }
     message Snapshot {

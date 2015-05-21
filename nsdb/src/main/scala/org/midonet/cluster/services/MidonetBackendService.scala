@@ -70,8 +70,8 @@ abstract class MidonetBackend extends AbstractService {
              classOf[TunnelZone],
              classOf[SecurityGroup],
              classOf[VIP],
-             classOf[Vtep],
-             classOf[VtepBinding]
+             classOf[VTEP],
+             classOf[VTEPBinding]
         ).foreach(store.registerClass)
 
         ownershipStore.registerClass(classOf[Host], OwnershipType.Exclusive)

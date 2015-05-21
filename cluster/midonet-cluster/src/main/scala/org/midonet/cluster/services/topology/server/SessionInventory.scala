@@ -75,8 +75,8 @@ object SessionInventory {
             case h: VIP => Update.newBuilder().setVip(h).build()
             case h: Rule => Update.newBuilder().setRule(h).build()
             case h: TunnelZone => Update.newBuilder().setTunnelZone(h).build()
-            case h: Vtep => Update.newBuilder().setVtep(h).build()
-            case h: VtepBinding => Update.newBuilder().setVtepBinding(h).build()
+            case h: VTEP => Update.newBuilder().setVtep(h).build()
+            case h: VTEPBinding => Update.newBuilder().setVtepBinding(h).build()
             case _ => throw new UnknownTopologyEntityException
         }
         val objInfo = extractId(m)
