@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_782b9e82",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-21T14:23:40Z",
+      "side": 1,
+      "message": "it might be worth factoring this out to a hasError function",
+      "range": {
+        "startLine": 153,
+        "startChar": 28,
+        "endLine": 154,
+        "endChar": 58
+      },
+      "revId": "2ddb91dbc32c5bd2a78e4119f72ad97b36187b2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_383116ed",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-21T14:23:40Z",
+      "side": 1,
+      "message": "why pass the idx if we\u0027re doing this here?",
+      "range": {
+        "startLine": 156,
+        "startChar": 32,
+        "endLine": 156,
+        "endChar": 74
+      },
+      "revId": "2ddb91dbc32c5bd2a78e4119f72ad97b36187b2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b87366b0",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-21T14:23:40Z",
+      "side": 1,
+      "message": "This chunk here seems common to the three functions, plus the new Expectation.OnComplete\u003c..\u003e boilerplate.\n\nMaybe it\u0027d make sense to have:\n\nabstract class OperationWrapper extends     Expectation.OnComplete\u003cOperationResult\u003e {\n// implement onFailure here\n}\n\nThen the code here would end as:\n\nopResult.onComplete(new OperationWrapper() {\n    @Override public void onSuccess(OperationResult r) {\n        ...\n    }\n}\n\nwhich is less verbose, and less duplication. Doesn\u0027t seem mandatory, but it would help a lot with readability for the next one to read it :D",
+      "range": {
+        "startLine": 315,
+        "startChar": 0,
+        "endLine": 321,
+        "endChar": 33
+      },
+      "revId": "2ddb91dbc32c5bd2a78e4119f72ad97b36187b2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
