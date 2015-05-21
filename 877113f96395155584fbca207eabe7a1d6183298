@@ -105,6 +105,24 @@
       "revId": "877113f96395155584fbca207eabe7a1d6183298",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_98e782e4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-21T15:42:30Z",
+      "side": 1,
+      "message": "@Duarte I don\u0027t particularly like it either :/ I though the test may be useful to detect if another change will break this.\n\nA solution that would have ZoomConvert set the constructor arguments directly would be much more elegant, and we wouldn\u0027t need all this.\n\nFor me it\u0027s fine either way: test it or not.",
+      "parentUuid": "facab960_389cb669",
+      "revId": "877113f96395155584fbca207eabe7a1d6183298",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
