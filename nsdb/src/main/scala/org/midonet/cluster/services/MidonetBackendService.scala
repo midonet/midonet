@@ -45,7 +45,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[BGPRoute],
              classOf[C3POState],
              classOf[Chain],
-             classOf[Dhcp],
+             classOf[DHCP],
              classOf[FloatingIp],
              classOf[HealthMonitor],
              classOf[IPAddrGroup],
@@ -72,8 +72,8 @@ abstract class MidonetBackend extends AbstractService {
              classOf[TunnelZone],
              classOf[SecurityGroup],
              classOf[VIP],
-             classOf[Vtep],
-             classOf[VtepBinding]
+             classOf[VTEP],
+             classOf[VTEPBinding]
         ).foreach(store.registerClass)
 
         ownershipStore.registerClass(classOf[Host], OwnershipType.Exclusive)
@@ -81,12 +81,12 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[Network], "port_ids", CASCADE,
                              classOf[Port], "network_id", CLEAR)
         store.declareBinding(classOf[Network], "dhcp_ids", CASCADE,
-                             classOf[Dhcp], "network_id", CLEAR)
+                             classOf[DHCP], "network_id", CLEAR)
 
         store.declareBinding(classOf[Port], "peer_id", CLEAR,
                              classOf[Port], "peer_id", CLEAR)
         store.declareBinding(classOf[Port], "dhcp_id", CLEAR,
-                             classOf[Dhcp], "router_gw_port_id", CLEAR)
+                             classOf[DHCP], "router_gw_port_id", CLEAR)
         store.declareBinding(classOf[Port], "host_id", CLEAR,
                              classOf[Host], "port_ids", CLEAR)
         store.declareBinding(classOf[Port], "port_group_ids", CLEAR,

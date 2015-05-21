@@ -20,7 +20,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronSubnet}
-import org.midonet.cluster.models.Topology.Dhcp
+import org.midonet.cluster.models.Topology.DHCP
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.util.IPSubnetUtil.richProtoIPSubnet
@@ -155,6 +155,6 @@ class SubnetTranslatorTest extends TranslatorTestBase {
     "DELETE subnet" should "delete the DHCP" in {
         val midoOps = translator.translate(
             neutron.Delete(classOf[NeutronSubnet], subnetId))
-        midoOps should contain only midonet.Delete(classOf[Dhcp], subnetId)
+        midoOps should contain only midonet.Delete(classOf[DHCP], subnetId)
     }
 }

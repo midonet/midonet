@@ -62,7 +62,7 @@ object SessionInventory {
             case h: BGP => Update.newBuilder().setBgp(h).build()
             case h: BGPRoute => Update.newBuilder().setBgpRoute(h).build()
             case h: Chain => Update.newBuilder().setChain(h).build()
-            case h: Dhcp => Update.newBuilder().setDhcp(h).build()
+            case h: DHCP => Update.newBuilder().setDhcp(h).build()
             case h: HealthMonitor => Update.newBuilder().setHealthMonitor(h).build()
             case h: Host => Update.newBuilder().setHost(h).build()
             case h: IPAddrGroup => Update.newBuilder().setIpAddrGroup(h).build()
@@ -77,8 +77,8 @@ object SessionInventory {
             case h: VIP => Update.newBuilder().setVip(h).build()
             case h: Rule => Update.newBuilder().setRule(h).build()
             case h: TunnelZone => Update.newBuilder().setTunnelZone(h).build()
-            case h: Vtep => Update.newBuilder().setVtep(h).build()
-            case h: VtepBinding => Update.newBuilder().setVtepBinding(h).build()
+            case h: VTEP => Update.newBuilder().setVtep(h).build()
+            case h: VTEPBinding => Update.newBuilder().setVtepBinding(h).build()
             case _ => throw new UnknownTopologyEntityException
         }
         val objInfo = extractId(m)

@@ -126,7 +126,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         // Only the router should have a Midonet equivalent.
         List(storage.exists(classOf[Router], routerId),
              storage.exists(classOf[Network], uplinkNetworkId),
-             storage.exists(classOf[Dhcp], subnetId),
+             storage.exists(classOf[DHCP], subnetId),
              storage.exists(classOf[Port], dhcpPortId),
              storage.exists(classOf[Port], rifPortId))
             .map(_.await()) shouldBe List(true, false, false, false, false)

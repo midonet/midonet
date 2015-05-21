@@ -82,7 +82,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             val subnetIdProto = toProto(privateSubnetId)
             network.getDhcpIdsList contains subnetIdProto shouldBe true
         }
-        val dhcp = storage.get(classOf[Dhcp], privateSubnetId).await()
+        val dhcp = storage.get(classOf[DHCP], privateSubnetId).await()
         dhcp.getNetworkId shouldBe toProto(privateNetworkId)
 
         // Set up a host. Needs to do this directly via Zoom as the Host info
@@ -138,7 +138,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                 id = 7, Create, SubnetType, extSubnetJson, extSubnetId,
                 "tx7"))
         eventually {
-            storage.exists(classOf[Dhcp], extSubnetId).await() shouldBe true
+            storage.exists(classOf[DHCP], extSubnetId).await() shouldBe true
         }
 
         // #8 Create a Router GW Port

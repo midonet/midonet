@@ -26,26 +26,26 @@ import org.midonet.cluster.models.Topology
 object TopologyMappings {
     /** Mapping Topology entity types to their container class */
     val typeToKlass: Map[Topology.Type, Class[_ <: Message]] = Map(
-        Topology.Type.BGP_PEERING -> classOf[Topology.BGP],
-        Topology.Type.BGP_ROUTE -> classOf[Topology.BGPRoute],
-        Topology.Type.CHAIN  -> classOf[Topology.Chain],
-        Topology.Type.DHCP -> classOf[Topology.Dhcp],
-        Topology.Type.HEALTH_MONITOR -> classOf[Topology.HealthMonitor],
-        Topology.Type.HOST -> classOf[Topology.Host],
-        Topology.Type.IP_ADDR_GROUP -> classOf[Topology.IPAddrGroup],
-        Topology.Type.NETWORK -> classOf[Topology.Network],
-        Topology.Type.POOL -> classOf[Topology.Pool],
-        Topology.Type.POOL_MEMBER -> classOf[Topology.PoolMember],
-        Topology.Type.PORT -> classOf[Topology.Port],
-        Topology.Type.PORT_GROUP -> classOf[Topology.PortGroup],
-        Topology.Type.ROUTE -> classOf[Topology.Route],
-        Topology.Type.ROUTER -> classOf[Topology.Router],
-        Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
-        Topology.Type.VIRTUAL_IP -> classOf[Topology.VIP],
-        Topology.Type.RULE -> classOf[Topology.Rule],
-        Topology.Type.TUNNEL_ZONE -> classOf[Topology.TunnelZone],
-        Topology.Type.VTEP -> classOf[Topology.Vtep],
-        Topology.Type.VTEP_BINDING -> classOf[Topology.VtepBinding]
+        Topology.Type.BGP_TYPE -> classOf[Topology.BGP],
+        Topology.Type.BGP_ROUTE_TYPE -> classOf[Topology.BGPRoute],
+        Topology.Type.CHAIN_TYPE  -> classOf[Topology.Chain],
+        Topology.Type.DHCP_TYPE -> classOf[Topology.DHCP],
+        Topology.Type.HEALTH_MONITOR_TYPE -> classOf[Topology.HealthMonitor],
+        Topology.Type.HOST_TYPE -> classOf[Topology.Host],
+        Topology.Type.IP_ADDR_GROUP_TYPE -> classOf[Topology.IPAddrGroup],
+        Topology.Type.NETWORK_TYPE -> classOf[Topology.Network],
+        Topology.Type.POOL_TYPE -> classOf[Topology.Pool],
+        Topology.Type.POOL_MEMBER_TYPE -> classOf[Topology.PoolMember],
+        Topology.Type.PORT_TYPE -> classOf[Topology.Port],
+        Topology.Type.PORT_GROUP_TYPE -> classOf[Topology.PortGroup],
+        Topology.Type.ROUTE_TYPE -> classOf[Topology.Route],
+        Topology.Type.ROUTER_TYPE -> classOf[Topology.Router],
+        Topology.Type.LOAD_BALANCER_TYPE -> classOf[Topology.LoadBalancer],
+        Topology.Type.VIP_TYPE -> classOf[Topology.VIP],
+        Topology.Type.RULE_TYPE -> classOf[Topology.Rule],
+        Topology.Type.TUNNEL_ZONE_TYPE -> classOf[Topology.TunnelZone],
+        Topology.Type.VTEP_TYPE -> classOf[Topology.VTEP],
+        Topology.Type.VTEP_BINDING_TYPE -> classOf[Topology.VTEPBinding]
     )
     /** Retrieve the klass for the given Topology entity type */
     def klassOf(t: Topology.Type) = typeToKlass.get(t)

@@ -175,14 +175,14 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* A container class holding context associated with a Neutron Port CRUD. */
     private case class PortContext(
-            midoDhcps: mutable.Map[UUID, Dhcp.Builder],
+            midoDhcps: mutable.Map[UUID, DHCP.Builder],
             inRules: ListBuffer[MidoOp[Rule]],
             outRules: ListBuffer[MidoOp[Rule]],
             chains: ListBuffer[MidoOp[Chain]],
             updatedIpAddrGrps: ListBuffer[MidoOp[IPAddrGroup]])
 
     private def initPortContext =
-        PortContext(mutable.Map[UUID, Dhcp.Builder](),
+        PortContext(mutable.Map[UUID, DHCP.Builder](),
                     ListBuffer[MidoOp[Rule]](),
                     ListBuffer[MidoOp[Rule]](),
                     ListBuffer[MidoOp[Chain]](),
@@ -218,12 +218,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     /* Update DHCP configuration by applying the given updateFun. */
     private def updateDhcpEntries(
             nPort: NeutronPort,
-            subnetCache: mutable.Map[UUID, Dhcp.Builder],
-            updateFun: (Dhcp.Builder, String, IPAddress) => Unit) {
+            subnetCache: mutable.Map[UUID, DHCP.Builder],
+            updateFun: (DHCP.Builder, String, IPAddress) => Unit) {
         for (ipAlloc <- nPort.getFixedIpsList.asScala) {
             val subnet = subnetCache.getOrElseUpdate(
                     ipAlloc.getSubnetId,
-                    storage.get(classOf[Dhcp],
+                    storage.get(classOf[DHCP],
                                 ipAlloc.getSubnetId).await().toBuilder)
             val mac = nPort.getMacAddress
             val ipAddress = ipAlloc.getIpAddress
@@ -233,7 +233,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* Adds a host entry with the given mac / IP address pair to DHCP. */
     private def addDhcpHost(
-            dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress) {
+            dhcp: DHCP.Builder, mac: String, ipAddr: IPAddress) {
         dhcp.addHostsBuilder()
             .setMac(mac)
             .setIpAddress(ipAddr)
@@ -241,7 +241,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* Deletes a host entry with the given mac / IP address pair in DHCP. */
     private def delDhcpHost(
-            dhcp: Dhcp.Builder, mac: String, ipAddr: IPAddress) {
+            dhcp: DHCP.Builder, mac: String, ipAddr: IPAddress) {
         val remove = dhcp.getHostsList.asScala.indexWhere(
             h => h.getMac == mac && h.getIpAddress == ipAddr)
         if (remove >= 0) dhcp.removeHosts(remove)
@@ -249,7 +249,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* Configures the DHCP server and an OPT 121 route to it with the given IP
      * address (the mac is actually not being used here). */
-    private def addDhcpServer(dhcp: Dhcp.Builder, mac: String,
+    private def addDhcpServer(dhcp: DHCP.Builder, mac: String,
                               ipAddr: IPAddress): Unit = if (dhcp.isIpv4) {
         dhcp.setServerAddress(ipAddr)
         val opt121 = dhcp.addOpt121RoutesBuilder()
@@ -259,7 +259,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
     /* Removes the DHCP server and OPT 121 route configurations with the given
      * IP address from DHCP (the mac is actually not being used here). */
-    private def delDhcpServer(dhcp: Dhcp.Builder, mac: String,
+    private def delDhcpServer(dhcp: DHCP.Builder, mac: String,
                               nextHopGw: IPAddress): Unit = if (dhcp.isIpv4) {
         dhcp.clearServerAddress()
         val route = dhcp.getOpt121RoutesOrBuilderList.asScala
@@ -423,7 +423,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     }
 
     /* The next hop gateway context for Neutron Port. */
-    private case class Gateway(nextHop: IPAddress, nextHopDhcp: Dhcp,
+    private case class Gateway(nextHop: IPAddress, nextHopDhcp: DHCP,
                                peerRouterPortId: UUID, peerRouter: Router)
 
     /* Find gateway router & router port configured with the port's fixed IP. */
@@ -432,7 +432,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val nextHopGateway = nPort.getFixedIps(0).getIpAddress
         val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
 
-        val dhcp = storage.get(classOf[Dhcp], nextHopGatewaySubnetId).await()
+        val dhcp = storage.get(classOf[DHCP], nextHopGatewaySubnetId).await()
         if (!dhcp.hasRouterGwPortId) return None
 
         val rtrGwPort = storage.get(classOf[Port],

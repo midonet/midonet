@@ -36,7 +36,7 @@ import org.midonet.cluster.util._
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.midolman.{layer3 => l3}
-import org.midonet.packets._
+import org.midonet.packets.{IPAddr, IPv4Addr, IPSubnet, IPv4Subnet, MAC}
 import org.midonet.util.Range
 
 trait TopologyBuilder {
@@ -166,8 +166,8 @@ trait TopologyBuilder {
                              serverAddr: IPAddr = IPv4Addr.random,
                              subnetAddr: IPSubnet[_] = IPv4Addr.random.subnet(24),
                              enabled: Boolean = true,
-                             mtu: Int = 1024): Dhcp = {
-        val builder = Dhcp.newBuilder()
+                             mtu: Int = 1024): DHCP = {
+        val builder = DHCP.newBuilder()
             .setId(id.asProto)
             .setNetworkId(networkId.asProto)
             .setDefaultGateway(defaultGw.asProto)
@@ -179,8 +179,8 @@ trait TopologyBuilder {
     }
 
     protected def createDhcpHost(name: String, mac: MAC, ip: IPAddr)
-    : Dhcp.Host = {
-        val builder = Dhcp.Host.newBuilder()
+    : DHCP.Host = {
+        val builder = DHCP.Host.newBuilder()
                                .setName(name)
                                .setMac(mac.toString)
                                .setIpAddress(ip.asProto)

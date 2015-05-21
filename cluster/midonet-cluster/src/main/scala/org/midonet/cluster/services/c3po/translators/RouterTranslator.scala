@@ -159,7 +159,7 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
 
     /** Create default route for gateway port. */
     private def defaultGwRoute(dhcpId: UUID, portId: UUID): Route = {
-        val dhcp = storage.get(classOf[Dhcp], dhcpId).await()
+        val dhcp = storage.get(classOf[DHCP], dhcpId).await()
         val nextHopIp = if (!dhcp.hasRouterGwPortId) null else {
             val gwPortFtr = storage.get(classOf[Port], dhcp.getRouterGwPortId)
             gwPortFtr.await().getPortAddress
