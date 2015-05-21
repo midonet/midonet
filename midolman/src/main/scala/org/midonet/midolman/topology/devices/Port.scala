@@ -227,8 +227,8 @@ class RouterPort extends Port {
 
     override def toString =
         s"RouterPort [${super.toString} routerId=$routerId " +
-        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac] " +
-        s"routeIds=${if(routeIds==null) { null } else { routeIds.toSeq }}"
+        s"portSubnet=$portSubnet portIp=$portIp portMac=$portMac " +
+        s"routeIds=$routeIds]"
 }
 
 sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
