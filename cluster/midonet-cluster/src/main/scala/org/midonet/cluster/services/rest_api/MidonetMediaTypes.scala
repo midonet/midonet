@@ -16,9 +16,6 @@
 
 package org.midonet.cluster.services.rest_api
 
-import org.midonet.cluster.rest_api.models.ResourceUris._
-import org.midonet.util.collection.Bimap
-
 /** All the MediaTypes offered by MidoNet, plus some utility lookups into maps
   * between domains. */
 object MidonetMediaTypes {
