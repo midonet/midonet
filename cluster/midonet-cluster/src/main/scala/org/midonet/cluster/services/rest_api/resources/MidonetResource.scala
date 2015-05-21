@@ -48,6 +48,7 @@ object MidonetResource {
     private final val Timeout = 5 seconds
     private final val StorageAttempts = 3
     private final val OkResponse = Response.ok().build()
+    private final val OkNoContentResponse = Response.noContent().build()
 
     sealed trait Multi
     case class Create[T <: UriResource](resource: T) extends Multi
@@ -215,7 +216,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
     }
 
     protected def updateResource[U >: Null <: UriResource]
-                                (resource: U, response: Response = OkResponse)
+                                (resource: U,
+                                 response: Response = OkNoContentResponse)
     : Response = {
         val message = toProto(resource)
         log.info("UPDATE: {}\n{}", message.getClass, message)
@@ -226,7 +228,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     }
 
     protected def deleteResource(clazz: Class[_ <: UriResource], id: Any,
-                                 response: Response = OkResponse)
+                                 response: Response = OkNoContentResponse)
     : Response = {
         log.info("DELETE: {}:{}", UriResource.getZoomClass(clazz),
                  id.asInstanceOf[AnyRef])

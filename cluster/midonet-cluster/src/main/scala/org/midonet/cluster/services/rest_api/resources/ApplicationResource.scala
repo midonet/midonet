@@ -24,6 +24,7 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.models.Application
+import org.midonet.cluster.rest_api.models.ResourceUris._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
@@ -44,7 +45,8 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
                                     ruleResource: RuleResource,
                                     systemStateResource: SystemStateResource,
                                     tunnelZoneResource: TunnelZoneResource,
-                                    vipResource: VIPResource)
+                                    vipResource: VIPResource,
+                                    tenantResource: TenantResource)
     extends MidonetResource(backend, uriInfo) {
 
     @GET
@@ -55,46 +57,49 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
         new Application(uriInfo.getAbsolutePathBuilder.build())
     }
 
-    @Path("bridges")
+    @Path(BRIDGES)
     def bridges = bridgeResource
 
-    @Path("chains")
+    @Path(CHAINS)
     def chains = chainResource
 
-    @Path("hosts")
+    @Path(HOSTS)
     def hosts = hostResource
 
-    @Path("load_balancers")
+    @Path(LOAD_BALANCERS)
     def loadBalancers = loadBalancerResource
 
     @Path("login")
     def login = loginResource
 
-    @Path("pools")
+    @Path(POOLS)
     def pools = poolResource
 
-    @Path("pool_members")
+    @Path(POOL_MEMBERS)
     def poolMembers = poolMemberResource
 
-    @Path("ports")
+    @Path(PORTS)
     def ports = portResource
 
-    @Path("routers")
+    @Path(ROUTERS)
     def routers = routerResource
 
-    @Path("routes")
+    @Path(ROUTES)
     def routes = routeResource
 
-    @Path("rules")
+    @Path(RULES)
     def rules = ruleResource
 
-    @Path("system_state")
+    @Path(SYSTEM_STATE)
     def systemState = systemStateResource
 
-    @Path("tunnel_zones")
+    @Path(TUNNEL_ZONES)
     def tunnelZones = tunnelZoneResource
 
-    @Path("vips")
+    @Path(VIPS)
     def vips = vipResource
+
+    @Path(TENANTS)
+    def tenants = tenantResource
 
 }
