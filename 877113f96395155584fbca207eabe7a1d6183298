@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_fd08802f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-21T14:12:21Z",
+      "side": 1,
+      "message": "Should this initialization be done even if address or protocolPort are null?",
+      "range": {
+        "startLine": 59,
+        "startChar": 29,
+        "endLine": 60,
+        "endChar": 77
+      },
+      "revId": "877113f96395155584fbca207eabe7a1d6183298",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
