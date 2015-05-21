@@ -88,6 +88,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val healthMonitor = new HealthMonitorConfig(conf, schema)
     val host = new HostConfig(conf, schema)
     val neutron = new NeutronConfig(conf, schema)
+    val flowHistory = new FlowHistoryConfig(conf, schema)
 }
 
 class HostConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
@@ -146,4 +147,10 @@ class HealthMonitorConfig(val conf: Config, val schema: Config) extends TypeFail
 class NeutronConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
     def tasksDb = getString("agent.cluster.tasks_db_connection")
     def enabled = getBoolean("agent.cluster.enabled")
+}
+
+class FlowHistoryConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def enabled = getBoolean("agent.flow_history.enabled")
+    def encoding = getString("agent.flow_history.encoding")
+    def udpEndpoint = getString("agent.flow_history.udp_endpoint")
 }
