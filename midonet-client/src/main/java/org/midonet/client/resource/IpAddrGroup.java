@@ -19,9 +19,9 @@ package org.midonet.client.resource;
 import java.net.URI;
 import java.util.UUID;
 
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.WebResource;
 import org.midonet.client.dto.DtoIpAddrGroup;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class IpAddrGroup extends ResourceBase<IpAddrGroup, DtoIpAddrGroup> {
 
@@ -29,7 +29,7 @@ public class IpAddrGroup extends ResourceBase<IpAddrGroup, DtoIpAddrGroup> {
     public IpAddrGroup(WebResource resource, URI uriForCreation,
                      DtoIpAddrGroup ipg) {
         super(resource, uriForCreation, ipg,
-                VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON);
+              VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON);
     }
 
     @Override

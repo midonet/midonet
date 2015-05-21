@@ -17,8 +17,7 @@ package org.midonet.api.auth.rest_api;
 
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
+
 import org.codehaus.jackson.type.JavaType;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,10 +25,10 @@ import org.junit.Test;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.client.VendorMediaType;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoTenant;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 import javax.ws.rs.core.UriBuilder;
 import java.net.URI;
@@ -85,7 +84,7 @@ public class TestTenant extends JerseyTest {
                                                       URI tenantsUri,
                                                       int startTenantId,
                                                       int endTenantId) {
-        List<DtoTenant> tenants = new ArrayList<DtoTenant>();
+        List<DtoTenant> tenants = new ArrayList<>();
 
         for (int i = startTenantId; i <= endTenantId; i++) {
             DtoTenant t = getExpectedTenant(baseUri, tenantsUri,

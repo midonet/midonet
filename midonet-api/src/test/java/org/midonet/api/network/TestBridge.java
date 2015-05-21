@@ -43,7 +43,6 @@ import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -53,6 +52,7 @@ import org.midonet.client.dto.DtoMacPort;
 import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.client.dto.DtoTenant;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
@@ -62,18 +62,18 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_IP4_MAC_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
-import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_MAC_PORT_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP4_MAC_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_COLLECTION_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_MAC_PORT_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
 @RunWith(Enclosed.class)
 public class TestBridge {

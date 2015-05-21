@@ -40,12 +40,12 @@ import org.midonet.packets.IPv4Addr$;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.midonet.client.VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
-import static org.midonet.client.VendorMediaType.APPLICATION_RULE_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_COLLECTION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP_ADDR_GROUP_ADDR_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP_ADDR_GROUP_COLLECTION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP_ADDR_GROUP_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_RULE_JSON_V2;
 
 @RunWith(Enclosed.class)
 public class TestIpAddrGroup {

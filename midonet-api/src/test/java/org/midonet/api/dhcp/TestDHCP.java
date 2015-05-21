@@ -38,14 +38,14 @@ import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.hamcrest.Matchers.arrayWithSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2;
-import static org.midonet.client.VendorMediaType.APPLICATION_JSON_V5;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCP_HOST_COLLECTION_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCP_HOST_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCP_HOST_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCP_SUBNET_COLLECTION_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_DHCP_SUBNET_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
 
 public class TestDHCP extends JerseyTest {
 

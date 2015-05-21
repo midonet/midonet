@@ -35,10 +35,8 @@ import org.midonet.client.dto.DtoPort;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.midonet.cluster.rest_api.VendorMediaType.*;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON;
-import static org.midonet.client.VendorMediaType.APPLICATION_BRIDGE_JSON_V3;
-import static org.midonet.client.VendorMediaType.APPLICATION_PORT_V2_JSON;
 
 public abstract class RestApiTestBase extends JerseyTest {
 

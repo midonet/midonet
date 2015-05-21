@@ -16,13 +16,15 @@
 
 package org.midonet.client.resource;
 
-import org.midonet.client.VendorMediaType;
-import org.midonet.client.WebResource;
-import org.midonet.client.dto.*;
-
-import javax.ws.rs.core.MultivaluedMap;
 import java.net.URI;
 import java.util.UUID;
+
+import javax.ws.rs.core.MultivaluedMap;
+
+import org.midonet.client.WebResource;
+import org.midonet.client.dto.DtoBgp;
+import org.midonet.client.dto.DtoRouterPort;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 public class RouterPort extends Port<RouterPort, DtoRouterPort> {
 

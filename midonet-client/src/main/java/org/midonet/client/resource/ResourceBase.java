@@ -28,18 +28,11 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 /**
- * Author: Tomoe Sugihara <tomoe@midokura.com>
- * Date: 8/17/12
- * Time: 5:50 PM
- */
-
-/**
  * Base class for resource classes
  *
  * @param <T> concrete class
  * @param <U> type of principal DTO
  */
-// TODO(pino): ResourceBase<T extends ResourceBase<T>, U>?
 public abstract class ResourceBase<T extends ResourceBase<T,U>, U> {
 
     final WebResource resource;

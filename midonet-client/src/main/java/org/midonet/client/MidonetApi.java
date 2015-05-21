@@ -18,11 +18,28 @@ package org.midonet.client;
 
 import java.net.URI;
 import java.util.UUID;
+
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.midonet.client.dto.DtoApplication;
-import org.midonet.client.dto.DtoTunnelZone;
-import org.midonet.client.resource.*;
+import org.midonet.client.resource.AdRoute;
+import org.midonet.client.resource.Application;
+import org.midonet.client.resource.Bgp;
+import org.midonet.client.resource.Bridge;
+import org.midonet.client.resource.Host;
+import org.midonet.client.resource.HostVersion;
+import org.midonet.client.resource.Port;
+import org.midonet.client.resource.PortGroup;
+import org.midonet.client.resource.ResourceCollection;
+import org.midonet.client.resource.Route;
+import org.midonet.client.resource.Router;
+import org.midonet.client.resource.Rule;
+import org.midonet.client.resource.RuleChain;
+import org.midonet.client.resource.SystemState;
+import org.midonet.client.resource.Tenant;
+import org.midonet.client.resource.TunnelZone;
+import org.midonet.client.resource.WriteVersion;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
 
 /**
