@@ -57,8 +57,8 @@ class BridgeResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     }
 
     @Path("{id}/dhcp")
-    def dhcps(@PathParam("id") id: UUID): DHCPSubnetResource = {
-        new DHCPSubnetResource(id, backend, uriInfo)
+    def dhcps(@PathParam("id") id: UUID): DhcpSubnetResource = {
+        new DhcpSubnetResource(id, backend, uriInfo)
     }
 
     protected override def listFilter: (Bridge) => Boolean = {

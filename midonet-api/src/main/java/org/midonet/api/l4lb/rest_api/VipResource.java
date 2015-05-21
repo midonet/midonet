@@ -50,7 +50,7 @@ import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.conversion.VIPDataConverter;
-import org.midonet.cluster.rest_api.models.VIP;
+import org.midonet.cluster.rest_api.models.Vip;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.event.topology.VipEvent;
 import org.midonet.midolman.serialization.SerializationException;
@@ -91,13 +91,13 @@ public class VipResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
             MediaType.APPLICATION_JSON })
-    public List<VIP> list() throws StateAccessException,
+    public List<Vip> list() throws StateAccessException,
                                    SerializationException,
                                    IllegalAccessException {
         List<org.midonet.cluster.data.l4lb.VIP> vipsData;
 
         vipsData = dataClient.vipGetAll();
-        List<VIP> vips = new ArrayList<>();
+        List<Vip> vips = new ArrayList<>();
         if (vipsData != null) {
             for (org.midonet.cluster.data.l4lb.VIP vipData: vipsData) {
                 vips.add(fromData(vipData, getBaseUri()));
@@ -121,7 +121,7 @@ public class VipResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_VIP_JSON,
                 MediaType.APPLICATION_JSON })
-    public VIP get(@PathParam("id") UUID id) throws StateAccessException,
+    public Vip get(@PathParam("id") UUID id) throws StateAccessException,
                                                     SerializationException,
                                                     IllegalAccessException {
         org.midonet.cluster.data.l4lb.VIP vipData = dataClient.vipGet(id);
@@ -169,7 +169,7 @@ public class VipResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_VIP_JSON,
             MediaType.APPLICATION_JSON })
-    public Response create(VIP vip) throws StateAccessException,
+    public Response create(Vip vip) throws StateAccessException,
                                            InvalidStateOperationException,
                                            SerializationException,
                                            ServiceUnavailableHttpException,
@@ -206,7 +206,7 @@ public class VipResource extends AbstractResource {
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_VIP_JSON,
                 MediaType.APPLICATION_JSON })
-    public void update(@PathParam("id") UUID id, VIP vip)
+    public void update(@PathParam("id") UUID id, Vip vip)
             throws StateAccessException, InvalidStateOperationException,
                    SerializationException {
         vip.id = id;
@@ -254,7 +254,7 @@ public class VipResource extends AbstractResource {
         @RolesAllowed({ AuthRole.ADMIN })
         @Produces({ VendorMediaType.APPLICATION_VIP_COLLECTION_JSON,
                 MediaType.APPLICATION_JSON })
-        public List<VIP> list()
+        public List<Vip> list()
             throws StateAccessException, SerializationException,
                    IllegalAccessException {
 
@@ -266,7 +266,7 @@ public class VipResource extends AbstractResource {
                 StatePathExceptionBase.NodeInfo node = ex.getNodeInfo();
                 throw notFoundException(node.id, node.nodeType.name);
             }
-            List<VIP> vips = new ArrayList<>();
+            List<Vip> vips = new ArrayList<>();
             if (dataVips != null) {
                 for (org.midonet.cluster.data.l4lb.VIP dataVip : dataVips) {
                     vips.add(VIPDataConverter.fromData(dataVip, getBaseUri()));
@@ -279,7 +279,7 @@ public class VipResource extends AbstractResource {
         @RolesAllowed({ AuthRole.ADMIN })
         @Consumes({ VendorMediaType.APPLICATION_VIP_JSON,
                     MediaType.APPLICATION_JSON})
-        public Response create(VIP vip) throws StateAccessException,
+        public Response create(Vip vip) throws StateAccessException,
                                                SerializationException {
             vip.poolId = poolId;
             validate(vip);

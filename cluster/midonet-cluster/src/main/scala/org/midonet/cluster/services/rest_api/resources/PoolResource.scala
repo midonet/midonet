@@ -44,8 +44,8 @@ class PoolResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     extends MidonetResource[Pool](backend, uriInfo) {
 
     @Path("{id}/vips")
-    def vips(@PathParam("id") id: UUID): PoolVIPResource = {
-        new PoolVIPResource(id, backend, uriInfo)
+    def vips(@PathParam("id") id: UUID): PoolVipResource = {
+        new PoolVipResource(id, backend, uriInfo)
     }
 
     protected override def updateFilter = (to: Pool, from: Pool) => {

@@ -29,8 +29,8 @@ import rx.Observable
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.{NotFoundException, Storage, UpdateOp}
-import org.midonet.cluster.models.Topology.VIP.SessionPersistence
-import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, VIP => TopologyVIP}
+import org.midonet.cluster.models.Topology.Vip.SessionPersistence
+import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, Vip => TopologyVip}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVIP}
@@ -90,7 +90,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             simLB shouldBeDeviceOf protoLB
 
             And("When we add a vip to the load-balancer")
-            val vip1 = buildAndStoreVIP(protoLB.getId)
+            val vip1 = buildAndStoreVip(protoLB.getId)
             var updatedProtoLB = getLB(protoLB.getId)
 
             Then("We receive the load-balancer with one vip")
@@ -114,7 +114,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
             assertVips(List(updatedVip1), simLB.vips)
 
             And("When we add a 2nd vip to the load-balancer")
-            val vip2 = buildAndStoreVIP(protoLB.getId)
+            val vip2 = buildAndStoreVip(protoLB.getId)
             updatedProtoLB = getLB(protoLB.getId)
 
             Then("We receive the load-balancer with 2 vips")
@@ -151,7 +151,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
         scenario("Clearing the load-balancer id field in the VIP") {
             Given("A load-balancer with one vip")
             val protoLB = buildAndStoreLB()
-            val vip = buildAndStoreVIP(protoLB.getId)
+            val vip = buildAndStoreVip(protoLB.getId)
             var updatedProtoLB = getLB(protoLB.getId)
 
             Then("When we subscribe to the load-balancer observable")
@@ -210,7 +210,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
         scenario("Updating the vip with an identical object") {
             Given("A load-balancer with one vip")
             val protoLB = buildAndStoreLB()
-            val vip = buildAndStoreVIP(protoLB.getId)
+            val vip = buildAndStoreVip(protoLB.getId)
             val updatedProtoLB = getLB(protoLB.getId)
 
             Then("When we subscribe to the load-balancer observable")
@@ -261,7 +261,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
         }
     }
 
-    private def assertVips(protoVips: List[TopologyVIP], simVips: Array[SimVIP])
+    private def assertVips(protoVips: List[TopologyVip], simVips: Array[SimVIP])
     : Unit = {
         simVips should contain theSameElementsAs protoVips.map(
             ZoomConvert.fromProto(_, classOf[SimVIP])
@@ -271,7 +271,7 @@ class LoadBalancerMapperTest extends MidolmanSpec
     private def removeVipsFromLoadBalancer(loadBalancer: TopologyLB)
     : TopologyLB = {
         val updatedVips = for (vId <- loadBalancer.getVipIdsList.asScala)
-            yield UpdateOp(getVIP(vId).toBuilder.clearLoadBalancerId().build)
+            yield UpdateOp(getVip(vId).toBuilder.clearLoadBalancerId().build)
         store.multi(updatedVips)
         getLB(loadBalancer.getId)
     }
@@ -279,11 +279,11 @@ class LoadBalancerMapperTest extends MidolmanSpec
     private def getLB(lbId: UUID): TopologyLB =
         Await.result(store.get(classOf[TopologyLB], lbId), timeout)
 
-    private def getVIP(vipId: UUID): TopologyVIP =
-        Await.result(store.get(classOf[TopologyVIP], vipId), timeout)
+    private def getVip(vipId: UUID): TopologyVip =
+        Await.result(store.get(classOf[TopologyVip], vipId), timeout)
 
-    private def buildAndStoreVIP(lbId: UUID): TopologyVIP = {
-        val vip = createVIP(adminStateUp = Some(true),
+    private def buildAndStoreVip(lbId: UUID): TopologyVip = {
+        val vip = createVip(adminStateUp = Some(true),
                             poolId = Some(UUID.randomUUID()),
                             loadBalancerId = Some(lbId),
                             address = Some(IPv4Addr.random),
