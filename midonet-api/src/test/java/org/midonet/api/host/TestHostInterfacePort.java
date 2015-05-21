@@ -28,14 +28,12 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoBridgePort;
@@ -51,13 +49,14 @@ import org.midonet.client.resource.BridgePort;
 import org.midonet.client.resource.Host;
 import org.midonet.client.resource.HostInterfacePort;
 import org.midonet.client.resource.ResourceCollection;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.midonet.api.servlet.JerseyGuiceTestServletContextListener.getTopologyBackdoor;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
@@ -72,7 +71,6 @@ public class TestHostInterfacePort {
         private DtoWebResource dtoResource;
         private Topology topology;
         private HostTopology hostTopology;
-        private HostZkManager hostManager;
         private MidonetApi api;
 
         private UUID host1Id = UUID.randomUUID();
@@ -87,8 +85,6 @@ public class TestHostInterfacePort {
 
             WebResource resource = resource();
             dtoResource = new DtoWebResource(resource);
-            hostManager = JerseyGuiceTestServletContextListener
-                          .getHostZkManager();
 
             DtoHost host1 = new DtoHost();
             host1.setName("host1");
@@ -132,7 +128,7 @@ public class TestHostInterfacePort {
             mapping.setHostId(hostId);
             // Now set the ip address and the create should succeed.
             mapping.setIpAddress("192.168.100.2");
-            DtoTunnelZoneHost tzHost = dtoResource.postAndVerifyCreated(
+            dtoResource.postAndVerifyCreated(
                     tz.getHosts(),
                     VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
                     mapping,
@@ -243,15 +239,12 @@ public class TestHostInterfacePort {
         public void testClient() throws Exception {
             UUID hostId = UUID.randomUUID();
 
-            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-            metadata.setName("test");
-            metadata.setAddresses(new InetAddress[]{
+            TopologyBackdoor topBackdoor = getTopologyBackdoor();
+            topBackdoor.createHost(hostId, "test", new InetAddress[]{
                 InetAddress.getByAddress(
                     new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
             });
-
-            hostManager.createHost(hostId, metadata);
-            hostManager.makeAlive(hostId);
+            topBackdoor.makeHostAlive(hostId);
 
             ResourceCollection<Host> hosts = api.getHosts();
             org.midonet.client.resource.Host host = hosts.get(0);

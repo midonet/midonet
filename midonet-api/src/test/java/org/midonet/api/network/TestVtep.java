@@ -25,11 +25,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.api.vtep.VtepMockableDataClientFactory.MockableVtep;
 import org.midonet.client.dto.DtoBridge;
@@ -41,8 +39,9 @@ import org.midonet.client.dto.DtoVtep;
 import org.midonet.client.dto.DtoVtepBinding;
 import org.midonet.client.dto.DtoVtepPort;
 import org.midonet.client.dto.DtoVxLanPort;
-import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.state.VtepConnectionState;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
@@ -51,6 +50,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.midonet.api.network.TestPort.createBridgePort;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V2;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_JSON;
@@ -60,7 +60,6 @@ import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_BIND
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_BINDING_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_JSON;
-import static org.midonet.api.network.TestPort.createBridgePort;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAX_VALUE;
@@ -188,8 +187,8 @@ public class TestVtep extends RestApiTestBase {
         host.setAddresses(new InetAddress[] {
             InetAddress.getByName(ip) });
         JerseyGuiceTestServletContextListener
-            .getHostZkManager()
-            .createHost(host.getId(), Converter.toHostConfig(host));
+            .getTopologyBackdoor()
+            .createHost(host.getId(), host.getName(), host.getAddresses());
 
         // Try add the VTEP with the same IP address.
         postVtepWithError(ip, mockVtep1.mgmtPort(), Status.CONFLICT);

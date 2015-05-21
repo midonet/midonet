@@ -15,6 +15,7 @@
  */
 package org.midonet.api.host.rest_api;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,8 +28,6 @@ import org.midonet.client.dto.DtoHost;
 import org.midonet.client.dto.DtoHostInterfacePort;
 import org.midonet.client.dto.DtoTunnelZone;
 import org.midonet.client.dto.DtoTunnelZoneHost;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -71,7 +70,6 @@ public class HostTopology {
     public static class Builder {
 
         private final DtoWebResource resource;
-        private final HostZkManager hostZkManager;
 
         private DtoApplication app;
         private final Map<UUID, DtoHost> hosts;
@@ -84,8 +82,6 @@ public class HostTopology {
 
         public Builder(DtoWebResource resource) {
             this.resource = resource;
-            this.hostZkManager = JerseyGuiceTestServletContextListener
-                                 .getHostZkManager();
             this.hosts = new HashMap<>();
             this.tunnelZones = new HashMap<>();
             this.tunnelZoneHosts = new HashMap<>();
@@ -174,10 +170,10 @@ public class HostTopology {
             if (hosts.size() > 0) {
                 for (Map.Entry<UUID, DtoHost> entry : hosts.entrySet()) {
                     DtoHost obj = entry.getValue();
-                    HostDirectory.Metadata metadata
-                            = new HostDirectory.Metadata();
-                    metadata.setName(obj.getName());
-                    hostZkManager.createHost(entry.getKey(), metadata);
+                    JerseyGuiceTestServletContextListener
+                        .getTopologyBackdoor()
+                        .createHost(entry.getKey(), obj.getName(),
+                                    new InetAddress[]{});
                 }
 
                 // Get DtoHosts
@@ -185,7 +181,7 @@ public class HostTopology {
                 DtoHost[] hostList = resource.getAndVerifyOk(hostsUri,
                         APPLICATION_HOST_COLLECTION_JSON_V3,
                         DtoHost[].class);
-                Map<UUID, DtoHost> hostMap = new HashMap<UUID, DtoHost>();
+                Map<UUID, DtoHost> hostMap = new HashMap<>();
                 for (DtoHost host : hostList) {
                     hostMap.put(host.getId(), host);
                 }
