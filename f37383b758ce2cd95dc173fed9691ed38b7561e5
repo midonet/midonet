@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_106506e1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-22T07:57:51Z",
+      "side": 1,
+      "message": "according",
+      "range": {
+        "startLine": 92,
+        "startChar": 30,
+        "endLine": 92,
+        "endChar": 41
+      },
+      "revId": "f37383b758ce2cd95dc173fed9691ed38b7561e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f0aee2e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-22T07:57:51Z",
+      "side": 1,
+      "message": "Isn\u0027t it better to just selectively call createInV1 or createInV2 in method create directly?",
+      "range": {
+        "startLine": 278,
+        "startChar": 8,
+        "endLine": 279,
+        "endChar": 23
+      },
+      "revId": "f37383b758ce2cd95dc173fed9691ed38b7561e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_10ac26ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-22T07:57:51Z",
+      "side": 1,
+      "message": "same comment as above.",
+      "range": {
+        "startLine": 306,
+        "startChar": 8,
+        "endLine": 307,
+        "endChar": 23
+      },
+      "revId": "f37383b758ce2cd95dc173fed9691ed38b7561e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_8e357848",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 10
