@@ -779,6 +779,32 @@ public class FlowMatch {
         fieldSeen(Field.UserspaceMark);
     }
 
+    // TODO(duarte): enhance as needed
+    public void applyTo(Ethernet eth) {
+        eth.setSourceMACAddress(ethSrc);
+        eth.setDestinationMACAddress(ethDst);
+        if (etherType == IPv4.ETHERTYPE) {
+            IPv4 ip = (IPv4)eth.getPayload();
+            ip.setSourceAddress((IPv4Addr) networkSrc);
+            ip.setDestinationAddress((IPv4Addr) networkDst);
+            ip.setTtl(networkTTL);
+            byte proto = ip.getProtocol();
+            if (proto == TCP.PROTOCOL_NUMBER) {
+                TCP tcp = (TCP)ip.getPayload();
+                tcp.setSourcePort(srcPort);
+                tcp.setDestinationPort(dstPort);
+            } else if (proto == UDP.PROTOCOL_NUMBER) {
+                UDP udp = (UDP)ip.getPayload();
+                udp.setSourcePort(srcPort);
+                udp.setDestinationPort(dstPort);
+            } else if (proto == ICMP.PROTOCOL_NUMBER &&
+                       !ICMP.isError((byte)srcPort)) {
+                ICMP icmp = (ICMP)ip.getPayload();
+                icmp.setIdentifier(icmpId);
+            }
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

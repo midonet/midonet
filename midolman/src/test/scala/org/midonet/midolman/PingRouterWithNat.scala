@@ -153,7 +153,8 @@ class PingRouterWithNat extends MidolmanSpec {
             dpPortToVport = Map(1 -> nearLeftPort.getId),
             natTable = table)
 
-        mockDpChannel.packetsExecuteSubscribe { (pingReply, flows) =>
+        var passed = false
+        mockDpChannel.packetsExecuteSubscribe { (pingReply, actions) =>
             // The original ping reply
             matchIcmp(
                 pingReply.getEthernet,
@@ -164,16 +165,18 @@ class PingRouterWithNat extends MidolmanSpec {
                 ICMP.TYPE_ECHO_REPLY)
 
             // The modifications to the original packet
-            flows should contain theSameElementsAs List(
+            actions should contain theSameElementsAs List(
                 FlowActions.setKey(FlowKeys.ethernet(nearLeftPortMac, srcMac)),
                 FlowActions.setKey(FlowKeys.ipv4(farPortAddr.getIntAddress(),
                                                  srcIp.getIntAddress(), 1.toByte,
                                                  0.toByte, 63.toByte, 0.toByte)),
                 FlowActions.output(1))
+            passed = true
         }
 
         workflow.receive(HandlePackets(Array(packet)))
         mockDpChannel.packetsSent should have size 1
+        passed should be (true)
     }
 
     private def matchIcmp(
