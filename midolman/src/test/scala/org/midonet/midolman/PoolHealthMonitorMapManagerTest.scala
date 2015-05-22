@@ -185,7 +185,7 @@ class PoolHealthMonitorMapManagerTest
 
             And("the health monitor is changed")
             emulatePoolHealthMonitorMappingActivate(pool)
-            setHealthMonitorDelay(hm, 17)
+            setHealthMonitorDelay(hm, hm.getDelay() + 1)
 
             Then("the VTA should send an update")
             val map2 = expectMsgType[PoolHealthMonitorMap]
