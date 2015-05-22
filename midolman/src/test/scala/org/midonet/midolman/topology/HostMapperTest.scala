@@ -84,12 +84,18 @@ class HostMapperTest extends MidolmanSpec
             val hostObs = new DeviceObserver[SimHost](vt)
             observable.subscribe(hostObs)
 
+            Then("We obtain a host with one tunnel zone")
+            hostObs.awaitOnNext(1, timeout) shouldBe true
+            var simHost = hostObs.getOnNextEvents.last
+            assertEquals(simHost, protoHost1, Set(protoTunnelZone1))
+            hostMapper.isObservingTunnel(protoTunnelZone1.getId) shouldBe true
+
             And("Add a 2nd tunnel zone the host is a member of")
             val (protoHost2, protoTunnelZone2) = addTunnelZoneToHost(protoHost1)
 
             Then("We obtain a simulation host with the host's tunnel zone membership")
             hostObs.awaitOnNext(2, timeout) shouldBe true
-            val simHost = hostObs.getOnNextEvents.last
+            simHost = hostObs.getOnNextEvents.last
             assertEquals(simHost, protoHost2,
                          Set(protoTunnelZone1, protoTunnelZone2))
 
