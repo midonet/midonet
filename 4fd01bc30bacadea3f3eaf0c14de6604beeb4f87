@@ -1,0 +1,191 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_50c14e2d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "every observer is completable. this is just exposing a flag saying whether it is completed or not. can we add this flag to AwaitableObserver instead?\n\nalso, an observer can be complete by onError.\n\nI also don\u0027t see where this is being used in this patch?",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7004927e",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "the comment says this iterates over a bytebuffer containing a sequene of nested netlink attributes, but there\u0027s no iteration, you just scan the first. what\u0027s the difference from scanAttributes?",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d0039e71",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "a lot of my previous comments to this class still apply. this shouldn\u0027t be a trait, we shouldn\u0027t have lazy fields, and we shouldn\u0027t create the thread explicitly.",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_50ef8eb0",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "the observer expects the whole netlink header to be in the buffer?\nalso, this is wrong, we\u0027re always passing the first message if the buffer contains multiple ones.",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_90303658",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "how can there be a buffer overflow if we checked before buf.remaining?",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f03ee228",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/GenlProtocol.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "can we get rid of the explicit type?  it looked better before :)",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_103c262f",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkChannelFactory.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "it doesn\u0027t seem right that the default notification case uses the ovs groups.\n\ncan\u0027t we simply pass in the notification group as an argument to the method?",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_501dcebc",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkUtil.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "is this being used? i don\u0027t like it, it allocates an object. we should use dead-reckoning to retrieve the values we\u0027re interested in.",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d0b55ece",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "this grabs a sequence, but doSendRetryRequest grabs another sequence. this doesn\u0027t seem correct.\n\nseriously, can we get rid of this class?",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f0c9825b",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/MockBufferPool.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "why do we need this?",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5074eefc",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/rtnetlink/LinkTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:29:07Z",
+      "side": 1,
+      "message": "wow.hardcoded bytes? this is totally unmaintainable :/",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
