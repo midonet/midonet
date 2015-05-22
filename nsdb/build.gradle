@@ -55,15 +55,20 @@ dependencies {
             libraries.scala_async,
             libraries.scala_logging,
             libraries.scallop,
-            libraries.typesafeconf
+            libraries.typesafeconf,
+            libraries.kafka_zkclient,
+            libraries.yammer_metrics
 
     testCompile libraries.commons_conf,
                 libraries.curator_test,
+                libraries.log4joverslf4j,
                 libraries.hamcrest,
                 libraries.logback,
                 libraries.scalatest,
                 libraries.scala_async,
-                libraries.test_frameworks
+                libraries.test_frameworks,
+                libraries.kafka_zkclient,
+                libraries.scala_parser
 }
 
 cobertura {
