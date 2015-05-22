@@ -40,7 +40,7 @@ import org.midonet.util.functors.{makeAction0, makeAction1, makeRunnable}
  * an observer to which opinions coming from this merged map are emitted.
  * An opinion with a null value indicates that the opinion is deleted.
  */
-trait MergedMapBus[K, V] {
+trait MergedMapBus[K, V >: Null <: AnyRef] {
     /**
      * @return The map id this bus corresponds to.
      */
@@ -72,6 +72,10 @@ trait MergedMapBus[K, V] {
 object MergedMap {
     case class MapUpdate[K, V >: Null <: AnyRef](key: K, oldValue: V, newValue: V)
     private[storage] val executor = Executors.newSingleThreadExecutor()
+    
+    /* Scheduler on which observer subscriptions and notifications are handled
+       for merged maps. */
+    private[storage] val scheduler = Schedulers.from(executor)
 }
 
 /**
@@ -102,7 +106,7 @@ class MergedMap[K, V >: Null <: AnyRef](opinionBus: MergedMapBus[K, V])
     type MapUpdate = MergedMap.MapUpdate[K, V]
 
     private val log = Logger(LoggerFactory.getLogger(
-        s"org.midonet.cluster.state.MergedMap-${opinionBus.mapId}"))
+        s"org.midonet.cluster.MergedMap-${opinionBus.mapId}"))
 
     /* The cache is always modified from within [[myScheduler]] and therefore
        does not need to be thread-safe. */
