@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_6d646449",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:39:47Z",
+      "side": 1,
+      "message": "I would use the ReactiveActor trait. The DatapathController can receive message of type OnNext(InterfaceDescription). \n\nIt also doesn\u0027t need to be a Set, it",
+      "revId": "b9e254076d7ff9734842fd5f682b197602c08acd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_edab341c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:39:47Z",
+      "side": 1,
+      "message": "why instantiate a tulple you can use NetlinkMessageWrapper to directly read the bytes you are interested in?",
+      "revId": "b9e254076d7ff9734842fd5f682b197602c08acd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
