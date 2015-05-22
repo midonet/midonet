@@ -18,15 +18,21 @@ package org.midonet.cluster;
 
 import java.util.Set;
 import java.util.UUID;
+import javax.inject.Named;
 
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.functions.Action1;
+import rx.functions.Func1;
+
 import org.midonet.cluster.client.PortGroupBuilder;
 import org.midonet.cluster.data.PortGroup;
+import org.midonet.midolman.guice.zookeeper.ZKConnectionProvider;
 import org.midonet.midolman.state.PortGroupCache;
 import org.midonet.midolman.state.zkManagers.PortGroupZkManager;
+import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback1;
 
 public class ClusterPortGroupManager extends ClusterManager<PortGroupBuilder> {
@@ -40,6 +46,10 @@ public class ClusterPortGroupManager extends ClusterManager<PortGroupBuilder> {
     PortGroupCache cache;
 
     @Inject
+    @Named(ZKConnectionProvider.DIRECTORY_REACTOR_TAG)
+    Reactor reactorLoop;
+
+    @Inject
     public ClusterPortGroupManager(PortGroupCache configCache) {
         cache = configCache;
         configCache.addWatcher(getPortGroupWatcher());
@@ -47,20 +57,36 @@ public class ClusterPortGroupManager extends ClusterManager<PortGroupBuilder> {
 
     @Override
     protected void getConfig(final UUID id) {
-        PortGroupZkManager.PortGroupConfig config = cache.get(id);
-        if (config == null)
-            return;
+        cache.get(id).observeOn(reactorLoop.rxScheduler())
+            .filter(
+                new Func1<PortGroupZkManager.PortGroupConfig, Boolean>() {
+                    @Override
+                    public Boolean call(PortGroupZkManager.PortGroupConfig config) {
+                        return config != null;
+                    }
+                })
+            .subscribe(new Action1<PortGroupZkManager.PortGroupConfig>() {
+                    @Override
+                    public void call(PortGroupZkManager.PortGroupConfig config) {
+                        PortGroupBuilder builder = getBuilder(id);
+                        PortGroup group = new PortGroup();
 
-        PortGroupBuilder builder = getBuilder(id);
-        PortGroup group = new PortGroup();
+                        group.setName(config.name);
+                        group.setStateful(config.stateful);
+                        group.setId(config.id);
+                        builder.setConfig(group);
 
-        group.setName(config.name);
-        group.setStateful(config.stateful);
-        group.setId(config.id);
-        builder.setConfig(group);
-
-        MembersCallback cb = new MembersCallback(builder, id);
-        portGroupMgr.getMembersAsync(id, cb, cb);
+                        MembersCallback cb = new MembersCallback(builder, id);
+                        portGroupMgr.getMembersAsync(id, cb, cb);
+                    }
+                },
+                new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable t) {
+                        log.info("Exception thrown getting config for {}",
+                                 id, t);
+                    }
+                });
     }
 
 

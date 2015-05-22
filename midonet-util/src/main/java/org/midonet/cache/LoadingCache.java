@@ -16,10 +16,13 @@
 
 package org.midonet.cache;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.Set;
+
+import rx.Observable;
+import rx.functions.Action1;
+import rx.schedulers.Schedulers;
 
 import org.midonet.util.eventloop.Reactor;
 
@@ -36,10 +39,10 @@ import org.midonet.util.eventloop.Reactor;
  * @param <K> The type of the key used by the cache.
  * @param <V> The type of the value used by the cache.
  */
-public abstract class LoadingCache<K, V> implements ReadCache<K, V> {
-    private Map<K, V> map = new HashMap<K,V>();
-    private Map<K, Long> lastAccessTimes = new HashMap<K,Long>();
-    private Set<K> pinnedKeys = new HashSet<K>();
+public abstract class LoadingCache<K, V> {
+    private ConcurrentMap<K, V> map = new ConcurrentHashMap<K,V>();
+    private ConcurrentMap<K, Long> lastAccessTimes
+        = new ConcurrentHashMap<K,Long>();
     protected Reactor reactor;
 
     public LoadingCache(Reactor reactor) {
@@ -51,39 +54,49 @@ public abstract class LoadingCache<K, V> implements ReadCache<K, V> {
      * cache misses, it will call the load method to generate the value.
      *
      * @param key The key whose value should be generated.
-     * @return The value corresponding to the key, to populate the cache.
+     * @return An observable which will steam the value corresponding to the key
+     *         once it has been loaded.
      */
-    protected abstract V load(K key);
+    protected abstract Observable<V> load(K key);
 
-    @Override
-    public final V get(K key) {
+    /**
+     * Synchronous version of load
+     */
+    protected abstract V loadSync(K key);
+
+    public final Observable<V> get(final K key) {
         V value = map.get(key);
         if (null == value) {
-            value = load(key);
+            return load(key)
+                .observeOn(Schedulers.trampoline())
+                .doOnNext(new Action1<V>() {
+                        @Override
+                        public void call(V value) {
+                            put(key, value);
+                            lastAccessTimes.put(key,
+                                    reactor.currentTimeMillis());
+                        }
+                    });
+        }
+        lastAccessTimes.put(key, reactor.currentTimeMillis());
+        return Observable.just(value);
+    }
+
+    public final V getSync(K key) {
+        V value = map.get(key);
+        if (null == value) {
+            value = loadSync(key);
             if (null == value)
                 return null;
             map.put(key, value);
         }
-        lastAccessTimes.put(key, reactor.currentTimeMillis());
+        lastAccessTimes.put(key,
+                reactor.currentTimeMillis());
         return value;
-    }
-
-    @Override
-    public final void pin(K key) {
-        pinnedKeys.add(key);
-    }
-
-    @Override
-    public final void unPin(K key) {
-        pinnedKeys.remove(key);
     }
 
     public final boolean hasKey(K key) {
         return map.containsKey(key);
-    }
-
-    public final boolean isPinned(K key) {
-        return pinnedKeys.contains(key);
     }
 
     public final Long getLastAccessTime(K key) {
@@ -100,7 +113,6 @@ public abstract class LoadingCache<K, V> implements ReadCache<K, V> {
      */
     protected final void put(K key, V value) {
         if (null == value) {
-            pinnedKeys.remove(key);
             lastAccessTimes.remove(key);
             map.remove(key);
         }

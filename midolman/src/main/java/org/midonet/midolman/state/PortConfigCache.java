@@ -26,6 +26,11 @@ import org.midonet.midolman.serialization.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func1;
+import rx.schedulers.Schedulers;
+
 import org.midonet.cache.LoadingCache;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.util.eventloop.Reactor;
@@ -65,15 +70,31 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
         this.serializer = serializer;
     }
 
-    public <T extends PortConfig> T get(UUID key, Class<T> clazz) {
-        PortConfig config = get(key);
+    public <T extends PortConfig> T getSync(UUID key, Class<T> clazz) {
+        PortConfig config = getSync(key);
         try {
             return clazz.cast(config);
         } catch (ClassCastException e) {
             log.error("Failed to cast {} to a {}",
-                    new Object[] {config, clazz, e});
+                      new Object[] {config, clazz, e});
             return null;
         }
+    }
+
+    public <T extends PortConfig> Observable<T> get(UUID key,
+                                                    final Class<T> clazz) {
+        return get(key).map(new Func1<PortConfig,T>() {
+                @Override
+                public T call(PortConfig config) {
+                    try {
+                        return clazz.cast(config);
+                    } catch (ClassCastException cce) {
+                        log.error("Failed to cast {} to a {}",
+                                  new Object[] {config, clazz, cce});
+                    }
+                    return null;
+                }
+            });
     }
 
     public void addWatcher(Callback1<UUID> watcher) {
@@ -92,7 +113,7 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
     }
 
     @Override
-    protected PortConfig load(UUID key) {
+    protected PortConfig loadSync(UUID key) {
         PortWatcher watcher = new PortWatcher(key);
         try {
             return portMgr.get(key, watcher);
@@ -103,12 +124,32 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
         } catch (SerializationException e) {
             log.error("Could not deserialize PortConfig key {}", key);
         }
-
         return null;
     }
 
+    @Override
+    protected Observable<PortConfig> load(final UUID key) {
+        final PortWatcher watcher = new PortWatcher(key);
+        return portMgr.getWithObservable(key, watcher)
+            .observeOn(Schedulers.trampoline())
+            .doOnError(new Action1<Throwable>() {
+                    @Override
+                    public void call(Throwable t) {
+                        if (t instanceof StateAccessException) {
+                            log.warn("Exception retrieving PortConfig", t);
+                            connectionWatcher.handleError(
+                                    "PortWatcher:" + key.toString(),
+                                    watcher, (StateAccessException)t);
+                        } else if (t instanceof SerializationException) {
+                            log.error("Could not deserialize PortConfig key {}",
+                                      key);
+                        }
+                    }
+                });
+    }
+
     // This maintains consistency of the cached port configs w.r.t ZK.
-    private class PortWatcher implements Runnable {
+    private class PortWatcher extends Directory.DefaultTypedWatcher {
         UUID portID;
 
         PortWatcher(UUID portID) {
@@ -118,22 +159,33 @@ public class PortConfigCache extends LoadingCache<UUID, PortConfig> {
         @Override
         public void run() {
             // Update the value and re-register for ZK notifications.
-            try {
-                PortConfig config = portMgr.get(portID, this);
-                put(portID, config);
-                notifyWatchers(portID);
-            } catch (NoStatePathException e) {
-                log.debug("Port {} has been deleted", portID);
-                put(portID, null);
-            } catch (StateAccessException e) {
-                // If the ZK lookup fails, the cache keeps the old value.
-                log.warn("Exception refreshing PortConfig", e);
-                connectionWatcher.handleError(
-                        "PortWatcher:" + portID.toString(), this, e);
-            } catch (SerializationException e) {
-                log.error("Could not serialize PortConfig {}",
-                        portID.toString());
-            }
+            portMgr.getWithObservable(portID, this)
+                .observeOn(reactor.rxScheduler())
+                .subscribe(new Action1<PortConfig>() {
+                        @Override
+                        public void call(PortConfig config) {
+                            put(portID, config);
+                            notifyWatchers(portID);
+                        }
+                    },
+                    new Action1<Throwable>() {
+                        @Override
+                        public void call(Throwable t) {
+                            if (t instanceof NoStatePathException) {
+                                log.debug("Port {} has been deleted", portID);
+                                put(portID, null);
+                            } else if (t instanceof StateAccessException) {
+                                log.warn("Exception refreshing PortConfig", t);
+                                connectionWatcher.handleError(
+                                        "PortWatcher:" + portID.toString(),
+                                        PortWatcher.this,
+                                        (StateAccessException)t);
+                            } else if (t instanceof SerializationException) {
+                                log.error("Could not serialize PortConfig {}",
+                                          portID.toString());
+                            }
+                        }
+                    });
         }
     }
 }
