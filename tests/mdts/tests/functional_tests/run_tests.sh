@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 
 # Copyright 2014 Midokura SARL
 #
@@ -87,11 +87,8 @@ do
             fi
             ;;
         t)
+            # Just add the test as is, no fancy mangling
             TEST=$OPTARG
-            if [[ $TEST != mdts.tests.functional_tests* ]]
-            then
-                TEST="mdts.tests.functional_tests.$TEST"
-            fi
 
             TESTS="$TESTS $TEST"
             ;;
