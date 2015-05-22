@@ -17,6 +17,8 @@ package org.midonet.cluster.services.c3po.translators
 
 import java.util.UUID
 
+import scala.collection.JavaConverters._
+
 import com.fasterxml.jackson.databind.JsonNode
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -32,11 +34,16 @@ import org.midonet.util.concurrent.toFutureOps
 class LoadBalancerIT extends C3POMinionTestBase {
     private def lbPoolJson(id: UUID,
                            adminStateUp: Boolean,
-                           routerId: UUID): JsonNode = {
+                           routerId: UUID,
+                           healthMonitors: List[UUID] = null): JsonNode = {
         val pool = nodeFactory.objectNode
         pool.put("id", id.toString)
         pool.put("admin_state_up", adminStateUp)
         if (routerId != null) pool.put("router_id", routerId.toString)
+        if (healthMonitors != null) {
+            val monitorsNode = pool.putArray("health_monitors")
+            healthMonitors.foreach { hmId => monitorsNode.add(hmId.toString()) }
+        }
         pool
     }
 
@@ -60,7 +67,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         // #2 Create a Load Balancer Pool
         val poolId = UUID.randomUUID()
         val poolJson = lbPoolJson(poolId, true, routerId).toString
-        insertCreateTask(2, PoolType, poolJson, routerId)
+        insertCreateTask(2, PoolType, poolJson, poolId)
 
         val lb = eventually(
                 storage.get(classOf[LoadBalancer], routerId).await())
@@ -75,6 +82,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val pool = storage.get(classOf[Pool], poolId).await()
         pool.getLoadBalancerId shouldBe toProto(routerId)
         pool.getAdminStateUp shouldBe true
+        pool.hasHealthMonitorId shouldBe false
 
         // #3 Create a Health Monitor.
         val hmId = UUID.randomUUID()
@@ -84,5 +92,14 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val hm = eventually(storage.get(classOf[HealthMonitor], hmId).await())
         hm.getAdminStateUp shouldBe true
         hm.getMaxRetries shouldBe 10
+
+        val poolWithHmJson =
+            lbPoolJson(poolId, true, routerId, List(hmId)).toString
+        insertUpdateTask(4, PoolType, poolWithHmJson, poolId)
+        eventually {
+            val pool = storage.get(classOf[Pool], poolId).await()
+            pool.hasHealthMonitorId shouldBe true
+            pool.getHealthMonitorId shouldBe toProto(hmId)
+        }
     }
 }
