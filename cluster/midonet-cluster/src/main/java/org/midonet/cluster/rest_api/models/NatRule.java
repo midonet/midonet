@@ -36,13 +36,15 @@ public abstract class NatRule extends Rule {
     public String flowAction;
     @JsonIgnore
     @ZoomField(name = "dnat")
-    public boolean dnat;
+    private boolean dnat;
     @JsonIgnore
     @ZoomField(name = "reverse")
-    public boolean reverse;
+    private boolean reverse;
 
-    public NatRule() {
+    NatRule(boolean reverse, boolean dnat) {
         super(RuleType.NAT, RuleAction.DROP);
+        this.reverse = reverse;
+        this.dnat = dnat;
     }
 
     public static class NatRuleFactory
@@ -66,6 +68,7 @@ public abstract class NatRule extends Rule {
     @JsonIgnore
     @Override
     public void afterFromProto(Message proto) {
+        super.afterFromProto(proto);
         switch (action) {
             case ACCEPT: flowAction = Rule.Accept; break;
             case CONTINUE: flowAction = Rule.Continue; break;
@@ -77,6 +80,7 @@ public abstract class NatRule extends Rule {
     @JsonIgnore
     @Override
     public void beforeToProto() {
+        super.beforeToProto();
         switch (flowAction) {
             case Rule.Accept: action = RuleAction.ACCEPT; break;
             case Rule.Continue: action = RuleAction.CONTINUE; break;

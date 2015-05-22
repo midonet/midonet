@@ -18,6 +18,10 @@ package org.midonet.cluster.rest_api.models;
 
 public class ForwardSnatRule extends ForwardNatRule {
 
+    public ForwardSnatRule() {
+        super(false);
+    }
+
     @Override
     public String getType() {
         return Rule.SNAT;
