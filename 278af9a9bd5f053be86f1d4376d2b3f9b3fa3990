@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_5355d81b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PoolHealthMonitorMapManagerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T14:03:56Z",
+      "side": 1,
+      "message": "why not just + 1? this can make the delay 0; not sure if  there\u0027s validation around  that",
+      "revId": "278af9a9bd5f053be86f1d4376d2b3f9b3fa3990",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
