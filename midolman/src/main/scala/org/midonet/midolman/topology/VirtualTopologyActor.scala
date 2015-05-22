@@ -321,6 +321,7 @@ class VirtualTopologyActor extends Actor {
     }
 
     private def updated(id: UUID, device: AnyRef) {
+        topology.put(id, device)
         for (client <- idToSubscribers(id)) {
             log.debug("Sending subscriber {} the device update for {}",
                       client, id)
@@ -335,7 +336,6 @@ class VirtualTopologyActor extends Actor {
             }
         }
         idToUnansweredClients(id).clear()
-        topology.put(id, device)
     }
 
     private def unsubscribe(id: UUID, actor: ActorRef): Unit = {
