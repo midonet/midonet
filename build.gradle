@@ -54,7 +54,7 @@ project.ext {
         infinispan: "org.infinispan:infinispan-commons:7.0.2.Final",
         netty: "io.netty:netty-all:4.0.27.Final",
         guava: "com.google.guava:guava:16.0",
-        slf4j: "org.slf4j:slf4j-api:1.7.7",
+        log4joverslf4j: "org.slf4j:log4j-over-slf4j:1.7.12",
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
         logback: "ch.qos.logback:logback-classic:1.1.2",
         logback_logstash: "net.logstash.logback:logstash-logback-encoder:3.5",
@@ -108,7 +108,8 @@ project.ext {
         curator_recipes: dependencies.create("org.apache.curator:curator-recipes:2.7.1") {
             exclude group: 'log4j', module: 'log4j'},
         curator_test: "org.apache.curator:curator-test:2.7.1",
-
+        kafka: "org.apache.kafka:kafka_2.11:0.8.2.1",
+        kafka_client: "org.apache.kafka:kafka-clients:0.8.2.1",
         persistence: "javax.persistence:persistence-api:1.0",
         jsr250: "javax.annotation:jsr250-api:1.0",
         jsr311: "javax.ws.rs:jsr311-api:1.1",
@@ -246,6 +247,7 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
 
     configurations.all {
         exclude group: 'log4j', module: 'log4j'
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
     }
 
     sourceCompatibility = versions.java
@@ -292,7 +294,6 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     }
 
     dependencies {
-        compile libraries.slf4j
         compile libraries.guava
         compile libraries.findbugs
         testCompile libraries.test_frameworks

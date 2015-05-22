@@ -40,3 +40,12 @@ class CassandraConfig(val conf: Config) {
     def cluster = conf.getString("cassandra.cluster")
     def replication_factor = conf.getInt("cassandra.replication_factor")
 }
+
+class MergedMapConfig(val conf: Config) {
+    /* List of Kafka brokers: host1:port1, host2:port2, host3:port3 */
+    def brokers = conf.getString("kafka.brokers")
+    /* Zookeeper connect string: host1:port1, host2: port2, host3: port3. */
+    def zkHosts = conf.getString("kafka.zk.hosts")
+    /* The number of replicas per topic. */
+    def replicationFactor = conf.getInt("kafka.replication.factor")
+}
