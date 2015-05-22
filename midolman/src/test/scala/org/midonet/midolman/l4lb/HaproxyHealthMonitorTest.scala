@@ -103,12 +103,11 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
     }
 
     before {
-        managerActor = system.actorOf(Props(new Manager))
-        healthMonitorUT = system.actorOf(
-            Props(new HaproxyHealthMonitorUT(
+        managerActor = TestActorRef(new Manager)
+        healthMonitorUT = TestActorRef(new HaproxyHealthMonitorUT(
                 createFakePoolConfig("10.10.10.10", goodSocketPath),
                 managerActor, UUID.randomUUID(),
-                mockClient, UUID.randomUUID())))
+                mockClient, UUID.randomUUID()))
         expectMsg(MonitorActorUp)
     }
 
@@ -120,7 +119,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
         scenario ("Actor Start Up") {
             When("The HaproxyHealthMonitor starts up")
             Then ("A config write should happen once")
-            eventually { confWrites should be (1) }
+            confWrites should be (1)
             haproxyRestarts should be (1)
             verify(mockClient, times(1)).poolSetMapStatus(poolId,
                     PoolHealthMonitorMappingStatus.ACTIVE)
@@ -130,9 +129,9 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             healthMonitorUT ! ConfigUpdate(createFakePoolConfig("10.10.10.10",
                 goodSocketPath))
             Then ("The config write should happen again")
-            eventually { confWrites should be (2) }
+            confWrites should be (2)
             And ("Haproxy should have been restarted")
-            eventually { haproxyRestarts should be (1) }
+            haproxyRestarts should be (1)
             verify(mockClient, times(2)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
         }
@@ -144,7 +143,7 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             healthMonitorUT ! ConfigUpdate(createFakePoolConfig(NormalIp,
                 goodSocketPath))
             Then ("The last IP written should be the last config sent")
-            eventually { lastIpWritten should equal (NormalIp) }
+            lastIpWritten should equal (NormalIp)
             verify(mockClient, times(3)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
             And ("The there is a problem with the update")
@@ -152,8 +151,8 @@ class HaproxyHealthMonitorTest extends TestKit(ActorSystem("HaproxyActorTest"))
             healthMonitorUT ! ConfigUpdate(createFakePoolConfig(NormalIp,
                 goodSocketPath))
             Then ("The status should have been set to ERROR")
-            eventually { confWrites should be (4) }
-            eventually { setupFailures should be (1) }
+            confWrites should be (4)
+            setupFailures should be (1)
             verify(mockClient, times(3)).poolSetMapStatus(poolId,
                 PoolHealthMonitorMappingStatus.ACTIVE)
             verify(mockClient, times(1)).poolSetMapStatus(poolId,
