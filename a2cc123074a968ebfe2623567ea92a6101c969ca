@@ -69,6 +69,30 @@
       "revId": "a2cc123074a968ebfe2623567ea92a6101c969ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_133ef0b8",
+        "filename": "midonet-api/src/test/java/org/midonet/api/servlet/JerseyGuiceTestServletContextListener.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-22T11:30:14Z",
+      "side": 1,
+      "message": "Actually no, because this requiers injecting in the TESTS themselves. But we do need to have it in the FuncTest class, for reasons that will become more evident later: when executing the compat api we won\u0027t actually have a Jersey.. in context.",
+      "parentUuid": "facab960_734d7c72",
+      "range": {
+        "startLine": 72,
+        "startChar": 17,
+        "endLine": 72,
+        "endChar": 54
+      },
+      "revId": "a2cc123074a968ebfe2623567ea92a6101c969ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
