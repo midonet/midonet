@@ -46,6 +46,10 @@ import org.apache.zookeeper.ZooDefs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.Observable;
+import rx.functions.Action1;
+import rx.functions.Func1;
+
 import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
@@ -885,29 +889,44 @@ public class LocalDataClientImpl implements DataClient {
                                        final boolean active) {
         // use the reactor thread for this operations
         reactor.submit(new Runnable() {
-
             @Override
             public void run() {
-                PortConfig config = null;
-                try {
-                    portZkManager.setActivePort(portID, host, active);
-                    config = portZkManager.get(portID);
-                } catch (StateAccessException e) {
-                    log.error("Error retrieving the configuration for port {}",
-                            portID, e);
-                } catch (SerializationException e) {
-                    log.error("Error serializing the configuration for port " +
-                            "{}", portID, e);
-                }
-                // update the subscribers
-                for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
-                    cb.call(portID, active);
-                }
-                if (config instanceof PortDirectory.RouterPortConfig) {
-                    UUID deviceId = config.device_id;
-                    routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                            deviceId, portID, active);
-                }
+                portZkManager.setActivePort(portID, host, active)
+                    .observeOn(reactor.rxScheduler())
+                    .flatMap(new Func1<Void,Observable<PortConfig>>() {
+                            @Override
+                            public Observable<PortConfig> call(Void discard) {
+                                return portZkManager.getWithObservable(portID);
+                            }
+                        })
+                    .subscribe(new Action1<PortConfig>() {
+                            @Override
+                            public void call(PortConfig config) {
+                                // update the subscribers
+                                for (Callback2<UUID, Boolean> cb : subscriptionPortsActive) {
+                                    cb.call(portID, active);
+                                }
+                                if (config instanceof PortDirectory.RouterPortConfig) {
+                                    UUID deviceId = config.device_id;
+                                    routerManager.updateRoutesBecauseLocalPortChangedStatus(
+                                            deviceId, portID, active);
+                                }
+                            }
+                        },
+                        new Action1<Throwable>() {
+                            @Override
+                            public void call(Throwable t) {
+                                if (t instanceof StateAccessException) {
+                                    log.error("Error retrieving the"
+                                              + " configuration for port {}",
+                                              portID, t);
+                                } else if (t instanceof SerializationException) {
+                                    log.error("Error serializing the"
+                                              + " configuration for port {}",
+                                              portID, t);
+                                }
+                            }
+                        });
             }
         });
     }
