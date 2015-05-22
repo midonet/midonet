@@ -425,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_9b4a2453",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-22T07:57:51Z",
+      "side": 1,
+      "message": "ok!",
+      "parentUuid": "1a106d94_400a7d26",
+      "range": {
+        "startLine": 245,
+        "startChar": 13,
+        "endLine": 245,
+        "endChar": 57
+      },
+      "revId": "4b0b2aa6eb09a8d188dbf3ea370056703f087375",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_4a661cee",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
         "patchSetId": 1
