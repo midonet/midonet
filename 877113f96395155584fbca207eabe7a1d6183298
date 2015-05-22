@@ -147,6 +147,24 @@
       "revId": "877113f96395155584fbca207eabe7a1d6183298",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4edd3014",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PoolMember.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-22T00:23:23Z",
+      "side": 1,
+      "message": "\"natTargets\" are used for applyDnat, correct? The what I think we need to test here is to write unit tests for applyDnat that could check that the conversion is done right.",
+      "parentUuid": "facab960_98e782e4",
+      "revId": "877113f96395155584fbca207eabe7a1d6183298",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
