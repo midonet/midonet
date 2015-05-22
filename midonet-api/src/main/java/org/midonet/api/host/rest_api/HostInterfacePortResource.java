@@ -15,32 +15,48 @@
  */
 package org.midonet.api.host.rest_api;
 
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.host.HostInterfacePort;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.event.topology.PortEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.host.VirtualPortMapping;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.servlet.RequestScoped;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.host.VirtualPortMapping;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.HostInterfacePort;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.event.topology.PortEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.cluster.rest_api.conversion.HostInterfacePortDataConverter.fromVirtualPortMapping;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_INTERFACE_IS_USED;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_IS_NOT_IN_ANY_TUNNEL_ZONE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.PORT_ID_IS_INVALID;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 /**
  * REST API handler for host interface port mapping.
@@ -69,17 +85,55 @@ public class HostInterfacePortResource extends AbstractResource {
     public Response create(HostInterfacePort map)
             throws StateAccessException, SerializationException {
 
-        map.setHostId(hostId);
-        validate(map, HostInterfacePort.HostInterfacePortCreateGroup.class);
+        map.hostId = hostId;
 
-        dataClient.hostsAddVrnPortMapping(hostId, map.getPortId(),
-                map.getInterfaceName());
-        portEvent.bind(map.getPortId(), map);
+        validate(map);
+
+        if (map.interfaceName == null) {
+            throw new BadRequestHttpException("Interface not provided");
+        }
+
+        if (dataClient.portsGet(map.portId) == null) {
+            throw new BadRequestHttpException(getMessage(PORT_ID_IS_INVALID));
+        }
+
+        if (hostId == null ||
+            !dataClient.hostsExists(hostId) ||
+            !dataClient.tunnelZonesContainHost(hostId)) {
+            throw new BadRequestHttpException(
+                getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE));
+        }
+
+        if (!isInterfaceUnused(map)) {
+            throw new BadRequestHttpException(getMessage
+                                                  (HOST_INTERFACE_IS_USED));
+        }
+
+        dataClient.hostsAddVrnPortMapping(hostId, map.portId,
+                                          map.interfaceName);
+        portEvent.bind(map.portId, map);
 
         return Response.created(
                 ResourceUriBuilder.getHostInterfacePort(getBaseUri(),
-                        hostId, map.getPortId()))
-                .build();
+                        hostId, map.portId)).build();
+    }
+
+    private boolean isInterfaceUnused(HostInterfacePort map)
+        throws SerializationException, StateAccessException {
+
+        List<VirtualPortMapping> mappings =
+            dataClient.hostsGetVirtualPortMappingsByHost(hostId);
+
+        VirtualPortMapping mapping = null;
+        for (VirtualPortMapping hip : mappings) {
+            if (hip.getLocalDeviceName().equals(map.interfaceName)) {
+                mapping = hip;
+                break;
+            }
+        }
+
+        return (mapping == null) ||
+               mapping.getVirtualPortId().equals(map.portId);
     }
 
     @DELETE
@@ -105,12 +159,9 @@ public class HostInterfacePortResource extends AbstractResource {
 
         List<VirtualPortMapping> mapConfigs =
                 dataClient.hostsGetVirtualPortMappingsByHost(hostId);
-        List<HostInterfacePort> maps = new ArrayList<HostInterfacePort>();
+        List<HostInterfacePort> maps = new ArrayList<>();
         for (VirtualPortMapping mapConfig : mapConfigs) {
-            HostInterfacePort map = new HostInterfacePort(
-                    hostId, mapConfig);
-            map.setBaseUri(getBaseUri());
-            maps.add(map);
+            maps.add(fromVirtualPortMapping(hostId, mapConfig, getBaseUri()));
         }
 
         return maps;
@@ -123,13 +174,12 @@ public class HostInterfacePortResource extends AbstractResource {
         throws StateAccessException, SerializationException {
 
         VirtualPortMapping data = dataClient.hostsGetVirtualPortMapping(
-                hostId, portId);
+            hostId, portId);
+
         if (null == data) {
             throw new NotFoundHttpException("Mapping does not exist");
         }
 
-        HostInterfacePort map = new HostInterfacePort(hostId, data);
-        map.setBaseUri(getBaseUri());
-        return map;
+        return fromVirtualPortMapping(hostId, data, getBaseUri());
     }
 }
