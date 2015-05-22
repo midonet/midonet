@@ -543,6 +543,7 @@ class DatapathController extends Actor
                     p success null
                 case Failure(ex) =>
                     log.error("failed to install tunnel key flow", ex)
+                    p failure ex
             }
         }
         p.future
