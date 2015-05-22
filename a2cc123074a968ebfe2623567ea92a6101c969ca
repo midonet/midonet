@@ -46,6 +46,29 @@
       "revId": "a2cc123074a968ebfe2623567ea92a6101c969ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_734d7c72",
+        "filename": "midonet-api/src/test/java/org/midonet/api/servlet/JerseyGuiceTestServletContextListener.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-22T11:27:22Z",
+      "side": 1,
+      "message": "This is too dirty. I\u0027ll make it injectable.",
+      "range": {
+        "startLine": 72,
+        "startChar": 17,
+        "endLine": 72,
+        "endChar": 54
+      },
+      "revId": "a2cc123074a968ebfe2623567ea92a6101c969ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
