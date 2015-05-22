@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_535238de",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/NotFoundHttpException.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-22T12:04:02Z",
+      "side": 1,
+      "message": "I missed these 2",
+      "range": {
+        "startLine": 40,
+        "startChar": 4,
+        "endLine": 48,
+        "endChar": 5
+      },
+      "revId": "282e3e88239d521d53ad2b8eb0c2d415d1c12578",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
