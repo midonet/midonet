@@ -46,6 +46,30 @@
       "revId": "ef038c4e80590cfc1a008a41cf03d6c258bc22cd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b60c5296",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-22T16:26:09Z",
+      "side": 1,
+      "message": "Actually we don\u0027t a default instance is returned in case it\u0027s not set.",
+      "parentUuid": "facab960_f695fa88",
+      "range": {
+        "startLine": 93,
+        "startChar": 20,
+        "endLine": 93,
+        "endChar": 42
+      },
+      "revId": "ef038c4e80590cfc1a008a41cf03d6c258bc22cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
