@@ -39,6 +39,7 @@ dependencies {
     compile project(':midonet-util')
 
     compile libraries.cassandra,
+            libraries.kafka,
             libraries.collections4,
             libraries.commons_cli,
             libraries.commons_lang3,
@@ -60,6 +61,8 @@ dependencies {
 
     testCompile libraries.commons_conf,
                 libraries.curator_test,
+                libraries.log4joverslf4j,
+                libraries.kafka,
                 libraries.hamcrest,
                 libraries.logback,
                 libraries.scalatest,
