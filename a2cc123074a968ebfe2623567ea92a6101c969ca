@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_8efe586a",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/DataclientTopologyBackdoor.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-22T01:04:49Z",
+      "side": 1,
+      "message": "I just wonder if it\u0027s better if it throws a new custom Exception instead of re-throwing RuntimeException.",
+      "range": {
+        "startLine": 51,
+        "startChar": 22,
+        "endLine": 51,
+        "endChar": 38
+      },
+      "revId": "a2cc123074a968ebfe2623567ea92a6101c969ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
