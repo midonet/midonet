@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_8e357848",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-22T02:43:13Z",
+      "side": 1,
+      "message": "Is this check necessary? \"monitorOwnership\" is called only from within createInV2().",
+      "range": {
+        "startLine": 383,
+        "startChar": 8,
+        "endLine": 386,
+        "endChar": 9
+      },
+      "revId": "f37383b758ce2cd95dc173fed9691ed38b7561e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ae115cae",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/HostServiceTest.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-22T02:43:13Z",
+      "side": 1,
+      "message": "Isn\u0027t it better to call super.shutdown()",
+      "revId": "f37383b758ce2cd95dc173fed9691ed38b7561e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6e1754a4",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/HostServiceTest.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-22T02:43:13Z",
+      "side": 1,
+      "message": "Can this also go where zookeeper.root_key is configured?",
+      "range": {
+        "startLine": 158,
+        "startChar": 17,
+        "endLine": 159,
+        "endChar": 59
+      },
+      "revId": "f37383b758ce2cd95dc173fed9691ed38b7561e5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
