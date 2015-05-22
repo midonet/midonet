@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_70c73213",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:39:47Z",
+      "side": 1,
+      "message": "why not just allow setting and getting a MAC?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_30e5aaa8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:39:47Z",
+      "side": 1,
+      "message": "why are we copying the buffer here instead of doing deserialization here and sending the dport to the datapath controller? like so:\n\nself ! DpPortDeleted(port)",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_10d8a6ee",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:39:47Z",
+      "side": 1,
+      "message": "if we are just interested in the nltype, why don\u0027t we just read that??",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b0e8da7d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:39:47Z",
+      "side": 1,
+      "message": "what other programs?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_50f94e4c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:39:47Z",
+      "side": 1,
+      "message": "we should be checking dpPortNumToTriad. if it exists, it removes it from that map and calls addDpPort",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_709572e3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-22T10:39:47Z",
+      "side": 1,
+      "message": "i don\u0027t understand what we are doing with the isUp field?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
