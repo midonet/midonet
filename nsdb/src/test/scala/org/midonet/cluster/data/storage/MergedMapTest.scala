@@ -56,8 +56,9 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
     private def putOpinion(key: String, value: String, owner: String): Unit =
         inputSubj onNext (key, value, owner)
 
-    private def removeOpinion(key: String, owner: String): Unit =
+    private def removeOpinion(key: String, owner: String): Unit = {
         inputSubj onNext (key, null, owner)
+    }
 
     before {
         inputSubj = PublishSubject.create[Opinion]()
