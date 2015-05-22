@@ -128,12 +128,13 @@ def test_fragmented_packets():
     # Issue: https://midobugs.atlassian.net/browse/MN-79
     receiver.ping4(sender, 0.5, 3, True, 2000, do_arp=True)
 
-    f1 = sender.ping4(receiver, 0.5, 3, False, 2000)
 
-    assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
-                                   within_sec(5)))
+    f1 = async_assert_that(receiver,
+                           receives('dst host 172.16.2.1 and icmp', within_sec(5)))
 
-    wait_on_futures([f1])
+    f2 = sender.ping4(receiver, 0.5, 3, False, 2000)
+
+    wait_on_futures([f1, f2])
 
 @bindings(binding_onehost, binding_multihost)
 def test_spoofed_arp_reply():
