@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_1665fee0",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-22T14:41:21Z",
+      "side": 1,
+      "message": "Should we check that the rule has nat rule data first?",
+      "range": {
+        "startLine": 93,
+        "startChar": 20,
+        "endLine": 93,
+        "endChar": 42
+      },
+      "revId": "ef038c4e80590cfc1a008a41cf03d6c258bc22cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
