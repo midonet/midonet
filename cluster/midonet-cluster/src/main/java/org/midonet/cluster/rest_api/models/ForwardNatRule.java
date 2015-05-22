@@ -41,6 +41,10 @@ public abstract class ForwardNatRule extends NatRule {
         public int portTo;
     }
 
+    ForwardNatRule(boolean dnat) {
+        super(false, dnat);
+    }
+
     @NotNull
     @Size(min = 1)
     @ZoomField(name = "nat_targets")
