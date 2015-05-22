@@ -80,14 +80,8 @@ public abstract class NatRule extends Rule {
         implements ZoomConvert.Factory<NatRule, Topology.Rule> {
 
         public Class<? extends NatRule> getType(Topology.Rule proto) {
-            if (proto.getMatchForwardFlow())
-                return ForwardNatRule.class;
-            else if (proto.getMatchReturnFlow())
-                return ReverseNatRule.class;
-            else
-                throw new ZoomConvert.ConvertException("Rule: " +
-                    proto.getId() + " is neither a forward nor a reverse " +
-                    "NAT rule");
+            return proto.getNatRuleData().getReverse() ?
+                   ReverseNatRule.class : ForwardNatRule.class;
         }
     }
 }
