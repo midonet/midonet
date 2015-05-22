@@ -38,7 +38,7 @@ import org.midonet.util.functors.makeAction1
  * an observer to which opinions coming from this merged map are emitted.
  * An opinion with a null value indicates that the opinion is deleted.
  */
-trait MergedMapStorage[K, V] {
+trait MergedMapStorage[K, V >: Null <: AnyRef] {
     /**
      * @return The map id this storage corresponds to.
      */
