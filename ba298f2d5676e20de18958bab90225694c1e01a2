@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_93c120e7",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 3
+      },
+      "lineNbr": 11,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-22T13:52:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_93d84055",
+      "range": {
+        "startLine": 11,
+        "startChar": 49,
+        "endLine": 11,
+        "endChar": 50
+      },
+      "revId": "ba298f2d5676e20de18958bab90225694c1e01a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_53c5d859",
         "filename": "nsdb/src/main/java/org/midonet/cluster/data/Zoom.java",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-22T13:04:33Z",
       "side": 1,
       "message": "Cool! :-)",
+      "range": {
+        "startLine": 27,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 26
+      },
+      "revId": "ba298f2d5676e20de18958bab90225694c1e01a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b36d4407",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/Zoom.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-22T13:52:08Z",
+      "side": 1,
+      "message": "Thanks!",
+      "parentUuid": "facab960_53c5d859",
       "range": {
         "startLine": 27,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_539078ec",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/ZoomField.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-22T13:52:08Z",
+      "side": 1,
+      "message": "When you declare an annotation, @Target is used to tell on which elements you can use it: classes, methods, fields, parameters, etc. Previously, this allowed the ZoomField annotation to be used only on class fields. By adding parameter, we can also use the annotation on method parameters.",
+      "parentUuid": "facab960_b3ab8488",
+      "range": {
+        "startLine": 30,
+        "startChar": 29,
+        "endLine": 30,
+        "endChar": 50
+      },
+      "revId": "ba298f2d5676e20de18958bab90225694c1e01a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_3376943f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2015-05-22T13:04:33Z",
       "side": 1,
       "message": "next line?",
+      "range": {
+        "startLine": 345,
+        "startChar": 72,
+        "endLine": 345,
+        "endChar": 93
+      },
+      "revId": "ba298f2d5676e20de18958bab90225694c1e01a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d3bba870",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-22T13:52:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_3376943f",
       "range": {
         "startLine": 345,
         "startChar": 72,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_33aa141a",
+        "filename": "nsdb/src/test/java/org/midonet/cluster/data/ZoomConvertTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-22T13:52:08Z",
+      "side": 1,
+      "message": "I modified the file without noticing: reverted.",
+      "parentUuid": "facab960_13c7d046",
+      "range": {
+        "startLine": 24,
+        "startChar": 0,
+        "endLine": 24,
+        "endChar": 68
+      },
+      "revId": "ba298f2d5676e20de18958bab90225694c1e01a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_f3d0acf9",
         "filename": "nsdb/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
         "patchSetId": 3
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_7363bc1a",
+        "filename": "nsdb/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-22T13:52:08Z",
+      "side": 1,
+      "message": "No, ZoomClass is only used for nested messages. Removed.",
+      "parentUuid": "facab960_f3d0acf9",
+      "range": {
+        "startLine": 225,
+        "startChar": 4,
+        "endLine": 225,
+        "endChar": 51
+      },
+      "revId": "ba298f2d5676e20de18958bab90225694c1e01a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_73dd7c14",
         "filename": "nsdb/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
         "patchSetId": 3
@@ -151,6 +295,30 @@
       "writtenOn": "2015-05-22T13:04:33Z",
       "side": 1,
       "message": "Shouldn\u0027t this constructor be annotated with @Zoom? I don\u0027t understand why this works as is.",
+      "range": {
+        "startLine": 231,
+        "startChar": 16,
+        "endLine": 231,
+        "endChar": 37
+      },
+      "revId": "ba298f2d5676e20de18958bab90225694c1e01a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_936840f7",
+        "filename": "nsdb/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-22T13:52:08Z",
+      "side": 1,
+      "message": "It is annotated with @Zoom on the line above :)",
+      "parentUuid": "facab960_73dd7c14",
       "range": {
         "startLine": 231,
         "startChar": 16,
