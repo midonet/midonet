@@ -318,7 +318,7 @@ object RouterMapper {
  */
 final class RouterMapper(routerId: UUID, vt: VirtualTopology)
                         (implicit actorSystem: ActorSystem)
-    extends DeviceMapper[SimulationRouter](routerId, vt) {
+    extends VirtualDeviceMapper[SimulationRouter](routerId, vt) {
 
     override def logSource = s"org.midonet.devices.router.router-$routerId"
 
