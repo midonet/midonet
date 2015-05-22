@@ -23,7 +23,7 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
-import org.midonet.cluster.services.c3po.midonet.{Create, MidoOp}
+import org.midonet.cluster.services.c3po.midonet.{Create, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPool. */
@@ -47,23 +47,44 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
         }
 
         // Create a MidoNet Pool.
-        val midoPoolBldr = Pool.newBuilder()
-                               .setId(nPool.getId)
-                               .setLoadBalancerId(lbId)
-                               .setAdminStateUp(nPool.getAdminStateUp)
-        // In practice there's at most 1 Health Monitor associated.
-        if (nPool.getHealthMonitorIdsCount > 0)
-            midoPoolBldr.setHealthMonitorId(nPool.getHealthMonitorIds(0))
-                        .setMappingStatus(PENDING_CREATE)
-
-        midoOps += Create(midoPoolBldr.build())
+        val midoPool = translatePool(Pool.newBuilder(), nPool, lbId)
+        midoOps += Create(midoPool)
 
         midoOps.toList
     }
 
     override protected def translateDelete(id: UUID)
-    : List[MidoOp[_ <: Message]] = List()
+    : MidoOpList = List()
 
-    override protected def translateUpdate(nm: NeutronLoadBalancerPool)
-    : List[MidoOp[_ <: Message]] = List()
+    override protected def translateUpdate(nPool: NeutronLoadBalancerPool)
+    : MidoOpList = {
+        val pool = storage.get(classOf[Pool], nPool.getId).await()
+        val updatedPool = translatePool(
+                pool.toBuilder(), nPool, pool.getLoadBalancerId)
+
+        if (pool.hasHealthMonitorId && updatedPool.hasHealthMonitorId &&
+            pool.getHealthMonitorId != updatedPool.getHealthMonitorId)
+            throw new IllegalStateException(
+                    "A Health Monitor cannot be updated to a different one.")
+        List(Update(updatedPool))
+    }
+
+    private def translatePool(poolBldr: Pool.Builder,
+                              neutronPool: NeutronLoadBalancerPool,
+                              loadBalancerId: UUID): Pool = {
+        poolBldr.setId(neutronPool.getId)
+                .setLoadBalancerId(loadBalancerId)
+                .setAdminStateUp(neutronPool.getAdminStateUp)
+        // In practice there's at most 1 Health Monitor associated.
+        if (neutronPool.getHealthMonitorsCount > 0) {
+            poolBldr.setHealthMonitorId(neutronPool.getHealthMonitors(0))
+            // Don't overwrite HM mapping status if it has already been set.
+            // Check against replacing the Health Monitor is done above.
+            if (!poolBldr.hasMappingStatus)
+                poolBldr.setMappingStatus(PENDING_CREATE)
+        } else {
+            poolBldr.clearHealthMonitorId().clearMappingStatus()
+        }
+        poolBldr.build()
+    }
 }
