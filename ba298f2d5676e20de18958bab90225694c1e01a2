@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_5648665b",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/ZoomField.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-22T14:41:49Z",
+      "side": 1,
+      "message": "ok!",
+      "parentUuid": "facab960_539078ec",
+      "range": {
+        "startLine": 30,
+        "startChar": 29,
+        "endLine": 30,
+        "endChar": 50
+      },
+      "revId": "ba298f2d5676e20de18958bab90225694c1e01a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_3376943f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
         "patchSetId": 3
@@ -319,6 +343,30 @@
       "side": 1,
       "message": "It is annotated with @Zoom on the line above :)",
       "parentUuid": "facab960_73dd7c14",
+      "range": {
+        "startLine": 231,
+        "startChar": 16,
+        "endLine": 231,
+        "endChar": 37
+      },
+      "revId": "ba298f2d5676e20de18958bab90225694c1e01a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b66e12c8",
+        "filename": "nsdb/src/test/java/org/midonet/cluster/data/ZoomObjectTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-22T14:41:49Z",
+      "side": 1,
+      "message": "oh I did not see this ;-)",
+      "parentUuid": "facab960_936840f7",
       "range": {
         "startLine": 231,
         "startChar": 16,
