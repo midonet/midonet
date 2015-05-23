@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_9f5a0182",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-23T18:02:36Z",
+      "side": 1,
+      "message": "Ditto. This assumes that private maps are a subordinate abstraction for the merged map.\n\nI think the goal is to have private maps as first class citizens that can be used completely independently of a merged map. (ARgument in favour for keeping them in their own file!)",
+      "range": {
+        "startLine": 35,
+        "startChar": 40,
+        "endLine": 35,
+        "endChar": 75
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b817e650",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
         "patchSetId": 7
@@ -64,6 +87,98 @@
         "startChar": 16,
         "endLine": 250,
         "endChar": 35
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bf5fc571",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-23T18:02:36Z",
+      "side": 1,
+      "message": "Ditto, should be public in its own file, usable independently",
+      "range": {
+        "startLine": 349,
+        "startChar": 0,
+        "endLine": 349,
+        "endChar": 41
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_df25690b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-23T18:02:36Z",
+      "side": 1,
+      "message": "Does this mean I can\u0027t instantiate my own private map?",
+      "range": {
+        "startLine": 24,
+        "startChar": 60,
+        "endLine": 26,
+        "endChar": 9
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9f83e1cb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-23T18:02:36Z",
+      "side": 1,
+      "message": "I don\u0027t think that the discriminant belongs here.\n\nThe Private map is a primitive type that models a simple map. The fact that private maps can be merged (and how this is made) is added by another abstraction (the merged map), so everything related to the conflict resolution would belong at the merged map.\n\nMy main concern with adding it here is that we break the notion of treating PrivateMap as a primitive for a simple map, agnostic of the aggregations. (Which is mostly why I also mentioned in an earlier patch that talking about \"opinions\" here doesn\u0027t seem relevant here but only in the merged map.)",
+      "range": {
+        "startLine": 28,
+        "startChar": 30,
+        "endLine": 29,
+        "endChar": 70
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3f7495fc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-23T18:02:36Z",
+      "side": 1,
+      "message": "It seems better to join(m: PrivateMap). It\u0027s awkward that a private map is constructed by somebody else than its owner.",
+      "range": {
+        "startLine": 98,
+        "startChar": 4,
+        "endLine": 98,
+        "endChar": 48
       },
       "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
