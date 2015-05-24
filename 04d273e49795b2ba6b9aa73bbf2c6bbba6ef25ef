@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_4a73554d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-24T16:54:28Z",
+      "side": 1,
+      "message": "i think it should be a val: the NetlinkNotificationReader shouldn\u0027t be a trait and should be a class though, so we don\u0027t need the lazys.",
+      "parentUuid": "facab960_6ad3b938",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4a17d5ed",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 16
@@ -81,6 +99,24 @@
       "writtenOn": "2015-05-24T10:59:40Z",
       "side": 1,
       "message": "I\u0027m confused, are these for OVS or RTNETLINK notifications? They look like OVS, but why bundle that in this patch?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0a794d2f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-24T16:54:28Z",
+      "side": 1,
+      "message": "this is to detect when an ovs port becomes unplugged so we can re-create it. since rtnelink doesn\u0027t give us the endpoint type, we can\u0027t reuse the same logic.",
+      "parentUuid": "facab960_0ae4ed0b",
       "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
