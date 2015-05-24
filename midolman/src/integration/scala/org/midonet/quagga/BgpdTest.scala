@@ -35,6 +35,9 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
 
     var bgpd: BgpdProcess = _
 
+    implicit def str2subnet(str: String) = IPv4Subnet.fromCidr(str)
+    implicit def str2ipv4(str: String) = IPv4Addr.fromString(str)
+
     before {
         bgpd = new BgpdProcess(idx,
             BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
@@ -49,8 +52,8 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
     }
 
     def testBgpdStartsAndStops(): Unit = {
-        bgpd.prepare() should be (true)
-        bgpd.start() should be (true)
+        bgpd.prepare()
+        bgpd.start()
         bgpd.isAlive should be (true)
         bgpd.stop() should be (true)
     }
@@ -88,7 +91,7 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
                 Some("bgpd"),
                 Some("bgpd.log"),
                 Some("zebra_password"),
-                router = Some(BgpRouter(23, routerAddress.getAddress.toString)))
+                router = Some(BgpRouter(23, routerAddress.getAddress)))
         )
     }
 
@@ -109,16 +112,16 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
 
         bgpd.vty.setAs(23)
 
-        bgpd.vty.addNetwork(23, "10.0.10.0", 24)
+        bgpd.vty.addNetwork(23, IPv4Subnet.fromCidr("10.0.10.0/24"))
         bgpd.vty.showConfig() should be (oneNetwork)
 
-        bgpd.vty.addNetwork(23, "10.0.20.0", 24)
+        bgpd.vty.addNetwork(23, IPv4Subnet.fromCidr("10.0.20.0/24"))
         bgpd.vty.showConfig() should be (twoNetworks)
 
-        bgpd.vty.deleteNetwork(23, "10.0.20.0", 24)
+        bgpd.vty.deleteNetwork(23, IPv4Subnet.fromCidr("10.0.20.0/24"))
         bgpd.vty.showConfig() should be (oneNetwork)
 
-        bgpd.vty.deleteNetwork(23, "10.0.10.0", 24)
+        bgpd.vty.deleteNetwork(23, IPv4Subnet.fromCidr("10.0.10.0/24"))
         bgpd.vty.showConfig() should be (empty)
     }
 
@@ -126,8 +129,8 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
         bgpd.prepare()
         bgpd.start()
 
-        val firstPeer = "192.168.163.100"
-        val secondPeer = "192.168.163.101"
+        val firstPeer = IPv4Addr.fromString("192.168.163.100")
+        val secondPeer = IPv4Addr.fromString("192.168.163.101")
 
         val empty = BgpdRunningConfig(debug = false,
             Some("bgpd"),
@@ -142,20 +145,20 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
                                 (secondPeer ->  Neighbor(secondPeer, 101, Some(10), Some(31), Some(51))))))
 
         bgpd.vty.setAs(23)
-        bgpd.vty.addNetwork(23, "10.0.10.0", 24)
-        bgpd.vty.addNetwork(23, "10.0.20.0", 24)
+        bgpd.vty.addNetwork(23, IPv4Subnet.fromCidr("10.0.10.0/24"))
+        bgpd.vty.addNetwork(23, IPv4Subnet.fromCidr("10.0.20.0/24"))
         bgpd.vty.showConfig() should be (empty)
 
-        bgpd.vty.addPeer(23, IPv4Addr.fromString(firstPeer), 100, 10, 30, 50)
+        bgpd.vty.addPeer(23, firstPeer, 100, 10, 30, 50)
         bgpd.vty.showConfig() should be (withOnePeer)
 
-        bgpd.vty.addPeer(23, IPv4Addr.fromString(secondPeer), 101, 10, 31, 51)
+        bgpd.vty.addPeer(23, secondPeer, 101, 10, 31, 51)
         bgpd.vty.showConfig() should be (withTwoPeers)
 
-        bgpd.vty.deletePeer(23, IPv4Addr.fromString(secondPeer))
+        bgpd.vty.deletePeer(23, secondPeer)
         bgpd.vty.showConfig() should be (withOnePeer)
 
-        bgpd.vty.deletePeer(23, IPv4Addr.fromString(firstPeer))
+        bgpd.vty.deletePeer(23, firstPeer)
         bgpd.vty.showConfig() should be (empty)
     }
 }
