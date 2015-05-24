@@ -25,7 +25,7 @@ import scala.collection.immutable.Queue
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.packets.IPAddr
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, IPAddr}
 import org.midonet.quagga.BgpdConfiguration.BgpdRunningConfig
 
 object VtyConnection {
@@ -67,6 +67,8 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
     var out: PrintWriter = _
     var in: BufferedReader = _
 
+    private var disconnectCallbacks: List[(Exception) => Unit] = Nil
+
     protected val prompt = "# "
 
     private def requireConnection(): Unit = {
@@ -74,6 +76,10 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
             log.error("VTY is not connected")
             throw new NotConnectedException()
         }
+    }
+
+    def onDisconnect(cb: (Exception) => Unit): Unit = {
+        disconnectCallbacks ::= cb
     }
 
     override def close(): Unit = {
@@ -146,8 +152,9 @@ abstract class VtyConnection(val addr: String, val port: Int) extends Closeable 
             out.println()
             collectUntilPrompt()
         } catch {
-            case e: Throwable =>
+            case e: Exception =>
                 log.warn(s"vty command '$command' failed", e)
+                disconnectCallbacks.foreach(_(e))
                 throw e
         }
     }
@@ -172,11 +179,11 @@ trait BgpConnection {
 
     def deletePeer(as: Int, peerAddr: IPAddr)
 
-    def addNetwork(as: Int, nwPrefix: String, prefixLength: Int)
+    def addNetwork(as: Int, cidr: IPv4Subnet)
 
-    def deleteNetwork(as: Int, nwPrefix: String, prefixLength: Int)
+    def deleteNetwork(as: Int, cidr: IPv4Subnet)
 
-    def setDebug(isEnabled: Boolean)
+    def setDebug(enabled: Boolean)
 
     def showGeneric(cmd: String) : Seq[String]
 
@@ -206,13 +213,12 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
         exec(SetAs(as, s"bgp router-id $localAddr"))
     }
 
-    override def addPeer(as: Int, peerAddr: IPAddr, peerAs: Int, keepAliveSecs: Int,
+    override def addPeer(as: Int, peer: IPAddr, peerAs: Int, keepAliveSecs: Int,
                          holdTimeSecs: Int, connectRetrySecs: Int) {
-        val peer = peerAddr.toString
         exec(SetAs(as){ List(
-                s"neighbor $peer remote-as $peerAs",
-                s"neighbor $peer timers $keepAliveSecs $holdTimeSecs",
-                s"neighbor $peer timers connect $connectRetrySecs")
+            s"neighbor $peer remote-as $peerAs",
+            s"neighbor $peer timers $keepAliveSecs $holdTimeSecs",
+            s"neighbor $peer timers connect $connectRetrySecs")
         })
     }
 
@@ -220,12 +226,12 @@ class BgpVtyConnection(addr: String, port: Int) extends VtyConnection(addr, port
         exec(SetAs(as, s"no neighbor $peerAddr"))
     }
 
-    override def addNetwork(as: Int, nwPrefix: String, prefixLength: Int) {
-        exec(SetAs(as, s"network $nwPrefix/$prefixLength"))
+    override def addNetwork(as: Int, cidr: IPv4Subnet) {
+        exec(SetAs(as, s"network $cidr"))
     }
 
-    override def deleteNetwork(as: Int, nwPrefix: String, prefixLength: Int) {
-        exec(SetAs(as, s"no network $nwPrefix/$prefixLength"))
+    override def deleteNetwork(as: Int, cidr: IPv4Subnet) {
+        exec(SetAs(as, s"no network $cidr"))
     }
 
     override def setDebug(enabled: Boolean) {
