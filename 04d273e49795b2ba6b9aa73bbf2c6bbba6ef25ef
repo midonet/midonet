@@ -19,6 +19,40 @@
     },
     {
       "key": {
+        "uuid": "facab960_6ad3b938",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-24T10:59:40Z",
+      "side": 1,
+      "message": "make it a var and initialize in preStart?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4a17d5ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-24T10:59:40Z",
+      "side": 1,
+      "message": "make def instead of a lazy val?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_30e5aaa8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 16
@@ -30,6 +64,23 @@
       "writtenOn": "2015-05-22T10:39:47Z",
       "side": 1,
       "message": "why are we copying the buffer here instead of doing deserialization here and sending the dport to the datapath controller? like so:\n\nself ! DpPortDeleted(port)",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0ae4ed0b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-24T10:59:40Z",
+      "side": 1,
+      "message": "I\u0027m confused, are these for OVS or RTNETLINK notifications? They look like OVS, but why bundle that in this patch?",
       "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -98,6 +149,108 @@
       "writtenOn": "2015-05-22T10:39:47Z",
       "side": 1,
       "message": "i don\u0027t understand what we are doing with the isUp field?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6abad9e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-24T10:59:40Z",
+      "side": 1,
+      "message": "shouldn\u0027t this parse the string? It looks like this method never returns PHYS as link type.",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8abf1dd0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-24T10:59:40Z",
+      "side": 1,
+      "message": "s/the broadcast/an rtnetlink broadcast/",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0acb0d73",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/test/InterfaceScannerIntegrationTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-24T10:59:40Z",
+      "side": 1,
+      "message": "Taku take a look at this patch:\n\nhttps://review.gerrithub.io/#/c/233595/\n\nIt\u0027s not merged yet but it introduces a proper \u0027integration\u0027 tests task that will run as root and run ovs and quagga tests. It uses scala test, so we can write tests that will yield proper test reports.\n\nWe can port these tests to the \u0027integration\u0027 task, without the \u0027futures\u0027 interface (all blocking and synchronous) in a follow-up patch, not necessary here.",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_aaab0188",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/test/InterfaceScannerIntegrationTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-24T10:59:40Z",
+      "side": 1,
+      "message": "If InterfaceDescription implemented a deep equals() method, wouldn\u0027t this code be just be:\n\ninterfaceDescs \u003d\u003d expectedInterfaceDescs?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_cab045f7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelector.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-24T10:59:40Z",
+      "side": 1,
+      "message": "are these still needed now that we are doing blocking IO?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ea942946",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelectorProvider.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-24T10:59:40Z",
+      "side": 1,
+      "message": "ditto.",
       "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
