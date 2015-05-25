@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "1a106d94_9b87910f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Memo: Better comment.",
+      "revId": "938a7cfd2c386fa22bebd2c192240db8280d5a7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_fb7b2527",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Memo: Better comment.",
+      "revId": "938a7cfd2c386fa22bebd2c192240db8280d5a7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_db78e92d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Memo: Better comment.",
+      "revId": "938a7cfd2c386fa22bebd2c192240db8280d5a7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_3b765d3f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Memo: Better comment.",
+      "revId": "938a7cfd2c386fa22bebd2c192240db8280d5a7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_7b8f3524",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Link.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 373,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Memo: Default case.",
+      "revId": "938a7cfd2c386fa22bebd2c192240db8280d5a7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_5b8d1931",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 20,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Memo: Eliminate this.",
+      "revId": "938a7cfd2c386fa22bebd2c192240db8280d5a7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
