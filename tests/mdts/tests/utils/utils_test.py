@@ -42,7 +42,7 @@ class UtilsTest(unittest.TestCase):
 
     def test_get_top_dir(self):
         top_dir = os.path.realpath(
-            os.path.dirname(__file__) + '/../../../../')
+            os.path.dirname(__file__) + '../../../')
         self.assertEquals(top_dir, get_top_dir())
 
 

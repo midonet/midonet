@@ -36,8 +36,14 @@ awk '/midocluster-vxgw_enabled/{vxgw_section++};{if(vxgw_section && $0 !~ /.*vxg
 mv /tmp/web.xml.$$ /usr/share/midonet-api/WEB-INF/web.xml
 
 # Copy the configuration file template for Tomcat7
-sudo cp ../../../../midonet-api/conf/midonet-api.xml \
-    /etc/tomcat7/Catalina/localhost/midonet-api.xml
+cat <<EOF > local.TOMCAT_CONF
+<Context path="/midonet-api"
+        docBase="/usr/share/midonet-api"
+        antiResourceLocking="false" privileged="true" />
+EOF
+ 
+sudo mv local.TOMCAT_CONF /etc/tomcat7/Catalina/localhost/midonet-api.xml
+
 
 # Add a workaround for tomcat7 to start slowly: MN-2723
 if ! grep -q 'java.security.egd' /etc/default/tomcat7; then
