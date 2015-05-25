@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_edb520ce",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/interfaces/InterfaceDescription.java",
+        "patchSetId": 16
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "I want to ask that question to the original implementer.",
+      "parentUuid": "facab960_70c73213",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_6ad3b938",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 16
@@ -54,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_bac190e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Sorry, this was the leftover of the previous patch version and this can be just val. But I don\u0027t get why NetlinkNotificationReader should be a class and lazy should be avoided so much.",
+      "parentUuid": "facab960_4a73554d",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4a17d5ed",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 16
@@ -71,6 +107,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_fa49588c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "This as well",
+      "parentUuid": "facab960_4a17d5ed",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_30e5aaa8",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 16
@@ -82,6 +136,24 @@
       "writtenOn": "2015-05-22T10:39:47Z",
       "side": 1,
       "message": "why are we copying the buffer here instead of doing deserialization here and sending the dport to the datapath controller? like so:\n\nself ! DpPortDeleted(port)",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ad65d846",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_30e5aaa8",
       "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -140,6 +212,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_ed5fe070",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 364,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_10d8a6ee",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b0e8da7d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
         "patchSetId": 16
@@ -151,6 +241,24 @@
       "writtenOn": "2015-05-22T10:39:47Z",
       "side": 1,
       "message": "what other programs?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2d6aa81a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_b0e8da7d",
       "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -174,6 +282,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_4d77ec02",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_50f94e4c",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_709572e3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
         "patchSetId": 16
@@ -185,6 +311,24 @@
       "writtenOn": "2015-05-22T10:39:47Z",
       "side": 1,
       "message": "i don\u0027t understand what we are doing with the isUp field?",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8d601437",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "updateDangling is called only when isDangling is satisfied, namely if isUp is true. I forgot to put that logic here.",
+      "parentUuid": "facab960_709572e3",
       "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -208,6 +352,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_0d540453",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Surprisingly, even eth0 has this nested attribute and it says \"veth\". I\u0027d say we can\u0027t distinguish physical interfaces with virtual interfaces. I believe it\u0027s true even we can /sys/devices/virtual/net/ or /sys/class/net/.",
+      "parentUuid": "facab960_6abad9e2",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_8abf1dd0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 16
@@ -225,6 +387,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_2d51c862",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_8abf1dd0",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_0acb0d73",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/test/InterfaceScannerIntegrationTest.scala",
         "patchSetId": 16
@@ -236,6 +416,24 @@
       "writtenOn": "2015-05-24T10:59:40Z",
       "side": 1,
       "message": "Taku take a look at this patch:\n\nhttps://review.gerrithub.io/#/c/233595/\n\nIt\u0027s not merged yet but it introduces a proper \u0027integration\u0027 tests task that will run as root and run ovs and quagga tests. It uses scala test, so we can write tests that will yield proper test reports.\n\nWe can port these tests to the \u0027integration\u0027 task, without the \u0027futures\u0027 interface (all blocking and synchronous) in a follow-up patch, not necessary here.",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_cdd13ccf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/test/InterfaceScannerIntegrationTest.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "Great. I\u0027ll take a look at it. It makes everything much easier.",
+      "parentUuid": "facab960_0acb0d73",
       "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -276,6 +474,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_8dbc946e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelector.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "It does nothing but MockNetlinkChannel requires it and MockDatapathModule requires that.",
+      "parentUuid": "facab960_cab045f7",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_ea942946",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelectorProvider.scala",
         "patchSetId": 16
@@ -287,6 +503,24 @@
       "writtenOn": "2015-05-24T10:59:40Z",
       "side": 1,
       "message": "ditto.",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_adc158e6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelectorProvider.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:53Z",
+      "side": 1,
+      "message": "It does nothing but MockNetlinkChannel requires it and MockDatapathModule requires that.",
+      "parentUuid": "facab960_ea942946",
       "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
