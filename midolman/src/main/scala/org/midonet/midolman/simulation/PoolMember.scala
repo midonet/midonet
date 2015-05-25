@@ -18,8 +18,7 @@ package org.midonet.midolman.simulation
 
 import java.util.{Objects, UUID}
 
-import org.midonet.cluster.data.ZoomConvert.ScalaZoomField
-import org.midonet.cluster.data.ZoomObject
+import org.midonet.cluster.data.{Zoom, ZoomField, ZoomObject}
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
 import org.midonet.midolman.rules._
@@ -34,23 +33,21 @@ import org.midonet.util.collection.HasWeight
  *        all of its pool's members. A pool member with zero weight is
  *        considered down.
  */
-final class PoolMember(@ScalaZoomField(name = "id",
-                                       converter = classOf[UUIDConverter])
-                       val id: UUID,
-                       @ScalaZoomField(name = "admin_state_up")
-                       val adminStateUp: Boolean,
-                       @ScalaZoomField(name = "status")
-                       val status: LBStatus,
-                       @ScalaZoomField(name = "address",
-                                       converter = classOf[IPAddressConverter])
-                       val address: IPv4Addr,
-                       @ScalaZoomField(name = "protocol_port")
-                       val protocolPort: Int,
-                       @ScalaZoomField(name = "weight")
-                       val weight: Int)
+final class PoolMember @Zoom()(@ZoomField(name = "id",
+                                          converter = classOf[UUIDConverter])
+                               val id: UUID,
+                               @ZoomField(name = "admin_state_up")
+                               val adminStateUp: Boolean,
+                               @ZoomField(name = "status")
+                               val status: LBStatus,
+                               @ZoomField(name = "address",
+                                          converter = classOf[IPAddressConverter])
+                               val address: IPv4Addr,
+                               @ZoomField(name = "protocol_port")
+                               val protocolPort: Int,
+                               @ZoomField(name = "weight")
+                               val weight: Int)
     extends ZoomObject with HasWeight {
-
-    def this() = this(null, false, LBStatus.INACTIVE, null, 0, 0)
 
     private val natTargets = Array(new NatTarget(address, address,
                                                  protocolPort, protocolPort))
@@ -80,4 +77,5 @@ final class PoolMember(@ScalaZoomField(name = "id",
     override def hashCode =
         Objects.hash(id, Boolean.box(adminStateUp), status, address,
                      Int.box(protocolPort), Int.box(weight))
+
 }
