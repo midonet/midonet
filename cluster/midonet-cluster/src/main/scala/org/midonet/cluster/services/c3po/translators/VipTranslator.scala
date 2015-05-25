@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,20 +16,40 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import com.google.protobuf.Message
-
-import org.midonet.cluster.services.c3po.midonet.MidoOp
+import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronVIP
+import org.midonet.cluster.models.Topology.{Pool, VIP}
+import org.midonet.cluster.services.c3po.midonet.Create
+import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for VIP. */
-class VipTranslator extends NeutronTranslator[NeutronVIP]{
-    override protected def translateCreate(nm: NeutronVIP)
-    : List[MidoOp[_ <: Message]] = List()
+class VipTranslator(protected val storage: ReadOnlyStorage)
+        extends NeutronTranslator[NeutronVIP]{
+
+    override protected def translateCreate(nVip: NeutronVIP)
+    : MidoOpList = {
+        val mVipBldr = VIP.newBuilder
+                      .setId(nVip.getId)
+                      .setAdminStateUp(nVip.getAdminStateUp)
+        if (nVip.hasAddress) mVipBldr.setAddress(nVip.getAddress)
+        if (nVip.hasProtocolPort) mVipBldr.setProtocolPort(nVip.getProtocolPort)
+        if (nVip.hasSessionPersistence &&
+            nVip.getSessionPersistence.getType ==
+                NeutronVIP.SessionPersistence.Type.SOURCE_IP) {
+            mVipBldr.setSessionPersistence(VIP.SessionPersistence.SOURCE_IP)
+        }
+        if (nVip.hasPoolId) {
+            val pool = storage.get(classOf[Pool], nVip.getPoolId).await()
+            mVipBldr.setPoolId(pool.getId)
+            mVipBldr.setLoadBalancerId(pool.getLoadBalancerId)
+        }
+        List(Create(mVipBldr.build()))
+    }
 
     override protected def translateDelete(id: UUID)
-    : List[MidoOp[_ <: Message]] = List()
+    : MidoOpList = List()
 
     override protected def translateUpdate(nm: NeutronVIP)
-    : List[MidoOp[_ <: Message]] = List()
+    : MidoOpList = List()
 }

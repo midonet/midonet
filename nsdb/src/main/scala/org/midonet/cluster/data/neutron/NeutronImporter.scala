@@ -82,6 +82,7 @@ object NeutronResourceType extends Enumeration {
     val SecurityGroupRule = NeutronResourceType(
         "SECURITYGROUPRULE", classOf[Neutron.SecurityGroupRule])
     val Subnet = NeutronResourceType("SUBNET", classOf[NeutronSubnet])
+    val VIP = NeutronResourceType("VIP", classOf[NeutronVIP])
 
     private val vals = Map[String, NeutronResourceType[_ <: Message]](
         NoData.id -> NoData,
@@ -97,7 +98,8 @@ object NeutronResourceType extends Enumeration {
         RouterInterface.id -> RouterInterface,
         SecurityGroup.id -> SecurityGroup,
         SecurityGroupRule.id -> SecurityGroupRule,
-        Subnet.id -> Subnet)
+        Subnet.id -> Subnet,
+        VIP.id -> VIP)
 
     def valueOf(i: String): NeutronResourceType[_ <: Message] = vals(i)
 }

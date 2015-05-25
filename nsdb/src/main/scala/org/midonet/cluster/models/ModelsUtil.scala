@@ -46,6 +46,7 @@ import org.midonet.cluster.models.Topology.Route
 import org.midonet.cluster.models.Topology.Router
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.TunnelZone
+import org.midonet.cluster.models.Topology.VIP
 import org.midonet.cluster.models.Topology.Vtep
 import org.midonet.cluster.models.Topology.VtepBinding
 import org.midonet.cluster.util.ProtobufUtil.protoFromTxt
@@ -157,6 +158,9 @@ object ModelsUtil {
 
      def mTunnelZoneFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, TunnelZone.newBuilder).asInstanceOf[TunnelZone]
+
+     def mVIPFromTxt(protoTxt: String) =
+        protoFromTxt(protoTxt, VIP.newBuilder).asInstanceOf[VIP]
 
      def mVtepFromTxt(protoTxt: String) =
         protoFromTxt(protoTxt, Vtep.newBuilder).asInstanceOf[Vtep]
