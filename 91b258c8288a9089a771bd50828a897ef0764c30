@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_add87854",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-25T08:13:21Z",
+      "side": 1,
+      "message": "Oh, right. Never mind, then.",
+      "parentUuid": "facab960_9ac76c12",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 33
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_3a6580e1",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
         "patchSetId": 1
@@ -202,6 +226,30 @@
       "side": 1,
       "message": "Because we don\u0027t allow UPDATE operation to change the associated Health Monitor to new one, this wouldn\u0027t revert the status to PENDING_CREATE when a Health Monitor has already been set.",
       "parentUuid": "facab960_3a6580e1",
+      "range": {
+        "startLine": 81,
+        "startChar": 20,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4df1accc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-25T08:13:21Z",
+      "side": 1,
+      "message": "This gets set regardless of what it was before.",
+      "parentUuid": "facab960_dab6548a",
       "range": {
         "startLine": 81,
         "startChar": 20,
