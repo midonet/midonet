@@ -25,7 +25,6 @@ import java.util.UUID;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValueFactory;
-import scala.collection.JavaConversions;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;

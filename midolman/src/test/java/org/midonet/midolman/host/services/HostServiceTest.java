@@ -17,12 +17,9 @@ package org.midonet.midolman.host.services;
 
 import java.net.InetAddress;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import com.google.inject.Inject;
 import com.typesafe.config.ConfigFactory;
-import scala.concurrent.Await;
-import scala.concurrent.Future;
-import scala.concurrent.duration.Duration;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
@@ -32,7 +29,7 @@ import com.google.inject.Singleton;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValueFactory;
 import org.apache.zookeeper.CreateMode;
-import org.junit.Test;
+import org.junit.Before;
 
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.conf.HostIdGenerator;
@@ -42,12 +39,11 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.cluster.storage.MidonetTestBackend;
-import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
+import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
-import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.host.updater.DefaultInterfaceDataUpdater;
 import org.midonet.midolman.host.updater.InterfaceDataUpdater;
@@ -58,36 +54,68 @@ import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.util.mock.MockInterfaceScanner;
 import org.midonet.midolman.version.DataWriteVersion;
+import org.midonet.util.eventloop.Reactor;
 
-import static org.junit.Assert.assertEquals;
+public abstract class HostServiceTest {
 
-public class HostServiceTest {
-    private ZkManager zkManager;
-    private HostZkManager hostZkManager;
-    private StorageWithOwnership store;
-
-    private UUID hostId;
-    private String hostName;
-    private String versionPath;
-    private String alivePath;
     private Injector injector;
 
-    String basePath = "/midolman";
-    private Config config = MidoTestConfigurator.forAgents().
-            withValue("zookeeper.root_key", ConfigValueFactory.fromAnyRef(basePath)).
-            withValue("agent.host.retries_gen_id", ConfigValueFactory.fromAnyRef(0));
+    ZkManager zkManager;
+    HostZkManager hostZkManager;
+    StorageWithOwnership store;
 
-    public class TestModule extends AbstractModule {
+    UUID hostId;
+    String hostName;
+    String versionPath;
+    String alivePath;
+    String basePath = "/midolman";
+
+    private final Config config;
+
+    static class TestableHostService extends HostService {
+        public int shutdownCalls = 0;
+
+        @Inject
+        public TestableHostService(MidolmanConfig config,
+                                   MidonetBackendConfig backendConfig,
+                                   MidonetBackend backend,
+                                   InterfaceScanner scanner,
+                                   InterfaceDataUpdater interfaceDataUpdater,
+                                   HostZkManager hostZkManager,
+                                   ZkManager zkManager,
+                                   Reactor reactor) {
+            super(config, backendConfig, backend, scanner, interfaceDataUpdater,
+                  hostZkManager, zkManager, reactor);
+        }
+
+        @Override
+        public void shutdown() {
+            shutdownCalls++;
+        }
+    }
+
+    private class TestModule extends AbstractModule {
 
         @Override
         protected void configure() {
-            bind(PathBuilder.class).toInstance(new PathBuilder(config.getString("zookeeper.root_key")));
-            bind(InterfaceDataUpdater.class).to(DefaultInterfaceDataUpdater.class);
-            bind(InterfaceScanner.class).to(MockInterfaceScanner.class);
-            bind(MidolmanConfig.class).toInstance(new MidolmanConfig(config, ConfigFactory.empty()));
-            bind(MidonetBackend.class).to(MidonetTestBackend.class).asEagerSingleton();
-            bind(MidonetBackendConfig.class).toInstance(
-                    new MidonetBackendConfig(config.withFallback(MidoTestConfigurator.forAgents())));
+            bind(InterfaceDataUpdater.class)
+                .to(DefaultInterfaceDataUpdater.class);
+            bind(InterfaceScanner.class)
+                .to(MockInterfaceScanner.class)
+                .asEagerSingleton();
+            bind(MidolmanConfig.class)
+                .toInstance(new MidolmanConfig(config, ConfigFactory.empty()));
+            bind(MidonetBackend.class)
+                .to(MidonetTestBackend.class).asEagerSingleton();
+            bind(MidonetBackendConfig.class)
+                .toInstance(
+                    new MidonetBackendConfig(config.withFallback(
+                        MidoTestConfigurator.forAgents())));
+            bind(Reactor.class)
+                .toProvider(ZookeeperConnectionModule.ZookeeperReactorProvider.class)
+                .asEagerSingleton();
+            bind(HostService.class)
+                .to(TestableHostService.class).asEagerSingleton();
         }
 
         @Provides @Singleton
@@ -115,11 +143,22 @@ public class HostServiceTest {
         }
     }
 
-    public void setup(Boolean backendEnabled) throws Exception {
+    public HostServiceTest(boolean backendEnabled) {
+        config =  MidoTestConfigurator.forAgents()
+            .withValue("zookeeper.root_key",
+                       ConfigValueFactory.fromAnyRef(basePath))
+            .withValue("zookeeper.use_new_stack",
+                       ConfigValueFactory.fromAnyRef(backendEnabled))
+            .withValue("agent.host.wait_time_gen_id",
+                       ConfigValueFactory.fromAnyRef(0))
+            .withValue("agent.host.retries_gen_id",
+                       ConfigValueFactory.fromAnyRef(0));
+    }
+
+    @Before
+    public void setup() throws Exception {
         HostIdGenerator.useTemporaryHostId();
         hostId = HostIdGenerator.getHostId();
-        config = config.withValue("zookeeper.use_new_stack",
-            ConfigValueFactory.fromAnyRef(backendEnabled));
 
         injector = Guice.createInjector(new SerializationModule(),
                                         new TestModule());
@@ -128,147 +167,26 @@ public class HostServiceTest {
         hostZkManager = injector.getInstance(HostZkManager.class);
         store = injector.getInstance(MidonetBackend.class).ownershipStore();
         versionPath = injector.getInstance(PathBuilder.class)
-                        .getHostVersionPath(hostId, DataWriteVersion.CURRENT);
+                              .getHostVersionPath(hostId,
+                                                  DataWriteVersion.CURRENT);
         alivePath = injector.getInstance(PathBuilder.class)
-                        .getHostPath(hostId) + "/alive";
+                            .getHostPath(hostId) + "/alive";
         hostName = InetAddress.getLocalHost().getHostName();
 
         store.registerClass(Topology.Host.class, OwnershipType.Exclusive());
         store.build();
     }
 
-    private HostService makeHostService() {
-        return injector.getInstance(HostService.class);
+    private TestableHostService makeHostService() {
+        return injector.getInstance(TestableHostService.class);
     }
 
-    @Test
-    public void createsNewZkHostInLegacyStore() throws Throwable {
-        setup(false);
-        HostService hostService = startService();
-        assertLegacyHostState();
-        stopService(hostService);
+    MockInterfaceScanner getInterfaceScanner() {
+        return (MockInterfaceScanner) injector.getInstance(InterfaceScanner.class);
     }
 
-    @Test
-    public void createsNewZkHostInBackendStore() throws Throwable {
-        setup(true);
-        HostService hostService = startService();
-        assertBackendHostState(hostService.ownerId().toString());
-        stopService(hostService);
-    }
-
-    @Test
-    public void recoversZkHostIfAliveInLegacyStore() throws Throwable {
-        setup(false);
-        HostService hostService = startService();
-        stopService(hostService);
-        hostService = startService();
-        assertLegacyHostState();
-        stopService(hostService);
-    }
-
-    @Test
-    public void recoversZkHostIfAliveInBackendStore() throws Throwable {
-        setup(true);
-        HostService hostService = startService();
-        stopService(hostService);
-        hostService = startService();
-        assertBackendHostState(hostService.ownerId().toString());
-        stopService(hostService);
-    }
-
-    @Test
-    public void recoversZkHostIfNotAliveInLegacyStore() throws Throwable {
-        setup(false);
-        startAndStopService();
-        zkManager.deleteEphemeral(alivePath);
-        HostService hostService = startService();
-        assertLegacyHostState();
-        stopService(hostService);
-    }
-
-    @Test
-    public void recoversZkHostVersionInLegacyStore() throws Throwable {
-        setup(false);
-        startAndStopService();
-        zkManager.deleteEphemeral(versionPath);
-        HostService hostService = startService();
-        assertLegacyHostState();
-        stopService(hostService);
-    }
-
-    @Test
-    public void recoversZkHostAndUpdatesMetadataInLegacyStore() throws Throwable {
-        setup(false);
-        startAndStopService();
-
-        updateMetadata();
-        zkManager.deleteEphemeral(alivePath);
-
-        HostService hostService = startService();
-        assertLegacyHostState();
-        stopService(hostService);
-    }
-
-    @Test(expected = HostService.HostIdAlreadyInUseException.class)
-    public void recoversZkHostLoopsIfMetadataIsDifferentInLegacyStore()
-        throws Throwable {
-        setup(false);
-        startAndStopService();
-
-        updateMetadata();
-
-        startAndStopService();
-    }
-
-    @Test
-    public void hostServiceDoesNotOverwriteExistingHostInBackendStore()
-        throws Throwable {
-        setup(true);
-        startAndStopService();
-
-        Topology.Host oldHost = await(store.get(Topology.Host.class, hostId));
-        Topology.Host newHost = oldHost.toBuilder()
-            .addTunnelZoneIds(UUIDUtil.toProto(UUID.randomUUID()))
-            .build();
-        store.update(newHost);
-
-        startAndStopService();
-
-        Topology.Host host = await(store.get(Topology.Host.class, hostId));
-
-        assertEquals(host.getTunnelZoneIds(0), newHost.getTunnelZoneIds(0));
-    }
-
-    @Test
-    public void cleanupServiceAfterStopInBackendStore() throws Throwable {
-        setup(true);
-        startAndStopService();
-
-        assertEquals(await(store.exists(Topology.Host.class, hostId)),
-                     true);
-        assertEquals(await(store.getOwners(Topology.Host.class, hostId))
-                         .isEmpty(), true);
-    }
-
-    private void assertLegacyHostState() throws Exception {
-        assertEquals(hostZkManager.exists(hostId), true);
-        assertEquals(hostZkManager.isAlive(hostId), true);
-        assertEquals(hostZkManager.get(hostId).getName(), hostName);
-        assertEquals(zkManager.exists(versionPath), true);
-    }
-
-    private void assertBackendHostState(String ownerId) throws Exception {
-        assertEquals(await(store.exists(Topology.Host.class, hostId)),
-                     true);
-        assertEquals(await(store.get(Topology.Host.class, hostId)).getName(),
-                     hostName);
-        assertEquals(await(store.getOwners(Topology.Host.class, hostId))
-                         .contains(ownerId), true);
-    }
-
-    private HostService startService() throws Throwable {
-        HostService hostService = makeHostService();
+    TestableHostService startService() throws Throwable {
+        TestableHostService hostService = makeHostService();
         try {
             hostService.startAsync().awaitRunning();
         } catch (RuntimeException e) {
@@ -277,21 +195,13 @@ public class HostServiceTest {
         return hostService;
     }
 
-    private void stopService(HostService hostService) throws Throwable {
+    void stopService(HostService hostService) throws Throwable {
         hostService.stopAsync().awaitTerminated();
     }
 
-    private void startAndStopService() throws Throwable {
-        stopService(startService());
-    }
-
-    private void updateMetadata() throws Exception {
-        HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-        metadata.setName("name");
-        hostZkManager.updateMetadata(hostId, metadata);
-    }
-
-    private static <T> T await(Future<T> future) throws Exception {
-        return Await.result(future, Duration.apply(5, TimeUnit.SECONDS));
+    TestableHostService startAndStopService() throws Throwable {
+        TestableHostService hostService = startService();
+        stopService(hostService);
+        return hostService;
     }
 }
