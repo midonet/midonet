@@ -262,6 +262,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_4df28c9b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-25T09:05:47Z",
+      "side": 1,
+      "message": "Oh, yeah, I missed that. Fixed.",
+      "parentUuid": "facab960_4df1accc",
+      "range": {
+        "startLine": 81,
+        "startChar": 20,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7a8d487b",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 1
