@@ -144,30 +144,6 @@ class RuleConversionTest extends FeatureSpec with Matchers
             }
         }
 
-        scenario("A nat rule that's neither a fwd nor a reverse rule") {
-            val rule = createNatRuleBuilder(id = UUID.randomUUID(),
-                                            chainId = Some(UUID.randomUUID()),
-                                            dnat = Some(false),
-                                            targets = Set(createNatTarget()))
-                .build()
-
-            intercept[ZoomConvert.ConvertException] {
-                ZoomConvert.fromProto(rule, classOf[SimRule])
-            }
-        }
-
-        scenario("A reverse nat rule without dnat set") {
-            val rule = createNatRuleBuilder(id = UUID.randomUUID(),
-                                            chainId = Some(UUID.randomUUID()),
-                                            targets = Set(createNatTarget()))
-                .setMatchForwardFlow(false)
-                .build()
-
-            intercept[ZoomConvert.ConvertException] {
-                ZoomConvert.fromProto(rule, classOf[SimRule])
-            }
-        }
-
         scenario("A fwd nat rule with no targets") {
             val rule = createNatRuleBuilder(id = UUID.randomUUID(),
                                             chainId = Some(UUID.randomUUID()),

@@ -26,8 +26,6 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomConvert;
@@ -51,7 +49,6 @@ import org.midonet.sdn.flows.FlowTagger;
 
 @ZoomClass(clazz = Topology.Rule.class, factory = Rule.RuleFactory.class)
 public abstract class Rule extends BaseConfig {
-    private final static Logger log = LoggerFactory.getLogger(Rule.class);
 
     protected Condition condition;
 
@@ -61,7 +58,7 @@ public abstract class Rule extends BaseConfig {
     public UUID chainId;
     @JsonIgnore
     public FlowTagger.UserTag meter;
-    private Map<String, String> properties = new HashMap<String, String>();
+    private Map<String, String> properties = new HashMap<>();
 
     public Rule(Condition condition, Action action) {
         this(condition, action, null, -1);
@@ -75,8 +72,51 @@ public abstract class Rule extends BaseConfig {
     }
 
     public void afterFromProto(Message proto) {
+        // Validate the rule message.
+        Topology.Rule rule = (Topology.Rule)proto;
+        UUID id = UUIDUtil.fromProto(rule.getId());
+
+        if (!rule.hasAction()) {
+            throw new ZoomConvert.ConvertException(
+                "Rule " + id + " has no action set (" + rule + ")");
+        }
+
+        switch (rule.getType()) {
+            case JUMP_RULE:
+                if (!rule.hasJumpRuleData()) {
+                    throw new ZoomConvert.ConvertException(
+                        "Rule " + id + " is a JUMP rule but does not have its "
+                        + "JUMP data set (" + rule + ")");
+                }
+                if (rule.getAction() != Topology.Rule.Action.JUMP)
+                    throw new ZoomConvert.ConvertException(
+                        "Rule " + id + " is a JUMP rule but does not have its "
+                        + "action set to JUMP (" + rule + ")");
+                break;
+
+            case NAT_RULE:
+                if (!rule.hasNatRuleData()) {
+                    throw new ZoomConvert.ConvertException(
+                        "Rule " + id + " is a NAT rule but does not have its "
+                        + "NAT data set (" + rule + ")");
+                }
+                if (!rule.getNatRuleData().getReverse() &&
+                    rule.getNatRuleData().getNatTargetsCount() == 0) {
+                    throw new ZoomConvert.ConvertException(
+                        "Rule " + id + " is a forward NAT rule but has no "
+                        + "targets set (" + rule + ")");
+                }
+                break;
+
+            case TRACE_RULE:
+                if (rule.getAction() != Topology.Rule.Action.CONTINUE)
+                    throw new ZoomConvert.ConvertException(
+                        "Rule " + id + " is a TRACE rule but its action is not "
+                        + " set to CONTINUE (" + rule + ")");
+                break;
+        }
+
         condition = ZoomConvert.fromProto(proto, Condition.class);
-        validateProto((Topology.Rule) proto);
     }
 
     // WARNING!
@@ -90,50 +130,6 @@ public abstract class Rule extends BaseConfig {
         throw new ZoomConvert.ConvertException("Conversion of an object of " +
             "class: " + getClass() + " to a protocol buffer is not " +
             "supported");
-    }
-
-    /**
-     * This method performs validation of the protocol buffer. None of these
-     * checks are performed by ZoomConvert.
-     * @throws java.lang.IllegalArgumentException if the protocol buffer fails
-     *         the validation.
-     */
-    private void validateProto(Topology.Rule protoRule) {
-        if (!protoRule.hasAction())
-            throw new ZoomConvert.ConvertException("Rule " + protoRule.getId() +
-                " has no action set");
-
-        switch (protoRule.getType()) {
-            case JUMP_RULE:
-                if (protoRule.getAction() != Topology.Rule.Action.JUMP)
-                    throw new ZoomConvert.ConvertException(
-                        "Rule: " + protoRule.getId() + " is a JUMP rule but " +
-                        "does not have its action set to JUMP");
-                break;
-
-            case NAT_RULE:
-                // A reverse nat rule must have the dnat field set. A forward
-                // nat rule does not since it can encode a floating ip.
-                if (protoRule.getMatchReturnFlow() &&
-                    !protoRule.getNatRuleData().hasDnat())
-                    throw new ZoomConvert.ConvertException("Reverse NAT rule: " +
-                        UUIDUtil.fromProto(protoRule.getId()) +
-                        " must have its boolean dnat set");
-
-                if (protoRule.getMatchForwardFlow() &&
-                    protoRule.getNatRuleData().getNatTargetsCount() == 0)
-                        throw new ZoomConvert.ConvertException("Rule: " +
-                            protoRule.getId() + " is a forward NAT rule but " +
-                            "has no targets set");
-                break;
-
-            case TRACE_RULE:
-                if (protoRule.getAction() != Topology.Rule.Action.CONTINUE)
-                    throw new ZoomConvert.ConvertException(
-                        "Trace rule: " + protoRule.getId() + " must have its " +
-                        " action set to CONTINUE");
-                break;
-        }
     }
 
     @JsonProperty
