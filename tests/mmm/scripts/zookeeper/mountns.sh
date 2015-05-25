@@ -21,8 +21,14 @@ if test -d /run; then
 else
     mount --bind /var/run.$n /var/run
 fi
-mount --bind /var/lib/zookeeper.$n /var/lib/zookeeper
+mount  -t tmpfs -o size=50m tmpfs /var/lib/zookeeper
 mount --bind /var/log/zookeeper.$n /var/log/zookeeper
 mount --bind /etc/zookeeper.$n /etc/zookeeper
+
+echo "$n" >/var/lib/zookeeper/data/myid
+echo "$n" >/var/lib/zookeeper/myid # for Trusty
+chown -R zookeeper.zookeeper /var/lib/zookeeper
+
+mkdir -p /var/lib/zookeeper/data
 
 exec $*

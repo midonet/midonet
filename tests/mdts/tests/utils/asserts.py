@@ -21,6 +21,7 @@ from mdts.tests.utils.utils import ipv4_int
 
 import logging
 
+import time
 
 LOG = logging.getLogger(__name__)
 NUM_WORKERS = 10
@@ -37,6 +38,7 @@ class InterfaceExpects(BaseMatcher):
 
     def _matches(self, iface):
         result = iface.expect(self._filter, self._timeout).result()
+        LOG.debug("Result=" + str(result) + " / Expected=" + str(self._expected))
         return result == self._expected
 
     def describe_to(self, description):
@@ -85,9 +87,20 @@ def receives_icmp_unreachable_for_udp(udp_src_ip,
 
 
 def async_assert_that(*args):
-    """ Returns future of assert_that(*args)"""
-    return EXECUTOR.submit(assert_that, *args)
 
+    iface = args[0]
+    iface_concrete = iface._delegate._proxy._concrete
+    ifname = iface_concrete._get_ifname()
+    nsname = iface_concrete._get_nsname()
+
+    """ Returns future of assert_that(*args)"""
+    f = EXECUTOR.submit(assert_that, *args)
+
+    LOG.debug('Scheduled tcpdump on interface %s on ns: %s' % (ifname, nsname))
+    iface_concrete._tcpdump_sem.acquire()
+
+    LOG.debug('Assert ready on interface %s on ns %s' % (ifname, nsname))
+    return f
 
 def within_sec(sec):
     return sec
