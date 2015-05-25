@@ -187,6 +187,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_70d8071e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-25T12:18:13Z",
+      "side": 1,
+      "message": "I understand the desire to make a private map independent of the merged map. However, it seems to me that the discriminant needs to be inserted in the private maps. If not, who inserts this? If it is done at the merged map, then the discriminant may not be the same at two different hosts for the same opinion (when using time for instance). If we rely on a node that does the merging then it\u0027s a single point of failure. We could replicate it but do we want to go in that direction?",
+      "parentUuid": "facab960_9f83e1cb",
+      "range": {
+        "startLine": 28,
+        "startChar": 30,
+        "endLine": 29,
+        "endChar": 70
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_3f7495fc",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 7
@@ -198,6 +222,30 @@
       "writtenOn": "2015-05-23T18:02:36Z",
       "side": 1,
       "message": "It seems better to join(m: PrivateMap). It\u0027s awkward that a private map is constructed by somebody else than its owner.",
+      "range": {
+        "startLine": 98,
+        "startChar": 4,
+        "endLine": 98,
+        "endChar": 48
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b009af97",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-25T12:18:13Z",
+      "side": 1,
+      "message": "I did not know that private maps should be independent. Since it is the case then I\u0027ll make it a 1st class citizen.",
+      "parentUuid": "facab960_3f7495fc",
       "range": {
         "startLine": 98,
         "startChar": 4,
