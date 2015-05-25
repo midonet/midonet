@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_375bd955",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "My naming sucks. Regarding AwaitableObserver, even if I added the flag to it, we can\u0027t use it unless we mix it into another class, which can\u0027t be anonymous class extends Observer. We neither can extend the stackable trait, AwaitableObserver, and create an anonymous class directly.",
+      "parentUuid": "facab960_50c14e2d",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7004927e",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
         "patchSetId": 17
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_f7409158",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "It doesn\u0027t iterate over a bytebuffer and just scan the single nested attribute. I fixed the comment.",
+      "parentUuid": "facab960_7004927e",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d0039e71",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
         "patchSetId": 17
@@ -47,6 +83,24 @@
       "writtenOn": "2015-05-22T10:29:07Z",
       "side": 1,
       "message": "a lot of my previous comments to this class still apply. this shouldn\u0027t be a trait, we shouldn\u0027t have lazy fields, and we shouldn\u0027t create the thread explicitly.",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3a22e0b9",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Why should we avoid lazy so much and why should NetlinkNotificationReader be a class? And if we should not create a thread, which would be repeatedly done for every blocking notification reader,  I don\u0027t think we need this trait and we can just repeatedly define them manually.",
+      "parentUuid": "facab960_d0039e71",
       "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +141,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_ba87d060",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/Neigh.java",
+        "patchSetId": 17
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_90303658",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_f03ee228",
         "filename": "netlink/src/main/scala/org.midonet.netlink/GenlProtocol.scala",
         "patchSetId": 17
@@ -98,6 +170,24 @@
       "writtenOn": "2015-05-22T10:29:07Z",
       "side": 1,
       "message": "can we get rid of the explicit type?  it looked better before :)",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9a268cb9",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/GenlProtocol.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_f03ee228",
       "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -121,6 +211,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_2d5b8855",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkChannelFactory.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_103c262f",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_501dcebc",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkUtil.scala",
         "patchSetId": 17
@@ -132,6 +240,24 @@
       "writtenOn": "2015-05-22T10:29:07Z",
       "side": 1,
       "message": "is this being used? i don\u0027t like it, it allocates an object. we should use dead-reckoning to retrieve the values we\u0027re interested in.",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5a3404de",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkUtil.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_501dcebc",
       "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -155,6 +281,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_2d79c82f",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_d0b55ece",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_f0c9825b",
         "filename": "netlink/src/test/scala/org/midonet/netlink/MockBufferPool.scala",
         "patchSetId": 17
@@ -172,6 +316,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_3a3e60b9",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/MockBufferPool.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "BufferPool provides a set of DirectByteBuffer and we can\u0027t inspect the content of ByteBuffer written by NetlinkRequestBroker.",
+      "parentUuid": "facab960_f0c9825b",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_5074eefc",
         "filename": "netlink/src/test/scala/org/midonet/netlink/rtnetlink/LinkTest.scala",
         "patchSetId": 17
@@ -183,6 +345,24 @@
       "writtenOn": "2015-05-22T10:29:07Z",
       "side": 1,
       "message": "wow.hardcoded bytes? this is totally unmaintainable :/",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5a4b2459",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/rtnetlink/LinkTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Yes, but this is the real data and we can\u0027t check if the deserializer works without it.",
+      "parentUuid": "facab960_5074eefc",
       "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
