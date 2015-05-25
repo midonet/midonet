@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_1a68bcb9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-25T03:16:33Z",
+      "side": 1,
+      "message": "I think this should be pool.hasHealthMonitorId \u0026\u0026 updatedPool.hasHealthMonitorId \u0026\u0026 pool.getHealthMonitorId !\u003d updatedPool.getHealthMonitorId",
+      "range": {
+        "startLine": 65,
+        "startChar": 12,
+        "endLine": 66,
+        "endChar": 69
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7a31c8eb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-25T03:16:33Z",
+      "side": 1,
+      "message": "I think this should be IllegalStateException. There\u0027s nothing inherently wrong with the input; it\u0027s just not valid given the current state.",
+      "range": {
+        "startLine": 67,
+        "startChar": 22,
+        "endLine": 67,
+        "endChar": 46
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_faaa38d3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-25T03:16:33Z",
+      "side": 1,
+      "message": "This will overwrite poolMemberIds. Take a look at PortUpdateValidator and how it\u0027s used in PortTranslator.",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 33
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3a6580e1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-25T03:16:33Z",
+      "side": 1,
+      "message": "We don\u0027t want this in the case where it\u0027s an update and the health monitor is already set, do we? Then we\u0027d be reverting the state from a later state to PENDING_CREATE.",
+      "range": {
+        "startLine": 81,
+        "startChar": 20,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7a8d487b",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-25T03:16:33Z",
+      "side": 1,
+      "message": "Should also test removing HM, and also creating a pool that has a health monitor already.",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 9
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
