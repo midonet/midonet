@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_c6b4b9f4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ApplicationResource.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-25T21:57:02Z",
+      "side": 1,
+      "message": "I had troubles using Java string constants in Scala code, the same issue that happens when using the DIRECTORY_REACTOR_TAG. Although sometimes it compiles the first time, when rebuilding it always seems to fail.",
+      "range": {
+        "startLine": 60,
+        "startChar": 10,
+        "endLine": 60,
+        "endChar": 17
+      },
+      "revId": "4be7d8363990e6848692c3d1b187e44ecb0ce6ee",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
