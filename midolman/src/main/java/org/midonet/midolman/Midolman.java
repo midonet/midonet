@@ -15,10 +15,8 @@
  */
 package org.midonet.midolman;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
@@ -26,7 +24,6 @@ import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.jna.LastErrorException;
-import com.sun.jna.Native;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
@@ -53,6 +50,8 @@ import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.version.guice.VersionModule;
 import org.midonet.util.cLibrary;
+import scala.concurrent.Promise;
+import scala.concurrent.Promise$;
 
 public class Midolman {
 
@@ -98,8 +97,39 @@ public class Midolman {
         System.exit(MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE);
     }
 
+    public static void dumpStacks() {
+        Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
+        for (Thread thread: traces.keySet()) {
+            System.err.print("\"" + thread.getName() + "\" ");
+            if (thread.isDaemon())
+                System.err.print("daemon ");
+            System.err.print(String.format("prio=%x tid=%x %s [%x]\n",
+                thread.getPriority(), thread.getId(),
+                thread.getState(), System.identityHashCode(thread)));
+
+            StackTraceElement[] trace = traces.get(thread);
+            for (StackTraceElement e: trace) {
+                System.err.println("        at " + e.toString());
+            }
+        }
+    }
+
+    private void setUncaughtExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                log.error("Uncaught exception: ", e);
+                dumpStacks();
+                System.exit(-1);
+            }
+        });
+    }
+
     private void run(String[] args) throws Exception {
-        watchedProcess.start();
+        Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
+        setUncaughtExceptionHandler();
+        watchedProcess.start(initializationPromise);
+
         // log git commit info
         Properties properties = new Properties();
         properties.load(
@@ -125,16 +155,8 @@ public class Midolman {
         Options options = new Options();
         options.addOption("c", "configFile", true, "config file path");
 
-        // TODO(mtoader): Redirected where?
-        options.addOption("redirectStdOut", true,
-                          "will cause the stdout to be redirected");
-        options.addOption("redirectStdErr", true,
-                          "will cause the stderr to be redirected");
-
         CommandLineParser parser = new GnuParser();
         CommandLine cl = parser.parse(options, args);
-
-        redirectStdOutAndErrIfRequested(cl);
 
         String configFilePath = cl.getOptionValue('c', "./conf/midolman.conf");
         if (!java.nio.file.Files.isReadable(Paths.get(configFilePath))) {
@@ -168,8 +190,7 @@ public class Midolman {
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
-
-        log.info("{} was initialized", MidolmanActorsService.class);
+        log.info("Actors service was initialized");
 
         log.info("Running manual GC to tenure preallocated objects");
         injector.getInstance(MidolmanActorsService.class)
@@ -179,6 +200,7 @@ public class Midolman {
         if (injector.getInstance(MidolmanConfig.class).getLockMemory())
             lockMemory();
 
+        initializationPromise.success(true);
         log.info("main finish");
         serviceEvent.start();
     }
@@ -205,42 +227,6 @@ public class Midolman {
         }
     }
 
-    private void redirectStdOutAndErrIfRequested(CommandLine commandLine) {
-
-        String targetStdOut = commandLine.getOptionValue("redirectStdOut");
-        if (targetStdOut != null) {
-            try {
-                File targetStdOutFile = new File(targetStdOut);
-                if (targetStdOutFile.isFile() && targetStdOutFile.canWrite()) {
-                    PrintStream newStdOutStr = new PrintStream(
-                        targetStdOutFile);
-                    newStdOutStr.println("[Begin redirected output]");
-
-                    System.setOut(newStdOutStr);
-                }
-            } catch (FileNotFoundException e) {
-                log.error("Could not redirect stdout to {}", targetStdOut, e);
-            }
-        }
-
-        String targetStdErr = commandLine.getOptionValue("redirectStdErr");
-
-        if (targetStdErr != null) {
-            try {
-                File targetStdErrFile = new File(targetStdErr);
-                if (targetStdErrFile.isFile() && targetStdErrFile.canWrite()) {
-                    PrintStream newStdErrStr = new PrintStream(
-                        targetStdErrFile);
-                    newStdErrStr.println("[Begin redirected output]");
-
-                    System.setErr(newStdErrStr);
-                }
-            } catch (FileNotFoundException e) {
-                log.error("Could not redirect stderr to {}", targetStdErr, e);
-            }
-        }
-    }
-
     /**
      * Expose Midolman instance and Guice injector
      * Using the following methods makes it easier for host management
@@ -260,12 +246,12 @@ public class Midolman {
     }
 
     public static void main(String[] args) {
-
         try {
             Midolman midolman = getInstance();
             midolman.run(args);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("main caught", e);
+            dumpStacks();
             serviceEvent.exit();
             System.exit(-1);
         }

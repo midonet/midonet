@@ -23,8 +23,12 @@ import java.util.concurrent.TimeUnit;
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.*;
 import org.midonet.util.eventloop.Reactor;
+import org.midonet.util.eventloop.TryCatchReactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.concurrent.Future;
+import scala.concurrent.Promise;
+import scala.concurrent.Promise$;
 
 public class CassandraClient {
 
@@ -32,6 +36,8 @@ public class CassandraClient {
             LoggerFactory.getLogger(CassandraClient.class);
 
     private Session session = null;
+
+    private Promise<Session> sessionPromise = Promise$.MODULE$.apply();
 
     private final String[] servers;
     private final String serversStr;
@@ -42,16 +48,27 @@ public class CassandraClient {
     private final int replicationFactor;
     private String[] schema;
 
+
+    private static Reactor theReactor = null;
+    private static Object creationLock = new Object();
+    private static Reactor makeReactor() {
+        synchronized (creationLock) {
+            if (theReactor == null)
+                theReactor = new TryCatchReactor("cassandra-connection-manager", 1);
+        }
+        return theReactor;
+    }
+
     private final static Map<String, Cluster> CLUSTERS = new HashMap<>();
     private final static Map<String, Map<String, Session>> SESSIONS = new HashMap<>();
 
     public CassandraClient(String servers, String clusterName,
                            String keyspaceName, int replicationFactor,
-                           String[] schema, Reactor reactor) {
+                           String[] schema) {
         this.serversStr = servers;
         this.clusterName = clusterName;
         this.keyspaceName = keyspaceName;
-        this.reactor = reactor;
+        this.reactor = makeReactor();
         this.servers  = servers.split(",");
         this.schema = schema;
         this.replicationFactor = replicationFactor;
@@ -66,14 +83,17 @@ public class CassandraClient {
         this.port = p;
     }
 
-    public CassandraClient connect() {
-        synchronized (CLUSTERS) {
-            if (this.session != null)
-                return this;
-
-            _connect(10);
-        }
-        return this;
+    public Future<Session> connect() {
+        reactor.submit(new Runnable() {
+            @Override
+            public void run() {
+                synchronized(CLUSTERS) {
+                    if (session == null)
+                        _connect(10);
+                }
+            }
+        });
+        return sessionPromise.future();
     }
 
     private void createAndUseKeyspace() {
@@ -121,7 +141,7 @@ public class CassandraClient {
                 createAndUseKeyspace();
                 if (this.schema != null) {
                     for (int i=0; i<schema.length; i++)
-                        this.session.execute(schema[i]);
+                        this.session.executeAsync(schema[i]).get(10, TimeUnit.SECONDS);
                 }
                 sessions.put(keyspaceName, this.session);
                 log.info("Connection to Cassandra key space {} ESTABLISHED", keyspaceName);
@@ -129,6 +149,8 @@ public class CassandraClient {
 
             if (firstSession)
                 CLUSTERS.put(serversStr, cluster);
+
+            sessionPromise.success(session);
 
         } catch (Exception e) {
             log.error("Connection to Cassandra key space " + keyspaceName + " FAILED", e);
