@@ -211,6 +211,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_f05fb770",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-25T13:10:42Z",
+      "side": 1,
+      "message": "The way I see it is that people will implement higher order data structures based on these primitives. For example, for the MacPortMap:\n\nobject MacPortMap {\n  val discriminant \u003d new MergedMapDiscriminant() {\n     ...\n  }\n}\n \nclass MacPortMap(id: bridgeId) {\n\n  private val mergedMap \u003d new MergedMap[MAC, UUID](MacPortMap.discriminant)\n  private val myMap \u003d new SingleMap[MAC, UUID](myHostId)\n\n  topology.observable(classOf[Host]).subscribe {\n      case hostAddded(id) \u003d\u003e mergedMap.add(new SingleMap(id))\n      case hostRemoved(id) \u003d\u003e mergedMap.remove(new SingleMap(id))\n  }\n\n  def addEntry(k, v) \u003d myMap.put(k, v)\n  def rmEntry(k) \u003d myMap.remove(k, v)\n  def get() \u003d mergedMap.get(k)\n  def watch) \u003d mergedMap.observable()\n\n}\n\nSo you have all pieces decoupled:\n\n- Single maps are that, single maps, with no knowledge of where they might be used. Note that as I argued in a previous patch, the \"private\" map in the name is misleading since it already \"leaks\" into the primitive semantics about the fact that some uses of the single map will involve merging. IMO, a map is that, a map. \n\n- Merged maps do know about private maps, but not about higher abstractions such as MacPortMap. \n\n- MacPortMap uses low level primitives to compose its own api.\n\nAnd the problem you mention is solved. Every agent will use the same conflict resolution strategy for each use case (e.g., mac port maps), because the CR strategy is part of the higher level datastructure (the mac port map, the arp table, the routing table..)\n\nMakes sense?",
+      "parentUuid": "facab960_70d8071e",
+      "range": {
+        "startLine": 28,
+        "startChar": 30,
+        "endLine": 29,
+        "endChar": 70
+      },
+      "revId": "a39f5d3c9a94be37882a788b6fb1e516876eded1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_3f7495fc",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 7
