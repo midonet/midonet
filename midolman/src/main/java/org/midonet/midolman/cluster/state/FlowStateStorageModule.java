@@ -15,20 +15,17 @@
  */
 package org.midonet.midolman.cluster.state;
 
+import com.datastax.driver.core.Session;
 import com.google.inject.Inject;
-import com.google.inject.Key;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
-import com.google.inject.name.Named;
-import com.google.inject.name.Names;
+import scala.concurrent.Future;
 
 import org.midonet.cluster.backend.cassandra.CassandraClient;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.state.FlowStateStorage;
 import org.midonet.midolman.state.FlowStateStorage$;
 import org.midonet.midolman.state.FlowStateStorageFactory;
-import org.midonet.util.eventloop.Reactor;
 
 
 public class FlowStateStorageModule extends PrivateModule {
@@ -37,8 +34,6 @@ public class FlowStateStorageModule extends PrivateModule {
         binder().requireExplicitBindings();
 
         requireBinding(MidolmanConfig.class);
-        requireBinding(Key.get(Reactor.class, Names.named(
-                ZkConnectionProvider.DIRECTORY_REACTOR_TAG)));
 
         bind(FlowStateStorageFactory.class).toProvider(FlowStateStorageFactoryProvider.class)
                 .asEagerSingleton();
@@ -49,31 +44,26 @@ public class FlowStateStorageModule extends PrivateModule {
         @Inject
         MidolmanConfig config;
 
-        @Inject
-        @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
-        Reactor reactor;
-
         @Override
         public FlowStateStorageFactory get() {
             CassandraClient cass = new CassandraClient(
                     config.cassandra().servers(), config.cassandra().cluster(),
                     "MidonetFlowState", config.cassandra().replication_factor(),
-                    FlowStateStorage$.MODULE$.SCHEMA(), reactor);
-            cass.connect();
-            return new FlowStateStorageFactoryImpl(cass);
+                    FlowStateStorage$.MODULE$.SCHEMA());
+            return new FlowStateStorageFactoryImpl(cass.connect());
         }
     }
 
     private static class FlowStateStorageFactoryImpl implements FlowStateStorageFactory {
-        CassandraClient cass;
+        Future<Session> sessionF;
 
-        public FlowStateStorageFactoryImpl(CassandraClient cass) {
-            this.cass = cass;
+        public FlowStateStorageFactoryImpl(Future<Session> sessionF) {
+            this.sessionF = sessionF;
         }
 
         @Override
         public FlowStateStorage create() {
-            return FlowStateStorage$.MODULE$.apply(cass);
+            return FlowStateStorage$.MODULE$.apply(sessionF);
         }
     }
 }

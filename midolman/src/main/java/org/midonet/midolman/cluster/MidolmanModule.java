@@ -24,7 +24,6 @@ import com.google.inject.name.Named;
 
 import org.midonet.cluster.Client;
 import org.midonet.cluster.backend.cassandra.CassandraClient;
-import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.flows.FlowInvalidator;
 import org.midonet.midolman.logging.FlowTracingAppender;
@@ -43,7 +42,6 @@ import org.midonet.util.eventloop.Reactor;
  * Main midolman configuration module
  */
 public class MidolmanModule extends PrivateModule {
-
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
@@ -101,20 +99,14 @@ public class MidolmanModule extends PrivateModule {
         @Inject
         MidolmanConfig config;
 
-        @Inject
-        @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
-        Reactor reactor;
-
         @Override
         public FlowTracingAppender get() {
             CassandraClient cass = new CassandraClient(
                     config.cassandra().servers(), config.cassandra().cluster(),
                     FlowTracingSchema$.MODULE$.KEYSPACE_NAME(),
                     config.cassandra().replication_factor(),
-                    FlowTracingSchema$.MODULE$.SCHEMA(), reactor);
-            cass.connect();
-
-            return new FlowTracingAppender(cass);
+                    FlowTracingSchema$.MODULE$.SCHEMA());
+            return new FlowTracingAppender(cass.connect());
         }
     }
 }

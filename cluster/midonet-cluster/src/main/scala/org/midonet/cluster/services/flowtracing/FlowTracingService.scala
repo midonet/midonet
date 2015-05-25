@@ -55,7 +55,7 @@ class FlowTracingMinion @Inject()(nodeCtx: ClusterNode.Context,
         clusterConfig.cassandra.cluster,
         FlowTracingSchema.KEYSPACE_NAME,
         clusterConfig.cassandra.replication_factor,
-        FlowTracingSchema.SCHEMA, reactor);
+        FlowTracingSchema.SCHEMA);
 
     val service = new FlowTracingService(
         clusterConfig.flowTracing, new CassandraFlowTracingStorage(cass))
