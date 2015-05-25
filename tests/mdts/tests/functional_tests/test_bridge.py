@@ -294,11 +294,14 @@ def test_flow_invalidation_on_mac_update():
     f1 = async_assert_that(receiver,
                            receives('icmp', within_sec(5)))
 
+    f4 = async_assert_that(receiver,
+                           receives('', within_sec(5)))
+
     f2 = async_assert_that(intruder,
                            should_NOT_receive('icmp', within_sec(5)))
-    time.sleep(1)
+
     f3 = sender.ping4(receiver, do_arp=True)
-    wait_on_futures([f1, f2, f3])
+    wait_on_futures([f1, f2, f3, f4])
 
     # Second: intruder claims to be receiver
     receiver_MAC = receiver.interface['hw_addr']
