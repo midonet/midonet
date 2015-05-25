@@ -434,6 +434,10 @@ public class TestRules {
         // Delete the DNAT entry
         natTx.flush();
 
+        Set<NatTarget> newNats = new HashSet<>();
+        newNats.add(new NatTarget(0x0c00010b, 0x0c00010b, 1060, 1060));
+        rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true, newNats);
+
         // Verify we get a NEW mapping if we re-process the original match.
         res = new RuleResult(null, null);
         pktCtx.wcmatch().reset(pktCtx.origMatch());
