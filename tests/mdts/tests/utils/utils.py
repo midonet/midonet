@@ -18,6 +18,7 @@ Utility functions for functional tests.
 
 from hamcrest import assert_that
 from hamcrest import is_
+from hamcrest import less_than
 
 from midonetclient.api import MidonetApi
 
@@ -34,7 +35,7 @@ from mdts.lib import subprocess_compat
 
 FORMAT = '%(asctime)-15s %(module)s#%(funcName)s(%(lineno)d) %(message)s'
 logging.basicConfig(format=FORMAT, level=logging.DEBUG)
-
+LOG = logging.getLogger(__name__)
 
 def wait_on_futures(futures):
     """ Takes a list of futures and wait on their results. """
@@ -235,13 +236,13 @@ def ipv4_int(ipv4_str):
     return addr_int
 
 def get_top_dir():
-    """Returns the top dir of the midonet repo"""
-    topdir = os.path.realpath(os.path.dirname(__file__) + '../../../../../')
+    """Returns the root dir of MDTS"""
+    topdir = os.path.realpath(os.path.dirname(__file__) + '../../../../')
     return topdir
 
 def get_midolman_script_dir():
     """Returns abs path to Midolman scripts directory"""
-    return get_top_dir() + '/tests/mmm/scripts/midolman'
+    return get_top_dir() + '/mmm/scripts/midolman'
 
 
 def start_midolman_agents():
@@ -257,6 +258,21 @@ def stop_midolman_agents():
 
 
 def check_all_midolman_hosts(midonet_api, alive):
-    for h in  midonet_api.get_hosts():
-        assert_that(h.is_alive(), is_(alive),
-                    'A Midolman %s is alive.' % h.get_id())
+    max_attempts = 20
+    counter = 0
+    sleep_time = 10
+    failed_midolman = None
+    for _ in range(max_attempts):
+        try:
+            for h in midonet_api.get_hosts():
+                assert_that(h.is_alive(), is_(alive),
+                            'A Midolman %s is alive.' % h.get_id())
+            LOG.debug("Midolman agents took %d attempts of %d s to be up." % (counter,
+                                                                              sleep_time))
+            break
+        except AssertionError:
+            failed_midolman = h.get_id()
+            time.sleep(sleep_time)
+            counter += 1
+    assert_that(counter, less_than(max_attempts),
+                'Timeout checking for Midolman %s liveness' % failed_midolman)

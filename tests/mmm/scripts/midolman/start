@@ -22,9 +22,59 @@ fi
 . ../mmmrc
 . ../lib/utils.sh
 
+# If the DEPRECATED tag is in the midolman.conf, this indicates we should
+# use the new method of configuration, using mn-conf (not conf files)
+if grep -q "DEPRECATED" /etc/midolman/midolman.conf; then
+
+    if test x"$ZOOKEEPER_STANDALONE" = xyes; then
+        ZK_HOSTS="10.0.0.2:2181"
+        CASS_SERVERS="10.0.0.5"
+        CASS_FACTOR=1
+    else
+        ZK_HOSTS="10.0.0.2:2181,10.0.0.3:2181,10.0.0.4:2181"
+        CASS_SERVERS="10.0.0.5,10.0.0.6,10.0.0.7"
+        CASS_FACTOR=3
+    fi
+
+    export MIDO_ZOOKEEPER_HOSTS=$ZK_HOSTS
+    export MIDO_ZOOKEEPER_ROOT_KEY=/midonet/v1
+
+    mn-conf set -t default <<EOF
+zookeeper.zookeeper_hosts="$ZK_HOSTS"
+cassandra.servers="$CASS_SERVERS"
+cassandra.replication_factor=$CASS_FACTOR
+cassandra.cluster=midonet
+agent.midolman.bgp_keepalive=1s
+agent.midolman.bgp_holdtime=3s
+agent.midolman.bgp_connect_retry=1s
+agent.loggers.root=DEBUG
+agent.haproxy_health_monitor.namespace_cleanup=true
+agent.haproxy_health_monitor.health_monitor_enable=true
+agent.haproxy_health_monitor.haproxy_file_loc=/etc/midolman.1/l4lb/
+EOF
+
+fi
+
 echo "Starting midolman.1"
 bash start.1
 echo "Starting midolman.2"
 bash start.2
 echo "Starting midolman.3"
 bash start.3
+
+# Wait for agents to be registered before finishing boot sequence
+RETRIES=30
+CONNECTED=false
+while [ $CONNECTED == "false" ]; do
+    if [ `midonet-cli --midonet-url http://localhost:8080/midonet-api -A -e "host list" | wc -l` -eq 3 ]; then
+        CONNECTED=true
+    elif [ $RETRIES -eq 0 ]; then
+        echo "Midolman hosts failed to start.  Midonet-API host list:"
+        midonet-cli --midonet-url http://localhost:8080/midonet-api -A -e "host list"
+        sudo ../../../tools/logs/dump_per_suite_logs.sh
+        exit 1
+    else
+        (( RETRIES-- ))
+        sleep 5
+    fi
+done
