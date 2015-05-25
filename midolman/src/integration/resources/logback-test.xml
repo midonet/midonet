@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2014 Midokura SARL
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<configuration scan="true">
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="LOG-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>build/midolman.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy.MM.dd HH:mm:ss.SSS} %-5level [%thread] %logger{0} - %X{cookie} %m%n%rEx</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${midolman.log.dir}midolman.%d{yyyy-MM-dd}.log</fileNamePattern>
+                <maxHistory>7</maxHistory>
+        </rollingPolicy>
+
+    </appender>
+
+    <!-- Fine grained settings for specific classes -->
+    <!-- Third party libraries -->
+    <logger name="org.apache.zookeeper" level="INFO" />
+    <logger name="org.apache.cassandra" level="INFO" />
+    <logger name="me.prettyprint.cassandra" level="INFO" />
+    <logger name="org.eclipse.jetty" level="INFO" />
+
+    <!-- Adjust this level to set the logging used for all packets processed -->
+    <logger name="org.midonet.packets.default.packet-processor" level="TRACE" />
+
+    <!-- These are static for internal use, do not touch -->
+    <logger name="org.midonet.packets.debug.packet-processor" level="DEBUG" />
+    <logger name="org.midonet.packets.trace.packet-processor" level="TRACE" />
+
+    <logger name="org.midonet.event" level="INFO">
+         <appender-ref ref="STDOUT"/>
+    </logger>
+
+    <root level="DEBUG">
+        <appender-ref ref="LOG-FILE" />
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>
