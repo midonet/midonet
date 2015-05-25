@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_1803b10e",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_1d2f23f8",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7d8297c9",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
@@ -87,6 +105,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_580d2937",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_fd47a7ba",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_dded8bb9",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
@@ -104,6 +140,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_b811bd55",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_dded8bb9",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_3d2adfe7",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
@@ -115,6 +169,24 @@
       "writtenOn": "2015-05-18T09:17:32Z",
       "side": 1,
       "message": "the thread should also be a daemon",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_980e8131",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_3d2adfe7",
       "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -207,6 +279,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_f81b3571",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_3d781ff8",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_bd524f66",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
@@ -281,6 +371,30 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d818f977",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "I don\u0027t think NetlinkChannel has headerSize.",
+      "parentUuid": "1a106d94_1d1603a8",
+      "range": {
+        "startLine": 127,
+        "startChar": 39,
+        "endLine": 127,
+        "endChar": 58
+      },
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7dd0d7c9",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
@@ -298,6 +412,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_d82f5987",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 137,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_7dd0d7c9",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a2aa2bd0",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
@@ -309,6 +441,24 @@
       "writtenOn": "2015-05-18T18:55:11Z",
       "side": 1,
       "message": "can we avoid the back-ticks?",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_45b541cf",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a2aa2bd0",
       "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -349,6 +499,24 @@
     },
     {
       "key": {
+        "uuid": "1a106d94_384cad76",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_9dfdd33e",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_bd008f36",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
@@ -360,6 +528,24 @@
       "writtenOn": "2015-05-18T09:21:27Z",
       "side": 1,
       "message": "logging should be done by the observer in the context of its usage",
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "1a106d94_983cc1c1",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-25T15:34:45Z",
+      "side": 1,
+      "message": "That\u0027d be another discussion but default subject implementations can be used and in that case we need to have the wrappers every time we pass them.",
+      "parentUuid": "1a106d94_bd008f36",
       "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
