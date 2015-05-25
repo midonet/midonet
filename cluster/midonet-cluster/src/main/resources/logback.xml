@@ -37,7 +37,7 @@
     </appender>
 
     <!-- Fine grained settings for specific packages -->
-    <!-- logger name="org.apache.cassandra" level="INFO" / -->
+    <logger name="org.apache.cassandra" level="WARN" />
     <!-- logger name="org.eclipse.jetty" level="INFO" / -->
 
     <!-- Service loggers -->
