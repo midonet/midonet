@@ -177,31 +177,33 @@ class Interface:
                                 delay=delay, count=count, sync=sync,
                                 src_hw = src_hw, src_ipv4 = src_ipv4)
 
-    def make_web_request_get_backend(self, dst_ip_port):
+    def make_web_request_get_backend(self, dst_ip_port, src_port):
         """
-        @type dst_ip str
-        @type dst_port int
+        @type dst_ip_port (str, int)
+        @type src_port int
 
-        Make a HTTP GET (TCP connection) to dst_ip on port dst_port.
+        Make a HTTP GET (TCP connection) to dst_ip on port dst_port from src_port.
 
         Returns: (IP address of backend we hit <string>, port of backend we hit <int>)
         """
         timeout_secs = 5
-        res = self.make_web_request_to(dst_ip_port, timeout_secs).result().split(":")
+        res = self.make_web_request_to(dst_ip_port, src_port, timeout_secs).result().split(":")
         ip_addr = res[0]
         port = int(res[1])
         return ip_addr, port
 
-    def make_web_request_to(self, dst_ip_port, timeout_secs = 5):
+    def make_web_request_to(self, dst_ip_port, src_port, timeout_secs = 5):
         """
         @type dst_ip_port (str, int)
+        @type src_port int
 
         Make a HTTP GET (TCP connection) to dst_ip on port dst_port.
 
         Returns: A future
         """
         dst_ip, dst_port = dst_ip_port
-        return self.execute("curl -s -m %s http://%s:%s" % (timeout_secs, dst_ip, dst_port))
+        return self.execute("curl -s -m %s --local-port %r http://%s:%s" %
+                            (timeout_secs, src_port, dst_ip, dst_port))
 
     def start_web_server(self, port):
         """
