@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_1a3fdc26",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-25T06:02:32Z",
+      "side": 1,
+      "message": "You\u0027re correct. I was forgetting to test this case.",
+      "parentUuid": "facab960_1a68bcb9",
+      "range": {
+        "startLine": 65,
+        "startChar": 12,
+        "endLine": 66,
+        "endChar": 69
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7a31c8eb",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-25T03:16:33Z",
       "side": 1,
       "message": "I think this should be IllegalStateException. There\u0027s nothing inherently wrong with the input; it\u0027s just not valid given the current state.",
+      "range": {
+        "startLine": 67,
+        "startChar": 22,
+        "endLine": 67,
+        "endChar": 46
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7a1d48bd",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-25T06:02:32Z",
+      "side": 1,
+      "message": "Makes sense. Changed.",
+      "parentUuid": "facab960_7a31c8eb",
       "range": {
         "startLine": 67,
         "startChar": 22,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_9ac76c12",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-25T06:02:32Z",
+      "side": 1,
+      "message": "\"updatedPool\" is created from the Pool retrieved from Storage, so it should contain all the Pool Member IDs?",
+      "parentUuid": "facab960_faaa38d3",
+      "range": {
+        "startLine": 69,
+        "startChar": 8,
+        "endLine": 69,
+        "endChar": 33
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_3a6580e1",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_5a4ec4c2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-25T06:02:32Z",
+      "side": 1,
+      "message": "What you said makes sense, but this is what the current code actually does. Let me check with Ryu.",
+      "parentUuid": "facab960_3a6580e1",
+      "range": {
+        "startLine": 81,
+        "startChar": 20,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7a8d487b",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2015-05-25T03:16:33Z",
       "side": 1,
       "message": "Should also test removing HM, and also creating a pool that has a health monitor already.",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 9
+      },
+      "revId": "91b258c8288a9089a771bd50828a897ef0764c30",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ba9a7012",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-25T06:02:32Z",
+      "side": 1,
+      "message": "Added a test for removing HM. Will add a case for creating a pool with the health monitor already set later if necessary.",
+      "parentUuid": "facab960_7a8d487b",
       "range": {
         "startLine": 96,
         "startChar": 0,
