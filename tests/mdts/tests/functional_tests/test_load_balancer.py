@@ -34,7 +34,7 @@ NON_STICKY_VIP = ("100.100.2.8", 10008)
 STICKY_VIP = ("100.100.2.9", 10009)
 SENDER = None
 NUM_BACKENDS = 3
-
+SRC_PORT = 40000
 
 web_servers = []
 
@@ -390,9 +390,11 @@ def assert_web_request_fails_to(dest):
 
 def make_n_requests_to(num_reqs, dest):
     global SENDER
+    global SRC_PORT
     results = []
     for x in range(0, num_reqs):
-        res = SENDER.make_web_request_get_backend(dest)
+        res = SENDER.make_web_request_get_backend(dest, SRC_PORT)
+        SRC_PORT += 1
         results.append(res)
     return results
 
