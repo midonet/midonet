@@ -80,7 +80,7 @@ def check_ethtool():
 
 
 def main():
-    check_ethtool() 
+    check_ethtool()
 
     check_rootns()
 

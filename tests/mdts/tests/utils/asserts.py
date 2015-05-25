@@ -21,6 +21,7 @@ from mdts.tests.utils.utils import ipv4_int
 
 import logging
 
+import time
 
 LOG = logging.getLogger(__name__)
 NUM_WORKERS = 10
@@ -37,6 +38,7 @@ class InterfaceExpects(BaseMatcher):
 
     def _matches(self, iface):
         result = iface.expect(self._filter, self._timeout).result()
+        LOG.debug("Result=" + str(result) + " / Expected=" + str(self._expected))
         return result == self._expected
 
     def describe_to(self, description):
@@ -85,9 +87,40 @@ def receives_icmp_unreachable_for_udp(udp_src_ip,
 
 
 def async_assert_that(*args):
-    """ Returns future of assert_that(*args)"""
-    return EXECUTOR.submit(assert_that, *args)
 
+    iface = args[0]
+    iface_concrete = iface._delegate._proxy._concrete
+    ifname = iface_concrete._get_ifname()
+    nsname = iface_concrete._get_nsname()
+
+    # Don't push past this function until this flag is set
+    # by the interface indicating tcpdump is running
+    iface_concrete._tcpdump_ready_to_run = False
+
+    """ Returns future of assert_that(*args)"""
+    f = EXECUTOR.submit(assert_that, *args)
+
+    LOG.debug('Scheduled tcpdump on interface %s on ns: %s' %
+              (ifname, nsname))
+
+    # Ensure the interface is ready to listen before we continue
+    if '_tcpdump_ready_to_run' in dir(iface_concrete):
+        LOG.debug('waiting on interface %s on ns: %s' %
+                  (ifname, nsname))
+
+        timeout = 30
+
+        while iface_concrete._tcpdump_ready_to_run is False and timeout > 0:
+            time.sleep(1)
+            timeout-=1
+
+        if iface_concrete._tcpdump_ready_to_run is False:
+            raise Exception('interface never was ready to run tcpdump: %s on ns: %s' %
+                            (ifname, nsname))
+
+    LOG.debug('Returning ready on interface %s on ns: %s to send data' %
+              (ifname, nsname))
+    return f
 
 def within_sec(sec):
     return sec
