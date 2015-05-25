@@ -38,7 +38,6 @@ import org.midonet.midolman.topology.VirtualTopology;
  * Main midolman configuration module
  */
 public class MidolmanModule extends PrivateModule {
-
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
