@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from hamcrest.core import assert_that
 from nose.plugins.attrib import attr
 
 from mdts.lib.binding_manager import BindingManager
@@ -129,19 +128,19 @@ def test_dnat():
     unset_filters('router-000-001')
     feed_receiver_mac(receiver)
 
-    f1 = sender.ping_ipv4_addr('100.100.100.100', suppress_failure=True)
-    assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
+    f2 = async_assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
                                              within_sec(5)))
-    wait_on_futures([f1])
+    f1 = sender.ping_ipv4_addr('100.100.100.100', suppress_failure=True)
+    wait_on_futures([f1, f2])
 
     # Set DNAT rule chains to the router
     set_filters('router-000-001', 'pre_filter_001', 'post_filter_001')
 
-    f1 = sender.ping_ipv4_addr('100.100.100.100')
     f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
                                    within_sec(5)))
     f3 = async_assert_that(sender, receives('src host 100.100.100.100 and icmp',
                                  within_sec(5)))
+    f1 = sender.ping_ipv4_addr('100.100.100.100')
     wait_on_futures([f1, f2, f3])
 
 
@@ -171,17 +170,15 @@ def test_dnat_for_udp():
     router_port = VTM.get_router('router-000-001').get_port(1)
     router_mac = router_port.get_mn_resource().get_port_mac()
 
+    f2 = async_assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and udp',
+                                             within_sec(5)))
     f1 = sender.send_udp(router_mac, '100.100.100.100', 29,
                          src_port=9, dst_port=9)
-    assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and udp',
-                                             within_sec(5)))
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])
 
     # Set DNAT rule chains to the router
     set_filters('router-000-001', 'pre_filter_001', 'post_filter_001')
 
-    f1 = sender.send_udp(router_mac, '100.100.100.100', 29,
-                         src_port=9, dst_port=9)
     f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and udp',
                                    within_sec(5)))
     # Sender should receive ICMP unreachable as the receiver port is not open.
@@ -189,6 +186,8 @@ def test_dnat_for_udp():
                                 '172.16.1.1', '100.100.100.100',
                                 udp_src_port=9, udp_dst_port=9,
                                 timeout=within_sec(5)))
+    f1 = sender.send_udp(router_mac, '100.100.100.100', 29,
+                         src_port=9, dst_port=9)
     wait_on_futures([f1, f2, f3])
 
 
@@ -214,21 +213,21 @@ def test_snat():
     unset_filters('router-000-001')
     feed_receiver_mac(receiver)
 
-    f1 = sender.ping4(receiver)
     # No SNAT configured. Should not receive SNATed messages.
-    assert_that(receiver, should_NOT_receive('src host 172.16.1.100 and icmp',
+    f2 = async_assert_that(receiver, should_NOT_receive('src host 172.16.1.100 and icmp',
                                              within_sec(5)))
-    wait_on_futures([f1])
+    f1 = sender.ping4(receiver)
+    wait_on_futures([f1, f2])
 
     # Set SNAT rule chains to the router
     set_filters('router-000-001', 'pre_filter_002', 'post_filter_002')
 
-    f1 = sender.ping4(receiver)
     # The receiver should receive SNATed messages.
     f2 = async_assert_that(receiver, receives('src host 172.16.1.100 and icmp',
                                    within_sec(5)))
     f3 = async_assert_that(sender, receives('dst host 172.16.1.1 and icmp',
                                  within_sec(5)))
+    f1 = sender.ping4(receiver)
     wait_on_futures([f1, f2, f3])
 
 
@@ -258,18 +257,16 @@ def test_snat_for_udp():
     router_port = VTM.get_router('router-000-001').get_port(1)
     router_mac = router_port.get_mn_resource().get_port_mac()
 
+    # No SNAT configured. Should not receive SNATed messages.
+    f2 = async_assert_that(receiver, should_NOT_receive('src host 172.16.1.100 and udp',
+                                             within_sec(5)))
     f1 = sender.send_udp(router_mac, '172.16.2.1', 29,
                          src_port=9, dst_port=65000)
-    # No SNAT configured. Should not receive SNATed messages.
-    assert_that(receiver, should_NOT_receive('src host 172.16.1.100 and udp',
-                                             within_sec(5)))
-    wait_on_futures([f1])
+    wait_on_futures([f1, f2])
 
     # Set SNAT rule chains to the router
     set_filters('router-000-001', 'pre_filter_002', 'post_filter_002')
 
-    f1 = sender.send_udp(router_mac, '172.16.2.1', 29,
-                         src_port=9, dst_port=65000)
     # The receiver should receive SNATed messages.
     f2 = async_assert_that(receiver, receives('src host 172.16.1.100 and udp',
                                    within_sec(5)))
@@ -278,6 +275,8 @@ def test_snat_for_udp():
                                 '172.16.1.1', '172.16.2.1',
                                 udp_src_port=9, udp_dst_port=65000,
                                 timeout=within_sec(5)))
+    f1 = sender.send_udp(router_mac, '172.16.2.1', 29,
+                         src_port=9, dst_port=65000)
     wait_on_futures([f1, f2, f3])
 
 
@@ -307,18 +306,18 @@ def test_floating_ip():
     unset_filters('router-000-001')
     feed_receiver_mac(receiver)
 
-    f1 = sender.ping_ipv4_addr('100.100.100.100', suppress_failure=True)
-    assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
+    f2 = async_assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
                                              within_sec(5)))
-    wait_on_futures([f1])
+    f1 = sender.ping_ipv4_addr('100.100.100.100', suppress_failure=True)
+    wait_on_futures([f1, f2])
 
     # Configure floating IP address with the router
     set_filters('router-000-001', 'pre_filter_floating_ip',
                 'post_filter_floating_ip')
 
-    f1 = sender.ping_ipv4_addr('100.100.100.100')
     f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
                                    within_sec(5)))
     f3 = async_assert_that(sender, receives('src host 100.100.100.100 and icmp',
                                  within_sec(5)))
+    f1 = sender.ping_ipv4_addr('100.100.100.100')
     wait_on_futures([f1, f2, f3])

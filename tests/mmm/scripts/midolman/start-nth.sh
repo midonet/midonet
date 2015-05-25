@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 
 # Copyright 2014 Midokura SARL
 #
@@ -17,5 +17,6 @@
 find /var/log/quagga -type f -exec rm -f '{}' ';'
 
 sysctl -w net.ipv6.conf.default.disable_ipv6=1
+
 
 exec /usr/share/midolman/midolman-start

@@ -17,20 +17,12 @@
 . ../mmmrc
 
 for n in 1 2 3; do
+    echo "Creating midolman dir"
     if test ! -d /etc/midolman.$n; then
         mkdir -p /etc/midolman.$n
     fi
-    rsync -av --exclude host_uuid.properties /etc/midolman/* /etc/midolman.$n
 
-    if test x"$ZOOKEEPER_STANDALONE" = xyes; then
-        ZK_HOSTS="10.0.0.2:2181"
-        CASS_SERVERS="10.0.0.5"
-        CASS_FACTOR=1
-    else
-        ZK_HOSTS="10.0.0.2:2181,10.0.0.3:2181,10.0.0.4:2181"
-        CASS_SERVERS="10.0.0.5,10.0.0.6,10.0.0.7"
-        CASS_FACTOR=3
-    fi
+    rsync -av --exclude host_uuid.properties /etc/midolman/* /etc/midolman.$n
 
     # generates host uuid
     cat <<EOF > /etc/midolman.$n/host_uuid.properties
@@ -38,32 +30,47 @@ for n in 1 2 3; do
 host_uuid=00000000-0000-0000-0000-00000000000$n
 EOF
 
-    cat << EOF > /etc/midolman.$n/midolman.conf
-[zookeeper]
-zookeeper_hosts = $ZK_HOSTS
+    # If the DEPRECATED tag is in the midolman.conf, this indicates we should
+    # use the new method of configuration, using mn-conf (not conf files)
 
-[cassandra]
-servers = $CASS_SERVERS
-replication_factor = $CASS_FACTOR
+    # XXX(tomoe): temporary commented out and moved down to modify zk settings
+    # due to the problem, being MIDO_ZOOKEEPER_* env variables not respected by Midolman
+    # if ! grep -q "DEPRECATED" /etc/midolman/midolman.conf; then
 
+        if test x"$ZOOKEEPER_STANDALONE" = xyes; then
+            ZK_HOSTS="10.0.0.2:2181"
+            CASS_SERVERS="10.0.0.5"
+            CASS_FACTOR=1
+        else
+            ZK_HOSTS="10.0.0.2:2181,10.0.0.3:2181,10.0.0.4:2181"
+            CASS_SERVERS="10.0.0.5,10.0.0.6,10.0.0.7"
+            CASS_FACTOR=3
+        fi
+
+        sed -e "/^\[zookeeper\]/,/^$/ s/^zookeeper_hosts =.*$/zookeeper_hosts = $ZK_HOSTS/" -i /etc/midolman.$n/midolman.conf
+    # XXX(tomoe): this if branch is temporary. See above.
+    if ! grep -q "DEPRECATED" /etc/midolman/midolman.conf; then
+        sed -e "/^\[cassandra\]/,/^$/ s/^servers =.*$/servers = $CASS_SERVERS/;s/^replication_factor =.*$/replication_factor = $CASS_FACTOR/" \
+            -i /etc/midolman.$n/midolman.conf
+
+        if ! grep -q "\[haproxy_health_monitor\]" /etc/midolman.$n/midolman.conf > /dev/null; then
+            cat <<EOF >> /etc/midolman.$n/midolman.conf
 # Enable haproxy on the node.
 [haproxy_health_monitor]
 namespace_cleanup = true
 health_monitor_enable = true
 haproxy_file_loc = /etc/midolman.$n/l4lb/
-
-[midolman]
-bgp_keepalive = 1s
-bgp_holdtime = 3s
-bgp_connect_retry = 1s
-
-[loggers]
-
-root = DEBUG
-
 EOF
+        fi
 
-    sed -i 's/root level="INFO"/root level="DEBUG"/' /etc/midolman.$n/logback.xml
+        if grep "Ubuntu" /etc/issue >/dev/null; then
+            sed "/^\[midolman\]/,/^\[/ s%^[# ]*bgpd_binary = /usr/lib/quagga.*$%bgpd_binary = /usr/lib/quagga%" \
+                -i /etc/midolman.$n/midolman.conf
+        fi
+
+        sed -i 's/root level="INFO"/root level="DEBUG"/' /etc/midolman.$n/logback.xml
+    fi
+
     # Disable rotation by removing policy setting to fix MN-3009
     sed -i '/<rollingPolicy/, /<\/rollingPolicy/d' /etc/midolman.$n/logback.xml
     sed -i 's/rolling.RollingFileAppender/FileAppender/g' /etc/midolman.$n/logback.xml
@@ -89,4 +96,3 @@ EOF
     sed -i 's/MAX_HEAP_SIZE=.*/MAX_HEAP_SIZE="300M"/' /etc/midolman.$n/midolman-env.sh
     sed -i 's/HEAP_NEWSIZE=.*/HEAP_NEWSIZE="200M"/' /etc/midolman.$n/midolman-env.sh
 done
-
