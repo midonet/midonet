@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_be05fdc3",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-26T16:53:34Z",
+      "side": 1,
+      "message": "i think the solution is not to use an anonymous class then",
+      "parentUuid": "facab960_375bd955",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7004927e",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
         "patchSetId": 17
@@ -101,6 +119,24 @@
       "side": 1,
       "message": "Why should we avoid lazy so much and why should NetlinkNotificationReader be a class? And if we should not create a thread, which would be repeatedly done for every blocking notification reader,  I don\u0027t think we need this trait and we can just repeatedly define them manually.",
       "parentUuid": "facab960_d0039e71",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9e0039ac",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-26T16:53:34Z",
+      "side": 1,
+      "message": "a) we can mix this trait into a class where we want to use an existing thread to process notifications\nb) lazy require a volatile read every time. it\u0027s also forcing implementers to declare lazy fields, just to satisfy the compiler. i know this is only lazy to solve compilation problems, not because of actual design, so i think it\u0027s a code smell, since there are other ways to solve the compilation problems: make this a class (preferable) or use scala\u0027s early initializers.",
+      "parentUuid": "facab960_3a22e0b9",
       "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -334,6 +370,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_1e1509f1",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/MockBufferPool.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-26T16:53:34Z",
+      "side": 1,
+      "message": "but the NetlinkRequestBroker doesn\u0027t use the BufferPool. The buffer pool is for all purposes deprecated.",
+      "parentUuid": "facab960_3a3e60b9",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_5074eefc",
         "filename": "netlink/src/test/scala/org/midonet/netlink/rtnetlink/LinkTest.scala",
         "patchSetId": 17
@@ -363,6 +417,24 @@
       "side": 1,
       "message": "Yes, but this is the real data and we can\u0027t check if the deserializer works without it.",
       "parentUuid": "facab960_5074eefc",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3ef9edc8",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/rtnetlink/LinkTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-26T16:53:34Z",
+      "side": 1,
+      "message": "that should be solved in integration tests. if you want to unit tests, we can try to serialize something, deserialize it back and then compare with the original.",
+      "parentUuid": "facab960_5a4b2459",
       "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
