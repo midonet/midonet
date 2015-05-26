@@ -22,6 +22,8 @@ import java.util.UUID;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import javax.xml.bind.annotation.XmlTransient;
 
 import com.google.protobuf.Message;
@@ -33,6 +35,7 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.RangeUtil;
 import org.midonet.cluster.util.UUIDUtil;
@@ -169,6 +172,25 @@ public abstract class Condition extends UriResource {
                 IPv4Subnet.fromCidr(nwDstAddress + "/" + nwDstLength) : null;
         nwSrc = nwSrcAddress != null ?
                 IPv4Subnet.fromCidr(nwSrcAddress + "/" + nwSrcLength) : null;
+        fragmentPolicy = getAndValidateFragmentPolicy();
+    }
+
+    private boolean hasL4Fields() {
+        return null != tpDst && null != tpSrc;
+    }
+
+    private FragmentPolicy getAndValidateFragmentPolicy() {
+        if (null == fragmentPolicy)
+            return hasL4Fields() ? FragmentPolicy.header : FragmentPolicy.any;
+
+        if (hasL4Fields() &&
+            (fragmentPolicy == FragmentPolicy.any ||
+             fragmentPolicy == FragmentPolicy.nonheader)) {
+            // TODO: MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE
+            throw new WebApplicationException(Response.Status.BAD_REQUEST);
+        }
+
+        return fragmentPolicy;
     }
 
     public static class MACMaskConverter
