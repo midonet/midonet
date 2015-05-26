@@ -26,7 +26,7 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Topology.LoadBalancer
+import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
 
@@ -41,22 +41,20 @@ class LoadBalancerPoolTranslatorTestBase extends FlatSpec with BeforeAndAfter
         UUIDUtil.toProtoFromProtoStr("msb: 3 lsb: 1")
     protected val lbId = routerId
 
-    protected def neutronPoolProtoStr(healthMonitorId: UUID = null) = {
+    protected def neutronPoolProtoStr(adminStateUp: Boolean = true,
+                                      healthMonitorId: UUID = null) = {
         val protoStr = s"""
             id { $poolId }
             router_id { $routerId }
-            admin_state_up: true
+            admin_state_up: $adminStateUp
             """
         if (healthMonitorId == null) protoStr
-        else protoStr + s"health_monitor_ids { $healthMonitorId }"
+        else protoStr + s"health_monitors { $healthMonitorId }"
     }
-    protected def neutronPool(healthMonitorId: UUID = null) =
-        nLoadBalancerPoolFromTxt(neutronPoolProtoStr(healthMonitorId))
-
-    protected val poolNoRouterId = nLoadBalancerPoolFromTxt(s"""
-        id { $poolId }
-        admin_state_up: true
-        """)
+    protected def neutronPool(adminStateUp: Boolean = true,
+                              healthMonitorId: UUID = null) =
+        nLoadBalancerPoolFromTxt(neutronPoolProtoStr(
+                adminStateUp, healthMonitorId))
 
     protected val lb = mLoadBalancerFromTxt(s"""
         id { $routerId }
@@ -64,18 +62,29 @@ class LoadBalancerPoolTranslatorTestBase extends FlatSpec with BeforeAndAfter
         router_id { $routerId }
         """)
 
-    protected def midoPoolProtoStr(healthMonitorId: UUID = null) = {
-       val protoStr = s"""
-           id { $poolId }
-           admin_state_up: true
-           load_balancer_id { $routerId }
-           """
+    protected def midoPoolProtoStr(adminStateUp: Boolean = true,
+                                   healthMonitorId: UUID = null) = {
+        val protoStr = s"""
+            id { $poolId }
+            admin_state_up: $adminStateUp
+            load_balancer_id { $routerId }
+            """
         if (healthMonitorId == null) protoStr
         else protoStr + s"""health_monitor_id { $healthMonitorId }
                             mapping_status: PENDING_CREATE"""
     }
-    protected def midoPool(healthMonitorId: UUID = null) =
-        mPoolFromTxt(midoPoolProtoStr(healthMonitorId))
+    protected def midoPool(adminStateUp: Boolean = true,
+                           healthMonitorId: UUID = null) =
+        mPoolFromTxt(midoPoolProtoStr(adminStateUp, healthMonitorId))
+
+    protected val poolNoHm = neutronPool()
+    protected val poolWithHm = neutronPool(healthMonitorId = healthMonitorId)
+    protected val mPoolNoHm = midoPool()
+    protected val mPoolWithHm = midoPool(healthMonitorId = healthMonitorId)
+    protected val poolNoRouterId = nLoadBalancerPoolFromTxt(s"""
+        id { $poolId }
+        admin_state_up: true
+        """)
 
     protected def bindLb(id: UUID, lb: LoadBalancer) {
         val lbExists = lb != null
@@ -86,10 +95,20 @@ class LoadBalancerPoolTranslatorTestBase extends FlatSpec with BeforeAndAfter
             when(storage.get(classOf[LoadBalancer], id))
                 .thenReturn(Promise.successful(lb).future)
     }
+
+    protected def bindPool(id: UUID, pool: Pool) {
+        val poolExists = pool != null
+        when(storage.exists(classOf[Pool], id))
+            .thenReturn(Promise.successful(poolExists).future)
+
+        if (poolExists)
+            when(storage.get(classOf[Pool], id))
+                .thenReturn(Promise.successful(pool).future)
+    }
 }
 
 /**
- * Tests a Neutron Floating IP Create translation.
+ * Tests a Neutron Load Balancer Pool CREATE translation.
  */
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerPoolTranslatorCreateTest
@@ -98,11 +117,6 @@ class LoadBalancerPoolTranslatorCreateTest
         storage = mock(classOf[ReadOnlyStorage])
         translator = new LoadBalancerPoolTranslator(storage)
     }
-
-    val poolNoHm = neutronPool()
-    val poolWithHm = neutronPool(healthMonitorId)
-    val mPoolNoHm = midoPool()
-    val mPoolWithHm = midoPool(healthMonitorId)
 
     "Creation of a Pool" should "create an LB if it does not exists." in {
         bindLb(lbId, null)
@@ -139,6 +153,86 @@ class LoadBalancerPoolTranslatorCreateTest
             case iae: IllegalArgumentException if iae.getMessage != null =>
                 iae.getMessage startsWith("No router ID") shouldBe true
             case e => fail("Expected an IllegalArgumentException.", e)
+        }
+    }
+}
+
+/**
+ * Tests a Neutron Load Balancer Pool UPDATE translation.
+ */
+@RunWith(classOf[JUnitRunner])
+class LoadBalancerPoolTranslatorUpdateTest
+        extends LoadBalancerPoolTranslatorTestBase {
+    before {
+        storage = mock(classOf[ReadOnlyStorage])
+        translator = new LoadBalancerPoolTranslator(storage)
+    }
+
+    "UPDATE of a Pool with a Health Monitor ID" should "add a Health Monitor " +
+    "ID to the MidoNet Pool." in {
+        bindPool(poolId, mPoolNoHm)
+        val midoOps = translator.translate(neutron.Update(poolWithHm))
+
+        midoOps should contain only midonet.Update(mPoolWithHm)
+    }
+
+    "UPDATE of a Pool with no Health Monitor ID" should "not add a Health " +
+    "Monitor ID to the MidoNet Pool." in {
+        bindPool(poolId, mPoolNoHm)
+        val midoOps = translator.translate(neutron.Update(poolNoHm))
+
+        midoOps should contain only midonet.Update(mPoolNoHm)
+    }
+
+    private val poolDown = neutronPool(adminStateUp = false,
+                                         healthMonitorId = healthMonitorId)
+    private val mPoolDown = midoPool(adminStateUp = false,
+                                       healthMonitorId = healthMonitorId)
+
+    "Pool UPDATE, setting admin state down" should "produce a corresponding " +
+    "UPDATE" in {
+        bindPool(poolId, mPoolWithHm)
+        val midoOps = translator.translate(neutron.Update(poolDown))
+
+        midoOps should contain only midonet.Update(mPoolDown)
+    }
+
+    "Pool UPDATE" should "not revert the Health Monitor mapping status." in {
+        val mPoolWithHmPendingUpdate =
+            mPoolWithHm.toBuilder().setMappingStatus(
+                    Pool.PoolHealthMonitorMappingStatus.PENDING_UPDATE).build()
+        bindPool(poolId, mPoolWithHmPendingUpdate)
+        val midoOps = translator.translate(neutron.Update(poolDown))
+
+        midoOps should contain only midonet.Update(
+                mPoolWithHmPendingUpdate.toBuilder()
+                                        .setAdminStateUp(false)
+                                        .build())
+    }
+
+    "Pool UPDATE with Health Monitor ID removed" should "remove the " +
+    "corresponding ID in MidoNet Pool" in {
+        bindPool(poolId, mPoolWithHm)
+        val midoOps = translator.translate(neutron.Update(poolNoHm))
+
+        midoOps should contain only midonet.Update(mPoolNoHm)
+    }
+
+    private val newHmId = UUIDUtil.toProtoFromProtoStr("msb: 3 lsb: 2")
+    protected val poolWithNewHm = neutronPool(healthMonitorId = newHmId)
+
+    "Pool UPDATE with a different Health Monitor ID" should "throw an " +
+    "IllegalArgumentException." in {
+        bindPool(poolId, mPoolWithHm)
+        val te = intercept[TranslationException] {
+            translator.translate(neutron.Update(poolWithNewHm))
+        }
+
+        te.getCause match {
+            case null => fail("Expected an IllegalStateException.")
+            case ise: IllegalStateException if ise.getMessage != null =>
+                ise.getMessage contains("Health Monitor") shouldBe true
+            case e => fail("Expected an IllegalStateException.", e)
         }
     }
 }
