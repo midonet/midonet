@@ -51,7 +51,7 @@ bgpd_prepare() {
     ip link set $netdev_port_mirror_name netns $namespace
     ip netns exec $namespace ip link set dev $netdev_port_mirror_name up address $router_mac
     ip netns exec $namespace ip address add $router_ip dev $netdev_port_mirror_name
-    ip netns exec $namespace ifconfig lo up
+    ip netns exec $namespace ip link set dev lo up
     ip link set dev $netdev_port_name up
 
     echo "Preparing vty veth pair"
