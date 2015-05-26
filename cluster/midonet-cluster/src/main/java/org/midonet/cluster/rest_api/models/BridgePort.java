@@ -15,7 +15,10 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
+
+import com.google.common.base.Objects;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
@@ -59,4 +62,37 @@ public class BridgePort extends Port {
         bridgeId = bridgePort.bridgeId;
     }
 
+    public URI getDevice() {
+        return absoluteUri(ResourceUris.BRIDGES, bridgeId);
+    }
+
+    @Override
+    public boolean isLinkable(Port otherPort) {
+
+        if (otherPort == null) {
+            throw new IllegalArgumentException("port cannot be null");
+        }
+
+        // Must be two unplugged ports
+        if (!isUnplugged() || !otherPort.isUnplugged()) {
+            return false;
+        }
+
+        // IDs must be set
+        if (id == null || otherPort.id == null) {
+            return false;
+        }
+
+        // IDs must not be the same
+        if (Objects.equal(id, otherPort.id)) {
+            return false;
+        }
+
+        // If both are bridge ports allowed as long as only one has VLAN ID
+        if (otherPort instanceof BridgePort) {
+            return vlanId == ((BridgePort) otherPort).vlanId;
+        }
+
+        return true;
+    }
 }

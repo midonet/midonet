@@ -75,7 +75,7 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
                     APPLICATION_JSON))
     def link(@PathParam("id") id: UUID, link: Link): Response = {
         getResource(classOf[Port], id).map(port => {
-            port.peerId = link.peerId
+            port.setPeerId(link.peerId)
             updateResource(port)
         }).getOrThrow
     }
@@ -84,7 +84,7 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     @Path("{id}/link")
     def unlink(@PathParam("id") id: UUID): Response = {
         getResource(classOf[Port], id).map(port => {
-            port.peerId = null
+            port.setPeerId(null)
             updateResource(port)
         }).getOrThrow
     }

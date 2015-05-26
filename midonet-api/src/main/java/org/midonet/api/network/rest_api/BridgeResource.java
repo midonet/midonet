@@ -50,7 +50,6 @@ import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
-import org.midonet.api.network.Port;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
@@ -61,6 +60,7 @@ import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.conversion.BridgeDataConverter;
 import org.midonet.cluster.rest_api.models.Bridge;
+import org.midonet.cluster.rest_api.models.Port;
 import org.midonet.event.topology.BridgeEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -281,9 +281,9 @@ public class BridgeResource extends AbstractResource {
     @POST
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_BRIDGE_JSON,
-            VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
-            VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
-            MediaType.APPLICATION_JSON })
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V2,
+                VendorMediaType.APPLICATION_BRIDGE_JSON_V3,
+                MediaType.APPLICATION_JSON })
     public Response create(Bridge bridge)
             throws StateAccessException, SerializationException{
 
@@ -470,9 +470,8 @@ public class BridgeResource extends AbstractResource {
 
         // Need to set MacPort's vlanId so getMacPort constructs the right URI.
         mp.setVlanId(vlanId);
-        return Response.created(
-                ResourceUriBuilder.getMacPort(bridgeUri, mp))
-                .build();
+        return Response.created(ResourceUriBuilder.getMacPort(bridgeUri, mp))
+                       .build();
     }
 
     /**

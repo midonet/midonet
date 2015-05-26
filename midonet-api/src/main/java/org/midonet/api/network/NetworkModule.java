@@ -19,9 +19,6 @@ import com.google.inject.AbstractModule;
 import org.midonet.api.network.validation.*;
 import org.midonet.cluster.DataClient;
 
-/**
- * Network module.
- */
 public class NetworkModule extends AbstractModule {
 
     @Override

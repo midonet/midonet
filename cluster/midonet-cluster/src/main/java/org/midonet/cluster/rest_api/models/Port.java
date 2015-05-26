@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.Resource;
+import javax.ws.rs.core.UriBuilder;
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonSubTypes;
 import org.codehaus.jackson.annotate.JsonTypeInfo;
@@ -29,6 +32,7 @@ import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.util.version.Since;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
         property = "type")
@@ -53,6 +57,16 @@ public abstract class Port extends UriResource {
         }
     }
 
+    public class PortType {
+        public static final String BRIDGE = "Bridge";
+        public static final String ROUTER = "Router";
+        public static final String EXTERIOR_BRIDGE = "ExteriorBridge";
+        public static final String EXTERIOR_ROUTER = "ExteriorRouter";
+        public static final String INTERIOR_BRIDGE = "InteriorBridge";
+        public static final String INTERIOR_ROUTER = "InteriorRouter";
+        public static final String VXLAN = "Vxlan";
+    }
+
     private static AtomicLong tunnelKeyGenerator = new AtomicLong();
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -74,13 +88,13 @@ public abstract class Port extends UriResource {
     public UUID vifId;
 
     @ZoomField(name = "host_id", converter = UUIDUtil.Converter.class)
-    public UUID hostId;
+    private UUID hostId;
 
     @ZoomField(name = "interface_name")
-    public String interfaceName;
+    private String interfaceName;
 
     @ZoomField(name = "peer_id", converter = UUIDUtil.Converter.class)
-    public UUID peerId;
+    private UUID peerId;
 
     @JsonIgnore
     @ZoomField(name = "port_group_ids", converter = UUIDUtil.Converter.class)
@@ -102,6 +116,7 @@ public abstract class Port extends UriResource {
         return absoluteUri(ResourceUris.PORTS, id);
     }
 
+    @Since("2")
     public URI getHost() {
         return absoluteUri(ResourceUris.HOSTS, hostId);
     }
@@ -139,4 +154,93 @@ public abstract class Port extends UriResource {
         }
         portGroupIds = from.portGroupIds;
     }
+
+    @Since("2")
+    public final String getInterfaceName() {
+        return this.interfaceName;
+    }
+
+    public final void setInterfaceName(String s) {
+        if (this.isInterior() && interfaceName != null) {
+            throw new IllegalArgumentException(
+                "Interior ports cannot have interface names");
+        }
+        this.interfaceName = s;
+    }
+
+    public final UUID getHostId() {
+        return hostId;
+    }
+
+    public final void setHostId(UUID hostId) {
+        if(isInterior() && hostId != null) {
+            throw new IllegalArgumentException(
+                "Cannot add a hostId to an interior port");
+        }
+        this.hostId = hostId;
+    }
+
+    @Since("2")
+    public final UUID getPeerId() {
+        return peerId;
+    }
+
+    public final void setPeerId(UUID _peerId) {
+        if(isExterior() && _peerId != null) {
+            throw new IllegalArgumentException(
+                "Cannot add a peerId to an exterior port");
+        }
+        peerId = _peerId;
+    }
+
+    /**
+     * @param port Port to check linkability with.
+     * @return True if two ports can be linked.
+     */
+    @JsonIgnore
+    public abstract boolean isLinkable(Port port);
+
+    /**
+     * An unplugged port can become interior or exterior
+     * depending on what it is attached to later.
+     */
+    @JsonIgnore
+    public boolean isUnplugged() {
+        return !isInterior() && !isExterior();
+    }
+
+    /**
+     * @return whether this port is a interior port
+     */
+    @JsonIgnore
+    public boolean isInterior() {
+        return peerId != null;
+    }
+
+    @JsonIgnore
+    public boolean isExterior() {
+        return hostId != null && interfaceName != null;
+    }
+
+    public URI getHostInterfacePort() {
+        if (hostId == null) {
+            return null;
+        }
+        return  UriBuilder.fromUri(absoluteUri(ResourceUris.HOSTS, hostId))
+                          .path(ResourceUris.PORTS).path(id.toString())
+                          .build();
+    }
+
+    public URI getInboundFilter() {
+        return absoluteUri(ResourceUris.CHAINS, inboundFilterId);
+    }
+
+    public URI getOutboundFilter() {
+        return absoluteUri(ResourceUris.CHAINS, outboundFilterId);
+    }
+
+    public URI getPortGroups() {
+        return relativeUri(ResourceUris.PORT_GROUPS);
+    }
+
 }

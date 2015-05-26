@@ -42,12 +42,7 @@ import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.bgp.rest_api.BgpResource;
-import org.midonet.api.network.BridgePort;
 import org.midonet.api.network.Link;
-import org.midonet.api.network.Port;
-import org.midonet.api.network.PortFactory;
-import org.midonet.api.network.PortType;
-import org.midonet.api.network.RouterPort;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
@@ -57,12 +52,18 @@ import org.midonet.api.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.BridgePort;
+import org.midonet.cluster.rest_api.models.Port;
 import org.midonet.cluster.rest_api.models.PortGroupPort;
+import org.midonet.cluster.rest_api.models.RouterPort;
 import org.midonet.event.topology.PortEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.VlanPathExistsException;
 
+import static org.midonet.cluster.rest_api.conversion.PortDataConverter.toData;
+import static org.midonet.cluster.rest_api.conversion.PortDataConverter.toDto;
+import static org.midonet.cluster.rest_api.conversion.PortDataConverter.toV1Dto;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.PORT_GROUP_ID_IS_INVALID;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
@@ -104,8 +105,7 @@ public class PortResource extends AbstractResource {
             return;
         }
 
-        Port port = PortFactory.convertToApiPort(portData);
-        validate(port, Port.PortDeleteGroupSequence.class);
+        validate(toDto(portData, getBaseUri()));
 
         if (portData instanceof VxLanPort) {
             vtepClient.deleteVxLanPort((VxLanPort)portData);
@@ -143,9 +143,7 @@ public class PortResource extends AbstractResource {
                 MediaType.APPLICATION_JSON })
     public Port getv1(@PathParam("id") UUID id) throws StateAccessException,
                                                        SerializationException {
-        Port port = PortFactory.convertToApiPortV1(getPortData(id));
-        port.setBaseUri(getBaseUri());
-        return port;
+        return toV1Dto(getPortData(id), getBaseUri());
     }
 
     /**
@@ -161,9 +159,7 @@ public class PortResource extends AbstractResource {
     @Produces({VendorMediaType.APPLICATION_PORT_V2_JSON})
     public Port get(@PathParam("id") UUID id) throws StateAccessException,
             SerializationException {
-        Port port = PortFactory.convertToApiPort(getPortData(id));
-        port.setBaseUri(getBaseUri());
-        return port;
+        return toDto(getPortData(id), getBaseUri());
     }
 
     @GET
@@ -173,11 +169,9 @@ public class PortResource extends AbstractResource {
     public List<Port> list() throws StateAccessException,
                                     SerializationException {
         List<Port> ports = new ArrayList<>();
-        for (org.midonet.cluster.data.Port<?, ?> portData :
-                dataClient.portsGetAll()) { // NPE-safe
-            Port port = PortFactory.convertToApiPort(portData);
-            port.setBaseUri(getBaseUri());
-            ports.add(port);
+        for (org.midonet.cluster.data.Port<?, ?> portData
+            : dataClient.portsGetAll()) { // NPE-safe
+            ports.add(toDto(portData, getBaseUri()));
         }
         return ports;
     }
@@ -191,9 +185,7 @@ public class PortResource extends AbstractResource {
                 dataClient.portsGetAll();
         List<Port> ports = new ArrayList<>();
         for (org.midonet.cluster.data.Port<?, ?> portData: portDataList) {
-            Port port = PortFactory.convertToApiPortV1(portData);
-            port.setBaseUri(getBaseUri());
-            ports.add(port);
+            ports.add(toV1Dto(portData, getBaseUri()));
         }
 
         return ports;
@@ -215,12 +207,12 @@ public class PortResource extends AbstractResource {
     public void update(@PathParam("id") UUID id, Port port)
             throws StateAccessException, SerializationException {
 
-        port.setId(id);
+        port.id = id;
         validate(port);
 
         authoriser.tryAuthorisePort(id, "update this port");
 
-        dataClient.portsUpdate(port.toData());
+        dataClient.portsUpdate(toData(port));
         portEvent.update(id, dataClient.portsGet(id));
     }
 
@@ -337,7 +329,7 @@ public class PortResource extends AbstractResource {
             dataClient.ensureBridgeHasVlanDirectory(port.getDeviceId());
 
             try {
-                UUID id = dataClient.portsCreate(port.toData());
+                UUID id = dataClient.portsCreate(toData(port));
                 portEvent.create(id, dataClient.portsGet(id));
                 return Response.created(
                         ResourceUriBuilder.getPort(getBaseUri(), id)).build();
@@ -361,7 +353,7 @@ public class PortResource extends AbstractResource {
                 throws StateAccessException, SerializationException {
 
             // Make sure that BridgePort type is not accepted
-            if (port.getType().equals(PortType.BRIDGE)) {
+            if (port.getType().equals(Port.PortType.BRIDGE)) {
                 throw new BadRequestHttpException("Invalid port type.  "
                         + "Only InteriorBridge and ExteriorBridge are "
                         + "accepted.");
@@ -383,7 +375,7 @@ public class PortResource extends AbstractResource {
                 throws StateAccessException, SerializationException {
 
             // Make sure that the only type accepted is BridgePort
-            if (!port.getType().equals(PortType.BRIDGE)) {
+            if (!port.getType().equals(Port.PortType.BRIDGE)) {
                 throw new BadRequestHttpException("Invalid port type.  "
                         + "Only Bridge type is accepted.");
             }
@@ -411,9 +403,7 @@ public class PortResource extends AbstractResource {
                     dataClient.portsFindByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(list.size());
             for (org.midonet.cluster.data.ports.BridgePort portData : list) {
-                Port port = PortFactory.convertToApiPortV1(portData);
-                port.setBaseUri(getBaseUri());
-                ports.add(port);
+                ports.add(toV1Dto(portData, getBaseUri()));
             }
             return ports;
         }
@@ -436,9 +426,7 @@ public class PortResource extends AbstractResource {
                     dataClient.portsFindByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(list.size());
             for (org.midonet.cluster.data.ports.BridgePort portData : list) {
-                Port port = PortFactory.convertToApiPort(portData);
-                port.setBaseUri(getBaseUri());
-                ports.add(port);
+                ports.add(toDto(portData, getBaseUri()));
             }
             return ports;
         }
@@ -482,9 +470,7 @@ public class PortResource extends AbstractResource {
                     dataClient.portsFindPeersByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
             for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
-                Port port = PortFactory.convertToApiPortV1(portData);
-                port.setBaseUri(getBaseUri());
-                ports.add(port);
+                ports.add(toV1Dto(portData, getBaseUri()));
             }
             return ports;
         }
@@ -507,9 +493,7 @@ public class PortResource extends AbstractResource {
                     dataClient.portsFindPeersByBridge(bridgeId);
             List<Port> ports = new ArrayList<>(portDataList.size());
             for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
-                Port port = PortFactory.convertToApiPort(portData);
-                port.setBaseUri(getBaseUri());
-                ports.add(port);
+                ports.add(toDto(portData, getBaseUri()));
             }
             return ports;
         }
@@ -547,7 +531,7 @@ public class PortResource extends AbstractResource {
 
             authoriser.tryAuthoriseRouter(routerId, "create this port");
 
-            UUID id = dataClient.portsCreate(port.toData());
+            UUID id = dataClient.portsCreate(toData(port));
             portEvent.create(id, dataClient.portsGet(id));
             return Response.created(
                     ResourceUriBuilder.getPort(getBaseUri(), id))
@@ -569,7 +553,7 @@ public class PortResource extends AbstractResource {
                 throws StateAccessException, SerializationException {
 
             // Make sure that BridgePort type is not accepted
-            if (port.getType().equals(PortType.ROUTER)) {
+            if (port.getType().equals(Port.PortType.ROUTER)) {
                 throw new BadRequestHttpException("Invalid port type.  "
                         + "Only InteriorRouter and ExteriorRouter are "
                         + "accepted.");
@@ -591,7 +575,7 @@ public class PortResource extends AbstractResource {
                                                        SerializationException {
 
             // Make sure that the only type accepted is RouterPort
-            if (!port.getType().equals(PortType.ROUTER)) {
+            if (!port.getType().equals(Port.PortType.ROUTER)) {
                 throw new BadRequestHttpException("Invalid port type.  "
                         + "Only Router type is accepted.");
             }
@@ -619,9 +603,7 @@ public class PortResource extends AbstractResource {
                     dataClient.portsFindByRouter(routerId);
             ArrayList<Port> ports = new ArrayList<>(portDataList.size());
             for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
-                Port port = PortFactory.convertToApiPortV1(portData);
-                port.setBaseUri(getBaseUri());
-                ports.add(port);
+                ports.add(toV1Dto(portData, getBaseUri()));
             }
             return ports;
         }
@@ -643,9 +625,7 @@ public class PortResource extends AbstractResource {
                     dataClient.portsFindByRouter(routerId);
             ArrayList<Port> ports = new ArrayList<>(portDataList.size());
             for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
-                 Port port = PortFactory.convertToApiPort(portData);
-                 port.setBaseUri(getBaseUri());
-                 ports.add(port);
+                 ports.add(toDto(portData, getBaseUri()));
             }
             return ports;
         }
@@ -689,9 +669,7 @@ public class PortResource extends AbstractResource {
                     dataClient.portsFindPeersByRouter(routerId);
             List<Port> ports = new ArrayList<>(portDataList.size());
             for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
-                Port port = PortFactory.convertToApiPortV1(portData);
-                port.setBaseUri(getBaseUri());
-                ports.add(port);
+                ports.add(toV1Dto(portData, getBaseUri()));
             }
             return ports;
         }
@@ -714,9 +692,7 @@ public class PortResource extends AbstractResource {
                     dataClient.portsFindPeersByRouter(routerId);
             List<Port> ports = new ArrayList<>(portDataList.size());
             for (org.midonet.cluster.data.Port<?, ?> portData : portDataList) {
-                Port port = PortFactory.convertToApiPort(portData);
-                port.setBaseUri(getBaseUri());
-                ports.add(port);
+                ports.add(toDto(portData, getBaseUri()));
             }
             return ports;
         }

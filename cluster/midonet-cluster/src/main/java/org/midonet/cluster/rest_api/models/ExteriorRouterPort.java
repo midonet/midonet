@@ -15,25 +15,14 @@
  */
 package org.midonet.cluster.rest_api.models;
 
-import java.util.UUID;
-
-public class ExteriorRouterPort extends RouterPort implements ExteriorPort {
+public class ExteriorRouterPort extends RouterPort {
 
     public ExteriorRouterPort() {
         super();
     }
 
-    public String getType() {
+    public final String getType() {
         return PortType.EXTERIOR_ROUTER;
     }
 
-    @Override
-    public UUID getVifId() {
-        return this.vifId;
-    }
-
-    @Override
-    public void setVifId(UUID vifId) {
-        this.vifId = vifId;
-    }
 }

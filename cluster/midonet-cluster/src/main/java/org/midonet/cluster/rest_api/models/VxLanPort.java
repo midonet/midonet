@@ -15,7 +15,10 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
+
+import javax.ws.rs.core.UriBuilder;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
@@ -49,6 +52,21 @@ public class VxLanPort extends Port {
     @Override
     public void setDeviceId(UUID deviceId) {
         networkId = deviceId;
+    }
+
+    @Override
+    public boolean isLinkable(Port port) {
+        return false;
+    }
+
+    public URI getDevice() {
+        return absoluteUri(ResourceUris.BRIDGES, networkId);
+    }
+
+    public URI getBindings() {
+        return UriBuilder.fromUri(absoluteUri(ResourceUris.PORTS, this.id))
+            .path(ResourceUris.VTEP_BINDINGS)
+            .build();
     }
 
 }
