@@ -377,10 +377,10 @@ class Netns(object):
         self.execute(cmdline)
 
     def set_up(self):
-        return self.execute("ifconfig $peer_if up")
+        return self.execute("ip link set dev $peer_if up")
 
     def set_down(self):
-        return self.execute("ifconfig $peer_if down")
+        return self.execute("ip link set dev $peer_if down")
 
 
 class Trunk(Netns):
@@ -456,13 +456,13 @@ class Trunk(Netns):
 
     def set_up(self):
         iface = self._get_ifname()
-        cmdline = 'ifconfig %s up' % iface
+        cmdline = 'ip link set dev %s up' % iface
         LOG.debug("cmdline: %s" % cmdline)
         return self.execute(cmdline)
 
     def set_down(self):
         iface = self._get_ifname()
-        cmdline = 'ifconfig %s down' % iface
+        cmdline = 'ip link set dev %s down' % iface
         LOG.debug("cmdline: %s" % cmdline)
         return self.execute(cmdline)
 

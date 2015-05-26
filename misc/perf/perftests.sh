@@ -638,7 +638,7 @@ add_ns() {
     ip netns exec $ns ip link set address $mac dev $nsif || return 1
     ip netns exec $ns ip link set $nsif up || return 1
     ip netns exec $ns ip addr add $addr dev $nsif || return 1
-    ip netns exec $ns ifconfig lo up || return 1
+    ip netns exec $ns ip link set dev lo up || return 1
 }
 
 cleanup_ns() {

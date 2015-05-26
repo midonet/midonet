@@ -105,9 +105,18 @@ sudo ip link set dev veth1 up
 
 # create the linux bridge, give to it an IP address and attach the veth0
 # interface
-sudo brctl addbr uplinkbridge
-sudo brctl addif uplinkbridge veth0
-sudo ip addr add 172.19.0.1/30 dev uplinkbridge
+if ! ip link show dev uplinkbridge; then
+    sudo brctl addbr uplinkbridge
+fi
+
+if ! brctl show uplinkbridge | grep veth0; then
+    sudo brctl addif uplinkbridge veth0
+fi
+
+if ! ip addr | grep uplinkbridge | grep 172.19.0.1; then
+    sudo ip addr add 172.19.0.1/30 dev uplinkbridge
+fi
+
 sudo ip link set dev uplinkbridge up
 
 # allow ip forwarding
