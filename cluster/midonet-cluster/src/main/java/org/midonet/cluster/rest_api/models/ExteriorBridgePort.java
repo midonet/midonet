@@ -15,9 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
-import java.util.UUID;
-
-public class ExteriorBridgePort extends BridgePort implements ExteriorPort {
+public class ExteriorBridgePort extends BridgePort {
 
     public ExteriorBridgePort() {
         super();
@@ -26,16 +24,6 @@ public class ExteriorBridgePort extends BridgePort implements ExteriorPort {
     @Override
     public String getType() {
         return PortType.EXTERIOR_BRIDGE;
-    }
-
-    @Override
-    public UUID getVifId() {
-        return this.vifId;
-    }
-
-    @Override
-    public void setVifId(UUID vifId) {
-        this.vifId = vifId;
     }
 
 }
