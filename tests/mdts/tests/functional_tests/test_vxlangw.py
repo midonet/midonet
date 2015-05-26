@@ -99,7 +99,7 @@ vm_on_vtep = '10.0.2.26'
 # - Assuming eth1 is the interface on the MMM box with the 10.0.0.x IP:
 #   - Remove any route that sends 10.0.0.0/24 towards the
 #     physical ifc. This is so the kernel gives that traffic to MMM's br0
-#   - Remove he ip from the interface (ifconfig eth1 0)
+#   - Remove the ip from the interface (ip address del dev eth1 <addr>)
 #   - Add eth1 to the br0 bridge (brctl addif br0 eth1)
 #   - Ask a MidoCloud operator to remove the rules from this port that DROP
 #     traffic that doesn't have the VM's src IP and MAC

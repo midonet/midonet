@@ -105,7 +105,7 @@ sudo ip link set dev veth1 up
 
 # create the linux bridge, give to it an IP address and attach the veth0
 # interface
-if ! ifconfig uplinkbridge; then
+if ! ip link show dev uplinkbridge; then
     sudo brctl addbr uplinkbridge
 fi
 

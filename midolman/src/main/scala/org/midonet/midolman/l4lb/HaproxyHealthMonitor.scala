@@ -316,7 +316,7 @@ class HaproxyHealthMonitor(var config: PoolConfig,
             IP.execIn(name, "ip link set " + ns + " address " + NameSpaceMAC)
             IP.execIn(name, "ip link set " + ns + " up")
             IP.execIn(name, "ip address add " + NameSpaceIp + "/24 dev " + ns)
-            IP.execIn(name, "ifconfig lo up")
+            IP.execIn(name, "ip link set dev lo up")
             IP.execIn(name, "route add default gateway " + RouterIp + " " + ns)
         } catch {
             case e: Exception =>

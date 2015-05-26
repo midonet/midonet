@@ -49,4 +49,4 @@ ip netns exec $ns ip address add 100.0.10.2/24 dev $nsifa
 ip netns exec $ns ip address add 100.0.10.3/24 dev $nsifb
 ip netns exec $ns ip address add 100.0.10.4/24 dev $nsifc
 
-ip netns exec $ns ifconfig lo up
+ip netns exec $ns ip link set dev lo up

@@ -164,7 +164,7 @@ ns_prepare() {
 
     echo "preparing namespace $1"
     ip netns add $1 || abort "Could not add namespace $1"
-    ip netns exec $1 ifconfig lo up || abort "Could not bring up $1"
+    ip netns exec $1 ip link set dev lo up || abort "Could not bring up $1"
 }
 
 if_clean() {

@@ -107,12 +107,14 @@ function add_port {
   ip netns exec "ns$port" ip link set up dev "${port}.in"
   if [ "$vlan" == "" ]
   then
-    ip netns exec ns$port ifconfig ${port}.in $ip up
+    ip netns exec ns$port ip link set dev ${port}.in up
+    ip netns exec ns$port ip address add dev ${port}.in $ip
   else
     ip netns exec ns$port ip link add link ${port}.in name ${port}.in.$vlan type vlan id $vlan
-    ip netns exec ns$port ifconfig ${port}.in.${vlan} $ip up
+    ip netns exec ns$port ip link set dev ${port}.in.${vlan} up
+    ip netns exec ns$port ip address add dev ${port}.in.${vlan} $ip
   fi
-  ip netns exec "ns$port" ifconfig lo up
+  ip netns exec "ns$port" ip link set dev lo up
   ovs-vsctl add-port $vtep $port
   vtep-ctl add-port $vtep $port
   echo "Created new port $port with IP $ip on vlan $vlan"
