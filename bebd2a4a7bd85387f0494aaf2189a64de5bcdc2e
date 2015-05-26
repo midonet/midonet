@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_a136bf01",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-26T09:18:22Z",
+      "side": 1,
+      "message": "\"the parent node for the children is deleted\"?",
+      "range": {
+        "startLine": 146,
+        "startChar": 47,
+        "endLine": 147,
+        "endChar": 32
+      },
+      "revId": "bebd2a4a7bd85387f0494aaf2189a64de5bcdc2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_01776bd5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservablePathChildrenCache.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-26T09:18:22Z",
+      "side": 1,
+      "message": "!isFailed",
+      "range": {
+        "startLine": 203,
+        "startChar": 36,
+        "endLine": 203,
+        "endChar": 57
+      },
+      "revId": "bebd2a4a7bd85387f0494aaf2189a64de5bcdc2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
