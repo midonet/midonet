@@ -71,8 +71,8 @@ class HostInterfacePortResource @Inject()(hostId: UUID, backend: MidonetBackend,
         getResource(classOf[Port], binding.portId).map(port => {
             binding.setBaseUri(uriInfo.getBaseUri)
             binding.create(hostId)
-            port.hostId = hostId
-            port.interfaceName = binding.interfaceName
+            port.setHostId(hostId)
+            port.setInterfaceName(binding.interfaceName)
             updateResource(port, Response.created(binding.getUri).build())
         }).getOrThrow
     }
@@ -81,8 +81,8 @@ class HostInterfacePortResource @Inject()(hostId: UUID, backend: MidonetBackend,
     @Path("{id}")
     override def delete(@PathParam("id") id: String): Response = {
         getResource(classOf[Port], id).map(port => {
-            port.hostId = null
-            port.interfaceName = null
+            port.setHostId(null)
+            port.setInterfaceName(null)
             updateResource(port)
         }).getOrThrow
     }

@@ -15,9 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
-import java.util.UUID;
-
-public class InteriorBridgePort extends BridgePort implements InteriorPort {
+public class InteriorBridgePort extends BridgePort {
 
     public InteriorBridgePort() {
         super();
@@ -26,15 +24,5 @@ public class InteriorBridgePort extends BridgePort implements InteriorPort {
     @Override
     public String getType() {
         return PortType.INTERIOR_BRIDGE;
-    }
-
-    @Override
-    public UUID getPeerId() {
-        return this.peerId;
-    }
-
-    @Override
-    public void setPeerId(UUID peerId) {
-        this.peerId = peerId;
     }
 }

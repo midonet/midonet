@@ -21,10 +21,10 @@ import javax.validation.ConstraintValidatorContext;
 import com.google.inject.Inject;
 
 import org.midonet.api.network.Link;
-import org.midonet.api.network.Port;
-import org.midonet.api.network.PortFactory;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.conversion.PortDataConverter;
+import org.midonet.cluster.rest_api.models.Port;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -73,8 +73,8 @@ public class PortsLinkableConstraintValidator implements
             throw new RuntimeException("Serialization exception occurred in validation", e);
         }
 
-        Port port = PortFactory.convertToApiPort(portData);
-        Port peerPort = PortFactory.convertToApiPort(peerPortData);
+        Port port = PortDataConverter.toDto(portData, null);
+        Port peerPort = PortDataConverter.toDto(peerPortData, null);
         return port.isLinkable(peerPort);
     }
 }

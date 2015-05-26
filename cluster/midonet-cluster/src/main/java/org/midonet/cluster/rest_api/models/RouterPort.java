@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import com.google.common.base.Objects;
 import com.google.protobuf.Message;
 
 import org.apache.commons.lang.StringUtils;
@@ -111,5 +113,47 @@ public class RouterPort extends Port {
         routerId = routerPort.routerId;
         bgpId = routerPort.bgpId;
         routeIds = routerPort.routeIds;
+    }
+
+    public String getType() {
+        return PortType.ROUTER;
+    }
+
+    @Override
+    public boolean isLinkable(Port otherPort) {
+
+        if (otherPort == null) {
+            throw new IllegalArgumentException("port cannot be null");
+        }
+
+        // Must be two unplugged/interior ports
+        if (!isUnplugged() || !otherPort.isUnplugged()) {
+            return false;
+        }
+
+        // IDs must be set
+        if (id == null || otherPort.id == null) {
+            return false;
+        }
+
+        // IDs must not be the same
+        if (Objects.equal(id, otherPort.id)) {
+            return false;
+        }
+
+        // If two routers, must be on separate devices
+        if (otherPort instanceof RouterPort) {
+            return this.getDeviceId() != otherPort.getDeviceId();
+        }
+
+        return true;
+    }
+
+    public URI getBgps() {
+        return relativeUri(ResourceUris.BGP);
+    }
+
+    public URI getDevice() {
+        return absoluteUri(ResourceUris.ROUTERS, this.routerId);
     }
 }

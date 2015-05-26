@@ -229,7 +229,7 @@ public class TestPort {
         @Parameters
         public static Collection<Object[]> data() {
 
-            List<Object[]> params = new ArrayList<Object[]>();
+            List<Object[]> params = new ArrayList<>();
 
             // Bad network address
             DtoRouterPort badNetworkAddr = createRouterPort(null, null,

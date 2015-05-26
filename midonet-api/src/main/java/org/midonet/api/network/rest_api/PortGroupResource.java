@@ -160,9 +160,7 @@ public class PortGroupResource extends AbstractResource {
         List<PortGroup> portGroups = new ArrayList<>();
         if (list != null) {
             for (org.midonet.cluster.data.PortGroup data : list) {
-                PortGroup portGroup = fromData(data, getBaseUri());
-                portGroup.setBaseUri(getBaseUri());
-                portGroups.add(portGroup);
+                portGroups.add(fromData(data, getBaseUri()));
             }
         }
         return portGroups;
