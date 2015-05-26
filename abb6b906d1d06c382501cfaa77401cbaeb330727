@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_211d4f10",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-26T04:25:20Z",
+      "side": 1,
+      "message": "I don\u0027t like this. Not only do we have to fetch the pool from storage, but it interferes with automatic dependency management. What is this reference for, and is there a way we can avoid having it?",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 62
+      },
+      "revId": "abb6b906d1d06c382501cfaa77401cbaeb330727",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_61ee77ee",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/VipTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-26T04:25:20Z",
+      "side": 1,
+      "message": "I feel like the translators should have a base class that has the mock storage initialization and a generic version of this function. See PortTranslatorTest.mockGet() as a starting point:\n\n    def mockGet[M](id: UUID, msg: M) \u003d\n        when(storage.get(msg.getClass.asInstanceOf[Class[M]], id))\n            .thenReturn(Promise.successful(msg).future)",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 5
+      },
+      "revId": "abb6b906d1d06c382501cfaa77401cbaeb330727",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
