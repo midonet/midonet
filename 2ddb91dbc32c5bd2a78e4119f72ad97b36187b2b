@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_e117e74f",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-26T10:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_782b9e82",
+      "range": {
+        "startLine": 153,
+        "startChar": 28,
+        "endLine": 154,
+        "endChar": 58
+      },
+      "revId": "2ddb91dbc32c5bd2a78e4119f72ad97b36187b2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_383116ed",
         "filename": "cluster/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
         "patchSetId": 10
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-21T14:23:40Z",
       "side": 1,
       "message": "why pass the idx if we\u0027re doing this here?",
+      "range": {
+        "startLine": 156,
+        "startChar": 32,
+        "endLine": 156,
+        "endChar": 74
+      },
+      "revId": "2ddb91dbc32c5bd2a78e4119f72ad97b36187b2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_010ccb41",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-26T10:19:17Z",
+      "side": 1,
+      "message": "Fixed.",
+      "parentUuid": "facab960_383116ed",
       "range": {
         "startLine": 156,
         "startChar": 32,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_3c3498dd",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-26T10:19:17Z",
+      "side": 1,
+      "message": "Done (though I\u0027m not sure if readability has improved a lot ;-))",
+      "parentUuid": "facab960_b87366b0",
+      "range": {
+        "startLine": 315,
+        "startChar": 0,
+        "endLine": 321,
+        "endChar": 33
+      },
+      "revId": "2ddb91dbc32c5bd2a78e4119f72ad97b36187b2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_589b3ac9",
         "filename": "cluster/vtep/src/test/scala/org/midonet/vtep/OvsdbToolsTest.scala",
         "patchSetId": 10
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_1c6514e1",
+        "filename": "cluster/vtep/src/test/scala/org/midonet/vtep/OvsdbToolsTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-26T10:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_589b3ac9",
+      "range": {
+        "startLine": 206,
+        "startChar": 22,
+        "endLine": 209,
+        "endChar": 55
+      },
+      "revId": "2ddb91dbc32c5bd2a78e4119f72ad97b36187b2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_186292d8",
         "filename": "cluster/vtep/src/test/scala/org/midonet/vtep/OvsdbToolsTest.scala",
         "patchSetId": 10
@@ -105,6 +201,30 @@
       "writtenOn": "2015-05-21T14:25:43Z",
       "side": 1,
       "message": "nit: should have size 1",
+      "range": {
+        "startLine": 346,
+        "startChar": 29,
+        "endLine": 346,
+        "endChar": 47
+      },
+      "revId": "2ddb91dbc32c5bd2a78e4119f72ad97b36187b2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9ca044f6",
+        "filename": "cluster/vtep/src/test/scala/org/midonet/vtep/OvsdbToolsTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 346,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-26T10:19:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_186292d8",
       "range": {
         "startLine": 346,
         "startChar": 29,
