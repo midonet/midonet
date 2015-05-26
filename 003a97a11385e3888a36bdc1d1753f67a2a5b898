@@ -45,6 +45,30 @@
       "revId": "003a97a11385e3888a36bdc1d1753f67a2a5b898",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_21e46f0c",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-26T04:21:22Z",
+      "side": 1,
+      "message": "Oh my! Fixed it :P",
+      "parentUuid": "facab960_a1315fa4",
+      "range": {
+        "startLine": 118,
+        "startChar": 68,
+        "endLine": 118,
+        "endChar": 69
+      },
+      "revId": "003a97a11385e3888a36bdc1d1753f67a2a5b898",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
