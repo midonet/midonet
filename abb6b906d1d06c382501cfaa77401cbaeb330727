@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_619037ed",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-26T08:48:19Z",
+      "side": 1,
+      "message": "As discussed off-line, this field is being used by the Mapper code on the Agent side (https://github.com/midonet/midonet/blob/master/midolman/src/main/scala/org/midonet/midolman/topology/LoadBalancerMapper.scala#L100). It should be possible but doesn\u0027t seem trivial to rewrite the mapper to allow us to get rid of the back-references to VIPs in LB. Therefore, we\u0027ll keep this as is for now. True, it is ugly; we need to set the LB ID manually, but at least setting and clearing the back references on LB is taken care of by field binding.",
+      "parentUuid": "facab960_211d4f10",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 62
+      },
+      "revId": "abb6b906d1d06c382501cfaa77401cbaeb330727",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_61ee77ee",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/VipTranslatorTest.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-26T04:25:20Z",
       "side": 1,
       "message": "I feel like the translators should have a base class that has the mock storage initialization and a generic version of this function. See PortTranslatorTest.mockGet() as a starting point:\n\n    def mockGet[M](id: UUID, msg: M) \u003d\n        when(storage.get(msg.getClass.asInstanceOf[Class[M]], id))\n            .thenReturn(Promise.successful(msg).future)",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 95,
+        "endChar": 5
+      },
+      "revId": "abb6b906d1d06c382501cfaa77401cbaeb330727",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c1b6638a",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/VipTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-26T08:48:19Z",
+      "side": 1,
+      "message": "I agree that we should refactor. Please let me take care of it in a separate patch.",
+      "parentUuid": "facab960_61ee77ee",
       "range": {
         "startLine": 87,
         "startChar": 0,
