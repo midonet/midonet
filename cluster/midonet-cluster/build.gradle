@@ -78,6 +78,7 @@ dependencies {
             libraries.jersey_core,
             libraries.validation
 
+    testCompile project(path: ':nsdb', configuration: 'tests')
     testCompile libraries.curator_test,
                 libraries.cassandraunit,
                 libraries.hamcrest_lib,

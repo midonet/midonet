@@ -42,6 +42,7 @@ object FlowTracingSchema {
 
     val SCHEMA = Array[String](Schema.FLOW_EVENTS(FLOW_EVENTS_TABLE),
                                Schema.FLOWS(FLOWS_TABLE))
+    val SCHEMA_TABLE_NAMES = Array[String](FLOW_EVENTS_TABLE, FLOWS_TABLE)
 
     val dataInsertCQL = s"""
         INSERT INTO ${FLOW_EVENTS_TABLE}

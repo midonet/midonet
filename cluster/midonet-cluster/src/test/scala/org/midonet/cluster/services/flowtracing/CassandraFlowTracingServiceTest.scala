@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.flowtracing
 
 import java.util.{Date, UUID}
+import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -30,12 +31,16 @@ import org.junit.runner.RunWith
 
 import com.datastax.driver.core.PreparedStatement
 import com.datastax.driver.core.utils.UUIDs
+import com.typesafe.config.ConfigFactory
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.ClusterConfig
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.logging.FlowTracingSchema
 import org.midonet.packets.MAC
 import org.midonet.util.netty.ProtoBufWebSocketClientAdapter
@@ -43,6 +48,7 @@ import org.midonet.util.netty.ProtoBufWebSocketClientAdapter
 @RunWith(classOf[JUnitRunner])
 class CassandraFlowTracingServiceTest extends FeatureSpec with Matchers
         with BeforeAndAfter
+        with CuratorTestFramework
         with GivenWhenThen {
     val log = LoggerFactory.getLogger(classOf[FlowTracingServiceTest])
 
@@ -58,14 +64,30 @@ class CassandraFlowTracingServiceTest extends FeatureSpec with Matchers
     var dataInsertStatement: PreparedStatement = _
 
     before {
+        val confValues = s"""
+          |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
+          |cassandra.servers = "127.0.0.1:9142"
+        """.stripMargin
+        val config = ClusterConfig.forTests(
+            ConfigFactory.parseString(confValues))
+
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
         Thread.sleep(15000L)
         cass = new CassandraClient(
-            "127.0.0.1:9142", "TestCluster",
-            FlowTracingSchema.KEYSPACE_NAME + System.currentTimeMillis, 1,
-            FlowTracingSchema.SCHEMA)
+            config.backend, config.cassandra,
+            FlowTracingSchema.KEYSPACE_NAME + System.currentTimeMillis,
+            FlowTracingSchema.SCHEMA, FlowTracingSchema.SCHEMA_TABLE_NAMES)
         val sessionF = cass.connect()
         Await.result(sessionF, 10 seconds)
+
+        var i = 10
+        while (cass.session == null && i > 0) {
+            Thread.sleep(500L)
+            i -= 1
+        }
+        if (i == 0) {
+            throw new Exception("Failed to connect to cassandra")
+        }
 
         insertStatement = cass.session.prepare(
             FlowTracingSchema.flowInsertCQL)

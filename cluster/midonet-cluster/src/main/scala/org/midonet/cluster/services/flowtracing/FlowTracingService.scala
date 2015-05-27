@@ -51,11 +51,10 @@ class FlowTracingMinion @Inject()(nodeCtx: ClusterNode.Context,
     private val log = LoggerFactory.getLogger(classOf[FlowTracingService])
 
     val cass = new CassandraClient(
-        clusterConfig.cassandra.servers,
-        clusterConfig.cassandra.cluster,
+        clusterConfig.backend,
+        clusterConfig.cassandra,
         FlowTracingSchema.KEYSPACE_NAME,
-        clusterConfig.cassandra.replication_factor,
-        FlowTracingSchema.SCHEMA);
+        FlowTracingSchema.SCHEMA, FlowTracingSchema.SCHEMA_TABLE_NAMES)
 
     val service = new FlowTracingService(
         clusterConfig.flowTracing, new CassandraFlowTracingStorage(cass))

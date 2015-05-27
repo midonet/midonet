@@ -102,10 +102,10 @@ public class MidolmanModule extends PrivateModule {
         @Override
         public FlowTracingAppender get() {
             CassandraClient cass = new CassandraClient(
-                    config.cassandra().servers(), config.cassandra().cluster(),
+                    config.zookeeper(), config.cassandra(),
                     FlowTracingSchema$.MODULE$.KEYSPACE_NAME(),
-                    config.cassandra().replication_factor(),
-                    FlowTracingSchema$.MODULE$.SCHEMA());
+                    FlowTracingSchema$.MODULE$.SCHEMA(),
+                    FlowTracingSchema$.MODULE$.SCHEMA_TABLE_NAMES());
             return new FlowTracingAppender(cass.connect());
         }
     }

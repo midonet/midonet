@@ -34,7 +34,9 @@ import com.datastax.driver.core.PreparedStatement
 import com.datastax.driver.core.utils.UUIDs
 
 import org.midonet.cluster.backend.cassandra.CassandraClient
+import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.midolman.Midolman
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.TraceState.TraceKey
 
@@ -44,6 +46,7 @@ import scala.concurrent.Await
 class FlowTracingAppenderTest extends FeatureSpec
                               with BeforeAndAfter
                               with ShouldMatchers
+                              with CuratorTestFramework
                               with OneInstancePerTest {
     val log = LoggerFactory.getLogger(classOf[FlowTracingAppenderTest])
 
@@ -58,12 +61,18 @@ class FlowTracingAppenderTest extends FeatureSpec
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
         Thread.sleep(15000L)
 
+        val confValues = s"""
+          |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
+          |cassandra.servers = "127.0.0.1:9142"
+        """.stripMargin
+        val config = MidolmanConfig.forTests(confValues)
+
         // use a new namespace for each test, to avoid tests interferring
         // with each other
         cass = new CassandraClient(
-            "127.0.0.1:9142", "TestCluster",
-            FlowTracingSchema.KEYSPACE_NAME + System.currentTimeMillis, 1,
-            FlowTracingSchema.SCHEMA)
+            config.zookeeper, config.cassandra,
+            FlowTracingSchema.KEYSPACE_NAME + System.currentTimeMillis,
+            FlowTracingSchema.SCHEMA, FlowTracingSchema.SCHEMA_TABLE_NAMES)
         val sessionF = cass.connect()
         Await.result(sessionF, 10 seconds)
 
