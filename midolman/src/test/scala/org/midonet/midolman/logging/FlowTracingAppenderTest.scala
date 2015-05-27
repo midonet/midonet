@@ -22,6 +22,7 @@ import scala.collection.JavaConverters._
 
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
+import scala.concurrent.duration._
 import org.scalatest.junit.JUnitRunner
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
@@ -36,6 +37,8 @@ import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.midolman.Midolman
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.TraceState.TraceKey
+
+import scala.concurrent.Await
 
 @RunWith(classOf[JUnitRunner])
 class FlowTracingAppenderTest extends FeatureSpec
@@ -53,26 +56,22 @@ class FlowTracingAppenderTest extends FeatureSpec
 
     before {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
+        Thread.sleep(15000L)
 
         // use a new namespace for each test, to avoid tests interferring
         // with each other
         cass = new CassandraClient(
             "127.0.0.1:9142", "TestCluster",
             FlowTracingSchema.KEYSPACE_NAME + System.currentTimeMillis, 1,
-            FlowTracingSchema.SCHEMA, null)
-        cass.connect
+            FlowTracingSchema.SCHEMA)
+        val sessionF = cass.connect()
+        Await.result(sessionF, 10 seconds)
 
-        var i = 10
-        while (cass.session == null && i > 0) {
-            Thread.sleep(500L)
-            i -= 1
-        }
-        if (cass.session == null) {
-            throw new Exception("Couldn't connect to cassandra")
-        }
-
-        val appender = new FlowTracingAppender(cass)
+        val appender = new FlowTracingAppender(sessionF)
         Midolman.enableFlowTracingAppender(appender)
+        eventually {
+            appender.session should not be (null)
+        }
 
         countStatement = cass.session.prepare(
             FlowTracingSchema.countFlowTracesCQL)
@@ -84,7 +83,6 @@ class FlowTracingAppenderTest extends FeatureSpec
 
     feature("Logging with flow tracing appender") {
         scenario("Logging without context set doesn't throw exception") {
-
             logger.trace("test log")
 
             val results = cass.session.execute(

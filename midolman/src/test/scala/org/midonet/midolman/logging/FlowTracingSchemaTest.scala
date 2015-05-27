@@ -18,6 +18,8 @@ package org.midonet.midolman.logging
 
 import java.util.{Date, UUID}
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
@@ -61,20 +63,15 @@ class FlowTracingSchemaTest extends FeatureSpec
 
     before {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
+        Thread.sleep(15000L)
+
         cass = new CassandraClient(
             "127.0.0.1:9142", "TestCluster",
             FlowTracingSchema.KEYSPACE_NAME + System.currentTimeMillis, 1,
-            FlowTracingSchema.SCHEMA, null)
-        cass.connect
+            FlowTracingSchema.SCHEMA)
 
-        var i = 10
-        while (cass.session == null && i > 0) {
-            Thread.sleep(500L)
-            i -= 1
-        }
-        if (cass.session == null) {
-            throw new Exception("Couldn't connect to cassandra")
-        }
+        val sessionF = cass.connect()
+        Await.result(sessionF, 10 seconds)
 
         insertStatement = cass.session.prepare(
             FlowTracingSchema.flowInsertCQL)

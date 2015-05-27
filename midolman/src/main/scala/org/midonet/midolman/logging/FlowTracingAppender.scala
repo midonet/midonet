@@ -18,9 +18,11 @@ package org.midonet.midolman.logging
 
 import java.util.UUID
 
+import org.midonet.util.concurrent.CallingThreadExecutionContext
+
 import scala.collection.JavaConverters._
 
-import com.datastax.driver.core.{BoundStatement, PreparedStatement, ResultSet}
+import com.datastax.driver.core.{BoundStatement, PreparedStatement, ResultSet, Session}
 
 import ch.qos.logback.classic.Logger
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -30,8 +32,11 @@ import org.slf4j.{LoggerFactory}
 import org.midonet.conf.HostIdGenerator
 import org.midonet.cluster.backend.cassandra.CassandraClient
 
-class FlowTracingAppender(cass: CassandraClient)
+import scala.concurrent.Future
+
+class FlowTracingAppender(sessionFuture: Future[Session])
         extends AppenderBase[ILoggingEvent] {
+
     val log = LoggerFactory.getLogger(classOf[FlowTracingAppender])
     val hostId = try {
         HostIdGenerator.getHostId
@@ -42,49 +47,48 @@ class FlowTracingAppender(cass: CassandraClient)
         }
     }
 
-    var dataInsertStatement: PreparedStatement = _
-    var flowInsertStatement: PreparedStatement = _
+    @volatile
+    var session: Session = null
+
+    var dataInsertStatement: PreparedStatement = null
+    var flowInsertStatement: PreparedStatement = null
 
     override def start(): Unit = {
-        cass.connect
-        val session = cass.session
-        if (session != null) {
-            dataInsertStatement = session.prepare(
-                FlowTracingSchema.dataInsertCQL)
-            flowInsertStatement = session.prepare(
-                FlowTracingSchema.flowInsertCQL)
-            super.start()
-        } else {
-            log.error(
-                "Couldn't start flow tracing appender, no Cassandra session")
-        }
+        sessionFuture.onSuccess {
+            case s =>
+                dataInsertStatement = s.prepare(FlowTracingSchema.dataInsertCQL)
+                flowInsertStatement = s.prepare(FlowTracingSchema.flowInsertCQL)
+                session = s
+        }(CallingThreadExecutionContext)
+        super.start()
     }
 
     override def append(event: ILoggingEvent) {
         import FlowTracingContext._
+        if (session ne null) {
+            val mdc = event.getMDCPropertyMap
 
-        val mdc = event.getMDCPropertyMap
+            val requestIds = mdc.get(TraceRequestIdKey).split(",")
+            var i = requestIds.length - 1
 
-        val requestIds = mdc.get(TraceRequestIdKey).split(",")
-        var i = requestIds.length - 1
-        val session = cass.session
+            while (i >= 0) {
+                val traceId = UUID.fromString(requestIds(i))
+                val flowTraceId = UUID.fromString(mdc.get(FlowTraceIdKey))
 
-        while (i >= 0 && session != null) {
-            val traceId = UUID.fromString(requestIds(i))
-            val flowTraceId = UUID.fromString(mdc.get(FlowTraceIdKey))
+                session.execute(FlowTracingSchema.bindFlowInsertStatement(
+                            flowInsertStatement, traceId, flowTraceId,
+                            mdc.get(EthSrcKey), mdc.get(EthDstKey),
+                            intOrVal(mdc.get(EtherTypeKey), 0),
+                            mdc.get(NetworkSrcKey), mdc.get(NetworkDstKey),
+                            intOrVal(mdc.get(NetworkProtoKey), 0),
+                            intOrVal(mdc.get(SrcPortKey), 0),
+                            intOrVal(mdc.get(DstPortKey), 0)))
+                session.execute(FlowTracingSchema.bindDataInsertStatement(
+                            dataInsertStatement, traceId, flowTraceId,
+                            hostId, event.getFormattedMessage))
 
-            session.execute(FlowTracingSchema.bindFlowInsertStatement(
-                                flowInsertStatement, traceId, flowTraceId,
-                                mdc.get(EthSrcKey), mdc.get(EthDstKey),
-                                intOrVal(mdc.get(EtherTypeKey), 0),
-                                mdc.get(NetworkSrcKey), mdc.get(NetworkDstKey),
-                                intOrVal(mdc.get(NetworkProtoKey), 0),
-                                intOrVal(mdc.get(SrcPortKey), 0),
-                                intOrVal(mdc.get(DstPortKey), 0)))
-            session.execute(FlowTracingSchema.bindDataInsertStatement(
-                                dataInsertStatement, traceId, flowTraceId,
-                                hostId, event.getFormattedMessage))
-            i -= 1
+                i -= 1
+            }
         }
     }
 

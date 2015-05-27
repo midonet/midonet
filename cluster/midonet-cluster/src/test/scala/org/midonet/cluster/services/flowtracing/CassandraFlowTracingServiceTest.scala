@@ -20,6 +20,8 @@ import java.util.{Date, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 import org.scalatest._
 import org.scalatest.concurrent.Eventually._
@@ -57,15 +59,13 @@ class CassandraFlowTracingServiceTest extends FeatureSpec with Matchers
 
     before {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
+        Thread.sleep(15000L)
         cass = new CassandraClient(
             "127.0.0.1:9142", "TestCluster",
             FlowTracingSchema.KEYSPACE_NAME + System.currentTimeMillis, 1,
-            FlowTracingSchema.SCHEMA, null)
-        cass.connect
-
-        while (cass.session == null) {
-            Thread.sleep(500L)
-        }
+            FlowTracingSchema.SCHEMA)
+        val sessionF = cass.connect()
+        Await.result(sessionF, 10 seconds)
 
         insertStatement = cass.session.prepare(
             FlowTracingSchema.flowInsertCQL)
