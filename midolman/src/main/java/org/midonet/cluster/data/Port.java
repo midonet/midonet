@@ -149,6 +149,14 @@ public abstract class Port<PortData extends Port.Data,
         return self();
     }
 
+    public boolean isActive() {
+        return getData().active;
+    }
+
+    public void setActive(boolean active) {
+        getData().active = active;
+    }
+
     public UUID getPeerId() {
         return getData().peer_uuid;
     }
@@ -175,6 +183,7 @@ public abstract class Port<PortData extends Port.Data,
         public UUID peer_uuid;
         public UUID hostId;
         public String interfaceName;
+        public boolean active = false;
         public boolean adminStateUp = true;
 
         @Override
@@ -206,7 +215,7 @@ public abstract class Port<PortData extends Port.Data,
                 return false;
             if (adminStateUp != data.adminStateUp) return false;
 
-            return true;
+            return (active == data.active);
         }
 
         @Override
@@ -221,6 +230,7 @@ public abstract class Port<PortData extends Port.Data,
             result = 31 * result + (hostId != null ? hostId.hashCode() : 0);
             result = 31 * result + (interfaceName != null ? interfaceName.hashCode() : 0);
             result = 31 * result + Boolean.valueOf(adminStateUp).hashCode();
+            result = 31 * result + Boolean.valueOf(active).hashCode();
             return result;
         }
 
@@ -237,6 +247,7 @@ public abstract class Port<PortData extends Port.Data,
                     ", hostId=" + hostId +
                     ", interfaceName='" + interfaceName + '\'' +
                     ", adminStateUp=" + adminStateUp +
+                    ", active=" + active +
                     '}';
         }
     }
