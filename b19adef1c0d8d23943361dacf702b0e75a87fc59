@@ -56,6 +56,30 @@
       "revId": "b19adef1c0d8d23943361dacf702b0e75a87fc59",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c12ca04d",
+        "filename": "midonet-api/src/test/java/org/midonet/api/network/TestBridge.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-27T06:48:26Z",
+      "side": 1,
+      "message": "The point of this is so that it would not rely on the server side DTO code for checking the returned data.  Remember that the server and client side were completely separated and designed to evolve independently, and the client side has no idea of how these URIs are generated in the server side (nor it should).  Ideally, we would be comparing the JSON values for the API tests but alas that is not how our tests are done in this framework.  \n\nBut now that I wrote this down, I have another idea, which is that we should not be using DTOs to test the API at all.  If we want to test the API (what the users experience), we should just do:\n\nClientResponse res \u003d resource.get(uri).get(ClientResponse.class);\nString resStr \u003d res.getEntity(String.class);\nJSONObjct jObj \u003d new JSONOBject(resStr);\n\nWe then validate against the JSON object:\n\nJSONAsert.assertEquals(\"bar\", jObj.getString(\"foo\"));\n\nThis gets these tests closest to the raw API tests as much as possible, and we can simply get rid of the client side DTO (they were basically POJOs representing JSON object) to facilitate comparison.\n\nThoughts?",
+      "parentUuid": "facab960_51795e92",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 21
+      },
+      "revId": "b19adef1c0d8d23943361dacf702b0e75a87fc59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
