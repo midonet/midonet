@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_52c4e091",
+        "filename": "cluster/midonet-cluster/build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-27T14:24:17Z",
+      "side": 1,
+      "message": "unneeded",
+      "revId": "9457290d98a8cb4ffc0a1b30de49e32941c0c4a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_12cb38a6",
+        "filename": "midonet-api/src/main/java/org/midonet/api/servlet/RestApiJerseyServletModule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-05-27T14:24:17Z",
+      "side": 1,
+      "message": "dead code",
+      "range": {
+        "startLine": 24,
+        "startChar": 25,
+        "endLine": 24,
+        "endChar": 31
+      },
+      "revId": "9457290d98a8cb4ffc0a1b30de49e32941c0c4a6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
