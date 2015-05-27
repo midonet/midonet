@@ -1,0 +1,498 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_38049d7a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "why wouldn\u0027t it suffice with doing a subscribe, and storing the subscription?",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 45,
+        "endChar": 43
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_38157df1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "I think it would be worth encapsulating the storage part (the Map itself) and the pub/sub part (both the processing of the individual observables, as well as the publication of the merged results) in two separate pieces.\n\nThe main reason I see for this is that you can reuse all the code for managing observables for whatever storage implementation you use (which, given that managing the observables properly is not trivial, will be a good thing to avoid duplicating).",
+      "range": {
+        "startLine": 66,
+        "startChar": 16,
+        "endLine": 74,
+        "endChar": 71
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_58afa1e3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "that function is not really filtering but doOnNext no? as it applies mutations",
+      "range": {
+        "startLine": 105,
+        "startChar": 17,
+        "endLine": 105,
+        "endChar": 48
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5877a1d4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "Shame about \n\n(_._1, _._2)\n\npoetry!",
+      "range": {
+        "startLine": 106,
+        "startChar": 39,
+        "endLine": 106,
+        "endChar": 71
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_787465cf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "Challenge: find a name that makes the comment redundant.\n\nopinionCollector?",
+      "range": {
+        "startLine": 114,
+        "startChar": 16,
+        "endLine": 114,
+        "endChar": 21
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b87eedac",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "wrap?",
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_98812992",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "wrap",
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_18451970",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "I know we don\u0027t care about performance that much in this implementation, but I think keeping a conflict-resolved snapshot at all times (not constructing one when requested) would be good as it would help decouple the storage part from the subscriptions, and make this method mostly redundant. What do you think?",
+      "range": {
+        "startLine": 144,
+        "startChar": 4,
+        "endLine": 159,
+        "endChar": 5
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d3d0f255",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "this has a race also, you may miss updates.\n\nthis is another benefit of having the snapshot constructed at all times, you can:\n\nproxy.startWith(snapshot).subscribe(s)",
+      "range": {
+        "startLine": 174,
+        "startChar": 8,
+        "endLine": 176,
+        "endChar": 9
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_58208149",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 188,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "shouldn\u0027t it be better that you return proxy.asObservable?",
+      "range": {
+        "startLine": 188,
+        "startChar": 4,
+        "endLine": 188,
+        "endChar": 73
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b8318dee",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "val filterOpinion \u003d makeFunc1 \n\nwould make the code above in the observable creation simpler",
+      "range": {
+        "startLine": 198,
+        "startChar": 16,
+        "endLine": 198,
+        "endChar": 29
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_93be6afe",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 217,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "Why does this need synchronization?\n\nEvicting an owner would just imply:\n\na) cancelling its subscription\nb) getting the snapshot of the owner\nc) inject removals for every entry in the owner\u0027s snapshot into the \"opinionsCollector\"\n\nThose don\u0027t really need syncing no?",
+      "range": {
+        "startLine": 217,
+        "startChar": 15,
+        "endLine": 217,
+        "endChar": 35
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_786aa51b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "This is what I mentioned above, if you keep this subscription you achieve the same purpose as the ownerMapState I think. \n\nval sub \u003d owner.observable.subscribe(updatesObservable)\n\nNot sure if updatesObservable is the right one, but you get the point",
+      "range": {
+        "startLine": 279,
+        "startChar": 16,
+        "endLine": 282,
+        "endChar": 64
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b27e0cad",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 340,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "I\u0027d take this one out to its own file",
+      "range": {
+        "startLine": 340,
+        "startChar": 6,
+        "endLine": 340,
+        "endChar": 22
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4ddb61ed",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "We probably prefer a ConcurrentHashMap",
+      "range": {
+        "startLine": 343,
+        "startChar": 22,
+        "endLine": 343,
+        "endChar": 37
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6dd825f0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "immutable, its a view",
+      "range": {
+        "startLine": 357,
+        "startChar": 19,
+        "endLine": 357,
+        "endChar": 34
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4d02813f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 370,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "how do you ensure that entries added between the iteration and the subject.subscribe are not missed?",
+      "range": {
+        "startLine": 367,
+        "startChar": 8,
+        "endLine": 370,
+        "endChar": 27
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ada78d4e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 388,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "throw NPE if given a null K or V",
+      "range": {
+        "startLine": 388,
+        "startChar": 7,
+        "endLine": 388,
+        "endChar": 56
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4d77e1d4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 400,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "prev.orNull",
+      "range": {
+        "startLine": 397,
+        "startChar": 9,
+        "endLine": 400,
+        "endChar": 9
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8d81e991",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 424,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "orNull",
+      "range": {
+        "startLine": 423,
+        "startChar": 7,
+        "endLine": 424,
+        "endChar": 38
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_727484cf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "nit: worth returning a true/false if added or not? what do you think?",
+      "range": {
+        "startLine": 39,
+        "startChar": 36,
+        "endLine": 39,
+        "endChar": 40
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_92810892",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-05-27T16:45:27Z",
+      "side": 1,
+      "message": "ditto",
+      "range": {
+        "startLine": 44,
+        "startChar": 38,
+        "endLine": 44,
+        "endChar": 42
+      },
+      "revId": "dc7d1b82f6d812c1da3a04e48a97eff6b15f2551",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
