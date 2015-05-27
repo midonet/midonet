@@ -1,0 +1,142 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_a1e4fc3b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-27T06:07:46Z",
+      "side": 1,
+      "message": "I think this isn\u0027t needed.",
+      "range": {
+        "startLine": 48,
+        "startChar": 0,
+        "endLine": 51,
+        "endChar": 42
+      },
+      "revId": "c8a60965a79e7d220b4670cf09dac142fa515d67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_81e7f83f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-27T06:07:46Z",
+      "side": 1,
+      "message": "Should be \"group\".",
+      "range": {
+        "startLine": 143,
+        "startChar": 19,
+        "endLine": 143,
+        "endChar": 21
+      },
+      "revId": "c8a60965a79e7d220b4670cf09dac142fa515d67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c1d02056",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-27T06:07:46Z",
+      "side": 1,
+      "message": "I think translateNeutronPort will actually do the same thing.",
+      "range": {
+        "startLine": 54,
+        "startChar": 0,
+        "endLine": 54,
+        "endChar": 47
+      },
+      "revId": "c8a60965a79e7d220b4670cf09dac142fa515d67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e1d52444",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-27T06:07:46Z",
+      "side": 1,
+      "message": "Might as well move this up next to the if (!isUplink) block.",
+      "range": {
+        "startLine": 92,
+        "startChar": 0,
+        "endLine": 93,
+        "endChar": 77
+      },
+      "revId": "c8a60965a79e7d220b4670cf09dac142fa515d67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_01cbe8a5",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-27T06:07:46Z",
+      "side": 1,
+      "message": "Delete",
+      "range": {
+        "startLine": 171,
+        "startChar": 0,
+        "endLine": 171,
+        "endChar": 72
+      },
+      "revId": "c8a60965a79e7d220b4670cf09dac142fa515d67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_21d0ec4f",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-27T06:07:46Z",
+      "side": 1,
+      "message": "Delete",
+      "range": {
+        "startLine": 222,
+        "startChar": 0,
+        "endLine": 225,
+        "endChar": 47
+      },
+      "revId": "c8a60965a79e7d220b4670cf09dac142fa515d67",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
