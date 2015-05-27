@@ -15,6 +15,8 @@
  */
 package org.midonet.api.auth;
 
+import org.midonet.cluster.auth.AuthException;
+
 /**
  * AuthException class to represent no token.
  */

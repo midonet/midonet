@@ -16,7 +16,7 @@
 package org.midonet.api.neutron;
 
 import com.google.inject.Inject;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.neutron.loadbalancer.LBResource;
 import org.midonet.api.neutron.loadbalancer.LBUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;
@@ -41,7 +41,7 @@ public class NeutronResource extends AbstractResource {
     public NeutronResource(RestApiConfig config, UriInfo uriInfo,
                            SecurityContext context,
                            NeutronResourceFactory factory) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.factory = factory;
     }
 

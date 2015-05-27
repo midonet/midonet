@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.validation;
+package org.midonet.cluster.rest_api.models;
 
-import org.midonet.api.error.ErrorEntity;
+import org.midonet.cluster.rest_api.models.ErrorEntity;
 
 import java.util.ArrayList;
 import java.util.List;

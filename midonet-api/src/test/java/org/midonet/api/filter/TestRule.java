@@ -46,8 +46,8 @@ import org.midonet.client.dto.DtoRule.DtoNatTarget;
 import org.midonet.client.dto.DtoRuleChain;
 import org.midonet.packets.ARP;
 
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
-import static org.midonet.api.VendorMediaType.APPLICATION_RULE_JSON_V2;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
+import static org.midonet.cluster.VendorMediaType.APPLICATION_RULE_JSON_V2;
 import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
 import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_NAT_RULE;
 import static org.midonet.api.validation.MessageProperty.FRAG_POLICY_UNDEFINED;

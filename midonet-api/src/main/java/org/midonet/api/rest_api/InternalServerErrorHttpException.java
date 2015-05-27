@@ -15,6 +15,8 @@
  */
 package org.midonet.api.rest_api;
 
+import org.midonet.cluster.rest_api.ResponseUtils;
+
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
@@ -34,7 +36,7 @@ public class InternalServerErrorHttpException extends WebApplicationException {
      */
     public InternalServerErrorHttpException(String message) {
         super(ResponseUtils.buildErrorResponse(
-            Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), message));
+                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), message));
     }
 
     /**

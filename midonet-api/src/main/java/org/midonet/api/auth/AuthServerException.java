@@ -15,6 +15,8 @@
  */
 package org.midonet.api.auth;
 
+import org.midonet.cluster.auth.AuthException;
+
 /**
  * AuthServerException class for bad HTTP response from external auth system..
  */

@@ -16,21 +16,24 @@
 
 package org.midonet.cluster.services.conf
 
-import java.util.UUID
 import java.util.concurrent.TimeUnit
+import java.util.{UUID, List => JList}
+import javax.servlet.http.HttpServletRequest
 
 import com.typesafe.config.{ConfigException, ConfigFactory}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.RetryNTimes
 import org.apache.curator.test.TestingServer
+import org.apache.http.client.HttpResponseException
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 import org.junit.runner.RunWith
 
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
-import org.midonet.conf.{MidoNodeConfigurator, MidoTestConfigurator, HostIdGenerator}
-import org.scalatest.junit.JUnitRunner
+import org.midonet.cluster.auth._
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 import org.scalatest._
+import org.scalatest.junit.JUnitRunner
 
 trait ZookeeperTestSuite extends BeforeAndAfterAll with BeforeAndAfter { this: Suite =>
     var zkServer: TestingServer = _
@@ -109,6 +112,7 @@ class ConfApiTest extends FeatureSpecLike
         super.beforeAll()
         val context = ClusterNode.Context(HostIdGenerator.getHostId, true)
         confMinion = new ConfMinion(context, new ClusterConfig(config))
+        confMinion.auth = DoubleMockAuthService
         confMinion.startAsync().awaitRunning()
 
     }
@@ -120,15 +124,25 @@ class ConfApiTest extends FeatureSpecLike
 
     private def url(path: String) = s"http://127.0.0.1:$HTTP_PORT/$path"
 
+    private def withAuth(req: Request) =
+        req.addHeader(AuthFilter.HEADER_X_AUTH_TOKEN, DoubleMockAuthConfig.getAdminToken)
+
     private def get(path: String) = ConfigFactory.parseString(
-        Request.Get(url(path)).execute().returnContent().asString())
+        withAuth(Request.Get(url(path))).execute().returnContent().asString())
 
     private def post(path: String, content: String) = {
-        Request.Post(url(path)).bodyString(content, ContentType.TEXT_PLAIN).execute()
+        withAuth(Request.Post(url(path))).bodyString(content, ContentType.TEXT_PLAIN)
+            .execute().discardContent()
     }
 
     private def delete(path: String) =
-        Request.Delete(url(path)).execute().returnResponse().getStatusLine.getStatusCode
+        withAuth(Request.Delete(url(path))).execute().returnResponse().getStatusLine.getStatusCode
+
+    scenario("rejects users without the admin role") {
+        intercept[HttpResponseException] {
+            Request.Get(url("conf/schema")).execute().returnContent().asString()
+        }
+    }
 
     scenario("reads, writes and deletes templates") {
         testWritableSource("conf/template/new_template")
@@ -214,4 +228,25 @@ class ConfApiTest extends FeatureSpecLike
         deleted.isEmpty should be (true)
     }
 
+}
+
+object DoubleMockAuthConfig extends MockAuthConfig {
+    override def getAdminToken = "admin_token"
+    override def getTenantAdminToken = "tenant_admin_token"
+    override def getTenantUserToken = "tenant_user_token"
+}
+
+object DoubleMockAuthService extends MockAuthService(DoubleMockAuthConfig, null) {
+    /* override to make the data client unnecessary, so it's ok to just pass null
+     * to the parent class constructor */
+    override def getTenants(req: HttpServletRequest): JList[Tenant] = {
+        new java.util.ArrayList()
+    }
+
+    override def getUserIdentityByToken(token: String): UserIdentity = {
+        tokenMap.get(token) match {
+            case null => createUserIdentity()
+            case user => user
+        }
+    }
 }

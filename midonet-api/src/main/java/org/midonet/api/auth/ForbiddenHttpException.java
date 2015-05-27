@@ -15,7 +15,7 @@
  */
 package org.midonet.api.auth;
 
-import org.midonet.api.rest_api.ResponseUtils;
+import org.midonet.cluster.rest_api.ResponseUtils;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;

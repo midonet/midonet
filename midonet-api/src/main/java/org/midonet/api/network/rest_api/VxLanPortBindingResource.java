@@ -15,8 +15,23 @@
  */
 package org.midonet.api.network.rest_api;
 
-import java.util.List;
-import java.util.UUID;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
+import org.midonet.cluster.VendorMediaType;
+import org.midonet.api.network.VtepBinding;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.api.vtep.VtepClusterClient;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.data.Port;
+import org.midonet.cluster.data.ports.VxLanPort;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Addr;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.GET;
@@ -26,24 +41,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
-import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.network.VtepBinding;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.vtep.VtepClusterClient;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.Port;
-import org.midonet.cluster.data.ports.VxLanPort;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.packets.IPv4Addr;
+import java.util.List;
+import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.PORT_NOT_VXLAN_PORT;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;

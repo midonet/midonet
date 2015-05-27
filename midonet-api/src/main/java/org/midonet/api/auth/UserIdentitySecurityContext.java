@@ -15,6 +15,8 @@
  */
 package org.midonet.api.auth;
 
+import org.midonet.cluster.auth.UserIdentity;
+
 import java.security.Principal;
 
 import javax.ws.rs.core.Context;

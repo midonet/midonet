@@ -15,11 +15,32 @@
  */
 package org.midonet.api.network.rest_api;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.cluster.VendorMediaType;
+import org.midonet.api.auth.ForbiddenHttpException;
+import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
+import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
+import org.midonet.api.network.Bridge;
+import org.midonet.api.network.Bridge.BridgeCreateGroupSequence;
+import org.midonet.api.network.Bridge.BridgeUpdateGroupSequence;
+import org.midonet.api.network.IP4MacPair;
+import org.midonet.api.network.MacPort;
+import org.midonet.api.network.Port;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.data.ports.VlanMacPort;
+import org.midonet.event.topology.BridgeEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.MAC;
 
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
@@ -38,41 +59,18 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthAction;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.Authorizer;
-import org.midonet.api.auth.ForbiddenHttpException;
-import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
-import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
-import org.midonet.api.network.Bridge;
-import org.midonet.api.network.Bridge.BridgeCreateGroupSequence;
-import org.midonet.api.network.Bridge.BridgeUpdateGroupSequence;
-import org.midonet.api.network.IP4MacPair;
-import org.midonet.api.network.MacPort;
-import org.midonet.api.network.Port;
-import org.midonet.api.network.auth.BridgeAuthorizer;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.BadRequestHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.validation.MessageProperty;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.ports.VlanMacPort;
-import org.midonet.event.topology.BridgeEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.packets.IPv4Addr;
-import org.midonet.packets.MAC;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.midonet.api.ResourceUriBuilder.MAC_TABLE;
 import static org.midonet.api.ResourceUriBuilder.VLANS;
+import static org.midonet.api.validation.MessageProperty.ARP_ENTRY_NOT_FOUND;
+import static org.midonet.api.validation.MessageProperty.BRIDGE_HAS_MAC_PORT;
+import static org.midonet.api.validation.MessageProperty.BRIDGE_HAS_VLAN;
+import static org.midonet.api.validation.MessageProperty.MAC_URI_FORMAT;
 import static org.midonet.api.validation.MessageProperty.NO_VXLAN_PORT;
 import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
@@ -85,17 +83,13 @@ import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 public class BridgeResource extends AbstractResource {
 
     private final BridgeEvent bridgeEvent = new BridgeEvent();
-
-    private final BridgeAuthorizer authorizer;
     private final ResourceFactory factory;
 
     @Inject
     public BridgeResource(RestApiConfig config, UriInfo uriInfo,
-                          SecurityContext context, BridgeAuthorizer authorizer,
-                          Validator validator, DataClient dataClient,
-                          ResourceFactory factory) {
+                          SecurityContext context, Validator validator,
+                          DataClient dataClient, ResourceFactory factory) {
         super(config, uriInfo, context, dataClient, validator);
-        this.authorizer = authorizer;
         this.factory = factory;
     }
 
@@ -103,20 +97,11 @@ public class BridgeResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-            throws StateAccessException,
-            SerializationException {
+            throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.Bridge bridgeData =
-                dataClient.bridgesGet(id);
-        if (bridgeData == null) {
+        if (dataClient.bridgesGet(id) == null)
             return;
-        }
-
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to delete this bridge.");
-        }
-
+        authoriser.tryAuthoriseBridge(id, "delete bridge");
         dataClient.bridgesDelete(id);
         bridgeEvent.delete(id);
     }
@@ -131,12 +116,12 @@ public class BridgeResource extends AbstractResource {
     public Bridge get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this bridge.");
-        }
+        org.midonet.cluster.data.Bridge bridgeData =
+            authoriser.tryAuthoriseBridge(id, "view this bridge");
 
-        org.midonet.cluster.data.Bridge bridgeData = getBridgeOrThrow(id, false);
+        if (bridgeData == null) {
+            throwNotFound(id, "bridge");
+        }
 
         // Convert to the REST API DTO
         Bridge bridge = new Bridge(bridgeData);
@@ -265,10 +250,7 @@ public class BridgeResource extends AbstractResource {
         bridge.setId(id);
         validate(bridge, BridgeUpdateGroupSequence.class);
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to update this bridge.");
-        }
+        authoriser.tryAuthoriseBridge(id, "update this bridge");
 
         dataClient.bridgesUpdate(bridge.toData());
         bridgeEvent.update(id, dataClient.bridgesGet(id));
@@ -294,7 +276,7 @@ public class BridgeResource extends AbstractResource {
 
         validate(bridge, BridgeCreateGroupSequence.class);
 
-        if (!Authorizer.isAdminOrOwner(context, bridge.getTenantId())) {
+        if (!authoriser.isAdminOrOwner(bridge.getTenantId())) {
             throw new ForbiddenHttpException(
                     "Not authorized to add bridge to this tenant.");
         }
@@ -405,10 +387,8 @@ public class BridgeResource extends AbstractResource {
 
     protected List<MacPort> listHelper(UUID id, Short vlanId)
             throws StateAccessException, SerializationException {
-        if (!authorizer.authorize(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this bridge's MAC table.");
-        }
+
+        authoriser.tryAuthoriseBridge(id, "view this bridge's MAC table");
 
         assertBridgeExists(id);
         if (vlanId != null && vlanId != UNTAGGED_VLAN_ID)
@@ -461,10 +441,8 @@ public class BridgeResource extends AbstractResource {
 
     private Response addMacPortHelper(UUID id, short vlanId, MacPort mp)
             throws StateAccessException, SerializationException {
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to add to this bridge's MAC table.");
-        }
+
+        authoriser.tryAuthoriseBridge(id, "add to this bridge's MAC table.");
 
         // Need to set these properties for validation.
         mp.setBridgeId(id);
@@ -539,20 +517,16 @@ public class BridgeResource extends AbstractResource {
     public MacPort getHelper(UUID id, short vlanId,
                              String macAddress, UUID portId)
             throws StateAccessException, SerializationException {
-        if (!authorizer.authorize(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to view this bridge's mac table.");
-        }
+        authoriser.tryAuthoriseBridge(id, "view this bridge's mac table.");
 
         assertBridgeExists(id);
-        assertBridgeExists(id);
-        if (vlanId != UNTAGGED_VLAN_ID)
+        if (vlanId != UNTAGGED_VLAN_ID) {
             assertBridgeHasVlan(id, vlanId);
+        }
 
         MAC mac = validateMacAddress(macAddress);
         if (!dataClient.bridgeHasMacPort(id, vlanId, mac, portId)) {
-            throw new NotFoundHttpException(
-                    getMessage(MessageProperty.BRIDGE_HAS_MAC_PORT));
+            throw new NotFoundHttpException(getMessage(BRIDGE_HAS_MAC_PORT));
         }
 
         MacPort mp = new MacPort(mac.toString(), portId);
@@ -612,22 +586,21 @@ public class BridgeResource extends AbstractResource {
     private void deleteHelper(UUID id, Short vlanId,
                               String macAddress, UUID portId)
             throws StateAccessException, SerializationException {
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                    "Not authorized to delete from this bridge's MAC table.");
-        }
+
+        authoriser.tryAuthoriseBridge(id, "delete from the bridge's MAC table");
 
         assertBridgeExists(id);
-        if (vlanId != UNTAGGED_VLAN_ID)
+        if (vlanId != UNTAGGED_VLAN_ID) {
             assertBridgeHasVlan(id, vlanId);
+        }
         MAC mac = validateMacAddress(macAddress);
 
         dataClient.bridgeDeleteMacPort(id, vlanId, mac, portId);
     }
 
     /*
-+     * ARP table access
-+     */
+     * ARP table access
+     */
 
     /**
      * Handler to list the ARP table's entries..
@@ -642,10 +615,7 @@ public class BridgeResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON })
     public List<IP4MacPair> listArpEntries(@PathParam("id") UUID id)
         throws StateAccessException, SerializationException {
-        if (!authorizer.authorize(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException(
-                "Not authorized to view this bridge's ARP table.");
-        }
+        authoriser.tryAuthoriseBridge(id, "view this bridge's ARP table.");
 
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
         Map<IPv4Addr, MAC> IP4MacPairMap = dataClient.bridgeGetIP4MacPairs(id);
@@ -675,15 +645,14 @@ public class BridgeResource extends AbstractResource {
         MediaType.APPLICATION_JSON })
     public Response addArpEntry(@PathParam("id") UUID id, IP4MacPair mp)
         throws StateAccessException, SerializationException {
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                "Not authorized to add to this bridge's ARP table.");
-        }
+
+        authoriser.tryAuthoriseBridge(id, "add to this bridge's ARP table.");
 
         validate(mp, Default.class);
 
         dataClient.bridgeAddIp4Mac(id,
             IPv4Addr.fromString(mp.getIp()), MAC.fromString(mp.getMac()));
+
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
         return Response.created(
             ResourceUriBuilder.getIP4MacPair(bridgeUri, mp))
@@ -693,10 +662,8 @@ public class BridgeResource extends AbstractResource {
     /**
      * Handler to getting a ARP table entry.
      *
-     * @param IP4MacPairString
-     *            IP4MacPair entry in the ARP table.
-     * @throws StateAccessException
-     *             Data access error.
+     * @param ipMacPair IP4MacPair entry in the ARP table.
+     * @throws StateAccessException Data access error.
      * @return A IP4MacPair object.
      */
     @GET
@@ -705,20 +672,17 @@ public class BridgeResource extends AbstractResource {
     @Produces({ VendorMediaType.APPLICATION_IP4_MAC_JSON,
         MediaType.APPLICATION_JSON })
     public IP4MacPair getArpEntry(@PathParam("id") UUID id,
-                       @PathParam("mac_port") String IP4MacPairString)
+                                  @PathParam("mac_port") String ipMacPair)
         throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.READ, id)) {
-            throw new ForbiddenHttpException(
-                "Not authorized to view this bridge's mac table.");
-        }
+        authoriser.tryAuthoriseBridge(id, "view this bridge's mac table");
 
         // The mac in the URI uses '-' instead of ':'
-        IPv4Addr ip = ResourceUriBuilder.ip4MacPairToIP4(IP4MacPairString);
-        MAC mac = ResourceUriBuilder.ip4MacPairToMac(IP4MacPairString);
+        IPv4Addr ip = ResourceUriBuilder.ip4MacPairToIP4(ipMacPair);
+        MAC mac = ResourceUriBuilder.ip4MacPairToMac(ipMacPair);
         if (!dataClient.bridgeHasIP4MacPair(id, ip, mac)) {
             throw new NotFoundHttpException(
-                    getMessage(MessageProperty.ARP_ENTRY_NOT_FOUND));
+                    getMessage(ARP_ENTRY_NOT_FOUND));
         } else {
             IP4MacPair mp = new IP4MacPair(ip.toString(), mac.toString());
             mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
@@ -741,34 +705,33 @@ public class BridgeResource extends AbstractResource {
                        @PathParam("ip4_mac") String IP4MacPairString)
         throws StateAccessException, SerializationException {
 
-        if (!authorizer.authorize(context, AuthAction.WRITE, id)) {
-            throw new ForbiddenHttpException(
-                "Not authorized to delete from this bridge's MAC table.");
-        }
+        authoriser.tryAuthoriseBridge(id, "delete from the bridge's MAC table");
 
         dataClient.bridgeDeleteIp4Mac(id,
-            ResourceUriBuilder.ip4MacPairToIP4(IP4MacPairString),
-            ResourceUriBuilder.ip4MacPairToMac(IP4MacPairString));
+                                      ResourceUriBuilder
+                                          .ip4MacPairToIP4(IP4MacPairString),
+                                      ResourceUriBuilder
+                                          .ip4MacPairToMac(IP4MacPairString));
     }
 
     private void assertBridgeExists(UUID id) throws StateAccessException {
         if (!dataClient.bridgeExists(id))
-            throw new NotFoundHttpException(getMessage(
-                    MessageProperty.RESOURCE_NOT_FOUND, "bridge", id));
+            throwNotFound(id, "bridge");
     }
 
     private void assertBridgeHasVlan(UUID id, short vlanId)
             throws StateAccessException {
         if (!dataClient.bridgeHasMacTable(id, vlanId))
-            throw new NotFoundHttpException(
-                    getMessage(MessageProperty.BRIDGE_HAS_VLAN, vlanId));
+            throw new NotFoundHttpException(getMessage(BRIDGE_HAS_VLAN,
+                                                       vlanId));
     }
 
     private MAC validateMacAddress(String macAddress) {
         try {
             return ResourceUriBuilder.macFromUri(macAddress);
         } catch (IllegalArgumentException ex) {
-            throw new BadRequestHttpException(ex, getMessage(MessageProperty.MAC_URI_FORMAT));
+            throw new BadRequestHttpException(ex,
+                                              getMessage(MAC_URI_FORMAT));
         }
     }
 }

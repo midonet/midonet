@@ -13,7 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.cluster.auth;
+
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.Tenant;
+import org.midonet.cluster.auth.Token;
+import org.midonet.cluster.auth.UserIdentity;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -45,10 +50,10 @@ public interface AuthService {
         throws AuthException;
 
     /**
-     * Get a {@link Tenant} object given its ID.
+     * Get a {@link org.midonet.cluster.auth.Tenant} object given its ID.
      *
      * @param id Tenant ID
-     * @return {@link Tenant} object
+     * @return {@link org.midonet.cluster.auth.Tenant} object
      * @throws AuthException
      */
     Tenant getTenant(String id) throws AuthException;

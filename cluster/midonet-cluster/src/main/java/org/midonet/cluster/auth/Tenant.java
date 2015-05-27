@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.cluster.auth;
 
 /**
- * Enum that defines auth actions. Authorization is still incomplete so this is
- * just a simplified list of operations we check.
+ * Interface representing a tenant object in the identity service.  This is the
+ * generic MidoNet representation of tenant models from various identity
+ * services that it could integrate with..
  */
-public enum AuthAction {
+public interface Tenant {
 
-    READ, WRITE;
+    String getId();
 
+    String getName();
 }

@@ -53,7 +53,7 @@
     <param-name>auth-auth_provider</param-name>
     <!-- Specify the class path of the auth service -->
     <param-value>
-      org.midonet.api.auth.MockAuthService
+      org.midonet.cluster.auth.MockAuthService
     </param-value>
   </context-param>
   <context-param>
@@ -106,24 +106,6 @@
   <context-param>
     <param-name>keystone-tenant_name</param-name>
     <param-value>admin</param-value>
-  </context-param>
-
-  <!-- CloudStack auth configuration -->
-  <context-param>
-    <param-name>cloudstack-api_base_uri</param-name>
-    <param-value>http://127.0.0.1:8080</param-value>
-  </context-param>
-  <context-param>
-    <param-name>cloudstack-api_path</param-name>
-    <param-value>/client/api?</param-value>
-  </context-param>
-  <context-param>
-    <param-name>cloudstack-api_key</param-name>
-    <param-value></param-value>
-  </context-param>
-  <context-param>
-    <param-name>cloudstack-secret_key</param-name>
-    <param-value></param-value>
   </context-param>
 
   <!-- Zookeeper configuration -->

@@ -16,19 +16,18 @@
 
 package org.midonet.api.system_data.rest_api;
 
+import com.google.common.base.Function;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.system_data.HostVersion;
-import org.midonet.midolman.state.StateAccessException;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.midolman.state.StateAccessException;
 import org.midonet.util.collection.ListUtil;
-
-import com.google.common.base.Function;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
@@ -48,7 +47,7 @@ public class HostVersionResource extends AbstractResource {
     @Inject
     public HostVersionResource(RestApiConfig config, UriInfo uriInfo, SecurityContext context,
         DataClient dataClient) {
-        super(config, uriInfo, context, dataClient);
+        super(config, uriInfo, context, dataClient, null);
     }
 
     /**

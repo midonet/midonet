@@ -15,9 +15,23 @@
  */
 package org.midonet.api.host.rest_api;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.google.inject.Inject;
+import com.google.inject.servlet.RequestScoped;
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.cluster.VendorMediaType;
+import org.midonet.api.host.TunnelZone;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.ConflictHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.data.VTEP;
+import org.midonet.event.topology.TunnelZoneEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -32,25 +46,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-
-import com.google.inject.Inject;
-import com.google.inject.servlet.RequestScoped;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.host.TunnelZone;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ConflictHttpException;
-import org.midonet.api.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.ResourceFactory;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.DataClient;
-import org.midonet.cluster.data.VTEP;
-import org.midonet.event.topology.TunnelZoneEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @RequestScoped
 public class TunnelZoneResource extends AbstractResource {

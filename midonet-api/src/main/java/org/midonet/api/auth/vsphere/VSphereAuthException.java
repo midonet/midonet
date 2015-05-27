@@ -15,7 +15,7 @@
  */
 package org.midonet.api.auth.vsphere;
 
-import org.midonet.api.auth.AuthException;
+import org.midonet.cluster.auth.AuthException;
 
 public class VSphereAuthException extends AuthException {
 

@@ -13,40 +13,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth.cloudstack;
-
-import org.midonet.api.auth.AuthException;
+package org.midonet.cluster.auth;
 
 /**
- * CloudStackConnectionException class for bad JSON response from Keystone.
+ * AuthException class.
  */
-public class CloudStackConnectionException extends AuthException {
+public abstract class AuthException extends Exception {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Create a CloudStackConnectionException object with a message.
+     * Create an AuthException object with a message.
      *
      * @param message
      *            Error message.
      */
-    public CloudStackConnectionException(String message) {
+    public AuthException(String message) {
         super(message);
     }
 
     /**
-     * Create a CloudStackConnectionException object with no message and wrap a
+     * Create an AuthException object with no message and wrap a
      * Throwable object.
      *
      * @param e
      *            Throwable object
      */
-    public CloudStackConnectionException(Throwable e) {
+    public AuthException(Throwable e) {
         super(e);
     }
 
     /**
-     * Create a CloudStackConnectionException object with a message and wrap a
+     * Create an AuthException object with a message and wrap a
      * Throwable object.
      *
      * @param message
@@ -54,7 +52,7 @@ public class CloudStackConnectionException extends AuthException {
      * @param e
      *            Throwable object
      */
-    public CloudStackConnectionException(String message, Throwable e) {
+    public AuthException(String message, Throwable e) {
         super(message, e);
     }
 }

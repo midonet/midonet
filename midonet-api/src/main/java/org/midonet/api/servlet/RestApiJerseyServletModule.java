@@ -41,7 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthContainerRequestFilter;
-import org.midonet.api.auth.AuthFilter;
+import org.midonet.cluster.auth.AuthFilter;
 import org.midonet.api.auth.AuthModule;
 import org.midonet.api.auth.LoginFilter;
 import org.midonet.api.auth.StateFilter;

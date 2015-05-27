@@ -17,7 +17,7 @@ package org.midonet.api.auth.keystone.v2_0;
 
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-import org.midonet.api.auth.Tenant;
+import org.midonet.cluster.auth.Tenant;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

@@ -13,54 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth.cloudstack;
+package org.midonet.cluster.auth;
 
-import org.midonet.api.auth.AuthServerException;
+import org.midonet.cluster.auth.AuthException;
 
 /**
- * CloudStackServerException class for bad HTTP response from CloudStack..
+ * AuthException class for error while accessing database.
  */
-public class CloudStackServerException extends AuthServerException {
+public class AuthDataAccessException extends AuthException {
 
     private static final long serialVersionUID = 1L;
 
     /**
-     * Create a CloudStackServerException object with a message.
+     * Create a AuthDataAccessException object with a message.
      *
      * @param message
      *            Error message.
-     * @param status
-     *            HTTP status code
      */
-    public CloudStackServerException(String message, int status) {
-        super(message, status);
+    public AuthDataAccessException(String message) {
+        super(message);
     }
 
     /**
-     * Create a CloudStackServerException object with no message and wrap a
+     * Create a AuthDataAccessException object with no message and wrap a
      * Throwable object.
      *
      * @param e
      *            Throwable object
-     * @param status
-     *            HTTP status code
      */
-    public CloudStackServerException(Throwable e, int status) {
-        super(e, status);
+    public AuthDataAccessException(Throwable e) {
+        super(e);
     }
 
     /**
-     * Create a CloudStackServerException object with a message and wrap a
+     * Create a AuthDataAccessException object with a message and wrap a
      * Throwable object.
      *
      * @param message
      *            Error message.
      * @param e
      *            Throwable object
-     * @param status
-     *            HTTP status code
      */
-    public CloudStackServerException(String message, Throwable e, int status) {
-        super(message, e, status);
+    public AuthDataAccessException(String message, Throwable e) {
+        super(message, e);
     }
 }

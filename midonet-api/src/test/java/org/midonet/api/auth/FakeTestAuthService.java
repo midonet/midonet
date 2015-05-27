@@ -15,6 +15,12 @@
  */
 package org.midonet.api.auth;
 
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.Tenant;
+import org.midonet.cluster.auth.Token;
+import org.midonet.cluster.auth.UserIdentity;
+
 import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 

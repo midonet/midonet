@@ -19,8 +19,7 @@ package org.midonet.api.l4lb.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.l4lb.LoadBalancer;
 import org.midonet.api.l4lb.VIP;
 import org.midonet.api.rest_api.AbstractResource;
@@ -31,6 +30,7 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.event.topology.LoadBalancerEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
@@ -55,8 +55,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class LoadBalancerResource extends AbstractResource {
@@ -69,7 +69,7 @@ public class LoadBalancerResource extends AbstractResource {
     public LoadBalancerResource(RestApiConfig config, UriInfo uriInfo,
                                 SecurityContext context, DataClient dataClient,
                                 ResourceFactory factory) {
-        super(config, uriInfo, context, dataClient);
+        super(config, uriInfo, context, dataClient, null);
         this.factory = factory;
     }
 

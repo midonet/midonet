@@ -19,8 +19,7 @@ package org.midonet.api.l4lb.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.l4lb.HealthMonitor;
 import org.midonet.api.l4lb.Pool;
 import org.midonet.api.rest_api.AbstractResource;
@@ -29,6 +28,7 @@ import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.rest_api.ServiceUnavailableHttpException;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.event.topology.HealthMonitorEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
@@ -36,9 +36,6 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -53,10 +50,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.RESOURCE_EXISTS;
 import static org.midonet.api.validation.MessageProperty.getMessage;
-
 
 @RequestScoped
 public class HealthMonitorResource extends AbstractResource {

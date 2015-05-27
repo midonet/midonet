@@ -39,7 +39,7 @@ public class Tenant extends UriResource {
         this.name = name;
     }
 
-    public Tenant(org.midonet.api.auth.Tenant tenant) {
+    public Tenant(org.midonet.cluster.auth.Tenant tenant) {
         this.id = tenant.getId();
         this.name = tenant.getName();
     }

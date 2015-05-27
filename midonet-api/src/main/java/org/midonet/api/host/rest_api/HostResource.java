@@ -18,8 +18,7 @@ package org.midonet.api.host.rest_api;
 import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.auth.ForbiddenHttpException;
 import org.midonet.api.host.Host;
 import org.midonet.api.rest_api.AbstractResource;
@@ -27,17 +26,21 @@ import org.midonet.api.rest_api.BadRequestHttpException;
 import org.midonet.api.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.cluster.DataClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.StateAccessException;
 
-import com.sun.jersey.api.client.ClientResponse.Status;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
@@ -47,8 +50,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.midonet.api.validation.MessageProperty.HOST_FLOODING_PROXY_WEIGHT_IS_NULL;
-import static org.midonet.api.validation.MessageProperty.getMessage;
 import static org.midonet.api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.api.validation.MessageProperty.getMessage;
 
 @RequestScoped
 public class HostResource extends AbstractResource {

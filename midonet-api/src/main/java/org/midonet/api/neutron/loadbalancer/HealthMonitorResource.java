@@ -36,7 +36,7 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.neutron.NeutronUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ConflictHttpException;
@@ -68,7 +68,7 @@ public class HealthMonitorResource extends AbstractResource {
     @Inject
     public HealthMonitorResource(RestApiConfig config, UriInfo uriInfo,
                                  SecurityContext context, LoadBalancerApi api) {
-        super(config, uriInfo, context, null);
+        super(config, uriInfo, context, null, null);
         this.api = api;
     }
 

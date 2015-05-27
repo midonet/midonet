@@ -17,6 +17,7 @@
 package org.midonet.api.rest_api;
 
 import org.midonet.api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.ResponseUtils;
 import org.midonet.midolman.state.StatePathExceptionBase.NodeInfo;
 import org.midonet.midolman.state.StatePathExistsException;
 

@@ -15,21 +15,26 @@
  */
 package org.midonet.api.auth.keystone.v2_0;
 
+import com.google.inject.Inject;
+import org.apache.commons.lang3.StringUtils;
+import org.midonet.api.auth.InvalidCredentialsException;
+import org.midonet.api.auth.keystone.KeystoneConfig;
+import org.midonet.api.auth.keystone.KeystoneInvalidFormatException;
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.Tenant;
+import org.midonet.cluster.auth.Token;
+import org.midonet.cluster.auth.UserIdentity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.servlet.http.HttpServletRequest;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.TimeZone;
-import javax.servlet.http.HttpServletRequest;
-
-import com.google.inject.Inject;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import org.midonet.api.auth.*;
-import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.api.auth.keystone.KeystoneInvalidFormatException;
 
 /**
  * Keystone Service.
@@ -189,10 +194,10 @@ public class KeystoneService implements AuthService {
     }
 
     /**
-     * Gets a {@link Tenant} object from Keystone server.
+     * Gets a {@link org.midonet.cluster.auth.Tenant} object from Keystone server.
      *
      * @param id Tenant ID
-     * @return {@link Tenant} object
+     * @return {@link org.midonet.cluster.auth.Tenant} object
      * @throws AuthException
      */
     @Override

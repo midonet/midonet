@@ -19,15 +19,19 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.VendorMediaType;
 import org.midonet.api.filter.IpAddrGroup;
 import org.midonet.api.filter.IpAddrGroupAddr;
 import org.midonet.api.filter.Ipv4AddrGroupAddr;
 import org.midonet.api.filter.Ipv6AddrGroupAddr;
-import org.midonet.api.rest_api.*;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.BadRequestHttpException;
+import org.midonet.api.rest_api.NotFoundHttpException;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.validation.MessageProperty;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -39,7 +43,13 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
@@ -225,7 +235,7 @@ public class IpAddrGroupResource extends AbstractResource {
                                        SecurityContext context,
                                        DataClient dataClient,
                                        @Assisted UUID ipAddrGroupId) {
-            super(config, uriInfo, context, dataClient);
+            super(config, uriInfo, context, dataClient, null);
             this.id = ipAddrGroupId;
         }
 
