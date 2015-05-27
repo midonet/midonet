@@ -17,18 +17,14 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Promise
 
 import com.google.protobuf.Message
 
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{mock, when}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.matchers.{MatchResult, Matcher}
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import org.midonet.cluster.data.Bridge
-import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronPort
@@ -88,11 +84,8 @@ trait OpMatchers {
 }
 
 /* A common base class for testing NeutronPort CRUD translation. */
-class PortTranslatorTest extends FlatSpec with BeforeAndAfter
-                                          with ChainManager
-                                          with Matchers
-                                          with OpMatchers {
-    protected var storage: ReadOnlyStorage = _
+class PortTranslatorTest extends TranslatorTestBase with ChainManager
+                                                    with OpMatchers {
     protected var translator: PortTranslator = _
 
     protected val zkRoot = "/midonet/test"
@@ -224,10 +217,6 @@ class PortTranslatorTest extends FlatSpec with BeforeAndAfter
         pathBldr.getBridgeMacPortEntryPath(UUIDUtil.fromProto(networkId),
                                            Bridge.UNTAGGED_VLAN_ID, entry)
     }
-
-    def mockGet[M](id: UUID, msg: M) =
-        when(storage.get(msg.getClass.asInstanceOf[Class[M]], id))
-            .thenReturn(Promise.successful(msg).future)
 }
 
 /* Contains common constructs for testing VIF port CRUD translation. */
@@ -297,16 +286,16 @@ class VifPortTranslationTest extends PortTranslatorTest {
 @RunWith(classOf[JUnitRunner])
 class VifPortCreateTranslationTest extends VifPortTranslationTest {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortTranslator(storage, pathBldr)
 
-        mockGet(networkId, nNetworkBase)
-        mockGet(nIpv4Subnet1Id, nIpv4Subnet1)
-        mockGet(nIpv6Subnet1Id, nIpv6Subnet1)
-        mockGet(nIpv4Subnet1Id, mIpv4Dhcp)
-        mockGet(nIpv6Subnet1Id, mIpv6Dhcp)
-        mockGet(sgId1, ipAddrGroup1)
-        mockGet(sgId2, ipAddrGroup2)
+        bind(networkId, nNetworkBase)
+        bind(nIpv4Subnet1Id, nIpv4Subnet1)
+        bind(nIpv6Subnet1Id, nIpv6Subnet1)
+        bind(nIpv4Subnet1Id, mIpv4Dhcp)
+        bind(nIpv6Subnet1Id, mIpv6Dhcp)
+        bind(sgId1, ipAddrGroup1)
+        bind(sgId2, ipAddrGroup2)
     }
 
     "Fixed IPs for a new VIF port" should "add hosts to DHCPs" in {
@@ -488,21 +477,20 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
 @RunWith(classOf[JUnitRunner])
 class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortTranslator(storage, pathBldr)
 
-        mockGet(networkId, nNetworkBase)
-        mockGet(nIpv4Subnet1Id, nIpv4Subnet1)
-        mockGet(nIpv6Subnet1Id, nIpv6Subnet1)
-        mockGet(nIpv4Subnet1Id, mIpv4DhcpWithHostAdded)
-        mockGet(nIpv6Subnet1Id, mIpv6DhcpWithHostAdded)
-//        mockGet(classOf[Network], networkId, mNetworkWithHostsAdded)
-        mockGet(portId, mPortWithChains)
-        mockGet(portId, vifPortWithFixedIps)
-        mockGet(sgId1, ipAddrGroup1)
-        mockGet(sgId2, ipAddrGroup2)
-        mockGet(inboundChainId, inboundChain)
-        mockGet(outboundChainId, outboundChain)
+        bind(networkId, nNetworkBase)
+        bind(nIpv4Subnet1Id, nIpv4Subnet1)
+        bind(nIpv6Subnet1Id, nIpv6Subnet1)
+        bind(nIpv4Subnet1Id, mIpv4DhcpWithHostAdded)
+        bind(nIpv6Subnet1Id, mIpv6DhcpWithHostAdded)
+        bind(portId, mPortWithChains)
+        bind(portId, vifPortWithFixedIps)
+        bind(sgId1, ipAddrGroup1)
+        bind(sgId2, ipAddrGroup2)
+        bind(inboundChainId, inboundChain)
+        bind(outboundChainId, outboundChain)
     }
 
     "VIF port UPDATE" should "update port admin state" in {
@@ -560,7 +548,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         """)
 
     "UPDATE VIF port with fixed IPs" should "update security rules" in {
-        mockGet(portId, vifPortWithFipsAndSgs)
+        bind(portId, vifPortWithFipsAndSgs)
 
         val midoOps: List[Operation] =
             translator.translate(neutron.Update(vifPortWithFipsAndSgs2))
@@ -709,7 +697,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
 
     "DELETE VIF port with fixed IPs" should "delete DHCP host entries and " +
     "chains." in {
-        mockGet(portId, vifPortWithFipsAndSgs)
+        bind(portId, vifPortWithFipsAndSgs)
 
         val midoOps = translator.translate(neutron.Delete(classOf[NeutronPort],
                                                           portId))
@@ -810,18 +798,18 @@ class DhcpPortTranslationTest extends PortTranslatorTest {
 @RunWith(classOf[JUnitRunner])
 class DhcpPortCreateTranslationTest extends DhcpPortTranslationTest {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortTranslator(storage, pathBldr)
 
-        mockGet(networkId, nNetworkBase)
-        mockGet(networkId, mNetworkWithDhcpPort)
-        mockGet(nIpv4Subnet1Id, nIpv4Subnet1WithGwIP)
-        mockGet(nIpv6Subnet1Id, nIpv6Subnet1)
-        mockGet(nIpv4Subnet1Id, mIpv4Dhcp)
-        mockGet(nIpv6Subnet1Id, mIpv6Dhcp)
-        mockGet(portWithPeerId, mPortWithRPortPeer)
-        mockGet(peerRouterPortId, mRouterPort)
-        mockGet(routerId, mRouterWithGwPort)
+        bind(networkId, nNetworkBase)
+        bind(networkId, mNetworkWithDhcpPort)
+        bind(nIpv4Subnet1Id, nIpv4Subnet1WithGwIP)
+        bind(nIpv6Subnet1Id, nIpv6Subnet1)
+        bind(nIpv4Subnet1Id, mIpv4Dhcp)
+        bind(nIpv6Subnet1Id, mIpv6Dhcp)
+        bind(portWithPeerId, mPortWithRPortPeer)
+        bind(peerRouterPortId, mRouterPort)
+        bind(routerId, mRouterWithGwPort)
     }
 
     "DHCP port CREATE" should "configure DHCP" in {
@@ -885,22 +873,22 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
         """)
 
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortTranslator(storage, pathBldr)
 
-        mockGet(networkId, nNetworkBase)
-        mockGet(portId, midoPortBaseUp)
-        mockGet(portId, dhcpPort)
-        mockGet(networkId, mNetworkWithDhcpPort)
-        mockGet(nIpv4Subnet1Id, nIpv4Subnet1WithGwIP)
-        mockGet(nIpv6Subnet1Id, nIpv6Subnet1)
-        mockGet(nIpv4Subnet1Id, mIpv4Dhcp)
-        mockGet(nIpv6Subnet1Id, mIpv6Dhcp)
-        mockGet(portWithPeerId, mPortWithRPortPeer)
-        mockGet(peerRouterPortId, mRouterPort)
-        mockGet(routerId, mRouterWithMDSRoute)
-        mockGet(routeId, mRoute)
-        mockGet(mdsRouteId, mMDSRoute)
+        bind(networkId, nNetworkBase)
+        bind(portId, midoPortBaseUp)
+        bind(portId, dhcpPort)
+        bind(networkId, mNetworkWithDhcpPort)
+        bind(nIpv4Subnet1Id, nIpv4Subnet1WithGwIP)
+        bind(nIpv6Subnet1Id, nIpv6Subnet1)
+        bind(nIpv4Subnet1Id, mIpv4Dhcp)
+        bind(nIpv6Subnet1Id, mIpv6Dhcp)
+        bind(portWithPeerId, mPortWithRPortPeer)
+        bind(peerRouterPortId, mRouterPort)
+        bind(routerId, mRouterWithMDSRoute)
+        bind(routeId, mRoute)
+        bind(mdsRouteId, mMDSRoute)
     }
 
     "DHCP port UPDATE" should "update port admin state" in {
@@ -925,12 +913,12 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
 @RunWith(classOf[JUnitRunner])
 class FloatingIpPortTranslationTest extends PortTranslatorTest {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortTranslator(storage, pathBldr)
 
-        mockGet(networkId, nNetworkBase)
-        mockGet(portId, midoPortBaseUp)
-        mockGet(networkId, midoNetwork)
+        bind(networkId, nNetworkBase)
+        bind(portId, midoPortBaseUp)
+        bind(networkId, midoNetwork)
     }
 
     protected val fipPortUp = nPortFromTxt(portBaseUp + """
@@ -948,7 +936,7 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
      }
 
     "Floating IP DELETE" should "NOT delete the MidoNet Port" in {
-        mockGet(portId, fipPortUp)
+        bind(portId, fipPortUp)
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps shouldBe empty
@@ -973,14 +961,14 @@ class RouterInterfacePortTranslationTest extends PortTranslatorTest {
 class RouterInterfacePortCreateTranslationTest
         extends RouterInterfacePortTranslationTest {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortTranslator(storage, pathBldr)
-        mockGet(nIpv4Subnet1Id, mIpv4Dhcp)
+        bind(nIpv4Subnet1Id, mIpv4Dhcp)
     }
 
     "Router interface port CREATE" should "create a normal Network port" in {
-        mockGet(networkId, nNetworkBase)
-        mockGet(networkId, mNetworkWithIpv4Subnet)
+        bind(networkId, nNetworkBase)
+        bind(networkId, mNetworkWithIpv4Subnet)
         val midoOps = translator.translate(neutron.Create(routerIfPortUp))
         midoOps should contain only midonet.Create(midoPortBaseUp)
     }
@@ -991,12 +979,12 @@ class RouterInterfacePortUpdateDeleteTranslationTest
         extends RouterInterfacePortTranslationTest {
     import org.midonet.cluster.services.c3po.translators.PortManager._
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortTranslator(storage, pathBldr)
 
-        mockGet(networkId, nNetworkBase)
-        mockGet(portId, midoPortBaseUp)
-        mockGet(networkId, midoNetwork)
+        bind(networkId, nNetworkBase)
+        bind(portId, midoPortBaseUp)
+        bind(networkId, midoNetwork)
     }
 
     "Router interface port UPDATE" should "NOT update Port" in {
@@ -1006,7 +994,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
 
     "Router interface port DELETE" should "delete both MidoNet Router " +
     "Interface Network Port and its peer Router Port" in {
-        mockGet(portId, routerIfPortUp)
+        bind(portId, routerIfPortUp)
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain only (
@@ -1019,12 +1007,12 @@ class RouterInterfacePortUpdateDeleteTranslationTest
 @RunWith(classOf[JUnitRunner])
 class RouterGatewayPortTranslationTest extends PortTranslatorTest {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortTranslator(storage, pathBldr)
 
-        mockGet(networkId, nNetworkBase)
-        mockGet(portId, midoPortBaseUp)
-        mockGet(networkId, midoNetwork)
+        bind(networkId, nNetworkBase)
+        bind(portId, midoPortBaseUp)
+        bind(networkId, midoNetwork)
     }
 
     private val routerGatewayPort = nPortFromTxt(portBaseUp + """
@@ -1043,7 +1031,7 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
     }
 
     "Router gateway port  DELETE" should "delete the MidoNet Port" in {
-        mockGet(portId, routerGatewayPort)
+        bind(portId, routerGatewayPort)
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain (midonet.Delete(classOf[Port], portId))

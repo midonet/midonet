@@ -16,29 +16,22 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.concurrent.Promise
-
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{doThrow, mock, when}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
-
 import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.PortBinding
 import org.midonet.cluster.models.Topology.{Host, Port}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
+import org.midonet.cluster.util.UUIDUtil.toProtoFromProtoStr
 
 /**
  * Tests port binding translation.
  */
 @RunWith(classOf[JUnitRunner])
-class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
-                                                 with Matchers {
+class PortBindingTranslatorTest extends TranslatorTestBase {
 
-    protected var storage: ReadOnlyStorage = _
     protected var translator: PortBindingTranslator = _
 
     protected val newPortId = randomUuidProto
@@ -73,12 +66,11 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
             interface_name: "$iface_name"
         """)
 
-    private def setUpPortGet(portId: UUID, hostId: UUID, iface_name: String)
+    private def setUpPortGet(portId: UUID, hostId: UUID, ifaceName: String)
     : Unit = {
         val port = if (hostId == null) portWithNoHost(portId)
-                   else portWithHost(portId, hostId, iface_name)
-        when(storage.get(classOf[Port], portId))
-            .thenReturn(Promise.successful(port).future)
+                   else portWithHost(portId, hostId, ifaceName)
+        bind(portId, port)
     }
 
     private val binding1 = portBinding(host1NoBindingsId, newIface, newPortId)
@@ -108,21 +100,15 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
                                 .setPortId(portId).build()
 
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortBindingTranslator(storage)
 
-        when(storage.get(classOf[Host], host1NoBindingsId))
-            .thenReturn(Promise.successful(host1).future)
-        when(storage.get(classOf[Host], host2With2BindingsId))
-            .thenReturn(Promise.successful(host2With2Bindings).future)
-        doThrow(new NotFoundException(classOf[Host], hostThatDoesntExist))
-            .when(storage).get(classOf[Host], hostThatDoesntExist)
-        when(storage.get(classOf[PortBinding], bindingHost2PortYInterfaceBId))
-            .thenReturn(Promise.successful(bindingHost2PortYInterfaceB).future)
-        when(storage.exists(classOf[Port], newPortId))
-            .thenReturn(Promise.successful(true).future)
-        when(storage.exists(classOf[Port], portThatDoesntExist))
-            .thenReturn(Promise.successful(false).future)
+        bind(host1NoBindingsId, host1)
+        bind(host2With2BindingsId,host2With2Bindings)
+        bind(hostThatDoesntExist, null, classOf[Host])
+        bind(bindingHost2PortYInterfaceBId, bindingHost2PortYInterfaceB)
+        bind(newPortId, Port.getDefaultInstance)
+        bind(portThatDoesntExist, null, classOf[Port])
     }
 
     "Port binding" should "add a new PortToInterface entry" in {
@@ -152,15 +138,18 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
         }
     }
 
-    "Port binding to a non-existing host" should "throw an exception" in {
-        intercept[TranslationException] {
-            translator.translate(neutron.Create(bindingToNonExistingHost))
-        }
-    }
-
     "Port binding to an already bound port" should "throw an exception" in {
-        intercept[TranslationException] {
-            translator.translate(neutron.Create(bindingHost2WithSameInterface))
+        // Set up the Port with newPortId bound to some host / interface
+        setUpPortGet(newPortId,
+                     hostId = toProtoFromProtoStr("msb: 1 lsb: 1"),
+                     ifaceName = "bound interface")
+        val te = intercept[TranslationException] {
+            translator.translate(neutron.Create(binding1))
+        }
+        te.getCause match {
+            case ise: IllegalStateException =>
+                ise.getMessage contains("already bound") shouldBe true
+            case _ => fail("Expected IllegalStateException.")
         }
     }
 

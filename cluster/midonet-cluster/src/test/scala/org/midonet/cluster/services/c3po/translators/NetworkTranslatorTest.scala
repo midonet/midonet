@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,9 @@
  */
 package org.midonet.cluster.services.c3po.translators
 
-import scala.concurrent.Future
-
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{mock, when}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FlatSpec, Matchers}
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.services.c3po.{midonet, neutron}
@@ -33,7 +28,7 @@ import org.midonet.midolman.state.PathBuilder
  * Tests the Neutron Network model conversion layer.
  */
 @RunWith(classOf[JUnitRunner])
-class NetworkTranslatorTest extends FlatSpec with Matchers {
+class NetworkTranslatorTest extends TranslatorTestBase {
     val zkRoot = "/midonet/v1"
     val tenantId = "neutron tenant"
     val networkName = "neutron test"
@@ -41,7 +36,7 @@ class NetworkTranslatorTest extends FlatSpec with Matchers {
 
     def genId() = UUIDUtil.randomUuidProto
 
-    val storage: ReadOnlyStorage = mock(classOf[ReadOnlyStorage])
+    initMockStorage()
     val pathBldr: PathBuilder = new PathBuilder(zkRoot)
     val translator: NetworkTranslator = new NetworkTranslator(storage, pathBldr)
 
@@ -93,8 +88,7 @@ class NetworkTranslatorTest extends FlatSpec with Matchers {
 
     "Network DELETE" should "produce a corresponding Mido Network DELETE" in {
         val id = genId()
-        when(storage.get(classOf[NeutronNetwork], id))
-            .thenReturn(Future.successful(NeutronNetwork.getDefaultInstance))
+        bind(id, NeutronNetwork.getDefaultInstance)
         val midoOps =
             translator.translate(neutron.Delete(classOf[NeutronNetwork], id))
 
