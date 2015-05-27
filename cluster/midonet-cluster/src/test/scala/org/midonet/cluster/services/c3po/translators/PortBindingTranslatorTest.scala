@@ -16,15 +16,10 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.concurrent.Promise
-
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{doThrow, mock, when}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.PortBinding
@@ -35,10 +30,8 @@ import org.midonet.cluster.util.UUIDUtil.randomUuidProto
  * Tests port binding translation.
  */
 @RunWith(classOf[JUnitRunner])
-class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
-                                                 with Matchers {
+class PortBindingTranslatorTest extends TranslatorTestBase {
 
-    protected var storage: ReadOnlyStorage = _
     protected var translator: PortBindingTranslator = _
 
     protected val newPortId = randomUuidProto
@@ -77,8 +70,7 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
     : Unit = {
         val port = if (hostId == null) portWithNoHost(portId)
                    else portWithHost(portId, hostId, iface_name)
-        when(storage.get(classOf[Port], portId))
-            .thenReturn(Promise.successful(port).future)
+        bind(portId, port)
     }
 
     private val binding1 = portBinding(host1NoBindingsId, newIface, newPortId)
@@ -108,21 +100,15 @@ class PortBindingTranslatorTest extends FlatSpec with BeforeAndAfter
                                 .setPortId(portId).build()
 
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new PortBindingTranslator(storage)
 
-        when(storage.get(classOf[Host], host1NoBindingsId))
-            .thenReturn(Promise.successful(host1).future)
-        when(storage.get(classOf[Host], host2With2BindingsId))
-            .thenReturn(Promise.successful(host2With2Bindings).future)
-        doThrow(new NotFoundException(classOf[Host], hostThatDoesntExist))
-            .when(storage).get(classOf[Host], hostThatDoesntExist)
-        when(storage.get(classOf[PortBinding], bindingHost2PortYInterfaceBId))
-            .thenReturn(Promise.successful(bindingHost2PortYInterfaceB).future)
-        when(storage.exists(classOf[Port], newPortId))
-            .thenReturn(Promise.successful(true).future)
-        when(storage.exists(classOf[Port], portThatDoesntExist))
-            .thenReturn(Promise.successful(false).future)
+        bind(host1NoBindingsId, host1)
+        bind(host2With2BindingsId,host2With2Bindings)
+        bind(hostThatDoesntExist, null, classOf[Host])
+        bind(bindingHost2PortYInterfaceBId, bindingHost2PortYInterfaceB)
+        bind(newPortId, Port.getDefaultInstance)
+        bind(portThatDoesntExist, null, classOf[Port])
     }
 
     "Port binding" should "add a new PortToInterface entry" in {
