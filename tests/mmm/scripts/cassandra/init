@@ -67,12 +67,6 @@ for n in 1 2 3; do
          s/^rpc_address:.*$/rpc_address: $address/" \
              -i $conf
 
-    if test -d /var/lib/cassandra.$n; then
-        rm -rf /var/lib/cassandra.$n
-    fi
-    mkdir -p /var/lib/cassandra.$n
-    chown -R cassandra.cassandra /var/lib/cassandra.$n
-
     if test ! -d /var/log/cassandra.$n; then
         mkdir -p /var/log/cassandra.$n
     fi
