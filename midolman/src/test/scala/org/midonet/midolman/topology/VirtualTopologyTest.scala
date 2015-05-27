@@ -183,6 +183,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
             vt.observables.get(id)
                 .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(observer)
+            observer.awaitOnNext(1, timeout)
 
             And("Deleting the port")
             store.delete(classOf[TopologyPort], id)
