@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_618674bb",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortBindingTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-27T09:13:55Z",
+      "side": 1,
+      "message": "This is the same as the _ case.",
+      "range": {
+        "startLine": 150,
+        "startChar": 12,
+        "endLine": 150,
+        "endChar": 64
+      },
+      "revId": "f0ea2e6e029bb08ecf5db9caef7e8995c20693e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
