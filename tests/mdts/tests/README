@@ -1,0 +1,39 @@
+Overview
+--------
+
+Tests are written in python nose test framework.
+For more details on nose framework, see https://nose.readthedocs.org/en/latest/
+
+
+Running tests
+--------------
+
+ - simply run all
+
+  $ nosetests
+
+  Be sure to add the top directory of the qa repo to PYTHONPATH
+
+
+ - verbose mode (with -v)
+
+  $ nosetests -vv
+
+ - supress output capturing
+
+  * -s for standard output. This is needed if you add pdb.set_trace() in the
+     middle of the test code.
+
+   * --nologcapture for debug logs
+
+ - for debugging, there are options for hooking up pdb upon an error
+   or a failure.
+
+   * --pdb
+   * --pdb-failures
+
+
+Writing tests
+-------------
+
+TBD
