@@ -178,11 +178,9 @@ class Router(override val id: UUID,
             (mmatch.getDstPort & 0xff) == ICMP.CODE_NONE
     }
 
-    override protected def sendIcmpEchoReply(ingressMatch: FlowMatch,
-                                             packet: Ethernet)
-                                   (implicit context: PacketContext): Boolean = {
+    override protected def sendIcmpEchoReply(context: PacketContext): Boolean = {
 
-        val echo = packet.getPayload match {
+        val echo = context.ethernet.getPayload match {
             case ip: IPv4 => ip.getPayload match {
                                 case icmp: ICMP => icmp
                                 case _ => null
@@ -197,11 +195,11 @@ class Router(override val id: UUID,
         reply.setEchoReply(echo.getIdentifier, echo.getSequenceNum, echo.getData)
         val ip = new IPv4()
         ip.setProtocol(ICMP.PROTOCOL_NUMBER)
-        ip.setDestinationAddress(ingressMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr])
-        ip.setSourceAddress(ingressMatch.getNetworkDstIP.asInstanceOf[IPv4Addr])
+        ip.setDestinationAddress(context.wcmatch.getNetworkSrcIP.asInstanceOf[IPv4Addr])
+        ip.setSourceAddress(context.wcmatch.getNetworkDstIP.asInstanceOf[IPv4Addr])
         ip.setPayload(reply)
 
-        sendIPPacket(ip)
+        sendIPPacket(ip, context)
     }
 
     private def getPeerMac(rtrPort: RouterPort): MAC =
@@ -210,8 +208,8 @@ class Router(override val id: UUID,
            case _ => null
         }
 
-    private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr)
-                           (implicit context: PacketContext): MAC = {
+    private def getMacForIP(port: RouterPort, nextHopIP: IPv4Addr,
+                            context: PacketContext): MAC = {
 
         if (port.isInterior) {
             return context.arpBroker.get(nextHopIP, port, this)
@@ -230,8 +228,8 @@ class Router(override val id: UUID,
         }
     }
 
-    override protected def getNextHopMac(outPort: RouterPort, rt: Route, ipDest: IPv4Addr)
-                                        (implicit context: PacketContext): MAC = {
+    override protected def getNextHopMac(outPort: RouterPort, rt: Route,
+                                         ipDest: IPv4Addr, context: PacketContext): MAC = {
         if (outPort == null)
             return null
 
@@ -250,7 +248,7 @@ class Router(override val id: UUID,
                 val nextHopIP =
                     if (nextHopInt == 0 || nextHopInt == -1) ipDest // last hop
                     else IPv4Addr(nextHopInt)
-                getMacForIP(outPort, nextHopIP)
+                getMacForIP(outPort, nextHopIP, context)
             case mac => mac
         }
     }
@@ -277,8 +275,7 @@ class Router(override val id: UUID,
      *        packet for simulation if successful.
      */
     @throws[NotYetException]
-    def sendIPPacket(packet: IPv4)
-                    (implicit context: PacketContext): Boolean = {
+    def sendIPPacket(packet: IPv4, context: PacketContext): Boolean = {
 
         /**
          * Applies some post-chain transformations that might be necessary on
@@ -317,7 +314,7 @@ class Router(override val id: UUID,
                 return false
             }
 
-            getNextHopMac(outPort, rt, packet.getDestinationIPAddress) match {
+            getNextHopMac(outPort, rt, packet.getDestinationIPAddress, context) match {
                 case null =>
                     context.log.warn("Failed to get MAC to emit local packet")
                     false

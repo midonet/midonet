@@ -79,10 +79,12 @@ public class ICMP extends BasePacket {
         return sb.toString();
     }
 
+    public static boolean isError(byte type) {
+        return type != TYPE_ECHO_REQUEST && type != TYPE_ECHO_REPLY;
+    }
+
     public boolean isError() {
-        return TYPE_UNREACH == type || TYPE_SOURCE_QUENCH == type ||
-               TYPE_REDIRECT == type || TYPE_TIME_EXCEEDED == type ||
-               TYPE_PARAMETER_PROBLEM == type;
+        return isError(type);
     }
 
     public byte getType() {
@@ -169,6 +171,10 @@ public class ICMP extends BasePacket {
         checksum = 0;
         quench = (id << 16) | (seq & 0xffff);
         this.data = data;
+    }
+
+    public void setIdentifier(short id) {
+        quench |= id << 16;
     }
 
     public short getIdentifier() {

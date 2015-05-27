@@ -132,7 +132,7 @@ class Bridge(val id: UUID,
         context.log.debug("Current vlan-port map {}", vlanToPort)
 
         // Some basic sanity checks
-        if (Ethernet.isMcast(context.wcmatch.getEthSrc)) {
+        if (context.wcmatch.getEthSrc.mcast) {
             context.log.info("Packet has multi/broadcast source, DROP")
             Drop
         } else {
@@ -189,7 +189,7 @@ class Bridge(val id: UUID,
         val action =
              if (isArpBroadcast())
                  handleARPRequest()
-             else if (Ethernet.isMcast(dstDlAddress))
+             else if (dstDlAddress.mcast)
                  handleL2Multicast()
              else
                  handleL2Unicast() // including ARP replies

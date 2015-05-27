@@ -548,6 +548,8 @@ class PacketWorkflow(
                 context.clearFlowTags()
                 addTranslatedFlow(context, FlowExpiration.ERROR_CONDITION_EXPIRATION)
             case Drop =>
+                if (context.containsFlowState)
+                    applyState(context)
                 addTranslatedFlow(context, FlowExpiration.FLOW_EXPIRATION)
         }
     }

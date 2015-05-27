@@ -109,8 +109,7 @@ class ArpRequestBroker(emitter: PacketEmitter,
      * address.
      */
     @throws(classOf[NotYetException])
-    def get(ip: IPv4Addr, port: RouterPort, router: Router)
-           (implicit pktContext: PacketContext): MAC = {
+    def get(ip: IPv4Addr, port: RouterPort, router: Router): MAC = {
         broker(router).get(ip, port)
     }
 
@@ -264,8 +263,7 @@ class SingleRouterArpRequestBroker(id: UUID,
      * if the MAC is unknownn.
      */
     @throws(classOf[NotYetException])
-    def get(ip: IPv4Addr, port: RouterPort)
-           (implicit pktContext: PacketContext): MAC = {
+    def get(ip: IPv4Addr, port: RouterPort): MAC = {
 
         val cacheEntry = arpCache.get(ip)
 

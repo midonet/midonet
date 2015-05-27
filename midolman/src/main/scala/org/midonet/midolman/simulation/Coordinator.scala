@@ -339,8 +339,8 @@ class Coordinator(context: PacketContext)
     }
 
     private def sendIcmpProhibited(port: RouterPort): Unit = {
-        val ethOpt = unreachableProhibitedIcmp(port, context.wcmatch, context.ethernet)
-        if (ethOpt.nonEmpty) {
+        val ethOpt = unreachableProhibitedIcmp(port, context)
+        if (ethOpt.isDefined) {
             context.addGeneratedPacket(port.id, ethOpt.get)
         }
     }

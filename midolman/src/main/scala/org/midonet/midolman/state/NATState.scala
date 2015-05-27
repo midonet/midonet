@@ -89,6 +89,10 @@ object NatState {
                     val bb = ByteBuffer.wrap(wcMatch.getIcmpData)
                     val ipv4 = new IPv4
                     ipv4.deserializeHeader(bb)
+                    // Invert src and dst because the icmpData contains the
+                    // original msg that the ICMP ERROR replies to.
+                    natKey.networkSrc = ipv4.getDestinationIPAddress
+                    natKey.networkDst = ipv4.getSourceIPAddress
                     natKey.networkProtocol = ipv4.getProtocol
                     if (natKey.networkProtocol == ICMP.PROTOCOL_NUMBER) {
                         // If replying to a prev. ICMP, mapping was done
@@ -99,10 +103,6 @@ object NatState {
                         natKey.transportSrc = port
                         natKey.transportDst = port
                     } else {
-                        // Invert src and dst because the icmpData contains the
-                        // original msg that the ICMP ERROR replies to.
-                        // TCP/UDP deserialize would likely fail since ICMP data
-                        // doesn't contain the full datagram.
                         val packet = bb.slice
                         natKey.transportDst = TCP.getSourcePort(packet)
                         natKey.transportSrc = TCP.getDestinationPort(packet)
@@ -231,7 +231,7 @@ trait NatState extends FlowState { this: PacketContext =>
         log.debug("Found reverse DNAT. Use {} for {}", binding, natKey)
         if (isIcmp) {
             if (natKey.keyType ne REV_STICKY_DNAT)
-                reverseNatOnICMPData(binding, isSnat = false)
+                reverseNatOnICMPData(natKey, binding, isSnat = false)
             else false
         } else {
             wcmatch.setNetworkSrc(binding.networkAddress)
@@ -254,7 +254,7 @@ trait NatState extends FlowState { this: PacketContext =>
     private def reverseSnatTransformation(natKey: NatKey, binding: NatBinding): Boolean = {
         log.debug("Found reverse SNAT. Use {} for {}", binding, natKey)
         if (isIcmp) {
-            reverseNatOnICMPData(binding, isSnat = true)
+            reverseNatOnICMPData(natKey, binding, isSnat = true)
         } else {
             wcmatch.setNetworkDst(binding.networkAddress)
             wcmatch.setDstPort(binding.transportPort)
@@ -319,7 +319,10 @@ trait NatState extends FlowState { this: PacketContext =>
             }
         } else false
 
-    private def reverseNatOnICMPData(binding: NatBinding, isSnat: Boolean): Boolean =
+    private def reverseNatOnICMPData(
+            natKey: NatKey,
+            binding: NatBinding,
+            isSnat: Boolean): Boolean =
         wcmatch.getSrcPort.byteValue() match {
             case ICMP.TYPE_ECHO_REPLY | ICMP.TYPE_ECHO_REQUEST =>
                 if (isSnat)
@@ -336,10 +339,12 @@ trait NatState extends FlowState { this: PacketContext =>
                 header.deserializeHeader(bb)
                 if (isSnat) {
                     header.setSourceAddress(binding.networkAddress)
-                    wcmatch.setNetworkDst(binding.networkAddress)
+                    if (wcmatch.getNetworkDstIP == natKey.networkDst)
+                        wcmatch.setNetworkDst(binding.networkAddress)
                 } else {
                     header.setDestinationAddress(binding.networkAddress)
-                    wcmatch.setNetworkSrc(binding.networkAddress)
+                    if (wcmatch.getNetworkSrcIP == natKey.networkSrc)
+                        wcmatch.setNetworkSrc(binding.networkAddress)
                 }
                 val ipHeadSize = dataSize - bb.remaining
                 val packet = bb.slice

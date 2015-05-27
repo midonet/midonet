@@ -123,6 +123,9 @@ class IPv6Addr(val upperWord: Long, val lowerWord: Long) extends IPAddr
             false
         }
     }
+
+    override def isMcast: Boolean =
+        throw new UnsupportedOperationException
 }
 
 object IPv6Addr {
