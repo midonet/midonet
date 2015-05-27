@@ -1931,6 +1931,8 @@ class BridgePort(ObjectType):
         self.put_attr(AdminStateAttr(name = 'state',
                                  getter = 'get_admin_state_up',
                                  setter = 'admin_state_up'))
+        self.put_attr(ActiveAttr(name = 'plugged',
+                                 getter = 'get_active'))
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
                                  setter = 'inbound_filter_id',
