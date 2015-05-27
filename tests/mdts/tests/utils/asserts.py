@@ -93,33 +93,13 @@ def async_assert_that(*args):
     ifname = iface_concrete._get_ifname()
     nsname = iface_concrete._get_nsname()
 
-    # Don't push past this function until this flag is set
-    # by the interface indicating tcpdump is running
-    iface_concrete._tcpdump_ready_to_run = False
-
     """ Returns future of assert_that(*args)"""
     f = EXECUTOR.submit(assert_that, *args)
 
-    LOG.debug('Scheduled tcpdump on interface %s on ns: %s' %
-              (ifname, nsname))
+    LOG.debug('Scheduled tcpdump on interface %s on ns: %s' % (ifname, nsname))
+    iface_concrete._tcpdump_sem.acquire()
 
-    # Ensure the interface is ready to listen before we continue
-    if '_tcpdump_ready_to_run' in dir(iface_concrete):
-        LOG.debug('waiting on interface %s on ns: %s' %
-                  (ifname, nsname))
-
-        timeout = 30
-
-        while iface_concrete._tcpdump_ready_to_run is False and timeout > 0:
-            time.sleep(1)
-            timeout-=1
-
-        if iface_concrete._tcpdump_ready_to_run is False:
-            raise Exception('interface never was ready to run tcpdump: %s on ns: %s' %
-                            (ifname, nsname))
-
-    LOG.debug('Returning ready on interface %s on ns: %s to send data' %
-              (ifname, nsname))
+    LOG.debug('Assert ready on interface %s on ns %s' % (ifname, nsname))
     return f
 
 def within_sec(sec):

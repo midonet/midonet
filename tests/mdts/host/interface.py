@@ -22,6 +22,8 @@ import shlex
 import string
 import subprocess
 
+from threading import Semaphore
+
 from mdts.lib import subprocess_compat
 
 LOG = logging.getLogger(__name__)
@@ -106,7 +108,7 @@ class Netns(object):
     def __init__(self, interface):
         LOG.debug('interface=%s', interface)
         self._interface = interface
-        self._tcpdump_ready_to_run = False
+        self._tcpdump_sem = Semaphore(value=0)
 
     def _get_ifname(self):
         return self._interface['ifname']
@@ -330,14 +332,16 @@ class Netns(object):
             EXPECT_FRAME_COUNT, pcap_filter_string)
 
         try:
-            cmdline = self._process_cmdline(base_cmdline)
-            LOG.debug('running tcp dump=%s', cmdline)
-            p = subprocess.Popen(cmdline, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE, shell=True)
+            try:
+                cmdline = self._process_cmdline(base_cmdline)
+                LOG.debug('running tcp dump=%s', cmdline)
+                p = subprocess.Popen(cmdline, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, shell=True)
 
-            # We are running tcpdump, set the flag to continue main thread
-            LOG.debug('tcp dump running OK')
-            self._tcpdump_ready_to_run = True
+                # We are running tcpdump, set the flag to continue main thread
+                LOG.debug('tcp dump running OK')
+            finally:
+                self._tcpdump_sem.release()
 
             stdout, stderr = p.communicate()
             retcode = p.poll()
