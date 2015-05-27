@@ -342,11 +342,11 @@ class Netns(object):
             stdout, stderr = p.communicate()
             retcode = p.poll()
 
+            LOG.debug('output=%r', stdout)
+
             # Retcode will return non-zero if the timeout passed and no packet came
             if retcode:
                 raise subprocess.CalledProcessError(retcode, str(("tcpdump", stdout, stderr)))
-
-            LOG.debug('output=%r', stdout)
 
             retval = True
         except subprocess.CalledProcessError as e:
