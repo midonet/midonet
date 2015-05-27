@@ -16,23 +16,16 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.concurrent.Promise
-
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{mock, when}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
 
-class LoadBalancerPoolTranslatorTestBase extends FlatSpec with BeforeAndAfter
-                                                      with Matchers {
-    protected var storage: ReadOnlyStorage = _
+class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase {
     protected var translator: LoadBalancerPoolTranslator = _
 
     protected val poolId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")
@@ -85,26 +78,6 @@ class LoadBalancerPoolTranslatorTestBase extends FlatSpec with BeforeAndAfter
         id { $poolId }
         admin_state_up: true
         """)
-
-    protected def bindLb(id: UUID, lb: LoadBalancer) {
-        val lbExists = lb != null
-        when(storage.exists(classOf[LoadBalancer], id))
-            .thenReturn(Promise.successful(lbExists).future)
-
-        if (lbExists)
-            when(storage.get(classOf[LoadBalancer], id))
-                .thenReturn(Promise.successful(lb).future)
-    }
-
-    protected def bindPool(id: UUID, pool: Pool) {
-        val poolExists = pool != null
-        when(storage.exists(classOf[Pool], id))
-            .thenReturn(Promise.successful(poolExists).future)
-
-        if (poolExists)
-            when(storage.get(classOf[Pool], id))
-                .thenReturn(Promise.successful(pool).future)
-    }
 }
 
 /**
@@ -114,12 +87,12 @@ class LoadBalancerPoolTranslatorTestBase extends FlatSpec with BeforeAndAfter
 class LoadBalancerPoolTranslatorCreateTest
         extends LoadBalancerPoolTranslatorTestBase {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new LoadBalancerPoolTranslator(storage)
     }
 
     "Creation of a Pool" should "create an LB if it does not exists." in {
-        bindLb(lbId, null)
+        bind(lbId, null, classOf[LoadBalancer])
         val midoOps = translator.translate(neutron.Create(poolNoHm))
 
         midoOps should contain inOrderOnly (
@@ -127,7 +100,7 @@ class LoadBalancerPoolTranslatorCreateTest
     }
 
     it should "create just a Pool if an LB already exists." in {
-        bindLb(lbId, lb)
+        bind(lbId, lb)
         val midoOps = translator.translate(neutron.Create(poolNoHm))
 
         midoOps should contain only (midonet.Create(mPoolNoHm))
@@ -135,7 +108,7 @@ class LoadBalancerPoolTranslatorCreateTest
 
     "Creation of a Pool with a Health Monitor ID" should "set the Pool " +
     "Health Monitor Mapping Status to PENDING CREATE." in {
-        bindLb(lbId, lb)
+        bind(lbId, lb)
         val midoOps = translator.translate(neutron.Create(poolWithHm))
 
         midoOps should contain only (midonet.Create(mPoolWithHm))
@@ -143,7 +116,7 @@ class LoadBalancerPoolTranslatorCreateTest
 
     "Creation of a Pool without Router ID specified" should "throw an " +
     "IllegalArgumentException." in {
-        bindLb(lbId, null)
+        bind(lbId, null, classOf[LoadBalancer])
         val te = intercept[TranslationException] {
             translator.translate(neutron.Create(poolNoRouterId))
         }
@@ -164,13 +137,13 @@ class LoadBalancerPoolTranslatorCreateTest
 class LoadBalancerPoolTranslatorUpdateTest
         extends LoadBalancerPoolTranslatorTestBase {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new LoadBalancerPoolTranslator(storage)
     }
 
     "UPDATE of a Pool with a Health Monitor ID" should "add a Health Monitor " +
     "ID to the MidoNet Pool." in {
-        bindPool(poolId, mPoolNoHm)
+        bind(poolId, mPoolNoHm)
         val midoOps = translator.translate(neutron.Update(poolWithHm))
 
         midoOps should contain only midonet.Update(mPoolWithHm)
@@ -178,7 +151,7 @@ class LoadBalancerPoolTranslatorUpdateTest
 
     "UPDATE of a Pool with no Health Monitor ID" should "not add a Health " +
     "Monitor ID to the MidoNet Pool." in {
-        bindPool(poolId, mPoolNoHm)
+        bind(poolId, mPoolNoHm)
         val midoOps = translator.translate(neutron.Update(poolNoHm))
 
         midoOps should contain only midonet.Update(mPoolNoHm)
@@ -191,7 +164,7 @@ class LoadBalancerPoolTranslatorUpdateTest
 
     "Pool UPDATE, setting admin state down" should "produce a corresponding " +
     "UPDATE" in {
-        bindPool(poolId, mPoolWithHm)
+        bind(poolId, mPoolWithHm)
         val midoOps = translator.translate(neutron.Update(poolDown))
 
         midoOps should contain only midonet.Update(mPoolDown)
@@ -201,7 +174,7 @@ class LoadBalancerPoolTranslatorUpdateTest
         val mPoolWithHmPendingUpdate =
             mPoolWithHm.toBuilder().setMappingStatus(
                     Pool.PoolHealthMonitorMappingStatus.PENDING_UPDATE).build()
-        bindPool(poolId, mPoolWithHmPendingUpdate)
+        bind(poolId, mPoolWithHmPendingUpdate)
         val midoOps = translator.translate(neutron.Update(poolDown))
 
         midoOps should contain only midonet.Update(
@@ -212,7 +185,7 @@ class LoadBalancerPoolTranslatorUpdateTest
 
     "Pool UPDATE with Health Monitor ID removed" should "remove the " +
     "corresponding ID in MidoNet Pool" in {
-        bindPool(poolId, mPoolWithHm)
+        bind(poolId, mPoolWithHm)
         val midoOps = translator.translate(neutron.Update(poolNoHm))
 
         midoOps should contain only midonet.Update(mPoolNoHm)
@@ -223,7 +196,7 @@ class LoadBalancerPoolTranslatorUpdateTest
 
     "Pool UPDATE with a different Health Monitor ID" should "throw an " +
     "IllegalArgumentException." in {
-        bindPool(poolId, mPoolWithHm)
+        bind(poolId, mPoolWithHm)
         val te = intercept[TranslationException] {
             translator.translate(neutron.Update(poolWithNewHm))
         }

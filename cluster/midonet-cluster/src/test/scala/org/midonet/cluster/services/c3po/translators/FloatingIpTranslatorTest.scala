@@ -16,18 +16,11 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.concurrent.Promise
-
-import com.google.protobuf.Message
-
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{mock, when}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
 import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronRouter}
@@ -36,11 +29,8 @@ import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 
-class FloatingIpTranslatorTestBase extends FlatSpec with BeforeAndAfter
-                                                    with ChainManager
-                                                    with Matchers
-                                                    with OpMatchers {
-    protected var storage: ReadOnlyStorage = _
+class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
+                                                              with OpMatchers {
     protected var translator: FloatingIpTranslator = _
 
     // Floating IP data setup
@@ -174,24 +164,6 @@ class FloatingIpTranslatorTestBase extends FlatSpec with BeforeAndAfter
         rule_ids { $snatRuleId }
         $outChainDummyRuleIds
         """)
-
-    protected def bindFip(id: UUID, fip: FloatingIp) {
-        when(storage.get(classOf[FloatingIp], id))
-            .thenReturn(Promise.successful(fip).future)
-    }
-
-    protected def bindChain(id: UUID, chain: Chain) {
-        when(storage.get(classOf[Chain], id))
-            .thenReturn(Promise.successful(chain).future)
-    }
-
-    protected def bindRouter(
-            id: UUID, neutronRouter: NeutronRouter, router: Router) {
-        when(storage.get(classOf[Router], id))
-            .thenReturn(Promise.successful(router).future)
-        when(storage.get(classOf[NeutronRouter], id))
-            .thenReturn(Promise.successful(neutronRouter).future)
-    }
 }
 
 /**
@@ -200,22 +172,24 @@ class FloatingIpTranslatorTestBase extends FlatSpec with BeforeAndAfter
 @RunWith(classOf[JUnitRunner])
 class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new FloatingIpTranslator(storage)
 
-        bindChain(fipRouterInChainId, fipRouterInChain)
-        bindChain(fipRouterOutChainId, fipRouterOutChain)
+        bind(fipRouterInChainId, fipRouterInChain)
+        bind(fipRouterOutChainId, fipRouterOutChain)
     }
 
     "Unassociated floating IP" should "not create anything" in {
-        bindRouter(fipRouterId, fipNeutronRouter, fipRouter)
+        bind(fipRouterId, fipNeutronRouter)
+        bind(fipRouterId, fipRouter)
         val midoOps = translator.translate(neutron.Create(unboundFip))
 
         midoOps shouldBe empty
     }
 
     "Associated floating IP" should "create a route to GW" in {
-        bindRouter(fipRouterId, fipNeutronRouter, fipRouter)
+        bind(fipRouterId, fipNeutronRouter)
+        bind(fipRouterId, fipRouter)
         val midoOps = translator.translate(neutron.Create(boundFip))
 
         midoOps should contain inOrderOnly (midonet.Create(gwRoute),
@@ -227,7 +201,8 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
 
     "Tenant router for floating IP" should "throw an exception if it doesn't " +
     "have a gateway port assigned" in {
-        bindRouter(fipRouterId, fipNeutronRouterNoGwPort, fipRouter)
+        bind(fipRouterId, fipNeutronRouterNoGwPort)
+        bind(fipRouterId, fipRouter)
 
         val te = intercept[TranslationException] {
             translator.translate(neutron.Create(boundFip))
@@ -244,15 +219,16 @@ class FloatingIpTranslatorCreateTest extends FloatingIpTranslatorTestBase {
 @RunWith(classOf[JUnitRunner])
 class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new FloatingIpTranslator(storage)
     }
 
     "Associating a floating IP to a port" should "create a gateway route" in {
-        bindFip(fipId, unboundFip)
-        bindRouter(fipRouterId, fipNeutronRouter, fipRouter)
-        bindChain(fipRouterInChainId, fipRouterInChain)
-        bindChain(fipRouterOutChainId, fipRouterOutChain)
+        bind(fipId, unboundFip)
+        bind(fipRouterId, fipNeutronRouter)
+        bind(fipRouterId, fipRouter)
+        bind(fipRouterInChainId, fipRouterInChain)
+        bind(fipRouterOutChainId, fipRouterOutChain)
         val midoOps = translator.translate(neutron.Update(boundFip))
 
         midoOps should contain inOrderOnly (midonet.Create(gwRoute),
@@ -264,8 +240,9 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 
     "Associating a floating IP to a port" should "throw an exception if the " +
     "tenant router doesn't have a gateway port configured" in {
-        bindFip(fipId, unboundFip)
-        bindRouter(fipRouterId, fipNeutronRouterNoGwPort, fipRouter)
+        bind(fipId, unboundFip)
+        bind(fipRouterId, fipNeutronRouterNoGwPort)
+        bind(fipRouterId, fipRouter)
         val te = intercept[TranslationException] {
                 translator.translate(neutron.Update(boundFip))
         }
@@ -281,10 +258,11 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     "Removing a floating IP from a port" should "delete a GW route and " +
     "SNAT/DNAT rules, and remove the IDs fo those rules from the inbound / " +
     "outbound chains of the tenant router" in {
-        bindFip(fipId, boundFip)
-        bindRouter(fipRouterId, fipNeutronRouter, fipRouter)
-        bindChain(fipRouterInChainId, inChainWithDnat)
-        bindChain(fipRouterOutChainId, outChainWithSnat)
+        bind(fipId, boundFip)
+        bind(fipRouterId, fipNeutronRouter)
+        bind(fipRouterId, fipRouter)
+        bind(fipRouterInChainId, inChainWithDnat)
+        bind(fipRouterOutChainId, outChainWithSnat)
         val midoOps = translator.translate(neutron.Update(unboundFip))
 
         midoOps should contain only (midonet.Delete(classOf[Route],
@@ -299,8 +277,9 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 
     "UpdateOp that keeps the floating IP associated on the same router" should
     "keep the gateway route as is" in {
-        bindFip(fipId, boundFip)
-        bindRouter(fipRouterId, fipNeutronRouter, fipRouter)
+        bind(fipId, boundFip)
+        bind(fipRouterId, fipNeutronRouter)
+        bind(fipRouterId, fipRouter)
         val midoOps = translator.translate(neutron.Update(boundFip))
 
         midoOps shouldBe empty
@@ -351,12 +330,13 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 
     "UpdateOp that moves the floating IP to a different router" should
     "delete the old NAT rules and create new ones on the new router" in {
-        bindFip(fipId, boundFip)
-        bindRouter(fipRouter2Id, fipNeutronRouter2, fipRouter2)
-        bindChain(fipRouterInChainId, inChainWithDnat)
-        bindChain(fipRouterOutChainId, outChainWithSnat)
-        bindChain(fipRouter2InChainId, fipRouter2InChain)
-        bindChain(fipRouter2OutChainId, fipRouter2OutChain)
+        bind(fipId, boundFip)
+        bind(fipRouter2Id, fipNeutronRouter2)
+        bind(fipRouter2Id, fipRouter2)
+        bind(fipRouterInChainId, inChainWithDnat)
+        bind(fipRouterOutChainId, outChainWithSnat)
+        bind(fipRouter2InChainId, fipRouter2InChain)
+        bind(fipRouter2OutChainId, fipRouter2OutChain)
         val midoOps = translator.translate(neutron.Update(movedFip))
 
         midoOps should contain inOrderOnly (
@@ -374,12 +354,12 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
 @RunWith(classOf[JUnitRunner])
 class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new FloatingIpTranslator(storage)
     }
 
     "Deleting an unassociated floating IP" should "not create anything" in {
-        bindFip(fipId, unboundFip)
+        bind(fipId, unboundFip)
         val midoOps = translator.translate(neutron.Delete(classOf[FloatingIp],
                                                           fipId))
 
@@ -389,9 +369,9 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
     "Deleting an associated floating IP" should "delete a GW route and " +
     "SNAT/DNAT rules, and remove the IDs fo those rules from the inbound / " +
     "outbound chains of the tenant router" in {
-        bindFip(fipId, boundFip)
-        bindChain(fipRouterInChainId, inChainWithDnat)
-        bindChain(fipRouterOutChainId, outChainWithSnat)
+        bind(fipId, boundFip)
+        bind(fipRouterInChainId, inChainWithDnat)
+        bind(fipRouterOutChainId, outChainWithSnat)
         val midoOps = translator.translate(neutron.Delete(classOf[FloatingIp],
                                                           fipId))
 
