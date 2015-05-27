@@ -29,8 +29,11 @@ import org.scalatest._
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.backend.cassandra.CassandraClient
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.cluster.util.CuratorTestFramework
+
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
@@ -41,6 +44,7 @@ class FlowStateStorageTest extends FeatureSpec
                             with ShouldMatchers
                             with OneInstancePerTest
                             with GivenWhenThen
+                            with CuratorTestFramework
                             with MidonetEventually {
 
     implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
@@ -65,11 +69,19 @@ class FlowStateStorageTest extends FeatureSpec
     var storage: FlowStateStorage = _
 
     before {
+        val confValues = s"""
+          |zookeeper.zookeeper_hosts = "${zk.getConnectString}"
+          |cassandra.servers = "127.0.0.1:9142"
+        """.stripMargin
+        val config = MidolmanConfig.forTests(confValues)
+
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
+
         Thread.sleep(15000L)
-        cass = new CassandraClient("127.0.0.1:9142", "TestCluster",
-                                   "MidonetFlowState", 1,
-                                   FlowStateStorage.SCHEMA)
+        cass = new CassandraClient(config.zookeeper, config.cassandra,
+                                   "MidonetFlowState",
+                                   FlowStateStorage.SCHEMA,
+                                   FlowStateStorage.SCHEMA_TABLE_NAMES)
         val sessionF = cass.connect()
         Await.result(sessionF, 10 seconds)
         storage = FlowStateStorage(sessionF)
