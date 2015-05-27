@@ -19,16 +19,18 @@ package org.midonet.cluster.services.conf
 import java.util.UUID
 import javax.servlet._
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
+import java.util.EnumSet
 
 import com.google.inject.Inject
 import com.typesafe.config._
 import org.apache.curator.framework.CuratorFramework
-import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.server.nio.BlockingChannelConnector
 import org.eclipse.jetty.servlet.{FilterHolder, FilterMapping, ServletContextHandler, ServletHolder}
 import org.midonet.cluster.auth.{AuthService, AuthFilter, AuthRole, UserIdentity}
 import org.midonet.cluster.rest_api.ResponseUtils
 import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
+import org.midonet.cluster.services.rest_api.CorsFilter
 import org.midonet.conf.MidoNodeConfigurator
 import org.slf4j.LoggerFactory
 
@@ -59,6 +61,7 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: ClusterConf
         val context = new ServletContextHandler()
         context.setContextPath("/conf")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
+        context.addFilter(classOf[CorsFilter], "/*", EnumSet.allOf(classOf[DispatcherType]))
         server.setHandler(context)
         addServletsFor(configurator, context)
         server.start()
