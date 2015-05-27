@@ -22,6 +22,30 @@
       "revId": "f0ea2e6e029bb08ecf5db9caef7e8995c20693e3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e479b294",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortBindingTranslatorTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-27T10:22:31Z",
+      "side": 1,
+      "message": "You\u0027re right, I guess. I wasn\u0027t sure about the way null is pattern-matched.",
+      "parentUuid": "facab960_618674bb",
+      "range": {
+        "startLine": 150,
+        "startChar": 12,
+        "endLine": 150,
+        "endChar": 64
+      },
+      "revId": "f0ea2e6e029bb08ecf5db9caef7e8995c20693e3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
