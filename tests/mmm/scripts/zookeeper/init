@@ -38,17 +38,6 @@ for n in 1 2 3; do
         fi
     fi
 
-    if test ! -d /var/lib/zookeeper.$n; then
-        mkdir -p /var/lib/zookeeper.$n
-    fi
-    if test -d /var/lib/zookeeper.$n/data; then
-        rm -rf /var/lib/zookeeper.$n/*
-    fi
-    mkdir -p /var/lib/zookeeper.$n/data
-    echo "$n" >/var/lib/zookeeper.$n/data/myid
-    echo "$n" >/var/lib/zookeeper.$n/myid # for Trusty
-    chown -R zookeeper.zookeeper /var/lib/zookeeper.$n
-
     if test ! -d /var/log/zookeeper.$n; then
         mkdir -p /var/log/zookeeper.$n
     fi
