@@ -17,6 +17,8 @@ from mdts.lib.topology_manager import TopologyManager
 import logging
 import sys
 
+from time import sleep
+
 LOG = logging.getLogger(__name__)
 
 class BindingManager(TopologyManager):
@@ -66,6 +68,7 @@ class BindingManager(TopologyManager):
             self._api.get_host(mn_host_id).add_host_interface_port()\
                                        .port_id(mn_vport_id)\
                                        .interface_name(iface_name).create()
+            self.await_port_active(mn_vport_id)
 
     def unbind(self):
 
@@ -93,3 +96,11 @@ class BindingManager(TopologyManager):
 
     def get_iface(self, host_id, iface_id):
         return self._ptm.get_interface(host_id, iface_id)
+
+    def await_port_active(self, vport_id):
+        timeout = 60
+        while not self._api.get_port(vport_id).get_active():
+            sleep(1)
+            timeout -= 1
+            if timeout == 0:
+                raise Exception("Port did not become active.")
