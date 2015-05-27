@@ -18,13 +18,12 @@ package org.midonet.cluster.services.c3po.translators
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{FlatSpec, Matchers}
 
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
 
-class HealthMonitorTranslatorTestBase extends FlatSpec with Matchers {
+class HealthMonitorTranslatorTestBase extends TranslatorTestBase {
     protected val translator = new HealthMonitorTranslator()
 
     protected val hmId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")

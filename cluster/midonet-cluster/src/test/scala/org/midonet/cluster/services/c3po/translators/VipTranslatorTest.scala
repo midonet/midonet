@@ -16,14 +16,9 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.concurrent.Promise
-
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{mock, when}
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Topology.Pool
@@ -31,9 +26,7 @@ import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil
 
-class VipTranslatorTestBase extends FlatSpec with BeforeAndAfter
-                                             with Matchers {
-    protected var storage: ReadOnlyStorage = _
+class VipTranslatorTestBase extends TranslatorTestBase {
     protected var translator: VipTranslator = _
 
     protected val vipId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")
@@ -83,16 +76,6 @@ class VipTranslatorTestBase extends FlatSpec with BeforeAndAfter
         if (loadBalancerId != null) poolBldr.setLoadBalancerId(loadBalancerId)
         poolBldr.build
     }
-
-    protected def bindPool(id: UUID, pool: Pool) {
-        val poolExists = pool != null
-        when(storage.exists(classOf[Pool], id))
-            .thenReturn(Promise.successful(poolExists).future)
-
-        if (poolExists)
-            when(storage.get(classOf[Pool], id))
-                .thenReturn(Promise.successful(pool).future)
-    }
 }
 
 /**
@@ -101,7 +84,7 @@ class VipTranslatorTestBase extends FlatSpec with BeforeAndAfter
 @RunWith(classOf[JUnitRunner])
 class VipTranslatorCreateTest extends VipTranslatorTestBase {
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new VipTranslator(storage)
     }
 
@@ -122,7 +105,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
 
     "Neutron VIP CREATE with a Pool ID" should "associate the Mido VIP with " +
     "the corresponding Load Balancer." in {
-        bindPool(poolId, midoPool(poolId, lbId))
+        bind(poolId, midoPool(poolId, lbId))
         val midoOps = translator.translate(
                 neutron.Create(neutronVip(poolId = poolId)))
 
