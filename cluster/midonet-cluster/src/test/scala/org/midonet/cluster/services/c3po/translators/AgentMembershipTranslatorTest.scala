@@ -19,12 +19,10 @@ package org.midonet.cluster.services.c3po.translators
 import scala.concurrent.Promise
 
 import org.junit.runner.RunWith
-import org.mockito.Mockito.{mock, when}
+import org.mockito.Mockito.when
 import org.scalatest.junit.JUnitRunner
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.{AgentMembership, NeutronConfig}
 import org.midonet.cluster.models.Topology.TunnelZone
@@ -35,13 +33,11 @@ import org.midonet.cluster.util.UUIDUtil.randomUuidProto
  * Tests Tunnel Zone Host Translator.
  */
 @RunWith(classOf[JUnitRunner])
-class AgentMembershipTranslatorTest extends FlatSpec with BeforeAndAfter
-                                                     with Matchers {
-    protected var storage: ReadOnlyStorage = _
+class AgentMembershipTranslatorTest extends TranslatorTestBase {
     protected var translator: AgentMembershipTranslator = _
 
     before {
-        storage = mock(classOf[ReadOnlyStorage])
+        initMockStorage()
         translator = new AgentMembershipTranslator(storage)
         when(storage.getAll(classOf[NeutronConfig]))
             .thenReturn(Promise.successful(Seq(nConfig)).future)
@@ -81,8 +77,7 @@ class AgentMembershipTranslatorTest extends FlatSpec with BeforeAndAfter
 
     "TunnelZoneHost Create" should "Update the corresponding TunnelZone " +
     "with a corresponding host-IP address mapping." in {
-        when(storage.get(classOf[TunnelZone], tunnelZoneId))
-            .thenReturn(Promise.successful(mTunnelZone).future)
+        bind(tunnelZoneId, mTunnelZone)
         val midoOps = translator.translate(neutron.Create(nAgentMembership))
 
         midoOps should contain (midonet.Update(mTunnelZoneWithHost))
@@ -122,10 +117,8 @@ class AgentMembershipTranslatorTest extends FlatSpec with BeforeAndAfter
 
     "TunnelZoneHost Delete" should "Update the corresponding TunnelZone " +
     "with a corresponding host-IP address mapping removed." in {
-        when(storage.get(classOf[AgentMembership], hostId))
-            .thenReturn(Promise.successful(nAgentMembershipToDelete).future)
-        when(storage.get(classOf[TunnelZone], tunnelZoneId))
-            .thenReturn(Promise.successful(mTunnelZoneWith2Hosts).future)
+        bind(hostId, nAgentMembershipToDelete)
+        bind(tunnelZoneId, mTunnelZoneWith2Hosts)
 
         val midoOps = translator.translate(
                 neutron.Delete(classOf[AgentMembership], hostId))
