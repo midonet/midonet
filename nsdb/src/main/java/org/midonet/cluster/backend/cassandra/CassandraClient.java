@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,24 @@
 
 package org.midonet.cluster.backend.cassandra;
 
+import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 import com.datastax.driver.core.*;
 import com.datastax.driver.core.policies.*;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.recipes.locks.InterProcessMutex;
+import org.apache.curator.retry.RetryNTimes;
+import org.midonet.cluster.storage.CassandraConfig;
+import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.util.eventloop.Reactor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +45,7 @@ public class CassandraClient {
 
     private Session session = null;
 
+    private final MidonetBackendConfig backendConf;
     private final String[] servers;
     private final String serversStr;
     private final String clusterName;
@@ -41,20 +54,33 @@ public class CassandraClient {
     private final int port;
     private final int replicationFactor;
     private String[] schema;
+    private String[] schemaTableNames;
 
     private final static Map<String, Cluster> CLUSTERS = new HashMap<>();
     private final static Map<String, Map<String, Session>> SESSIONS = new HashMap<>();
 
-    public CassandraClient(String servers, String clusterName,
-                           String keyspaceName, int replicationFactor,
-                           String[] schema, Reactor reactor) {
-        this.serversStr = servers;
-        this.clusterName = clusterName;
+    public CassandraClient(MidonetBackendConfig backendConf,
+                           CassandraConfig cassandraConf,
+                           String keyspaceName,
+                           String[] schema, String[] schemaTableNames,
+                           Reactor reactor) {
+        this.serversStr = cassandraConf.servers();
+        this.clusterName = cassandraConf.cluster();
         this.keyspaceName = keyspaceName;
         this.reactor = reactor;
-        this.servers  = servers.split(",");
+        this.servers  = serversStr.split(",");
         this.schema = schema;
-        this.replicationFactor = replicationFactor;
+        this.schemaTableNames = schemaTableNames;
+        this.backendConf = backendConf;
+
+        if (schema != null &&
+            schema.length != schemaTableNames.length) {
+            throw new IllegalArgumentException(
+                    "Schema array length and schema table " +
+                    "name array length must match");
+        }
+
+        this.replicationFactor = cassandraConf.replication_factor();
         int p = 9042;
         for (int i = this.servers.length-1; i >= 0; i--) {
             String[] parts = this.servers[i].split(":");
@@ -81,6 +107,53 @@ public class CassandraClient {
             " WITH REPLICATION = { 'class' : 'SimpleStrategy', " +
                                   "'replication_factor' : " + replicationFactor + "};";
         this.session.execute(q);
+        this.session.execute("USE " + keyspaceName + ";");
+    }
+
+    private boolean schemaExists() {
+        this.session.execute("USE system;");
+        String q = "SELECT columnfamily_name "
+            + "FROM system.schema_columnfamilies where keyspace_name = '"
+            + keyspaceName + "';";
+        ResultSet tables = this.session.execute(q);
+        Set<String> existingTables = new HashSet<String>();
+        Iterator<Row> iter = tables.iterator();
+        while (iter.hasNext()) {
+            existingTables.add(iter.next().getString(0));
+        }
+        return existingTables.containsAll(Arrays.asList(schemaTableNames));
+    }
+
+    private void maybeCreateSchema() throws Exception {
+        if (!schemaExists()) {
+            CuratorFramework curator = CuratorFrameworkFactory.builder()
+                .connectString(backendConf.hosts())
+                .connectionTimeoutMs(5*1000) // 10 second
+                .sessionTimeoutMs(5*1000) // 5 second
+                .retryPolicy(new RetryNTimes(5, 1000)) // 5 times, 1sec interval
+                .build();
+            InterProcessMutex lock = new InterProcessMutex(curator,
+                    "/midonet/cassandraSchemaLock");
+            try {
+                curator.start();
+                lock.acquire();
+                if (!schemaExists()) {
+                    createAndUseKeyspace();
+                    if (this.schema != null) {
+                        List<ResultSetFuture> futures = new ArrayList<>();
+                        for (int i=0; i<schema.length; i++) {
+                            futures.add(this.session.executeAsync(schema[i]));
+                        }
+                        for (ResultSetFuture f : futures) {
+                            f.get(30, TimeUnit.SECONDS);
+                        }
+                    }
+                }
+            } finally {
+                lock.release();
+                curator.close();
+            }
+        }
         this.session.execute("USE " + keyspaceName + ";");
     }
 
@@ -118,11 +191,7 @@ public class CassandraClient {
 
             if (this.session == null) {
                 this.session = cluster.connect();
-                createAndUseKeyspace();
-                if (this.schema != null) {
-                    for (int i=0; i<schema.length; i++)
-                        this.session.execute(schema[i]);
-                }
+                maybeCreateSchema();
                 sessions.put(keyspaceName, this.session);
                 log.info("Connection to Cassandra key space {} ESTABLISHED", keyspaceName);
             }

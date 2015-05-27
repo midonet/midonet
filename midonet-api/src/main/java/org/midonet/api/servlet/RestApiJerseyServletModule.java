@@ -21,6 +21,8 @@ import java.util.UUID;
 
 import javax.servlet.ServletContext;
 
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.sun.jersey.api.container.filter.LoggingFilter;
 import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
 import com.sun.jersey.api.core.ResourceConfig;

@@ -81,6 +81,7 @@ dependencies {
             libraries.typesafeconf,
             libraries.zookeeper
 
+    testCompile project(path: ':nsdb', configuration: 'tests')
     testCompile libraries.curator_test,
                 libraries.hamcrest_lib,
                 libraries.httpclient,
