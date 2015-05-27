@@ -49,7 +49,9 @@ public class FlowStateStorageModule extends PrivateModule {
             CassandraClient cass = new CassandraClient(
                     config.getCassandraServers(), config.getCassandraCluster(),
                     "MidonetFlowState", config.getCassandraReplicationFactor(),
-                    FlowStateStorage$.MODULE$.SCHEMA());
+                    FlowStateStorage$.MODULE$.SCHEMA(),
+                    FlowStateStorage$.MODULE$.SCHEMA_TABLE_NAMES(),
+                    config.getZkHosts());
             return new FlowStateStorageFactoryImpl(cass.connect());
         }
     }

@@ -20,7 +20,7 @@ import java.util.concurrent.TimeUnit
 import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
-import org.scalatest.{Suite, BeforeAndAfterAll, BeforeAndAfter}
+import org.scalatest.{BeforeAndAfterEach, BeforeAndAfterAll, Suite}
 
 import scala.collection.concurrent.TrieMap
 
@@ -42,7 +42,7 @@ import scala.collection.concurrent.TrieMap
  * to an inconsistency in the way scalatest's BeforeAndAfter and
  * BeforeAndAfterAll traits work.
  */
-trait CuratorTestFramework extends BeforeAndAfter
+trait CuratorTestFramework extends BeforeAndAfterEach
                            with BeforeAndAfterAll { this: Suite =>
     import CuratorTestFramework.testServers
 
@@ -73,7 +73,7 @@ trait CuratorTestFramework extends BeforeAndAfter
                                                     retryPolicy)
     }
 
-    before {
+    override def beforeEach() {
         setUpCurator()
         curator.start()
         if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS))
@@ -85,7 +85,7 @@ trait CuratorTestFramework extends BeforeAndAfter
         setup()
     }
 
-    after {
+    override def afterEach() {
         clearZookeeper()
         curator.close()
         teardown()

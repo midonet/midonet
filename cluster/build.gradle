@@ -54,3 +54,16 @@ cobertura {
 
     coverageExcludes = ['.*org.midonet.cluster.models.*']
 }
+
+configurations {
+    tests.extendsFrom (testCompile)
+}
+
+task jarTest (type: Jar, dependsOn: testClasses) {
+    from sourceSets.test.output
+    classifier = 'test'
+}
+
+artifacts {
+    tests jarTest
+}
