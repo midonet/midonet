@@ -1463,6 +1463,7 @@ public class LocalDataClientImpl implements DataClient {
         Port<?,?> port = null;
         if (portZkManager.exists(id)) {
             port = Converter.fromPortConfig(portZkManager.get(id));
+            port.setActive(portZkManager.isActivePort(id));
             port.setId(id);
         }
 

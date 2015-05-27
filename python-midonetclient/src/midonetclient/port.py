@@ -36,6 +36,9 @@ class Port(resource_base.ResourceBase,
     def get_type(self):
         return self.dto['type']
 
+    def get_active(self):
+        return self.dto['active']
+
     def get_device_id(self):
         return self.dto['deviceId']
 
