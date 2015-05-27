@@ -23,7 +23,7 @@ import org.apache.curator.RetryPolicy
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.RetryNTimes
 import org.apache.curator.test.TestingServer
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Suite}
+import org.scalatest.{BeforeAndAfterEach, BeforeAndAfterAll, Suite}
 
 /**
  * Provides boilerplate for:
@@ -43,7 +43,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, Suite}
  * to an inconsistency in the way scalatest's BeforeAndAfter and
  * BeforeAndAfterAll traits work.
  */
-trait CuratorTestFramework extends BeforeAndAfter
+trait CuratorTestFramework extends BeforeAndAfterEach
                            with BeforeAndAfterAll { this: Suite =>
     import org.midonet.cluster.util.CuratorTestFramework.testServers
 
@@ -79,7 +79,7 @@ trait CuratorTestFramework extends BeforeAndAfter
                                                     retryPolicy)
     }
 
-    before {
+    override def beforeEach() {
         setUpCurator()
         curator.start()
         if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS))
@@ -91,7 +91,7 @@ trait CuratorTestFramework extends BeforeAndAfter
         setup()
     }
 
-    after {
+    override def afterEach() {
         clearZookeeper()
         curator.close()
         teardown()

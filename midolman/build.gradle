@@ -61,6 +61,8 @@ dependencies {
             libraries.disruptor,
             "com.fasterxml.jackson.core:jackson-databind:2.3.0"
 
+    testCompile project(path: ':nsdb', configuration: 'tests')
+
     testCompile libraries.akkatest, libraries.scalatest,
                 libraries.jsonpath_assert, libraries.cassandraunit,
                 libraries.curator_test, libraries.mockit,
