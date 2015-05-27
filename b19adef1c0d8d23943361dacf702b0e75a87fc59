@@ -80,6 +80,30 @@
       "revId": "b19adef1c0d8d23943361dacf702b0e75a87fc59",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a1179cec",
+        "filename": "midonet-api/src/test/java/org/midonet/api/network/TestBridge.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-05-27T06:54:12Z",
+      "side": 1,
+      "message": "The caveat is that we will lose the ability to do this:\n\nClientResponse res \u003d resource.get(uri).get(ClientResponse.class);\nRouter resStr \u003d res.getEntity(Router.class);\n\nAnd sending an input to do create/update will be more painful as we\u0027d need to create a JSONObject instead, but I don\u0027t mind it since you would actually be sending JSON when calling our API externally (without our \u0027client\u0027 DTOs)",
+      "parentUuid": "facab960_c12ca04d",
+      "range": {
+        "startLine": 102,
+        "startChar": 0,
+        "endLine": 116,
+        "endChar": 21
+      },
+      "revId": "b19adef1c0d8d23943361dacf702b0e75a87fc59",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
