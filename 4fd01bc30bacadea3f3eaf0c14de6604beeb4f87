@@ -109,6 +109,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_6fbc8f6a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-28T08:01:43Z",
+      "side": 1,
+      "message": "Sorry for bothering but I should have passed subjects to the request methods.\n\n        linksList(linkListSubject)\n        ...\n        addrsList(addrListSubject)\n\nAnd I found I could just use RichObserver.\n\n        val linksSubject \u003d PublishSubject.create[Set[Link]]\n        val addrsSubject \u003d PublishSubject.create[Set[Addr]]\n\n        val obs \u003d TestObserver { _: Boolean \u003d\u003e promise.trySuccess(OK) }\n        Observable.zip[Set[Link], Set[Addr], Boolean](\n            linksSubject, addrsSubject, makeFunc2((links, addrs) \u003d\u003e true))\n            .subscribe(obs)\n\n        conn.linksList(linksSubject)\n        val linksListRequestObserver \u003d new RichObservable(linksSubject).asFuture\n        while (!linksListRequestObserver.isCompleted) {\n            try {\n                conn.requestBroker.readReply()\n            } catch {\n                case t: Throwable \u003d\u003e\n                    log.error(\"Error happened on reading rtnetlink messages\", t)\n            }\n        }\n        conn.addrsList(addrsSubject)\n        val addrsListRequestObserver \u003d new RichObservable(addrsSubject).asFuture\n        while (!addrsListRequestObserver.isCompleted) {\n            try {\n                conn.requestBroker.readReply()\n            } catch {\n                case t: Throwable \u003d\u003e\n                    log.error(\"Error happened on reading rtnetlink messages\", t)\n            }\n        }",
+      "parentUuid": "facab960_2fc287e9",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7004927e",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
         "patchSetId": 17
