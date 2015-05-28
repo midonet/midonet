@@ -91,6 +91,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_2fc287e9",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-28T07:31:59Z",
+      "side": 1,
+      "message": "Ah, maybe we can do like the following although it looks awkward.\n\n        val linkListSubject \u003d PublishSubject.create[Set[Link]]\n        val addrListSubject \u003d PublishSubject.create[Set[Addr]]\n\n        Observable.zip[Set[Link], Set[Addr], Set[InterfaceDescription]](\n            linkListSubject, addrListSubject, makeFunc2((links, addrs) \u003d\u003e {\n                log.debug(\n                    \"Composing the initial state from the retrieved data\")\n                composeIfDesc(links, addrs)\n                log.debug(\"Composed the initial interface descriptions: \",\n                    interfaceDescriptions)\n                filteredIfDescSet\n            })).subscribe(initialScan)\n\n        val linkListRequestObserver \u003d\n            new RequestObserver[Set[Link]] with AwaitableObserver[Set[Link]]\n        linkListSubject.subscribe(linkListRequestObserver)\n        linksList(linkListRequestObserver)\n        while (!linkListRequestObserver.isCompleted) {\n            try {\n                requestBroker.readReply()\n            } catch {\n                case t: Throwable \u003d\u003e\n                    log.error(\"Error happened on reading rtnetlink messages\", t)\n            }\n        }\n        val addrListRequestObserver \u003d\n            new RequestObserver[Set[Addr]] with AwaitableObserver[Set[Addr]]\n        addrListSubject.subscribe(addrListRequestObserver)\n        addrsList(addrListRequestObserver)\n        while (!addrListRequestObserver.isCompleted) {\n            try {\n                requestBroker.readReply()\n            } catch {\n                case t: Throwable \u003d\u003e\n                    log.error(\"Error happened on reading rtnetlink messages\", t)\n            }\n        }\n        log.debug(\"InterfaceScanner has successfully started\")\n    }",
+      "parentUuid": "facab960_af8697b7",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7004927e",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
         "patchSetId": 17
