@@ -27,6 +27,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.FixedRecvByteBufAllocator;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -40,24 +41,33 @@ public class ServerFrontEnd extends AbstractService {
 
     private final boolean datagram;
     private final int port;
+    private final Integer rcvbufSize;
     private final EventLoopGroup boss;
     private final EventLoopGroup wrkr = new NioEventLoopGroup();
     private ChannelFuture sock;
 
     private final ChannelInboundHandlerAdapter adapter;
 
-    public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter, int port) {
-        return new ServerFrontEnd(adapter, port, true);
+    public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter,
+                                     int port) {
+        return new ServerFrontEnd(adapter, port, true, null);
+    }
+    public static ServerFrontEnd udp(ChannelInboundHandlerAdapter adapter,
+                                     int port, Integer rcvbufSize) {
+        return new ServerFrontEnd(adapter, port, true, rcvbufSize);
     }
 
-    public static ServerFrontEnd tcp(ChannelInboundHandlerAdapter adapter, int port) {
-        return new ServerFrontEnd(adapter, port, false);
+    public static ServerFrontEnd tcp(ChannelInboundHandlerAdapter adapter,
+                                     int port) {
+        return new ServerFrontEnd(adapter, port, false, null);
     }
 
-    private ServerFrontEnd(ChannelInboundHandlerAdapter adapter, int port, boolean datagram) {
+    private ServerFrontEnd(ChannelInboundHandlerAdapter adapter, int port,
+                           boolean datagram, Integer rcvbufSize) {
         this.adapter = adapter;
         this.port = port;
         this.datagram = datagram;
+        this.rcvbufSize = rcvbufSize;
         if(datagram) {
             boss = null;
         } else {
@@ -75,6 +85,10 @@ public class ServerFrontEnd extends AbstractService {
                 boot.group(wrkr)
                     .channel(NioDatagramChannel.class)
                     .handler(adapter);
+                if (rcvbufSize != null)
+                    boot.option(ChannelOption.SO_RCVBUF, rcvbufSize)
+                        .option(ChannelOption.RCVBUF_ALLOCATOR,
+                                new FixedRecvByteBufAllocator(rcvbufSize));
                 sock = boot.bind(port).sync();
             } else {
                 log.info("Starting Netty TCP server on port {}", port);
