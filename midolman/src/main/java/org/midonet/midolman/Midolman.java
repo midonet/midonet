@@ -15,22 +15,19 @@
  */
 package org.midonet.midolman;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.TimeUnit;
 
 import com.google.common.util.concurrent.Service;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.sun.jna.LastErrorException;
-import com.sun.jna.Native;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigRenderOptions;
 import org.apache.commons.cli.CommandLine;
@@ -64,6 +61,8 @@ import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.cLibrary;
+import scala.concurrent.Promise;
+import scala.concurrent.Promise$;
 
 public class Midolman {
 
@@ -110,8 +109,39 @@ public class Midolman {
         System.exit(MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE);
     }
 
+    public static void dumpStacks() {
+        Map<Thread, StackTraceElement[]> traces = Thread.getAllStackTraces();
+        for (Thread thread: traces.keySet()) {
+            System.err.print("\"" + thread.getName() + "\" ");
+            if (thread.isDaemon())
+                System.err.print("daemon ");
+            System.err.print(String.format("prio=%x tid=%x %s [%x]\n",
+                thread.getPriority(), thread.getId(),
+                thread.getState(), System.identityHashCode(thread)));
+
+            StackTraceElement[] trace = traces.get(thread);
+            for (StackTraceElement e: trace) {
+                System.err.println("        at " + e.toString());
+            }
+        }
+    }
+
+    private void setUncaughtExceptionHandler() {
+        Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread t, Throwable e) {
+                log.error("Uncaught exception: ", e);
+                dumpStacks();
+                System.exit(-1);
+            }
+        });
+    }
+
     private void run(String[] args) throws Exception {
-        watchedProcess.start();
+        Promise<Boolean> initializationPromise = Promise$.MODULE$.apply();
+        setUncaughtExceptionHandler();
+        watchedProcess.start(initializationPromise);
+
         // log git commit info
         Properties properties = new Properties();
         properties.load(
@@ -201,8 +231,7 @@ public class Midolman {
 
         // fire the initialize message to an actor
         injector.getInstance(MidolmanActorsService.class).initProcessing();
-
-        log.info("{} was initialized", MidolmanActorsService.class);
+        log.info("Actors service was initialized");
 
         log.info("Running manual GC to tenure preallocated objects");
         System.gc();
@@ -210,6 +239,7 @@ public class Midolman {
         if (config.lockMemory())
             lockMemory();
 
+        initializationPromise.success(true);
         log.info("main finish");
         serviceEvent.start();
     }
@@ -255,12 +285,12 @@ public class Midolman {
     }
 
     public static void main(String[] args) {
-
         try {
             Midolman midolman = getInstance();
             midolman.run(args);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             log.error("main caught", e);
+            dumpStacks();
             serviceEvent.exit();
             System.exit(-1);
         }
