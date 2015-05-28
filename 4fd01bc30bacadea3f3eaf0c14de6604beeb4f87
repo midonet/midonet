@@ -127,6 +127,42 @@
     },
     {
       "key": {
+        "uuid": "facab960_3264aeb8",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-28T09:41:22Z",
+      "side": 1,
+      "message": "calling toFuture is probably not a good idea since it completes the future on the first call to onNext and since you are dumping, you\u0027ll be expecting multiple onNext calls. so that doesn\u0027t work.\n\nit\u0027s not clear to me what exactly the problem is with the AwaitableObserver. if you want, i\u0027m okay with you using this CompletableClass. just make sure to add a try catch around the call to observer.onCompleted so we call onError and to set completed to true on onError, and also hold on to the exception so we can report errors.",
+      "parentUuid": "facab960_6fbc8f6a",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9272da7a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-05-28T09:41:22Z",
+      "side": 1,
+      "message": "I don\u0027t understand the nested observers problem. It\u0027s all synchronous, so the contents of the bytebuffer are unchanged.",
+      "parentUuid": "facab960_8f6d5335",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7004927e",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
         "patchSetId": 17
