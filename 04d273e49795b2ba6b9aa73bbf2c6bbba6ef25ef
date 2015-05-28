@@ -478,6 +478,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_4f134b66",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-05-28T08:26:56Z",
+      "side": 1,
+      "message": "so, if there are other possible values, my question remains, why are we discarding the value of the attribute?",
+      "parentUuid": "facab960_cf903b98",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_af48572e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 16
