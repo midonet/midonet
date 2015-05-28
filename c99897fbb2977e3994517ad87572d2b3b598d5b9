@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_6fbacfdf",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-28T02:22:22Z",
+      "side": 1,
+      "message": "Perhaps now this can be moved down to line 83 where we add Create(midoPortBldr.build) if midoPortBldr is not null.",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 57,
+        "endChar": 19
+      },
+      "revId": "c99897fbb2977e3994517ad87572d2b3b598d5b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4fb18be0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-28T02:22:22Z",
+      "side": 1,
+      "message": "Is this an \"edge\" router port or a normal port?",
+      "range": {
+        "startLine": 64,
+        "startChar": 23,
+        "endLine": 64,
+        "endChar": 43
+      },
+      "revId": "c99897fbb2977e3994517ad87572d2b3b598d5b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_cfc4bb42",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterTranslatorIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-28T02:22:22Z",
+      "side": 1,
+      "message": "Because of the above eventually block, this tenant router contain \"only\" this port. Also, I wonder if this could go inside the eventually block..",
+      "revId": "c99897fbb2977e3994517ad87572d2b3b598d5b9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
