@@ -55,16 +55,15 @@ def test_host_status():
     Then: restarts all Midolman agetns,
     And: check again if all Midolman agents are alive,
     """
-    midonet_api = get_midonet_api()
-    check_all_midolman_hosts(midonet_api, alive=True)
+    check_all_midolman_hosts(alive=True)
 
     stop_midolman_agents()
     time.sleep(5)
-    check_all_midolman_hosts(midonet_api, alive=False)
+    check_all_midolman_hosts(alive=False)
 
     start_midolman_agents()
     time.sleep(30)
-    check_all_midolman_hosts(midonet_api, alive=True)
+    check_all_midolman_hosts(alive=True)
 
 
 def get_interface(midonet_api, host_name, interface_name):

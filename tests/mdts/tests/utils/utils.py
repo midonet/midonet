@@ -257,7 +257,8 @@ def stop_midolman_agents():
         'cd %s; ./stop' % get_midolman_script_dir(), shell=True)
 
 
-def check_all_midolman_hosts(midonet_api, alive):
+def check_all_midolman_hosts(alive):
+    midonet_api = get_midonet_api()
     max_attempts = 20
     counter = 0
     sleep_time = 10
@@ -276,3 +277,13 @@ def check_all_midolman_hosts(midonet_api, alive):
             counter += 1
     assert_that(counter, less_than(max_attempts),
                 'Timeout checking for Midolman %s liveness' % failed_midolman)
+
+def await_port_active(vport_id, active=True):
+    timeout = 60
+    midonet_api = get_midonet_api()
+    while midonet_api.get_port(vport_id).get_active() != active:
+        time.sleep(1)
+        timeout -= 1
+        if timeout == 0:
+            raise Exception("Port did not become {0}."
+                            .format("active" if active else "inactive"))

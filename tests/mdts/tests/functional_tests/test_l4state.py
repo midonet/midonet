@@ -20,8 +20,8 @@ from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils.utils import start_midolman_agents
 from mdts.tests.utils.utils import stop_midolman_agents
-from mdts.tests.utils.utils import get_midonet_api
 from mdts.tests.utils.utils import check_all_midolman_hosts
+from mdts.tests.utils.utils import await_port_active
 from mdts.tests.utils import bindings
 from mdts.tests.utils import wait_on_futures
 
@@ -185,16 +185,19 @@ def expect_return_dropped(dst_port_no):
                       'Return flow gets dropped.')
 
 def reboot_agents(sleep_secs):
-    midonet_api = get_midonet_api()
     stop_midolman_agents()
-    time.sleep(5)
-    check_all_midolman_hosts(midonet_api, alive=False)
+    await_ports(active=False)
+    check_all_midolman_hosts(alive=False)
 
     time.sleep(sleep_secs)
 
     start_midolman_agents()
-    time.sleep(30)
-    check_all_midolman_hosts(midonet_api, alive=True)
+    await_ports(active=True)
+    check_all_midolman_hosts(alive=True)
+
+def await_ports(active):
+    await_port_active(left_uplink_port()._mn_resource.get_id(), active=active)
+    await_port_active(right_uplink_port()._mn_resource.get_id(), active=active)
 
 @attr(version="v1.6.0", slow=False)
 @bindings(binding_l4state)

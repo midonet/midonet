@@ -20,7 +20,6 @@ from mdts.tests.config import *
 from mdts.tests.utils.utils import check_all_midolman_hosts
 from mdts.tests.utils.utils import clear_physical_topology
 from mdts.tests.utils.utils import clear_virtual_topology_for_tenants
-from mdts.tests.utils.utils import get_midonet_api
 
 from hamcrest import *
 
@@ -37,8 +36,7 @@ def setup():
         ['sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null'],
         shell=True)
 
-    midonet_api = get_midonet_api()
-    check_all_midolman_hosts(midonet_api, True)
+    check_all_midolman_hosts(True)
 
     clear_physical_topology()
     clear_virtual_topology_for_tenants(
