@@ -27,7 +27,6 @@
 (cd midolman && bash -x start)
 
 (cd midonet-api && bash -x start)
-(cd vtep && bash -x start)
 
 #Wait for agents to be registered before finishing start sequence
 RETRIES=30
