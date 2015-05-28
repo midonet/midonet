@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_157a34f1",
+        "filename": "midonet-api/src/main/java/org/midonet/api/network/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-28T13:52:02Z",
+      "side": 1,
+      "message": "For API changes in master, shouldn\u0027t we support the same change in the v2 architecture?",
+      "range": {
+        "startLine": 101,
+        "startChar": 4,
+        "endLine": 101,
+        "endChar": 37
+      },
+      "revId": "6f3dcca36073742874b07431e93c18b54c985799",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
