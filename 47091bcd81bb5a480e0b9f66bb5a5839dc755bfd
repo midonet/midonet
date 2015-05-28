@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_0fdea311",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-28T02:46:24Z",
+      "side": 1,
+      "message": "No. A NeutronPort always corresponds to a Network port (or nothing for floating IP ports and ports on uplink networks). This is the network port that will be the peer of the router gateway port, which we create in RouterTranslator when gw_port_id is set.",
+      "parentUuid": "facab960_64da027a",
+      "range": {
+        "startLine": 55,
+        "startChar": 15,
+        "endLine": 55,
+        "endChar": 31
+      },
+      "revId": "47091bcd81bb5a480e0b9f66bb5a5839dc755bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_045936fe",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-05-27T13:42:01Z",
       "side": 1,
       "message": "An off-topic comment. But is it because of the way Neutron is designed or actually due the way MidoNet is designed. It seems to me the latter.",
+      "range": {
+        "startLine": 103,
+        "startChar": 62,
+        "endLine": 104,
+        "endChar": 63
+      },
+      "revId": "47091bcd81bb5a480e0b9f66bb5a5839dc755bfd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2fe367da",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-05-28T02:46:24Z",
+      "side": 1,
+      "message": "Well, it\u0027s because Neutron\u0027s and Midonet\u0027s topology data models are different. So it\u0027s not really because of one or the other.\n\nWhen Neutron has to write code to interface with Midonet, they can say it\u0027s because Midonet\u0027s topology data model is weird.",
+      "parentUuid": "facab960_045936fe",
       "range": {
         "startLine": 103,
         "startChar": 62,
