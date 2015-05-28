@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_8f6d5335",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-28T06:40:26Z",
+      "side": 1,
+      "message": "So do we force users to define classes to use NetlinkRequestBroker with blocking channels? We can have the single class used for every request, say RequestObserver. However, how about the situation we want to consume replies from multiple Observers?\n\nNested Observer causes \"[-2] Message truncated\" because the read buffer is not cleared when onCompleted or onNext are called, so we need to use zip or whatever to coordinate multiple Observables, and therefore we need to use Subjects, which requires us to implement Observable and Observer interfaces, or defined derived classes PublishSubject, which can\u0027t be extended and is not allowed to be instantiated except with the factory method.\n\nhttps://github.com/tfukushima/midonet/blob/rtn-blocking-review-rebase/midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala#L394-L428",
+      "parentUuid": "facab960_be05fdc3",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7004927e",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
         "patchSetId": 17
