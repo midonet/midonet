@@ -442,6 +442,59 @@
     },
     {
       "key": {
+        "uuid": "facab960_cf903b98",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-28T08:11:43Z",
+      "side": 1,
+      "message": "s/even we can/even if we read/",
+      "parentUuid": "facab960_0d540453",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8f4b932a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-28T08:11:43Z",
+      "side": 1,
+      "message": "Other possible values are \"bridge\", \"tun\" and so on. If IFLA_INFO_KIND is not provided, that\u0027s something and we just can\u0027t say what it is at that point.",
+      "parentUuid": "facab960_e77e14e4",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_af48572e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-28T08:11:43Z",
+      "side": 1,
+      "message": "For instance, I\u0027m looking at IFLA_INFO_KIND and check if it\u0027s \"tun\" here.",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_8abf1dd0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 16
