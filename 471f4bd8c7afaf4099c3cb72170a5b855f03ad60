@@ -16,6 +16,24 @@
       "revId": "471f4bd8c7afaf4099c3cb72170a5b855f03ad60",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_95f8047e",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/topology/common/TopologyMappingsTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-28T13:40:39Z",
+      "side": 1,
+      "message": "Removed. We shouldn\u0027t sort because I ran into a problem where the lexicographic order for type is not the same as for classes. That\u0027s why I removed the sorting and zip.",
+      "parentUuid": "facab960_8fd1d3fd",
+      "revId": "471f4bd8c7afaf4099c3cb72170a5b855f03ad60",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
