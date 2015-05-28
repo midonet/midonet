@@ -34,7 +34,7 @@ NON_STICKY_VIP = ("100.100.2.8", 10008)
 STICKY_VIP = ("100.100.2.9", 10009)
 SENDER = None
 NUM_BACKENDS = 3
-
+SRC_PORT = 40000
 
 web_servers = []
 
@@ -114,7 +114,9 @@ def teardown():
     VTM.destroy()
 
 @attr(version="v1.3.0", slow=False)
-@bindings(binding_onehost, binding_multihost)
+# Commented out as a workaround for MNA-108
+#@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_multi_member_loadbalancing():
     """
     Title: Balances traffic correctly when multiple pool members are active,
@@ -378,19 +380,26 @@ def start_web_servers():
 
 def assert_web_request_succeeds_to(dest):
     global SENDER
-    result_future = SENDER.make_web_request_to(dest, timeout_secs=5)
+    global SRC_PORT
+    result_future = SENDER.make_web_request_to(dest, SRC_PORT, timeout_secs=5)
+    SRC_PORT += 1
     assert result_future.result(timeout=10) is not None
 
 def assert_web_request_fails_to(dest):
     global SENDER
-    result_future = SENDER.make_web_request_to(dest, timeout_secs=5)
+    global SRC_PORT
+    result_future = SENDER.make_web_request_to(dest, SRC_PORT, timeout_secs=5)
+    SRC_PORT += 1
     assert result_future.exception(timeout=10) is not None
 
 def make_n_requests_to(num_reqs, dest):
     global SENDER
+    global SRC_PORT
     results = []
     for x in range(0, num_reqs):
-        res = SENDER.make_web_request_get_backend(dest)
+        LOG.debug("making request using src port %r", SRC_PORT)
+        res = SENDER.make_web_request_get_backend(dest, SRC_PORT)
+        SRC_PORT += 1
         results.append(res)
     return results
 

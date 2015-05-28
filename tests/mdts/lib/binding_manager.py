@@ -25,8 +25,8 @@ class BindingManager(TopologyManager):
 
     def __init__(self, ptm, vtm):
 
-        # Note that this ctor doesn't comform to the super's signiture
-        # calling super just to get a ref to self._api. parhaps
+        # Note that this ctor doesn't conform to the super's signature
+        # calling super just to get a ref to self._api. perhaps
         # needs to be cleaned up.
 
         data = {'bogus_data': 'dummy'}

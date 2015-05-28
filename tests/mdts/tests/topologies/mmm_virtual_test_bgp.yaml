@@ -49,6 +49,15 @@ virtual_topology:
               next_hop_port: 1
               next_hop_gw: 0.0.0.0
 
+  port_groups:
+    - port_group:
+        id: 1
+        name: pg-1
+        stateful: true
+        ports:
+          - port: [router-000-001, 2]
+          - port: [router-000-001, 3]
+
   bridges:
     - bridge:
         name: bridge-000-001
@@ -62,15 +71,6 @@ virtual_topology:
           - port:
               id: 3
               type: exterior
-
-  port_groups:
-    - port_group:
-        id: 1
-        name: pg-1
-        stateful: true
-        ports:
-          - port: [router-000-001, 2]
-          - port: [router-000-001, 3]
 
   chains:
     - chain:

@@ -59,6 +59,23 @@ bindings2 = {
 
 # TODO(tomohiko) Move those to the virtual topology data file.
 
+# The following 2 VTEP emulators are attached, currently with hardcoding,
+# in the physical topology.
+#
+#
+# VTEP1:
+#  - mgmt ip address: 10.0.0.128
+#  - port0:
+#      - vlan: 5
+#      - 10.0.2.26/24
+#
+# VTEP2:
+#  - mgmt ip address: 10.0.0.129
+#  - port0:
+#      - vlan: 6
+#      - 10.0.2.27/24
+#
+
 vtep_management_ip = '10.0.0.103' # The emulator's MGMT ip
 vtep_management_port = '6632' # The emulator's MGMT port
 port_name = 'port0' # Preconfigured in the VTEP emulator

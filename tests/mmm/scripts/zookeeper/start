@@ -33,11 +33,20 @@ else
 fi
 
 # Checking Zookeeper status
-sleep 5
-echo Zookeeper 1
-echo ruok | nc 10.0.0.2 2181
-echo Zookeeper 2
-echo ruok | nc 10.0.0.3 2181
-echo Zookeeper 3
-echo ruok | nc 10.0.0.4 2181
-
+retries=0
+for i in 2 3 4
+do
+  echo "Zookeeper at ns00$i"
+  until echo ruok | nc 10.0.0.$i 2181 | grep imok
+  do
+    echo "Waiting for Zookeeper ns00$i to start"
+    sleep 1
+    ((retries++))
+    if [ $retries -gt 30 ]
+    then
+      echo "Could not start Zookeeper at ns00$i"
+      exit 1
+    fi
+  done
+  retries=0
+done

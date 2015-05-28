@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from hamcrest.core import assert_that
 from nose.plugins.attrib import attr
 
 from mdts.lib.binding_manager import BindingManager
@@ -189,7 +188,6 @@ def test_dnat_for_udp():
                                 timeout=within_sec(5)))
     f1 = sender.send_udp(router_mac, '100.100.100.100', 29,
                          src_port=9, dst_port=9)
-
     wait_on_futures([f1, f2, f3])
 
 
@@ -279,7 +277,6 @@ def test_snat_for_udp():
                                 timeout=within_sec(5)))
     f1 = sender.send_udp(router_mac, '172.16.2.1', 29,
                          src_port=9, dst_port=65000)
-
     wait_on_futures([f1, f2, f3])
 
 

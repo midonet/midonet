@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from hamcrest.core import assert_that
 from nose.plugins.attrib import attr
 
 from mdts.lib.binding_manager import BindingManager
@@ -57,7 +56,7 @@ binding_l4state = {
 
 def get_random_port_num():
     '''Returns a random port number from a free port range.
-
+    
     NOTE: Using a random number may cause test indeterminacy on a rare occasion.
     '''
     return random.randint(49152, 65535)
@@ -65,7 +64,7 @@ def get_random_port_num():
 
 ##############################################################################
 #
-# Scenario:
+# Scenario: 
 #
 #          host-2                                 host-3
 #            |                                      |
@@ -77,7 +76,7 @@ def get_random_port_num():
 #                                | 1 - 192.168.0.254/24
 #                                |
 #                                |
-#                              host-1
+#                              host-1 
 #
 #   * 2 & 3 form a port group.
 #   * This chain will apply to all traffic:
@@ -177,13 +176,13 @@ def return_filter(dst_port_no):
 
 def expect_return(dst_port_no):
     return async_assert_that(downlink_iface(),
-                             receives(return_filter(dst_port_no), within_sec(5)),
-                             'Return flow is rev-DNATed and gets through.')
+                       receives(return_filter(dst_port_no), within_sec(5)),
+                       'Return flow is rev-DNATed and gets through.')
 
 def expect_return_dropped(dst_port_no):
     return async_assert_that(downlink_iface(),
-                             should_NOT_receive(return_filter(dst_port_no), within_sec(5)),
-                             'Return flow gets dropped.')
+                      should_NOT_receive(return_filter(dst_port_no), within_sec(5)),
+                      'Return flow gets dropped.')
 
 def reboot_agents(sleep_secs):
     midonet_api = get_midonet_api()

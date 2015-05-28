@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash -x
 
 # Copyright 2014 Midokura SARL
 #
@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if test -d /opt/qa/mmm; then
-    cd /opt/qa/mmm && bash -x init && exec bash -x boot
-else
-    exit 1
-fi
+sudo docker ps | egrep "mdts.vtep-emulator" | awk '{print $1}' | xargs docker rm -f > /dev/null 2>&1
+
+exit 0

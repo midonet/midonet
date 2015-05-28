@@ -70,6 +70,7 @@ virtual_topology:
               next_hop_port: 3
               next_hop_gw: 0.0.0.0
 
+
   port_groups:
     - port_group:
         id: 1

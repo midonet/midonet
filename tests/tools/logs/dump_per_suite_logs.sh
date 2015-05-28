@@ -18,6 +18,15 @@ echo ==============
 echo per suite logs
 echo ==============
 
+pgrep java | while read pid ; do
+    echo ================
+    echo Java stack dumps
+    echo ================
+    echo "Dumping Java stack for pid $pid and process status:"
+    ps $pid | tail -1
+    jstack -F $pid 2>&1
+done
+
 # zookeeper server logs
 for d in /var/log/zookeeper*; do
     cd $d

@@ -33,7 +33,6 @@ else
 fi
 
 # Checking Cassandra status
-sleep 5
 retries=0
 for i in 5 6 7
 do
@@ -41,9 +40,9 @@ do
   until sudo ip netns exec ns00$i nodetool -h 10.0.0.$i status
   do
     echo "Waiting for Cassandra ns00$i to start"
-    sleep 5
+    sleep 1
     ((retries++))
-    if [ $retries -gt 10 ]
+    if [ $retries -gt 30 ]
     then
       echo "Could not start Cassandra at ns00$i"
       exit 1
@@ -51,5 +50,3 @@ do
   done
   retries=0
 done
-
-

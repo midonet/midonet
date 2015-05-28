@@ -162,7 +162,7 @@ def unset_filters(router_name):
     """Unsets in-/out-bound filters from a router."""
     set_filters(router_name, None, None)
 
-def add_bgp(port, bgp, wait=30):
+def add_bgp(port, bgp, wait=10):
     b = port._mn_resource.add_bgp()\
         .local_as(bgp['localAS'])\
         .peer_as(bgp['peerAS'])\
@@ -216,7 +216,7 @@ def ping_inet(count=3, interval=1, retry=True, retry_count=2, port=2):
         f1 = sender.ping_ipv4_addr('1.1.1.1', interval=interval, count=count)
         wait_on_futures([f1])
     except subprocess.CalledProcessError as e:
-        # FIXME: Further Investivagion Needed
+        # FIXME: Further Investigation Needed
         # The first several ping attempts occasionally fail, so try it again.
         # What does it really mean? Some timing issue or even bug in midolman?
         if retry and retry_count > 0:
@@ -315,12 +315,12 @@ def test_icmp_failback():
     Scenario 1:
     Given: multiple uplinks
     When: enable BGP on both of them
-    Then: ICMP echo RR should work to a psudo public IP address
+    Then: ICMP echo RR should work to a pseudo public IP address
 
     Scenario 2:
     Given:
     When: inject failure into one of BGP uplinks (failover)
-    Then: ICMP echo RR should work to a psudo public IP address
+    Then: ICMP echo RR should work to a pseudo public IP address
 
     Scenario 3:
     Given:
@@ -330,19 +330,19 @@ def test_icmp_failback():
     Scenario 4:
     Given:
     When: inject failure into another of BGP uplinks (failover)
-    Then: ICMP echo RR should work to a psudo public IP address
+    Then: ICMP echo RR should work to a pseudo public IP address
 
     Scenario 5:
     Given:
     When: eject failure (failback)
-    Then: ICMP echo RR should work to a psudo public IP address
+    Then: ICMP echo RR should work to a pseudo public IP address
 
     """
     (p1, p2) = (add_bgp_1(route_direct), add_bgp_2(route_direct))
 
     ping_inet() # BGP #1 and #2 are working
 
-    failure = PktFailure(NS_BGP_PEER_1, 'eth0', 30)
+    failure = PktFailure(NS_BGP_PEER_1, 'eth0', 35)
     failure.inject()
     try:
         ping_inet() # BGP #1 is lost
@@ -351,7 +351,7 @@ def test_icmp_failback():
 
     ping_inet() # BGP #1 is back
 
-    failure = PktFailure(NS_BGP_PEER_1, 'eth1', 30)
+    failure = PktFailure(NS_BGP_PEER_1, 'eth1', 35)
     failure.inject()
     try:
         ping_inet() # BGP #2 is lost
@@ -364,14 +364,8 @@ def test_icmp_failback():
     clear_bgp(p2)
 
 @attr(version="v1.2.0", slow=True)
-@failures(NoFailure(),
-          NetifFailure(NS_CASSANDRA_1, 'eth0', 30),
-          NoFailure(),
-          NetifFailure(NS_CASSANDRA_2, 'eth0', 30),
-          NetifFailure(NS_CASSANDRA_3, 'eth0', 30),
-          NoFailure())
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
-def test_snat_1():
+def test_snat():
     """
     Title: Emulate Cassandra failure
 
@@ -396,39 +390,6 @@ def test_snat_1():
         unset_filters('router-000-001')
         clear_bgp(p1)
 
-
-# FIXME: https://midobugs.atlassian.net/browse/MN-1759
-@attr(version="v1.2.0", slow=True, flaky=True)
-@bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
-def test_snat_2():
-    """
-    Title: Emulate Cassandra failure
-
-           basically the same one as test_snat_1, but the difference is
-           how and when to inject failures.
-
-    """
-    p1 = add_bgp_1(route_snat)
-
-    set_filters('router-000-001', 'pre_filter_snat_ip', 'post_filter_snat_ip')
-
-    try:
-        for failure in (NoFailure(),
-                        NetifFailure(NS_CASSANDRA_1, 'eth0', 30),
-                        NoFailure(),
-                        NetifFailure(NS_CASSANDRA_2, 'eth0', 30),
-                        NetifFailure(NS_CASSANDRA_3, 'eth0', 30),
-                        NoFailure()):
-            failure.inject()
-            try:
-                for i in range(0, 10):
-                    ping_inet(count=1, retry_count=5)
-            finally:
-                failure.eject()
-    finally:
-        unset_filters('router-000-001')
-
-    clear_bgp(p1)
 
 @attr(version="v1.2.0", slow=True)
 @bindings(binding_snat_1, binding_snat_2, binding_snat_3)

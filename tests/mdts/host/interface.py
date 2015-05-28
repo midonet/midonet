@@ -332,23 +332,26 @@ class Netns(object):
             EXPECT_FRAME_COUNT, pcap_filter_string)
 
         try:
-            cmdline = self._process_cmdline(base_cmdline)
-            LOG.debug('running tcp dump=%s', cmdline)
-            p = subprocess.Popen(cmdline, stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE, shell=True)
+            try:
+                cmdline = self._process_cmdline(base_cmdline)
+                LOG.debug('running tcp dump=%s', cmdline)
+                p = subprocess.Popen(cmdline, stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE, shell=True)
 
-            # We are running tcpdump, set the flag to continue main thread
-            LOG.debug('tcp dump running OK')
-            self._tcpdump_sem.release()
+                # We are running tcpdump, set the flag to continue main thread
+                LOG.debug('tcp dump running OK')
+            finally:
+                self._tcpdump_sem.release()
 
             stdout, stderr = p.communicate()
             retcode = p.poll()
+
+            LOG.debug('output=%r', stdout)
 
             # Retcode will return non-zero if the timeout passed and no packet came
             if retcode:
                 raise subprocess.CalledProcessError(retcode, str(("tcpdump", stdout, stderr)))
 
-            LOG.debug('output=%r', stdout)
             retval = True
         except subprocess.CalledProcessError as e:
             LOG.debug('expect failed=%s', e)

@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 
 # Copyright 2014 Midokura SARL
 #
@@ -28,8 +28,6 @@ OPTIONS:
  -t TEST     Runs this test(s)
  -s          Runs only fast tests
  -S          Runs only slow tests
- -v VERSION  Runs tests compatible with this and following MidoNet versions
- -V VERSION  Runs only tests compatible with this MidoNet version
  -x          Runs all tests but flaky ones
  -X          Runs only flaky tests
  -r DIR      Use DIR as the Python root (to determine imported modules)
@@ -46,14 +44,6 @@ $0 -t test_bridge:test_icmp -t test_router -t test_l2gw:test_icmp_from_mn
 Fast tests
 $0 -s
 
-Tests compatible with v1.2.0, v1.2.1, v1.3.0 ...
-$0 -v v1.2.0
-
-Tests compatible only with v1.2.1
-$0 -V v1.2.1
-
-Fast tests compatible with v1.2.1 and onwards
-$0 -s -v v1.2.1
 EOF
 }
 
@@ -87,26 +77,13 @@ do
             fi
             ;;
         t)
-            # Just add the test as is, no fancy mangling
             TEST=$OPTARG
+            if [[ $TEST != mdts.tests.functional_tests* ]]
+            then
+                TEST="mdts.tests.functional_tests.$TEST"
+            fi
 
             TESTS="$TESTS $TEST"
-            ;;
-        v)
-            if [ -z "$ATTR" ]
-            then
-                ATTR="(version >= \"$OPTARG\")"
-            else
-                ATTR="$ATTR and (version >= \"$OPTARG\")"
-            fi
-            ;;
-        V)
-            if [ -z "$ATTR" ]
-            then
-                ATTR="(version == \"$OPTARG\")"
-            else
-                ATTR="$ATTR and (version == \"$OPTARG\")"
-            fi
             ;;
         x)
             if [ -z "$ATTR" ]
@@ -125,7 +102,7 @@ do
             fi
             ;;
         r)
-            DIR=$OPTARG
+            PDIR=$OPTARG
              ;;
         ?)
             usage
@@ -144,4 +121,4 @@ then
     exit 1
 fi
 
-sudo PYTHONPATH=$DIR ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
+sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log

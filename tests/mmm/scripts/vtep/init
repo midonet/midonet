@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 
 # Copyright 2014 Midokura SARL
 #
@@ -13,9 +13,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
-if test -x /etc/init.d/httpd; then
-    /etc/init.d/httpd restart
-elif test -x /etc/init.d/apache2; then
-    /etc/init.d/apache2 restart
-fi
+# Build a docker image for vtep emulator
+REPO=mdts
+TAG=vtep-emulator
+
+docker images |grep ^$REPO | awk '{print $2}'| grep -qw $TAG || {
+  sudo docker build -t mdts:vtep-emulator  .
+}
