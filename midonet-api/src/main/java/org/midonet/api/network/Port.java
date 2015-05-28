@@ -98,6 +98,8 @@ public abstract class Port extends UriResource {
      */
     protected UUID peerId;
 
+    protected boolean active = false;
+
     /**
      * Default constructor
      */
@@ -128,6 +130,7 @@ public abstract class Port extends UriResource {
         this.hostId = portData.getHostId();
         this.interfaceName = portData.getInterfaceName();
         this.peerId = portData.getPeerId();
+        this.active = portData.isActive();
         if (portData.getProperty(org.midonet.cluster.data.Port.Property.vif_id)
                 != null) {
             this.vifId = UUID.fromString(portData.getProperty(
@@ -186,6 +189,10 @@ public abstract class Port extends UriResource {
 
     public boolean isAdminStateUp() {
         return adminStateUp;
+    }
+
+    public boolean isActive() {
+        return active;
     }
 
     /**

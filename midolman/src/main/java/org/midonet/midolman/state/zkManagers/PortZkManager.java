@@ -998,6 +998,12 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return zk.exists(path, watcher) && (zk.getChildren(path, watcher).size() > 0);
     }
 
+    public boolean isActivePort(UUID portId) throws StateAccessException {
+        String path = paths.getPortActivePath(portId);
+        log.debug("checking port liveness");
+        return zk.exists(path) && (zk.getChildren(path).size() > 0);
+    }
+
     public PortDirectory.RouterPortConfig findFirstRouterPortMatchFromBridge(
             UUID bridgeId,
             Function<PortConfig, Boolean> matcher)

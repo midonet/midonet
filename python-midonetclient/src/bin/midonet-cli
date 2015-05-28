@@ -832,6 +832,37 @@ class BooleanAttr(SingleAttr):
         val = BooleanAttr.get_val.get(value, None)
         super(BooleanAttr, self).set(obj, val)
 
+class ActiveAttr(SingleAttr):
+    get_val = {'yes': True, 'no': False}
+
+    def __init__(self, name,
+                 getter,
+                 setter = None,
+                 writeable = True,
+                 show = True,
+                 optional = False,
+                 inv_getter = None,
+                 inv_setter = None):
+        super(ActiveAttr, self).__init__(name, BooleanType(),
+                                             getter = getter,
+                                             setter = setter,
+                                             writeable = writeable,
+                                             show = show,
+                                             optional = optional,
+                                             inv_getter = inv_getter,
+                                             inv_setter = inv_setter)
+
+    def fetch(self, obj):
+        try:
+            func = obj.reflect(self.getter)
+            return "yes" if func() else "no"
+        except KeyError:
+            return None
+
+    def set(self, obj, value):
+        val = ActiveAttr.get_val.get(value, None)
+        super(ActiveAttr, self).set(obj, val)
+
 class AdminStateAttr(SingleAttr):
     get_val = {'up': True, 'down': False}
 
@@ -2006,6 +2037,8 @@ class RouterPort(ObjectType):
         self.put_attr(AdminStateAttr(name = 'state',
                                  getter = 'get_admin_state_up',
                                  setter = 'admin_state_up'))
+        self.put_attr(ActiveAttr(name = 'plugged',
+                                 getter = 'get_active'))
         self.put_attr(SingleAttr(name = 'infilter',
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_inbound_filter_id',
