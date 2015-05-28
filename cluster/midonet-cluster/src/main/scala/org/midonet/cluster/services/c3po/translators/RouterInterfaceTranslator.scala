@@ -75,14 +75,13 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
 
         // Set the router port address. The port should have at most one IP
         // address. If it has none, use the subnet's default gateway.
-        if (nPort.getFixedIpsCount > 0) {
+        val gatewayIp = if (nPort.getFixedIpsCount > 0) {
             if (nPort.getFixedIpsCount > 1)
                 log.error("More than 1 fixed IP assigned to a Neutron Port " +
                           s"${fromProto(nPort.getId)}")
-            routerPortBldr.setPortAddress(nPort.getFixedIps(0).getIpAddress)
-        } else {
-            routerPortBldr.setPortAddress(ns.getGatewayIp)
-        }
+            nPort.getFixedIps(0).getIpAddress
+        } else ns.getGatewayIp
+        routerPortBldr.setPortAddress(gatewayIp)
 
         // Add a route to the Interface subnet.
         val routerInterfaceRouteId =
@@ -103,6 +102,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         } else {
             midoOps ++= createMetadataServiceRoute(
                 routerPortId, nPort.getNetworkId, portSubnet)
+            midoOps ++= updateGatewayRoutesOps(gatewayIp, ns.getId)
         }
 
         midoOps.toList

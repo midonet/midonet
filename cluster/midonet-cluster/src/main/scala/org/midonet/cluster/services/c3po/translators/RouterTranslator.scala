@@ -164,8 +164,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
             val gwPortFtr = storage.get(classOf[Port], dhcp.getRouterGwPortId)
             gwPortFtr.await().getPortAddress
         }
-        val routeId = gatewayRouteId(portId)
-        newNextHopPortRoute(portId, id = routeId, nextHopGwIpAddr = nextHopIp)
+        newNextHopPortRoute(portId, id = gatewayRouteId(portId),
+                            gatewayDhcpId = dhcpId, nextHopGwIpAddr = nextHopIp)
     }
 
     // Deterministically generate SNAT rule IDs so we can delete them without

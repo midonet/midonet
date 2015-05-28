@@ -91,6 +91,8 @@ message Dhcp {
 
     // Backreference
     optional UUID router_gw_port_id = 101;
+    // Gateway routes with a gateway via this DHCP.
+    repeated UUID gateway_route_ids = 102;
 }
 
 message Router {
@@ -218,10 +220,12 @@ message Route {
     }
     optional NextHop next_hop = 4;
     optional UUID next_hop_port_id = 5;
-    optional IPAddress next_hop_gateway = 6;
-    optional int32 weight = 7;
-    optional string attributes = 8;
-    optional UUID router_id = 9;
+    optional int32 weight = 6;
+    optional string attributes = 7;
+    optional UUID router_id = 8;
+
+    optional IPAddress next_hop_gateway = 9;
+    optional UUID gateway_dhcp_id = 10;
 }
 
 message Rule {

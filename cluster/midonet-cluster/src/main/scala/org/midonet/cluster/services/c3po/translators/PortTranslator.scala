@@ -22,12 +22,12 @@ import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
-import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
 import org.midonet.util.concurrent.toFutureOps
@@ -85,19 +85,26 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateDelete(id: UUID): MidoOpList = {
         val nPort = storage.get(classOf[NeutronPort], id).await()
 
+        // Nothing to do for floating IP ports, since we didn't create anything.
+        if (isFloatingIpPort(nPort)) return List()
+
         val midoOps = new MidoOpListBuffer
 
-        // Floating IP ports have no Midonet equivalent. Neither do ports on
-        // uplink networks, but to determine whether that's the case here, we'd
-        // have to make a round trip to Zookeeper. Better just to return the
-        // DeleteOp, and Zoom's delete idempotency will handle it.
-        if (!isFloatingIpPort(nPort))
+        // No corresponding Midonet port for ports on uplink networks.
+        val isOnUplinkNw = isOnUplinkNetwork(nPort)
+        if (!isOnUplinkNw)
             midoOps += Delete(classOf[Port], id)
 
         if (isRouterGatewayPort(nPort)) {
             midoOps += Delete(classOf[Port],
                               RouterTranslator.tenantGwPortId(id))
         } else if (isRouterInterfacePort(nPort)) {
+            if (!isOnUplinkNw) {
+                // Update any routes using this port as a gateway.
+                val subnetId = nPort.getFixedIps(0).getSubnetId
+                midoOps ++= updateGatewayRoutesOps(null, subnetId)
+            }
+
             // Delete the peer router port.
             midoOps += Delete(classOf[Port],
                               routerInterfacePortPeerId(nPort.getId))
@@ -127,8 +134,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     }
 
     override protected def translateUpdate(nPort: NeutronPort): MidoOpList = {
-        // Uplink networks don't exist in Midonet.
-        if (isOnUplinkNetwork(nPort)) return List()
+        // If the equivalent Midonet port doesn't exist, then it's either a
+        // floating IP port or port on an uplink network. In either case, we
+        // don't create anything in the Midonet topology for this Neutron port,
+        // so there's nothing to update.
+        if(!storage.exists(classOf[Port], nPort.getId).await()) return List()
 
         val midoOps = new MidoOpListBuffer
 
