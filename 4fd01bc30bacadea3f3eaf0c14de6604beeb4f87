@@ -73,6 +73,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_af8697b7",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-28T07:12:36Z",
+      "side": 1,
+      "message": "s/derived classes PublishSubject/derived classes such as PublishSubject/\n\nSubject has hasCompleted and hasThrowable methods but they\u0027re marked by @Experimental and we can\u0027t rely on them. If we think they can be used, this problem is solved already.\nhttp://reactivex.io/RxJava/javadoc/rx/subjects/Subject.html#hasCompleted()",
+      "parentUuid": "facab960_8f6d5335",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7004927e",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
         "patchSetId": 17
