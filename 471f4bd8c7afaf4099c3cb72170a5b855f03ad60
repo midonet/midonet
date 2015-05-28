@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_8fd1d3fd",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/topology/common/TopologyMappingsTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-28T02:58:16Z",
+      "side": 1,
+      "message": "Remove if not needed, or should we sort just in case?",
+      "revId": "471f4bd8c7afaf4099c3cb72170a5b855f03ad60",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
