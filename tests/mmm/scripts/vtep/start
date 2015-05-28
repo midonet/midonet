@@ -63,7 +63,7 @@ for i in $(seq 0 $((${#VTEP_MANAGEMENT_ADRESSES[*]} - 1))); do
         (( retries-- ))
         if [ $retries -eq 0 ]; then
             echo "OpenVSwitch failed to start on container $container_id"
-            exit 1
+            exit 0
         fi
     done
 
