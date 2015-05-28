@@ -16,19 +16,25 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.services.c3po.midonet.Create
+import scala.collection.JavaConverters._
+
 import org.midonet.cluster.data.neutron.MetaDataService
+import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.{PortOrBuilder, Route, RouteOrBuilder}
+import org.midonet.cluster.models.Topology.{Dhcp, PortOrBuilder, Route, RouteOrBuilder}
+import org.midonet.cluster.services.c3po.midonet.{Create, Update}
 import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.util.concurrent.toFutureOps
 
 
 trait RouteManager {
     import RouteManager._
+
+    protected val storage: ReadOnlyStorage
     /**
      * Tests if the route is to Meta Data Server.
      * @param nextHopGw A next hop gateway to Meta Data Server.
@@ -77,6 +83,7 @@ trait RouteManager {
                                       nextHopGwIpAddr: IPAddress = null,
                                       srcSubnet: IPSubnet = univSubnet4,
                                       dstSubnet: IPSubnet = univSubnet4,
+                                      gatewayDhcpId: UUID = null,
                                       weight: Int = DEFAULT_WEIGHT): Route = {
         val bldr = Route.newBuilder
         bldr.setId(if (id != null) id else UUIDUtil.randomUuidProto)
@@ -85,6 +92,7 @@ trait RouteManager {
         bldr.setSrcSubnet(srcSubnet)
         bldr.setDstSubnet(dstSubnet)
         bldr.setWeight(weight)
+        if (gatewayDhcpId != null) bldr.setGatewayDhcpId(gatewayDhcpId)
         if (nextHopGwIpAddr != null) bldr.setNextHopGateway(nextHopGwIpAddr)
         bldr.build()
     }
@@ -92,6 +100,23 @@ trait RouteManager {
     protected def addLocalRouteToRouter(rPort: PortOrBuilder): MidoOpList = {
         List(Create(newLocalRoute(rPort.getId,
                                   rPort.getPortAddress)))
+    }
+
+    /** Set or clear the next_hop_gateway field on all routes with a gateway
+      * via the specified subnet */
+    protected def updateGatewayRoutesOps(gatewayIp: IPAddress,
+                                         subnetId: UUID): MidoOpList = {
+        val dhcp = storage.get(classOf[Dhcp], subnetId).await()
+        if (dhcp.getGatewayRouteIdsCount == 0) return List()
+
+        val routes = storage.getAll(classOf[Route],
+                                    dhcp.getGatewayRouteIdsList.asScala).await()
+        for (rt <- routes.toList) yield {
+            val bldr = rt.toBuilder
+            if (gatewayIp == null) bldr.clearNextHopGateway()
+            else bldr.setNextHopGateway(gatewayIp)
+            Update(bldr.build())
+        }
     }
 }
 

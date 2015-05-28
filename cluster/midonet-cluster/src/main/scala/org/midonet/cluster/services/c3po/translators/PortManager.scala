@@ -16,7 +16,6 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
@@ -31,8 +30,6 @@ import org.midonet.util.concurrent.toFutureOps
  */
 trait PortManager extends RouteManager {
     import org.midonet.cluster.services.c3po.translators.PortManager._
-
-    protected val storage: ReadOnlyStorage
 
     protected def newTenantRouterGWPort(id: UUID,
                                         routerId: UUID,

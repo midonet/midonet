@@ -918,7 +918,7 @@ class FloatingIpPortTranslationTest extends PortTranslatorTest {
         translator = new PortTranslator(storage, pathBldr)
 
         bind(networkId, nNetworkBase)
-        bind(portId, midoPortBaseUp)
+        bind(portId, null, classOf[Port])
         bind(networkId, midoNetwork)
     }
 
@@ -984,6 +984,7 @@ class RouterInterfacePortUpdateDeleteTranslationTest
         translator = new PortTranslator(storage, pathBldr)
 
         bind(networkId, nNetworkBase)
+        bind(nIpv4Subnet1Id, mIpv4Dhcp)
         bind(portId, midoPortBaseUp)
         bind(networkId, midoNetwork)
     }
