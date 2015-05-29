@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_c6e580a9",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-29T08:44:03Z",
+      "side": 1,
+      "message": "Is the eventually really necessary? You could instead specify a longer timeout in await.",
+      "range": {
+        "startLine": 181,
+        "startChar": 12,
+        "endLine": 181,
+        "endChar": 22
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e6e2849e",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-29T08:44:03Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 189,
+        "startChar": 8,
+        "endLine": 191,
+        "endChar": 9
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_06ef6888",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 225,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-29T08:44:03Z",
+      "side": 1,
+      "message": "same",
+      "range": {
+        "startLine": 225,
+        "startChar": 12,
+        "endLine": 225,
+        "endChar": 74
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_46a09043",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolMemberTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-29T08:44:03Z",
+      "side": 1,
+      "message": "Also check translation without an address or poolId set in the neutron pool member?",
+      "range": {
+        "startLine": 84,
+        "startChar": 4,
+        "endLine": 84,
+        "endChar": 67
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
