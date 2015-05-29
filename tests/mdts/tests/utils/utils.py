@@ -279,11 +279,13 @@ def check_all_midolman_hosts(alive):
                 'Timeout checking for Midolman %s liveness' % failed_midolman)
 
 def await_port_active(vport_id, active=True):
-    timeout = 60
+    timeout = 120
+    sleep_period = 5
     midonet_api = get_midonet_api()
+    time.sleep(1) # Initial, hopeful, short sleep
     while midonet_api.get_port(vport_id).get_active() != active:
-        time.sleep(1)
-        timeout -= 1
-        if timeout == 0:
+        time.sleep(sleep_period)
+        timeout -= sleep_period
+        if timeout <= 0:
             raise Exception("Port did not become {0}."
                             .format("active" if active else "inactive"))
