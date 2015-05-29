@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_06d12857",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 461,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-05-29T02:41:29Z",
+      "side": 1,
+      "message": "Brandon initially pointed this out. I think it\u0027s a more common convention in Midokura that we capitalize only the first letter in an acronym. For example, in org.midonet.cluster.services.vxgw we capitalize only the first V as in Vtep.scala, VtepController.scala, etc. I don\u0027t think we should change that here.",
+      "range": {
+        "startLine": 461,
+        "startChar": 8,
+        "endLine": 461,
+        "endChar": 12
+      },
+      "revId": "defb9d2e5aea965c43865d56353a55938658159d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
