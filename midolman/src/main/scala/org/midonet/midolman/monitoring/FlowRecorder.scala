@@ -237,6 +237,7 @@ object FlowRecordBuilder {
                 case MMRuleResult.Action.CONTINUE => RuleResult.CONTINUE
                 case MMRuleResult.Action.DROP => RuleResult.DROP
                 case MMRuleResult.Action.JUMP => RuleResult.JUMP
+                case MMRuleResult.Action.REDIRECT => RuleResult.REDIRECT
                 case MMRuleResult.Action.REJECT => RuleResult.REJECT
                 case MMRuleResult.Action.RETURN => RuleResult.RETURN
                 case _ => RuleResult.UNKNOWN
