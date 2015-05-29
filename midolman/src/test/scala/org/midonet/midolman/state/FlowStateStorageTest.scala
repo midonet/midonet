@@ -26,7 +26,6 @@ import akka.actor.ActorSystem
 import org.cassandraunit.utils.EmbeddedCassandraServerHelper
 import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.backend.cassandra.CassandraClient
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
@@ -71,10 +70,9 @@ class FlowStateStorageTest extends FeatureSpec
                                    "MidonetFlowState", 1,
                                    FlowStateStorage.SCHEMA)
         val sessionF = cass.connect()
-        Await.result(sessionF, 10 seconds)
-        storage = FlowStateStorage(sessionF)
+        storage = FlowStateStorage(Await.result(sessionF, 10 seconds))
         eventually {
-            storage.asInstanceOf[FlowStateStorageImpl].session should not be (null)
+            storage.asInstanceOf[FlowStateStorageImpl].session should not be null
         }
     }
 
