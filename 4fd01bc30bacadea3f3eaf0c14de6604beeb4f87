@@ -163,6 +163,42 @@
     },
     {
       "key": {
+        "uuid": "facab960_014e726f",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-29T10:41:39Z",
+      "side": 1,
+      "message": "I we want to have two rtnetlink resources, we need to make another request after the first request. And their coordination would be done with zip or other methods of Observable or without them having the nested request in onCompleted or onNext of the observer for the first request.\n\n  val linkListObserver \u003d new Observer[Set[List]] {\n    ...\n    override def onCompleted(): Unit \u003d {\n      val addrsListObserver \u003d new Obsrever[Set[Addr]] {\n        ...\n      }\n      addrsList(addrsListObserver)\n      val addrsListRequestObserver \u003d ...\n      while (addrListRequestObserver.isCompleted) {\n              try {\n                  requestBroker.readReply()\n              } catch {\n                  case t: Throwable \u003d\u003e\n                      log.error(\"Error happened on reading rtnetlink messages\", t)\n              }\n          }\n    }\nHowerver, onCompleted is called before the read buffer is cleared and the request broker tries to read with the uncleared buffer, which causes MessageTruncated and that was what what I got.\n\nhttps://github.com/midonet/midonet/blob/master/netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala#L255\nhttps://github.com/midonet/midonet/blob/master/netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala#L295\nhttps://github.com/midonet/midonet/blob/master/netlink/src/main/scala/org.midonet.netlink/NetlinkRequestBroker.scala#L268",
+      "parentUuid": "facab960_9272da7a",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8677f8d3",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/CompletableObserver.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-29T10:41:39Z",
+      "side": 1,
+      "message": "Ah, it\u0027s true RichObserver is no appropriate here. And I found it\u0027s better to have an Observer to subscribe Subjects.\nhttps://github.com/ReactiveX/RxJava/issues/1313",
+      "parentUuid": "facab960_3264aeb8",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7004927e",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkMessage.java",
         "patchSetId": 17
@@ -496,6 +532,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_41587a32",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/MockBufferPool.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-29T10:41:39Z",
+      "side": 1,
+      "message": "Oh, that\u0027s true. I\u0027m deleting this file.",
+      "parentUuid": "facab960_1e1509f1",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_5074eefc",
         "filename": "netlink/src/test/scala/org/midonet/netlink/rtnetlink/LinkTest.scala",
         "patchSetId": 17
@@ -543,6 +597,24 @@
       "side": 1,
       "message": "that should be solved in integration tests. if you want to unit tests, we can try to serialize something, deserialize it back and then compare with the original.",
       "parentUuid": "facab960_5a4b2459",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_615d7e21",
+        "filename": "netlink/src/test/scala/org/midonet/netlink/rtnetlink/LinkTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-29T10:41:39Z",
+      "side": 1,
+      "message": "Unfortunately we don\u0027t have serialize methods for rtnetlink resources. We should have though. I\u0027ll temporarily delete this file.",
+      "parentUuid": "facab960_3ef9edc8",
       "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
