@@ -34,6 +34,8 @@ object TopologyMappings {
         Topology.Type.HOST -> classOf[Topology.Host],
         Topology.Type.IP_ADDR_GROUP -> classOf[Topology.IPAddrGroup],
         Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
+        Topology.Type.L2INSERTION -> classOf[Topology.L2Insertion],
+        Topology.Type.L2SERVICE -> classOf[Topology.L2Service],
         Topology.Type.NETWORK -> classOf[Topology.Network],
         Topology.Type.POOL -> classOf[Topology.Pool],
         Topology.Type.POOL_MEMBER -> classOf[Topology.PoolMember],

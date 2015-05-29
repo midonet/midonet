@@ -40,8 +40,6 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 class PortGroupResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[PortGroup](resContext) {
 
-    private val uriInfo = resContext.uriInfo
-
     protected override def listFilter: (PortGroup) => Boolean = {
         val portId = uriInfo.getQueryParameters.getFirst("port_id")
         val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
