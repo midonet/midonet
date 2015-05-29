@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_f3eec58a",
+        "filename": "cluster/vtep/src/main/java/org/midonet/vtep/OvsdbTools.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-29T16:16:09Z",
+      "side": 1,
+      "message": "Add a break to this if? Then, this condition is not needed.",
+      "range": {
+        "startLine": 159,
+        "startChar": 28,
+        "endLine": 159,
+        "endChar": 42
+      },
+      "revId": "52177dc561029852c3ff4a64d1a28c2f8e2dbbd6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
