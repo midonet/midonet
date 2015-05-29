@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,6 +65,13 @@ public abstract class Port extends UriResource {
 
     @ZoomField(name = "outbound_filter_id", converter = UUIDUtil.Converter.class)
     public UUID outboundFilterId;
+
+    @ZoomField(name = "inbound_chain", converter = UUIDUtil.Converter.class)
+    public List<UUID> inboundChains = new ArrayList<UUID>();
+
+    @ZoomField(name = "outbound_chain", converter = UUIDUtil.Converter.class)
+    public List<UUID> outboundChains = new ArrayList<UUID>();
+
 
     @ZoomField(name = "tunnel_key")
     public long tunnelKey;
@@ -148,5 +156,7 @@ public abstract class Port extends UriResource {
         }
         portGroupIds = from.portGroupIds;
         traceRequestIds = from.traceRequestIds;
+        inboundChains = from.inboundChains;
+        outboundChains = from.outboundChains;
     }
 }
