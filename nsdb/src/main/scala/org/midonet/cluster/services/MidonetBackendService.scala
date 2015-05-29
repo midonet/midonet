@@ -63,6 +63,8 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Host],
              classOf[IPAddrGroup],
              classOf[LoadBalancer],
+             classOf[L2Insertion],
+             classOf[L2Service],
              classOf[Network],
              classOf[NeutronConfig],
              classOf[NeutronHealthMonitor],
@@ -89,6 +91,11 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Vtep],
              classOf[VtepBinding]
         ).foreach(store.registerClass)
+
+        store.declareBinding(classOf[Port], "insertions", CASCADE,
+                             classOf[L2Insertion], "port", CLEAR)
+        store.declareBinding(classOf[Port], "srv_insertions", CASCADE,
+                             classOf[L2Insertion], "srv_port", CLEAR)
 
         store.declareBinding(classOf[Network], "port_ids", CASCADE,
                              classOf[Port], "network_id", CLEAR)
