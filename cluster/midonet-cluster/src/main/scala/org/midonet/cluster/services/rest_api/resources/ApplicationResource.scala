@@ -33,6 +33,8 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
                                     adRouteResource: AdRouteResource,
                                     bgpResource: BgpResource,
                                     bridgeResource: BridgeResource,
+                                    l2insertionResource: L2InsertionResource,
+                                    l2serviceResource: L2ServiceResource,
                                     chainResource: ChainResource,
                                     hostResource: HostResource,
                                     loadBalancerResource: LoadBalancerResource,
@@ -68,6 +70,12 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
 
     @Path("bridges")
     def bridges = bridgeResource
+
+    @Path("l2insertions")
+    def l2insertions = l2insertionResource
+
+    @Path("l2services")
+    def l2services = l2serviceResource
 
     @Path("chains")
     def chains = chainResource

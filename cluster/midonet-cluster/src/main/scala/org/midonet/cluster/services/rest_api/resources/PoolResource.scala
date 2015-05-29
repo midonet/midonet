@@ -54,7 +54,8 @@ class PoolResource @Inject()(resContext: ResourceContext)
         to.update(from)
     }
 
-    override protected def deleteResource(clazz: Class[_ <: UriResource],
+    override protected def deleteResource[U >: Null <: UriResource]
+                   (clazz: Class[U],
                     id: Any, defaultRes: Response = OkNoContentResponse) = {
         try {
             super.deleteResource(clazz, id)
