@@ -89,7 +89,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
             flowInvalidator,
             clock,
             new FlowStateStorageFactory() {
-                override def create() = new MockStateStorage()
+                override def create() = Future.successful(new MockStateStorage())
             })
 
     var dpc: TestableDpC = _

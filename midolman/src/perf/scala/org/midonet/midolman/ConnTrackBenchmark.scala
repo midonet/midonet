@@ -19,6 +19,8 @@ package org.midonet.midolman
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import scala.concurrent.Future
+
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 import org.openjdk.jmh.infra.Blackhole
 
@@ -95,7 +97,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         macTable.add(rightMac, rightPort.getId)
         replicator = new FlowStateReplicator(conntrackTable, natTable,
                                              traceTable,
-                                             new MockStateStorage,
+                                             Future.successful(new MockStateStorage),
                                              hostId,
                                              underlayResolver,
                                              mockFlowInvalidation,

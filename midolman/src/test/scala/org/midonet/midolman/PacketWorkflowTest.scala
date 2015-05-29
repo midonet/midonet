@@ -17,7 +17,7 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import scala.concurrent.Promise
+import scala.concurrent.{Future, Promise}
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
@@ -374,7 +374,8 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    flowProcessor,
                                    conntrackTable, natTable,
                                    new ShardedFlowStateTable[TraceKey, TraceContext](),
-                                   new MockStateStorage(), HappyGoLuckyLeaser,
+                                   Future.successful(new MockStateStorage()),
+                                   HappyGoLuckyLeaser,
                                    metrics, packetOut)
             with MessageAccumulator {
 

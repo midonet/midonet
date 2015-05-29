@@ -22,6 +22,7 @@ import java.util.Random
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
+import scala.concurrent.Future
 
 import org.slf4j.LoggerFactory
 import org.slf4j.helpers.NOPLogger
@@ -469,7 +470,8 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         val natTable = new MockFlowStateTable[NatKey, NatBinding]()
         val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
     } with BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
-                                   new MockStateStorage, ingressHostId, underlay,
+                                   Future.successful(new MockStateStorage),
+                                   ingressHostId, underlay,
                                    mockFlowInvalidation,
                                    0) {
 

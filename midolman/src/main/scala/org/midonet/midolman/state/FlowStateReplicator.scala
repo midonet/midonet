@@ -18,6 +18,8 @@ package org.midonet.midolman.state
 
 import java.util.{ArrayList, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
@@ -39,6 +41,7 @@ import org.midonet.rpc.{FlowStateProto => Proto}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTable
 import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
 
 /**
@@ -90,7 +93,7 @@ import org.midonet.util.functors.Callback0
 abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
                                        natTable: FlowStateTable[NatKey, NatBinding],
                                        traceTable: FlowStateTable[TraceKey, TraceContext],
-                                       storage: FlowStateStorage,
+                                       storageFuture: Future[FlowStateStorage],
                                        hostId: UUID,
                                        underlay: UnderlayResolver,
                                        flowInvalidation: FlowTagIndexer,
@@ -111,6 +114,9 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     private[this] val txPorts: JSet[UUID] = new JHashSet[UUID]()
 
     private[this] val hostIdProto = uuidToProto(hostId)
+    private[this] var storage: FlowStateStorage = _
+
+    storageFuture.onSuccess { case s => storage = s }(ExecutionContext.callingThread)
 
     private val _conntrackAdder = new Reducer[ConnTrackKey, ConnTrackValue, ArrayList[Callback0]] {
         override def apply(callbacks: ArrayList[Callback0], k: ConnTrackKey,
@@ -120,7 +126,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                 txState.setConntrackKey(connTrackKeyToProto(k))
             }
             log.debug("touch conntrack key: {}", k)
-            storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
+            if (storage ne null)
+                storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = conntrackTable.unref(k)
@@ -139,7 +146,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                 txState.addNatEntries(txNatEntry.build())
             }
             log.debug("touch nat key: {}", k)
-            storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
+            if (storage ne null)
+                storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = natTable.unref(k)
@@ -258,7 +266,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     }
 
     def touchState(): Unit =
-        storage.submit()
+        if (storage ne null)
+            storage.submit()
 
     private def acceptNewState(msg: Proto.StateMessage) {
         val newStates = msg.getNewStateList.iterator
@@ -374,13 +383,13 @@ class FlowStateReplicator(
         conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
         natTable: FlowStateTable[NatKey, NatBinding],
         traceTable: FlowStateTable[TraceKey, TraceContext],
-        storage: FlowStateStorage,
+        storageFuture: Future[FlowStateStorage],
         hostId: UUID,
         underlay: UnderlayResolver,
         flowInvalidation: FlowTagIndexer,
         tso: Byte)(implicit as: ActorSystem)
         extends BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
-                                        storage, hostId, underlay,
+                                        storageFuture, hostId, underlay,
                                         flowInvalidation, tso) {
     override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 

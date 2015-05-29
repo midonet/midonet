@@ -145,7 +145,7 @@ class PacketWorkflow(
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateTable[NatKey, NatBinding],
             val traceStateTable: FlowStateTable[TraceKey, TraceContext],
-            val storage: FlowStateStorage,
+            val storage: Future[FlowStateStorage],
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit)
