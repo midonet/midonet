@@ -158,8 +158,6 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     override def logSource = "org.midonet.datapath-control"
 
-    var storage: FlowStateStorage = _
-
     var zones = Map[UUID, IPAddr]()
 
     var portWatcher: Subscription = null
@@ -168,7 +166,6 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         super.preStart()
         defaultMtu = config.dhcpMtu
         cachedMinMtu = defaultMtu
-        storage = storageFactory.create()
         context become (DatapathInitializationActor orElse {
             case m =>
                 log.info(s"Not handling $m (still initializing)")
@@ -176,7 +173,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     }
 
     private def subscribeToHost(id: UUID): Unit = {
-        val props = Props(classOf[HostRequestProxy], id, storage, self)
+        val props = Props(classOf[HostRequestProxy],
+                          id, storageFactory.create(), self)
                         .withDispatcher(context.props.dispatcher)
         context.actorOf(props, s"HostRequestProxy-$id")
     }
