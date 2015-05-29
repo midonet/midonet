@@ -19,14 +19,16 @@ import com.datastax.driver.core.Session;
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
+
 import scala.concurrent.Future;
+import scala.runtime.AbstractFunction1;
 
 import org.midonet.cluster.backend.cassandra.CassandraClient;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.state.FlowStateStorage;
 import org.midonet.midolman.state.FlowStateStorage$;
 import org.midonet.midolman.state.FlowStateStorageFactory;
-
+import org.midonet.util.concurrent.CallingThreadExecutionContext$;
 
 public class FlowStateStorageModule extends PrivateModule {
     @Override
@@ -62,8 +64,13 @@ public class FlowStateStorageModule extends PrivateModule {
         }
 
         @Override
-        public FlowStateStorage create() {
-            return FlowStateStorage$.MODULE$.apply(sessionF);
+        public Future<FlowStateStorage> create() {
+            return sessionF.map(new AbstractFunction1<Session, FlowStateStorage>() {
+                @Override
+                public FlowStateStorage apply(Session session) {
+                    return FlowStateStorage$.MODULE$.apply(session);
+                }
+            }, CallingThreadExecutionContext$.MODULE$);
         }
     }
 }

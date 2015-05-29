@@ -16,6 +16,8 @@
 
 package org.midonet.midolman.state;
 
+import scala.concurrent.Future;
+
 public interface FlowStateStorageFactory {
-    FlowStateStorage create();
+    Future<FlowStateStorage> create();
 }
