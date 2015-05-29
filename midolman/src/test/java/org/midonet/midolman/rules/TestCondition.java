@@ -139,7 +139,7 @@ public class TestCondition {
         Assert.assertTrue(cond.matches(pktCtx));
         Assert.assertTrue(cond.matches(pktCtx));
         // Now add outPort to the condition - it stops matching due to invert
-        // on forwarding elements, but stays the same on port filters.
+        // on forwarding elements - for both port filters and others.
         cond.outPortIds.add(outPort);
         pktCtx.outPortId_$eq(outPort);
         Assert.assertFalse(cond.matches(pktCtx));
