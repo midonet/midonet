@@ -112,5 +112,8 @@ message Condition {
         UNFRAGMENTED = 4;
     }
     optional FragmentPolicy fragment_policy = 36;
+
+    optional bool no_vlan = 60;
+    optional uint32 vlan = 61;
     // end of condition fields
 }
