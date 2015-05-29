@@ -256,7 +256,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
     }
 
-    protected def deleteResource(clazz: Class[_ <: UriResource], id: Any,
+    protected def deleteResource[U >: Null <: UriResource]
+                                (clazz: Class[U], id: Any,
                                  response: Response = OkNoContentResponse)
     : Response = {
         log.info("DELETE: {}:{}", UriResource.getZoomClass(clazz),
@@ -303,7 +304,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         resource
     }
 
-    private def toProto[U >: Null <: UriResource](resource: U): Message = {
+    protected def toProto[U >: Null <: UriResource](resource: U): Message = {
         try {
             ZoomConvert.toProto(resource, resource.getZoomClass)
         } catch {

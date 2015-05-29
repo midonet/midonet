@@ -53,6 +53,16 @@ public class Application {
         return uriFor(ResourceUris.BRIDGES);
     }
 
+    @XmlElement(name = "l2insertions")
+    public URI getL2Insertions() {
+        return uriFor(ResourceUris.L2INSERTIONS);
+    }
+
+    @XmlElement(name = "l2services")
+    public URI getL2Services() {
+        return uriFor(ResourceUris.L2SERVICES);
+    }
+
     @XmlElement(name = "routers")
     public URI getRouters() {
         return uriFor(ResourceUris.ROUTERS);
@@ -211,6 +221,16 @@ public class Application {
     @XmlElement(name = "routerTemplate")
     public String getRouterTemplate() {
         return templateFor(ResourceUris.ROUTERS);
+    }
+
+    @XmlElement(name = "l2InsertionTemplate")
+    public String getL2InsertionTemplate() {
+        return templateFor(ResourceUris.L2INSERTIONS);
+    }
+
+    @XmlElement(name = "l2ServiceTemplate")
+    public String getL2ServiceTemplate() {
+        return templateFor(ResourceUris.L2SERVICES);
     }
 
     @XmlElement(name = "ruleTemplate")

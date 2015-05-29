@@ -112,6 +112,11 @@ public class Condition extends UriResource {
     @ZoomField(name = "traversed_device_inv")
     public boolean invTraversedDevice;
 
+    @ZoomField(name = "no_vlan")
+    public boolean noVlan;
+    @ZoomField(name = "vlan")
+    public Integer vlan;
+
     @Min(0x0600)
     @Max(0xFFFF)
     @ZoomField(name = "dl_type")
