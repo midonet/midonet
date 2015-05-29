@@ -243,7 +243,7 @@ object MidolmanStat extends App {
                             required = true)
         val host = opt[String]("host", short = 'h', default = Option("localhost"),
                                descr = "Host")
-        val delay = trailArg[Int](required = false, default = Some(1),
+        val delay = trailArg[Int](required = false, default = Some(0),
                                   descr = "delay between updates, in seconds. If no "+
                                           "delay is specified, only one report is printed.")
         val count = trailArg[Int](required = false, default = Some(Integer.MAX_VALUE),
