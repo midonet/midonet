@@ -16,22 +16,43 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import com.google.protobuf.Message
-
-import org.midonet.cluster.services.c3po.midonet.MidoOp
+import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.models.Commons.LBStatus
+import org.midonet.cluster.models.Commons.LBStatus.ACTIVE
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPoolMember
+import org.midonet.cluster.models.Topology.PoolMember
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPoolMember. */
-class LoadBalancerPoolMemberTranslator
+class LoadBalancerPoolMemberTranslator(protected val storage: ReadOnlyStorage)
         extends NeutronTranslator[NeutronLoadBalancerPoolMember]{
 
+    private def translate(nm: NeutronLoadBalancerPoolMember,
+                          status: LBStatus = ACTIVE)
+    : PoolMember = {
+        val mMember = PoolMember.newBuilder()
+                                .setId(nm.getId)
+                                .setAdminStateUp(nm.getAdminStateUp)
+                                .setProtocolPort(nm.getProtocolPort)
+                                .setWeight(nm.getWeight)
+                                .setStatus(status)
+        if (nm.hasPoolId) mMember.setPoolId(nm.getPoolId)
+        if (nm.hasAddress) mMember.setAddress(nm.getAddress)
+
+        mMember.build
+    }
+
     override protected def translateCreate(nm: NeutronLoadBalancerPoolMember)
-    : List[MidoOp[_ <: Message]] = List()
+    : MidoOpList = List(Create(translate(nm)))
 
     override protected def translateDelete(id: UUID)
-    : List[MidoOp[_ <: Message]] = List()
+    : MidoOpList = List(Delete(classOf[PoolMember], id))
 
     override protected def translateUpdate(nm: NeutronLoadBalancerPoolMember)
-    : List[MidoOp[_ <: Message]] = List()
+    : MidoOpList = {
+        val mMember = storage.get(classOf[PoolMember], nm.getId).await()
+        List(Update(translate(nm, status = mMember.getStatus)))
+    }
 }

@@ -24,9 +24,11 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{HealthMonitor => HealthMonitorType, Pool => PoolType, Router => RouterType, VIP => VIPType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{HealthMonitor => HealthMonitorType, Pool => PoolType, PoolMember => PoolMemberType, Router => RouterType, VIP => VIPType}
 import org.midonet.cluster.data.neutron.TaskType.Create
+import org.midonet.cluster.models.Commons.LBStatus.ACTIVE
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.util.concurrent.toFutureOps
 
@@ -55,6 +57,28 @@ class LoadBalancerIT extends C3POMinionTestBase {
         hm.put("admin_state_up", adminStateUp)
         hm.put("max_retries", maxRetries)
         hm
+    }
+
+    private def memberJson(id: UUID,
+                           poolId: UUID,
+                           address: String,
+                           adminStateUp: Boolean = true,
+                           protocolPort: Int = 12345,
+                           weight: Int = 100,
+                           status: String = "status",
+                           statusDescription: String = "status_desc")
+                           : JsonNode = {
+        val member = nodeFactory.objectNode
+        member.put("id", id.toString)
+        if (poolId != null) member.put("pool_id", poolId.toString)
+        if (address != null) member.put("address", address)
+        member.put("admin_state_up", adminStateUp)
+        member.put("protocol_port", protocolPort)
+        member.put("weight", weight)
+        if (status != null) member.put("status", status)
+        if (statusDescription != null)
+            member.put("status_description", statusDescription)
+        member
     }
 
     private def vipJson(id: UUID,
@@ -112,6 +136,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         pool.getLoadBalancerId shouldBe toProto(routerId)
         pool.getAdminStateUp shouldBe true
         pool.hasHealthMonitorId shouldBe false
+        pool.getPoolMemberIdsList.isEmpty shouldBe true
 
         // #3 Create a Health Monitor.
         val hmId = UUID.randomUUID()
@@ -132,7 +157,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
             pool.getHealthMonitorId shouldBe toProto(hmId)
         }
 
-        // #4 Create a VIP.
+        // #5 Create a VIP.
         val vipId = UUID.randomUUID()
         val vJson = vipJson(vipId, poolId = poolId).toString
         insertCreateTask(5, VIPType, vJson, vipId)
@@ -145,6 +170,27 @@ class LoadBalancerIT extends C3POMinionTestBase {
         vip.getSessionPersistence shouldBe VIP.SessionPersistence.SOURCE_IP
         val lbWithVip = storage.get(classOf[LoadBalancer], routerId).await()
         lbWithVip.getVipIdsList should contain (toProto(vipId))
+
+        // #6 Add a Pool Member.
+        val memberId = UUID.randomUUID()
+        val poolMemberAddress = "10.10.0.3"
+        val poolMemberJson =
+            memberJson(memberId, poolId, poolMemberAddress).toString
+        insertCreateTask(6, PoolMemberType, poolMemberJson, memberId)
+        val member =
+            eventually(storage.get(classOf[PoolMember], memberId).await())
+        member.getPoolId shouldBe toProto(poolId)
+        member.getAddress shouldBe IPAddressUtil.toProto(poolMemberAddress)
+        val poolWithMember = storage.get(classOf[Pool], poolId).await()
+        poolWithMember.getPoolMemberIdsList should contain (toProto(memberId))
+
+        // #7 Delete the Pool Member
+        insertDeleteTask(7, PoolMemberType, memberId)
+        eventually {
+            storage.exists(classOf[PoolMember], memberId).await() shouldBe false
+        }
+        val poolWithNoMember = storage.get(classOf[Pool], poolId).await()
+        poolWithNoMember.getPoolMemberIdsList.isEmpty shouldBe true
     }
 
     "LB Pool" should "be allowed to be created with a Health Monitor already " +
@@ -167,10 +213,80 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val pool = eventually(storage.get(classOf[Pool], poolId).await())
         pool.hasHealthMonitorId shouldBe true
         pool.getHealthMonitorId shouldBe toProto(hmId)
+        pool.getPoolMemberIdsList.isEmpty shouldBe true
 
-        // #4 Remove the Health Monitor from the Pool
+        // #4 Add a Pool Member.
+        val memberId = UUID.randomUUID()
+        val poolMemberAddress = "10.10.0.3"
+        val poolMemberJson =
+            memberJson(memberId, poolId = null, poolMemberAddress).toString
+        insertCreateTask(4, PoolMemberType, poolMemberJson, memberId)
+        val member =
+            eventually(storage.get(classOf[PoolMember], memberId).await())
+        member.hasPoolId shouldBe false
+        member.getAddress shouldBe IPAddressUtil.toProto(poolMemberAddress)
+        member.getStatus shouldBe ACTIVE
+        val samePool = eventually(storage.get(classOf[Pool], poolId).await())
+        samePool.getPoolMemberIdsList.isEmpty shouldBe true
+
+        // #5 Update a Pool Member.
+        val memberAddress2 = "10.10.0.4"
+        val updatedMemberJson =
+            memberJson(memberId, poolId, memberAddress2,
+                       adminStateUp = false, protocolPort = 23456, weight = 200,
+                       status = "status2").toString
+        insertUpdateTask(5, PoolMemberType, updatedMemberJson, memberId)
+        eventually {
+            val updatedMember =
+                storage.get(classOf[PoolMember], memberId).await()
+            updatedMember.hasPoolId shouldBe true
+            updatedMember.getPoolId shouldBe toProto(poolId)
+            updatedMember.getAddress shouldBe IPAddressUtil.toProto(
+                    memberAddress2)
+            updatedMember.getAdminStateUp shouldBe false
+            updatedMember.getProtocolPort shouldBe 23456
+            updatedMember.getWeight shouldBe 200
+        }
+        val poolWithMember = storage.get(classOf[Pool], poolId).await()
+        poolWithMember.getPoolMemberIdsList should contain (toProto(memberId))
+
+        // #6 Create a 2nd Pool. 
+        val pool2Id = UUID.randomUUID()
+        val pool2Json = lbPoolJson(pool2Id, true, routerId).toString
+        insertCreateTask(6, PoolType, pool2Json, pool2Id)
+        val pool2 = eventually(storage.get(classOf[Pool], pool2Id).await())
+        pool2.getPoolMemberIdsList.isEmpty shouldBe true
+
+        // #7 Re-attach the Pool Member to Pool2.
+        val movedMemberJson =
+            memberJson(memberId, pool2Id, memberAddress2).toString
+        insertUpdateTask(7, PoolMemberType, movedMemberJson, memberId)
+        eventually {
+            val movedMember =
+                storage.get(classOf[PoolMember], memberId).await()
+            movedMember.hasPoolId shouldBe true
+            movedMember.getPoolId shouldBe toProto(pool2Id)
+        }
+        val poolWithNoMember = storage.get(classOf[Pool], poolId).await()
+        poolWithNoMember.getPoolMemberIdsList.isEmpty shouldBe true
+        val pool2WithMember = storage.get(classOf[Pool], pool2Id).await()
+        pool2WithMember.getPoolMemberIdsList should contain (toProto(memberId))
+
+        // #8 Detach the Pool Member from Pool2.
+        val detachedMemberJson =
+            memberJson(memberId, poolId = null, memberAddress2).toString
+        insertUpdateTask(8, PoolMemberType, detachedMemberJson, memberId)
+        eventually {
+            val detachedMember =
+                storage.get(classOf[PoolMember], memberId).await()
+            detachedMember.hasPoolId shouldBe false
+        }
+        val pool2WithNoMember = storage.get(classOf[Pool], pool2Id).await()
+        pool2WithNoMember.getPoolMemberIdsList.isEmpty shouldBe true
+
+        // #9 Remove the Health Monitor from the Pool
         val poolWithNoHmJson = lbPoolJson(poolId, true, routerId).toString
-        insertUpdateTask(4, PoolType, poolWithNoHmJson, poolId)
+        insertUpdateTask(9, PoolType, poolWithNoHmJson, poolId)
         eventually {
             val pool = storage.get(classOf[Pool], poolId).await()
             pool.hasHealthMonitorId shouldBe false
