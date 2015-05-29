@@ -224,6 +224,11 @@ class Coordinator(context: PacketContext)
                 thunk(port)
             case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
                 Drop
+            case RuleResult.Action.REDIRECT =>
+                if(result.redirectIngress)
+                    packetIngressesPort(result.redirectPort, false)
+                else
+                    packetEgressesPort(result.redirectPort)
             case other =>
                 log.error("Port filter {} returned {} which was " +
                         "not ACCEPT, DROP or REJECT.", filterID, other)
