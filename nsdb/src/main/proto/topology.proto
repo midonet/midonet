@@ -285,8 +285,14 @@ message Port {
     // VXLAN port specific
     optional UUID vtep_id = 20;
 
+    repeated UUID inbound_chain = 21;
+    repeated UUID outbound_chain = 22;
+
     // Backreferences
     repeated UUID rule_ids = 101;
+    repeated UUID insertions = 102;
+    repeated UUID srv_insertions = 103;
+    optional UUID l2service = 104;
 }
 
 message PortGroup {
@@ -341,6 +347,7 @@ message Rule {
         NAT_RULE = 2;
         JUMP_RULE = 3;
         TRACE_RULE = 4;
+        REDIRECT_RULE = 5;
     }
     optional Type type = 2;
     optional UUID chain_id = 3;
@@ -352,6 +359,7 @@ message Rule {
         JUMP = 4;
         REJECT = 5;
         RETURN = 6;
+        REDIRECT = 7;
     }
     optional Action action = 4;
 
@@ -399,7 +407,14 @@ message Rule {
         UNFRAGMENTED = 4;
     }
     optional FragmentPolicy fragment_policy = 40;
+    optional bool no_vlan = 41;
+    optional uint32 vlan = 42;
+    optional UUID orig_in_port = 43;
     // end of condition fields
+
+    // probably not the right way to do this. Need vlan push/pop as side-effects
+    optional bool pop_vlan = 200;
+    optional uint32 push_vlan = 201;
 
     message JumpRuleData {
         optional UUID jump_to = 1;
@@ -420,10 +435,35 @@ message Rule {
         // True for reverse NAT rules. Reverse NAT rules have no targets.
         optional bool reverse = 3;
     }
+    message RedirRuleData {
+        optional UUID target_port = 1;
+        optional bool ingress = 2;
+        optional bool fail_open = 3;
+    }
     oneof rule_data {
         JumpRuleData jump_rule_data = 100;
         NatRuleData nat_rule_data = 101;
+        RedirRuleData redir_rule_data = 102;
     }
+}
+
+message L2Insertion {
+    optional UUID id = 1;
+    optional UUID port = 2;
+    optional UUID srv_port = 3;
+    optional uint32 vlan = 4;
+    optional bool fail_open = 5;
+    optional uint32 position = 6;
+    optional string mac = 7;
+
+    // Keep a reference to the corresponding service port rule
+    optional UUID srv_rule_in = 100;
+    optional UUID srv_rule_out = 101;
+}
+
+message L2Service {
+    optional UUID id = 1;
+    optional UUID port = 2;
 }
 
 message TunnelZone {

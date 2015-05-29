@@ -56,6 +56,11 @@ public abstract class Rule extends BaseConfig {
     public Action action;
     @ZoomField(name = "chain_id", converter = UUIDUtil.Converter.class)
     public UUID chainId;
+    @ZoomField(name = "pop_vlan")
+    public boolean popVlan;
+    @ZoomField(name = "push_vlan")
+    public int pushVlan;
+
     @JsonIgnore
     public FlowTagger.UserTag meter;
     private Map<String, String> properties = new HashMap<>();
@@ -174,6 +179,15 @@ public abstract class Rule extends BaseConfig {
 
             if (meter != null)
                 pktCtx.addFlowTag(meter);
+            if (popVlan)
+                pktCtx.wcmatch().getVlanIds().remove(0);
+            if (pushVlan != 0)
+                pktCtx.wcmatch().addVlanId((short)pushVlan);
+            if (popVlan || pushVlan != 0)
+                pktCtx.jlog().debug("{} {}.",
+                    (popVlan ? "popping vlan " + condition.vlan: ""),
+                    (pushVlan > 0 ? " pushing vlan " + pushVlan : ""));
+
             apply(pktCtx, res, ownerId);
         }
     }
@@ -237,6 +251,8 @@ public abstract class Rule extends BaseConfig {
         sb.append("condition=").append(condition);
         sb.append(", action=").append(action);
         sb.append(", chainId=").append(chainId);
+        sb.append(", popVlan=").append(popVlan);
+        sb.append(", pushVlan=").append(pushVlan);
         if (meter != null)
             sb.append(", meter=").append(meter);
         sb.append("]");
@@ -250,6 +266,7 @@ public abstract class Rule extends BaseConfig {
                 case LITERAL_RULE: return LiteralRule.class;
                 case TRACE_RULE: return TraceRule.class;
                 case NAT_RULE: return NatRule.class;
+                case REDIRECT_RULE: return RedirectRule.class;
                 default:
                     throw new ZoomConvert.ConvertException("Unknown rule " +
                         "type: " + proto.getType());

@@ -110,6 +110,12 @@ public class Condition extends BaseConfig {
     public UUID traversedDevice;
     @ZoomField(name = "traversed_device_inv")
     public boolean traversedDeviceInv;
+    @ZoomField(name = "no_vlan")
+    public boolean noVlan;
+    @ZoomField(name = "vlan")
+    public int vlan;
+    @ZoomField(name = "orig_in_port", converter = UUIDUtil.Converter.class)
+    public UUID origInPort;
 
     private FlowTagger.FlowTag _traversedDeviceTag = null;
     private FlowTagger.FlowTag traversedDeviceTag() {
@@ -226,6 +232,18 @@ public class Condition extends BaseConfig {
         if (matchForwardFlow && !pktCtx.isForwardFlow())
             return conjunctionInv;
         if (matchReturnFlow && pktCtx.isForwardFlow())
+            return conjunctionInv;
+
+        if (noVlan && pktMatch.getVlanIds().size() != 0)
+            return conjunctionInv;
+        if (vlan != 0) {
+            if (pktMatch.getVlanIds().size() == 0)
+                return conjunctionInv;
+            if (pktMatch.getVlanIds().get(0) != vlan)
+                return conjunctionInv;
+            // TODO: does this match include the PCP bits in the vlan?
+        }
+        if (!matchField(origInPort, pktCtx.inputPort(), false))
             return conjunctionInv;
 
         UUID inPortId = isPortFilter ? null : pktCtx.inPortId();
@@ -351,6 +369,12 @@ public class Condition extends BaseConfig {
         if (matchReturnFlow)
             sb.append("return-flow ");
 
+        if (noVlan)
+            sb.append("no-vlan ");
+
+        if (vlan != 0)
+            sb.append("vlan=").append(vlan).append(" ");
+
         if (inPortIds != null && !inPortIds.isEmpty()) {
             sb.append("input-ports=");
             sb.append(inPortInv ? "!{" : "{");
@@ -368,6 +392,7 @@ public class Condition extends BaseConfig {
             sb.append("} ");
         }
 
+        formatField(sb, false, "orig-in-port", origInPort);
         formatField(sb, invPortGroup, "port-group", portGroup);
         formatField(sb, invIpAddrGroupIdSrc, "ip-src-group", ipAddrGroupIdSrc);
         formatField(sb, invIpAddrGroupIdDst, "ip-dst-group", ipAddrGroupIdDst);
