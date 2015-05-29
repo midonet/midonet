@@ -58,6 +58,16 @@ public class Application {
         return uriFor(ResourceUris.BRIDGES);
     }
 
+    @JsonProperty("l2insertions")
+    public URI getL2Insertions() {
+        return uriFor(ResourceUris.L2INSERTIONS);
+    }
+
+    @JsonProperty("l2services")
+    public URI getL2Services() {
+        return uriFor(ResourceUris.L2SERVICES);
+    }
+
     @JsonProperty("routers")
     public URI getRouters() {
         return uriFor(ResourceUris.ROUTERS);
@@ -216,6 +226,16 @@ public class Application {
     @JsonProperty("routerTemplate")
     public String getRouterTemplate() {
         return templateFor(ResourceUris.ROUTERS);
+    }
+
+    @JsonProperty("l2InsertionTemplate")
+    public String getL2InsertionTemplate() {
+        return templateFor(ResourceUris.L2INSERTIONS);
+    }
+
+    @JsonProperty("l2ServiceTemplate")
+    public String getL2ServiceTemplate() {
+        return templateFor(ResourceUris.L2SERVICES);
     }
 
     @JsonProperty("ruleTemplate")

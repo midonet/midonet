@@ -150,6 +150,8 @@ trait InAndOutFilters extends SimDevice {
 
     def infilter: UUID
     def outfilter: UUID
+    def inchains: Seq[UUID] = Seq.empty[UUID]
+    def outchains: Seq[UUID] = Seq.empty[UUID]
     protected def reject(context: PacketContext, as: ActorSystem): Unit = {}
 
     protected def preIn: SimHook = NOOP_HOOK
@@ -160,7 +162,10 @@ trait InAndOutFilters extends SimDevice {
     protected def dropOut: DropHook = (p, as, action) => Drop
 
     final protected val filterIn: (PacketContext, ActorSystem, SimStep) => Result =
-        if (!adminStateUp) {
+    { filterIn(false) }
+
+    protected def filterIn(ignoreAdminDown: Boolean): (PacketContext, ActorSystem, SimStep) => Result =
+        if (!adminStateUp && !ignoreAdminDown) {
             (context, as, continue) => {
                 reject(context, as)
                 Drop
@@ -168,8 +173,10 @@ trait InAndOutFilters extends SimDevice {
         } else if (infilter ne null) {
             (context, as, continue) => {
                 context.log.debug(s"Applying inbound chain $infilter")
-                doFilter(context, infilter, preIn, postIn, continue, dropIn, as)
+                doFilter(context, inchains :+ infilter, preIn, postIn, continue, dropIn, as)
             }
+        } else if (inchains.size > 0) {
+            (context, as, continue) => doFilter(context, inchains, preIn, postIn, continue, dropIn, as)
         } else {
             (context, as, continue) => {
                 preIn(context, as)
@@ -179,7 +186,10 @@ trait InAndOutFilters extends SimDevice {
         }
 
     final protected val filterOut: (PacketContext, ActorSystem, SimStep) => Result =
-        if (!adminStateUp) {
+    { filterOut(false) }
+
+    protected def filterOut(ignoreAdminDown: Boolean): (PacketContext, ActorSystem, SimStep) => Result =
+        if (!adminStateUp && !ignoreAdminDown) {
             (context, as, continue) => {
                 reject(context, as)
                 Drop
@@ -187,7 +197,9 @@ trait InAndOutFilters extends SimDevice {
         } else if (outfilter ne null) {
             (context, as, continue) =>
                 context.log.debug(s"Applying outbound chain $outfilter")
-                doFilter(context, outfilter, preOut, postOut, continue, dropOut, as)
+                doFilter(context, outfilter +: outchains, preIn, postIn, continue, dropIn, as)
+        } else if (outchains.size > 0) {
+            (context, as, continue) => doFilter(context, outchains, preIn, postIn, continue, dropIn, as)
         } else {
             (context, as, continue) => {
                 preOut(context, as)
@@ -196,28 +208,62 @@ trait InAndOutFilters extends SimDevice {
             }
         }
 
-    private[this] final def doFilter(context: PacketContext, filter: UUID,
+    private[this] final def doFilter(context: PacketContext, filters: Seq[UUID],
                                      preFilter: SimHook, postFilter: SimHook,
                                      continue: SimStep, dropHook: DropHook,
                                      as: ActorSystem): Result = {
         implicit val _as: ActorSystem = as
-        context.log.debug(s"Applying filter $filter")
         preFilter(context, as)
-        val r = tryAsk[Chain](filter).process(context)
-        postFilter(context, as)
-        context.log.debug(s"Filter returned: ${r.action}")
-        r.action match {
-            case RuleResult.Action.ACCEPT =>
-                continue(context, as)
-            case RuleResult.Action.DROP =>
-                dropHook(context, as, RuleResult.Action.DROP)
-            case RuleResult.Action.REJECT =>
-                reject(context, as)
-                dropHook(context, as, RuleResult.Action.REJECT)
-            case a =>
-                context.log.error("Filter {} returned {} which was " +
-                                  "not ACCEPT, DROP or REJECT.", filter, a)
-                ErrorDrop
+        for (filter <- filters) {
+            context.log.debug(s"Applying filter $filter")
+            val r = tryAsk[Chain](filter).process(context)
+            context.log.debug(s"Filter returned: ${r.action}")
+            r.action match {
+                case RuleResult.Action.ACCEPT =>
+                    // Do nothing: go to next filter or fall through
+                case RuleResult.Action.DROP =>
+                    postFilter(context, as)
+                    return dropHook(context, as, RuleResult.Action.DROP)
+                case RuleResult.Action.REJECT =>
+                    postFilter(context, as)
+                    reject(context, as)
+                    return dropHook(context, as, RuleResult.Action.REJECT)
+                case RuleResult.Action.REDIRECT =>
+                    val targetPort = tryAsk[Port](r.redirectPort)
+                    if(r.redirectIngress)
+                        return targetPort.ingress(context, as, true)
+                    else if (r.redirectFailOpen) {
+                        // Implement FAIL_OPEN
+                        // Specifically, if ingress=false, fail_open=true, and targetPort is:
+                        // 1) reachable: Redirect OUT-of the targetPort
+                        // 2) unreachable: Redirect IN-to the targetPort
+                        // #2 implements FAIL_OPEN behavior for a Service Function with a single
+                        // data-plane interface. FAIL_OPEN should not be used otherwise.
+                        // #2 emulates what the service VM would do if it were
+                        // reachable and it allowed the packet.
+                        val targetPort = tryAsk[Port](r.redirectPort)
+                        if (targetPort.isExterior &&
+                            (!targetPort.adminStateUp || !targetPort.isActive)){
+                            // Add the transmit tags as if we transmitted the
+                            // packet before receiving it again.
+                            return targetPort.ingress(context, as, true)
+                        }
+                    }
+                    if (!targetPort.adminStateUp)
+                        return Drop
+                    // Call emit instead of egressUp in order to skip filters.
+                    // But that requires us to explicitly add the tags.
+                    context.addFlowTag(targetPort.deviceTag)
+                    context.addFlowTag(targetPort.txTag)
+                    return targetPort.emit(context, as)
+                case a =>
+                    context.log.error("Filter {} returned {} which was " +
+                                      "not ACCEPT, DROP, REDIRECT or REJECT.", filter, a)
+                    postFilter(context, as)
+                    return ErrorDrop
+            }
         }
+        postFilter(context, as)
+        continue(context, as)
     }
 }
