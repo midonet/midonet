@@ -21,7 +21,7 @@ import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.MidolmanConfig
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Promise
+import scala.concurrent.{Future, Promise}
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
@@ -294,7 +294,7 @@ class DeduplicationActorTestCase extends MidolmanSpec {
             extends DeduplicationActor(cookieGen, dpConnPool, clusterDataClient,
                                        new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](),
                                        new ShardedFlowStateTable[NatKey, NatBinding](),
-                                       new MockStateStorage(),
+                                       Future.successful(new MockStateStorage()),
                                        HappyGoLuckyLeaser,
                                        metrics, packetOut, config)
             with MessageAccumulator {

@@ -20,6 +20,8 @@ import java.util.{UUID, List => JList, Set => JSet, Iterator => JIterator,
                   HashSet => JHashSet, ArrayList}
 
 import scala.collection.mutable
+import scala.concurrent.{ExecutionContext, Future}
+
 import akka.actor.ActorSystem
 
 import com.google.protobuf.MessageLite
@@ -48,6 +50,7 @@ import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
 
 /**
@@ -139,7 +142,8 @@ abstract class BaseFlowStateReplicator() {
                 txState.setConntrackKey(connTrackKeyToProto(k))
             }
             log.debug("touch conntrack key: {}", k)
-            storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
+            if (storage ne null)
+                storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = conntrackTable.unref(k)
@@ -158,7 +162,8 @@ abstract class BaseFlowStateReplicator() {
                 txState.addNatEntries(txNatEntry.build())
             }
             log.debug("touch nat key: {}", k)
-            storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
+            if (storage ne null)
+                storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = natTable.unref(k)
@@ -307,7 +312,8 @@ abstract class BaseFlowStateReplicator() {
             i -= 1
         }
 
-        storage.submit()
+        if (storage ne null)
+            storage.submit()
     }
 
     private def acceptNewState(msg: Proto.StateMessage) {
@@ -409,13 +415,17 @@ abstract class BaseFlowStateReplicator() {
 class FlowStateReplicator(
         override val conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
         override val natTable: FlowStateTable[NatKey, NatBinding],
-        override val storage: FlowStateStorage,
+        storageFuture: Future[FlowStateStorage],
         override val underlay: UnderlayResolver,
         override val invalidateFlowsFor: (FlowStateKey) => Unit,
         override val datapath: Datapath)(implicit as: ActorSystem)
         extends BaseFlowStateReplicator {
 
     override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
+
+    var storage: FlowStateStorage = _
+
+    storageFuture.onSuccess { case s => storage = s }(ExecutionContext.callingThread)
 
     @throws(classOf[NotYetException])
     override def getPort(id: UUID) = VTA.tryAsk[Port](id)

@@ -21,6 +21,7 @@ import java.util.{List => JList}
 import org.apache.commons.configuration.HierarchicalConfiguration
 import org.midonet.config.ConfigProvider
 import org.midonet.midolman.config.MidolmanConfig
+import scala.concurrent.{Future, Promise}
 
 import scala.compat.Platform
 import scala.collection.JavaConversions._

@@ -146,7 +146,7 @@ class DeduplicationActor(
             val clusterDataClient: DataClient,
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateTable[NatKey, NatBinding],
-            val storage: FlowStateStorage,
+            val storageFuture: Future[FlowStateStorage],
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val packetOut: Int => Unit,
@@ -214,7 +214,7 @@ class DeduplicationActor(
             dpState = state
             replicator = new FlowStateReplicator(connTrackStateTable,
                                                  natStateTable,
-                                                 storage,
+                                                 storageFuture,
                                                  dpState,
                                                  FlowController ! InvalidateFlowsByTag(_),
                                                  datapath)
