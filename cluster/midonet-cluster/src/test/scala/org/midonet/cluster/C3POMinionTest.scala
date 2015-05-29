@@ -38,7 +38,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
-import org.midonet.cluster.services.c3po.C3POMinion
+import org.midonet.cluster.services.c3po.{C3POState, C3POMinion}
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, NoData, Port => PortType, Router => RouterType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
@@ -207,6 +207,12 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         executeSqlStmts(insertTaskSql(id = 1, Flush, NoData, json = "",
                                       null, "flush_txn"))
         log.info("Inserted a flush task.")
+
+        // Wait for flush to finish before starting test
+        eventually {
+            val state = storage.get(classOf[C3POState], C3POState.ID).await()
+            state.lastProcessedTaskId shouldBe C3POState.NO_TASKS_PROCESSED
+        }
     }
 
     protected def insertTaskSql(id: Int, taskType: TaskType,
