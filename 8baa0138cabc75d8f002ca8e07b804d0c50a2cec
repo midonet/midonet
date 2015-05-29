@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_8602983c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolMemberTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-05-29T09:21:41Z",
+      "side": 1,
+      "message": "is it possible for a pool member not to have a pool id?",
+      "range": {
+        "startLine": 41,
+        "startChar": 0,
+        "endLine": 41,
+        "endChar": 57
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c6e580a9",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 2
