@@ -64,6 +64,7 @@ object ZoomConvert {
 
     private val arrayConverters = new TrieMap[Class[_], ArrayConverter]
     private val listConverters = new TrieMap[Class[_], ListConverter]
+    private val jListConverters = new TrieMap[Class[_], JavaListConverter]
     private val setConverters = new TrieMap[Class[_], SetConverter]
     private val jSetConverters = new TrieMap[Class[_], JavaSetConverter]
 
@@ -442,10 +443,15 @@ object ZoomConvert {
             case c: Class[_] if c.isArray =>
                 getArrayConverter(fieldType.getComponentType, zoomField)
             case generic: ParameterizedType
-                if generic.getRawType.equals(classOf[JList[_]]) =>
+                if generic.getRawType.equals(classOf[List[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
                     .asInstanceOf[Class[_]]
                 getListConverter(elClass, zoomField)
+            case generic: ParameterizedType
+                if generic.getRawType.equals(classOf[JList[_]]) =>
+                val elClass = generic.getActualTypeArguments()(0)
+                    .asInstanceOf[Class[_]]
+                getJavaListConverter(elClass, zoomField)
             case generic: ParameterizedType
                 if generic.getRawType.equals(classOf[Set[_]]) =>
                 val elClass = generic.getActualTypeArguments()(0)
@@ -505,6 +511,15 @@ object ZoomConvert {
         listConverters.getOrElseUpdate(
             elClass,
             new ListConverter(getScalarConverter(elClass, zoomField)))
+    }
+
+    /** Gets a converter instance for a [[List]] field. */
+    @inline
+    private def getJavaListConverter(elClass: Class[_], zoomField: ZoomField)
+    : JavaListConverter = {
+        jListConverters.getOrElseUpdate(
+            elClass,
+            new JavaListConverter(getScalarConverter(elClass, zoomField)))
     }
 
     /** Gets a converter instance for a [[Set]] field. */
@@ -745,7 +760,25 @@ object ZoomConvert {
      * @param converter The converter for the list component type.
      */
     protected[data] class ListConverter(converter: Converter[_,_])
-            extends Converter[JList[_], JList[_]] {
+            extends Converter[List[_], JList[_]] {
+
+        override def toProto(value: List[_], clazz: Type): JList[_] = {
+            val elType = getElementType(clazz, classOf[List[_]])
+            value.map(converter.to(_, elType))
+        }
+
+        override def fromProto(value: JList[_], clazz: Type): List[_] = {
+            val elType = getElementType(clazz, classOf[List[_]])
+            value.map(converter.from(_, elType)).toList
+        }
+    }
+
+    /**
+     * Converter class for lists.
+     * @param converter The converter for the list component type.
+     */
+    protected[data] class JavaListConverter(converter: Converter[_,_])
+        extends Converter[JList[_], JList[_]] {
 
         override def toProto(value: JList[_], clazz: Type): JList[_] = {
             val elType = getElementType(clazz, classOf[JList[_]])
@@ -772,7 +805,7 @@ object ZoomConvert {
 
         override def fromProto(value: JList[_], clazz: Type): Set[_] = {
             val elType = getElementType(clazz, classOf[Set[_]])
-            Set(value.map(converter.from(_, elType)).toArray: _*)
+            value.map(converter.from(_, elType)).toSet
         }
     }
 

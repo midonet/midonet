@@ -38,7 +38,9 @@ public class RuleResult {
         @ZoomEnumValue(value = "REJECT")
         REJECT(true),
         @ZoomEnumValue(value = "RETURN")
-        RETURN(false);
+        RETURN(false),
+        @ZoomEnumValue(value = "REDIRECT")
+        REDIRECT(true);
 
         private final boolean decisive;
 
@@ -58,6 +60,9 @@ public class RuleResult {
 
     public Action action;
     public UUID jumpToChain;
+    public UUID redirectPort;
+    public boolean redirectIngress;
+    public boolean redirectFailOpen;
 
     public RuleResult(Action action, UUID jumpToChain) {
         this.action = action;
@@ -66,7 +71,7 @@ public class RuleResult {
 
     @Override
     public int hashCode() {
-        return Objects.hash(action, jumpToChain);
+        return Objects.hash(action, jumpToChain, redirectPort);
     }
 
     @Override
@@ -76,7 +81,9 @@ public class RuleResult {
 
         RuleResult res = (RuleResult)other;
         if (action != res.action) return false;
+        if (redirectIngress != res.redirectIngress) return false;
         if (!Objects.equals(jumpToChain, res.jumpToChain)) return false;
+        if (!Objects.equals(redirectPort, res.redirectPort)) return false;
         return true;
     }
 

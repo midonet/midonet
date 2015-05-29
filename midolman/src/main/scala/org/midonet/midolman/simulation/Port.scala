@@ -46,6 +46,9 @@ object Port {
     private implicit def jlistToSSet(from: java.util.List[Commons.UUID]): Set[UUID] =
         if (from ne null) from.asScala.toSet map UUIDUtil.fromProto else Set.empty
 
+    private implicit def jlistToSList(from: java.util.List[Commons.UUID]): List[UUID] =
+        if (from ne null) from.asScala.toList map UUIDUtil.fromProto else List.empty
+
     private implicit def jlistToJSet(from: java.util.List[Commons.UUID]): JSet[UUID] =
         if (from ne null) (from.asScala.toSet map UUIDUtil.fromProto).asJava else null
 
@@ -77,6 +80,8 @@ object Port {
             p.getId,
             if (p.hasInboundFilterId) p.getInboundFilterId else null,
             if (p.hasOutboundFilterId) p.getOutboundFilterId else null,
+            p.getInboundChainList,
+            p.getOutboundChainList,
             p.getTunnelKey,
             if (p.hasPeerId) p.getPeerId else null,
             if (p.hasHostId) p.getHostId else null,
@@ -89,6 +94,8 @@ object Port {
             p.getId,
             if (p.hasInboundFilterId) p.getInboundFilterId else null,
             if (p.hasOutboundFilterId) p.getOutboundFilterId else null,
+            p.getInboundChainList,
+            p.getOutboundChainList,
             p.getTunnelKey,
             if (p.hasPeerId) p.getPeerId else null,
             if (p.hasHostId) p.getHostId else null,
@@ -104,6 +111,8 @@ object Port {
             p.getId,
             if (p.hasInboundFilterId) p.getInboundFilterId else null,
             if (p.hasOutboundFilterId) p.getOutboundFilterId else null,
+            p.getInboundChainList,
+            p.getOutboundChainList,
             p.getTunnelKey,
             if (p.hasPeerId) p.getPeerId else null,
             p.getAdminStateUp,
@@ -113,21 +122,24 @@ object Port {
 
     @Deprecated
     private def bridgePort(p: BridgePortConfig) = BridgePort(
-            p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId, p.hostId,
+            p.id, p.inboundFilter, p.outboundFilter,
+            List.empty[UUID], List.empty[UUID], p.tunnelKey, p.peerId, p.hostId,
             p.interfaceName, p.adminStateUp, p.portGroupIDs, false,
             if (p.vlanId ne null) p.vlanId else Bridge.UntaggedVlanId,
             p.device_id)
 
     @Deprecated
     private def routerPort(p: RouterPortConfig) = RouterPort(
-            p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId, p.hostId,
+            p.id, p.inboundFilter, p.outboundFilter,
+            List.empty[UUID], List.empty[UUID], p.tunnelKey, p.peerId, p.hostId,
             p.interfaceName, p.adminStateUp, p.portGroupIDs, false, p.device_id,
             new IPv4Subnet(p.nwAddr, p.nwLength),
             IPv4Addr.fromString(p.getPortAddr), p.getHwAddr, null)
 
     @Deprecated
     private def vxLanPort(p: VxLanPortConfig) = VxLanPort(
-            p.id, p.inboundFilter, p.outboundFilter, p.tunnelKey, p.peerId,
+            p.id, p.inboundFilter, p.outboundFilter,
+            List.empty[UUID], List.empty[UUID], p.tunnelKey, p.peerId,
             p.adminStateUp, p.portGroupIDs, new UUID(1, 39), p.device_id,
             IPv4Addr.fromString(p.mgmtIpAddr), p.mgmtPort,
             IPv4Addr.fromString(p.tunIpAddr), p.tunnelZoneId, p.vni)
@@ -137,6 +149,8 @@ trait Port extends VirtualDevice with Cloneable {
     def id: UUID
     def inboundFilter: UUID
     def outboundFilter: UUID
+    def inboundChains: List[UUID]
+    def outboundChains: List[UUID]
     def tunnelKey: Long
     def peerId: UUID
     def hostId: UUID
@@ -163,7 +177,7 @@ trait Port extends VirtualDevice with Cloneable {
 
     protected def device(implicit as: ActorSystem): SimDevice
 
-    private[this] val emit: SimStep = if (isExterior) {
+    private def emit: SimStep = if (isExterior) {
         (context, as) =>
             context.calculateActionsFromMatchDiff()
             context.log.debug("Emitting packet from vport {}", id)
@@ -197,15 +211,17 @@ trait Port extends VirtualDevice with Cloneable {
     }
 
     private[this] val inFilter: SimStep = if (inboundFilter ne null) {
-        (context, as) => filter(context, inboundFilter, ingressDevice, as)
+        // Evaluate inbound chains first. Must be reverse order wrt outbound.
+        (context, as) => filter(context, inboundChains :+ inboundFilter, ingressDevice, as)
     } else {
-        (context, as) => ingressDevice(context, as)
+        (context, as) => filter(context, inboundChains, ingressDevice, as)
     }
 
     protected val outFilter: SimStep = if (outboundFilter ne null) {
-        (context, as) => filter(context, outboundFilter, emit, as)
+        // Evaluate the outbound chains last. Must be reverse order wrt inbound.
+        (context, as) => filter(context, outboundFilter +: outboundChains, emit, as)
     } else {
-        (context, as) => emit(context, as)
+        (context, as) => filter(context, outboundChains, emit, as)
     }
 
     protected def ingressUp: SimStep = (context, as) => {
@@ -230,26 +246,56 @@ trait Port extends VirtualDevice with Cloneable {
     private[this] val egressAdminState: SimStep = if (adminStateUp) egressUp else egressDown
 
 
-    protected def filter(context: PacketContext, filterId: UUID, next: SimStep, as: ActorSystem): SimulationResult = {
+    protected def filter(context: PacketContext, chains: List[UUID], next: SimStep, as: ActorSystem): SimulationResult = {
         implicit val _as: ActorSystem = as
-        val chain = tryAsk[Chain](filterId)
-        val result = Chain.apply(chain, context, id)
-        result.action match {
-            case RuleResult.Action.ACCEPT =>
-                next(context, as)
-            case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                Drop
-            case other =>
-                context.log.error("Port filter {} returned {} which was " +
-                                  "not ACCEPT, DROP or REJECT.", filterId, other)
-                ErrorDrop
+        for (chainId <- chains) {
+            val chain = tryAsk[Chain](chainId)
+            val result = Chain.apply(chain, context, id)
+            result.action match {
+                case RuleResult.Action.ACCEPT =>  // Do nothing; fall through
+                case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                    return Drop
+                case RuleResult.Action.REDIRECT =>
+                    val targetPort = tryAsk[Port](result.redirectPort)
+                    targetPort.addTags(context)
+                    if(result.redirectIngress)
+                        return targetPort.ingressUp(context, as)
+                    else if (result.redirectFailOpen) {
+                        // Implement FAIL_OPEN
+                        // Specifically, if ingress=false, fail_open=true, and targetPort is:
+                        // 1) reachable: Redirect OUT-of the targetPort
+                        // 2) unreachable: Redirect IN-to the targetPort
+                        // #2 implements FAIL_OPEN behavior for a Service Function with a single
+                        // data-plane interface. FAIL_OPEN should not be used otherwise.
+                        // #2 emulates what the service VM would do if it were
+                        // reachable and it allowed the packet.
+                        val targetPort = tryAsk[Port](result.redirectPort)
+                        if (targetPort.isExterior &&
+                            (!targetPort.adminStateUp || !targetPort.isActive))
+                            return targetPort.ingressUp(context, as)
+                    }
+                    if (!targetPort.adminStateUp)
+                        return Drop
+                    // Call emit instead of egressUp in order to skip filters
+                    return targetPort.emit(context, as)
+                case other =>
+                    context.log.error("Port filter {} returned {} which was " +
+                                      "not ACCEPT, DROP, REDIRECT or REJECT.", chainId,
+                                      other)
+                    return ErrorDrop
+            }
         }
+        next(context, as)
     }
 
     final def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
+        addTags(context)
+        egressAdminState(context, as)
+    }
+
+    def addTags(context: PacketContext): Unit = {
         context.addFlowTag(deviceTag)
         context.addFlowTag(txTag)
-        egressAdminState(context, as)
     }
 }
 
@@ -260,6 +306,8 @@ object BridgePort {
 case class BridgePort(override val id: UUID,
                       override val inboundFilter: UUID = null,
                       override val outboundFilter: UUID = null,
+                      override val inboundChains: List[UUID] = null,
+                      override val outboundChains: List[UUID] = null,
                       override val tunnelKey: Long = 0,
                       override val peerId: UUID = null,
                       override val hostId: UUID = null,
@@ -290,6 +338,8 @@ case class BridgePort(override val id: UUID,
 case class RouterPort(override val id: UUID,
                       override val inboundFilter: UUID = null,
                       override val outboundFilter: UUID = null,
+                      override val inboundChains: List[UUID] = null,
+                      override val outboundChains: List[UUID] = null,
                       override val tunnelKey: Long = 0,
                       override val peerId: UUID = null,
                       override val hostId: UUID = null,
@@ -338,6 +388,8 @@ case class RouterPort(override val id: UUID,
 case class VxLanPort(override val id: UUID,
                      override val inboundFilter: UUID = null,
                      override val outboundFilter: UUID = null,
+                     override val inboundChains: List[UUID] = null,
+                     override val outboundChains: List[UUID] = null,
                      override val tunnelKey: Long = 0,
                      override val peerId: UUID = null,
                      override val adminStateUp: Boolean = true,
