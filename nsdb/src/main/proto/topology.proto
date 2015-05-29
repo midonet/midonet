@@ -341,6 +341,7 @@ message Rule {
         NAT_RULE = 2;
         JUMP_RULE = 3;
         TRACE_RULE = 4;
+        REDIRECT_RULE = 5;
     }
     optional Type type = 2;
     optional UUID chain_id = 3;
@@ -352,6 +353,7 @@ message Rule {
         JUMP = 4;
         REJECT = 5;
         RETURN = 6;
+        REDIRECT = 7;
     }
     optional Action action = 4;
 
@@ -420,9 +422,15 @@ message Rule {
         // True for reverse NAT rules. Reverse NAT rules have no targets.
         optional bool reverse = 3;
     }
+    message RedirRuleData {
+        optional UUID target_port = 1;
+        optional bool ingress = 2;
+        optional bool fail_open = 3;
+    }
     oneof rule_data {
         JumpRuleData jump_rule_data = 100;
         NatRuleData nat_rule_data = 101;
+        RedirRuleData redir_rule_data = 102;
     }
 }
 
