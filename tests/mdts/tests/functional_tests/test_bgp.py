@@ -162,7 +162,7 @@ def unset_filters(router_name):
     """Unsets in-/out-bound filters from a router."""
     set_filters(router_name, None, None)
 
-def add_bgp(port, bgp, wait=10):
+def add_bgp(port, bgp):
     b = port._mn_resource.add_bgp()\
         .local_as(bgp['localAS'])\
         .peer_as(bgp['peerAS'])\
@@ -174,10 +174,25 @@ def add_bgp(port, bgp, wait=10):
             .nw_prefix_length(route['prefixLength'])\
             .create()
 
-    if wait > 0:
-        time.sleep(wait)
+    await_default_route(port._mn_resource.get_id())
 
     return b
+
+def await_default_route(port_id):
+    router_id = VTM.get_router('router-000-001')._mn_resource.get_id()
+    timeout = 60
+    while timeout > 0:
+        routes = BM._api.get_router_routes(router_id)
+        for r in routes:
+            if r.get_next_hop_port() == port_id and \
+                r.get_dst_network_length() == 0 and \
+                r.get_dst_network_addr() == '0.0.0.0':
+                return
+        time.sleep(1)
+        timeout -= 1
+    raise Exception("Timed out while waiting for BGP to be set up on {0}"\
+                    .format(port_id))
+
 
 def clear_bgp(port, wait=0):
     for b in port._mn_resource.get_bgps():
