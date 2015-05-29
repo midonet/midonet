@@ -20,7 +20,7 @@ import java.util.{List, Objects, Random, UUID}
 
 object RuleResult extends Enumeration {
     type RuleResult = Value
-    val ACCEPT, CONTINUE, DROP, JUMP, REJECT, RETURN, UNKNOWN = Value
+    val ACCEPT, CONTINUE, DROP, JUMP, REDIRECT, REJECT, RETURN, UNKNOWN = Value
 }
 
 object SimulationResult extends Enumeration {

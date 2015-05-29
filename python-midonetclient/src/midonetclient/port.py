@@ -48,6 +48,12 @@ class Port(resource_base.ResourceBase,
     def get_outbound_filter_id(self):
         return self.dto['outboundFilterId']
 
+    def get_inbound_chains(self):
+        return self.dto['inboundChains']
+
+    def get_outbound_chains(self):
+        return self.dto['outboundChains']
+
     def get_vif_id(self):
         return self.dto['vifId']
 
@@ -99,6 +105,14 @@ class Port(resource_base.ResourceBase,
 
     def outbound_filter_id(self, id_):
         self.dto['outboundFilterId'] = id_
+        return self
+
+    def inbound_chains(self, ids_):
+        self.dto['inboundChains'] = ids_
+        return self
+
+    def outbound_chains(self, ids_):
+        self.dto['outboundChains'] = ids_
         return self
 
     def vif_id(self, id_):

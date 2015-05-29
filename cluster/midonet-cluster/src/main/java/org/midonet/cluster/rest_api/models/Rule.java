@@ -47,7 +47,8 @@ import org.midonet.cluster.util.UUIDUtil;
     @JsonSubTypes.Type(value = ReturnRule.class, name = Rule.Return),
     @JsonSubTypes.Type(value = TraceRule.class, name = Rule.Trace),
     @JsonSubTypes.Type(value = ReverseDnatRule.class, name = Rule.RevDNAT),
-    @JsonSubTypes.Type(value = ReverseSnatRule.class, name = Rule.RevSNAT)})
+    @JsonSubTypes.Type(value = ReverseSnatRule.class, name = Rule.RevSNAT),
+    @JsonSubTypes.Type(value = RedirectRule.class, name = Rule.Redirect)})
 @ZoomClass(clazz = Topology.Rule.class, factory = Rule.Factory.class)
 public abstract class Rule extends Condition {
 
@@ -55,6 +56,7 @@ public abstract class Rule extends Condition {
         public Class<? extends Rule> getType(Topology.Rule proto) {
             switch (proto.getType()) {
                 case JUMP_RULE: return JumpRule.class;
+                case REDIRECT_RULE: return RedirectRule.class;
                 case LITERAL_RULE:
                     switch (proto.getAction()) {
                         case ACCEPT: return AcceptRule.class;
@@ -81,12 +83,14 @@ public abstract class Rule extends Condition {
     public static final String SNAT = "snat";
     public static final String RevDNAT = "rev_dnat";
     public static final String RevSNAT = "rev_snat";
+    public static final String Redirect = "redirect";
 
     @ZoomEnum(clazz = Topology.Rule.Type.class)
     public enum RuleType {
         @ZoomEnumValue(value = "LITERAL_RULE") LITERAL,
         @ZoomEnumValue(value = "NAT_RULE") NAT,
         @ZoomEnumValue(value = "JUMP_RULE") JUMP,
+        @ZoomEnumValue(value = "REDIRECT_RULE") REDIRECT,
         @ZoomEnumValue(value = "TRACE_RULE") TRACE
     }
 
@@ -96,6 +100,7 @@ public abstract class Rule extends Condition {
         @ZoomEnumValue(value = "CONTINUE") CONTINUE,
         @ZoomEnumValue(value = "DROP") DROP,
         @ZoomEnumValue(value = "JUMP") JUMP,
+        @ZoomEnumValue(value = "REDIRECT") REDIRECT,
         @ZoomEnumValue(value = "REJECT") REJECT,
         @ZoomEnumValue(value = "RETURN") RETURN
     }
@@ -119,6 +124,11 @@ public abstract class Rule extends Condition {
 
     @Min(1)
     public int position = 1;
+    @ZoomField(name = "pop_vlan")
+    public boolean popVlan;
+    @ZoomField(name = "push_vlan")
+    public Integer pushVlan;
+
 
     public Rule(RuleType type, RuleAction action) {
         this.type = type;

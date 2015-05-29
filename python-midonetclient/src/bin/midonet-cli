@@ -1717,6 +1717,46 @@ class Bridge(ObjectType):
     def type_name(self):
         return "bridge"
 
+class L2Insertion(ObjectType):
+    def __init__(self, obj):
+        super(L2Insertion, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'port',
+                                 value_type = PortRef(),
+                                 getter = 'get_port',
+                                 setter = 'port'))
+        self.put_attr(SingleAttr(name = 'srv-port',
+                                 value_type = PortRef(),
+                                 getter = 'get_srv_port',
+                                 setter = 'srv_port'))
+        self.put_attr(SingleAttr(name = 'vlan',
+                                 value_type = StringType(),
+                                 getter = 'get_vlan',
+                                 setter = 'vlan'))
+        self.put_attr(SingleAttr(name = 'pos',
+                                 value_type = StringType(),
+                                 getter = 'get_position',
+                                 setter = 'position'))
+        self.put_attr(BooleanAttr(name = 'fail-open',
+                                 getter = 'get_fail_open',
+                                 setter = 'fail_open',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'mac',
+                                 value_type = StringType(),
+                                 getter = 'get_mac',
+                                 setter = 'mac'))
+    def type_name(self):
+        return "l2insertion"
+
+class L2Service(ObjectType):
+    def __init__(self, obj):
+        super(L2Service, self).__init__(obj)
+        self.put_attr(SingleAttr(name = 'port',
+                                 value_type = PortRef(),
+                                 getter = 'get_port',
+                                 setter = 'port'))
+    def type_name(self):
+        return "l2service"
+
 class Chain(ObjectType):
     def __init__(self, obj):
         super(Chain, self).__init__(obj)
@@ -1862,6 +1902,16 @@ class Condition(ObjectType):
                                            'unfragmented': 'unfragmented'},
                                getter = 'get_fragment_policy',
                                setter = 'fragment_policy'))
+        self.put_attr(BooleanAttr(name = 'no-vlan',
+                                 getter = 'is_no_vlan',
+                                 setter = 'no_vlan',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'vlan',
+                                 value_type = StringType(),
+                                 getter = 'get_vlan',
+                                 setter = 'vlan',
+                                 optional = True))
+
 
 class Rule(Condition):
     def __init__(self, obj):
@@ -1880,6 +1930,7 @@ class Rule(Condition):
                                            'continue': 'continue',
                                            'drop': 'drop',
                                            'jump': 'jump',
+                                           'redirect': 'redirect',
                                            'reject': 'reject',
                                            'return': 'return',
                                            'trace': 'trace',
@@ -1899,6 +1950,28 @@ class Rule(Condition):
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_jump_chain_id',
                                  setter = 'jump_chain_id',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'target-port',
+                                 value_type = PortRef(),
+                                 getter = 'get_target_port',
+                                 setter = 'target_port',
+                                 optional = True))
+        self.put_attr(BooleanAttr(name = 'ingress',
+                                 getter = 'is_ingress',
+                                 setter = 'ingress',
+                                 optional = True))
+        self.put_attr(BooleanAttr(name = 'fail-open',
+                                 getter = 'is_fail_open',
+                                 setter = 'fail_open',
+                                 optional = True))
+        self.put_attr(BooleanAttr(name = 'pop-vlan',
+                                 getter = 'is_pop_vlan',
+                                 setter = 'pop_vlan',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'push-vlan',
+                                 value_type = StringType(),
+                                 getter = 'get_push_vlan',
+                                 setter = 'push_vlan',
                                  optional = True))
         self.put_attr(NatTarget(name = 'target',
                                 getter = 'get_nat_targets',
@@ -1943,6 +2016,16 @@ class BridgePort(ObjectType):
                                  setter = 'outbound_filter_id',
                                  getter = 'get_outbound_filter_id',
                                  unsetter = 'outbound_filter_id'))
+        self.put_attr(ListAttr(name = 'inchains',
+                                 element_type = ObjectRef('chain'),
+                                 getter = 'get_inbound_chains',
+                                 setter = 'inbound_chains',
+                                 optional = True))
+        self.put_attr(ListAttr(name = 'outchains',
+                                 element_type = ObjectRef('chain'),
+                                 getter = 'get_outbound_chains',
+                                 setter = 'outbound_chains',
+                                 optional = True))
         self.put_attr(SingleAttr(name = 'vlan',
                                  value_type = StringType(),
                                  setter = 'vlan_id',
@@ -2414,6 +2497,18 @@ class Midonet(ObjectType):
                                  getter = 'get_chain',
                                  list_with_tenant = True,
                                  factory_method = 'add_chain'))
+        self.put_attr(Collection(name = 'l2insertion',
+                                 element_type = L2Insertion,
+                                 list_method = 'get_l2insertions',
+                                 getter = 'get_l2insertion',
+                                 list_with_tenant = True,
+                                 factory_method = 'add_l2insertion'))
+        self.put_attr(Collection(name = 'l2service',
+                                 element_type = L2Service,
+                                 list_method = 'get_l2services',
+                                 getter = 'get_l2service',
+                                 list_with_tenant = True,
+                                 factory_method = 'add_l2service'))
         self.put_attr(Collection(name = 'host',
                                  element_type = Host,
                                  list_method = 'get_hosts',
