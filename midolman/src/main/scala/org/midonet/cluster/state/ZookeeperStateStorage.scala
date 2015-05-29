@@ -103,6 +103,8 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
                                        case e: SerializationException =>
                                            log.error("Error serializing the configuration for port {}",
                                                      portId, e)
+                                       case e: Exception =>
+                                           log.error("Unexpected exception caught", e)
                                    }
                                }))
         }

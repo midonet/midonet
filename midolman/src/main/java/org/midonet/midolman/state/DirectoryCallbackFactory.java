@@ -60,12 +60,12 @@ public class DirectoryCallbackFactory {
             }
             @Override
             public void onTimeout() {
-                obs.onError(new TimeoutException());
+                obs.onError(new StateAccessException(new TimeoutException()));
             }
 
             @Override
             public void onError(KeeperException ke) {
-                obs.onError(ke);
+                obs.onError(new StateAccessException(ke));
             }
         };
     }
