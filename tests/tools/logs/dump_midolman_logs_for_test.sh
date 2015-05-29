@@ -16,10 +16,14 @@
 
 marker_start=$1
 marker_end=$2
+test_id=$3
 
+LOGS_DIR=$PWD/logs/$3
+mkdir -p $TEST_DIR
 
 for d in /var/log/midolman.*; do
     MIDOLMAN_LOG_FILE=$d/midolman.log
+    MIDOLMAN_SNIPPET=$(echo $d|cut -d'/' -f4)
     cd $d
     [ -f $MIDOLMAN_LOG_FILE ] && {
         echo ================================
@@ -30,7 +34,7 @@ for d in /var/log/midolman.*; do
         marker_start=${marker_start//\"/}
         marker_end=${marker_end//\"/}
 
-        sed -n "/$marker_start/, /$marker_end/ p" $MIDOLMAN_LOG_FILE
+        sed -n "/$marker_start/, /$marker_end/ p" $MIDOLMAN_LOG_FILE | tee $TEST_DIR/$MIDOLMAN_SNIPPET.log
     }
     cd $OLDPWD
 done
