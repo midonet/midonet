@@ -496,6 +496,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_0664c820",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-05-29T09:27:01Z",
+      "side": 1,
+      "message": "Honestly I expected IFLA_INFO_KIND can be used to determine if an interface is virtual or physical. But it turned out I can\u0027t event with other attributes. So this match block is no longer necessary. I\u0027ll eliminate this.",
+      "parentUuid": "facab960_4f134b66",
+      "revId": "04d273e49795b2ba6b9aa73bbf2c6bbba6ef25ef",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_af48572e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 16
