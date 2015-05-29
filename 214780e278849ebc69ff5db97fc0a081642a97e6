@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_7668e3ba",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-29T16:40:56Z",
+      "side": 1,
+      "message": "This is not 100% clean, any better ideas?",
+      "range": {
+        "startLine": 77,
+        "startChar": 8,
+        "endLine": 77,
+        "endChar": 29
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_966567e3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryMergedMap.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-29T16:40:56Z",
+      "side": 1,
+      "message": "This is not 100% clean, any better ideas?",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 31
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
