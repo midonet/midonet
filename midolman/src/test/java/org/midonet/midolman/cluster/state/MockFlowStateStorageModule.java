@@ -17,9 +17,14 @@ package org.midonet.midolman.cluster.state;
 
 import com.google.inject.*;
 
+import org.midonet.midolman.state.FlowState;
 import org.midonet.midolman.state.FlowStateStorage;
 import org.midonet.midolman.state.FlowStateStorageFactory;
 import org.midonet.midolman.state.MockStateStorage;
+import org.midonet.odp.Flow;
+
+import scala.concurrent.Future;
+import scala.concurrent.Future$;
 
 public class MockFlowStateStorageModule extends PrivateModule {
     @Override
@@ -35,8 +40,9 @@ public class MockFlowStateStorageModule extends PrivateModule {
         public FlowStateStorageFactory get() {
             return new FlowStateStorageFactory() {
                 @Override
-                public FlowStateStorage create() {
-                    return new MockStateStorage();
+                public Future<FlowStateStorage> create() {
+                    return Future$.MODULE$.successful(
+                        (FlowStateStorage)new MockStateStorage());
                 }
             };
         }
