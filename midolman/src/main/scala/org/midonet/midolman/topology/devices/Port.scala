@@ -47,6 +47,10 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     var inboundFilter: UUID = _
     @ZoomField(name = "outbound_filter_id", converter = classOf[UUIDConverter])
     var outboundFilter: UUID = _
+    @ZoomField(name = "inbound_chain", converter = classOf[UUIDConverter])
+    var inboundChains = List.empty[UUID]
+    @ZoomField(name = "outbound_chain", converter = classOf[UUIDConverter])
+    var outboundChains = List.empty[UUID]
     @ZoomField(name = "tunnel_key")
     var tunnelKey: Long = _
     @ZoomField(name = "port_group_ids", converter = classOf[UUIDConverter])

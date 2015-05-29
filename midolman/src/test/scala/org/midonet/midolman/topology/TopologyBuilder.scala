@@ -374,7 +374,7 @@ trait TopologyBuilder {
         builder
     }
 
-    protected def createLiteralRuleBuilder(id: UUID,
+    protected def createLiteralRuleBuilder(id: UUID = UUID.randomUUID(),
                                            chainId: Option[UUID] = None,
                                            action: Option[Rule.Action] = None)
     : Rule.Builder = {
@@ -400,6 +400,23 @@ trait TopologyBuilder {
             builder.setJumpRuleData(JumpRuleData.newBuilder
                                         .setJumpTo(jumpChainId.get.asProto)
                                         .build())
+        builder
+    }
+
+    protected def createRedirectRuleBuilder(id: UUID = UUID.randomUUID(),
+                                        chainId: Option[UUID] = None,
+                                        targetPortId: org.midonet.cluster.models.Commons.UUID,
+                                        ingress: Boolean = false,
+                                        failOpen: Boolean = false)
+    : Rule.Builder = {
+        val builder = createRuleBuilder(id, chainId, Option(Action.REDIRECT))
+            .setType(Rule.Type.REDIRECT_RULE)
+
+        builder.setRedirRuleData(Rule.RedirRuleData.newBuilder
+                                    .setTargetPort(targetPortId)
+                                    .setIngress(ingress)
+                                    .setFailOpen(failOpen)
+                                    .build())
         builder
     }
 
