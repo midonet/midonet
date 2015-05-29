@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_c103aab6",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-29T11:36:07Z",
+      "side": 1,
+      "message": "Yes I can see situations where eventually helps, for instance when the first storage.get takes a really long time but the 2nd does not.",
+      "parentUuid": "facab960_416f9ac5",
+      "range": {
+        "startLine": 181,
+        "startChar": 12,
+        "endLine": 181,
+        "endChar": 22
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e6e2849e",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 2
@@ -225,6 +249,30 @@
       "side": 1,
       "message": "The translation of a member with a Pool ID is being checked in the integration test. I can add a test for for the translation of member without an address if you want, but that seems like an overkill for a simple code like this.",
       "parentUuid": "facab960_46a09043",
+      "range": {
+        "startLine": 84,
+        "startChar": 4,
+        "endLine": 84,
+        "endChar": 67
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_012d9246",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolMemberTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-05-29T11:36:07Z",
+      "side": 1,
+      "message": "That would increase coverage ;-)",
+      "parentUuid": "facab960_41a6ba11",
       "range": {
         "startLine": 84,
         "startChar": 4,
