@@ -250,6 +250,7 @@ public abstract class Rule extends BaseConfig {
                 case LITERAL_RULE: return LiteralRule.class;
                 case TRACE_RULE: return TraceRule.class;
                 case NAT_RULE: return NatRule.class;
+                case REDIRECT_RULE: return RedirectRule.class;
                 default:
                     throw new ZoomConvert.ConvertException("Unknown rule " +
                         "type: " + proto.getType());

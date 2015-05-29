@@ -392,6 +392,24 @@ trait TopologyBuilder {
         builder
     }
 
+    protected def createRedirectRuleBuilder(id: UUID = UUID.randomUUID(),
+                                        chainId: Option[UUID] = None,
+                                        targetPortId: Option[UUID] = None,
+                                        ingress: Boolean = false,
+                                        failOpen: Boolean = false)
+    : Rule.Builder = {
+        val builder = createRuleBuilder(id, chainId, Option(Action.REDIRECT))
+            .setType(Rule.Type.REDIRECT_RULE)
+
+        if (targetPortId.isDefined)
+            builder.setRedirRuleData(Rule.RedirRuleData.newBuilder
+                                        .setTargetPort(targetPortId.get.asProto)
+                                        .setIngress(ingress)
+                                        .setFailOpen(failOpen)
+                                        .build())
+        builder
+    }
+
     protected def createNatTarget(startAddr: IPAddress = IPv4Addr.random.asProto,
                                   endAddr: IPAddress = IPv4Addr.random.asProto,
                                   portStart: Int = random.nextInt(),
