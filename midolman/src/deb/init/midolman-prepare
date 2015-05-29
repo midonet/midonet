@@ -16,8 +16,8 @@
 
 set -e
 
-if [ -f /usr/share/midolman/midolman-env.sh ]; then
-    . /usr/share/midolman/midolman-env.sh
+if [ -f /etc/midolman/midolman-env.sh ]; then
+    . /etc/midolman/midolman-env.sh
 else
     echo "midolman-env.sh is not found"
     exit 1

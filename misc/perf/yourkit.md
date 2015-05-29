@@ -50,6 +50,6 @@ options, such that it includes the YourKit profiling agent.
     JAVA_OPTS="$JVM_OPTS
         -Dmidolman.log.dir=$MIDO_LOG_DIR
         -Dconfig.file=$MIDO_AKKA_CFG
-        -Dlogback.configurationFile=$MIDO_CFG/$MIDO_LOG_BACK
+        -Dlogback.configurationFile=$MIDO_CFG/logback.xml
         -agentpath:<path-to-yourkit-directory>/bin/linux-x86-64/libyjpagent.so"
 

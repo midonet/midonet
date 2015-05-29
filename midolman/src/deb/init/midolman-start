@@ -19,13 +19,54 @@ set -e
 exec >> /var/log/midolman/upstart-stderr.log
 exec 2>&1
 
-if [ -f /usr/share/midolman/midolman-env.sh ]; then
-    . /usr/share/midolman/midolman-env.sh
+if [ -f /etc/midolman/midolman-env.sh ]; then
+    . /etc/midolman/midolman-env.sh
 else
-    echo "/usr/share/midolman/midolman-env.sh: file not found"
+    echo "/etc/midolman/midolman-env.sh: file not found"
     exit 1
 fi
 
+check_for_java7() {
+    [ "x" = "x$1" ] && return 1
+    [ -x "$1" ] || return 1
+    $1 -version 2>&1 | grep '^java version' | sed -e 's/^[^"]*"\(.*\)"$/\1/' \
+        | grep '^1.7.' >/dev/null 2>&1
+}
+
+if [ -n "`which java`" ]; then
+        java=`which java`
+        # Dereference symlink(s)
+        while true; do
+            if [ -h "$java" ]; then
+                java=`readlink "$java"`
+                continue
+            fi
+            break
+        done
+        JVM_SEARCH_DIRS="`dirname $java`/../ $JVM_SEARCH_DIRS"
+fi
+if [ ! -z "$JAVA_HOME" ]; then
+    JVM_SEARCH_DIRS="$JAVA_HOME $JVM_SEARCH_DIRS"
+fi
+
+oldopts=$-
+set +e
+JAVA_HOME=
+for jdir in $JVM_SEARCH_DIRS; do
+    check_for_java7 "$jdir/bin/java"
+    if [ $? -eq 0 ]; then
+        JAVA_HOME="$jdir"
+        break
+    fi
+done
+echo $oldopts | grep 'e' 2>&1 >/dev/null && set -e
+
+if [ -z "$JAVA_HOME" ] ; then
+    echo "No suitable JVM found (at least v1.7 required)"
+    exit 1
+fi
+
+JAVA="$JAVA_HOME/bin/java"
 
 MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
 MIDO_DEP_CLASS_PATH=$MIDO_HOME/dep/*
@@ -43,11 +84,10 @@ test -r $MIDO_BOOTSTRAP_JAR || exit 1
 # package jnidispatcher
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 
-test -r $MIDO_ETC/midolman-env.sh && . /etc/midolman/midolman-env.sh
 
 set -x
 
-JAVA_OPTS="$JVM_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR -Dconfig.file=$MIDO_AKKA_CFG -Dlogback.configurationFile=$MIDO_CFG/$MIDO_LOG_BACK"
+JAVA_OPTS="$JVM_OPTS -Dmidolman.log.dir=$MIDO_LOG_DIR -Dconfig.file=$MIDO_AKKA_CFG -Dlogback.configurationFile=$MIDO_CFG/logback.xml"
 if [ "xyes" = "x$DEBUG" ] ; then
     JAVA_OPTS="$JAVA_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,address=$MIDO_DEBUG_PORT,server=y,suspend=y"
 fi
@@ -55,10 +95,10 @@ fi
 if [ -x /usr/bin/wdog ] ; then
     exec /usr/bin/wdog -d /var/log/midolman 10 -- $JAVA $JAVA_LIBRARY_PATH \
                 -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
-                -cp $MIDO_ETC:$MIDO_JAR:$MIDO_DEP_CLASS_PATH \
+                -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH \
                 $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
 else
     exec $JAVA $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
-                -cp $MIDO_ETC:$MIDO_JAR:$MIDO_DEP_CLASS_PATH \
+                -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH \
                 $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
 fi
