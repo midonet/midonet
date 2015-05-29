@@ -21,7 +21,6 @@ import java.net.InetAddress
 import java.util.{UUID, Set => JSet, Map => JMap, HashMap => JHashMap,
                   HashSet => JHashSet, Iterator => JIterator}
 import java.util.concurrent.{TimeoutException, TimeUnit}
-import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.concurrent.duration.Duration
@@ -30,7 +29,7 @@ import akka.actor.ActorSystem
 import com.datastax.driver.core._
 import com.google.common.util.concurrent.{FutureCallback, Futures}
 import org.slf4j.{Logger, LoggerFactory}
-import org.midonet.cluster.backend.cassandra.CassandraClient
+
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{KeyType, NatKey, NatBinding}
 import org.midonet.packets.{IPv4Addr, IPAddr}
@@ -124,7 +123,7 @@ object FlowStateStorage {
             networkAddress = inetToIPAddr(r.getInet("translateIp")).asInstanceOf[IPv4Addr],
             transportPort = r.getInt("translatePort"))
 
-    def apply(sessionFuture: Future[Session]): FlowStateStorage = new FlowStateStorageImpl(sessionFuture)
+    def apply(session: Session): FlowStateStorage = new FlowStateStorageImpl(session)
 }
 
 trait FlowStateStorage {
@@ -159,7 +158,7 @@ trait FlowStateStorage {
  * All operations are asynchronous, submit is meant to be fire-and-forget with
  * no error control and for this reason, returns Unit.
  */
-class FlowStateStorageImpl(val sessionFuture: Future[Session]) extends FlowStateStorage {
+class FlowStateStorageImpl(val session: Session) extends FlowStateStorage {
     private val log: Logger = LoggerFactory.getLogger(classOf[FlowStateStorage])
 
     import FlowStateStorage._
@@ -182,34 +181,16 @@ class FlowStateStorageImpl(val sessionFuture: Future[Session]) extends FlowState
                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                 " USING TTL ?;"
 
-    @volatile
-    var session: Session = null
+    val touchIngressConnTrack = session.prepare(touchConnTrackStatement(CONNTRACK_BY_INGRESS_TABLE))
+    val touchEgressConnTrack = session.prepare(touchConnTrackStatement(CONNTRACK_BY_EGRESS_TABLE))
 
-    var touchIngressConnTrack: PreparedStatement = _
-    var touchEgressConnTrack: PreparedStatement = _
+    val touchIngressNat = session.prepare(touchNatStatement(NAT_BY_INGRESS_TABLE))
+    val touchEgressNat = session.prepare(touchNatStatement(NAT_BY_EGRESS_TABLE))
 
-    var touchIngressNat: PreparedStatement = _
-    var touchEgressNat: PreparedStatement = _
-
-    var fetchIngressConnTrack: PreparedStatement = _
-    var fetchEgressConnTrack: PreparedStatement = _
-    var fetchIngressNat: PreparedStatement = _
-    var fetchEgressNat: PreparedStatement = _
-
-    sessionFuture.onSuccess {
-        case s =>
-            touchIngressConnTrack = s.prepare(touchConnTrackStatement(CONNTRACK_BY_INGRESS_TABLE))
-            touchEgressConnTrack = s.prepare(touchConnTrackStatement(CONNTRACK_BY_EGRESS_TABLE))
-
-            touchIngressNat = s.prepare(touchNatStatement(NAT_BY_INGRESS_TABLE))
-            touchEgressNat = s.prepare(touchNatStatement(NAT_BY_EGRESS_TABLE))
-
-            fetchIngressConnTrack = s.prepare(fetchByPortStatement(CONNTRACK_BY_INGRESS_TABLE))
-            fetchEgressConnTrack = s.prepare(fetchByPortStatement(CONNTRACK_BY_EGRESS_TABLE))
-            fetchIngressNat = s.prepare(fetchByPortStatement(NAT_BY_INGRESS_TABLE))
-            fetchEgressNat = s.prepare(fetchByPortStatement(NAT_BY_EGRESS_TABLE))
-            session = s
-    }(CallingThreadExecutionContext)
+    val fetchIngressConnTrack = session.prepare(fetchByPortStatement(CONNTRACK_BY_INGRESS_TABLE))
+    val fetchEgressConnTrack = session.prepare(fetchByPortStatement(CONNTRACK_BY_EGRESS_TABLE))
+    val fetchIngressNat = session.prepare(fetchByPortStatement(NAT_BY_INGRESS_TABLE))
+    val fetchEgressNat = session.prepare(fetchByPortStatement(NAT_BY_EGRESS_TABLE))
 
     private def bind(st: PreparedStatement, port: UUID, k: ConnTrackKey) = {
         st.bind(port, k.networkProtocol.toInt.asInstanceOf[JInt],
@@ -238,7 +219,7 @@ class FlowStateStorageImpl(val sessionFuture: Future[Session]) extends FlowState
      * @param weakRefs Egress ports.
      */
     override def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID,
-            weakRefs: JIterator[UUID]): Unit = if (session ne null) {
+            weakRefs: JIterator[UUID]): Unit = {
         if (strongRef ne null)
             batch.add(bind(touchIngressConnTrack, strongRef, k))
         while (weakRefs.hasNext) {
@@ -255,7 +236,7 @@ class FlowStateStorageImpl(val sessionFuture: Future[Session]) extends FlowState
      * @param weakRefs Egress ports.
      */
     override def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID,
-            weakRefs: JIterator[UUID]): Unit = if (session ne null) {
+            weakRefs: JIterator[UUID]): Unit = {
         if (strongRef ne null)
             batch.add(bind(touchIngressNat, strongRef, k, v))
         while (weakRefs.hasNext) {
@@ -267,7 +248,7 @@ class FlowStateStorageImpl(val sessionFuture: Future[Session]) extends FlowState
      * Sends all state accumulated through touchConnTrackKey() and touchNatKey()
      * to Cassandra, asynchronously. Errors will be logged but ignored.
      */
-    override def submit(): Unit = if (session ne null) {
+    override def submit(): Unit = {
         val result = session.executeAsync(batch)
         Futures.addCallback(result, touchCallback)
         batch = new BatchStatement()

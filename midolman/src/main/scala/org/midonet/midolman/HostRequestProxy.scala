@@ -35,7 +35,7 @@ import org.midonet.util.concurrent._
 object HostRequestProxy {
     case class FlowStateBatch(strongConnTrack: JSet[ConnTrackKey],
                               weakConnTrack: JSet[ConnTrackKey],
-                              strongNat: JMap[NatKey, NatBinding],
+                                  strongNat: JMap[NatKey, NatBinding],
                               weakNat: JMap[NatKey, NatBinding]) {
         def merge(other: FlowStateBatch): FlowStateBatch = {
             strongConnTrack.addAll(other.strongConnTrack)
@@ -59,7 +59,8 @@ object HostRequestProxy {
   * host's ports is fetched from Cassandra before the subscriber receives
   * the host object.
   */
-class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
+class HostRequestProxy(val hostId: UUID,
+                       val storageFuture: Future[FlowStateStorage],
                        val subscriber: ActorRef) extends Actor
                                                  with ActorLogWithoutPath
                                                  with SingleThreadExecutionContextProvider {
@@ -78,7 +79,8 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
         VTPM ! HostRequest(hostId)
     }
 
-    private def stateForPort(port: UUID): Future[FlowStateBatch] = {
+    private def stateForPort(storage: FlowStateStorage,
+                             port: UUID): Future[FlowStateBatch] = {
         val scf = storage.fetchStrongConnTrackRefs(port)
         val wcf = storage.fetchWeakConnTrackRefs(port)
         val snf = storage.fetchStrongNatRefs(port)
@@ -89,8 +91,9 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
         }
     }
 
-    private def stateForPorts(ports: Iterable[UUID]): Future[FlowStateBatch] =
-        Future.fold(ports map stateForPort)(EmptyFlowStateBatch()) {
+    private def stateForPorts(storage: FlowStateStorage,
+                              ports: Iterable[UUID]): Future[FlowStateBatch] =
+        Future.fold(ports map (stateForPort(storage, _)))(EmptyFlowStateBatch()) {
             (batch: FlowStateBatch, v: FlowStateBatch) => batch.merge(v)
         }
 
@@ -135,16 +138,14 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
             belt.handle(() => {
                 val ps = h.portBindings.keySet -- lastPorts
                 val resolved = resolvePorts(h)
-                stateForPorts(ps).andThen {
-                        case Success(stateBatch) =>
-                            lastPorts = ps
-                            PacketsEntryPoint ! stateBatch
-                        case Failure(e) =>
-                            log.warn("Failed to fetch state from Cassandra: {}", e)
-                }.andThen {
-                    case _ =>
-                        log.debug(s"Resolved host bindings to ${resolved.ports}")
-                        subscriber ! resolved
+                log.debug(s"Resolved host bindings to ${resolved.ports}")
+                subscriber ! resolved
+                storageFuture.map(stateForPorts(_, ps)).andThen {
+                    case Success(stateBatch) =>
+                        lastPorts = ps
+                        PacketsEntryPoint ! stateBatch
+                    case Failure(e) =>
+                        log.warn("Failed to fetch state from Cassandra: {}", e)
                 }(singleThreadExecutionContext)
             })
     }
