@@ -39,7 +39,7 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
+import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
@@ -217,8 +217,6 @@ class DatapathController extends Actor
 
     protected def storageFactory = _storageFactory
 
-    var storage: FlowStateStorage = _
-
     val dpState = new DatapathStateManager(
         new DatapathPortEntangler.Controller {
             override def addToDatapath(port: String): Future[(DpPort, Int)] = {
@@ -254,7 +252,6 @@ class DatapathController extends Actor
         defaultMtu = config.dhcpMtu
         cachedMinMtu = defaultMtu
         super.preStart()
-        storage = storageFactory.create()
         context become (DatapathInitializationActor orElse {
             case m =>
                 log.info(s"Not handling $m (still initializing)")
@@ -262,7 +259,8 @@ class DatapathController extends Actor
     }
 
     private def subscribeToHost(id: UUID): Unit = {
-        val props = Props(classOf[HostRequestProxy], id, storage, self)
+        val props = Props(classOf[HostRequestProxy],
+                          id, storageFactory.create(), self)
                         .withDispatcher(context.props.dispatcher)
         context.actorOf(props, s"HostRequestProxy-$id")
     }

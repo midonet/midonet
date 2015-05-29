@@ -18,6 +18,8 @@ package org.midonet.midolman.state
 
 import java.util.{ArrayList, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
 
+import scala.concurrent.{ExecutionContext, Future}
+
 import akka.actor.ActorSystem
 import com.google.protobuf.{CodedOutputStream, MessageLite}
 import com.typesafe.scalalogging.Logger
@@ -43,6 +45,7 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
 import org.midonet.util.FixedArrayOutputStream
 import org.midonet.util.collection.Reducer
+import org.midonet.util.concurrent._
 import org.midonet.util.functors.Callback0
 
 /**
@@ -94,7 +97,7 @@ import org.midonet.util.functors.Callback0
 abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
                                        natTable: FlowStateTable[NatKey, NatBinding],
                                        traceTable: FlowStateTable[TraceKey, TraceContext],
-                                       storage: FlowStateStorage,
+                                       storageFuture: Future[FlowStateStorage],
                                        underlay: UnderlayResolver,
                                        flowInvalidation: FlowInvalidation,
                                        tos: Byte) {
@@ -115,6 +118,9 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
 
     private[this] val pendingMessages = new ArrayList[(JSet[UUID], MessageLite)]()
     private[this] val hostId = uuidToProto(underlay.host.id)
+    private[this] var storage: FlowStateStorage = _
+
+    storageFuture.onSuccess { case s => storage = s }(ExecutionContext.callingThread)
 
     /* Used for packet building
      * FIXME(guillermo) - use MTU
@@ -134,7 +140,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                 txState.setConntrackKey(connTrackKeyToProto(k))
             }
             log.debug("touch conntrack key: {}", k)
-            storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
+            if (storage ne null)
+                storage.touchConnTrackKey(k, txIngressPort, txPorts.iterator())
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = conntrackTable.unref(k)
@@ -153,7 +160,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                 txState.addNatEntries(txNatEntry.build())
             }
             log.debug("touch nat key: {}", k)
-            storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
+            if (storage ne null)
+                storage.touchNatKey(k, v, txIngressPort, txPorts.iterator())
 
             callbacks.add(new Callback0 {
                 override def call(): Unit = natTable.unref(k)
@@ -331,7 +339,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
             i -= 1
         }
 
-        storage.submit()
+        if (storage ne null)
+            storage.submit()
     }
 
     private def acceptNewState(msg: Proto.StateMessage) {
@@ -448,12 +457,12 @@ class FlowStateReplicator(
         conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
         natTable: FlowStateTable[NatKey, NatBinding],
         traceTable: FlowStateTable[TraceKey, TraceContext],
-        storage: FlowStateStorage,
+        storageFuture: Future[FlowStateStorage],
         underlay: UnderlayResolver,
         flowInvalidation: FlowInvalidation,
         tso: Byte)(implicit as: ActorSystem)
         extends BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
-                                        storage, underlay,
+                                        storageFuture, underlay,
                                         flowInvalidation, tso) {
     override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 

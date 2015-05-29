@@ -21,6 +21,7 @@ import java.util.{ArrayList, HashSet, UUID}
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 import org.openjdk.jmh.infra.Blackhole
@@ -107,7 +108,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         macTable.add(rightMac, rightPort.getId)
         replicator = new FlowStateReplicator(conntrackTable, natTable,
                                              traceTable,
-                                             new MockStateStorage,
+                                             Future.successful(new MockStateStorage),
                                              underlayResolver,
                                              mockFlowInvalidation,
                                              0)

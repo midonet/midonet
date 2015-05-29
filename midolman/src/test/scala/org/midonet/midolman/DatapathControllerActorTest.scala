@@ -24,7 +24,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.TunnelZone
-import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
@@ -65,7 +64,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
 
     class TestableDpC extends DatapathController {
         override def storageFactory = new FlowStateStorageFactory() {
-            override def create() = new MockStateStorage()
+            override def create() = Future.successful(new MockStateStorage())
         }
 
         datapath = new Datapath(0, "midonet")
