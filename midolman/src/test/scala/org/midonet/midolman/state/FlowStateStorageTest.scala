@@ -66,12 +66,16 @@ class FlowStateStorageTest extends FeatureSpec
 
     before {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
-        Thread.sleep(10000L)
+        Thread.sleep(15000L)
         cass = new CassandraClient("127.0.0.1:9142", "TestCluster",
                                    "MidonetFlowState", 1,
-                                   FlowStateStorage.SCHEMA, null)
-        cass.connect()
-        storage = FlowStateStorage(cass)
+                                   FlowStateStorage.SCHEMA)
+        val sessionF = cass.connect()
+        Await.result(sessionF, 10 seconds)
+        storage = FlowStateStorage(sessionF)
+        eventually {
+            storage.asInstanceOf[FlowStateStorageImpl].session should not be (null)
+        }
     }
 
     feature("Stores and fetches state from cassandra") {

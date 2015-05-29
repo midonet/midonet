@@ -21,8 +21,9 @@ import java.net.InetAddress
 import java.util.{UUID, Set => JSet, Map => JMap, HashMap => JHashMap,
                   HashSet => JHashSet, Iterator => JIterator}
 import java.util.concurrent.{TimeoutException, TimeUnit}
-import scala.concurrent.{ExecutionContext, promise, Promise, Future}
+import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.concurrent.duration.Duration
+import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 import akka.actor.ActorSystem
 import com.datastax.driver.core._
@@ -123,7 +124,7 @@ object FlowStateStorage {
             networkAddress = inetToIPAddr(r.getInet("translateIp")).asInstanceOf[IPv4Addr],
             transportPort = r.getInt("translatePort"))
 
-    def apply(client: CassandraClient): FlowStateStorage = new FlowStateStorageImpl(client)
+    def apply(sessionFuture: Future[Session]): FlowStateStorage = new FlowStateStorageImpl(sessionFuture)
 }
 
 trait FlowStateStorage {
@@ -158,7 +159,7 @@ trait FlowStateStorage {
  * All operations are asynchronous, submit is meant to be fire-and-forget with
  * no error control and for this reason, returns Unit.
  */
-class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage {
+class FlowStateStorageImpl(val sessionFuture: Future[Session]) extends FlowStateStorage {
     private val log: Logger = LoggerFactory.getLogger(classOf[FlowStateStorage])
 
     import FlowStateStorage._
@@ -166,46 +167,49 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
     var batch: BatchStatement = new BatchStatement()
     val ASYNC_REQUEST_TIMEOUT = Duration.create(3, TimeUnit.SECONDS)
 
-    class Prepared(query: String) {
-        var _statement: PreparedStatement = null
-
-        def apply(s: Session) = {
-            if (_statement eq null)
-                _statement = s.prepare(query)
-            _statement
-        }
-    }
-
     def fetchByPortStatement(table: String) =
-        new Prepared(s"SELECT * FROM $table  WHERE port = ?;")
+            s"SELECT * FROM $table  WHERE port = ?;"
 
     def touchConnTrackStatement(table: String) =
-        new Prepared(
             s"INSERT INTO $table " +
                 "  (port, proto, srcIp, srcPort, dstIp, dstPort, device) " +
                 " VALUES (?, ?, ?, ?, ?, ?, ?) " +
-                " USING TTL ?;")
+                " USING TTL ?;"
 
     def touchNatStatement(table: String) =
-        new Prepared(
             s"INSERT INTO $table " +
                 "  (port, type, proto, srcIp, srcPort, dstIp, dstPort, device, translateIp, translatePort) " +
                 " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                " USING TTL ?;")
+                " USING TTL ?;"
 
-    val touchIngressConnTrack = touchConnTrackStatement(CONNTRACK_BY_INGRESS_TABLE)
-    val touchEgressConnTrack = touchConnTrackStatement(CONNTRACK_BY_EGRESS_TABLE)
+    @volatile
+    var session: Session = null
 
-    val touchIngressNat = touchNatStatement(NAT_BY_INGRESS_TABLE)
-    val touchEgressNat = touchNatStatement(NAT_BY_EGRESS_TABLE)
+    var touchIngressConnTrack: PreparedStatement = _
+    var touchEgressConnTrack: PreparedStatement = _
 
-    val fetchIngressConnTrack = fetchByPortStatement(CONNTRACK_BY_INGRESS_TABLE)
-    val fetchEgressConnTrack = fetchByPortStatement(CONNTRACK_BY_EGRESS_TABLE)
-    val fetchIngressNat = fetchByPortStatement(NAT_BY_INGRESS_TABLE)
-    val fetchEgressNat = fetchByPortStatement(NAT_BY_EGRESS_TABLE)
+    var touchIngressNat: PreparedStatement = _
+    var touchEgressNat: PreparedStatement = _
 
-    final def withSession[U](body: (Session) => U): Option[U] =
-        Option(client.session) map body
+    var fetchIngressConnTrack: PreparedStatement = _
+    var fetchEgressConnTrack: PreparedStatement = _
+    var fetchIngressNat: PreparedStatement = _
+    var fetchEgressNat: PreparedStatement = _
+
+    sessionFuture.onSuccess {
+        case s =>
+            touchIngressConnTrack = s.prepare(touchConnTrackStatement(CONNTRACK_BY_INGRESS_TABLE))
+            touchEgressConnTrack = s.prepare(touchConnTrackStatement(CONNTRACK_BY_EGRESS_TABLE))
+
+            touchIngressNat = s.prepare(touchNatStatement(NAT_BY_INGRESS_TABLE))
+            touchEgressNat = s.prepare(touchNatStatement(NAT_BY_EGRESS_TABLE))
+
+            fetchIngressConnTrack = s.prepare(fetchByPortStatement(CONNTRACK_BY_INGRESS_TABLE))
+            fetchEgressConnTrack = s.prepare(fetchByPortStatement(CONNTRACK_BY_EGRESS_TABLE))
+            fetchIngressNat = s.prepare(fetchByPortStatement(NAT_BY_INGRESS_TABLE))
+            fetchEgressNat = s.prepare(fetchByPortStatement(NAT_BY_EGRESS_TABLE))
+            session = s
+    }(CallingThreadExecutionContext)
 
     private def bind(st: PreparedStatement, port: UUID, k: ConnTrackKey) = {
         st.bind(port, k.networkProtocol.toInt.asInstanceOf[JInt],
@@ -234,13 +238,12 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
      * @param weakRefs Egress ports.
      */
     override def touchConnTrackKey(k: ConnTrackKey, strongRef: UUID,
-            weakRefs: JIterator[UUID]): Unit = withSession {
-        s =>
-            if (strongRef ne null)
-                batch.add(bind(touchIngressConnTrack(s), strongRef, k))
-            while (weakRefs.hasNext) {
-                batch.add(bind(touchEgressConnTrack(s), weakRefs.next(), k))
-            }
+            weakRefs: JIterator[UUID]): Unit = if (session ne null) {
+        if (strongRef ne null)
+            batch.add(bind(touchIngressConnTrack, strongRef, k))
+        while (weakRefs.hasNext) {
+            batch.add(bind(touchEgressConnTrack, weakRefs.next(), k))
+        }
     }
 
     /**
@@ -252,24 +255,22 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
      * @param weakRefs Egress ports.
      */
     override def touchNatKey(k: NatKey, v: NatBinding, strongRef: UUID,
-            weakRefs: JIterator[UUID]): Unit = withSession {
-        s =>
-            if (strongRef ne null)
-                batch.add(bind(touchIngressNat(s), strongRef, k, v))
-            while (weakRefs.hasNext) {
-                batch.add(bind(touchEgressNat(s), weakRefs.next(), k, v))
-            }
+            weakRefs: JIterator[UUID]): Unit = if (session ne null) {
+        if (strongRef ne null)
+            batch.add(bind(touchIngressNat, strongRef, k, v))
+        while (weakRefs.hasNext) {
+            batch.add(bind(touchEgressNat, weakRefs.next(), k, v))
+        }
     }
 
     /**
      * Sends all state accumulated through touchConnTrackKey() and touchNatKey()
      * to Cassandra, asynchronously. Errors will be logged but ignored.
      */
-    override def submit(): Unit = withSession {
-        s =>
-            val result = s.executeAsync(batch)
-            Futures.addCallback(result, touchCallback)
-            batch = new BatchStatement()
+    override def submit(): Unit = if (session ne null) {
+        val result = session.executeAsync(batch)
+        Futures.addCallback(result, touchCallback)
+        batch = new BatchStatement()
     }
 
     /**
@@ -321,10 +322,10 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
             Future.failed(new IllegalStateException("Cassandra client is not connected"))
     }
 
-    private def fetch[U](statement: Prepared, portId: UUID, transform: (ResultSet) => U)
+    private def fetch[U](statement: PreparedStatement, portId: UUID, transform: (ResultSet) => U)
                 (implicit ec: ExecutionContext, as: ActorSystem): Future[U] = {
-        peelResult (withSession { s =>
-            toScalaFuture(s.executeAsync(statement(s).bind(portId))) map transform
+        peelResult (Option(session) map { s =>
+            toScalaFuture(s.executeAsync(statement.bind(portId))) map transform
         })
     }
 
@@ -342,7 +343,7 @@ class FlowStateStorageImpl(val client: CassandraClient) extends FlowStateStorage
             (implicit ec: ExecutionContext,
                       as: ActorSystem): Future[ResultSet] = {
 
-        val p: Promise[ResultSet] = promise[ResultSet]()
+        val p: Promise[ResultSet] = Promise[ResultSet]()
         Futures.addCallback(f, new FutureCallback[ResultSet](){
             override def onSuccess(result: ResultSet): Unit = {
                 if(!p.trySuccess(result)) {
