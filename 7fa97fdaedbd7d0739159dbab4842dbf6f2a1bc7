@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_16ef971f",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/ZookeeperStateStorage.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-05-29T17:07:47Z",
+      "side": 1,
+      "message": "I think this can just be:\n  {\n    case e ...\n    case e ...\n  }\n\nNo need to change it here.",
+      "range": {
+        "startLine": 149,
+        "startChar": 50,
+        "endLine": 161,
+        "endChar": 32
+      },
+      "revId": "7fa97fdaedbd7d0739159dbab4842dbf6f2a1bc7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
