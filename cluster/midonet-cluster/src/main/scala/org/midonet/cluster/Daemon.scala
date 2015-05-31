@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,76 +18,83 @@ package org.midonet.cluster
 
 import java.util.UUID
 
-import scala.util.{Success, Failure, Try}
-import scala.util.control.NonFatal
+import scala.async.Async._
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.reflect.ClassTag
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
-import com.google.inject.{AbstractModule, Module, Singleton}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.ClusterNode.{Context, MinionDef}
+import org.midonet.cluster.ClusterNode.MinionDef
+import org.midonet.cluster.services.Minion
 
 /** Models the base class that orchestrates the various sub services inside a
-  * Midonet Cluster node. */
+  * Midonet Cluster node.
+  */
 final protected class Daemon(val nodeId: UUID,
-                             val minions: List[MinionDef[ClusterMinion]])
+                             val minionDefs: List[MinionDef[_ <: Minion]])
     extends AbstractService {
 
-    private val log = LoggerFactory.getLogger(classOf[Daemon])
+    private val log = LoggerFactory.getLogger("org.midonet.cluster")
+
+    private implicit val executionCtx = ExecutionContext.global
 
     /** Start summmoning our Minions */
     override def doStart(): Unit = {
         log.info(s"MidoNet cluster daemon starting on host $nodeId")
-        var nMinions = 0
-        for (m <- minions) {
-            if (!m.cfg.isEnabled) log.info(s"Minion '${m.name}' is disabled")
-            else if (startMinion(m)) nMinions += 1
-        }
 
-        if (nMinions == 0) {
-            log.error("No minions enabled. Check midonet cluster config file " +
-                      "to ensure that some services are enabled")
+        val startups: List[Future[Minion]] = minionDefs map { m =>
+            startMinion(m)
+        }
+        val numFailed = startups.count(Await.ready(_, 15.second)
+                                            .value.get.isFailure)
+
+        if (numFailed == minionDefs.size) {
+            log.error("No minions started. Check midonet cluster config file " +
+                      "to ensure that some services are enabled, and check " +
+                      "possible failures in enabled minions.")
             notifyFailed(new ClusterException("No minions enabled", null))
         } else {
+            if (numFailed > 0) {
+                log.info("Not all Cluster minions were started, continuing " +
+                         "with survivors")
+            }
             notifyStarted()
         }
     }
 
-    private def startMinion(m: MinionDef[ClusterMinion]): Boolean = {
-        MinionConfig.minionClass(m.cfg) match {
-            case Success(klass) =>
-                try {
-                    log.info(s"Minion '${m.name}' enabled with $klass")
-                    ClusterNode.injector.getInstance(klass)
-                                        .startAsync().awaitRunning()
-                    true
-                } catch {
-                    case NonFatal(ex) =>
-                        log.warn(s"Minion ${m.name} failed to start", ex)
-                    false
-                }
-            case Failure(ex) =>
-                log.error(s"Could not load class '${m.cfg.minionClass}' for " +
-                          s"minion '${m.name}'", ex)
-                false
+    /**
+     * Asynchronously starts the Cluster Minion defined in the spec, and return
+     * a Future with the instance of the service.
+     */
+    private def startMinion[D <: Minion](minionDef: MinionDef[D])
+                                        (implicit ct: ClassTag[D])
+    : Future[D] = async {
+        val minion = ClusterNode.injector.getInstance(minionDef.clazz)
+        if (minion.isEnabled) {
+            log.info(s"Starting cluster minion: ${minionDef.name}")
+            minion.startAsync().awaitRunning()
+            log.info(s"Started cluster minion: ${minionDef.name}")
+        } else {
+            log.info(s"Cluster minion is disabled: ${minionDef.name}")
         }
+        minion
     }
-
 
     /** Disband Minions */
     override def doStop(): Unit = {
         log info "Daemon terminates.."
-        for (m <- minions if m.cfg.isEnabled;
-             klass <- MinionConfig.minionClass(m.cfg)) {
-            val minion = ClusterNode.injector.getInstance(klass)
+        minionDefs foreach { minionDef =>
+            val minion = ClusterNode.injector.getInstance(minionDef.clazz)
             if (minion.isRunning) {
                 try {
-                    log.info(s"Terminating minion: ${m.name}")
+                    log.info(s"Terminating minion: ${minionDef.name}")
                     minion.stopAsync().awaitTerminated()
                 } catch {
                     case t: Throwable =>
-                        log.warn(s"Failed to stop minion ${m.name}", t)
+                        log.warn(s"Failed to stop minion ${minionDef.name}", t)
                         notifyFailed(t)
                 }
             }
@@ -98,35 +105,6 @@ final protected class Daemon(val nodeId: UUID,
     }
 }
 
-/** Define a sub-service that runs as part of the Midonet Cluster. This
-  * should expose the necessary API to let the Daemon babysit its minions.
-  *
-  * @param nodeContext metadata about the node where this Minion is running
-  */
-abstract class ClusterMinion(nodeContext: Context) extends AbstractService
 
-/** Base configuration mixin for a Cluster Minion. */
-trait MinionConfig[+D <: ClusterMinion] {
-    def isEnabled: Boolean
-    def minionClass: String
-}
 
-/** Some utilities for Minion bootstrapping */
-object MinionConfig {
 
-    /** Extract the Minion class from the config, if present. */
-    final def minionClass[M <: ClusterMinion](m: MinionConfig[M])
-    : Try[Class[M]] = Try {
-        val className = m.minionClass.replaceAll("\\.\\.", ".")
-        Class.forName(className).asInstanceOf[Class[M]]
-    }
-
-    /** Provides a Guice Module that bootstraps the injection of a Minion
-      * defined in a given MinionConfig. */
-    final def module[M <: ClusterMinion](m: MinionConfig[M]): Module = {
-        new AbstractModule() {
-            override def configure(): Unit =
-                minionClass(m).foreach(bind(_).in(classOf[Singleton]))
-        }
-    }
-}
