@@ -20,14 +20,18 @@ import java.nio.file.{Files, Paths}
 import java.util.UUID
 import javax.sql.DataSource
 
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
+
 import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
-import com.google.inject.{AbstractModule, Guice}
+import com.google.inject.{AbstractModule, Guice, Singleton}
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.dbcp2.BasicDataSource
+import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage._
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
@@ -46,9 +50,6 @@ class ClusterException(msg: String, cause: Throwable)
   * configuration settings to perform different distributed configuration and
   * control functions. */
 object ClusterNode extends App {
-
-    /** Defines a Minion with a name, config, and implementing class */
-    case class MinionDef[D <: ClusterMinion](name: String, cfg: MinionConfig[D])
 
     /** Encapsulates node-wide context that might be of use for minions
       *
@@ -88,24 +89,34 @@ object ClusterNode extends App {
           |    curator_enabled = true
           |}
         """.stripMargin)
+
     // Load cluster node configuration
     private val nodeId = HostIdGenerator.getHostId
     configurator.centralPerNodeConfig(nodeId)
                 .mergeAndSet(CLUSTER_NODE_CONF_OVERRIDES)
+    private val nodeContext = new Context(nodeId)
 
     val clusterConf = new ClusterConfig(configurator.runtimeConfig)
 
-    // Prepare the Cluster node context for injection
-    private val nodeContext = new Context(nodeId)
+    log.info("Scanning classpath for Cluster Minions..")
+    private val reflections = new Reflections("org.midonet")
+    private val annotated = reflections.getTypesAnnotatedWith(classOf[ClusterService])
+    private val minions = ListBuffer.empty[MinionDef[_ <: Minion]]
 
-    private val minionDefs: List[MinionDef[ClusterMinion]] = List (
-        new MinionDef("heartbeat", clusterConf.hearbeat),
-        new MinionDef("vxgw", clusterConf.vxgw),
-        new MinionDef("neutron-importer", clusterConf.c3po),
-        new MinionDef("conf_api", clusterConf.confApi),
-        new MinionDef("topology", clusterConf.topologyApi),
-        new MinionDef("rest-api", clusterConf.restApi)
-    )
+    /** Defines a Minion with a name, config, and implementing class */
+    case class MinionDef[D <: Minion](name: String, clazz: Class[D])
+
+    annotated.foreach { m =>
+        val minionSpec = m.getAnnotation(classOf[ClusterService])
+        try {
+            minions :+ MinionDef(minionSpec.name, m.asInstanceOf[Class[Minion]])
+            log.info(s"Minion: ${minionSpec.name()} provided by ${m.getName}")
+        } catch {
+            case _: ClassCastException =>
+                log.warn(s"Ignored ${minionSpec.name()} provided by " +
+                         s"${m.getName}: doesn't extend from Minion")
+        }
+    }
 
     // TODO: move this out to a Guice module that provides access to the
     // NeutronDB
@@ -115,7 +126,8 @@ object ClusterNode extends App {
     dataSrc.setUsername(clusterConf.c3po.user)
     dataSrc.setPassword(clusterConf.c3po.password)
 
-    private val daemon = new Daemon(nodeId, minionDefs)
+    private val daemon = new Daemon(nodeId, minions.toList)
+
     private val clusterNodeModule = new AbstractModule {
         override def configure(): Unit = {
 
@@ -127,11 +139,9 @@ object ClusterNode extends App {
             // Minion configurations
             bind(classOf[ClusterConfig]).toInstance(clusterConf)
 
-            // Minion definitions, used by the Daemon to start when appropriate
-            minionDefs foreach { m =>
-                log.info(s"Register minion: ${m.name}")
-                install(MinionConfig.module(m.cfg))
-            }
+            // Bind each Minion service as singleton, so Daemon can find them
+            // and start
+            minions foreach { m => bind(m.clazz).in(classOf[Singleton]) }
 
             // The Daemon itself
             bind(classOf[Daemon]).toInstance(daemon)

@@ -54,7 +54,4 @@ public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
         });
     }
 
-    @Override
-    protected void installConfigApi(Config zkConf) {
-    }
 }

@@ -33,10 +33,9 @@ import org.codehaus.jackson.map.ObjectMapper
 import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
-
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.{ClusterService, Minion, MidonetBackend}
 import org.midonet.cluster.services.rest_api.resources._
-import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
+import org.midonet.cluster.{ClusterConfig, ClusterNode}
 
 object Vladimir {
 
@@ -67,10 +66,11 @@ object Vladimir {
     }
 }
 
+@ClusterService(name = "rest_api")
 class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                          backend: MidonetBackend,
                          config: ClusterConfig)
-    extends ClusterMinion(nodeContext) {
+    extends Minion(nodeContext) {
 
     import Vladimir._
 
@@ -79,6 +79,8 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
     private var server: Server = _
 
     log.info(s"Backend: ${backend.store} ${backend.store.isBuilt}")
+
+    override def isEnabled = config.restApi.isEnabled
 
     override def doStart(): Unit = {
         log.info(s"Starting REST API service at ${config.restApi.httpPort}")

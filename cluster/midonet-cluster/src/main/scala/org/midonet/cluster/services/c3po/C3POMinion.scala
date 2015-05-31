@@ -17,12 +17,10 @@
 package org.midonet.cluster.services.c3po
 
 import java.sql.Driver
-
 import javax.sql.DataSource
 
 import scala.util.control.NonFatal
 
-import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.google.protobuf.Message
 import org.apache.curator.framework.CuratorFramework
@@ -32,30 +30,32 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.neutron.{DataStateUpdater, SqlNeutronImporter, importer}
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Neutron._
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.cluster.services.c3po.translators._
+import org.midonet.cluster.services.{ClusterService, MidonetBackend, ScheduledMinion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode, ScheduledClusterMinion}
+import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode}
 import org.midonet.midolman.state.PathBuilder
 
 /** The service that translates and imports neutron models into the MidoNet
-  * backend storage
+  * backend storage.
   *
   * @param nodeContext metadata of the Cluster Node where we're running
   * @param config the configuration of the C3PO service
   * @param dataSrc API for access to the the Neutron DB
   * @param backend The MidoNet backend service
-  * @param curator API for access to ZK for internal uses of the C3PO serviceD/H
+  * @param curator API for access to ZK for internal uses of the C3PO service
+  * @param backendCfg the Backend configuration
   */
+@ClusterService(name = "neutron-importer")
 class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
                            config: ClusterConfig,
                            dataSrc: DataSource,
                            backend: MidonetBackend,
                            curator: CuratorFramework,
                            backendCfg: MidonetBackendConfig)
-    extends ScheduledClusterMinion(nodeContext, config.c3po) {
+    extends ScheduledMinion(nodeContext, config.c3po) {
 
     private val log = LoggerFactory.getLogger(classOf[C3POMinion])
 
@@ -68,8 +68,13 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
     private val LEADER_LATCH_PATH = "/leader-latch"
     private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
                                               nodeContext.nodeId.toString)
-    leaderLatch.start()
 
+    override def isEnabled = config.c3po.isEnabled
+
+    override def doStart(): Unit = {
+        leaderLatch.start()
+        super.doStart()
+    }
     override def doStop(): Unit = {
         if (leaderLatch.hasLeadership) {
             log.info("Leader shutting down, releasing leadership")
@@ -88,12 +93,11 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
     protected override val runnable = new Runnable {
         override def run(): Unit = try {
             if (!leaderLatch.hasLeadership) {
-                log.debug("NeutronPollingThread doing nothing because this " +
-                          "node is not the leader.")
+                log.debug("Still idle as this node is not the leader.")
                 return
             }
 
-            log.debug("Cluster leader; syncing from Neutron DB..")
+            log.debug("I'm leader; syncing from Neutron DB..")
 
             val lastTaskId = dataMgr.lastProcessedTaskId
             log.debug(".. last processed task ID: {}.", lastTaskId)
@@ -116,8 +120,8 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
             if (C3POState.NO_TASKS_PROCESSED != newLastTaskId)
                 dataStateUpdater.updateLastProcessedId(newLastTaskId)
         } catch {
-            case NonFatal(ex) =>
-                log.error("Unexpected exception in Neutron polling thread.", ex)
+            case NonFatal(t) =>
+                log.error("Unexpected exception in NeutronDB polling thread", t)
         }
     }
 
@@ -140,46 +144,10 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
         }
         neutron.Task(task.taskId, c3poOp)
     }
-
 }
 
 object C3POMinion {
-
-    def initDataManager(storage: Storage, backendCfg: MidonetBackendConfig)
-    : C3POStorageManager = {
-        val dataMgr = new C3POStorageManager(storage)
-        val pathBldr = new PathBuilder(backendCfg.rootKey)
-
-        List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
-             classOf[FloatingIp] -> new FloatingIpTranslator(storage),
-             classOf[NeutronConfig] -> new ConfigTranslator(storage),
-             classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
-             classOf[NeutronLoadBalancerPool] ->
-             new LoadBalancerPoolTranslator(storage),
-             classOf[NeutronLoadBalancerPoolMember] ->
-             new LoadBalancerPoolMemberTranslator(storage),
-             classOf[NeutronNetwork] ->
-             new NetworkTranslator(storage, pathBldr),
-             classOf[NeutronRouter] -> new RouterTranslator(storage),
-             classOf[NeutronRouterInterface] ->
-             new RouterInterfaceTranslator(storage),
-             classOf[NeutronSubnet] -> new SubnetTranslator(storage),
-             classOf[NeutronPort] -> new PortTranslator(storage, pathBldr),
-             classOf[NeutronVIP] -> new VipTranslator(storage),
-             classOf[PortBinding] -> new PortBindingTranslator(storage),
-             classOf[SecurityGroup] -> new SecurityGroupTranslator(storage)
-        ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]
-         .foreach { pair =>
-            dataMgr.registerTranslator(pair._1, pair._2)
-        }
-        dataMgr.init()
-        dataMgr
-    }
-}
-
-@VisibleForTesting
-protected[c3po] object C3POMinion {
-    import ScheduledClusterMinion.checkConfigParamDefined
+    import ScheduledMinion.checkConfigParamDefined
 
     val CnxnStrCfgKey = "cluster.neutron_importer.connection_string"
     val JdbcDriverCfgKey = "cluster.neutron_importer.jdbc_driver_class"
@@ -214,5 +182,35 @@ protected[c3po] object C3POMinion {
                 InvalidCnxnStrErrMsg.format(cnxnStr))
     }
 
+    def initDataManager(storage: Storage, backendCfg: MidonetBackendConfig)
+    : C3POStorageManager = {
+        val dataMgr = new C3POStorageManager(storage)
+        val pathBldr = new PathBuilder(backendCfg.rootKey)
+
+        List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
+             classOf[FloatingIp] -> new FloatingIpTranslator(storage),
+             classOf[NeutronConfig] -> new ConfigTranslator(storage),
+             classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
+             classOf[NeutronLoadBalancerPool] ->
+             new LoadBalancerPoolTranslator(storage),
+             classOf[NeutronLoadBalancerPoolMember] ->
+             new LoadBalancerPoolMemberTranslator(storage),
+             classOf[NeutronNetwork] ->
+             new NetworkTranslator(storage, pathBldr),
+             classOf[NeutronRouter] -> new RouterTranslator(storage),
+             classOf[NeutronRouterInterface] ->
+             new RouterInterfaceTranslator(storage),
+             classOf[NeutronSubnet] -> new SubnetTranslator(storage),
+             classOf[NeutronPort] -> new PortTranslator(storage, pathBldr),
+             classOf[NeutronVIP] -> new VipTranslator(storage),
+             classOf[PortBinding] -> new PortBindingTranslator(storage),
+             classOf[SecurityGroup] -> new SecurityGroupTranslator(storage)
+        ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]
+            .foreach { pair =>
+            dataMgr.registerTranslator(pair._1, pair._2)
+                     }
+        dataMgr.init()
+        dataMgr
+    }
 }
 
