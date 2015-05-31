@@ -18,11 +18,10 @@ package org.midonet.cluster.services.topology
 
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.services.topology.server._
-import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
+import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.cluster.rpc.Commands
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.{ClusterService, Minion, MidonetBackend}
 import org.midonet.cluster.services.topology.common.{ApiServerHandler, ConnectionManager}
 import org.midonet.cluster.services.topology.server.RequestHandler
 import org.midonet.util.netty.{ProtoBufSocketAdapter, ProtoBufWebSocketServerAdapter, ServerFrontEnd}
@@ -30,18 +29,20 @@ import org.midonet.util.netty.{ProtoBufSocketAdapter, ProtoBufWebSocketServerAda
 /**
  * Topology api service minion
  */
+@ClusterService(name = "topology_api")
 class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
                                    val backend: MidonetBackend,
                                    val cfg: ClusterConfig)
-    extends ClusterMinion(nodeContext) {
+    extends Minion(nodeContext) {
     private val log = LoggerFactory.getLogger(classOf[TopologyApiService])
 
     // Frontend frameworks
     private var plainSrv: ServerFrontEnd = null
     private var wsSrv: ServerFrontEnd = null
 
-    @Override
-    def doStart(): Unit = {
+    override def isEnabled = cfg.topologyApi.isEnabled
+
+    override def doStart(): Unit = {
         log.info("Starting the Topology API Service")
 
         // Common handlers for protobuf-based requests
