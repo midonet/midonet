@@ -139,6 +139,10 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
             UUID clusterNodeId = HostIdGenerator.getHostId();
             bind(ClusterNode.Context.class).toInstance(
                     new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
+            Config zkConf = zkConfToConfig(zkCfg);
+            ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
+                MidoNodeConfigurator.apply(zkConf).runtimeConfig(clusterNodeId)));
+            bind(ClusterConfig.class).toInstance(clusterConf);
         } catch (Exception e) {
             log.error("Could not register cluster node host id", e);
             throw new RuntimeException(e);
@@ -149,7 +153,6 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new AuthModule());
         install(new ErrorModule());
 
-        installConfigApi(zkConfToConfig(zkCfg));
         install(new MidonetBackendModule(zkConfToConfig(zkCfg)));
 
         installRestApiModule(); // allow mocking
@@ -186,16 +189,5 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new RestApiModule());
     }
 
-    protected void installConfigApi(Config zkConf) {
-        try {
-            UUID hostId = HostIdGenerator.getHostId();
-            ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
-                MidoNodeConfigurator.apply(zkConf).runtimeConfig(hostId)));
-            ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
-            bind(ConfMinion.class).toInstance(new ConfMinion(ctx, clusterConf));
-        } catch (Exception e) {
-            log.error("Failed to start config API", e);
-        }
-    }
 }
 
