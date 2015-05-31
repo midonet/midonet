@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,6 +46,10 @@ public class JerseyGuiceTestServletContextListener extends
     protected void initializeApplication() {
         log.debug("initializeApplication: entered");
 
+        // This allows a backdoor from tests into the API's injection framwework
+        // see getHostZkManager for info
+        FuncTest._injector = injector;
+
         // We do this here so we can have a real ZK available by the moment that
         // the MidonestoreSetupService comes up. This way, the API starts as if
         // it was a real production environment (no MockDirectory, etc.)
@@ -54,10 +58,6 @@ public class JerseyGuiceTestServletContextListener extends
         } catch (Exception e) {
             log.error("Cannot start zookeeper server");
         }
-
-        // This allows a backdoor from tests into the API's injection framwework
-        // see getHostZkManager for info
-        FuncTest._injector = injector;
 
         super.initializeApplication();
 

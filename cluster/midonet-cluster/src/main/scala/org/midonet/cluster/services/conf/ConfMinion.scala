@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.conf
 
+import java.util
 import java.util.UUID
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import java.util.EnumSet
@@ -27,18 +28,22 @@ import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.server.nio.BlockingChannelConnector
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.slf4j.LoggerFactory
-
-import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
+import org.midonet.cluster.services.{ClusterService, Minion}
+import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.cluster.services.rest_api.CorsFilter
 import org.midonet.conf.MidoNodeConfigurator
 
-class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: ClusterConfig)
-        extends ClusterMinion(nodeContext) {
+@ClusterService(name = "conf")
+class ConfMinion @Inject()(nodeContext: ClusterNode.Context,
+                           config: ClusterConfig)
+    extends Minion(nodeContext) {
 
     private val log = LoggerFactory.getLogger("org.midonet.conf-service")
 
     var server: Server = _
     var zk: CuratorFramework = _
+
+    override def isEnabled = config.confApi.isEnabled
 
     override def doStart(): Unit = {
         val configurator = MidoNodeConfigurator(config.conf)
@@ -55,7 +60,8 @@ class ConfMinion @Inject()(nodeContext: ClusterNode.Context, config: ClusterConf
         val context = new ServletContextHandler()
         context.setContextPath("/conf")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
-        context.addFilter(classOf[CorsFilter], "/*", EnumSet.allOf(classOf[DispatcherType]))
+        context.addFilter(classOf[CorsFilter], "/*",
+                          util.EnumSet.allOf(classOf[DispatcherType]))
         server.setHandler(context)
         addServletsFor(configurator, context)
         server.start()

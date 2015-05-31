@@ -38,21 +38,20 @@ import org.midonet.api.auth.AuthContainerRequestFilter;
 import org.midonet.api.auth.AuthFilter;
 import org.midonet.api.auth.AuthModule;
 import org.midonet.api.auth.StateFilter;
-import org.midonet.cluster.auth.CrossOriginResourceSharingFilter;
 import org.midonet.api.error.ErrorModule;
 import org.midonet.api.error.ExceptionFilter;
 import org.midonet.api.network.NetworkModule;
 import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
-import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomApiModule;
-import org.midonet.cluster.rest_api.serialization.SerializationModule;
-import org.midonet.cluster.rest_api.validation.ValidationModule;
 import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.ClusterNode;
+import org.midonet.cluster.auth.CrossOriginResourceSharingFilter;
 import org.midonet.cluster.auth.LoginFilter;
-import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
+import org.midonet.cluster.rest_api.serialization.SerializationModule;
+import org.midonet.cluster.rest_api.validation.ValidationModule;
+import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomApiModule;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.MidoNodeConfigurator;
@@ -140,6 +139,10 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
             UUID clusterNodeId = HostIdGenerator.getHostId();
             bind(ClusterNode.Context.class).toInstance(
                     new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
+            Config zkConf = zkConfToConfig(zkCfg);
+            ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
+                MidoNodeConfigurator.apply(zkConf).runtimeConfig(clusterNodeId)));
+            bind(ClusterConfig.class).toInstance(clusterConf);
         } catch (Exception e) {
             log.error("Could not register cluster node host id", e);
             throw new RuntimeException(e);
@@ -152,7 +155,6 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
 
         installRestApiModule(); // allow mocking
 
-        installConfigApi(zkConfToConfig(zkCfg));
         install(new MidonetBackendModule(zkConfToConfig(zkCfg)));
 
         install(new ValidationModule());
@@ -193,16 +195,5 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new RestApiModule());
     }
 
-    protected void installConfigApi(Config zkConf) {
-        try {
-            UUID hostId = HostIdGenerator.getHostId();
-            ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
-                MidoNodeConfigurator.apply(zkConf).runtimeConfig(hostId)));
-            ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
-            bind(ConfMinion.class).toInstance(new ConfMinion(ctx, clusterConf));
-        } catch (Exception e) {
-            log.error("Failed to start config API", e);
-        }
-    }
 }
 
