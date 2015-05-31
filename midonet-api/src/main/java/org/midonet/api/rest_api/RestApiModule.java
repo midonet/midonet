@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.MidonetBackend;
+import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 import org.midonet.config.ConfigProvider;
@@ -30,7 +31,7 @@ import org.midonet.config.ConfigProvider;
 public class RestApiModule extends AbstractModule {
 
     private static final Logger log = LoggerFactory.getLogger(
-            RestApiModule.class);
+        RestApiModule.class);
 
     @Override
     protected void configure() {
@@ -48,6 +49,7 @@ public class RestApiModule extends AbstractModule {
 
         bind(RestApiService.class).asEagerSingleton();
         bind(VxlanGatewayService.class).asEagerSingleton();
+        bind(ConfMinion.class).asEagerSingleton();
 
         log.debug("configure: exiting.");
     }

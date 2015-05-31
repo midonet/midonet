@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{ConfigFactory, Config}
 
+import org.midonet.cluster.services.{ScheduledMinionConfig, MinionConfig}
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.conf.ConfMinion
 import org.midonet.cluster.services.heartbeat.Heartbeat
@@ -55,7 +56,7 @@ class ClusterConfig(_conf: Config) {
     val backend = new MidonetBackendConfig(conf)
     val embedding = new EmbeddedClusterNodeConfig(conf)
     val c3po = new C3POConfig(conf)
-    val hearbeat = new HeartbeatConfig(conf)
+    val heartbeat = new HeartbeatConfig(conf)
     val vxgw = new VxGwConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
@@ -71,7 +72,6 @@ class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
     val PREFIX = "cluster.neutron_importer"
 
     override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
-    override def minionClass = conf.getString(s"$PREFIX.with")
     override def numThreads = conf.getInt(s"$PREFIX.threads")
     override def delayMs = conf.getDuration(s"$PREFIX.delay", TimeUnit.MILLISECONDS)
     override def periodMs = conf.getDuration(s"$PREFIX.period", TimeUnit.MILLISECONDS)
@@ -84,7 +84,6 @@ class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
 class HeartbeatConfig(val conf: Config) extends ScheduledMinionConfig[Heartbeat] {
     val PREFIX = "cluster.heartbeat"
     override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
-    override def minionClass = conf.getString(s"$PREFIX.with")
     override def numThreads = conf.getInt(s"$PREFIX.threads")
     override def delayMs = conf.getDuration(s"$PREFIX.delay", TimeUnit.MILLISECONDS)
     override def periodMs = conf.getDuration(s"$PREFIX.period", TimeUnit.MILLISECONDS)
@@ -92,14 +91,12 @@ class HeartbeatConfig(val conf: Config) extends ScheduledMinionConfig[Heartbeat]
 
 class VxGwConfig(val conf: Config) extends MinionConfig[VxlanGatewayService] {
     override def isEnabled = conf.getBoolean("cluster.vxgw.enabled")
-    override def minionClass = conf.getString("cluster.vxgw.with")
 }
 
 class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiService] {
     val PREFIX = "cluster.topology_api"
 
     override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
-    override def minionClass = conf.getString(s"$PREFIX.with")
 
     def socketEnabled = conf.getBoolean(s"$PREFIX.socket_enabled")
     def port = conf.getInt(s"$PREFIX.port")
@@ -118,7 +115,6 @@ class TopologySnoopyConfig(val conf: Config) {
 
 class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
     override def isEnabled = conf.getBoolean("cluster.conf_api.enabled")
-    override def minionClass = conf.getString("cluster.conf_api.with")
 
     def httpPort = conf.getInt("cluster.conf_api.http_port")
 }
@@ -127,7 +123,6 @@ class RestApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
     val PREFIX = "cluster.rest_api"
 
     override def isEnabled = conf.getBoolean("cluster.rest_api.enabled")
-    override def minionClass = conf.getString("cluster.rest_api.with")
 
     def httpPort = conf.getInt("cluster.rest_api.http_port")
 }
