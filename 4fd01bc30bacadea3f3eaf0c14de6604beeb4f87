@@ -287,6 +287,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_e7635b18",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-01T04:05:29Z",
+      "side": 1,
+      "message": "I eliminated this trait and neither created another class because we need the boilerplates for the regular rtnetlink connections and I want to decouple them from the notification related boilerplates because DatapathController doesn\u0027t require the regular rtnetlink boilerplates and the common logic among them is only this sort of notification one.\n\nIf we make a class only for the notification, why don\u0027t we create a class for the rtnetlink boilerplates like taking a channel wraping it with a reader/writer, passing it to NetlinkRequestBroker and so on?  Is it supposed to be a trait?",
+      "parentUuid": "facab960_9e0039ac",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_50ef8eb0",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
         "patchSetId": 17
@@ -298,6 +316,24 @@
       "writtenOn": "2015-05-22T10:29:07Z",
       "side": 1,
       "message": "the observer expects the whole netlink header to be in the buffer?\nalso, this is wrong, we\u0027re always passing the first message if the buffer contains multiple ones.",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a7815391",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-01T04:05:29Z",
+      "side": 1,
+      "message": "Observers may want to inspect the message types or other headers to dispatch the processes for notified resources. OVS notifications are multiplexed in the payload, which is actually in the OVS specific headers such as command or version, though.\n\nI\u0027m confused with your comment. Only the first message matters even the reply is comprised of multiple messages because the existing links/addresses are ignored and a new link or address is always notified as the single message.\n\nAnd I might miss the point of your previous comment. I thought you meant we should always passing the first message but you didn\u0027t mean it?\n\nhttps://review.gerrithub.io/#/c/218410/16/netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala@156",
+      "parentUuid": "facab960_50ef8eb0",
       "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
