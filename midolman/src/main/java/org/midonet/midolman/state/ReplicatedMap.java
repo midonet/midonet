@@ -37,6 +37,9 @@ public abstract class ReplicatedMap<K, V> {
 
     protected ZkConnectionAwareWatcher connectionWatcher;
 
+    /* The number of times we attempt to delete a node before giving up. */
+    private static final int DELETION_RETRIES = 10;
+
     /*
      * TODO(pino): don't allow deletes to be lost.
      *
@@ -112,6 +115,7 @@ public abstract class ReplicatedMap<K, V> {
                     // The one currently in newMap needs to be replaced.
                     // Also clean it up if it belongs to this ZK client.
                     newMap.put(p.key, new MapValue(p.value, p.version));
+
                     if (ownedVersions.contains(mv.version)) {
                         p.value = mv.value;
                         p.version = mv.version;
@@ -333,6 +337,52 @@ public abstract class ReplicatedMap<K, V> {
         }
     }
 
+    private class DeleteCallBack implements DirectoryCallback<Void> {
+        private K key;
+        private V value;
+        private int version;
+        private int attemptNo;
+
+        DeleteCallBack(K k, V v, int ver) {
+            key = k;
+            value = v;
+            version = ver;
+            attemptNo = 1;
+        }
+
+        public void onSuccess(Void result) {
+            synchronized(ReplicatedMap.this) {
+                localMap.remove(key);
+                ownedVersions.remove(version);
+            }
+            notifyWatchers(key, value, null);
+        }
+
+        public void onError(KeeperException ex) {
+            log.error("ReplicatedMap deletion of key {} failed: {}, " +
+                      "attempt {} out of {}.",
+                      new Object[]{key, ex, attemptNo, DELETION_RETRIES});
+            attemptNo++;
+
+            // We do not resubmit a delete if the node does not exist anymore.
+            if (ex.code() != KeeperException.Code.NONODE &&
+                attemptNo <= DELETION_RETRIES) {
+                dir.asyncDelete(encodePath(key, value, version), this);
+            }
+        }
+
+        public void onTimeout() {
+            log.error("ReplicatedMap deletion of key {} timed out, " +
+                      "attempt {} out of {}.",
+                      new Object[]{key, attemptNo, DELETION_RETRIES});
+            attemptNo++;
+
+            if (attemptNo <= DELETION_RETRIES) {
+                dir.asyncDelete(encodePath(key, value, version), this);
+            }
+        }
+    }
+
     /**
      * Asynchronous add to associate <pre>key</pre> to <pre>value</pre> in the
      * map.
@@ -396,14 +446,10 @@ public abstract class ReplicatedMap<K, V> {
                 return null;
             if ((ensureVal != null) && !mv.value.equals(ensureVal))
                 return null;
-            localMap.remove(key);
-            ownedVersions.remove(mv.version);
+
         }
-        // TODO(pino,jlm): Should the notify and localMap/ownedVersions updates
-        // not happen until it's bounced off ZooKeeper, and happen in the
-        // DirectoryWatcher?  (i.e., make this an asyncDelete)
-        notifyWatchers(key, mv.value, null);
-        dir.delete(encodePath(key, mv.value, mv.version));
+        dir.asyncDelete(encodePath(key, mv.value, mv.version),
+                        new DeleteCallBack(key, mv.value, mv.version));
         return mv.value;
     }
 
