@@ -330,6 +330,30 @@
       "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_875b6f53",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolMemberTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-01T03:56:11Z",
+      "side": 1,
+      "message": "I don\u0027t think it would increase coverage, since the same code is being covered in the integration tests.",
+      "parentUuid": "facab960_012d9246",
+      "range": {
+        "startLine": 84,
+        "startChar": 4,
+        "endLine": 84,
+        "endChar": 67
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
