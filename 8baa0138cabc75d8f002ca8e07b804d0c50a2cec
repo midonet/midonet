@@ -120,6 +120,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_270d4391",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T02:20:06Z",
+      "side": 1,
+      "message": "That\u0027s not correct. The storage.exists call in the 2nd eventually block would also take time as it needs to wait for C3PO to pick up the task and for the results to get updated to ZK. The same thing applies to the 3rd eventually.",
+      "parentUuid": "facab960_c103aab6",
+      "range": {
+        "startLine": 181,
+        "startChar": 12,
+        "endLine": 181,
+        "endChar": 22
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e6e2849e",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 2
@@ -273,6 +297,30 @@
       "side": 1,
       "message": "That would increase coverage ;-)",
       "parentUuid": "facab960_41a6ba11",
+      "range": {
+        "startLine": 84,
+        "startChar": 4,
+        "endLine": 84,
+        "endChar": 67
+      },
+      "revId": "8baa0138cabc75d8f002ca8e07b804d0c50a2cec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_873c4f31",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolMemberTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T02:20:06Z",
+      "side": 1,
+      "message": "Added a unit test case for when a Member doesn\u0027t have a Pool ID or an address.",
+      "parentUuid": "facab960_012d9246",
       "range": {
         "startLine": 84,
         "startChar": 4,
