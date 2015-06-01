@@ -191,6 +191,37 @@ class LoadBalancerIT extends C3POMinionTestBase {
         }
         val poolWithNoMember = storage.get(classOf[Pool], poolId).await()
         poolWithNoMember.getPoolMemberIdsList.isEmpty shouldBe true
+
+        // #8 Add a new Pool Member 2 to the Pool.
+        val member2Id = UUID.randomUUID()
+        val poolMember2Address = "10.10.0.4"
+        val poolMember2Json =
+            memberJson(member2Id, poolId, poolMember2Address).toString
+        insertCreateTask(8, PoolMemberType, poolMember2Json, member2Id)
+        val member2 =
+            eventually(storage.get(classOf[PoolMember], member2Id).await())
+        member2.getPoolId shouldBe toProto(poolId)
+        member2.getAddress shouldBe IPAddressUtil.toProto(poolMember2Address)
+        eventually {
+            // Pool Member update above should update the Pool's references to
+            // its members in a same multi op, but since ZOOM looks in the
+            // Observables cache in get(), the update to Pool may not have been
+            // reflected right after the member was updated.
+            val poolWMember2 = storage.get(classOf[Pool], poolId).await()
+            poolWMember2.getPoolMemberIdsList should contain (toProto(member2Id))
+        }
+
+        // #9 Delete the Pool
+        insertDeleteTask(9, PoolType, poolId)
+        eventually {
+            storage.exists(classOf[Pool], poolId).await() shouldBe false
+            val parentlessMem2 = storage.get(classOf[PoolMember], member2Id)
+                                        .await()
+            parentlessMem2.hasPoolId shouldBe false
+            val lbWithNoPool = storage.get(classOf[LoadBalancer], routerId)
+                                      .await()
+            lbWithNoPool.getPoolIdsList shouldBe empty
+        }
     }
 
     "LB Pool" should "be allowed to be created with a Health Monitor already " +

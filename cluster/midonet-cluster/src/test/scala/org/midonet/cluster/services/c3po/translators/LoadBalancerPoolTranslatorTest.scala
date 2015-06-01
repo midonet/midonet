@@ -21,6 +21,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
+import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
@@ -207,5 +208,23 @@ class LoadBalancerPoolTranslatorUpdateTest
                 ise.getMessage contains("Health Monitor") shouldBe true
             case e => fail("Expected an IllegalStateException.", e)
         }
+    }
+}
+
+/**
+ * Tests a Neutron Load Balancer Pool Delete translation.
+ */
+@RunWith(classOf[JUnitRunner])
+class LoadBalancerPoolTranslatorDeleteTest
+        extends LoadBalancerPoolTranslatorTestBase {
+    before {
+        initMockStorage()
+        translator = new LoadBalancerPoolTranslator(storage)
+    }
+
+    "Pool Delete" should "delete the corresponding MidoNet Pool." in {
+        val midoOps = translator.translate(
+                neutron.Delete(classOf[NeutronLoadBalancerPool], poolId))
+        midoOps should contain only midonet.Delete(classOf[Pool], poolId)
     }
 }
