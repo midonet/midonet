@@ -45,6 +45,195 @@
       "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_02d90d57",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T07:56:06Z",
+      "side": 1,
+      "message": "s/between/among/",
+      "range": {
+        "startLine": 34,
+        "startChar": 42,
+        "endLine": 34,
+        "endChar": 49
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e2ba69e0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T07:56:06Z",
+      "side": 1,
+      "message": "This sentence is cryptic.",
+      "range": {
+        "startLine": 43,
+        "startChar": 7,
+        "endLine": 44,
+        "endChar": 33
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e2a189aa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T07:56:06Z",
+      "side": 1,
+      "message": "Extraneous white space.",
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c2c5655c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T07:56:06Z",
+      "side": 1,
+      "message": "\"A subject publishing opinion removals.\"?",
+      "range": {
+        "startLine": 56,
+        "startChar": 7,
+        "endLine": 56,
+        "endChar": 74
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_02a74dbe",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T07:56:06Z",
+      "side": 1,
+      "message": "Comments?",
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4288751f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T07:56:06Z",
+      "side": 1,
+      "message": "Do we need this case? The argument type (\"(K, V, String)\") guarantees it\u0027s a triple and thus first 2 cases are exhaustive.",
+      "range": {
+        "startLine": 74,
+        "startChar": 12,
+        "endLine": 76,
+        "endChar": 34
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_82a0bd91",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T07:56:06Z",
+      "side": 1,
+      "message": "I assume that this is dummy implementation, no? Is it really important to provide this implementation?",
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4204f57a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T07:56:06Z",
+      "side": 1,
+      "message": "The asymmetry between the merge and unmerge implementations may be a bit annoying because merge doesn\u0027t touch cache at all but unmerge does. Perhaps we want to move what we have merge to some helper method snd merge just calls that helper method in it?",
+      "range": {
+        "startLine": 153,
+        "startChar": 3,
+        "endLine": 182,
+        "endChar": 5
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_22e8d1b3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-01T07:56:06Z",
+      "side": 1,
+      "message": "Maybe a stupid question, but why can\u0027t we use winners.contains(key)?",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 24
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
