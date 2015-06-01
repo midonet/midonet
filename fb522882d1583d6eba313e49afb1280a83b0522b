@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_02e3cdd9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolMemberTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-01T07:51:37Z",
+      "side": 1,
+      "message": "Yeah. Though I guess it\u0027s not really needed. The reason I added the UpdateValidator was that at the time I thought that updates had to be thread-safe. Since they don\u0027t, it\u0027s not really necessary.\n\nIt does save a round-trip to Zookeeper, though, since Zoom will fetch the object from ZK anyway.",
+      "parentUuid": "facab960_e24d0974",
+      "range": {
+        "startLine": 56,
+        "startChar": 34,
+        "endLine": 56,
+        "endChar": 61
+      },
+      "revId": "fb522882d1583d6eba313e49afb1280a83b0522b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_67890bca",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 3
