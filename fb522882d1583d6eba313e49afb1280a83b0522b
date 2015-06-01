@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_07503f31",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolMemberTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-01T03:52:36Z",
+      "side": 1,
+      "message": "Maybe a comment here to explain why.",
+      "range": {
+        "startLine": 56,
+        "startChar": 34,
+        "endLine": 56,
+        "endChar": 61
+      },
+      "revId": "fb522882d1583d6eba313e49afb1280a83b0522b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_67890bca",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-01T03:52:36Z",
+      "side": 1,
+      "message": "Could you add \"with no pool ID\" here to clarify?",
+      "range": {
+        "startLine": 218,
+        "startChar": 14,
+        "endLine": 218,
+        "endChar": 32
+      },
+      "revId": "fb522882d1583d6eba313e49afb1280a83b0522b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_47a5e751",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-01T03:52:36Z",
+      "side": 1,
+      "message": "Should the member list check be in the eventually block as well?",
+      "range": {
+        "startLine": 229,
+        "startChar": 0,
+        "endLine": 230,
+        "endChar": 59
+      },
+      "revId": "fb522882d1583d6eba313e49afb1280a83b0522b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_87860fb8",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-01T03:52:36Z",
+      "side": 1,
+      "message": "\"Update the pool member with pool ID and other properties.\"",
+      "range": {
+        "startLine": 232,
+        "startChar": 34,
+        "endLine": 232,
+        "endChar": 35
+      },
+      "revId": "fb522882d1583d6eba313e49afb1280a83b0522b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_87ad2f34",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-01T03:52:36Z",
+      "side": 1,
+      "message": "This may fail occasionally. Logically, you would expect that once the pool member is updated successfully, the pool will be updated as well. That\u0027s true in Zookeeper, but because of the way Zoom caches observables, you can\u0027t assume that Zoom will give you the updated pool immediately. We\u0027ve had test failures related to this issue before.\n\nWhat you need to do is put the get and member list check in a single eventually block.",
+      "range": {
+        "startLine": 250,
+        "startChar": 0,
+        "endLine": 251,
+        "endChar": 78
+      },
+      "revId": "fb522882d1583d6eba313e49afb1280a83b0522b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_477327e9",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-01T03:52:36Z",
+      "side": 1,
+      "message": "Same.",
+      "range": {
+        "startLine": 270,
+        "startChar": 0,
+        "endLine": 273,
+        "endChar": 79
+      },
+      "revId": "fb522882d1583d6eba313e49afb1280a83b0522b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_67774bd5",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-01T03:52:36Z",
+      "side": 1,
+      "message": "Same.",
+      "range": {
+        "startLine": 284,
+        "startChar": 0,
+        "endLine": 285,
+        "endChar": 68
+      },
+      "revId": "fb522882d1583d6eba313e49afb1280a83b0522b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
