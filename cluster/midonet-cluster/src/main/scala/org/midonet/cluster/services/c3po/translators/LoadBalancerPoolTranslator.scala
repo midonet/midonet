@@ -23,7 +23,7 @@ import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
 import org.midonet.cluster.models.Topology.Pool.PoolHealthMonitorMappingStatus._
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
-import org.midonet.cluster.services.c3po.midonet.{Create, Update}
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronLoadBalancerPool. */
@@ -54,7 +54,7 @@ class LoadBalancerPoolTranslator(protected val storage: ReadOnlyStorage)
     }
 
     override protected def translateDelete(id: UUID)
-    : MidoOpList = List()
+    : MidoOpList = List(Delete(classOf[Pool], id))
 
     override protected def translateUpdate(nPool: NeutronLoadBalancerPool)
     : MidoOpList = {
