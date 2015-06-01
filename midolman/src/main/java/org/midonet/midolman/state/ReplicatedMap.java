@@ -112,6 +112,7 @@ public abstract class ReplicatedMap<K, V> {
                     // The one currently in newMap needs to be replaced.
                     // Also clean it up if it belongs to this ZK client.
                     newMap.put(p.key, new MapValue(p.value, p.version));
+
                     if (ownedVersions.contains(mv.version)) {
                         p.value = mv.value;
                         p.version = mv.version;
@@ -333,6 +334,35 @@ public abstract class ReplicatedMap<K, V> {
         }
     }
 
+    private class DeleteCallBack implements DirectoryCallback<Void> {
+        private K key;
+        private V value;
+        private long version;
+
+        DeleteCallBack(K k, V v, long ver) {
+            key = k;
+            value = v;
+            version = ver;
+        }
+
+        public void onSuccess(Void result) {
+            synchronized(ReplicatedMap.this) {
+                localMap.remove(key);
+                ownedVersions.remove(version);
+            }
+            notifyWatchers(key, value, null);
+        }
+
+        public void onError(KeeperException ex) {
+            log.error("ReplicatedMap deletion of key {} failed: {}",
+                      new Object[] { key, ex });
+        }
+
+        public void onTimeout() {
+            log.error("ReplicatedMap deletion of key {} timed out.", key);
+        }
+    }
+
     /**
      * Asynchronous add to associate <pre>key</pre> to <pre>value</pre> in the
      * map.
@@ -396,14 +426,10 @@ public abstract class ReplicatedMap<K, V> {
                 return null;
             if ((ensureVal != null) && !mv.value.equals(ensureVal))
                 return null;
-            localMap.remove(key);
-            ownedVersions.remove(mv.version);
+
         }
-        // TODO(pino,jlm): Should the notify and localMap/ownedVersions updates
-        // not happen until it's bounced off ZooKeeper, and happen in the
-        // DirectoryWatcher?  (i.e., make this an asyncDelete)
-        notifyWatchers(key, mv.value, null);
-        dir.delete(encodePath(key, mv.value, mv.version));
+        dir.asyncDelete(encodePath(key, mv.value, mv.version),
+                        new DeleteCallBack(key, mv.value, mv.version));
         return mv.value;
     }
 
