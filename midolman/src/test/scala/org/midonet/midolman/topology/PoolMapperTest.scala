@@ -108,10 +108,12 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observer should receive a pool")
             obs.awaitOnNext(1, timeout) shouldBe true
 
-            When("The pool is updated")
+            When("The pool is updated with a Health Monitor associated")
+            val hm = createHealthMonitor()
+            store.create(hm)
             val pool2 = pool1
                 .setAdminStateUp(true)
-                .setHealthMonitorId(UUID.randomUUID)
+                .setHealthMonitorId(hm.getId)
             store.update(pool2)
 
             Then("The observer should receive the update")

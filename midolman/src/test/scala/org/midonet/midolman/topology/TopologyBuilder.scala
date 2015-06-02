@@ -818,6 +818,8 @@ object TopologyBuilder {
             healthMonitor.toBuilder.setTimeout(timeout).build()
         def setMaxRetries(maxRetries: Int): HealthMonitor =
             healthMonitor.toBuilder.setMaxRetries(maxRetries).build()
+        def setPoolId(poolId: UUID): HealthMonitor =
+            healthMonitor.toBuilder.setPoolId(poolId.asProto).build()
     }
 
     private val random = new Random()
