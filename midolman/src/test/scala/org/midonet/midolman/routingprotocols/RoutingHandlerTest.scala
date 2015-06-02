@@ -18,16 +18,16 @@ package org.midonet.midolman.routingprotocols
 
 import java.util
 import java.util.UUID
-import org.midonet.midolman.simulation.RouterPort
 
 import scala.concurrent.Future
 
 import akka.actor._
 import akka.testkit.TestActorRef
+
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
-import org.mockito.Mockito._
 import org.mockito.Matchers._
+import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.mock.MockitoSugar
@@ -36,12 +36,14 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Route
 import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.packets.{MAC, IPv4Addr, IPv4Subnet}
-import org.midonet.quagga.BgpdConfiguration.{Network, Neighbor, BgpRouter}
-import org.midonet.quagga.ZebraProtocol.RIBType
-import org.midonet.quagga.{BgpConnection, BgpdProcess}
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.{LegacyRoutingStorage, RoutingStorage}
+import org.midonet.midolman.simulation.RouterPort
 import org.midonet.odp.DpPort
 import org.midonet.odp.ports.NetDevPort
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.quagga.BgpdConfiguration.{BgpRouter, Neighbor, Network}
+import org.midonet.quagga.ZebraProtocol.RIBType
+import org.midonet.quagga.{BgpConnection, BgpdProcess}
 
 @RunWith(classOf[JUnitRunner])
 class RoutingHandlerTest extends FeatureSpecLike
@@ -51,6 +53,7 @@ class RoutingHandlerTest extends FeatureSpecLike
     var rport: RouterPort = _
     var bgpd: MockBgpdProcess = _
     var dataClient: DataClient = _
+    var routingStorage: RoutingStorage = _
     def vty = bgpd.vty
     var routingHandler: ActorRef = _
     var invalidations = List[BackChannelMessage]()
@@ -81,10 +84,11 @@ class RoutingHandlerTest extends FeatureSpecLike
 
         bgpd = new MockBgpdProcess
         dataClient = mock[DataClient]
+        routingStorage = new LegacyRoutingStorage(dataClient)
         invalidations = Nil
         routingHandler = TestActorRef(new TestableRoutingHandler(rport,
                                                     invalidations ::= _,
-                                                    dataClient,
+                                                    routingStorage,
                                                     config,
                                                     bgpd))
         routingHandler ! rport
@@ -327,10 +331,10 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
 
 class TestableRoutingHandler(rport: RouterPort,
                              flowInvalidator: (BackChannelMessage) => Unit,
-                             dataClient: DataClient,
+                             routingStorage: RoutingStorage,
                              config: MidolmanConfig,
                              override val bgpd: MockBgpdProcess)
-            extends RoutingHandler(rport, 1, flowInvalidator, dataClient,
+            extends RoutingHandler(rport, 1, flowInvalidator, routingStorage,
                                    config, new MockZkConnWatcher()) {
 
     override def createDpPort(port: String): Future[(DpPort, Int)]  = {
