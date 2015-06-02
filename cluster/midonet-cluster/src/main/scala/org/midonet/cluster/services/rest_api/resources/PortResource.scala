@@ -73,10 +73,22 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
         new PortPortGroupResource(id, backend, uriInfo)
     }
 
+    protected override def getFilter = (port: Port) => setActive(port)
+
+    protected override def listFilter = (port: Port) => { setActive(port); true }
+
     protected override def updateFilter = (to: Port, from: Port) => {
         to.update(from)
     }
 
+    private def isActive(id: String): Boolean = {
+        getResourceOwners(classOf[Port], id).getOrThrow.nonEmpty
+    }
+
+    private def setActive(port: Port): Port = {
+        port.active = isActive(port.id.toString)
+        port
+    }
 }
 
 @RequestScoped

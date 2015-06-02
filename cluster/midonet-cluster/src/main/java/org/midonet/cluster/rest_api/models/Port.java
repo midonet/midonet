@@ -86,8 +86,11 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "port_group_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> portGroupIds;
 
+    public boolean active;
+
     public Port() {
         adminStateUp = true;
+        active = false;
     }
 
     public abstract UUID getDeviceId();
