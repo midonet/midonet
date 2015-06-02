@@ -16,15 +16,32 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import com.google.protobuf.Message
-
-import org.midonet.cluster.services.c3po.midonet.Create
-import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.services.c3po.midonet.{Create, Update}
+import org.midonet.cluster.models.Commons.{LBStatus, UUID}
 import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
 import org.midonet.cluster.models.Topology.HealthMonitor
+import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for NeutronHealthMonitor. */
-class HealthMonitorTranslator extends NeutronTranslator[NeutronHealthMonitor]{
+class HealthMonitorTranslator(protected val storage: ReadOnlyStorage)
+        extends NeutronTranslator[NeutronHealthMonitor]{
+
+
+    private def translate(nhm: NeutronHealthMonitor, status: LBStatus = null)
+    : HealthMonitor = {
+        // Health Monitor status is ACTIVE by default, and cannot be modified
+        // from the API and is to be set by HM directly.
+        val hmBldr = HealthMonitor.newBuilder()
+                                 .setId(nhm.getId)
+                                 .setAdminStateUp(nhm.getAdminStateUp)
+                                 .setDelay(nhm.getDelay)
+                                 .setTimeout(nhm.getTimeout)
+                                 .setMaxRetries(nhm.getMaxRetries)
+        if (status != null) hmBldr.setStatus(status)
+        hmBldr.build
+    }
+
     override protected def translateCreate(nhm: NeutronHealthMonitor)
     : MidoOpList = {
         // The legacy plugin doesn't allow Load Balancer Pools to be associated
@@ -32,17 +49,17 @@ class HealthMonitorTranslator extends NeutronTranslator[NeutronHealthMonitor]{
         if (nhm.getPoolsCount > 0) throw new IllegalArgumentException(
                 "Load Balancer Pool cannot be associated.")
 
-        List(Create(HealthMonitor.newBuilder()
-                                 .setId(nhm.getId)
-                                 .setAdminStateUp(nhm.getAdminStateUp)
-                                 .setDelay(nhm.getDelay)
-                                 .setTimeout(nhm.getTimeout)
-                                 .setMaxRetries(nhm.getMaxRetries).build()))
+        List(Create(translate(nhm)))
     }
 
     override protected def translateDelete(id: UUID)
     : MidoOpList = List()
 
-    override protected def translateUpdate(nm: NeutronHealthMonitor)
-    : MidoOpList = List()
+    override protected def translateUpdate(nhm: NeutronHealthMonitor)
+    : MidoOpList = {
+        val currHm = storage.get(classOf[HealthMonitor], nhm.getId).await()
+        val currStatus = if (currHm.hasStatus) currHm.getStatus else null
+
+        List(Update(translate(nhm, currStatus)))
+    }
 }
