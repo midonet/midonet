@@ -19,12 +19,15 @@ package org.midonet.cluster.services.c3po.translators
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.models.Commons.LBStatus.INACTIVE
 import org.midonet.cluster.models.ModelsUtil._
+import org.midonet.cluster.models.Neutron.NeutronHealthMonitor
+import org.midonet.cluster.models.Topology.HealthMonitor
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
 
 class HealthMonitorTranslatorTestBase extends TranslatorTestBase {
-    protected val translator = new HealthMonitorTranslator()
+    protected var translator = new HealthMonitorTranslator()
 
     protected val hmId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")
     private val healthMonitorCommonFlds = s"""
@@ -74,5 +77,56 @@ class HealthMonitorTranslatorCreateTest
                 iae.getMessage startsWith("Load Balancer Pool") shouldBe true
             case e => fail("Expected an IllegalArgumentException.", e)
         }
+    }
+}
+
+/**
+ * Tests Neutron Health Monitor Update translation.
+ */
+@RunWith(classOf[JUnitRunner])
+class HealthMonitorTranslatorUpdateTest
+        extends HealthMonitorTranslatorTestBase {
+
+    private val updatedHealthMonitorCommonFlds = s"""
+            id { $hmId }
+            admin_state_up: false
+            delay: 2
+            max_retries: 20
+            timeout: 60
+            """
+    private val nHealthMonitor =
+            nHealthMonitorFromTxt(updatedHealthMonitorCommonFlds + """
+                pools {
+                    pool_id { msb: 2 lsb: 1 }
+                    status: "status"
+                    status_description: "desc"
+                }
+                """)
+    private val mHealthMonitor =
+            mHealthMonitorFromTxt(updatedHealthMonitorCommonFlds)
+
+    "Neutron Health Monitor UPDATE" should "update a Midonet Health Monitor " +
+    "except for its status." in {
+        val midoOps = translator.translate(neutron.Update(nHealthMonitor))
+
+        midoOps should contain only (midonet.Update(
+                mHealthMonitor, HealthMonitorUpdateValidator))
+    }
+}
+
+/**
+ * Tests Neutron Health Monitor Delete translation.
+ */
+@RunWith(classOf[JUnitRunner])
+class HealthMonitorTranslatorDeleteTest
+        extends HealthMonitorTranslatorTestBase {
+
+    "Neutron Health Monitor DELETE" should "delete the corresponding Midonet " +
+    "Health Monitor." in {
+        val midoOps = translator.translate(
+                neutron.Delete(classOf[NeutronHealthMonitor], hmId))
+
+        midoOps should contain only (
+                midonet.Delete(classOf[HealthMonitor], hmId))
     }
 }
