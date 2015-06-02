@@ -103,6 +103,9 @@ final class VxlanGateway(val networkId: UUID) {
     }
 
     override def hashCode: Int = Objects.hashCode(vni, tzId)
+
+    override def toString: String = s"VxLAN Gateway { network: $networkId, " +
+                                    s"vni: $vni, tunnel-zone: $tzId }"
 }
 
 
@@ -410,10 +413,16 @@ class VxlanGatewayManager(networkId: UUID,
         vxlanPorts.keys
             .filterNot(newPortIds.contains)            // all deleted ports
             .map { vxlanPorts.remove }                 // forget them
-            .foreach { port => if (port != null) {
+            .filter { _ != null }
+            .foreach { port =>
                 vtepPeerPool.fishIfExists(port.getMgmtIpAddr, port.getMgmtPort)
                             .foreach { _.abandon(vxgw) }
-            }}
+                macPortMap.getByValue(port.getId).foreach { mac =>
+                    vxgwBusObserver.applyMacRemoval (
+                        MacLocation(mac, lsName, null), port.getId
+                    )
+                }
+            }
 
         if (bridge == null) {
             throw new NetworkNotInVxlanGatewayException(s"$networkId deleted")

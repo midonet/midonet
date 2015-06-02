@@ -24,6 +24,8 @@ import com.google.common.base.Preconditions
 import org.slf4j.LoggerFactory
 import rx.Observer
 
+import org.midonet.cluster.data.Bridge
+import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.southbound.vtep.VtepConstants
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.vtep.model.MacLocation
@@ -81,10 +83,15 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
         }
     }
 
-    private def applyMacRemoval(ml: MacLocation, vxPort: UUID): Unit = {
+    /** The given MAC is no longer at the given VxLAN port, clean the Mac Port
+      * and ARP tables.
+      */
+    protected[vxgw] def applyMacRemoval(ml: MacLocation, vxPort: UUID): Unit = {
         val mac = ml.mac.IEEE802
         try {
-            macPortMap.removeIfOwnerAndValue(mac, vxPort)
+            log.debug(s"Removing ${ml.mac} from port $vxPort")
+            dataClient.bridgeDeleteMacPort(networkId, UNTAGGED_VLAN_ID,
+                                           mac, vxPort)
             dataClient.bridgeGetIp4ByMac(networkId, mac) foreach { ip =>
                 dataClient.bridgeDeleteLearnedIp4Mac(networkId, ip, mac)
             }
@@ -118,12 +125,11 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
         val isNew = currPortId == null
         val isChanged = isNew || !currPortId.equals(newVxPortId)
         try {
-            if (isNew || isChanged) {
-                macPortMap.put(mac, newVxPortId)
-            }
             if (!isNew && isChanged) {
-                // See MN-2637, this removal is exposed to races
-                macPortMap.removeIfOwnerAndValue(mac, currPortId)
+                macPortMap.removeIfOwnerAndValue(mac, currPortId)  // sync
+            }
+            if (isNew || isChanged) {
+                macPortMap.put(mac, newVxPortId)                   // async
             }
         } catch {
             case e: StateAccessException =>
@@ -133,7 +139,9 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
                                           e)
         }
 
-        // Fill the ARP supression table
+        // Ensure that the IP is learned on this MAC. Note that we don't need
+        // to remove the IP-MAC entry when the MAC moves to a different port,
+        // since the entry itself will be the same.
         if (ml.ipAddr != null && newVxPortId != null) {
             learnIpOnMac(mac, ml.ipAddr, newVxPortId)
         }
@@ -143,7 +151,7 @@ class BusObserver(dataClient: DataClient, networkId: UUID,
       * associated to the MAC. */
     private def learnIpOnMac(mac: MAC, ip: IPv4Addr, expectPort: UUID): Unit = {
         try {
-            if (expectPort != null && expectPort.equals(macPortMap.get(mac))) {
+            if (expectPort != null && expectPort == macPortMap.get(mac)) {
                 dataClient.bridgeAddLearnedIp4Mac(networkId, ip, mac)
             }
         } catch {
