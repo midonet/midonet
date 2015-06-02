@@ -158,6 +158,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_a083f602",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-02T04:38:09Z",
+      "side": 1,
+      "message": "So to clarify, we\u0027d pick a link local address for each VM.  We\u0027d add a static NAT flow rules to do:\n\nVM egress: VM source IP -\u003e link local IP\nVM ingress:  link local IP -\u003e VM source IP\n\nlink local IP would be unique for each VM on the host.  Any link local address would do as long as it\u0027s unique on the host (so MM tracks allocated IPs)\n\nThe only design decision left is how we steer the return traffic to the datapath.\n\nSince with metadata traffic, VMs always initiate the connection, so the host OS would correctly set the ARP table entries automatically.  But to be absolutely safe, we would statically set the ARP entries from MM when the NAT flows are inserted.\n\nDid I miss anything?",
+      "parentUuid": "facab960_a0585633",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_95f9f94f",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
