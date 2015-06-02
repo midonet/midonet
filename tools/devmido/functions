@@ -223,6 +223,21 @@ function _run_process {
     local service=$1
     local command="$2"
 
+    # Undo logging redirections and close the extra descriptors
+    exec 1>&3
+    exec 2>&3
+    exec 3>&-
+    exec 6>&-
+
+    local real_logfile="${SCREEN_LOGDIR}/${service}.log.${CURRENT_LOG_TIME}"
+    if [[ -n ${SCREEN_LOGDIR} ]]; then
+        exec 1>&"$real_logfile" 2>&1
+        ln -sf "$real_logfile" ${SCREEN_LOGDIR}/${service}.log
+
+        # Hack to get stdout from the Python interpreter for the logs.
+        export PYTHONUNBUFFERED=1
+    fi
+
     SERVICE_DIR=${SERVICE_DIR:-/tmp/status}
     if [[ ! -d "${SERVICE_DIR}/${SCREEN_NAME}" ]]; then
         mkdir -p ${SERVICE_DIR}/${SCREEN_NAME}
