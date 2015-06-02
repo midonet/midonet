@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_ce458b18",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-02T12:19:22Z",
+      "side": 1,
+      "message": "whitespace",
+      "revId": "90aadca8755708370f14479cbf4ab1b66ff2ab2e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
