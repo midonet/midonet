@@ -28,12 +28,12 @@ import scala.util.{Failure, Success, Try}
 import org.slf4j.LoggerFactory.getLogger
 import rx.{Observer, Subscription}
 
-import org.midonet.cluster.services.vxgw
-import org.midonet.cluster.services.vxgw.TunnelZoneState.FloodingProxyEvent
-import org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.VTEP
 import org.midonet.cluster.data.vtep.model.MacLocation
+import org.midonet.cluster.services.vxgw
+import org.midonet.cluster.services.vxgw.TunnelZoneState.FloodingProxyEvent
+import org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
@@ -95,7 +95,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
       * election, etc. */
     private def loadVtepConfiguration(): Unit = {
         try {
-            log.info(s"Loading VTEP $mgmtIp config from NSDB $midoDb")
+            log.info(s"Loading VTEP $mgmtIp config from NSDB")
             vtepConf = midoDb.vtepGet(mgmtIp)
             watchFloodingProxy(vtepConf.getTunnelZoneId,
                                new FloodingProxyWatcher)
@@ -159,7 +159,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
         consolidate(vxgw) map { lsUUID =>
 
             // Subscribe to the bus, filtering out MacLocations on our own VTEP
-            val bus = vxgw.asObservable.startWith(preseed.asJava)
+            val bus = vxgw.observable.startWith(preseed.asJava)
             val myTunnelIp = vtepOvsdb.vxlanTunnelIp.getOrElse {
                                 log.warn(s"No tunnel IP, assume management IP")
                                 mgmtIp
@@ -171,14 +171,14 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
             // Push the our current snapshot to our peers
             val snapshot = vtepOvsdb.currentMacLocal(lsUUID)
             log.info(s"Emitting snapshot with ${snapshot.size} local MACs")
-            snapshot foreach vxgw.asObserver.onNext
+            snapshot foreach vxgw.observer.onNext
 
             // Subscribe the bus to our stream so peers get our MAC-port updates
             newSub.toBus = vtepOvsdb.macLocalUpdates
                          .filter(makeFunc1 { ml =>
                             myLogicalSwitchNames.contains(ml.logicalSwitchName)
                          })
-                         .subscribe(vxgw.asObserver)
+                         .subscribe(vxgw.observer)
 
             // Tell our VTEP to send flooded traffic to MidoNet's flooding proxy
             publishFloodingProxyTo(vxgw)
@@ -186,7 +186,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
             // Ask all peers to send us their flooded traffic
             log.info("Advertise unknown-dst to receive flooded traffic " +
                      MacLocation.unknownAt(tunIp, vxgw.name))
-            vxgw.asObserver.onNext(MacLocation.unknownAt(tunIp, vxgw.name))
+            vxgw.observer.onNext(MacLocation.unknownAt(tunIp, vxgw.name))
 
         } match {
             // Prettify this, just return the Try

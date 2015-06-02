@@ -74,24 +74,26 @@ final class VxlanGateway(val networkId: UUID) {
     /** The name of the Logical Switch associated to this VxGateway */
     val name = bridgeIdToLogicalSwitchName(networkId)
 
-    /** This is the entry point to dump observables */
-    def asObserver: Observer[MacLocation] = new Observer[MacLocation] {
+    /** This is the entry point where all MAC updates relevant to this VxGW. */
+    val observer = new Observer[MacLocation] {
         override def onCompleted(): Unit = updates.onCompleted()
         override def onError(e: Throwable): Unit = updates.onError(e)
         override def onNext(ml: MacLocation): Unit = {
             if (ml.logicalSwitchName.equals(name)) {
-                log.trace("Learned: {}", ml)
                 updates.onNext(ml)
+                log.trace("Learned: {}", ml)
             }
         }
     }
 
     /** Get the message bus of MacLocation notifications of the Logical
       * Switch.  You're responsible to filter out your own updates. */
-    def asObservable: Observable[MacLocation] = updates
+    val observable: Observable[MacLocation] = updates
 
     /** This VxGW is no longer relevant for us so stop managing it */
-    protected[midonet] def terminate(): Unit = updates.onCompleted()
+    protected[midonet] def terminate(): Unit = {
+        updates.onCompleted()
+    }
 
     override def equals(o: Any): Boolean = {
         if (!o.isInstanceOf[VxlanGateway]) false
@@ -103,6 +105,9 @@ final class VxlanGateway(val networkId: UUID) {
     }
 
     override def hashCode: Int = Objects.hashCode(vni, tzId)
+
+    override def toString: String = s"VxLAN Gateway { network: $networkId, " +
+                                    s"vni: $vni, tunnel-zone: $tzId }"
 }
 
 
@@ -134,6 +139,7 @@ class VxlanGatewayManager(networkId: UUID,
     private val log = LoggerFactory.getLogger(vxgwMgmtLog(networkId))
 
     private val vxgw: VxlanGateway = new VxlanGateway(networkId)
+    private val scheduler = Schedulers.from(VxlanGateway.executor)
 
     private val peerEndpoints = new ConcurrentHashMap[IPv4Addr, UUID]
     private val vxlanPorts = new ConcurrentHashMap[UUID, VxLanPort]
@@ -199,7 +205,7 @@ class VxlanGatewayManager(networkId: UUID,
                     case portId if isPortInMidonet(portId) =>
                         // If the IP was on a MidoNet port, we remove it,
                         // otherwise it's managed by some VTEP.
-                        vxgw.asObserver.onNext(
+                        vxgw.observer.onNext (
                             MacLocation(n.oldVal, n.key, lsName, null)
                         )
                     case _ =>
@@ -216,7 +222,7 @@ class VxlanGatewayManager(networkId: UUID,
     }
 
     /** Whether the Gateway Manager is actively managing the VxGW */
-    private var active = false
+    @volatile private var active = false
 
     /** Start syncing MACs from the neutron network with the bound VTEPs. */
     def start(): Unit = updateBridge()
@@ -325,18 +331,21 @@ class VxlanGatewayManager(networkId: UUID,
                                               peerEndpoints)
 
             subscriptions.add(
-                vxgw.asObservable
-                    .observeOn(Schedulers.from(VxlanGateway.executor))
+                vxgw.observable
+                    .observeOn(scheduler)
                     .subscribe(vxgwBusObserver)
             )
 
             macPortMap.setConnectionWatcher(zkConnWatcher)
             subscriptions.add(
                 Observable.create(new MapObservableOnSubscribe(macPortMap))
+                          .observeOn(scheduler)
                           .doOnUnsubscribe(makeAction0(
                               if (macPortMap != null) macPortMap.stop()))
                           .subscribe(macPortWatcher)
             )
+
+            active = true
             initialization = true
         }
 
@@ -347,6 +356,7 @@ class VxlanGatewayManager(networkId: UUID,
             arpTable.setConnectionWatcher(zkConnWatcher)
             subscriptions.add(
                 Observable.create(new MapObservableOnSubscribe(arpTable))
+                          .observeOn(scheduler)
                           .doOnUnsubscribe(
                               makeAction0(if(arpTable != null) arpTable.stop()))
                           .subscribe(arpWatcher)
@@ -358,12 +368,15 @@ class VxlanGatewayManager(networkId: UUID,
         initialization
     }
 
-    /** Clean up and stop monitoring */
+    /** Clean up and stop monitoring the network. */
     def terminate(): Unit = {
-        log.info(s"Stop monitoring network $networkId")
         if (active) {
             active = false
+            vxlanPorts.values foreach unbindVtep
+            vxlanPorts.clear()
             vxgw.terminate()
+        } else {
+            log.debug("The gateway was already terminated")
         }
         subscriptions.unsubscribe()
         onClose()
@@ -376,7 +389,7 @@ class VxlanGatewayManager(networkId: UUID,
             case Success(_) =>
                 log.info(s"Successfully processed update")
             case Failure(e: NetworkNotInVxlanGatewayException) =>
-                log.warn("Not relevant for VxLAN gateway")
+                log.warn("Network is no longer part of a VxLAN gateway")
                 terminate()
             case Failure(e: NoStatePathException) =>
                 log.warn("Deletion while loading network config, reload",e)
@@ -403,34 +416,50 @@ class VxlanGatewayManager(networkId: UUID,
         val bridge: Bridge = dataClient.bridgeGetAndWatch(networkId,
                                                           bridgeWatcher)
 
-        val newPortIds: Seq[UUID] = if (bridge == null) Seq()
-                                    else bridge.getVxLanPortIds
-
-        // Spot VTEPS no longer bound to this network
-        vxlanPorts.keys
-            .filterNot(newPortIds.contains)            // all deleted ports
-            .map { vxlanPorts.remove }                 // forget them
-            .foreach { port => if (port != null) {
-                vtepPeerPool.fishIfExists(port.getMgmtIpAddr, port.getMgmtPort)
-                            .foreach { _.abandon(vxgw) }
-            }}
-
         if (bridge == null) {
-            throw new NetworkNotInVxlanGatewayException(s"$networkId deleted")
-        } else if (newPortIds.isEmpty) {
+            throw new NetworkNotInVxlanGatewayException(
+                s"Network $networkId was deleted")
+        }
+
+        val newPortIds: Seq[UUID] = bridge.getVxLanPortIds
+        if (newPortIds.isEmpty) {
             throw new NetworkNotInVxlanGatewayException(
                 "No longer bound to any VTEPs")
         }
 
-        val wasInitialized = ensureInitialized(newPortIds)
+        // Spot VTEPS no longer bound to this network and unbind them
+        vxlanPorts.keys
+                  .filterNot(newPortIds.contains)      // all deleted ports
+                  .map { vxlanPorts.remove }           // forget them
+                  .filter { _ != null }
+                  .foreach { unbindVtep }
 
+        val wasInitialized = ensureInitialized(newPortIds)
         // Spot new VTEPs bound to this network
         newPortIds foreach { portId =>
             if (wasInitialized || !vxlanPorts.containsKey(portId)) {
                 bootstrapNewVtep(portId)
             }
         }
+    }
 
+    /** Takes a VxLAN port that connects to a VTEP that is no longer bound to
+      * the Network, and clears all state associated to it.  Also, notifies the
+      * relevant VtepController about the unbind.
+      */
+    private def unbindVtep(port: VxLanPort): Unit = {
+        log.debug(s"VTEP at ${port.getMgmtIpAddr}:${port.getMgmtPort} no " +
+                  s"longer bound to this network")
+        vtepPeerPool.fishIfExists(port.getMgmtIpAddr, port.getMgmtPort)
+                    .foreach { _.abandon(vxgw) }
+        macPortMap.getByValue(port.getId).foreach { mac =>
+            log.debug(s"Removing MAC $mac from port ${port.getId} after VTEP" +
+                      "is unbound from the network")
+
+            vxgwBusObserver.applyMacRemoval (
+                MacLocation(mac, lsName, null), port.getId
+            )
+        }
     }
 
     /** Retrieve the vxlan port from the backend storage */
@@ -491,11 +520,11 @@ class VxlanGatewayManager(networkId: UUID,
       * the VxLAN port at which the MAC is located)
       */
     private def toMacLocations(mac: MAC, newPort: UUID, oldPort: UUID,
-                               onlyMido: Boolean): Try[Set[MacLocation]] = Try {
+                               onlyMido: Boolean): Try[Seq[MacLocation]] = Try {
 
         // we only process changes that affect a port in MidoNet
         if (onlyMido && !isPortInMidonet(oldPort) && !isPortInMidonet(newPort)) {
-            return Success(Set.empty)
+            return Success(Seq.empty)
         }
 
         // the tunnel destination of the MAC, based on the newPort
@@ -505,7 +534,7 @@ class VxlanGatewayManager(networkId: UUID,
                                 val p = vxlanPorts.get(newPort)
                                 if (p == null) null else p.getTunnelIp
                             case _ =>  // in MidoNet
-                                dataClient.vxlanTunnelEndpointFor(newPort)
+                                dataClient vxlanTunnelEndpointFor newPort
                         }
 
         if (tunnelDst == null && newPort != null) {
@@ -515,31 +544,31 @@ class VxlanGatewayManager(networkId: UUID,
             val floodingProxy = if (currTzState == null) null
                                 else currTzState.getFloodingProxy
             if (floodingProxy == null) {
-                Set.empty
+                Seq.empty
             } else {
                 log.info(s"MAC at port $newPort but tunnel IP not found, " +
                          s"I will use the flooding proxy ($currTzState)")
-                macLocationsForArpSupression(mac, floodingProxy.ipAddr) +
-                    MacLocation (mac, lsName, floodingProxy.ipAddr)
+                macLocationsForArpSupression(mac, floodingProxy.ipAddr) :+
+                    MacLocation(mac, lsName, floodingProxy.ipAddr)
             }
         } else if (tunnelDst == null) {
-            log.info(s"MAC $mac removed from $lsName")
-            Set(MacLocation(mac, lsName, null))
+            // A removal from the old tunnel ip
+            Seq(MacLocation(mac, lsName, null))
         } else {
             // TODO: review this, not sure if we want to do the ARP supression
             //       bit for MACs that are not in MidoNet
-            macLocationsForArpSupression(mac, tunnelDst) +
+            macLocationsForArpSupression(mac, tunnelDst) :+
                 MacLocation(mac, lsName, tunnelDst) // default with no IP
 
         }
     }
 
     private def macLocationsForArpSupression(mac: MAC, endpointIp: IPv4Addr)
-    : Set[MacLocation] = {
-        if (arpTable == null) Set.empty
-        else (arpTable.getByValue (mac) map {
-            ip => MacLocation (mac, ip, lsName, endpointIp)
-        }).toSet
+    : Seq[MacLocation] = {
+        if (arpTable == null) Seq.empty
+        else arpTable.getByValue (mac) map {
+            ip => MacLocation(mac, ip, lsName, endpointIp)
+        }
     }
 
     /** Publish the given location of a MAC to the given subscriber. */
@@ -547,7 +576,8 @@ class VxlanGatewayManager(networkId: UUID,
                            onlyMido: Boolean): Unit = {
         toMacLocations(mac, newPort, oldPort, onlyMido) match {
             case Success(mls) =>
-                mls foreach vxgw.asObserver.onNext
+                log.debug(s"Publishing MACs: $mls")
+                mls foreach vxgw.observer.onNext
             case Failure(e: NoStatePathException) =>
                 log.debug(s"Node not in ZK, probably a race: ${e.getMessage}")
             case Failure(e: StateAccessException) =>
@@ -581,7 +611,10 @@ class VxlanGatewayManager(networkId: UUID,
             macPortMap.get(mac) match {
                 case currPortId if currPortId eq expectPortId =>
                     val tunIp = dataClient.vxlanTunnelEndpointFor(currPortId)
-                    vxgw.asObserver.onNext(MacLocation(mac, ip, lsName, tunIp))
+                    if (tunIp != null) {
+                        vxgw.observer
+                            .onNext(MacLocation(mac, ip, lsName, tunIp))
+                    }
                 case _ =>
             }
         } catch {
