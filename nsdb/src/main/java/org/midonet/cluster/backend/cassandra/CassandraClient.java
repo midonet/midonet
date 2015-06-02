@@ -17,10 +17,8 @@
 package org.midonet.cluster.backend.cassandra;
 
 import java.util.Arrays;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
@@ -55,21 +53,15 @@ public class CassandraClient {
     private final String serversStr;
     private final String clusterName;
     private final String keyspaceName;
-    private final Reactor reactor;
     private final int port;
     private final int replicationFactor;
     private String[] schema;
     private String[] schemaTableNames;
 
-
     private static Reactor theReactor = null;
-    private static Object creationLock = new Object();
-    private static Reactor makeReactor() {
-        synchronized (creationLock) {
-            if (theReactor == null)
-                theReactor = new TryCatchReactor("cassandra-connection-manager", 1);
-        }
-        return theReactor;
+
+    static {
+        theReactor = new TryCatchReactor("cassandra-connection-manager", 1);
     }
 
     private final static Map<String, Cluster> CLUSTERS = new HashMap<>();
@@ -82,7 +74,6 @@ public class CassandraClient {
         this.serversStr = cassandraConf.servers();
         this.clusterName = cassandraConf.cluster();
         this.keyspaceName = keyspaceName;
-        this.reactor = makeReactor();
         this.servers  = serversStr.split(",");
         this.schema = schema;
         this.schemaTableNames = schemaTableNames;
@@ -108,10 +99,10 @@ public class CassandraClient {
     }
 
     public Future<Session> connect() {
-        reactor.submit(new Runnable() {
+        theReactor.submit(new Runnable() {
             @Override
             public void run() {
-                synchronized(CLUSTERS) {
+                synchronized (CLUSTERS) {
                     if (session == null)
                         _connect(10);
                 }
@@ -229,22 +220,20 @@ public class CassandraClient {
     }
 
     private void scheduleReconnect(final int retries) {
-        log.info("Scheduling cassandra reconnection retry");
-        if (reactor != null && retries > 0) {
-            reactor.schedule(new Runnable() {
+        log.info("Scheduling Cassandra reconnection retry");
+        if (retries > 0) {
+            theReactor.schedule(new Runnable() {
                 @Override
                 public void run() {
-                    log.info("Trying to reconnect to cassandra");
+                    log.info("Trying to reconnect to Cassandra");
                     synchronized (CLUSTERS) {
                         _connect(retries - 1);
                     }
                 }
             }, 30, TimeUnit.SECONDS);
-        } else if (reactor == null) {
-            log.error("Permanently lost connection to cassandra and there is " +
-                    "no reactor to schedule reconnects");
         } else {
-            log.error("Unable to connect to cassandra after 10 retries, givin up");
+            log.error("Unable to connect to cassandra after 10 retries, giving up");
+            sessionPromise.tryFailure(new Exception("Unable to connect to Cassandra"));
         }
     }
 
