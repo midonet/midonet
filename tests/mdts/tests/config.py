@@ -14,3 +14,11 @@
 
 MIDONET_API_URL = 'http://127.0.0.1:8080/midonet-api'
 TEST_TENANT_NAME_PREFIX = 'MMM-TEST'
+
+NS_BGP_PEERS = ["ns000"]
+
+IP_ZOOKEEPER_HOSTS = ["10.0.0.2", "10.0.0.3", "10.0.0.4"]
+NS_ZOOKEEPER_HOSTS = ["ns002", "ns003", "ns004"]
+
+IP_CASSANDRA_HOSTS = ["10.0.0.5", "10.0.0.6", "10.0.0.7"]
+NS_CASSANDRA_HOSTS = ["ns005", "ns006", "ns007"]
