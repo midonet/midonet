@@ -148,17 +148,24 @@ def check_forward_flow(src_port_no):
                                      src_port=src_port_no, dst_port=1080)
     wait_on_futures([f, fs])
 
-def check_return_flow(port, iface, dst_port_no, dropped = False):
+def check_return_flow(port, iface, dst_port_no, dropped = False, retries=0):
     dst_mac = mac_for(port)
-    fs = None
     if dropped:
         fs = expect_return_dropped(dst_port_no)
     else:
         fs = expect_return(dst_port_no)
+
     f = iface.send_udp(dst_mac, '192.168.0.1', 41,
                           src_port=80, dst_port=dst_port_no,
                           src_ipv4 = '172.16.42.1')
-    wait_on_futures([f, fs])
+    try:
+        wait_on_futures([f, fs])
+    except:
+        if retries > 0:
+            time.sleep(5)
+            check_return_flow(port, iface, dst_port_no, dropped, retries - 1)
+        else:
+            raise
 
 def forward_filter():
     return 'dst host 172.16.42.1 and udp port 80'
@@ -263,7 +270,7 @@ def test_distributed_l4_port_binding():
 
     reboot_agents(5)
 
-    check_return_flow(left_uplink_port(), left_uplink_iface(), port_num)
+    check_return_flow(left_uplink_port(), left_uplink_iface(), port_num, retries=5)
 
 @attr(version="v1.6.0", slow=False)
 @bindings(binding_l4state)

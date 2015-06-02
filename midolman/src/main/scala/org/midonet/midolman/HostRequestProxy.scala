@@ -44,6 +44,12 @@ object HostRequestProxy {
             weakNat.putAll(other.weakNat)
             this
         }
+
+        def size() =
+            strongConnTrack.size() +
+            weakConnTrack.size() +
+            strongNat.size() +
+            weakNat.size()
     }
 
     def EmptyFlowStateBatch() = FlowStateBatch(new JHashSet[ConnTrackKey](),
@@ -140,12 +146,13 @@ class HostRequestProxy(val hostId: UUID,
             subscriber ! resolved
             belt.handle(() => {
                 val ps = h.portBindings.keySet -- lastPorts
-                storageFuture.map(stateForPorts(_, ps)).andThen {
+                storageFuture.flatMap(stateForPorts(_, ps)).andThen {
                     case Success(stateBatch) =>
+                        log.debug(s"Fetched ${stateBatch.size()} pieces of flow state for ports $ps")
                         lastPorts = ps
                         PacketsEntryPoint ! stateBatch
                     case Failure(e) =>
-                        log.warn("Failed to fetch state from Cassandra: {}", e)
+                        log.warn("Failed to fetch state", e)
                 }(singleThreadExecutionContext)
             })
     }
