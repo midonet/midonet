@@ -176,11 +176,11 @@ object BgpRouterMapper {
             }
 
             val keepAlive = if (peer.hasKeepAlive) peer.getKeepAlive
-            else vt.config.bgpKeepAlive
+                            else vt.config.bgpKeepAlive
             val holdTime = if (peer.hasHoldTime) peer.getHoldTime
-            else vt.config.bgpHoldTime
+                           else vt.config.bgpHoldTime
             val connectRetry = if (peer.hasConnectRetry) peer.getConnectRetry
-            else vt.config.bgpConnectRetry
+                               else vt.config.bgpConnectRetry
             currentPeer =
                 BgpNeighbor(peer.getId.asJava,
                     Neighbor(IPAddressUtil.toIPv4Addr(peer.getAddress),
