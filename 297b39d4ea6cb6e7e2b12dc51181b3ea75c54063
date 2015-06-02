@@ -176,6 +176,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_402b0a94",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-02T06:34:29Z",
+      "side": 1,
+      "message": "it\u0027s a good summary.  thank you!\n\nbesides that, it might be necessary to research how linux (distros?) routes v4 link-locals.",
+      "parentUuid": "facab960_a083f602",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_95f9f94f",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
