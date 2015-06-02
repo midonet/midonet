@@ -344,7 +344,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             obs.reset()
 
             // Update the health monitor
-            val hmUpdated = hm.setMaxRetries(42)
+            val hmUpdated = hm.setMaxRetries(42).setPoolId(pool.getId)
             store.update(hmUpdated)
 
             // wait for an update (
@@ -395,16 +395,16 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
                 Await.result(store.get(classOf[Proto.Pool], pool.getId), timeout)
             // Change the health monitor
             val hm2 = createHealthMonitor()
-            val poolUpdated = savedPool.setHealthMonitorId(hm2.getId)
             store.create(hm2)
+            val poolUpdated = savedPool.setHealthMonitorId(hm2.getId)
             store.update(poolUpdated)
 
             // wait for an update (
-            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             // Depending on the timing, we may see an empty map
             // while waiting for the new health monitor data
             if (obs.getOnNextEvents.last.mappings.isEmpty)
-                obs.awaitOnNext(2, timeout) shouldBe true
+                obs.awaitOnNext(4, timeout) shouldBe true
 
             val map = obs.getOnNextEvents.last.mappings
             map.nonEmpty shouldBe true
@@ -455,7 +455,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             store.update(poolUpdated)
 
             // wait for an update (
-            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.awaitOnNext(2, timeout) shouldBe true
 
             val map = obs.getOnNextEvents.last.mappings
             map.isEmpty shouldBe true

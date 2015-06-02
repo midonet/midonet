@@ -452,10 +452,13 @@ message HealthMonitor {
     optional UUID id = 1;
     optional bool admin_state_up = 2;
     optional HealthMonitorType type = 3 [default = TCP];
-    optional LBStatus status = 4 [default = INACTIVE];
+    optional LBStatus status = 4 [default = ACTIVE];
     optional int32 delay = 5;
     optional int32 timeout = 6;
     optional int32 max_retries = 7;
+
+    // Backreference
+    optional UUID pool_id = 101;
 }
 
 message BGP {
