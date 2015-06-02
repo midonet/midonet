@@ -34,6 +34,8 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Route
 import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.{LegacyRoutingStorage, RoutingStorage}
+import org.midonet.midolman.topology.BgpMapper.BgpUpdated
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.packets.{MAC, IPv4Addr, IPv4Subnet}
 import org.midonet.quagga.BgpdConfiguration.{Network, Neighbor, BgpRouter}
@@ -50,6 +52,7 @@ class RoutingHandlerTest extends FeatureSpecLike
     var rport: RouterPort = _
     var bgpd: MockBgpdProcess = _
     var dataClient: DataClient = _
+    var routingStorage: RoutingStorage = _
     def vty = bgpd.vty
     var routingHandler: ActorRef = _
     var invalidations = List[BackChannelMessage]()
@@ -78,16 +81,17 @@ class RoutingHandlerTest extends FeatureSpecLike
         as = ActorSystem("RoutingHandlerTest")
         bgpd = new MockBgpdProcess
         dataClient = mock[DataClient]
+        routingStorage = new LegacyRoutingStorage(dataClient)
         invalidations = Nil
         routingHandler = TestActorRef(new TestableRoutingHandler(rport,
                                                     invalidations ::= _,
-                                                    dataClient,
+                                                    routingStorage,
                                                     config,
                                                     bgpd))
 
         routingHandler ! rport
         bgpd.state should be (bgpd.NOT_STARTED)
-        routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
+        routingHandler ! BgpUpdated(baseConfig, Set(peer1Id))
         bgpd.state should be (bgpd.RUNNING)
         bgpd.starts should be (1)
         reset(bgpd.vty)
@@ -100,10 +104,10 @@ class RoutingHandlerTest extends FeatureSpecLike
 
     feature ("manages the bgpd lifecycle") {
         scenario("starts and stops bgpd") {
-            routingHandler ! RoutingHandler.Update(baseConfig.copy(neighbors = Map.empty), Set.empty)
+            routingHandler ! BgpUpdated(baseConfig.copy(neighbors = Map.empty), Set.empty)
             bgpd.state should be (bgpd.NOT_STARTED)
 
-            routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
+            routingHandler ! BgpUpdated(baseConfig, Set(peer1Id))
             bgpd.state should be (bgpd.RUNNING)
         }
 
@@ -245,8 +249,8 @@ class RoutingHandlerTest extends FeatureSpecLike
                     Map(peer1 -> Neighbor(peer1, 100),
                         peer2 -> Neighbor(peer2, 200)))
 
-            routingHandler ! RoutingHandler.Update(update, Set(peer1Id, peer2Id))
-            routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
+            routingHandler ! BgpUpdated(update, Set(peer1Id, peer2Id))
+            routingHandler ! BgpUpdated(baseConfig, Set(peer1Id))
             verify(bgpd.vty).addPeer(MY_AS, peer2, 200,
                                      config.bgpKeepAlive,
                                      config.bgpHoldTime,
@@ -259,9 +263,9 @@ class RoutingHandlerTest extends FeatureSpecLike
             val net2 = Network(IPv4Subnet.fromCidr("10.99.20.0/24"))
             val net3 = Network(IPv4Subnet.fromCidr("10.99.30.0/24"))
 
-            routingHandler ! RoutingHandler.Update(
+            routingHandler ! BgpUpdated(
                 baseConfig.copy(networks = Set(net1, net2, net3)), Set(peer1Id))
-            routingHandler ! RoutingHandler.Update(
+            routingHandler ! BgpUpdated(
                 baseConfig.copy(networks = Set(net1)), Set(peer1Id))
 
             verify(bgpd.vty, times(3)).addNetwork(anyInt(), anyObject())
@@ -278,7 +282,7 @@ class RoutingHandlerTest extends FeatureSpecLike
             val update = new BgpRouter(MY_AS, rport.portIp,
                 Map(peer1 -> Neighbor(peer1, 100, Some(29), Some(30), Some(31))))
 
-            routingHandler ! RoutingHandler.Update(update, Set(peer1Id))
+            routingHandler ! BgpUpdated(update, Set(peer1Id))
             verify(bgpd.vty).addPeer(MY_AS, peer1, 100, 29, 30, 31)
         }
     }
@@ -327,10 +331,10 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
 
 class TestableRoutingHandler(rport: RouterPort,
                              flowInvalidator: (BackChannelMessage) => Unit,
-                             dataClient: DataClient,
+                             routingStorage: RoutingStorage,
                              config: MidolmanConfig,
                              override val bgpd: MockBgpdProcess)
-            extends RoutingHandler(rport, 1, flowInvalidator, dataClient,
+            extends RoutingHandler(rport, 1, flowInvalidator, routingStorage,
                                    config, new MockZkConnWatcher()) {
 
     override def createDpPort(port: String): Future[(DpPort, Int)]  = {
