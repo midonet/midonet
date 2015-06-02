@@ -44,7 +44,7 @@ class VxlanGatewayServiceTest extends FlatSpec with Matchers
                                                with CuratorTestFramework
                                                with Eventually {
 
-    val log = LoggerFactory.getLogger(classOf[VxlanGatewayManagerTest])
+    override val log = LoggerFactory.getLogger(classOf[VxlanGatewayManagerTest])
 
     override implicit val patienceConfig =
         PatienceConfig(timeout = scaled(Span(10, Seconds)))
