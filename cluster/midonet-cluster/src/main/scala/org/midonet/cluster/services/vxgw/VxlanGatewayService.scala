@@ -187,9 +187,11 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                 if (managers.remove(b.getId) != null) {
                     vxgwCount.dec()
                 }
-                log.debug(s"Network ${b.getId} changed but isn't bound to " +
-                          s"any VTEPs. Watching $numNetworks networks and " +
-                          s"$numVxGWs VxLAN Gateways")
+                if (log.isTraceEnabled) {
+                    log.trace(s"Network ${b.getId} changed but isn't bound " +
+                              s" to any VTEPs. Watching $numNetworks networks" +
+                              s" and $numVxGWs VxLAN Gateways")
+                }
             case Success(b) =>
                 initVxlanGatewayManager(b.getId)
             case Failure(e: StateAccessException) =>

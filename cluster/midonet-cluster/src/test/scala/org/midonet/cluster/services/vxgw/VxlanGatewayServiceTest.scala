@@ -17,8 +17,10 @@
 package org.midonet.cluster.services.vxgw
 
 import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.logging.Logger
 import java.util.{Random, UUID}
 
+import ch.qos.logback.classic.Level
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.Service.State
 import com.google.inject.{Guice, Injector}
@@ -32,7 +34,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.util.CuratorTestFramework
-import org.midonet.cluster.{ClusterConfig, ClusterNode, ClusterTestUtils, DataClient}
+import org.midonet.cluster._
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state.{Directory, ZookeeperConnectionWatcher}
@@ -44,7 +46,7 @@ class VxlanGatewayServiceTest extends FlatSpec with Matchers
                                                with CuratorTestFramework
                                                with Eventually {
 
-    val log = LoggerFactory.getLogger(classOf[VxlanGatewayManagerTest])
+    override val log = LoggerFactory.getLogger(classOf[VxlanGatewayManagerTest])
 
     override implicit val patienceConfig =
         PatienceConfig(timeout = scaled(Span(10, Seconds)))
@@ -81,6 +83,16 @@ class VxlanGatewayServiceTest extends FlatSpec with Matchers
         metrics = new MetricRegistry
 
         curator.create().creatingParentsIfNeeded().forPath("/midonet/vxgw")
+
+        // Avoid spam on some verbose midonet classes, the test will generate
+        // lot of these which will impact perf. and risk hitting timeouts
+        List(
+            LoggerFactory.getLogger(classOf[LocalDataClientImpl]),
+            LoggerFactory.getLogger(classOf[EntityIdSetMonitor[_]])
+        ) foreach {
+            _.asInstanceOf[ch.qos.logback.classic.Logger]
+             .setLevel(Level.toLevel("INFO"))
+        }
     }
 
     protected override def teardown(): Unit = {
@@ -96,14 +108,14 @@ class VxlanGatewayServiceTest extends FlatSpec with Matchers
                                 zkConnWatcher, null, curator, metrics, conf)
     }
 
-    // Test below verifids that initialization with a large number of bridges
+    // Test below verifies that initialization with a large number of bridges
     // doesn't saturate the rx streams dealing with initialization.
 
     "The VxGW service" should "initialize correctly even with many bridges" in {
         val conf = new ClusterConfig(MidoTestConfigurator.forClusters())
         val vx = vxgwService(conf)
 
-        makeBridges(conf.vxgw.networkBufferSize )
+        makeBridges(conf.vxgw.networkBufferSize)
 
         vx.startAsync()
         vx.awaitRunning(100, TimeUnit.SECONDS)
