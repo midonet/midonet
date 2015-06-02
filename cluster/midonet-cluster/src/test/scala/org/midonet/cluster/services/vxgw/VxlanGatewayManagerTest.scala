@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.vxgw
 
 import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit._
 import java.util.{Random, UUID}
 
 import scala.collection.mutable.ListBuffer
@@ -26,17 +25,15 @@ import com.google.inject.{Guice, Injector}
 import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.BrainTestUtils._
-import org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
-import org.midonet.cluster.util.TestZkTools
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
-import org.midonet.cluster.data.vtep.model.{VtepMAC, MacLocation}
-import org.midonet.cluster.data.vtep.model.VtepMAC.{UNKNOWN_DST, fromMac}
+import org.midonet.cluster.data.vtep.model.MacLocation
+import org.midonet.cluster.data.vtep.model.VtepMAC.UNKNOWN_DST
+import org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
+import org.midonet.cluster.util.TestZkTools
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -48,9 +45,6 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
                                                with GivenWhenThen
                                                with VxlanGatewayTest
                                                with MidonetEventually {
-
-    val log = LoggerFactory.getLogger(classOf[VxlanGatewayManagerTest])
-
     var injector: Injector = _
 
     override var hostManager: HostZkManager = _
@@ -59,9 +53,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
     val VTEP_PORT = 6632
 
     // Replace with the fixed ones for debug-friendly MACs
-    val mac1 = MAC.random() // fromString("11:11:11:11:11:11")
-    val mac2 = MAC.random() // fromString("22:22:22:22:22:22")
-    val mac3 = MAC.random() // fromString("33:33:33:33:33:33")
+    val mac1 = MAC.random() // MAC.fromString("11:11:11:11:11:11")
+    val mac2 = MAC.random() // MAC.fromString("22:22:22:22:22:22")
+    val mac3 = MAC.random() // MAC.fromString("33:33:33:33:33:33")
 
     var vni1 = 1111
     var vni2 = 2222
@@ -178,9 +172,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             vtep1MacRemotes.getOnErrorEvents shouldBe empty
             vtep1MacRemotes.getOnCompletedEvents shouldBe empty
             vtep1MacRemotes.getOnNextEvents should contain only (
-                MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
-                MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
-                MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip)
+                MacLocation(mac1, mgr.lsName, host.ip),
+                MacLocation(mac2, mgr.lsName, host.ip),
+                MacLocation(UNKNOWN_DST, mgr.lsName, host.ip)
                 // the last one might be duplicated because we emit the initial
                 // flooding proxy twice: first because it's the first
                 // subscription to the tz, another on the VTEP preseed, both
@@ -199,10 +193,10 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         Then("the update should be received")
         eventually {
             vtep1MacRemotes.getOnNextEvents should contain only (
-                MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
-                MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
-                MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip), // x2
-                MacLocation(fromMac(mac3), null, mgr.lsName, host.ip)
+                MacLocation(mac1, mgr.lsName, host.ip),
+                MacLocation(mac2, mgr.lsName, host.ip),
+                MacLocation(UNKNOWN_DST, mgr.lsName, host.ip), // x2
+                MacLocation(mac3, mgr.lsName, host.ip)
             )
         }
 
@@ -230,21 +224,21 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnNextEvents should contain only (
-            MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
-            MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
-            MacLocation(fromMac(mac3), null, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip), // x2
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, vteps.tunIp1)
+            MacLocation(mac1, mgr.lsName, host.ip),
+            MacLocation(mac2, mgr.lsName, host.ip),
+            MacLocation(mac3, mgr.lsName, host.ip),
+            MacLocation(UNKNOWN_DST, mgr.lsName, host.ip), // x2
+            MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp1)
         )
 
         And("the first VTEP just saw an extra update with vtep2's unknown-dst")
         vtep1MacRemotes.getOnNextEvents should have size 6
         vtep1MacRemotes.getOnNextEvents should contain only (
-            MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
-            MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip), // x2
-            MacLocation(fromMac(mac3), null, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, vteps.tunIp2)
+            MacLocation(mac1, mgr.lsName, host.ip),
+            MacLocation(mac2, mgr.lsName, host.ip),
+            MacLocation(mac3, mgr.lsName, host.ip),
+            MacLocation(UNKNOWN_DST, mgr.lsName, host.ip), // x2
+            MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp2)
         )
 
         When("a new IP appears on a MidoNet port")
@@ -253,8 +247,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("both VTEPs should see the update")
         eventually {
-            val vtepMac2 = VtepMAC.fromMac(mac2)
-            val newMl = MacLocation(vtepMac2, newIp, mgr.lsName, host.ip)
+            val newMl = MacLocation(mac2, newIp, mgr.lsName, host.ip)
             vtep1MacRemotes.getOnNextEvents.get(6) shouldBe newMl
             vtep2MacRemotes.getOnNextEvents.get(6) shouldBe newMl
         }
@@ -264,13 +257,14 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         eventually {
             vtep1.memberships shouldBe empty
+            vtepConfigs.head
+                       .removedLogicalSwitches should contain only mgr.lsName
         }
 
-        And("the first mac migrates to the second port")
-        dataClient.bridgeDeleteMacPort(ctx.nwId, UNTAGGED_VLAN_ID, mac1,
-                                       ctx.port1.getId)
-        dataClient.bridgeAddMacPort(ctx.nwId, UNTAGGED_VLAN_ID, mac1,
-                                    ctx.port2.getId)
+        And("move the mac to the second port")
+        ctx.macPortMap.removeIfOwnerAndValue(mac1, ctx.port1.getId)
+        ctx.macPortMap.get(mac1) shouldBe null
+        ctx.macPortMap.put(mac1, ctx.port2.getId)
 
         Then("the first VTEP won't receive any more updates")
         eventually {
@@ -280,13 +274,14 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             vtep1MacRemotes.getOnCompletedEvents shouldBe empty
         }
 
-
         And("the second VTEP will receive the new one")
-        vtep2MacRemotes.getOnErrorEvents shouldBe empty
-        vtep2MacRemotes.getOnCompletedEvents shouldBe empty
-        vtep2MacRemotes.getOnNextEvents should have size 9
-        vtep2MacRemotes.getOnNextEvents.get(8) shouldBe
-            MacLocation(fromMac(mac1), null, mgr.lsName, host.ip)
+        eventually {
+            vtep2MacRemotes.getOnErrorEvents shouldBe empty
+            vtep2MacRemotes.getOnCompletedEvents shouldBe empty
+            vtep2MacRemotes.getOnNextEvents should have size 9
+            vtep2MacRemotes.getOnNextEvents.get(8) shouldBe
+            MacLocation(mac1, mgr.lsName, host.ip)
+        }
 
         // Yes, this last MacLocation was redundant, but for now we have no way
         // of knowing that the last time we emitted was with the same hostIp
@@ -294,14 +289,14 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         When("the VxLAN port corresponding to the second VTEP is deleted")
         dataClient.bridgeDeleteVxLanPort(ctx.nwId, vteps.ip2)
 
-        Then("the VxLAN Gateway manager should close")
-        assert(mgrClosedLatch.await(1, SECONDS))
-
         And("the second VTEP abandoned the VxLAN Gateway")
-        vtep2.memberships shouldBe empty
+        eventually {
+            vtep2.memberships shouldBe empty
+            vtepConfigs(1).removedLogicalSwitches should contain only mgr.lsName
+        }
 
-        And("the second VTEP didn't see any further updates")
-        assertTrue(vtep2MacRemotes.getOnNextEvents.size == 9)
+        And("the second VTEP should see updates removing the MACs")
+        vtep2MacRemotes.getOnNextEvents should have size 9
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
 
@@ -361,23 +356,27 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         vtep1MacRemotes.getOnErrorEvents shouldBe empty
         vtep1MacRemotes.getOnCompletedEvents shouldBe empty
         vtep1MacRemotes.getOnNextEvents should contain only (
-            MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
-            MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip)
+            MacLocation(mac1, mgr.lsName, host.ip),
+            MacLocation(mac2, mgr.lsName, host.ip),
+            MacLocation(UNKNOWN_DST, mgr.lsName, host.ip)
             // the last one is duplicated because we emit the initial flooding
             // proxy twice: first because it's the first subscription to the tz,
             // another on the VTEP preseed, both race, so we just emit both.
         )
 
         When("the VTEP reports a new MAC")
-        val macOnVtep = VtepMAC.fromString("aa:aa:bb:bb:cc:cc")
+        val macOnVtep = MAC.fromString("aa:aa:bb:bb:cc:cc")
         val ipOnVtep = IPv4Addr.random
         var ml = MacLocation(macOnVtep, ipOnVtep, mgr.lsName, vteps.tunIp1)
         vtepConfigs.head.macLocalUpdates.onNext(ml)
 
         Then("the MAC sent from the hardware VTEP should reach MidoNet")
         eventually {
-            ctx.macPortMap.get(macOnVtep.IEEE802) shouldBe vxPort1.getId
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep, vxPort1.getId) shouldBe true
+            ctx.macPortMap.get(macOnVtep) shouldBe vxPort1.getId
+            ctx.arpTable.getByValue(macOnVtep) should contain only ipOnVtep
         }
 
         And("the VxGW manager doesn't report it to the bus")
@@ -390,10 +389,10 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         dataClient.vtepAddBinding(vteps.ip2, "eth0", 10, ctx.nwId)
         dataClient.vtepAddBinding(vteps.ip2, "eth1", 43, ctx.nwId)
 
-
         Then("the second VTEP gets a new controller")
-        eventually {
+        val vtep2 = eventually {
             vtepConfigs should have size 2
+            vtepPool.fishIfExists(vteps.ip2, vteps.vtepPort).get
         }
 
         And("the second VTEP gets primed as expected")
@@ -407,19 +406,19 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnNextEvents should contain only (
-            MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
-            MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip),
+            MacLocation(mac1, mgr.lsName, host.ip),
+            MacLocation(mac2, mgr.lsName, host.ip),
+            MacLocation(UNKNOWN_DST, mgr.lsName, host.ip),
             // the one coming from the other VTEP
             ml,
             // The default one is the same as was emitted from the vtep just
             // before but this has an IP, so the VxGW Manager also injects
             // another without just to get anything addressed to that MAC sent
             // to the right VTEP
-            MacLocation(ml.mac, null, mgr.lsName, ml.vxlanTunnelEndpoint),
+            MacLocation(ml.mac, mgr.lsName, ml.vxlanTunnelEndpoint),
             // Also, we expect that the VTEP gets an unknown destination entry
             // that points at the other VTEP
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, vteps.tunIp1)
+            MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp1)
         )
         val vtep2RemotesSnapshot = new java.util.ArrayList[MacLocation]()
         vtep2RemotesSnapshot.addAll(vtep2MacRemotes.getOnNextEvents)
@@ -431,29 +430,61 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         Then("the MAC is seen by both the first VTEP and MidoNet")
         eventually {
             vtep1MacRemotes.getOnNextEvents should have size 6
+            vtep1MacRemotes.getOnNextEvents should contain only (
+                MacLocation(mac1, mgr.lsName, host.ip),
+                MacLocation(mac2, mgr.lsName, host.ip),
+                MacLocation(UNKNOWN_DST, mgr.lsName, host.ip), // x2
+                // it saw the unknown-dst for the other VTEP
+                MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp2),
+                // and the movement of macOnVtep to the other VTEP
+                ml
+            )
         }
-        vtep1MacRemotes.getOnNextEvents should contain only (
-            MacLocation(fromMac(mac1), null, mgr.lsName, host.ip),
-            MacLocation(fromMac(mac2), null, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, host.ip), // x2
-            // it saw the unknown-dst for the other VTEP
-            MacLocation(UNKNOWN_DST, null, mgr.lsName, vteps.tunIp2),
-            // and the movement of macOnVtep to the other VTEP
-            ml
-        )
+
+        And("the MAC tables should reflect the move")
+        eventually {
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep,
+                                        vxPort1.getId) shouldBe false
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep,
+                                        vxPort2.getId) shouldBe true
+            ctx.macPortMap.get(macOnVtep) shouldBe vxPort2.getId
+        }
 
         And("the second VTEP remains as it was")
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnNextEvents shouldBe vtep2RemotesSnapshot
 
-        And("the Mac Port map in the Network sees the new value")
-        eventually {
-            ctx.macPortMap.get(ml.mac.IEEE802) shouldBe vxPort2.getId
-        }
-
         And("the IP remains on the same MAC")
         ctx.arpTable.get(ipOnVtep) shouldBe ml.mac.IEEE802
+
+        When("the VxLAN port corresponding to the second VTEP is deleted")
+        dataClient.bridgeDeleteVxLanPort(vxPort2)
+
+        Then("the second VTEP abandones the VxLAN Gateway")
+        eventually {
+            vtep2.memberships shouldBe empty
+        }
+
+        And("the MAC sent from the hardware VTEP should reach MidoNet")
+        eventually {
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep, vxPort1.getId) shouldBe false
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep, vxPort2.getId) shouldBe false
+            ctx.macPortMap.get(macOnVtep) shouldBe null
+
+            dataClient.bridgeHasIP4MacPair(
+                ctx.nwId, ipOnVtep, macOnVtep) shouldBe false
+
+            ctx.arpTable.getByValue(macOnVtep) shouldBe empty
+        }
 
         ctx.delete()
         host.delete()
