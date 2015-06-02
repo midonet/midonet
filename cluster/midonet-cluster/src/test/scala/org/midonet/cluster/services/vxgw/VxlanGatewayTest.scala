@@ -20,6 +20,7 @@ import java.util.UUID
 
 import scala.util.{Success, Try}
 
+import org.slf4j.LoggerFactory
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.DataClient
@@ -34,6 +35,8 @@ import org.midonet.packets.{IPv4Addr, MAC}
 
 trait VxlanGatewayTest {
 
+    val log = LoggerFactory.getLogger(classOf[VxlanGatewayTest])
+
     var dataClient: DataClient
     var hostManager: HostZkManager
 
@@ -44,6 +47,9 @@ trait VxlanGatewayTest {
 
         val updatesFromVtep = PublishSubject.create[MacLocation]()
         val updatesToVtep = observer[MacLocation](0, 0, 0)
+
+        @volatile var removedLogicalSwitches = Set.empty[String]
+
         override def macLocalUpdates = updatesFromVtep
         override def macRemoteUpdater = updatesToVtep
         override def vxlanTunnelIp = Option(tunIp)
@@ -53,7 +59,10 @@ trait VxlanGatewayTest {
                                         "random description"))
         override def ensureBindings(lsName: String,
                                     bs: Iterable[(String, Short)]) =  Success(Unit)
-        override def removeLogicalSwitch(name: String): Try[Unit] = Success(Unit)
+        override def removeLogicalSwitch(name: String): Try[Unit] = {
+            removedLogicalSwitches += name
+            Success(Unit)
+        }
     }
 
     class HostOnVtepTunnelZone(floodingProxyWeight: Int) {
@@ -94,12 +103,20 @@ trait VxlanGatewayTest {
         val port1 = makeExtPort(nwId, hostId, mac1)
         val port2 = makeExtPort(nwId, hostId, mac1)
 
+        // use ephemeral entries to behave as an agent
         val macPortMap = dataClient.bridgeGetMacTable(nwId, UNTAGGED_VLAN_ID,
-                                                      false)
+                                                      true)
         macPortMap.start()
 
         val arpTable = dataClient.getIp4MacMap(nwId)
         arpTable.start()
+
+        log.info("----------------------------------------------------")
+        log.info("- Fixture: Bridge with two ports, one host: summary")
+        log.info(s"-- Network: $nwId")
+        log.info(s"-- Port 1: ${port1.getId}")
+        log.info(s"-- Port 2: ${port2.getId}")
+        log.info("----------------------------------------------------")
 
         def delete(): Unit = {
             macPortMap.stop()
@@ -117,6 +134,12 @@ trait VxlanGatewayTest {
 
         val _1 = makeVtep(ip1, vtepPort, tunnelZoneId)
         val _2 = makeVtep(ip2, vtepPort, tunnelZoneId)
+
+        log.info("----------------------------------------------------")
+        log.info(s"- Fixture: Two VTEPs on tunnel zone $tunnelZoneId")
+        log.info(s"-- VTEP 1: mgmt ip: $ip1 tunnel ip: $tunIp1")
+        log.info(s"-- VTEP 2: mgmt ip: $ip2 tunnel ip: $tunIp2")
+        log.info("----------------------------------------------------")
 
         def delete(): Unit = {
             dataClient.vtepDelete(ip1)

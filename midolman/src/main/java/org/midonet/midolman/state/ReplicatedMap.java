@@ -280,10 +280,6 @@ public abstract class ReplicatedMap<K, V> {
 
     /**
      * Provides <pre>Map</pre> with a copy of the local map.
-     *
-     * Synchronized.
-     *
-     * @return
      */
     public Map<K, V> getMap() {
         Map<K, MapValue> snapshot = localMap;
@@ -399,7 +395,6 @@ public abstract class ReplicatedMap<K, V> {
      *
      * Synchronized.
      *
-     * @param key
      * @return true if the key's <pre>MapValue</pre> version is owned here.
      */
     public synchronized boolean isKeyOwner(K key) {
@@ -455,8 +450,6 @@ public abstract class ReplicatedMap<K, V> {
      * The get and verifications are performed synchronously blocking on the
      * map itself. Notifications and deletion from the ZK directory are not.
      *
-     * @param key
-     * @return
      * @throws KeeperException
      * @throws InterruptedException
      */
@@ -479,6 +472,11 @@ public abstract class ReplicatedMap<K, V> {
         MapValue(V value, int version) {
             this.value = value;
             this.version = version;
+        }
+
+        @Override
+        public String toString() {
+            return "{value: " + value + ", version: " + version + "}";
         }
     }
 
