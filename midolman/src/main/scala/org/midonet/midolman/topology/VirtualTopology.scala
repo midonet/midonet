@@ -217,14 +217,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         var observable = observables get key
         if (observable eq null) {
             observable = factories get key.tag match {
-                case Some(factory) =>
-                    val obs = Observable.create(factory(key.id))
-                    obs.onErrorResumeNext(makeFunc1((t: Throwable) => t match {
-                        case DeviceMapper.MapperClosedException =>
-                            observables.remove(key, obs)
-                            observableOf(key)
-                        case e: Throwable => Observable.error(e)
-                    }))
+                case Some(factory) => Observable.create(factory(key.id))
                 case None =>
                     throw new RuntimeException(s"Unknown factory for ${key.tag}")
             }
@@ -234,6 +227,12 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
             }
         }
         observable.asInstanceOf[Observable[D]]
+                  .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+            case DeviceMapper.MapperClosedException =>
+                observables.remove(key, observable)
+                observableOf(key)
+            case e: Throwable => Observable.error(e)
+        }))
     }
 
     private[topology] def invalidate(tag: FlowTag): Unit = tellBackChannel(tag)
