@@ -34,6 +34,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Route
 import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.routingprotocols.RoutingManagerActor.{LegacyRoutingStorage, RoutingStorage}
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.packets.{MAC, IPv4Addr, IPv4Subnet}
 import org.midonet.quagga.BgpdConfiguration.{Network, Neighbor, BgpRouter}
@@ -50,6 +51,7 @@ class RoutingHandlerTest extends FeatureSpecLike
     var rport: RouterPort = _
     var bgpd: MockBgpdProcess = _
     var dataClient: DataClient = _
+    var routingStorage: RoutingStorage = _
     def vty = bgpd.vty
     var routingHandler: ActorRef = _
     var invalidations = List[BackChannelMessage]()
@@ -78,10 +80,11 @@ class RoutingHandlerTest extends FeatureSpecLike
         as = ActorSystem("RoutingHandlerTest")
         bgpd = new MockBgpdProcess
         dataClient = mock[DataClient]
+        routingStorage = new LegacyRoutingStorage(dataClient)
         invalidations = Nil
         routingHandler = TestActorRef(new TestableRoutingHandler(rport,
                                                     invalidations ::= _,
-                                                    dataClient,
+                                                    routingStorage,
                                                     config,
                                                     bgpd))
 
@@ -327,11 +330,11 @@ class MockBgpdProcess extends BgpdProcess with MockitoSugar {
 
 class TestableRoutingHandler(rport: RouterPort,
                              flowInvalidator: (BackChannelMessage) => Unit,
-                             dataClient: DataClient,
+                             routingStorage: RoutingStorage,
                              config: MidolmanConfig,
                              override val bgpd: MockBgpdProcess)
-            extends RoutingHandler(rport, 1, flowInvalidator, dataClient,
-                                   config, new MockZkConnWatcher()) {
+            extends RoutingHandler(rport, 1, flowInvalidator, routingStorage,
+                                   config, false, new MockZkConnWatcher()) {
 
     override def createDpPort(port: String): Future[(DpPort, Int)]  = {
         val p = DpPort.fakeFrom(new NetDevPort("bgpd"), 27).asInstanceOf[NetDevPort]

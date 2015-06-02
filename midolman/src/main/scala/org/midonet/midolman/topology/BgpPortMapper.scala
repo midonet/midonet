@@ -204,7 +204,7 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
         if (state.get.isTerminal) return
 
         log.debug("Port error", e)
-        onError(e)
+        onError(BgpPortError(portId, e))
     }
 
     /** Handles updates for the BGP router. */
@@ -221,7 +221,7 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
         if (state.get.isTerminal) return
 
         log.debug("Router error", e)
-        onError(e)
+        onError(BgpPortError(portId, e))
     }
 
     /** A handler called when a subscriber unsubscribes. If there are no more

@@ -34,3 +34,6 @@ case class BgpPortDeleted(portId: UUID) extends Exception
 
 /** An error emitted when the BGP router is deleted. */
 case class BgpRouterDeleted(portId: UUID, routerId: UUID) extends Exception
+
+/** An error emitted for any throwable emitted on the BGP port observable. */
+case class BgpPortError(portId: UUID, e: Throwable) extends Exception
