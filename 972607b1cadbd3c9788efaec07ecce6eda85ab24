@@ -1,0 +1,303 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_4354f420",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "router?",
+      "range": {
+        "startLine": 356,
+        "startChar": 11,
+        "endLine": 356,
+        "endChar": 17
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ce0d8b39",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 419,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "Isn\u0027t this called for all subscribers?",
+      "range": {
+        "startLine": 417,
+        "startChar": 46,
+        "endLine": 419,
+        "endChar": 56
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ce13cb0b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "Remove brackets?",
+      "range": {
+        "startLine": 37,
+        "startChar": 34,
+        "endLine": 37,
+        "endChar": 44
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2e1b571c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "This is not used.",
+      "range": {
+        "startLine": 282,
+        "startChar": 0,
+        "endLine": 290,
+        "endChar": 5
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_03cd8c5d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/routing/Bgp.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "Why not checking for bgpRouteIds equality as well?",
+      "range": {
+        "startLine": 64,
+        "startChar": 17,
+        "endLine": 64,
+        "endChar": 23
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_43d794ed",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/routing/Bgp.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "bgpRouteIds?",
+      "range": {
+        "startLine": 71,
+        "startChar": 41,
+        "endLine": 71,
+        "endChar": 45
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8308bc92",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/routing/Bgp.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "Will bgpRouteIds be too big and that\u0027s why you\u0027re not printing it?",
+      "range": {
+        "startLine": 75,
+        "startChar": 17,
+        "endLine": 75,
+        "endChar": 25
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e33fc823",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/routing/BgpRoute.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "I would remove this to simplify the sentence.",
+      "range": {
+        "startLine": 30,
+        "startChar": 63,
+        "endLine": 31,
+        "endChar": 39
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2ea0b79e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BgpMapperTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 231,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "existent or existing",
+      "range": {
+        "startLine": 231,
+        "startChar": 25,
+        "endLine": 231,
+        "endChar": 33
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c9ce65b4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BgpMapperTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 555,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "p shouldBeDeviceOf updatedPort? (the one with the bgp binding)\nIn that case, the RouterPortMatcher should also be modified.",
+      "range": {
+        "startLine": 555,
+        "startChar": 54,
+        "endLine": 555,
+        "endChar": 58
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6938f9a0",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BgpMapperTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 659,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "Is this because the the mapper emits a port with a binding to the bgp peering and then the added peering? If that\u0027s the case wouldn\u0027t it be better to just emit BgpAdded?",
+      "range": {
+        "startLine": 659,
+        "startChar": 28,
+        "endLine": 659,
+        "endChar": 29
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2ef277d2",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyBuilder.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "Not used.",
+      "range": {
+        "startLine": 82,
+        "startChar": 35,
+        "endLine": 82,
+        "endChar": 64
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4eedfbee",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/TopologyMatchers.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-02T13:04:51Z",
+      "side": 1,
+      "message": "indent?",
+      "range": {
+        "startLine": 351,
+        "startChar": 12,
+        "endLine": 351,
+        "endChar": 54
+      },
+      "revId": "972607b1cadbd3c9788efaec07ecce6eda85ab24",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
