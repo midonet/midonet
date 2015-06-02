@@ -140,6 +140,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_a0585633",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-02T03:18:06Z",
+      "side": 1,
+      "message": "i guess link-local addresses are best for this purpose.",
+      "parentUuid": "facab960_bd16c353",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_95f9f94f",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
