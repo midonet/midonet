@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_6e32bf11",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ReplicatedMap.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-02T12:19:22Z",
+      "side": 1,
+      "message": "nit: I think this is not necessary anymore and you can just pass the values?",
+      "range": {
+        "startLine": 377,
+        "startChar": 22,
+        "endLine": 377,
+        "endChar": 35
+      },
+      "revId": "3a2ab1c3e2d752bd52e30cfcc97c5032cbcfbb3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
