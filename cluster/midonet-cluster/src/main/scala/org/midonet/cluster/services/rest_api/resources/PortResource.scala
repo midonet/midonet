@@ -34,6 +34,24 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.Update
 
+class AbstractPortResource[P <: Port](backend: MidonetBackend, uriInfo: UriInfo)
+    extends MidonetResource[P](backend, uriInfo) {
+
+    protected override def getFilter = (port: P) => setActive(port)
+
+    protected override def listFilter = (port: P) => { setActive(port); true }
+
+    private def isActive(id: String): Boolean = {
+        getResourceOwners(classOf[Port], id).getOrThrow.nonEmpty
+    }
+
+    private def setActive(port: P): P = {
+        port.active = isActive(port.id.toString)
+        port
+    }
+
+}
+
 @RequestScoped
 @AllowGet(Array(APPLICATION_PORT_JSON,
                 APPLICATION_PORT_V2_JSON,
@@ -46,7 +64,7 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.Update
                    APPLICATION_JSON))
 @AllowDelete
 class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Port](backend, uriInfo) {
+    extends AbstractPortResource[Port](backend, uriInfo) {
 
     @POST
     @Path("{id}/link")
@@ -88,7 +106,7 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
                    APPLICATION_JSON))
 class BridgePortResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
                                    uriInfo: UriInfo)
-    extends MidonetResource[BridgePort](backend, uriInfo) {
+    extends AbstractPortResource[BridgePort](backend, uriInfo) {
 
     protected override def listFilter = (port: Port) => {
         port.getDeviceId == bridgeId
@@ -108,7 +126,7 @@ class BridgePortResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
                    APPLICATION_JSON))
 class RouterPortResource @Inject()(routerId: UUID, backend: MidonetBackend,
                                    uriInfo: UriInfo)
-    extends MidonetResource[RouterPort](backend, uriInfo) {
+    extends AbstractPortResource[RouterPort](backend, uriInfo) {
 
     protected override def listFilter = (port: Port) => {
         port.getDeviceId == routerId
