@@ -54,7 +54,7 @@ class RichObservable[T](observable: Observable[T]) {
     }
 
     @throws[Throwable]
-    def await(timeout: Duration): T = {
+    def await(timeout: Duration = Duration.Inf): T = {
         Await.result(asFuture, timeout)
     }
 
