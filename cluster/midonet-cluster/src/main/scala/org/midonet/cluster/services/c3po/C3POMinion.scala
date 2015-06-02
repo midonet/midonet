@@ -137,7 +137,8 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[FloatingIp] -> new FloatingIpTranslator(storage),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
-             classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
+             classOf[NeutronHealthMonitor] ->
+                 new HealthMonitorTranslator(storage),
              classOf[NeutronLoadBalancerPool] ->
                  new LoadBalancerPoolTranslator(storage),
              classOf[NeutronLoadBalancerPoolMember] ->

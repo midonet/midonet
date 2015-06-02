@@ -19,12 +19,13 @@ package org.midonet.cluster.services.c3po.translators
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.models.Commons.LBStatus.INACTIVE
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
 
 class HealthMonitorTranslatorTestBase extends TranslatorTestBase {
-    protected val translator = new HealthMonitorTranslator()
+    protected var translator: HealthMonitorTranslator = _
 
     protected val hmId = UUIDUtil.toProtoFromProtoStr("msb: 1 lsb: 1")
     private val healthMonitorCommonFlds = s"""
@@ -52,6 +53,10 @@ class HealthMonitorTranslatorTestBase extends TranslatorTestBase {
 @RunWith(classOf[JUnitRunner])
 class HealthMonitorTranslatorCreateTest
         extends HealthMonitorTranslatorTestBase {
+    before {
+        initMockStorage()
+        translator = new HealthMonitorTranslator(storage)
+    }
 
     val nHealthMonitor = neutronHealthMonitor
     val mHealthMonitor = midoHealthMonitor
@@ -74,5 +79,48 @@ class HealthMonitorTranslatorCreateTest
                 iae.getMessage startsWith("Load Balancer Pool") shouldBe true
             case e => fail("Expected an IllegalArgumentException.", e)
         }
+    }
+}
+
+/**
+ * Tests Neutron Health Monitor Update translation.
+ */
+@RunWith(classOf[JUnitRunner])
+class HealthMonitorTranslatorUpdateTest
+        extends HealthMonitorTranslatorTestBase {
+    before {
+        initMockStorage()
+        translator = new HealthMonitorTranslator(storage)
+    }
+
+    private val mHealthMonitorOld = midoHealthMonitor.toBuilder
+                                                     .setStatus(INACTIVE)
+                                                     .build
+    private val updatedHealthMonitorCommonFlds = s"""
+            id { $hmId }
+            admin_state_up: false
+            delay: 2
+            max_retries: 20
+            timeout: 60
+            """
+    private val nHealthMonitor =
+            nHealthMonitorFromTxt(updatedHealthMonitorCommonFlds + """
+                pools {
+                    pool_id { msb: 2 lsb: 1 }
+                    status: "status"
+                    status_description: "desc"
+                }
+                """)
+    private val mHealthMonitor =
+            mHealthMonitorFromTxt(updatedHealthMonitorCommonFlds + """
+                status: INACTIVE
+            """)
+
+    "Neutron Health Monitor UPDATE" should "update a Midonet Health Monitor " +
+    "except for its status." in {
+        bind(hmId, mHealthMonitorOld)
+        val midoOps = translator.translate(neutron.Update(nHealthMonitor))
+
+        midoOps should contain only (midonet.Update(mHealthMonitor))
     }
 }
