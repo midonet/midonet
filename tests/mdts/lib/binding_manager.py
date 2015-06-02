@@ -14,6 +14,7 @@
 
 from mdts.lib.topology_manager import TopologyManager
 from mdts.tests.utils.utils import await_port_active
+from mdts.tests.utils.utils import get_midonet_api
 
 import logging
 import sys
@@ -41,6 +42,9 @@ class BindingManager(TopologyManager):
     def bind(self, filename=None, data=None):
 
         self._data = self._get_data(filename, data)
+        # Get a new api ref to workaround previous zk failures
+        self._api = get_midonet_api()
+
         bindings = self._data['bindings']
         for b in bindings:
             binding = b['binding']
