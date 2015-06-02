@@ -23,7 +23,9 @@ from hamcrest import less_than
 from midonetclient.api import MidonetApi
 
 from mdts.lib.tenants import list_tenants
+from mdts.tests.config import IP_ZOOKEEPER_HOSTS
 from mdts.tests.config import MIDONET_API_URL
+
 
 import inspect
 import logging
@@ -287,3 +289,25 @@ def await_port_active(vport_id, active=True):
         if timeout == 0:
             raise Exception("Port did not become {0}."
                             .format("active" if active else "inactive"))
+
+def check_all_zookeeper_hosts(alive=True):
+    for zk_host in IP_ZOOKEEPER_HOSTS:
+        check_zookeeper_host(zk_host, alive)
+
+def check_zookeeper_host(zk_host, alive=True):
+    timeout = 120
+    sleep_period = 5
+    while True:
+        nc_cmd = "nc %s 2181" % zk_host
+        p1 = subprocess.Popen("echo stat".split(), stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(nc_cmd.split(), stdin=p1.stdout, stdout=subprocess.PIPE)
+        stdout, stderr = p2.communicate()
+        LOG.debug("ZK_HOST %s stats. Should be alive(%s):\n%s\n" % (zk_host, alive, stdout))
+        if ('follower' in stdout or 'leader' in stdout) == alive:
+            return True
+        else:
+            time.sleep(sleep_period)
+            timeout -= sleep_period
+            if timeout <= 0:
+                raise Exception("Zookeeper host {0} alive."
+                                .format("IS NOT" if alive else "IS"))
