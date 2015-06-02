@@ -199,7 +199,7 @@ final class BgpRouterMapper(routerId: UUID,
                             vt: VirtualTopology = VirtualTopology.self)
     extends OnSubscribe[BgpRouter] with MidolmanLogging {
 
-    override def logSource = s"org.midonet.routing.bgp.router-$routerId"
+    override def logSource = s"org.midonet.routing.bgp.bgp-router-$routerId"
 
     private val state = new AtomicReference(MapperState.Unsubscribed)
 
