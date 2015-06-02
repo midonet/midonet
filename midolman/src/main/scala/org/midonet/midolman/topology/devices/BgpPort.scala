@@ -30,7 +30,13 @@ import org.midonet.quagga.BgpdConfiguration.BgpRouter
 case class BgpPort(port: RouterPort, router: BgpRouter) extends Device
 
 /** An error emitted when the BGP port is deleted. */
-case class BgpPortDeleted(portId: UUID) extends Exception
+case class BgpPortDeleted(portId: UUID)
+    extends Exception(s"BGP port $portId deleted")
 
 /** An error emitted when the BGP router is deleted. */
-case class BgpRouterDeleted(portId: UUID, routerId: UUID) extends Exception
+case class BgpRouterDeleted(portId: UUID, routerId: UUID)
+    extends Exception(s"BGP router $routerId deleted")
+
+/** An error emitted for any throwable emitted on the BGP port observable. */
+case class BgpPortError(portId: UUID, e: Throwable)
+    extends Exception(s"BGP port $portId error $e")

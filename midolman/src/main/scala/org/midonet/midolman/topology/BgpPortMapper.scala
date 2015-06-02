@@ -84,7 +84,7 @@ object BgpPortMapper {
 final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
     extends OnSubscribe[devices.BgpPort] with MidolmanLogging {
 
-    override def logSource = s"org.midonet.routing.bgp.port-$portId"
+    override def logSource = s"org.midonet.routing.bgp.bgp-port-$portId"
 
     private val state = new AtomicReference(MapperState.Unsubscribed)
 
@@ -103,7 +103,7 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
 
     private lazy val portObservable = VirtualTopology
         .observable[Port](portId)
-        .map[RouterPort](makeFunc1(portUpdated))
+        .flatMap[RouterPort](makeFunc1(portUpdated))
         .doOnCompleted(makeAction0(portDeleted()))
         .doOnError(makeAction1(portError))
         .onErrorResumeNext(Observable.empty)
@@ -155,22 +155,24 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
 
     /** Processes updates for the port, by validating whether the port is a
       * router port and throwing an exception otherwise. */
-    private def portUpdated(port: Port): RouterPort = {
+    private def portUpdated(port: Port): Observable[RouterPort] = {
         vt.assertThread()
         log.debug("Port updated: {}", port)
 
         // Validate the port as a router port: otherwise complete
         port match {
             case routerPort: RouterPort => routerPortUpdated(routerPort)
-            case _ =>
-                throw new DeviceMapperException("Port is not a router port")
+            case _ if !state.get.isTerminal =>
+                onCompleted()
+                Observable.empty()
+            case _ => Observable.empty() // Ignore a terminal state
         }
     }
 
     /** Processes updates for the router port, by checking whether the port is
       * an exterior port, subscribing to updates from the corresponding BGP
       * router, and emitting a corresponding BGP port notification. */
-    private def routerPortUpdated(port: RouterPort): RouterPort = {
+    private def routerPortUpdated(port: RouterPort): Observable[RouterPort] = {
         // If this is the first port, or of the port router has changed, create
         // a new BGP router state and emit its observable on the router subject.
         if ((routerPort eq null) || routerPort.routerId != port.routerId){
@@ -185,7 +187,7 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
 
         // Set the current router port.
         routerPort = port
-        routerPort
+        Observable.just(routerPort)
     }
 
     /** Handles the deletion of the BGP port, by emitting an error that contains
@@ -204,7 +206,7 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
         if (state.get.isTerminal) return
 
         log.debug("Port error", e)
-        onError(e)
+        onError(BgpPortError(portId, e))
     }
 
     /** Handles updates for the BGP router. */
@@ -220,8 +222,12 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
         // Ignore notifications if the mapper is in a terminal state.
         if (state.get.isTerminal) return
 
-        log.debug("Router error", e)
-        onError(e)
+        val wrappedException = e match {
+            case BgpRouterDeleted(_,_) => e
+            case _ => BgpPortError(portId, e)
+        }
+        log.debug("Router error", wrappedException)
+        onError(wrappedException)
     }
 
     /** A handler called when a subscriber unsubscribes. If there are no more
@@ -243,6 +249,30 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
         }
     }
 
+    /** Completes the BGP port observable, when the emitted port is not a
+      * router port. */
+    private def onCompleted(): Unit = {
+        // Change the mapper state
+        state set MapperState.Completed
+
+        bgpSubject.onCompleted()
+        routerSubject.onCompleted()
+
+        // Unsubscribe from the underlying observables.
+        val subscription = bgpSubscription
+        if (subscription ne null) {
+            subscription.unsubscribe()
+            bgpSubscription = null
+        }
+
+        // Complete all the router state and subject.
+        val routerState = this.routerState
+        if (routerState ne null) {
+            routerState.complete()
+            this.routerState = null
+        }
+    }
+
     /** Handles all errors that can be emitted by the mapper observable. The
       * method sets the current state to error, sets the error that will be
       * emitted to any new subscriber, emits the error on the BGP subject to
@@ -254,6 +284,7 @@ final class BgpPortMapper(portId: UUID, vt: VirtualTopology)
         state set MapperState.Error
 
         bgpSubject onError e
+        routerSubject.onCompleted()
 
         // Unsubscribe from the underlying observables.
         val subscription = bgpSubscription

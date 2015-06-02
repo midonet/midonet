@@ -34,7 +34,7 @@ import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.DeviceMapper.MapperState
-import org.midonet.midolman.topology.devices.{RouterPort, BgpPort, BgpRouterDeleted, BgpPortDeleted}
+import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, IPSubnet}
 import org.midonet.quagga.BgpdConfiguration.{Network, Neighbor, BgpRouter}
@@ -299,7 +299,12 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("The observer should receive an error")
             obs1.awaitCompletion(timeout)
-            obs1.getOnErrorEvents.get(0).getClass shouldBe classOf[NotFoundException]
+            obs1.getOnErrorEvents.get(0) match {
+                case BgpPortError(id, e) =>
+                    id shouldBe portId
+                    e.getClass shouldBe classOf[NotFoundException]
+                case _ => fail("Unexpected error")
+            }
             sub1.isUnsubscribed shouldBe true
 
             And("The mapper should be receive an error")
@@ -310,7 +315,12 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
             val sub2 = observable subscribe obs2
 
             Then("The observer should receive an error")
-            obs2.getOnErrorEvents.get(0).getClass shouldBe classOf[NotFoundException]
+            obs2.getOnErrorEvents.get(0) match {
+                case BgpPortError(id, e) =>
+                    id shouldBe portId
+                    e.getClass shouldBe classOf[NotFoundException]
+                case _ => fail("Unexpected error")
+            }
             sub2.isUnsubscribed shouldBe true
         }
     }
@@ -331,7 +341,12 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("The observer should receive an error")
             obs.awaitCompletion(timeout)
-            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[NotFoundException]
+            obs.getOnErrorEvents.get(0)match {
+                case BgpPortError(id, e) =>
+                    id shouldBe portId
+                    e.getClass shouldBe classOf[NotFoundException]
+                case _ => fail("Unexpected error")
+            }
         }
 
         scenario("Port is not a router port") {
@@ -349,9 +364,9 @@ class BgpPortMapperTest extends MidolmanSpec with TopologyBuilder
             And("An observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive an error")
+            Then("The observer should receive an on completed")
             obs.awaitCompletion(timeout)
-            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[DeviceMapperException]
+            obs.getOnCompletedEvents should not be empty
         }
 
         scenario("Port updated") {
