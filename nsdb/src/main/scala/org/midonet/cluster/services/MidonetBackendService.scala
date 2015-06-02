@@ -34,9 +34,10 @@ import org.midonet.cluster.storage.MidonetBackendConfig
 object MidonetBackend {
 
     final val AliveKey = "alive"
-    final val HostsKey = "hosts"
     final val HostKey = "host"
+    final val HostsKey = "hosts"
     final val RoutesKey = "routes"
+    final val StatusKey = "state"
 
 }
 
@@ -141,6 +142,7 @@ abstract class MidonetBackend extends AbstractService {
         stateStore.registerKey(classOf[Host], HostKey, SingleFirstWriteWins)
         stateStore.registerKey(classOf[Port], HostsKey, Multiple)
         stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
+        stateStore.registerKey(classOf[Bgp], StatusKey, SingleLastWriteWins)
 
         store.build()
     }
