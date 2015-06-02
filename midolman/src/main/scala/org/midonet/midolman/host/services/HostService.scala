@@ -19,7 +19,7 @@ package org.midonet.midolman.host.services
 import java.net.{InetAddress, UnknownHostException}
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.{CountDownLatch, TimeUnit, TimeoutException}
-import java.util.{Set => JSet, UUID}
+import java.util.{Set => JSet, ConcurrentModificationException, UUID}
 
 import javax.annotation.Nullable
 
@@ -62,6 +62,7 @@ import org.midonet.util.eventloop.Reactor
 import org.midonet.{Subscription => MnSubscription}
 
 object HostService {
+
     object OwnershipState extends Enumeration {
         type State = Value
         val Acquiring, Acquired, Released = Value
@@ -69,6 +70,8 @@ object HostService {
 
     class HostIdAlreadyInUseException(message: String)
         extends Exception(message)
+
+    private val WriteAttempts = 5
 
 }
 
@@ -205,7 +208,9 @@ class HostService @Inject()(config: MidolmanConfig,
                 ownerSubscription = null
             }
             try {
-                store.deleteOwner(classOf[Host], hostId, hostId.toString)
+                tryWrite {
+                    store.deleteOwner(classOf[Host], hostId, hostId.toString)
+                }
             } catch {
                 case NonFatal(e) =>
                     log.warn("MidoNet agent host service failed to cleanup " +
@@ -315,33 +320,35 @@ class HostService @Inject()(config: MidolmanConfig,
             return false
         log.debug("Creating host in backend storage with owner ID {}", hostId)
         try {
-            // Get the current host if it exists.
-            val currentHost = getCurrentHost
-            // If the host entry exists
-            if (currentHost ne null) {
-                if (currentHost.getName != hostName) {
-                    log.error("Failed to create host {} with name {} because " +
-                              "the host exists with name {}", hostId,
-                              hostName, currentHost.getName)
-                    ownerState.set(OwnershipState.Released)
-                    return false
+            tryWrite {
+                // Get the current host if it exists.
+                val currentHost = getCurrentHost
+                // If the host entry exists
+                if (currentHost ne null) {
+                    if (currentHost.getName != hostName) {
+                        log.error("Failed to create host {} with name {} " +
+                                  "because the host exists with name {}", hostId,
+                                  hostName, currentHost.getName)
+                        ownerState.set(OwnershipState.Released)
+                        return false
+                    }
+
+                    val newHost = currentHost.toBuilder
+                        .clearInterfaces()
+                        .addAllInterfaces(getInterfaces.asJava)
+                        .build()
+
+                    // Take ownership and update host in storage.
+                    store.update(newHost, hostId.toString, validator = null)
+                } else {
+                    // Create a new host.
+                    val host = Host.newBuilder
+                        .setId(hostId.asProto)
+                        .setName(hostName)
+                        .addAllInterfaces(getInterfaces.asJava)
+                        .build()
+                    store.create(host, hostId)
                 }
-
-                val newHost = currentHost.toBuilder
-                    .clearInterfaces()
-                    .addAllInterfaces(getInterfaces.asJava)
-                    .build()
-
-                // Take ownership and update host in storage.
-                store.update(newHost, hostId.toString, validator = null)
-            } else {
-                // Create a new host.
-                val host = Host.newBuilder
-                    .setId(hostId.asProto)
-                    .setName(hostName)
-                    .addAllInterfaces(getInterfaces.asJava)
-                    .build()
-                store.create(host, hostId)
             }
             ownerState.set(OwnershipState.Acquired)
 
@@ -410,12 +417,14 @@ class HostService @Inject()(config: MidolmanConfig,
     private def updateInterfacesInV2(): Unit = {
         log.debug("Updating host interfaces {}: {}", hostId, currentInterfaces)
         try {
-            var host = getCurrentHost
-            host = host.toBuilder
-                .clearInterfaces()
-                .addAllInterfaces(getInterfaces.asJava)
-                .build()
-            store.update(host, hostId.toString, validator = null)
+            tryWrite {
+                var host = getCurrentHost
+                host = host.toBuilder
+                    .clearInterfaces()
+                    .addAllInterfaces(getInterfaces.asJava)
+                    .build()
+                store.update(host, hostId.toString, validator = null)
+            }
         } catch {
             case e @ (_: ObjectExistsException |
                       _: ReferenceConflictException |
@@ -445,6 +454,22 @@ class HostService @Inject()(config: MidolmanConfig,
     /** Returns the current set of IP addresses for this host. */
     private def getInterfaceAddresses: Seq[InetAddress] = {
         currentInterfaces.toList.flatMap(_.getInetAddresses.asScala).toSeq
+    }
+
+    /** TODO: Temporary solution until the introduction of the new state
+      * storage model.
+      * Tries a write operation. If the write operation fails due to a
+      * concurrent update, the operation is retried up to
+      * [[HostService.WriteAttempts]] times. */
+    private def tryWrite(f: => Unit): Unit = {
+        var attempt = 1
+        while (attempt <= HostService.WriteAttempts) {
+            try {
+                f; return
+            } catch {
+                case e: ConcurrentModificationException => attempt += 1
+            }
+        }
     }
 
 }

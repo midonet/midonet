@@ -75,7 +75,7 @@ object MidonetResource {
         }
     }
 
-    protected def tryWrite[R](f: => Response)(implicit log: Logger): Response = {
+    protected def tryWrite(f: => Response)(implicit log: Logger): Response = {
         var attempt = 1
         while (attempt <= StorageAttempts) {
             try {

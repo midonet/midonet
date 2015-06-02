@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.state
 
-import java.util.UUID
+import java.util.{ConcurrentModificationException, UUID}
 
 import javax.annotation.Nonnull
 
@@ -166,10 +166,14 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
             try {
                 val storage = backend.ownershipStore
                 if (active) {
-                    storage.updateOwner(classOf[Port], portId, hostId,
-                                        throwIfExists = true)
+                    tryWrite {
+                        storage.updateOwner(classOf[Port], portId, hostId,
+                                            throwIfExists = true)
+                    }
                 } else {
-                    storage.deleteOwner(classOf[Port], portId, hostId)
+                    tryWrite {
+                        storage.deleteOwner(classOf[Port], portId, hostId)
+                    }
                 }
             } catch {
                 case e: NotFoundException =>
@@ -178,8 +182,7 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
                     log.error("Host {} does not have permission to activate " +
                               "or deactivate port {}", hostId, portId)
             }
-            subjectLocalPortActive.onNext(
-                                LocalPortActive(portId, active))
+            subjectLocalPortActive.onNext(LocalPortActive(portId, active))
         }
     }
 
@@ -251,4 +254,20 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
                 log.error("Failed to create path {} in legacy storage", path, e)
         }
     }
+
+    /** TODO: Temporary solution until the introduction of the new state
+      * storage model.
+      * Tries a write operation. If the write operation fails due to a
+      * concurrent update, the operation is retried up to 5 times. */
+    private def tryWrite(f: => Unit): Unit = {
+        var attempt = 1
+        while (attempt <= 5) {
+            try {
+                f; return
+            } catch {
+                case e: ConcurrentModificationException => attempt += 1
+            }
+        }
+    }
+
 }
