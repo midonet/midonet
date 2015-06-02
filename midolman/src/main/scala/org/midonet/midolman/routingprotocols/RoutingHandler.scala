@@ -16,13 +16,16 @@
 package org.midonet.midolman.routingprotocols
 
 import java.io.File
+import java.net.InetAddress
 import java.util.UUID
 
 import scala.collection.mutable
 import scala.concurrent.duration._
 
-import akka.actor.{Actor, ActorRef, Stash}
+import akka.actor.{ActorRef, Stash}
 import akka.pattern.pipe
+
+import rx.{Subscription, Observable}
 
 import org.midonet.cluster.client.BGPListBuilder
 import org.midonet.cluster.data.{AdRoute, BGP, Route}
@@ -33,7 +36,9 @@ import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VirtualMachine}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
 import org.midonet.midolman.state.{StateAccessException, ZkConnectionAwareWatcher}
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.BgpMapper._
+import org.midonet.midolman.topology.routing.{BgpRoute, Bgp}
+import org.midonet.midolman.topology.{BgpMapper, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman._
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
@@ -43,8 +48,11 @@ import org.midonet.packets._
 import org.midonet.quagga.ZebraProtocol.RIBType
 import org.midonet.quagga._
 import org.midonet.sdn.flows.FlowTagger
+import org.midonet.util.concurrent.ReactiveActor
+import org.midonet.util.concurrent.ReactiveActor.{OnError, OnCompleted}
 import org.midonet.util.{AfUnix, UnixClock}
 import org.midonet.util.eventloop.SelectLoop
+import org.midonet.util.functors.makeFunc1
 
 object RoutingHandler {
     val BGP_TCP_PORT: Short = 179
@@ -161,7 +169,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                      val config: MidolmanConfig,
                      val connWatcher: ZkConnectionAwareWatcher,
                      val selectLoop: SelectLoop)
-    extends Actor with ActorLogWithoutPath with Stash {
+    extends ReactiveActor[AnyRef] with ActorLogWithoutPath with Stash {
 
     import RoutingHandler._
     import context.dispatcher
@@ -178,7 +186,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
     private final val BGP_VTY_MIRROR_IP =
         new IPv4Subnet(IPv4Addr.fromInt(BGP_IP_INT_PREFIX + 2 + 4 * bgpIdx), 30)
 
-    private final val ZSERVE_API_SOCKET = s"/var/run/quagga/zserv${bgpIdx}.api"
+    private final val ZSERVE_API_SOCKET = s"/var/run/quagga/zserv$bgpIdx.api"
     private final val BGP_VTY_PORT = 2605 + bgpIdx
 
     private var zebra: ActorRef = null
@@ -265,37 +273,46 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
             UnixClock.DEFAULT,
             (d, r) => system.scheduler.scheduleOnce(d, r)(dispatcher))
 
+    private lazy val bgpObservable =
+        Observable.create(new BgpMapper(rport.id))
+                  .map[AnyRef](makeFunc1(translateUpdate))
+    private var bgpSubscription: Subscription = null
+
     override def preStart() {
         log.info("({}) Starting, port {}.", phase, rport.id)
         super.preStart()
 
-        // Watch the BGP session information for this port.
-        // In the future we may also watch for session configurations of
-        // other routing protocols.
-        client.subscribeBgp(rport.id, new BGPListBuilder {
-            def addBGP(bgp: BGP) {
-                self ! NewBgpSession(bgp)
-            }
+        if (config.zookeeper.useNewStack) {
+            bgpSubscription = bgpObservable.subscribe(this)
+        } else {
+            // Watch the BGP session information for this port.
+            // In the future we may also watch for session configurations of
+            // other routing protocols.
+            client.subscribeBgp(rport.id, new BGPListBuilder {
+                def addBGP(bgp: BGP) {
+                    self ! NewBgpSession(bgp)
+                }
 
-            def updateBGP(bgp: BGP) {
-                self ! ModifyBgpSession(bgp)
-            }
+                def updateBGP(bgp: BGP) {
+                    self ! ModifyBgpSession(bgp)
+                }
 
-            def removeBGP(bgpID: UUID) {
-                self ! RemoveBgpSession(bgpID)
-            }
+                def removeBGP(bgpID: UUID) {
+                    self ! RemoveBgpSession(bgpID)
+                }
 
-            def addAdvertisedRoute(route: AdRoute) {
-                self ! AdvertiseRoute(route)
-            }
+                def addAdvertisedRoute(route: AdRoute) {
+                    self ! AdvertiseRoute(route)
+                }
 
-            def removeAdvertisedRoute(route: AdRoute) {
-                self ! StopAdvertisingRoute(route)
-            }
-        })
+                def removeAdvertisedRoute(route: AdRoute) {
+                    self ! StopAdvertisingRoute(route)
+                }
+            })
 
-        // Subscribe to the VTA for updates to the Port configuration.
-        VirtualTopologyActor ! PortRequest(rport.id, update = true)
+            // Subscribe to the VTA for updates to the Port configuration.
+            VirtualTopologyActor ! PortRequest(rport.id, update = true)
+        }
 
         system.scheduler.schedule(2 seconds, 5 seconds, self, FETCH_BGPD_STATUS)
 
@@ -304,6 +321,10 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     override def postStop() {
         super.postStop()
+        if (bgpSubscription ne null) {
+            bgpSubscription.unsubscribe()
+            bgpSubscription = null
+        }
         disable()
         log.debug("({}) Stopped", phase)
     }
@@ -403,6 +424,14 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         case ZookeeperActive(false) =>
             log.info("({}) Disconnected from Zookeeper", phase)
             zookeeperActive = false
+            disable()
+
+        case OnCompleted =>
+            log.info("({}) Port {} deleted", phase, rport.id)
+            disable()
+
+        case OnError(e) =>
+            log.error("({}) Port {} error", phase, rport.id, e)
             disable()
 
         case m =>
@@ -794,5 +823,34 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         val tag = FlowTagger.tagForDpPort(bgp.getQuaggaPortNumber)
         flowInvalidator.scheduleInvalidationFor(tag)
     }
+
+    private def translateUpdate(update: BgpUpdate): AnyRef = update match {
+        case BgpPort(port) => port
+        case BgpAdded(bgp) => NewBgpSession(translateBgp(bgp))
+        case BgpUpdated(bgp) => ModifyBgpSession(translateBgp(bgp))
+        case BgpRemoved(bgpId) => RemoveBgpSession(bgpId)
+        case BgpRouteAdded(route) => AdvertiseRoute(translateRoute(route))
+        case BgpRouteRemoved(route) => StopAdvertisingRoute(translateRoute(route))
+    }
+
+    private def translateBgp(bgp: Bgp): BGP = {
+        val data = new BGP.Data
+        data.localAS = bgp.localAs
+        data.peerAS = bgp.peerAs
+        data.peerAddr = bgp.peerAddress.asInstanceOf[IPv4Addr]
+        data.portId = bgp.portId
+        new BGP(bgp.id, data)
+    }
+
+    private def translateRoute(route: BgpRoute): AdRoute = {
+        val data = new AdRoute.Data
+        data.nwPrefix = InetAddress.getByAddress(route.subnet.getAddress
+                                                      .asInstanceOf[IPAddr]
+                                                      .toBytes)
+        data.prefixLength = route.subnet.getPrefixLen.toByte
+        data.bgpId = route.bgpId
+        new AdRoute(route.id, data)
+    }
+
 }
 
