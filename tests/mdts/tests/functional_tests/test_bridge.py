@@ -17,7 +17,9 @@ from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.lib.binding_manager import BindingManager
 from mdts.lib.failure.netif_failure import NetifFailure
 from mdts.lib.failure.no_failure import NoFailure
-from mdts.lib.failure.namespaces import *
+from mdts.lib.failure.zookeeper_failure import ZookeeperFailure
+from mdts.tests.config import IP_ZOOKEEPER_HOSTS
+from mdts.tests.config import NS_ZOOKEEPER_HOSTS
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils import *
 from nose.tools import with_setup
@@ -208,9 +210,9 @@ def test_dhcp():
 
 @attr(version="v1.2.0", slow=False)
 @failures(NoFailure(),
-          NetifFailure(NS_ZOOKEEPER_1, 'eth0', 30),
-          NetifFailure(NS_ZOOKEEPER_2, 'eth0', 30),
-          NetifFailure(NS_ZOOKEEPER_3, 'eth0', 30))
+          ZookeeperFailure(NS_ZOOKEEPER_HOSTS[0], 'eth0', IP_ZOOKEEPER_HOSTS[0]),
+          ZookeeperFailure(NS_ZOOKEEPER_HOSTS[1], 'eth0', IP_ZOOKEEPER_HOSTS[1]),
+          ZookeeperFailure(NS_ZOOKEEPER_HOSTS[2], 'eth0', IP_ZOOKEEPER_HOSTS[2]))
 @bindings(bindings1, bindings2)
 def test_icmp():
     """
