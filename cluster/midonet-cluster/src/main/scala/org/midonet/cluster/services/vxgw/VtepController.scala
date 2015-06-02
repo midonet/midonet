@@ -28,12 +28,12 @@ import scala.util.{Failure, Success, Try}
 import org.slf4j.LoggerFactory.getLogger
 import rx.{Observer, Subscription}
 
-import org.midonet.cluster.services.vxgw
-import org.midonet.cluster.services.vxgw.TunnelZoneState.FloodingProxyEvent
-import org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.VTEP
 import org.midonet.cluster.data.vtep.model.MacLocation
+import org.midonet.cluster.services.vxgw
+import org.midonet.cluster.services.vxgw.TunnelZoneState.FloodingProxyEvent
+import org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
@@ -95,7 +95,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
       * election, etc. */
     private def loadVtepConfiguration(): Unit = {
         try {
-            log.info(s"Loading VTEP $mgmtIp config from NSDB $midoDb")
+            log.info(s"Loading VTEP $mgmtIp config from NSDB")
             vtepConf = midoDb.vtepGet(mgmtIp)
             watchFloodingProxy(vtepConf.getTunnelZoneId,
                                new FloodingProxyWatcher)
