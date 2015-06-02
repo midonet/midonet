@@ -95,7 +95,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
       * election, etc. */
     private def loadVtepConfiguration(): Unit = {
         try {
-            log.info(s"Loading VTEP $mgmtIp config from NSDB $midoDb")
+            log.info(s"Loading VTEP $mgmtIp config from NSDB")
             vtepConf = midoDb.vtepGet(mgmtIp)
             watchFloodingProxy(vtepConf.getTunnelZoneId,
                                new FloodingProxyWatcher)

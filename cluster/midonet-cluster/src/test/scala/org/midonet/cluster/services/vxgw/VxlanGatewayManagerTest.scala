@@ -26,28 +26,26 @@ import com.google.inject.{Guice, Injector}
 import org.junit.Assert._
 import org.junit.runner.RunWith
 import org.scalatest._
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
-import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.BrainTestUtils._
-import org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
-import org.midonet.cluster.util.TestZkTools
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
-import org.midonet.cluster.data.vtep.model.{VtepMAC, MacLocation}
 import org.midonet.cluster.data.vtep.model.VtepMAC.{UNKNOWN_DST, fromMac}
+import org.midonet.cluster.data.vtep.model.{MacLocation, VtepMAC}
+import org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
+import org.midonet.cluster.util.TestZkTools
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
 class VxlanGatewayManagerTest extends FlatSpec with Matchers
                                                with BeforeAndAfter
                                                with GivenWhenThen
-                                               with VxlanGatewayTest {
-
-    val log = LoggerFactory.getLogger(classOf[VxlanGatewayManagerTest])
+                                               with VxlanGatewayTest
+                                               with MidonetEventually {
 
     var injector: Injector = _
 
@@ -293,13 +291,13 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         dataClient.bridgeDeleteVxLanPort(ctx.nwId, vteps.ip2)
 
         Then("the VxLAN Gateway manager should close")
-        assert(mgrClosedLatch.await(1, SECONDS))
+        mgrClosedLatch.await(1, SECONDS) shouldBe true
 
         And("the second VTEP abandoned the VxLAN Gateway")
         vtep2.memberships shouldBe empty
 
         And("the second VTEP didn't see any further updates")
-        assertTrue(vtep2MacRemotes.getOnNextEvents.size == 9)
+        vtep2MacRemotes.getOnNextEvents should have size 9
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
 
@@ -375,7 +373,13 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("the MAC sent from the hardware VTEP should reach MidoNet")
         eventually {
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep.IEEE802,
+                                        vxPort1.getId) shouldBe true
             ctx.macPortMap.get(macOnVtep.IEEE802) shouldBe vxPort1.getId
+            ctx.arpTable
+               .getByValue(macOnVtep.IEEE802) should contain only ipOnVtep
         }
 
         And("the VxGW manager doesn't report it to the bus")
@@ -388,10 +392,10 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         dataClient.vtepAddBinding(vteps.ip2, "eth0", 10, ctx.nwId)
         dataClient.vtepAddBinding(vteps.ip2, "eth1", 43, ctx.nwId)
 
-
         Then("the second VTEP gets a new controller")
-        eventually {
+        val vtep2 = eventually {
             vtepConfigs should have size 2
+            vtepPool.fishIfExists(vteps.ip2, vteps.vtepPort).get
         }
 
         And("the second VTEP gets primed as expected")
@@ -440,18 +444,48 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             ml
         )
 
+        And("the MAC sent from the hardware VTEP should reach MidoNet")
+        eventually {
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep.IEEE802,
+                                        vxPort1.getId) shouldBe false
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep.IEEE802,
+                                        vxPort2.getId) shouldBe true
+            ctx.macPortMap.get(macOnVtep.IEEE802) shouldBe vxPort2.getId
+        }
+
         And("the second VTEP remains as it was")
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnNextEvents shouldBe vtep2RemotesSnapshot
 
-        And("the Mac Port map in the Network sees the new value")
-        eventually {
-            ctx.macPortMap.get(ml.mac.IEEE802) shouldBe vxPort2.getId
-        }
-
         And("the IP remains on the same MAC")
         ctx.arpTable.get(ipOnVtep) shouldBe ml.mac.IEEE802
+
+        When("the VxLAN port corresponding to the second VTEP is deleted")
+        dataClient.bridgeDeleteVxLanPort(vxPort2)
+
+        Then("the second VTEP abandones the VxLAN Gateway")
+        eventually {
+            vtep2.memberships shouldBe empty
+        }
+
+        And("the MAC sent from the hardware VTEP should reach MidoNet")
+        eventually {
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep.IEEE802,
+                                        vxPort1.getId) shouldBe false
+            dataClient.bridgeHasMacPort(ctx.nwId,
+                                        new java.lang.Short(UNTAGGED_VLAN_ID),
+                                        macOnVtep.IEEE802,
+                                        vxPort2.getId) shouldBe false
+            ctx.macPortMap.get(macOnVtep.IEEE802) shouldBe null
+            ctx.arpTable.getByValue(macOnVtep.IEEE802) shouldBe empty
+        }
 
         ctx.delete()
         host.delete()
