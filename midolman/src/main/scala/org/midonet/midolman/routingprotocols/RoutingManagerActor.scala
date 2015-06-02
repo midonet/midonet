@@ -18,36 +18,81 @@ package org.midonet.midolman.routingprotocols
 import java.util.UUID
 
 import scala.collection.mutable
+import scala.concurrent.duration._
 
 import akka.actor._
+
 import com.google.inject.Inject
 
+import org.midonet.cluster.data.{Converter, Route}
+import org.midonet.cluster.data.storage.StateStorage
+import org.midonet.cluster.models.Topology.Bgp
+import org.midonet.cluster.services.MidonetBackend.StatusKey
+import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.state.{LegacyStorage, LocalPortActive}
 import org.midonet.cluster.{Client, DataClient}
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
-import org.midonet.midolman.routingprotocols.RoutingManagerActor.{BgpStatus, ShowBgp}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
-import org.midonet.midolman.{SimulationBackChannel, DatapathState, Referenceable}
+import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
 import org.midonet.util.concurrent.ReactiveActor
 import org.midonet.util.eventloop.SelectLoop
+import org.midonet.util.reactivex._
 
 object RoutingManagerActor extends Referenceable {
     override val Name = "RoutingManager"
 
     case class ShowBgp(port : UUID, cmd : String)
     case class BgpStatus(status : Array[String])
+
+    private[routingprotocols] trait RoutingStorage {
+        def setStatus(bgpId: UUID, status: String): Unit
+        def addRoute(route: Route): UUID
+        def removeRoute(route: Route): Unit
+    }
+
+    private[routingprotocols] class LegacyRoutingStorage(dataClient: DataClient)
+        extends RoutingStorage {
+        override def setStatus(bgpId: UUID, status: String): Unit = {
+            dataClient.bgpSetStatus(bgpId, status)
+        }
+        override def addRoute(route: Route): UUID = {
+            dataClient.routesCreateEphemeral(route)
+        }
+        override def removeRoute(route: Route): Unit = {
+            dataClient.routesDelete(route.getId)
+        }
+    }
+
+    private[routingprotocols] class NewRoutingStorage(storage: StateStorage)
+        extends RoutingStorage {
+        override def setStatus(bgpId: UUID, status: String): Unit = {
+            storage.addValue(classOf[Bgp], bgpId, StatusKey, status)
+                .await(5 seconds)
+        }
+        override def addRoute(route: Route): UUID = {
+            storage.addRoute(Converter.toRouteConfig(route))
+                .await(5 seconds)
+            UUID.randomUUID()
+        }
+        override def removeRoute(route: Route): Unit = {
+            storage.removeRoute(Converter.toRouteConfig(route))
+                .await(5 seconds)
+        }
+    }
+
 }
 
 class RoutingManagerActor extends ReactiveActor[LocalPortActive]
                           with ActorLogWithoutPath {
     import context.system
+    import RoutingManagerActor._
 
     override def logSource = "org.midonet.routing.bgp"
 
@@ -59,9 +104,11 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     @Inject
     var config: MidolmanConfig = null
     @Inject
-    val client: Client = null
+    var client: Client = null
     @Inject
-    val stateStorage: LegacyStorage = null
+    var legacyStorage: LegacyStorage = null
+    @Inject
+    var stateStorage: StateStorage = null
     @Inject
     var zkConnWatcher: ZkConnectionAwareWatcher = null
     @Inject
@@ -71,7 +118,8 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     var flowInvalidator: SimulationBackChannel = null
     @Inject
     var dpState: DatapathState = null
-
+    var routingStorage: RoutingStorage = null
+    
     private var bgpPortIdx = 0
 
     private val activePorts = mutable.Set[UUID]()
@@ -82,7 +130,10 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
 
     override def preStart() {
         super.preStart()
-        stateStorage.localPortActiveObservable.subscribe(this)
+        routingStorage =
+            if (config.zookeeper.useNewStack) new NewRoutingStorage(stateStorage)
+            else new LegacyRoutingStorage(dataClient)
+        legacyStorage.localPortActiveObservable.subscribe(this)
     }
 
     override def receive = {
@@ -132,11 +183,11 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
             if (activePorts.contains(port.id))
                 log.debug("RoutingManager - port is active: " + port.id)
 
-            if (portHandlers.get(port.id) == None)
+            if (portHandlers.get(port.id).isEmpty)
                 log.debug(s"no RoutingHandler is registered with port: ${port.id}")
 
             if (activePorts.contains(port.id)
-                && portHandlers.get(port.id) == None) {
+                && portHandlers.get(port.id).isEmpty) {
                 bgpPortIdx += 1
 
                 // need to store index locally, as the props below closes over
@@ -148,7 +199,8 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
                     context.actorOf(
                         Props(new RoutingHandler(port, portIndexForHandler,
                                     flowInvalidator, dpState, upcallConnManager,
-                                    client, dataClient, config, zkConnWatcher, zebraLoop)).
+                                    client, routingStorage, config, zkConnWatcher,
+                                    zebraLoop)).
                               withDispatcher("actors.pinned-dispatcher"),
                         name = port.id.toString)
                 )
