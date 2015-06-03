@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ReplicatedMap<K, V> {
     private final static Logger log =
-         LoggerFactory.getLogger(ReplicatedMap.class);
+        LoggerFactory.getLogger(ReplicatedMap.class);
 
     protected ZkConnectionAwareWatcher connectionWatcher;
 
@@ -112,13 +112,14 @@ public abstract class ReplicatedMap<K, V> {
                     // The one currently in newMap needs to be replaced.
                     // Also clean it up if it belongs to this ZK client.
                     newMap.put(p.key, new MapValue(p.value, p.version));
+
                     if (ownedVersions.contains(mv.version)) {
                         p.value = mv.value;
                         p.version = mv.version;
                         cleanupPaths.add(p);
                     }
                 } else if (mv.version > p.version &&
-                    ownedVersions.contains(p.version)) {
+                           ownedVersions.contains(p.version)) {
                     // The one currently in newMap is newer and the other
                     // one belongs to this ZK client. Clean it up.
                     cleanupPaths.add(p);
@@ -137,7 +138,6 @@ public abstract class ReplicatedMap<K, V> {
             for (Path path : paths) {
                 try {
                     dir.delete(encodePath(path.key, path.value, path.version));
-                    ownedVersions.remove(path.version);
                 } catch (KeeperException e) {
                     log.error("DirectoryWatcher.run", e);
                     // TODO (guillermo) connectionWatcher.handleError()?
@@ -145,6 +145,11 @@ public abstract class ReplicatedMap<K, V> {
                 } catch (InterruptedException e) {
                     log.error("DirectoryWatcher.run", e);
                     Thread.currentThread().interrupt();
+                }
+            }
+            synchronized(ReplicatedMap.this) {
+                for (Path path : paths) {
+                    ownedVersions.remove(path.version);
                 }
             }
         }
@@ -307,8 +312,8 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     private class PutCallback implements DirectoryCallback<String> {
-        private K key;
-        private V value;
+        private final K key;
+        private final V value;
 
         PutCallback(K k, V v) {
             key = k;
@@ -324,12 +329,53 @@ public abstract class ReplicatedMap<K, V> {
         }
 
         public void onError(KeeperException ex) {
-            log.error("ReplicatedMap Put {} => {} failed: {}",
-                      new Object[] { key, value, ex });
+            log.error("Put {} => {} failed: {}", key, value, ex);
         }
 
         public void onTimeout() {
-            log.error("ReplicatedMap Put {} => {} timed out.", key, value);
+            log.error("Put {} => {} timed out.", key, value);
+        }
+    }
+
+    private class DeleteCallBack implements DirectoryCallback<Void> {
+        private final K key;
+        private final V value;
+        private final int version;
+
+        DeleteCallBack(K k, V v, int ver) {
+            key = k;
+            value = v;
+            version = ver;
+        }
+
+        public void onSuccess(Void result) {
+            synchronized(ReplicatedMap.this) {
+                /* The map entry that was just removed from Zookeeper was or
+                   will be deleted from the local map in method run(). This is
+                   true if no value is inserted for the same key in the
+                   meantime. Watchers will be notified of this deletion in
+                   method run as well. */
+                ownedVersions.remove(version);
+            }
+        }
+
+        private Runnable deleteRunnable() {
+            final DeleteCallBack thisCb = this;
+            return new Runnable() {
+                public void run() {
+                    dir.asyncDelete(encodePath(key, value, version), thisCb);
+                }
+            };
+        }
+
+        public void onError(KeeperException ex) {
+            String opDesc = "Replicated map deletion of key: " + key;
+            connectionWatcher.handleError(opDesc, deleteRunnable(), ex);
+        }
+
+        public void onTimeout() {
+            log.info("Deletion of key: {} timed out, retrying.", key);
+            connectionWatcher.handleTimeout(deleteRunnable());
         }
     }
 
@@ -396,14 +442,9 @@ public abstract class ReplicatedMap<K, V> {
                 return null;
             if ((ensureVal != null) && !mv.value.equals(ensureVal))
                 return null;
-            localMap.remove(key);
-            ownedVersions.remove(mv.version);
         }
-        // TODO(pino,jlm): Should the notify and localMap/ownedVersions updates
-        // not happen until it's bounced off ZooKeeper, and happen in the
-        // DirectoryWatcher?  (i.e., make this an asyncDelete)
-        notifyWatchers(key, mv.value, null);
-        dir.delete(encodePath(key, mv.value, mv.version));
+        dir.asyncDelete(encodePath(key, mv.value, mv.version),
+                        new DeleteCallBack(key, mv.value, mv.version));
         return mv.value;
     }
 
