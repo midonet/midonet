@@ -136,8 +136,8 @@ class Mdts(Plugin):
         markers = self._get_markers_for_test(test_id)
 
         cmdline = self.tools_path + '/' +  \
-            "dump_midolman_logs_for_test.sh '%s' '%s'" % (
-            markers['start'], markers['end'])
+            "dump_midolman_logs_for_test.sh '%s' '%s' '%s'" % (
+            markers['start'], markers['end'], test_id)
 
         return subprocess_compat.check_output(cmdline, shell=True)
 
