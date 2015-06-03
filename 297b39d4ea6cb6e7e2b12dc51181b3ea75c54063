@@ -194,6 +194,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_01e821e1",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-03T05:13:28Z",
+      "side": 1,
+      "message": "an interesting issue recently fixed in neutron:\nhttps://bugs.launchpad.net/neutron/+bug/1460793",
+      "parentUuid": "facab960_402b0a94",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_95f9f94f",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
