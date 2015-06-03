@@ -174,13 +174,16 @@ def add_bgp(port, bgp):
             .nw_prefix_length(route['prefixLength'])\
             .create()
 
-    await_default_route(port._mn_resource.get_id())
-
+    try:
+        await_default_route(port._mn_resource.get_id())
+    except Exception as e:
+        clear_bgp(port)
+        raise e
     return b
 
 def await_default_route(port_id):
     router_id = VTM.get_router('router-000-001')._mn_resource.get_id()
-    timeout = 60
+    timeout = 120
     while timeout > 0:
         routes = BM._api.get_router_routes(router_id)
         for r in routes:
