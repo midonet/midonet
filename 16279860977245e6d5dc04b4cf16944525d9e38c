@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_c1839902",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-03T07:33:43Z",
+      "side": 1,
+      "message": "HealthMonitorUpdateValidator will make sure that the status and back references are copied from the old data to the update data.",
+      "parentUuid": "facab960_0eabf3d6",
+      "range": {
+        "startLine": 57,
+        "startChar": 7,
+        "endLine": 57,
+        "endChar": 37
+      },
+      "revId": "16279860977245e6d5dc04b4cf16944525d9e38c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_63c81823",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-02T09:14:13Z",
       "side": 1,
       "message": "I like to get both futures and await them in parallel. I don\u0027t know how much it matters, though, especially in an eventually block, so feel free to leave it as is.",
+      "range": {
+        "startLine": 184,
+        "startChar": 12,
+        "endLine": 184,
+        "endChar": 80
+      },
+      "revId": "16279860977245e6d5dc04b4cf16944525d9e38c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_61d72dee",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 184,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-03T07:33:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_63c81823",
       "range": {
         "startLine": 184,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_8105117c",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-03T07:33:43Z",
+      "side": 1,
+      "message": "I checked with @ryu. He says that the association between HM and Pool will never be updated from HM and be always done from Pool, and that Neutron will make sure that the correct value will be passed down. Do you think it\u0027s worth checking that the passed value is correct and throwing RunTime Exception when it isn\u0027t?",
+      "parentUuid": "facab960_438f94cc",
+      "range": {
+        "startLine": 192,
+        "startChar": 16,
+        "endLine": 192,
+        "endChar": 62
+      },
+      "revId": "16279860977245e6d5dc04b4cf16944525d9e38c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c3bac46d",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2015-06-02T09:14:13Z",
       "side": 1,
       "message": "There are two plausible reasons this might be the case:\n\n1. The update didn\u0027t modify the Midonet object\u0027s pool_id.\n2. The update set the Midonet object\u0027s pool_id equal to the one in the Neutron object.\n\nNow, having seen the code, I know that it\u0027s the first one. But this test doesn\u0027t really test that behavior.\n\nOn the other hand, I\u0027m not sure how you would test that behavior without simulating what I assume would be an unrealistic Neutron task (one where the pool_id in the Neutron object doesn\u0027t match what was already in the Midonet object). So I don\u0027t know if there\u0027s anything that should be changed here.",
+      "range": {
+        "startLine": 203,
+        "startChar": 12,
+        "endLine": 203,
+        "endChar": 56
+      },
+      "revId": "16279860977245e6d5dc04b4cf16944525d9e38c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a1085592",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-03T07:33:43Z",
+      "side": 1,
+      "message": "Yes, 1) is the case. We cannot really test if something is NOT being done, but if all these values are confirmed set as specified, together that would show that the Update has been correctly performed, don\u0027t you think?",
+      "parentUuid": "facab960_c3bac46d",
       "range": {
         "startLine": 203,
         "startChar": 12,
