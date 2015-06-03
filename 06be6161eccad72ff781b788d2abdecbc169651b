@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_e1afbd92",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-03T06:21:37Z",
+      "side": 1,
+      "message": "I prefer not dealing with Create / Update inside ***Manager and deleting handling of Create / Update to ***Translator. But that may not  be so important..",
+      "revId": "06be6161eccad72ff781b788d2abdecbc169651b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_81a271ac",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouteManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-03T06:21:37Z",
+      "side": 1,
+      "message": "Instead of converting Seq to List, why don\u0027t we just call map on the Seq and return it as is?",
+      "range": {
+        "startLine": 114,
+        "startChar": 8,
+        "endLine": 114,
+        "endChar": 33
+      },
+      "revId": "06be6161eccad72ff781b788d2abdecbc169651b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
