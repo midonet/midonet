@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_617d6db1",
+        "filename": "tests/mdts/lib/binding_manager.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-03T08:29:13Z",
+      "side": 1,
+      "message": "is this needed? i can\u0027t find where it\u0027s being used",
+      "revId": "5a0e4907810c5f1b89b610d8f04626edc79102a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
