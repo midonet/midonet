@@ -15,34 +15,38 @@
  */
 package org.midonet.api.neutron;
 
-import com.google.inject.Inject;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.NeutronMediaType;
-import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.neutron.NetworkApi;
-import org.midonet.cluster.data.neutron.Port;
-import org.midonet.event.neutron.PortEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.UUID;
 
-import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.client.neutron.NeutronMediaType;
+import org.midonet.cluster.data.neutron.NetworkApi;
+import org.midonet.cluster.data.neutron.Port;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.event.neutron.PortEvent;
+
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 public class PortResource extends AbstractResource {
 
@@ -64,52 +68,35 @@ public class PortResource extends AbstractResource {
     @Consumes(NeutronMediaType.PORT_JSON_V1)
     @Produces(NeutronMediaType.PORT_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response create(Port port)
-            throws SerializationException, StateAccessException {
+    public Response create(Port port) {
         log.info("PortResource.create entered {}", port);
-
-        try {
-
-            Port p = api.createPort(port);
-            PORT_EVENT.create(p.id, p);
-            log.info("PortResource.create exiting {}", p);
-            return Response.created(
-                    NeutronUriBuilder.getPort(
-                            getBaseUri(), p.id)).entity(p).build();
-
-        } catch (StatePathExistsException e) {
-            log.error("Duplicate resource error", e);
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
-        }
+        Port p = api.createPort(port);
+        PORT_EVENT.create(p.id, p);
+        log.info("PortResource.create exiting {}", p);
+        return Response.created(
+            NeutronUriBuilder.getPort(
+                getBaseUri(), p.id)).entity(p).build();
     }
 
     @POST
     @Consumes(NeutronMediaType.PORTS_JSON_V1)
     @Produces(NeutronMediaType.PORTS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response createBulk(List<Port> ports)
-            throws SerializationException, StateAccessException,
-            Rule.RuleIndexOutOfBoundsException {
+    public Response createBulk(List<Port> ports) {
         log.info("PortResource.createBulk entered");
 
-        try {
-            List<Port> outPorts = api.createPortBulk(ports);
-            for (Port p : outPorts) {
-                PORT_EVENT.create(p.id, p);
-            }
-            return Response.created(NeutronUriBuilder.getPorts(
-                    getBaseUri())).entity(outPorts).build();
-        } catch (StatePathExistsException e) {
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
+        List<Port> outPorts = api.createPortBulk(ports);
+        for (Port p : outPorts) {
+            PORT_EVENT.create(p.id, p);
         }
+        return Response.created(NeutronUriBuilder.getPorts(
+            getBaseUri())).entity(outPorts).build();
     }
 
     @DELETE
     @Path("{id}")
     @RolesAllowed(AuthRole.ADMIN)
-    public void delete(@PathParam("id") UUID id)
-            throws SerializationException, StateAccessException,
-            Rule.RuleIndexOutOfBoundsException {
+    public void delete(@PathParam("id") UUID id) {
         log.info("PortResource.delete entered {}", id);
         api.deletePort(id);
         PORT_EVENT.delete(id);
@@ -119,8 +106,7 @@ public class PortResource extends AbstractResource {
     @Path("{id}")
     @Produces(NeutronMediaType.PORT_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Port get(@PathParam("id") UUID id)
-            throws SerializationException, StateAccessException {
+    public Port get(@PathParam("id") UUID id) {
         log.info("PortResource.get entered {}", id);
 
         Port p = api.getPort(id);
@@ -135,8 +121,7 @@ public class PortResource extends AbstractResource {
     @GET
     @Produces(NeutronMediaType.PORTS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public List<Port> list()
-            throws SerializationException, StateAccessException {
+    public List<Port> list() {
         log.info("PortResource.list entered");
         return api.getPorts();
     }
@@ -146,24 +131,15 @@ public class PortResource extends AbstractResource {
     @Consumes(NeutronMediaType.PORT_JSON_V1)
     @Produces(NeutronMediaType.PORT_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response update(@PathParam("id") UUID id, Port port)
-            throws SerializationException, StateAccessException,
-            BridgeZkManager.VxLanPortIdUpdateException,
-            Rule.RuleIndexOutOfBoundsException {
+    public Response update(@PathParam("id") UUID id, Port port) {
         log.info("PortResource.update entered {}", port);
 
-        try {
+        Port p = api.updatePort(id, port);
+        PORT_EVENT.update(id, p);
+        log.info("PortResource.update exiting {}", p);
+        return Response.ok(
+            NeutronUriBuilder.getPort(
+                getBaseUri(), p.id)).entity(p).build();
 
-            Port p = api.updatePort(id, port);
-            PORT_EVENT.update(id, p);
-            log.info("PortResource.update exiting {}", p);
-            return Response.ok(
-                    NeutronUriBuilder.getPort(
-                            getBaseUri(), p.id)).entity(p).build();
-
-        } catch (NoStatePathException e) {
-            log.error("Resource does not exist", e);
-            throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
-        }
     }
 }

@@ -16,13 +16,13 @@
 package org.midonet.cluster.data.neutron;
 
 
-import org.midonet.cluster.data.Rule;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 
 public interface SecurityGroupApi {
 
@@ -33,8 +33,7 @@ public interface SecurityGroupApi {
      * @return SecurityGroup created
      */
     SecurityGroup createSecurityGroup(@Nonnull SecurityGroup sg)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Create multiple security group objects.
@@ -44,8 +43,7 @@ public interface SecurityGroupApi {
      */
     List<SecurityGroup> createSecurityGroupBulk(
             @Nonnull List<SecurityGroup> sgs)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Delete a security group
@@ -53,7 +51,7 @@ public interface SecurityGroupApi {
      * @param id ID of the security group to delete
      */
     void deleteSecurityGroup(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Get a security group
@@ -62,7 +60,7 @@ public interface SecurityGroupApi {
      * @return Security group of the ID provided
      */
     SecurityGroup getSecurityGroup(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Get security groups
@@ -70,7 +68,7 @@ public interface SecurityGroupApi {
      * @return All the security groups
      */
     List<SecurityGroup> getSecurityGroups()
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Update a security group
@@ -80,7 +78,7 @@ public interface SecurityGroupApi {
      */
     SecurityGroup updateSecurityGroup(@Nonnull UUID id,
                                              @Nonnull SecurityGroup sg)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Create a new security group rule object
@@ -90,8 +88,7 @@ public interface SecurityGroupApi {
      */
     SecurityGroupRule createSecurityGroupRule(
             @Nonnull SecurityGroupRule rule)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Create multiple security group rule objects.
@@ -101,8 +98,7 @@ public interface SecurityGroupApi {
      */
     List<SecurityGroupRule> createSecurityGroupRuleBulk(
             @Nonnull List<SecurityGroupRule> rules)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Delete a security group rule
@@ -110,7 +106,7 @@ public interface SecurityGroupApi {
      * @param id ID of the security group rule to delete
      */
     void deleteSecurityGroupRule(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Get a security group rule
@@ -119,7 +115,7 @@ public interface SecurityGroupApi {
      * @return Security group rule of the ID provided
      */
     SecurityGroupRule getSecurityGroupRule(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Get security group rules
@@ -127,6 +123,6 @@ public interface SecurityGroupApi {
      * @return All the security group rules
      */
     List<SecurityGroupRule> getSecurityGroupRules()
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
 }

@@ -15,14 +15,13 @@
  */
 package org.midonet.cluster.data.neutron;
 
-import org.midonet.cluster.data.Rule;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 
 
 public interface NetworkApi {
@@ -35,7 +34,7 @@ public interface NetworkApi {
      * @return Created Network object
      */
     Network createNetwork(@Nonnull Network network)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Create multiple networks atomically.
@@ -44,7 +43,7 @@ public interface NetworkApi {
      * @return Created Network objects
      */
     List<Network> createNetworkBulk(@Nonnull List<Network> networks)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Delete a network. Nothing happens if the resource does not exist.
@@ -52,7 +51,7 @@ public interface NetworkApi {
      * @param id ID of the Network object to delete
      */
     void deleteNetwork(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Retrieve a network. Returns null if the resource does not exist.
@@ -61,7 +60,7 @@ public interface NetworkApi {
      * @return Network object
      */
     Network getNetwork(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Get all the networks.
@@ -69,7 +68,7 @@ public interface NetworkApi {
      * @return List of Network objects.
      */
     List<Network> getNetworks()
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Update a network. NoStatePathException is thrown if the resource does
@@ -79,8 +78,7 @@ public interface NetworkApi {
      * @return Updated Network object
      */
     Network updateNetwork(@Nonnull UUID id, @Nonnull Network network)
-            throws StateAccessException, SerializationException,
-            BridgeZkManager.VxLanPortIdUpdateException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Create a new subnet data in the data store.  StatePathExistsException
@@ -90,7 +88,7 @@ public interface NetworkApi {
      * @return Created Subnet object
      */
     Subnet createSubnet(@Nonnull Subnet subnet)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Create multiple subnets atomically.
@@ -99,7 +97,7 @@ public interface NetworkApi {
      * @return Created Subnet objects
      */
     List<Subnet> createSubnetBulk(@Nonnull List<Subnet> subnets)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
 
     /**
@@ -108,7 +106,7 @@ public interface NetworkApi {
      * @param id ID of the Subnet object to delete
      */
     void deleteSubnet(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Retrieve a subnet.  Returns null if the resource does not exist.
@@ -117,7 +115,7 @@ public interface NetworkApi {
      * @return Subnet object
      */
     Subnet getSubnet(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Get all the subnets.
@@ -125,7 +123,7 @@ public interface NetworkApi {
      * @return List of Subnet objects.
      */
     List<Subnet> getSubnets()
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Update a subnet.  NoStatePathException is thrown if the resource does
@@ -135,7 +133,7 @@ public interface NetworkApi {
      * @return Updated Subnet object
      */
     Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Create a new port data in the data store. StatePathExistsException
@@ -145,7 +143,7 @@ public interface NetworkApi {
      * @return Created Port object
      */
     Port createPort(@Nonnull Port port)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Create multiple ports atomically.
@@ -154,16 +152,15 @@ public interface NetworkApi {
      * @return Created Port objects
      */
     List<Port>  createPortBulk(@Nonnull List<Port> ports)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+        throws ConflictHttpException, NotFoundHttpException;
+
     /**
      * Delete a port. Nothing happens if the resource does not exist.
      *
      * @param id ID of the Port object to delete
      */
     void deletePort(@Nonnull UUID id)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Retrieve a port. Returns null if the resource does not exist.
@@ -172,7 +169,7 @@ public interface NetworkApi {
      * @return Port object
      */
     Port getPort(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Get all the ports.
@@ -180,7 +177,7 @@ public interface NetworkApi {
      * @return List of Port objects.
      */
     List<Port> getPorts()
-            throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Update a port. NoStatePathException is thrown if the resource does
@@ -190,6 +187,5 @@ public interface NetworkApi {
      * @return Updated Port object
      */
     Port updatePort(@Nonnull UUID id, @Nonnull Port port)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+        throws ConflictHttpException, NotFoundHttpException;
 }

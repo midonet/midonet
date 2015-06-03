@@ -23,6 +23,8 @@ import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
@@ -30,70 +32,70 @@ public interface LoadBalancerApi {
 
     // Pools
     Pool getPool(UUID id)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
-    List<Pool> getPools() throws StateAccessException, SerializationException;
+    List<Pool> getPools() throws ConflictHttpException, NotFoundHttpException;
 
     void createPool(Pool pool)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void updatePool(UUID id, Pool pool)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void deletePool(UUID id)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     // Members
     Member getMember(UUID id)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     List<Member> getMembers()
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void createMember(Member member)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void updateMember(UUID id, Member member)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void deleteMember(UUID id)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     // Vips
     VIP getVip(UUID id)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
-    List<VIP> getVips() throws StateAccessException, SerializationException;
+    List<VIP> getVips() throws ConflictHttpException, NotFoundHttpException;
 
     void createVip(VIP vip)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void updateVip(UUID id, VIP vip)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
-    void deleteVip(UUID id) throws StateAccessException, SerializationException;
+    void deleteVip(UUID id) throws ConflictHttpException, NotFoundHttpException;
 
     // Health Monitors
     HealthMonitor getHealthMonitor(UUID id)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     List<HealthMonitor> getHealthMonitors()
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void createHealthMonitor(HealthMonitor healthMonitor)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void updateHealthMonitor(UUID id, HealthMonitor healthMonitor)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void deleteHealthMonitor(UUID id)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     // Pool Health Monitors
     void createPoolHealthMonitor(UUID poolId,
                                  PoolHealthMonitor poolHealthMonitor)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 
     void deletePoolHealthMonitor(UUID poolId, UUID hmId)
-        throws StateAccessException, SerializationException;
+        throws ConflictHttpException, NotFoundHttpException;
 }
