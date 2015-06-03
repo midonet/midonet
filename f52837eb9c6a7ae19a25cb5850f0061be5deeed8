@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_f7893fcb",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-03T14:43:03Z",
+      "side": 1,
+      "message": "Is this to test that if the type is unrecognized, it will be TCP?",
+      "range": {
+        "startLine": 164,
+        "startChar": 53,
+        "endLine": 164,
+        "endChar": 67
+      },
+      "revId": "f52837eb9c6a7ae19a25cb5850f0061be5deeed8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
