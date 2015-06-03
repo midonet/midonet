@@ -16,6 +16,24 @@
       "revId": "5a0e4907810c5f1b89b610d8f04626edc79102a8",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a135b5f8",
+        "filename": "tests/mdts/lib/binding_manager.py",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1003318
+      },
+      "writtenOn": "2015-06-03T09:56:00Z",
+      "side": 1,
+      "message": "Line 73 :) Before, it was initialized at the beginning of the tests in TopologyManager so all the bindings within a test were using the same midonetclient. When testing zk failures, the api client failed sometimes if the zk host was not brought up correctly at the time of the api call. It might not be needed with the other fix (ensure zk is up), but just to make sure we do a new api connection at each binding.",
+      "parentUuid": "facab960_617d6db1",
+      "revId": "5a0e4907810c5f1b89b610d8f04626edc79102a8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
