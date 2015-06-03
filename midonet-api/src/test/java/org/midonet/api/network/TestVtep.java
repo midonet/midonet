@@ -25,11 +25,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
 import org.midonet.api.vtep.VtepMockableDataClientFactory.MockableVtep;
 import org.midonet.client.dto.DtoBridge;
@@ -41,8 +39,9 @@ import org.midonet.client.dto.DtoVtep;
 import org.midonet.client.dto.DtoVtepBinding;
 import org.midonet.client.dto.DtoVtepPort;
 import org.midonet.client.dto.DtoVxLanPort;
-import org.midonet.cluster.data.Converter;
 import org.midonet.cluster.data.host.Host;
+import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.state.VtepConnectionState;
 
 import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
@@ -51,6 +50,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.midonet.api.network.TestPort.createBridgePort;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V2;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_JSON;
@@ -60,7 +60,6 @@ import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_BIND
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_BINDING_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_VTEP_JSON;
-import static org.midonet.api.network.TestPort.createBridgePort;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_INVALID_WITH_PARAM;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAX_VALUE;
@@ -185,11 +184,11 @@ public class TestVtep extends RestApiTestBase {
         // Add the host to ZooKeeper.
         Host host = new Host();
         host.setId(UUID.randomUUID());
-        host.setAddresses(new InetAddress[] {
-            InetAddress.getByName(ip) });
-        JerseyGuiceTestServletContextListener
-            .getHostZkManager()
-            .createHost(host.getId(), Converter.toHostConfig(host));
+        host.setAddresses(new InetAddress[]{
+            InetAddress.getByName(ip)});
+        FuncTest._injector
+            .getInstance(TopologyBackdoor.class)
+            .createHost(host.getId(), host.getName(), host.getAddresses());
 
         // Try add the VTEP with the same IP address.
         postVtepWithError(ip, mockVtep1.mgmtPort(), Status.CONFLICT);
@@ -826,8 +825,8 @@ public class TestVtep extends RestApiTestBase {
         assertEquals(0, listBindings(vtep).length);
 
         DtoBridge br = postBridge("network1");
-        DtoVtepBinding binding1 = addAndVerifyFirstBinding(
-            vtep, br, portName, 1, 10000);
+        DtoVtepBinding binding1 = addAndVerifyFirstBinding(vtep, br,
+                                                           portName, 1);
         DtoVtepBinding binding2 = addAndVerifyBinding(vtep, br, portName, 2);
 
         br = getBridge(binding1.getNetworkId());
@@ -863,8 +862,7 @@ public class TestVtep extends RestApiTestBase {
      */
     private DtoVtepBinding addAndVerifyFirstBinding(DtoVtep vtep,
                                                     DtoBridge network,
-                                                    String portName, int vlan,
-                                                    int vni) {
+                                                    String portName, int vlan) {
         DtoVtepBinding b = addAndVerifyBinding(vtep, network, portName, vlan);
         String lsName = bridgeIdToLogicalSwitchName(network.getId());
         // This creates the logical switch by itself

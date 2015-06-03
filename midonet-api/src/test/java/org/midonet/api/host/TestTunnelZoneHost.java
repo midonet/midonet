@@ -38,7 +38,7 @@ import org.junit.runners.Parameterized;
 import org.midonet.api.host.rest_api.HostTopology;
 import org.midonet.api.rest_api.DtoWebResource;
 import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.client.MidonetApi;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHost;
@@ -50,8 +50,6 @@ import org.midonet.client.resource.ResourceCollection;
 import org.midonet.client.resource.TunnelZone;
 import org.midonet.client.resource.TunnelZoneHost;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.midolman.host.state.HostDirectory;
-import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.MAC;
@@ -69,7 +67,6 @@ public class TestTunnelZoneHost {
 
         private DtoWebResource dtoResource;
         private HostTopology topologyGre;
-        private HostZkManager hostManager;
 
         private UUID host1Id = UUID.randomUUID();
 
@@ -92,8 +89,6 @@ public class TestTunnelZoneHost {
             DtoTunnelZone tunnelZone1 = new DtoTunnelZone();
             tunnelZone1.setName("tz1-name");
 
-            hostManager = JerseyGuiceTestServletContextListener
-                          .getHostZkManager();
             topologyGre = new HostTopology.Builder(dtoResource)
                     .create(host1Id, host1).create("tz1", tunnelZone1).build();
         }
@@ -190,18 +185,15 @@ public class TestTunnelZoneHost {
 
             UUID hostId = UUID.randomUUID();
 
-            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-            metadata.setName("test");
-            metadata.setAddresses(new InetAddress[]{
+            TopologyBackdoor tb = FuncTest._injector
+                                          .getInstance(TopologyBackdoor.class);
+            tb.createHost(hostId, "test", new InetAddress[]{
                 InetAddress.getByAddress(
                     new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
             });
+            tb.makeHostAlive(hostId);
 
-            hostManager.createHost(hostId, metadata);
-            hostManager.makeAlive(hostId);
-
-            ResourceCollection<Host> hosts = api.getHosts();
-            org.midonet.client.resource.Host host = hosts.get(0);
+            api.getHosts().get(0);
 
             TunnelZone greTunnelZone = api.addGreTunnelZone()
                                            .name("gre-tunnel-zone-1")
@@ -274,18 +266,10 @@ public class TestTunnelZoneHost {
 
     public static class TestBaseUriOverride extends JerseyTest {
 
-        private HostZkManager hostManager;
         private UUID hostId = UUID.randomUUID();
 
         public TestBaseUriOverride() {
             super(FuncTest.appDescOverrideBaseUri);
-        }
-
-        @Before
-        public void setUp() throws StateAccessException,
-                InterruptedException, KeeperException{
-            hostManager = JerseyGuiceTestServletContextListener
-                .getHostZkManager();
         }
 
         @Test
@@ -295,28 +279,19 @@ public class TestTunnelZoneHost {
             MidonetApi api = new MidonetApi(baseUri.toString());
             api.enableLogging();
 
-            HostDirectory.Metadata metadata = new HostDirectory.Metadata();
-            metadata.setName("test");
-            metadata.setAddresses(new InetAddress[]{
-                    InetAddress.getByAddress(
-                            new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
+            TopologyBackdoor tb = FuncTest._injector
+                .getInstance(TopologyBackdoor.class);
+            tb.createHost(hostId, "test", new InetAddress[]{
+                InetAddress.getByAddress(
+                    new byte[]{(byte) 193, (byte) 231, 30, (byte) 197})
             });
+            tb.makeHostAlive(hostId);
 
-            hostManager.createHost(hostId, metadata);
-            hostManager.makeAlive(hostId);
-
-            HostDirectory.Interface anInterface = new HostDirectory.Interface();
-
-            anInterface.setName("eth0");
-            anInterface.setMac(MAC.fromString("16:1f:5c:19:a0:60")
-                    .getAddress());
-            anInterface.setMtu(123);
-            anInterface.setType(HostDirectory.Interface.Type.Physical);
-            anInterface.setAddresses(new InetAddress[]{
+            MAC mac = MAC.fromString("16:1f:5c:19:a0:60");
+            InetAddress[] addrs = new InetAddress[]{
                     InetAddress.getByAddress(new byte[]{10, 10, 10, 1})
-            });
-
-            hostManager.createInterface(hostId, anInterface);
+            };
+            tb.createInterface(hostId, "eth0", mac, 123, addrs);
 
             ResourceCollection<Host> hosts = api.getHosts();
             org.midonet.client.resource.Host host = hosts.get(0);
