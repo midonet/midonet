@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,40 @@
  */
 package org.midonet.api.neutron;
 
-import com.google.inject.Inject;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.NeutronMediaType;
-import org.midonet.cluster.data.Rule;
-import org.midonet.cluster.data.neutron.SecurityGroup;
-import org.midonet.cluster.data.neutron.SecurityGroupApi;
-import org.midonet.event.neutron.SecurityGroupEvent;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
 import java.util.List;
 import java.util.UUID;
 
-import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
+import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.client.neutron.NeutronMediaType;
+import org.midonet.cluster.data.neutron.SecurityGroup;
+import org.midonet.cluster.data.neutron.SecurityGroupApi;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.event.neutron.SecurityGroupEvent;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.StateAccessException;
+
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 public class SecurityGroupResource extends AbstractResource {
 
@@ -64,46 +71,31 @@ public class SecurityGroupResource extends AbstractResource {
     @Consumes(NeutronMediaType.SECURITY_GROUP_JSON_V1)
     @Produces(NeutronMediaType.SECURITY_GROUP_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response create(SecurityGroup sg)
-            throws SerializationException, StateAccessException,
-            Rule.RuleIndexOutOfBoundsException {
+    public Response create(SecurityGroup sg) {
         log.info("SecurityGroupResource.create entered {}", sg);
 
-        try {
-
-            SecurityGroup s = api.createSecurityGroup(sg);
-            SECURITY_GROUP_EVENT.create(s.id, s);
-            log.info("SecurityGroupResource.create exiting {}", s);
-            return Response.created(
-                    NeutronUriBuilder.getSecurityGroup(
-                            getBaseUri(), s.id)).entity(s).build();
-
-        } catch (StatePathExistsException e) {
-            log.error("Duplicate resource error", e);
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
-        }
+        SecurityGroup s = api.createSecurityGroup(sg);
+        SECURITY_GROUP_EVENT.create(s.id, s);
+        log.info("SecurityGroupResource.create exiting {}", s);
+        return Response.created(
+            NeutronUriBuilder.getSecurityGroup(
+                getBaseUri(), s.id)).entity(s).build();
     }
 
     @POST
     @Consumes(NeutronMediaType.SECURITY_GROUPS_JSON_V1)
     @Produces(NeutronMediaType.SECURITY_GROUPS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response createBulk(List<SecurityGroup> sgs)
-            throws SerializationException, StateAccessException,
-            Rule.RuleIndexOutOfBoundsException {
+    public Response createBulk(List<SecurityGroup> sgs) {
         log.info("SecurityGroupResource.createBulk entered");
 
-        try {
-            List<SecurityGroup> outSgs =
-                    api.createSecurityGroupBulk(sgs);
-            for (SecurityGroup s : outSgs) {
-                SECURITY_GROUP_EVENT.create(s.id, s);
-            }
-            return Response.created(NeutronUriBuilder.getSecurityGroups(
-                    getBaseUri())).entity(outSgs).build();
-        } catch (StatePathExistsException e) {
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
+        List<SecurityGroup> outSgs =
+            api.createSecurityGroupBulk(sgs);
+        for (SecurityGroup s : outSgs) {
+            SECURITY_GROUP_EVENT.create(s.id, s);
         }
+        return Response.created(NeutronUriBuilder.getSecurityGroups(
+            getBaseUri())).entity(outSgs).build();
     }
 
     @DELETE
@@ -147,23 +139,14 @@ public class SecurityGroupResource extends AbstractResource {
     @Consumes(NeutronMediaType.SECURITY_GROUP_JSON_V1)
     @Produces(NeutronMediaType.SECURITY_GROUP_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response update(@PathParam("id") UUID id, SecurityGroup sg)
-            throws SerializationException, StateAccessException,
-            Rule.RuleIndexOutOfBoundsException {
+    public Response update(@PathParam("id") UUID id, SecurityGroup sg) {
         log.info("SecurityGroupResource.update entered {}", sg);
 
-        try {
-
-            SecurityGroup s = api.updateSecurityGroup(id, sg);
-            SECURITY_GROUP_EVENT.update(id, s);
-            log.info("SecurityGroupResource.update exiting {}", s);
-            return Response.ok(
-                    NeutronUriBuilder.getSecurityGroup(
-                            getBaseUri(), s.id)).entity(s).build();
-
-        } catch (NoStatePathException e) {
-            log.error("Resource does not exist");
-            throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
-        }
+        SecurityGroup s = api.updateSecurityGroup(id, sg);
+        SECURITY_GROUP_EVENT.update(id, s);
+        log.info("SecurityGroupResource.update exiting {}", s);
+        return Response.ok(
+            NeutronUriBuilder.getSecurityGroup(
+                getBaseUri(), s.id)).entity(s).build();
     }
 }

@@ -15,18 +15,19 @@
  */
 package org.midonet.api.neutron;
 
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.midonet.api.ResourceTest;
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
-import org.midonet.cluster.data.neutron.SecurityGroupRule;
-import org.midonet.midolman.state.StatePathExistsException;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.Response;
-import java.util.UUID;
+import org.midonet.api.ResourceTest;
+import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -74,8 +75,8 @@ public class TestSecurityGroupRuleResource extends ResourceTest {
     @Test(expected = ConflictHttpException.class)
     public void testCreateConflict() throws Exception {
 
-        doThrow(StatePathExistsException.class).when(
-                plugin).createSecurityGroupRule(any(SecurityGroupRule.class));
+        doThrow(ConflictHttpException.class).when(
+            plugin).createSecurityGroupRule(any(SecurityGroupRule.class));
 
         testObject.create(new SecurityGroupRule());
     }

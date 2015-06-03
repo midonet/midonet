@@ -15,19 +15,19 @@
  */
 package org.midonet.api.neutron;
 
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.midonet.api.ResourceTest;
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
-import org.midonet.cluster.data.neutron.FloatingIp;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StatePathExistsException;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.Response;
-import java.util.UUID;
+import org.midonet.api.ResourceTest;
+import org.midonet.cluster.data.neutron.FloatingIp;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -73,7 +73,7 @@ public class TestFloatingIpResource extends ResourceTest {
     @Test(expected = ConflictHttpException.class)
     public void testCreateConflict() throws Exception {
 
-        doThrow(StatePathExistsException.class).when(plugin).createFloatingIp(
+        doThrow(ConflictHttpException.class).when(plugin).createFloatingIp(
                 any(FloatingIp.class));
 
         testObject.create(new FloatingIp());
@@ -103,7 +103,7 @@ public class TestFloatingIpResource extends ResourceTest {
     @Test(expected = NotFoundHttpException.class)
     public void testUpdateNotFound() throws Exception {
 
-        doThrow(NoStatePathException.class).when(plugin).updateFloatingIp(
+        doThrow(NotFoundHttpException.class).when(plugin).updateFloatingIp(
                 any(UUID.class), any(FloatingIp.class));
 
         testObject.update(any(UUID.class), any(FloatingIp.class));

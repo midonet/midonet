@@ -15,19 +15,20 @@
  */
 package org.midonet.api.neutron;
 
+import java.util.UUID;
+
+import javax.ws.rs.core.Response;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.midonet.api.ResourceTest;
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
-import org.midonet.cluster.data.neutron.Port;
-import org.midonet.midolman.state.NoStatePathException;
-import org.midonet.midolman.state.StatePathExistsException;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import javax.ws.rs.core.Response;
-import java.util.UUID;
+import org.midonet.api.ResourceTest;
+import org.midonet.cluster.data.neutron.Port;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.midolman.state.NoStatePathException;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -73,7 +74,7 @@ public class TestPortResource extends ResourceTest {
     @Test(expected = ConflictHttpException.class)
     public void testCreateConflict() throws Exception {
 
-        doThrow(StatePathExistsException.class).when(plugin).createPort(
+        doThrow(ConflictHttpException.class).when(plugin).createPort(
                 any(Port.class));
 
         testObject.create(new Port());
@@ -103,7 +104,7 @@ public class TestPortResource extends ResourceTest {
     @Test(expected = NotFoundHttpException.class)
     public void testUpdateNotFound() throws Exception {
 
-        doThrow(NoStatePathException.class).when(plugin).updatePort(
+        doThrow(NotFoundHttpException.class).when(plugin).updatePort(
                 any(UUID.class), any(Port.class));
 
         testObject.update(any(UUID.class), any(Port.class));

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.annotation.Nonnull;
+import javax.ws.rs.WebApplicationException;
 
 import com.google.inject.Inject;
 
@@ -29,20 +30,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.ZookeeperLockFactory;
-import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
 import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.cluster.data.util.ZkOpLock;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.InternalServerErrorHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.midolman.state.ZkOpList;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 /**
  * MidoNet implementation of Neutron plugin interface.
@@ -51,7 +57,7 @@ import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                                       LoadBalancerApi {
 
-    private static final Logger LOGGER =
+    private static final Logger log =
         LoggerFactory.getLogger(NeutronPlugin.class);
 
     public static final String LOCK_NAME = "neutron";
@@ -76,7 +82,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Inject
     private ZookeeperLockFactory lockFactory;
 
-    private void commitOps(List<Op> ops) throws StateAccessException {
+    private void commitOps(List<Op> ops) throws StateAccessException,
+                                                StatePathExistsException {
         ZkOpList opList = new ZkOpList(zkManager);
         opList.addAll(ops);
         opList.commit();
@@ -94,9 +101,25 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         return lock;
     }
 
+    private WebApplicationException handle(Exception e) {
+        if (e instanceof SerializationException) {
+            log.error("Serialization error", e);
+            return new InternalServerErrorHttpException(e.getMessage());
+        } else if (e instanceof StatePathExistsException) {
+            log.error("Duplicate resource error", e);
+            return new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
+        } else if (e instanceof StateAccessException) {
+            log.error("Not found", e);
+            return new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
+        } else {
+            log.error("Unhandled exception", e);
+            return new InternalServerErrorHttpException(e.getMessage());
+        }
+    }
+
     @Override
     public Network createNetwork(@Nonnull Network network)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -112,6 +135,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             networkZkManager.prepareCreateNetwork(ops, network);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -122,7 +147,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public List<Network> createNetworkBulk(
         @Nonnull List<Network> networks)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -132,6 +157,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             }
             commitOps(ops);
 
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -145,7 +172,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteNetwork(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         ZkOpLock lock = acquireLock();
         try {
@@ -165,27 +192,35 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             }
 
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
     }
 
     @Override
-    public Network getNetwork(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
-        return networkZkManager.getNetwork(id);
+    public Network getNetwork(@Nonnull UUID id) throws WebApplicationException {
+        try {
+            return networkZkManager.getNetwork(id);
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public List<Network> getNetworks()
-        throws StateAccessException, SerializationException {
-        return networkZkManager.getNetworks();
+        throws WebApplicationException {
+        try {
+            return networkZkManager.getNetworks();
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public Network updateNetwork(@Nonnull UUID id, @Nonnull Network network)
-        throws StateAccessException, SerializationException,
-               BridgeZkManager.VxLanPortIdUpdateException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -202,6 +237,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             // TODO: Include ZK version when updating
             // Throws NotStatePathException if it does not exist.
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -211,7 +248,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Subnet createSubnet(@Nonnull Subnet subnet)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -225,6 +262,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             }
 
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -234,7 +273,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<Subnet> createSubnetBulk(@Nonnull List<Subnet> subnets)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -243,6 +282,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                 networkZkManager.prepareCreateSubnet(ops, subnet);
             }
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -257,7 +298,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteSubnet(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         ZkOpLock lock = acquireLock();
         try {
@@ -275,6 +316,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             }
 
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -282,22 +325,35 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Subnet getSubnet(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
-        return networkZkManager.getSubnet(id);
+        throws WebApplicationException {
+        try {
+            return networkZkManager.getSubnet(id);
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public List<Subnet> getSubnets()
-        throws StateAccessException, SerializationException {
-        return networkZkManager.getSubnets();
+        throws WebApplicationException {
+        try {
+            return networkZkManager.getSubnets();
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public Subnet updateSubnet(@Nonnull UUID id, @Nonnull Subnet subnet)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
-        Network net = networkZkManager.getNetwork(subnet.networkId);
+        Network net;
+        try {
+            net = networkZkManager.getNetwork(subnet.networkId);
+        } catch (Exception e) {
+            throw handle(e);
+        }
 
         ZkOpLock lock = acquireLock();
 
@@ -311,6 +367,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             // This should throw NoStatePathException if it doesn't exist.
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -355,7 +413,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Port createPort(@Nonnull Port port)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
 
@@ -363,6 +421,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         try {
             createPortOps(ops, port);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -372,8 +432,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public List<Port> createPortBulk(@Nonnull List<Port> ports)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -382,6 +441,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                 createPortOps(ops, port);
             }
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -395,8 +456,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deletePort(@Nonnull UUID id)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
         ZkOpLock lock = acquireLock();
         try {
@@ -436,6 +496,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             networkZkManager.prepareDeleteNeutronPort(ops, port);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -443,20 +505,26 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Port getPort(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
-        return networkZkManager.getPort(id);
+        throws WebApplicationException {
+        try {
+            return networkZkManager.getPort(id);
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
-    public List<Port> getPorts()
-        throws StateAccessException, SerializationException {
-        return networkZkManager.getPorts();
+    public List<Port> getPorts() throws WebApplicationException {
+        try {
+            return networkZkManager.getPorts();
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public Port updatePort(@Nonnull UUID id, @Nonnull Port port)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
         // Fixed IP and security groups can be updated
         List<Op> ops = new ArrayList<>();
@@ -479,6 +547,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             // This should throw NoStatePathException if it doesn't exist.
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -488,8 +558,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Router createRouter(@Nonnull Router router)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -497,6 +566,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             // Create a RouterConfig in ZK
             l3ZkManager.prepareCreateRouter(ops, router);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -505,20 +576,26 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     }
 
     @Override
-    public Router getRouter(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
-        return l3ZkManager.getRouter(id);
+    public Router getRouter(@Nonnull UUID id) throws WebApplicationException {
+        try {
+            return l3ZkManager.getRouter(id);
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
-    public List<Router> getRouters()
-        throws StateAccessException, SerializationException {
-        return l3ZkManager.getRouters();
+    public List<Router> getRouters() throws WebApplicationException {
+        try {
+            return l3ZkManager.getRouters();
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public final void deleteRouter(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         ZkOpLock lock = acquireLock();
         try {
@@ -530,6 +607,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             List<Op> ops = new ArrayList<>();
             l3ZkManager.prepareDeleteRouter(ops, id);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -537,8 +616,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public Router updateRouter(@Nonnull UUID id, @Nonnull Router router)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -549,6 +627,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
             // This should throw NoPathExistsException if the resource does not
             // exist.
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -559,13 +639,15 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public RouterInterface addRouterInterface(
         @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             l3ZkManager.prepareCreateRouterInterface(ops, routerInterface);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -585,14 +667,15 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             l3ZkManager.prepareCreateFloatingIp(ops, floatingIp);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -602,21 +685,26 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public FloatingIp getFloatingIp(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
-
-        return l3ZkManager.getFloatingIp(id);
+        throws WebApplicationException {
+            try {
+                return l3ZkManager.getFloatingIp(id);
+            } catch (Exception e) {
+                throw handle(e);
+            }
     }
 
     @Override
-    public List<FloatingIp> getFloatingIps()
-        throws StateAccessException, SerializationException {
-
-        return l3ZkManager.getFloatingIps();
+    public List<FloatingIp> getFloatingIps() throws WebApplicationException {
+        try {
+            return l3ZkManager.getFloatingIps();
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public void deleteFloatingIp(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         ZkOpLock lock = acquireLock();
         try {
@@ -632,6 +720,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             l3ZkManager.prepareDeleteFloatingIp(ops, fip);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -640,12 +730,16 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public FloatingIp updateFloatingIp(@Nonnull UUID id,
                                        @Nonnull FloatingIp floatingIp)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
-        FloatingIp oldFip = l3ZkManager.getFloatingIp(id);
-        if (oldFip == null) {
-            return null;
+        FloatingIp oldFip;
+        try {
+            oldFip = l3ZkManager.getFloatingIp(id);
+            if (oldFip == null) {
+                return null;
+            }
+        } catch (Exception e) {
+            throw handle(e);
         }
 
         List<Op> ops = new ArrayList<>();
@@ -653,23 +747,25 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         try {
             l3ZkManager.prepareUpdateFloatingIp(ops, floatingIp);
             commitOps(ops);
+            return l3ZkManager.getFloatingIp(id);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
-
-        return l3ZkManager.getFloatingIp(id);
     }
 
     @Override
     public SecurityGroup createSecurityGroup(@Nonnull SecurityGroup sg)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             securityGroupZkManager.prepareCreateSecurityGroup(ops, sg);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -680,8 +776,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public List<SecurityGroup> createSecurityGroupBulk(
         @Nonnull List<SecurityGroup> sgs)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
@@ -689,6 +784,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                 securityGroupZkManager.prepareCreateSecurityGroup(ops, sg);
             }
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -703,7 +800,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteSecurityGroup(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         ZkOpLock lock = acquireLock();
         try {
@@ -716,6 +813,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             securityGroupZkManager.prepareDeleteSecurityGroup(ops, id);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -723,39 +822,48 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public SecurityGroup getSecurityGroup(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
-        SecurityGroup sg = securityGroupZkManager.getSecurityGroup(id);
-        if (sg == null) {
-            return null;
+        try {
+            SecurityGroup sg = securityGroupZkManager.getSecurityGroup(id);
+            if (sg == null) {
+                return null;
+            }
+
+            // Also return security group rules.
+            sg.securityGroupRules = securityGroupZkManager.getSecurityGroupRules(
+                sg.id);
+
+            return sg;
+        } catch (Exception e) {
+            throw handle(e);
         }
 
-        // Also return security group rules.
-        sg.securityGroupRules = securityGroupZkManager.getSecurityGroupRules(
-            sg.id);
-
-        return sg;
     }
 
     @Override
     public List<SecurityGroup> getSecurityGroups()
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
-        List<SecurityGroup> sgs = securityGroupZkManager.getSecurityGroups();
+        try {
+            List<SecurityGroup> sgs = securityGroupZkManager.getSecurityGroups();
 
-        // Also get their rules
-        for (SecurityGroup sg : sgs) {
-            sg.securityGroupRules =
-                securityGroupZkManager.getSecurityGroupRules(sg.id);
+            // Also get their rules
+            for (SecurityGroup sg : sgs) {
+                sg.securityGroupRules =
+                    securityGroupZkManager.getSecurityGroupRules(sg.id);
+            }
+
+            return sgs;
+        } catch (Exception e) {
+            throw handle(e);
         }
-
-        return sgs;
     }
 
     @Override
     public SecurityGroup updateSecurityGroup(
         @Nonnull UUID id, @Nonnull SecurityGroup sg)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -764,6 +872,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             // This should throw NoStatePathException if it doesn't exist.
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -774,14 +884,15 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public SecurityGroupRule createSecurityGroupRule(
         @Nonnull SecurityGroupRule rule)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             securityGroupZkManager.prepareCreateSecurityGroupRule(ops, rule);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -792,8 +903,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public List<SecurityGroupRule> createSecurityGroupRuleBulk(
         @Nonnull List<SecurityGroupRule> rules)
-        throws StateAccessException, SerializationException,
-               Rule.RuleIndexOutOfBoundsException {
+        throws WebApplicationException {
 
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
@@ -803,6 +913,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
                                                                       rule);
             }
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -817,7 +929,7 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteSecurityGroupRule(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
 
         ZkOpLock lock = acquireLock();
         try {
@@ -831,6 +943,8 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
             securityGroupZkManager.prepareDeleteSecurityGroupRule(ops, id);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -838,38 +952,55 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public SecurityGroupRule getSecurityGroupRule(@Nonnull UUID id)
-        throws StateAccessException, SerializationException {
-        return securityGroupZkManager.getSecurityGroupRule(id);
-
+        throws WebApplicationException {
+        try {
+            return securityGroupZkManager.getSecurityGroupRule(id);
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public List<SecurityGroupRule> getSecurityGroupRules()
-        throws StateAccessException, SerializationException {
-        return securityGroupZkManager.getSecurityGroupRules();
+        throws WebApplicationException {
+        try {
+            return securityGroupZkManager.getSecurityGroupRules();
+
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     // Pools
     @Override
-    public Pool getPool(UUID id)
-        throws StateAccessException, SerializationException {
-        return lbZkManager.getNeutronPool(id);
+    public Pool getPool(UUID id) throws WebApplicationException {
+        try {
+            return lbZkManager.getNeutronPool(id);
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public List<Pool> getPools()
-        throws StateAccessException, SerializationException {
-        return lbZkManager.getNeutronPools();
+        throws WebApplicationException {
+        try {
+            return lbZkManager.getNeutronPools();
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public void createPool(Pool pool)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareCreatePool(ops, pool);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -877,12 +1008,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void updatePool(UUID id, Pool pool)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareUpdatePool(ops, id, pool);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -890,12 +1023,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deletePool(UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareDeletePool(ops, id);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -903,25 +1038,33 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     // Members
     @Override
-    public Member getMember(UUID id)
-        throws StateAccessException, SerializationException {
-        return lbZkManager.getNeutronMember(id);
+    public Member getMember(UUID id) throws WebApplicationException {
+        try {
+            return lbZkManager.getNeutronMember(id);
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
-    public List<Member> getMembers()
-        throws StateAccessException, SerializationException {
-        return lbZkManager.getNeutronMembers();
+    public List<Member> getMembers() throws WebApplicationException {
+        try {
+            return lbZkManager.getNeutronMembers();
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public void createMember(Member member)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareCreateMember(ops, member);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -929,12 +1072,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void updateMember(UUID id, Member member)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareUpdateMember(ops, id, member);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -942,12 +1087,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteMember(UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareDeleteMember(ops, id);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -956,24 +1103,34 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     // Vips    public Member getMember(UUID id)
     @Override
     public VIP getVip(UUID id)
-        throws StateAccessException, SerializationException {
-        return lbZkManager.getNeutronVip(id);
+        throws WebApplicationException {
+        try {
+            return lbZkManager.getNeutronVip(id);
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public List<VIP> getVips()
-        throws StateAccessException, SerializationException {
-        return lbZkManager.getNeutronVips();
+        throws WebApplicationException {
+        try {
+            return lbZkManager.getNeutronVips();
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public void createVip(VIP vip)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareCreateVip(ops, vip);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -981,12 +1138,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void updateVip(UUID id, VIP vip)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareUpdateVip(ops, id, vip);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -994,12 +1153,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteVip(UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareDeleteVip(ops, id);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -1008,24 +1169,34 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     // Health Monitors
     @Override
     public HealthMonitor getHealthMonitor(UUID id)
-        throws StateAccessException, SerializationException {
-        return lbZkManager.getNeutronHealthMonitor(id);
+        throws WebApplicationException {
+        try {
+            return lbZkManager.getNeutronHealthMonitor(id);
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public List<HealthMonitor> getHealthMonitors()
-        throws StateAccessException, SerializationException {
-        return lbZkManager.getNeutronHealthMonitors();
+        throws WebApplicationException {
+        try {
+            return lbZkManager.getNeutronHealthMonitors();
+        } catch (Exception e) {
+            throw handle(e);
+        }
     }
 
     @Override
     public void createHealthMonitor(HealthMonitor healthMonitor)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareCreateHealthMonitor(ops, healthMonitor);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -1034,12 +1205,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public void updateHealthMonitor(UUID id,
                                              HealthMonitor healthMonitor)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareUpdateHealthMonitor(ops, id, healthMonitor);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -1047,12 +1220,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deleteHealthMonitor(UUID id)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.prepareDeleteHealthMonitor(ops, id);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -1062,12 +1237,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
     @Override
     public void createPoolHealthMonitor(UUID poolId,
                                         PoolHealthMonitor poolHealthMonitor)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.createPoolHealthMonitor(ops, poolId, poolHealthMonitor);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
@@ -1075,12 +1252,14 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
 
     @Override
     public void deletePoolHealthMonitor(UUID poolId, UUID hmId)
-        throws StateAccessException, SerializationException {
+        throws WebApplicationException {
         List<Op> ops = new ArrayList<>();
         ZkOpLock lock = acquireLock();
         try {
             lbZkManager.deletePoolHealthMonitor(ops, poolId, hmId);
             commitOps(ops);
+        } catch (Exception e) {
+            throw handle(e);
         } finally {
             lock.release();
         }
