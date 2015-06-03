@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,13 @@
  */
 package org.midonet.cluster.data.neutron;
 
-import org.midonet.cluster.data.Rule;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.StateAccessException;
-
-import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Nonnull;
+
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 
 public interface L3Api {
 
@@ -33,8 +33,7 @@ public interface L3Api {
      * @return Created Router object
      */
     Router createRouter(@Nonnull Router router)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Delete a router. Nothing happens if the resource does not exist.
@@ -42,7 +41,7 @@ public interface L3Api {
      * @param id ID of the Router object to delete
      */
     void deleteRouter(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Retrieve a router. Returns null if the resource does not exist.
@@ -51,7 +50,7 @@ public interface L3Api {
      * @return Router object
      */
     Router getRouter(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Get all the routers.
@@ -59,7 +58,7 @@ public interface L3Api {
      * @return List of Router objects.
      */
     List<Router> getRouters()
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Update a router.  NoStatePathException is thrown if the resource does
@@ -69,8 +68,7 @@ public interface L3Api {
      * @return Updated Router object
      */
     Router updateRouter(@Nonnull UUID id, @Nonnull Router router)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Add an interface on the network to link to a router.
@@ -81,7 +79,7 @@ public interface L3Api {
      */
     RouterInterface addRouterInterface(
             @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Remove an interface on the network linked to a router.
@@ -101,8 +99,7 @@ public interface L3Api {
      * @return Created FloatingIp object
      */
     FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Delete a floating IP. Nothing happens if the resource does not exist.
@@ -110,7 +107,7 @@ public interface L3Api {
      * @param id ID of the FloatingIp object to delete
      */
     void deleteFloatingIp(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Retrieve a floating IP. Returns null if the resource does not exist.
@@ -119,7 +116,7 @@ public interface L3Api {
      * @return Router object
      */
     FloatingIp getFloatingIp(@Nonnull UUID id)
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Get all the floating IP.
@@ -127,7 +124,7 @@ public interface L3Api {
      * @return List of FloatingIp objects.
      */
     List<FloatingIp> getFloatingIps()
-            throws StateAccessException, SerializationException;
+            throws ConflictHttpException, NotFoundHttpException;
 
     /**
      * Update a floating IP..  NoStatePathException is thrown if the resource
@@ -138,6 +135,5 @@ public interface L3Api {
      */
     FloatingIp updateFloatingIp(@Nonnull UUID id,
                                 @Nonnull FloatingIp floatingIp)
-            throws StateAccessException, SerializationException,
-            Rule.RuleIndexOutOfBoundsException;
+            throws ConflictHttpException, NotFoundHttpException;
 }

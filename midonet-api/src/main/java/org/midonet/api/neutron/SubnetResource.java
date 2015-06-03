@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,33 +15,40 @@
  */
 package org.midonet.api.neutron;
 
+import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.neutron.NetworkApi;
 import org.midonet.cluster.data.neutron.Subnet;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.event.neutron.SubnetEvent;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
-import org.midonet.midolman.state.StatePathExistsException;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.RolesAllowed;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.List;
-import java.util.UUID;
-
-import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 public class SubnetResource extends AbstractResource {
 
@@ -67,19 +74,13 @@ public class SubnetResource extends AbstractResource {
             throws SerializationException, StateAccessException {
         log.info("SubnetResource.create entered {}", subnet);
 
-        try {
+        Subnet sub = api.createSubnet(subnet);
+        SUBNET_EVENT.create(sub.id, sub);
+        log.info("SubnetResource.create exiting {}", sub);
+        return Response.created(
+            NeutronUriBuilder.getSubnet(
+                getBaseUri(), sub.id)).entity(sub).build();
 
-            Subnet sub = api.createSubnet(subnet);
-            SUBNET_EVENT.create(sub.id, sub);
-            log.info("SubnetResource.create exiting {}", sub);
-            return Response.created(
-                    NeutronUriBuilder.getSubnet(
-                            getBaseUri(), sub.id)).entity(sub).build();
-
-        } catch (StatePathExistsException e) {
-            log.error("Duplicate resource error", e);
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
-        }
     }
 
     @POST
@@ -87,19 +88,14 @@ public class SubnetResource extends AbstractResource {
     @Produces(NeutronMediaType.SUBNETS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response createBulk(List<Subnet> subnets)
-            throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException {
         log.info("SubnetResource.createBulk entered");
-
-        try {
-            List<Subnet> nets = api.createSubnetBulk(subnets);
-            for (Subnet subnet : nets) {
-                SUBNET_EVENT.create(subnet.id, subnet);
-            }
-            return Response.created(NeutronUriBuilder.getSubnets(
-                    getBaseUri())).entity(nets).build();
-        } catch (StatePathExistsException e) {
-            throw new ConflictHttpException(e, getMessage(RESOURCE_EXISTS));
+        List<Subnet> nets = api.createSubnetBulk(subnets);
+        for (Subnet subnet : nets) {
+            SUBNET_EVENT.create(subnet.id, subnet);
         }
+        return Response.created(NeutronUriBuilder.getSubnets(
+            getBaseUri())).entity(nets).build();
     }
 
     @DELETE
@@ -143,23 +139,13 @@ public class SubnetResource extends AbstractResource {
     @Consumes(NeutronMediaType.SUBNET_JSON_V1)
     @Produces(NeutronMediaType.SUBNET_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
-    public Response update(@PathParam("id") UUID id, Subnet subnet)
-            throws SerializationException, StateAccessException,
-            BridgeZkManager.VxLanPortIdUpdateException {
+    public Response update(@PathParam("id") UUID id, Subnet subnet) {
         log.info("SubnetResource.update entered {}", subnet);
-
-        try {
-
-            Subnet sub = api.updateSubnet(id, subnet);
-            SUBNET_EVENT.update(id, sub);
-            log.info("SubnetResource.update exiting {}", sub);
-            return Response.ok(
-                    NeutronUriBuilder.getSubnet(
-                            getBaseUri(), sub.id)).entity(sub).build();
-
-        } catch (NoStatePathException e) {
-            log.error("Resource does not exist", e);
-            throw new NotFoundHttpException(e, getMessage(RESOURCE_NOT_FOUND));
-        }
+        Subnet sub = api.updateSubnet(id, subnet);
+        SUBNET_EVENT.update(id, sub);
+        log.info("SubnetResource.update exiting {}", sub);
+        return Response.ok(
+            NeutronUriBuilder.getSubnet(
+                getBaseUri(), sub.id)).entity(sub).build();
     }
 }
