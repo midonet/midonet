@@ -18,10 +18,12 @@ from mdts.lib.binding_manager import BindingManager
 from mdts.lib.failure.no_failure import NoFailure
 from mdts.lib.failure.netif_failure import NetifFailure
 from mdts.lib.failure.pkt_failure import PktFailure
-from mdts.lib.failure.namespaces import *
 
+from mdts.tests.config import NS_BGP_PEERS
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils import *
+
+
 from nose.plugins.attrib import attr
 
 from hamcrest import *
@@ -357,7 +359,7 @@ def test_icmp_failback():
 
     ping_inet() # BGP #1 and #2 are working
 
-    failure = PktFailure(NS_BGP_PEER_1, 'eth0', 35)
+    failure = PktFailure(NS_BGP_PEERS[0], 'eth0', 35)
     failure.inject()
     try:
         ping_inet() # BGP #1 is lost
@@ -366,7 +368,7 @@ def test_icmp_failback():
 
     ping_inet() # BGP #1 is back
 
-    failure = PktFailure(NS_BGP_PEER_1, 'eth1', 35)
+    failure = PktFailure(NS_BGP_PEERS[0], 'eth1', 35)
     failure.inject()
     try:
         ping_inet() # BGP #2 is lost
