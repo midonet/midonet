@@ -87,11 +87,13 @@ class BindingManager(TopologyManager):
             iface = self._ptm.get_interface(host_id, iface_id)
             iface_name = iface.interface['ifname']
             mn_host_id = iface.host['mn_host_id']
+            mn_vport_id = iface.vport_id
 
             for hip in self._api.get_host(mn_host_id).get_ports():
                 if hip.get_interface_name() == iface_name:
                     hip.delete()
                     iface.vport_id = None
+                    await_port_active(mn_vport_id, active=False)
 
         self._port_if_map = {}
 
