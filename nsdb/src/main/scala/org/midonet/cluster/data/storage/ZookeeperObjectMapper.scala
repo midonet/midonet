@@ -34,7 +34,7 @@ import com.google.protobuf.{Message, TextFormat}
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
-import org.apache.curator.utils.EnsurePath
+import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException._
 import org.apache.zookeeper.OpResult.ErrorResult
 import org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged
@@ -109,9 +109,9 @@ import org.midonet.util.reactivex._
  * number node and it'd be notified if another ZOOM instances bumps the version
  * number to switch to the new version.
  */
-class ZookeeperObjectMapper(
-    private val basePathPrefix: String,
-    private val curator: CuratorFramework) extends StorageWithOwnership {
+class ZookeeperObjectMapper(private val rootPath: String,
+                            private val curator: CuratorFramework)
+    extends StorageWithOwnership {
 
     import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 
@@ -120,12 +120,13 @@ class ZookeeperObjectMapper(
      * ZOOM actually just bumps the version number by 1, keeps the old data, and
      * starts persisting data in under the new version path.
      */
-    private val version = new AtomicLong(INITIAL_ZOOM_DATA_SET_VERSION)
-    private def basePath(version: Long = this.version.longValue) =
-        s"$basePathPrefix/$version"
-    private def versionNodePath = s"$basePathPrefix/$VERSION_NODE"
+    private val version = new AtomicLong(InitialZoomDataSetVersion)
 
-    private def locksPath(version: Long) = basePath(version) + "/zoomlocks/lock"
+    private val versionNodePath = s"$rootPath/$VersionNode"
+
+    private def basePath(version: Long) = s"$rootPath/$version"
+
+    private def locksPath(version: Long) = s"$rootPath/$version/zoomlocks/lock"
 
     private val executor = Executors.newCachedThreadPool()
     private implicit val executionContext =
@@ -172,7 +173,7 @@ class ZookeeperObjectMapper(
         }
 
         private def getPath(clazz: Class[_], id: ObjId) = {
-            ZookeeperObjectMapper.this.getPath(clazz, id, version)
+            ZookeeperObjectMapper.this.getObjectPath(clazz, id, version)
         }
 
         private def getOwnerPath(clazz: Class[_], id: ObjId, owner: ObjId) = {
@@ -237,9 +238,9 @@ class ZookeeperObjectMapper(
                     txn.create.forPath(id, asBytes(value)).and
                 case TxUpdateNode(value) =>
                     txn.setData().forPath(id, asBytes(value)).and
-                case TxDeleteNode() =>
+                case TxDeleteNode =>
                     txn.delete.forPath(id).and
-                case TxNodeExists() =>
+                case TxNodeExists =>
                     throw new InternalObjectMapperException(
                         "TxNodeExists should have been filtered by flattenOps.")
             }
@@ -271,9 +272,6 @@ class ZookeeperObjectMapper(
             }
         }
 
-        /** Get s's bytes, or null if s is null. */
-        private def asBytes(s: String) = if (s != null) s.getBytes else null
-
         def releaseLock(): Unit = try {
             curator.delete().forPath(lockPath)
         } catch {
@@ -281,6 +279,9 @@ class ZookeeperObjectMapper(
             case ex: Exception => log.warn(
                 s"Could not delete TransactionManager lock node $lockPath.", ex)
         }
+
+        /** Get s's bytes, or null if s is null. */
+        private def asBytes(s: String) = if (s != null) s.getBytes else null
 
         /**
          * Returns the operation of this transaction that generated the given
@@ -335,7 +336,7 @@ class ZookeeperObjectMapper(
             opForException(ops, e) match {
                 case (Key(_, path), _: TxUpdateNode) =>
                     throw new StorageNodeNotFoundException(path)
-                case (Key(_, path), _: TxDeleteNode) =>
+                case (Key(_, path), TxDeleteNode) =>
                     throw new StorageNodeNotFoundException(path)
                 case _ => throw new ConcurrentModificationException(e)
             }
@@ -357,7 +358,7 @@ class ZookeeperObjectMapper(
                 case (Key(clazz, id), _: TxOwnerOp) =>
                     throw new OwnershipConflictException(clazz.toString,
                                                          id.toString)
-                case (_, _: TxDeleteNode) =>
+                case (_, TxDeleteNode) =>
                     // We added operations to delete all descendants, so this
                     // should only happen if there was a concurrent
                     // modification.
@@ -384,8 +385,8 @@ class ZookeeperObjectMapper(
     /**
      * Registers the state for use.
      */
-    override def registerClass(clazz: Class[_],
-                               ownershipType: OwnershipType): Unit = {
+    override def registerClass(clazz: Class[_], ownershipType: OwnershipType)
+    : Unit = {
         assert(!isBuilt)
         registerClassInternal(clazz, ownershipType)
     }
@@ -404,20 +405,12 @@ class ZookeeperObjectMapper(
         }
 
         classInfo(clazz) = makeInfo(clazz, ownershipType)
-
-        val ensurePath = new EnsurePath(getPath(clazz))
-        try ensurePath.ensure(curator.getZookeeperClient) catch {
-            case ex: Exception => throw new InternalObjectMapperException(ex)
-        }
-
-        // Add the instance map last, since it's used to verify registration
-        instanceCaches(clazz) =
-            new TrieMap[String, InstanceSubscriptionCache[_]]
+        instanceCaches(clazz) = new TrieMap[String, InstanceSubscriptionCache[_]]
         ownerCaches(clazz) = new TrieMap[String, DirectorySubscriptionCache]
     }
 
     override def isRegistered(clazz: Class[_]) = {
-        val registered = instanceCaches.contains(clazz)
+        val registered = classInfo.contains(clazz)
         if (!registered)
             log.warn(s"Class ${clazz.getSimpleName} is not registered.")
         registered
@@ -425,7 +418,7 @@ class ZookeeperObjectMapper(
 
     override def build() {
         initVersionNumber()
-        ensureClassNodes(instanceCaches.keySet.toSet)
+        ensureClassNodes()
         super.build()
     }
 
@@ -447,9 +440,10 @@ class ZookeeperObjectMapper(
     }
 
     private def initVersionNumber() {
-        val vNodePath = versionNodePath
         try {
-            curator.create.forPath(vNodePath, version.toString.getBytes)
+            ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                           versionNodePath, false)
+            curator.create.forPath(versionNodePath, version.toString.getBytes)
             getVersionNumberFromZkAndWatch
         } catch {
             case _: NodeExistsException =>
@@ -471,15 +465,18 @@ class ZookeeperObjectMapper(
      * Ensures that the class nodes in Zookeeper for each provided class exist,
      * creating them if needed.
      */
-    private def ensureClassNodes(classes: Set[Class[_]]) {
+    private def ensureClassNodes() {
+        val classes = classInfo.keySet
         assert(classes.forall(isRegistered))
 
         // First try a multi-check for all the classes. If they already exist,
         // as they usually will except on the first startup, we can verify this
         // in a single round trip to Zookeeper.
         var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
-        for (clazz <- classes)
-            txn = txn.check().forPath(getPath(clazz)).and()
+        for (clazz <- classes) {
+            txn = txn.check().forPath(getClassPath(clazz)).and()
+            txn
+        }
         try {
             txn.commit()
             return
@@ -490,12 +487,13 @@ class ZookeeperObjectMapper(
         }
 
         // One or more didn't exist, so we'll have to check them individually.
-        for (clazz <- classes) {
-            val ensurePath = new EnsurePath(getPath(clazz))
-            try ensurePath.ensure(curator.getZookeeperClient) catch {
-                case ex: Exception => throw new
-                        InternalObjectMapperException(ex)
+        try {
+            for (clazz <- classes) {
+                ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                               getClassPath(clazz))
             }
+        } catch {
+            case ex: Exception => throw new InternalObjectMapperException(ex)
         }
     }
 
@@ -519,7 +517,8 @@ class ZookeeperObjectMapper(
                         }
                     }
                 }
-                curator.getData.inBackground(cb).forPath(getPath(clazz, id))
+                curator.getData.inBackground(cb)
+                       .forPath(getObjectPath(clazz, id))
                 p.future
         }
     }
@@ -550,13 +549,14 @@ class ZookeeperObjectMapper(
             }
         }
 
+        val path = getClassPath(clazz)
         try {
-            curator.getChildren.inBackground(cb).forPath(getPath(clazz))
+            curator.getChildren.inBackground(cb).forPath(path)
         } catch {
             case ex: Exception =>
                 // Should have created this during class registration.
                 throw new InternalObjectMapperException(
-                    s"Node ${getPath(clazz)} does not exist in Zookeeper.", ex)
+                    s"Node $path does not exist in Zookeeper.", ex)
         }
         all.future
     }
@@ -580,7 +580,8 @@ class ZookeeperObjectMapper(
                         }
                     }
                 }
-                curator.getChildren.inBackground(cb).forPath(getPath(clazz, id))
+                curator.getChildren.inBackground(cb)
+                       .forPath(getObjectPath(clazz, id))
                 p.future
         }
     }
@@ -600,7 +601,8 @@ class ZookeeperObjectMapper(
             }
         }
         try {
-            curator.checkExists().inBackground(cb).forPath(getPath(clazz, id))
+            curator.checkExists().inBackground(cb)
+                   .forPath(getObjectPath(clazz, id))
         } catch {
             case ex: Exception => throw new InternalObjectMapperException(ex)
         }
@@ -641,21 +643,26 @@ class ZookeeperObjectMapper(
         try manager.commit() finally { manager.releaseLock() }
     }
 
-    private[storage] def getPath(clazz: Class[_], version: Long) =
-        basePath(version) + "/" + clazz.getSimpleName
-
-    private[storage] def getPath(clazz: Class[_]): String =
-        getPath(clazz, this.version.longValue)
-
-    private[storage] def getPath(
-            clazz: Class[_], id: ObjId, version: Long = this.version.longValue)
+    @inline
+    private[storage] def getClassPath(clazz: Class[_],
+                                      version: Long = version.longValue())
     : String = {
-        getPath(clazz, version) + "/" + getIdString(clazz, id)
+        basePath(version) + "/" + clazz.getSimpleName
     }
 
+    @inline
+    private[storage] def getObjectPath(clazz: Class[_], id: ObjId,
+                                       version: Long = version.longValue())
+    : String = {
+        getClassPath(clazz, version) + "/" + getIdString(clazz, id)
+    }
+
+    @inline
     private[storage] def getOwnerPath(clazz: Class[_], id: ObjId, owner: ObjId,
-                                      version: Long = this.version.longValue) =
-        getPath(clazz, id, version) + "/" + owner.toString
+                                      version: Long = version.longValue())
+    : String = {
+        getObjectPath(clazz, id, version) + "/" + owner.toString
+    }
 
     /**
      * @return The number of subscriptions to the given class and id. If the
@@ -675,7 +682,8 @@ class ZookeeperObjectMapper(
             val onLastUnsubscribe = (c: InstanceSubscriptionCache[_]) => {
                 instanceCaches.get(clazz).foreach( _ remove id.toString )
             }
-            val ic = new InstanceSubscriptionCache(clazz, getPath(clazz, id),
+            val ic = new InstanceSubscriptionCache(clazz,
+                                                   getObjectPath(clazz, id),
                                                    id.toString, curator,
                                                    onLastUnsubscribe)
             instanceCaches(clazz).putIfAbsent(id.toString, ic) getOrElse {
@@ -699,8 +707,8 @@ class ZookeeperObjectMapper(
             val onLastUnsubscribe: ClassSubscriptionCache[_] => Unit = c => {
                 classCaches.remove(clazz)
             }
-            val cc = new ClassSubscriptionCache(clazz, getPath(clazz), curator,
-                                                onLastUnsubscribe)
+            val cc = new ClassSubscriptionCache(clazz, getClassPath(clazz),
+                                                curator, onLastUnsubscribe)
             classCaches.putIfAbsent(clazz, cc).getOrElse(cc)
         }).asInstanceOf[ClassSubscriptionCache[T]].observable
     }
@@ -714,8 +722,8 @@ class ZookeeperObjectMapper(
             val onLastUnsubscribe: DirectorySubscriptionCache => Unit = c => {
                 ownerCaches.get(clazz).foreach( _ remove id.toString )
             }
-            val oc = new DirectorySubscriptionCache(getPath(clazz, id), curator,
-                                                    onLastUnsubscribe)
+            val oc = new DirectorySubscriptionCache(getObjectPath(clazz, id),
+                                                    curator, onLastUnsubscribe)
             ownerCaches(clazz).putIfAbsent(id.toString, oc).getOrElse(oc)
         }).observable
     }
@@ -745,8 +753,9 @@ class ZookeeperObjectMapper(
 }
 
 object ZookeeperObjectMapper {
-    private val VERSION_NODE = "dataset_version"
-    private val INITIAL_ZOOM_DATA_SET_VERSION = 1
+
+    private val VersionNode = "dataset_version"
+    private val InitialZoomDataSetVersion = 1
 
     private[storage] final class MessageClassInfo(clazz: Class[_],
                                                   ownershipType: OwnershipType)
@@ -779,8 +788,8 @@ object ZookeeperObjectMapper {
 
     private val jsonFactory = new JsonFactory(new ObjectMapper())
 
-    private[storage] def makeInfo(clazz: Class[_],
-                                  ownershipType: OwnershipType): ClassInfo = {
+    private[storage] def makeInfo(clazz: Class[_], ownershipType: OwnershipType)
+    : ClassInfo = {
         try {
             if (classOf[Message].isAssignableFrom(clazz)) {
                 new MessageClassInfo(clazz, ownershipType)
@@ -847,6 +856,16 @@ object ZookeeperObjectMapper {
         val t = parser.readValueAs(clazz)
         parser.close()
         t
+    }
+
+    private def makeBackground(callback: (CuratorEvent) => Unit)
+    : BackgroundCallback = {
+        new BackgroundCallback {
+            override def processResult(client: CuratorFramework,
+                                       event: CuratorEvent): Unit = {
+                callback(event)
+            }
+        }
     }
 
 }

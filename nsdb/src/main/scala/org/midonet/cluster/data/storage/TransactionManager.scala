@@ -46,11 +46,13 @@ object TransactionManager {
     case class TxDeleteOwner(owner: String) extends TxOwnerOp
     case class TxCreateNode(value: String) extends TxNodeOp
     case class TxUpdateNode(value: String) extends TxNodeOp
-    case class TxDeleteNode() extends TxNodeOp
+    case object TxDeleteNode extends TxNodeOp
+    case object TxCreateState
+    case object TxDeleteState
 
     // No-op. Used in nodeOps map to indicate that we've checked the data store
     // and confirmed that this node exists.
-    case class TxNodeExists() extends TxNodeOp
+    case object TxNodeExists extends TxNodeOp
 
     private final val NewObjectVersion = -1
 
@@ -130,7 +132,7 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
     // creating the node with value "val1" and then updating its value to
     // "val2".
     protected val nodeOps = new PathMap[TxNodeOp]
-    nodeOps("/") = TxNodeExists() // The root node always exists.
+    nodeOps("/") = TxNodeExists // The root node always exists.
 
     protected def isRegistered(clazz: Class[_]): Boolean
 
@@ -505,14 +507,14 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
         // order.
         val nops = nodeOps.toList.collect {
             // TxNodeExists doesn't correspond to a real operation.
-            case (path, op) if !op.isInstanceOf[TxNodeExists] =>
+            case (path, op) if op != TxNodeExists =>
                 (Key(null, path), op)
         }
 
         // Delete operations need to be sorted such that children are deleted
         // before their parents. Simply reversing them should do this, since
         // they were already in top-down breadth-first order.
-        val (delOps, otherOps) = nops.partition(_._2.isInstanceOf[TxDeleteNode])
+        val (delOps, otherOps) = nops.partition(_._2 == TxDeleteNode)
         list ++= otherOps
         list ++= delOps.reverse
 
@@ -565,10 +567,10 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
                 val cn = TxCreateNode(value)
                 nodeOps(path) = cn
                 ensureNode(parentPath(path))
-            case Some(dn @ TxDeleteNode()) =>
+            case Some(TxDeleteNode) =>
                 nodeOps(path) = new TxUpdateNode(value)
                 ensureNode(parentPath(path))
-            case Some(TxCreateNode(_) | TxUpdateNode(_) | TxNodeExists()) =>
+            case Some(TxCreateNode(_) | TxUpdateNode(_) | TxNodeExists) =>
                 throw new StorageNodeExistsException(path)
         }
     }
@@ -581,27 +583,27 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
         nodeOps.get(path) match {
             case None => // Don't know whether this node exists.
                 if (nodeExists(path)) {
-                    nodeOps(path) = TxNodeExists()
+                    nodeOps(path) = TxNodeExists
                 } else {
                     val cn = TxCreateNode(null)
                     nodeOps(path) = cn
                     ensureNode(parentPath(path))
                 }
-            case Some(TxDeleteNode()) =>
+            case Some(TxDeleteNode) =>
                 nodeOps(path) = TxUpdateNode(null)
                 ensureNode(parentPath(path))
-            case Some(TxCreateNode(_) | TxUpdateNode(_) | TxNodeExists()) =>
+            case Some(TxCreateNode(_) | TxUpdateNode(_) | TxNodeExists) =>
                 // Already exists.
         }
     }
 
     def updateNode(path: String, value: String): Unit = {
         nodeOps.get(path) match {
-            case None | Some(TxUpdateNode(_) | TxNodeExists()) =>
+            case None | Some(TxUpdateNode(_) | TxNodeExists) =>
                 nodeOps(path) = TxUpdateNode(value)
             case Some(TxCreateNode(_)) =>
                 nodeOps(path) = TxCreateNode(value)
-            case Some(TxDeleteNode()) =>
+            case Some(TxDeleteNode) =>
                 throw new StorageNodeNotFoundException(path)
         }
     }
@@ -610,19 +612,19 @@ abstract class TransactionManager(classes: ClassesMap, bindings: BindingsMap) {
         // First mark all known descendants for deletion.
         for ((p, op) <- nodeOps.getDescendants(path)) op match {
             case TxCreateNode(_) => nodeOps -= p
-            case TxUpdateNode(_) | TxNodeExists() =>
-                nodeOps(p) = TxDeleteNode()
-            case TxDeleteNode() =>
+            case TxUpdateNode(_) | TxNodeExists =>
+                nodeOps(p) = TxDeleteNode
+            case TxDeleteNode =>
         }
 
         // Mark the node itself for deletion.
-        if (nodeOps.get(path).isEmpty) nodeOps(path) = TxDeleteNode()
+        if (nodeOps.get(path).isEmpty) nodeOps(path) = TxDeleteNode
 
         // Now add delete operations for all remaining descendant nodes in
         // Zookeeper that we don't know about yet.
         def recDelete(path: String): Unit = {
             for (child <- childrenOf(path) if nodeOps.get(child).isEmpty) {
-                nodeOps(child) = TxDeleteNode()
+                nodeOps(child) = TxDeleteNode
                 recDelete(child)
             }
         }
