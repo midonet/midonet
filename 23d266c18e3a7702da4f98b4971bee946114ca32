@@ -1,0 +1,372 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_0bb03a42",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/NetworkResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2bab3ed7",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/PortResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6bb54630",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/RouterResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8b836a55",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/SecurityGroupResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ab866e63",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/SecurityGroupRuleResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_eb807648",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/SubnetResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0b975a91",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/loadbalancer/HealthMonitorResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2b925e9f",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/loadbalancer/MemberResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4b916298",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/loadbalancer/PoolResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6b8c6680",
+        "filename": "midonet-api/src/main/java/org/midonet/api/neutron/loadbalancer/VipResource.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8bea8a0d",
+        "filename": "midonet-api/src/main/java/org/midonet/cluster/data/neutron/L3Api.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_abed8e27",
+        "filename": "midonet-api/src/main/java/org/midonet/cluster/data/neutron/LoadBalancerApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8b752a9a",
+        "filename": "midonet-api/src/main/java/org/midonet/cluster/data/neutron/NetworkApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0b691abe",
+        "filename": "midonet-api/src/main/java/org/midonet/cluster/data/neutron/NeutronPlugin.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4b6322dc",
+        "filename": "midonet-api/src/main/java/org/midonet/cluster/data/neutron/NeutronPlugin.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "Why not WebApplicationException here for consistency?",
+      "range": {
+        "startLine": 203,
+        "startChar": 55,
+        "endLine": 204,
+        "endChar": 76
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_cbf492f4",
+        "filename": "midonet-api/src/main/java/org/midonet/cluster/data/neutron/SecurityGroupApi.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-04T02:39:22Z",
+      "side": 1,
+      "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "23d266c18e3a7702da4f98b4971bee946114ca32",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
