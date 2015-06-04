@@ -26,8 +26,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.RestApiService;
-import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.ClusterNode;
+import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 
@@ -65,7 +65,6 @@ public class JerseyGuiceServletContextListener extends
 
         injector.getInstance(RestApiService.class).startAsync().awaitRunning();
         ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
-
         startConfApi();
 
         if (ctx.embed()) {

@@ -44,6 +44,7 @@ import org.midonet.api.error.ExceptionFilter;
 import org.midonet.api.network.NetworkModule;
 import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
+import org.midonet.cluster.neutron_rest_api.NeutronZoomApiModule;
 import org.midonet.cluster.rest_api.serialization.SerializationModule;
 import org.midonet.cluster.rest_api.validation.ValidationModule;
 import org.midonet.cluster.ClusterConfig;
@@ -114,7 +115,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
             .withValue("zookeeper.curator_enabled",
                 ConfigValueFactory.fromAnyRef(true))
             .withValue("zookeeper.use_new_stack",
-                ConfigValueFactory.fromAnyRef(false));
+                ConfigValueFactory.fromAnyRef(zkconf.useNewStack()));
         log.info("Loaded zookeeper config: {}", ret.root().render());
         return ret;
     }
@@ -149,10 +150,10 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new AuthModule());
         install(new ErrorModule());
 
+        installRestApiModule(); // allow mocking
+
         installConfigApi(zkConfToConfig(zkCfg));
         install(new MidonetBackendModule(zkConfToConfig(zkCfg)));
-
-        installRestApiModule(); // allow mocking
 
         install(new ValidationModule());
 
@@ -162,7 +163,13 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new LegacyClusterModule());
 
         // Install Neutron module;
-        install(new NeutronClusterApiModule());
+        if (zkCfg.useNewStack()) {
+            log.info("Using ZOOM based Neutron API");
+            install(new NeutronZoomApiModule());
+        } else {
+            log.info("Using DataClient based Neutron API");
+            install(new NeutronClusterApiModule());
+        }
         install(new NeutronRestApiModule());
 
         install(new NetworkModule());

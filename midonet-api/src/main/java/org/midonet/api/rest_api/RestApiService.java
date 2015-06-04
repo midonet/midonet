@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.LegacyStorageService;
+import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.MidonetBackendService;
 
 /**
@@ -32,11 +33,11 @@ public class RestApiService extends AbstractService {
     private static final Logger log = LoggerFactory.getLogger(
             RestApiService.class);
 
-    private final MidonetBackendService midonetBackendService;
+    private final MidonetBackend midonetBackendService;
     private final LegacyStorageService legacyStorageService;
 
     @Inject
-    public RestApiService(MidonetBackendService midonetBackendService,
+    public RestApiService(MidonetBackend midonetBackendService,
                           LegacyStorageService legacyStorageService) {
         this.midonetBackendService = midonetBackendService;
         this.legacyStorageService = legacyStorageService;

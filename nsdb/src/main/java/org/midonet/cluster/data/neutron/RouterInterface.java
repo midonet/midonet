@@ -17,12 +17,17 @@ package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
+
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 
 import java.util.UUID;
 
-public class RouterInterface {
+@ZoomClass(clazz = Neutron.NeutronRouterInterface.class)
+public class RouterInterface extends ZoomObject {
 
     public RouterInterface() {}
 

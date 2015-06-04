@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Neutron.NeutronRouterInterface
+import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.{NeutronTranslator, TranslationException}
 
 object C3POStorageManager {
@@ -193,8 +194,14 @@ final class C3POStorageManager(storage: Storage) {
     }
 
     @throws[ProcessingException]
-    private def toPersistenceOps[T <: Message](task: neutron.Task[T]) = {
-        val modelClass = task.op match {
+    private def toPersistenceOps[T <: Message](task: neutron.Task[T])
+    : Seq[PersistenceOp] = {
+        toPersistenceOps(task.op)
+    }
+
+    def toPersistenceOps[T <: Message](neutronOp: NeutronOp[T])
+    : Seq[PersistenceOp] = {
+        val modelClass = neutronOp match {
             case c: neutron.Create[T] => c.model.getClass
             case u: neutron.Update[T] => u.model.getClass
             case d: neutron.Delete[T] => d.clazz
@@ -205,11 +212,11 @@ final class C3POStorageManager(storage: Storage) {
 
         val neutronModelOp = // Persist the original model if appropriate.
             if (neutronClassesNotStored.contains(modelClass)) Seq()
-            else Seq(task.op.toPersistenceOp)
+            else Seq(neutronOp.toPersistenceOp)
 
         neutronModelOp ++ apiTranslators.get(modelClass)
             .asInstanceOf[NeutronTranslator[T]]
-            .translate(task.op)
+            .translate(neutronOp)
             .map { midoOp => midoOp.toPersistenceOp }
     }
 }
