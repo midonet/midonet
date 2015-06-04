@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_462157fa",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/DeviceOwner.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-04T17:19:36Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_4b7882f2",
+      "range": {
+        "startLine": 28,
+        "startChar": 19,
+        "endLine": 28,
+        "endChar": 27
+      },
+      "revId": "a893b509c2cc051d96f6c7e4afd8f72e209ad2f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_cb6e5201",
         "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/RuleDirection.java",
         "patchSetId": 7
@@ -105,6 +129,30 @@
       "writtenOn": "2015-06-04T09:00:36Z",
       "side": 1,
       "message": "Does this correspond to the NeutronHealthMonitor? If so, do we need to set any of the missing fields?",
+      "range": {
+        "startLine": 24,
+        "startChar": 13,
+        "endLine": 24,
+        "endChar": 30
+      },
+      "revId": "a893b509c2cc051d96f6c7e4afd8f72e209ad2f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c613a764",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/PoolHealthMonitor.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-04T17:19:36Z",
+      "side": 1,
+      "message": "I think this is not used in proto, as it seems to represent the link between a pool and a hm",
+      "parentUuid": "facab960_0b5f5a42",
       "range": {
         "startLine": 24,
         "startChar": 13,
