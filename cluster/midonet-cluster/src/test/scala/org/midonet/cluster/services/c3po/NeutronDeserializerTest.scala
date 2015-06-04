@@ -41,7 +41,8 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
               |    "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
               |    "shared": true,
               |    "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
-              |    "router:external": true
+              |    "router:external": true,
+              |    "port_security_enabled": true
               |}
             """.stripMargin
 
@@ -54,6 +55,7 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         network.getShared shouldBe true
         network.getId.getMsb shouldBe 0xd32019d3bc6e4319L
         network.getId.getLsb shouldBe 0x9c1d6722fc136a22L
+        network.getPortSecurityEnabled shouldBe true
     }
 
     // Interesting features:
@@ -179,18 +181,24 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
               |    "admin_state_up": true,
               |    "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
               |    "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
-              |    "device_owner": "network:router_interface"
+              |    "device_owner": "network:router_interface",
+              |    "port_security_enabled": true,
+              |    "allowed_address_pairs": [{"ip_address": "1.2.3.4", "mac_address": "01:02:03:04:05:06"}]
               |}
             """.stripMargin
 
-        val network =
+        val port =
             NeutronDeserializer.toMessage(json, classOf[NeutronPort])
-        network.getName should equal("router-gateway-port")
-        network.getAdminStateUp shouldBe true
-        network.getTenantId should equal("4fd44f30292945e481c7b8a0c8908869")
-        network.getId.getMsb shouldBe 0xd32019d3bc6e4319L
-        network.getId.getLsb shouldBe 0x9c1d6722fc136a22L
-        network.getDeviceOwner shouldBe NeutronPort.DeviceOwner.ROUTER_INTERFACE
+        port.getName should equal("router-gateway-port")
+        port.getAdminStateUp shouldBe true
+        port.getTenantId should equal("4fd44f30292945e481c7b8a0c8908869")
+        port.getId.getMsb shouldBe 0xd32019d3bc6e4319L
+        port.getId.getLsb shouldBe 0x9c1d6722fc136a22L
+        port.getDeviceOwner shouldBe NeutronPort.DeviceOwner.ROUTER_INTERFACE
+        port.getPortSecurityEnabled shouldBe true
+        port.getAllowedAddressPairsCount shouldBe 1
+        port.getAllowedAddressPairsList.get(0).getIpAddress.getAddress shouldBe "1.2.3.4"
+        port.getAllowedAddressPairsList.get(0).getMacAddress shouldBe "01:02:03:04:05:06"
     }
 
     test("Neutron Router deserialization") {
