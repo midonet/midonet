@@ -17,9 +17,9 @@ package org.midonet.cluster.data.storage
 
 import java.io.StringWriter
 import java.lang.{Long => JLong}
+import java.util.ConcurrentModificationException
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
-import java.util.ConcurrentModificationException
 
 import scala.async.Async.async
 import scala.collection.JavaConversions._
@@ -27,10 +27,11 @@ import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.{Try, Failure, Success}
+import scala.util.{Failure, Success, Try}
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.{Message, TextFormat}
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
@@ -43,6 +44,7 @@ import org.apache.zookeeper.data.Stat
 import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
+
 import rx.Observable
 
 import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
@@ -109,9 +111,9 @@ import org.midonet.util.reactivex._
  * number node and it'd be notified if another ZOOM instances bumps the version
  * number to switch to the new version.
  */
-class ZookeeperObjectMapper(private val rootPath: String,
-                            private val curator: CuratorFramework)
-    extends StorageWithOwnership {
+class ZookeeperObjectMapper(protected override val rootPath: String,
+                            protected override val curator: CuratorFramework)
+    extends ZookeeperObjectState with StorageWithOwnership {
 
     import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 
@@ -120,7 +122,7 @@ class ZookeeperObjectMapper(private val rootPath: String,
      * ZOOM actually just bumps the version number by 1, keeps the old data, and
      * starts persisting data in under the new version path.
      */
-    private val version = new AtomicLong(InitialZoomDataSetVersion)
+    protected override val version = new AtomicLong(InitialZoomDataSetVersion)
 
     private val versionNodePath = s"$rootPath/$VersionNode"
 
@@ -152,9 +154,12 @@ class ZookeeperObjectMapper(private val rootPath: String,
      * be lost.
      */
     private class ZoomTransactionManager(val version: Long)
-            extends TransactionManager(classInfo.toMap, allBindings) {
+            extends TransactionManager(classInfo.toMap, allBindings)
+            with StateTransactionManager {
 
         import ZookeeperObjectMapper._
+
+        protected override def executorService = executor
 
         // Create an ephemeral node so that we can get Zookeeper's current
         // ZXID. This will allow us to determine if any of the nodes we read
@@ -217,7 +222,7 @@ class ZookeeperObjectMapper(private val rootPath: String,
         }
 
         override def commit(): Unit = {
-            val ops = flattenOps
+            val ops = flattenOps ++ createStateOps
             var txn =
                 curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
 
@@ -258,6 +263,8 @@ class ZookeeperObjectMapper(private val rootPath: String,
                 case ex: Exception =>
                     throw new InternalObjectMapperException(ex)
             }
+
+            deleteState()
         }
 
         override protected def nodeExists(path: String): Boolean =
@@ -280,7 +287,7 @@ class ZookeeperObjectMapper(private val rootPath: String,
                 s"Could not delete TransactionManager lock node $lockPath.", ex)
         }
 
-        /** Get s's bytes, or null if s is null. */
+        /** Get a string as bytes, or null if the string is null. */
         private def asBytes(s: String) = if (s != null) s.getBytes else null
 
         /**
@@ -405,6 +412,7 @@ class ZookeeperObjectMapper(private val rootPath: String,
         }
 
         classInfo(clazz) = makeInfo(clazz, ownershipType)
+        stateInfo(clazz) = new StateInfo
         instanceCaches(clazz) = new TrieMap[String, InstanceSubscriptionCache[_]]
         ownerCaches(clazz) = new TrieMap[String, DirectorySubscriptionCache]
     }
@@ -416,7 +424,7 @@ class ZookeeperObjectMapper(private val rootPath: String,
         registered
     }
 
-    override def build() {
+    override def build(): Unit = {
         initVersionNumber()
         ensureClassNodes()
         super.build()
@@ -435,11 +443,11 @@ class ZookeeperObjectMapper(private val rootPath: String,
                 curator.getData.usingWatcher(watcher).forPath(versionNodePath)))
     }
 
-    private def setVersionNumberAndWatch() {
+    private def setVersionNumberAndWatch(): Unit = {
         version.set(getVersionNumberFromZkAndWatch)
     }
 
-    private def initVersionNumber() {
+    private def initVersionNumber(): Unit = {
         try {
             ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                            versionNodePath, false)
@@ -465,7 +473,7 @@ class ZookeeperObjectMapper(private val rootPath: String,
      * Ensures that the class nodes in Zookeeper for each provided class exist,
      * creating them if needed.
      */
-    private def ensureClassNodes() {
+    private def ensureClassNodes(): Unit = {
         val classes = classInfo.keySet
         assert(classes.forall(isRegistered))
 
@@ -475,7 +483,7 @@ class ZookeeperObjectMapper(private val rootPath: String,
         var txn = curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
         for (clazz <- classes) {
             txn = txn.check().forPath(getClassPath(clazz)).and()
-            txn
+            txn = txn.check().forPath(getStateClassPath(clazz)).and()
         }
         try {
             txn.commit()
@@ -491,6 +499,8 @@ class ZookeeperObjectMapper(private val rootPath: String,
             for (clazz <- classes) {
                 ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
                                getClassPath(clazz))
+                ZKPaths.mkdirs(curator.getZookeeperClient.getZooKeeper,
+                               getStateClassPath(clazz))
             }
         } catch {
             case ex: Exception => throw new InternalObjectMapperException(ex)
@@ -811,7 +821,9 @@ object ZookeeperObjectMapper {
         }
     }
 
-    private def serializeMessage(msg: Message) = msg.toString.getBytes
+    private def serializeMessage(msg: Message): Array[Byte] = {
+        msg.toString.getBytes
+    }
 
     private def serializePojo(obj: Obj): Array[Byte] = {
         val writer = new StringWriter()
@@ -828,8 +840,8 @@ object ZookeeperObjectMapper {
         writer.toString.trim.getBytes
     }
 
-    private[storage] def deserialize[T](data: Array[Byte],
-                                        clazz: Class[T]): T = {
+    private[storage] def deserialize[T](data: Array[Byte],  clazz: Class[T])
+    : T = {
         try {
             if (classOf[Message].isAssignableFrom(clazz)) {
                 deserializeMessage(data, clazz)
@@ -856,16 +868,6 @@ object ZookeeperObjectMapper {
         val t = parser.readValueAs(clazz)
         parser.close()
         t
-    }
-
-    private def makeBackground(callback: (CuratorEvent) => Unit)
-    : BackgroundCallback = {
-        new BackgroundCallback {
-            override def processResult(client: CuratorFramework,
-                                       event: CuratorEvent): Unit = {
-                callback(event)
-            }
-        }
     }
 
 }
