@@ -346,5 +346,18 @@ function stop_process {
     screen -S $SCREEN_NAME -p $service -X kill
 }
 
+
+# MN Functions
+# ------------
+
+# Wrapper for mn-conf command
+# Uses globals ``ZOOKEEPER_HOSTS``
+function configure_mn {
+    local conf_key=$1
+    local conf_val=$2
+
+    echo $1 : $2 | MIDO_ZOOKEEPER_HOSTS="$ZOOKEEPER_HOSTS" mn-conf set
+}
+
 # Restore xtrace
 $XTRACE

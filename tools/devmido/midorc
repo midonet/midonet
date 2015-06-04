@@ -43,7 +43,7 @@ API_TIMEOUT=${API_TIMEOUT:-120}
 export MIDO_API_URL=$API_URI
 export MIDO_USER=${MIDO_USER:-admin}
 export MIDO_PROJECT_ID=${MIDO_PROJECT_ID:-admin}
-export MIDO_PASSWORD=${MIDO_PASSWORD:-gogomid0}
+export MIDO_PASSWORD=${MIDO_PASSWORD:-midonet}
 
 # Skip logging setup by setting this to False.  This is useful if you are
 # running mido.sh as part of anther script and the logging has already been
@@ -57,6 +57,15 @@ USE_CLUSTER=${USE_CLUSTER:-False}
 # Directory where all the service files will live
 SERVICE_DIR=${SERVICE_DIR:-$DEVMIDO_DIR/status}
 
-# Credentials for accessing the DB that contains the tasks table
-TASKS_DB_PASSWORD=${TASKS_DB_PASSWORD:-$MIDO_PASSWORD}
-TASKS_DB_USER=${TASKS_DB_USER:-root}
+# ZK Hosts (comma delimited)
+ZOOKEEPER_HOSTS=${ZOOKEEPER_HOSTS:-127.0.0.1:2181}
+
+# REST API port served by the cluster
+CLUSTER_API_PORT=${CLUSTER_API_PORT:-8082}
+
+# DB connection string for the tasks importer
+ENABLE_TASKS_IMPORTER=${ENABLE_TASKS_IMPORTER:-False}
+TASKS_DB_CONN=${TASKS_DB_CONN:-jdbc:mysql://localhost:3306/neutron?user=$MIDO_USER&password=$MIDO_PASSWORD}
+
+# Cluster Topology API
+TOPOLOGY_API_PORT=${TOPOLOGY_API_PORT:-8088}
