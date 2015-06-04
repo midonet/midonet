@@ -27,10 +27,12 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 
-public class HealthMonitor {
+@ZoomClass(clazz = Neutron.NeutronHealthMonitor.class)
+public class HealthMonitor extends ZoomObject {
 
     @JsonProperty("admin_state_up")
     @ZoomField(name = "admin_state_up")
