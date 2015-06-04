@@ -16,6 +16,24 @@
       "revId": "6352410e3f583fef309f3c283aeefb6d18dc7063",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_eb5eb675",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/NeutronDeserializerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-04T08:16:30Z",
+      "side": 1,
+      "message": "I don\u0027t think it will be used in the backend. However, I think we still want the protobuf objects to match what neutron sends over. Tomohiko or Brandon please correct me if I am wrong.",
+      "parentUuid": "facab960_0bcbda53",
+      "revId": "6352410e3f583fef309f3c283aeefb6d18dc7063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
