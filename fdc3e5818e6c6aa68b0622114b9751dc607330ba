@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_ebaa3318",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-06-04T18:36:27Z",
+      "side": 1,
+      "message": "are invalidation trees thread local?",
+      "revId": "fdc3e5818e6c6aa68b0622114b9751dc607330ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
