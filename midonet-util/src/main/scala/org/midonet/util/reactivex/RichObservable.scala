@@ -15,24 +15,25 @@
  */
 package org.midonet.util.reactivex
 
-import scala.concurrent.{Promise, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Promise, Future}
 
 import rx.{Observable, Subscriber}
 
 object RichObservable {
-    val COMPLETED_EXCEPTION = new IllegalStateException("Observable completed")
+    val CompletedException = new IllegalStateException("Observable completed")
 }
 
 class RichObservable[T](observable: Observable[T]) {
 
     def asFuture: Future[T] = {
         val promise = Promise[T]()
-        var completed = false
+        @volatile var completed = false
         observable.subscribe(new Subscriber[T]() {
             override def onCompleted(): Unit = {
                 if (completed) return
                 completed = true
-                promise.failure(RichObservable.COMPLETED_EXCEPTION)
+                promise.failure(RichObservable.CompletedException)
             }
 
             override def onError(e: Throwable): Unit = {
@@ -49,6 +50,11 @@ class RichObservable[T](observable: Observable[T]) {
             }
         })
         promise.future
+    }
+
+    @throws[Throwable]
+    def await(timeout: Duration): T = {
+        Await.result(asFuture, timeout)
     }
 
 }
