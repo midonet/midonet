@@ -22,7 +22,7 @@ import com.google.inject.Inject;
 
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.data.neutron.LoadBalancerApi;
+import org.midonet.cluster.neutron_rest_api.LoadBalancerApi;
 
 public class PoolHealthMonitorResource extends AbstractResource {
 

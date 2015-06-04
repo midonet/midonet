@@ -13,35 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.data.neutron;
 
-import java.util.List;
-import java.util.UUID;
+package org.midonet.cluster.neutron_rest_api
 
-import javax.annotation.Nonnull;
+import java.util
+import java.util.UUID
+import javax.annotation.Nonnull
 
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.data.neutron.{FloatingIp, Router, RouterInterface}
+import org.midonet.cluster.rest_api.{ConflictHttpException, NotFoundHttpException}
 
-public interface L3Api {
+trait L3Api {
 
     /**
-     * Create a new router data in the data store. StatePathExistsException
-     * thrown if a router with the same ID already exists.
+     * Create a new router data in the data store.
      *
      * @param router Router object to create
      * @return Created Router object
      */
-    Router createRouter(@Nonnull Router router)
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def createRouter(@Nonnull router: Router): Router
 
     /**
      * Delete a router. Nothing happens if the resource does not exist.
      *
      * @param id ID of the Router object to delete
      */
-    void deleteRouter(@Nonnull UUID id)
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def deleteRouter(@Nonnull id: UUID)
 
     /**
      * Retrieve a router. Returns null if the resource does not exist.
@@ -49,26 +50,28 @@ public interface L3Api {
      * @param id ID of the Router object to get
      * @return Router object
      */
-    Router getRouter(@Nonnull UUID id)
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def getRouter(@Nonnull id: UUID): Router
 
     /**
      * Get all the routers.
      *
      * @return List of Router objects.
      */
-    List<Router> getRouters()
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def getRouters: util.List[Router]
 
     /**
-     * Update a router.  NoStatePathException is thrown if the resource does
-     * not exist.
+     * Update a router.
      *
      * @param id ID of the Router object to update
      * @return Updated Router object
      */
-    Router updateRouter(@Nonnull UUID id, @Nonnull Router router)
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def updateRouter(@Nonnull id: UUID, @Nonnull router: Router): Router
 
     /**
      * Add an interface on the network to link to a router.
@@ -77,9 +80,10 @@ public interface L3Api {
      * @param routerInterface Router interface info
      * @return RouterInterface info created
      */
-    RouterInterface addRouterInterface(
-            @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface)
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def addRouterInterface(@Nonnull routerId: UUID,
+                           @Nonnull routerInterface: RouterInterface): RouterInterface
 
     /**
      * Remove an interface on the network linked to a router.
@@ -88,26 +92,27 @@ public interface L3Api {
      * @param routerInterface Router interface info
      * @return RouterInterface info removed
      */
-    RouterInterface removeRouterInterface(
-            @Nonnull UUID routerId, @Nonnull RouterInterface routerInterface);
+    def removeRouterInterface(@Nonnull routerId: UUID,
+                              @Nonnull routerInterface: RouterInterface): RouterInterface
 
     /**
-     * Create a new floating IP in the data store. StatePathExistsException
-     * thrown if a floating IP with the same ID already exists.
+     * Create a new floating IP in the data store.
      *
      * @param floatingIp FloatingIp object to create
      * @return Created FloatingIp object
      */
-    FloatingIp createFloatingIp(@Nonnull FloatingIp floatingIp)
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def createFloatingIp(@Nonnull floatingIp: FloatingIp): FloatingIp
 
     /**
      * Delete a floating IP. Nothing happens if the resource does not exist.
      *
      * @param id ID of the FloatingIp object to delete
      */
-    void deleteFloatingIp(@Nonnull UUID id)
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def deleteFloatingIp(@Nonnull id: UUID)
 
     /**
      * Retrieve a floating IP. Returns null if the resource does not exist.
@@ -115,25 +120,27 @@ public interface L3Api {
      * @param id ID of the FloatingIp object to get
      * @return Router object
      */
-    FloatingIp getFloatingIp(@Nonnull UUID id)
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def getFloatingIp(@Nonnull id: UUID): FloatingIp
 
     /**
      * Get all the floating IP.
      *
      * @return List of FloatingIp objects.
      */
-    List<FloatingIp> getFloatingIps()
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def getFloatingIps: util.List[FloatingIp]
 
     /**
-     * Update a floating IP..  NoStatePathException is thrown if the resource
-     * does not exist.
+     * Update a floating IP.
      *
      * @param id ID of the FloatingIp object to update
      * @return Updated FloatingIp object
      */
-    FloatingIp updateFloatingIp(@Nonnull UUID id,
-                                @Nonnull FloatingIp floatingIp)
-            throws ConflictHttpException, NotFoundHttpException;
+    @throws(classOf[ConflictHttpException])
+    @throws(classOf[NotFoundHttpException])
+    def updateFloatingIp(@Nonnull id: UUID,
+                         @Nonnull floatingIp: FloatingIp): FloatingIp
 }
