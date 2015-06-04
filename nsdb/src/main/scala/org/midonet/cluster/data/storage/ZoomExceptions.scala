@@ -15,6 +15,8 @@
  */
 package org.midonet.cluster.data.storage
 
+import org.apache.zookeeper.KeeperException.Code
+
 import org.midonet.cluster.data.ObjId
 import org.midonet.cluster.data.storage.TransactionManager.getIdString
 
@@ -162,6 +164,41 @@ class OwnershipConflictException private[storage](val clazz: String,
            s"Object of class $clazz with ID $id cannot be owned by $newOwner " +
            s"because it has owner(s) $currentOwner")
 }
+
+/**
+ * Thrown by [[ZookeeperObjectState]] when cannot modify the state value for
+ * the specified object class/identifier and state key.
+ */
+class UnmodifiableStateException private[storage](val clazz: String,
+                                                  val id: String,
+                                                  val key: String,
+                                                  val value: String,
+                                                  val result: Int,
+                                                  msg: String = "")
+    extends StorageException(
+        s"Failed to modify the state for object of class $clazz with ID $id " +
+        s"and state key $key (result: $result). $msg")
+
+/**
+ * Thrown by [[ZookeeperObjectState]] when cannot modify the state value because
+ * the value already belongs to a different client session.
+ */
+class NotStateOwnerException private[storage](clazz: String, id: String,
+                                              key: String, value: String,
+                                              val owner: Long)
+    extends UnmodifiableStateException(
+        clazz, id, key, value, -1, s"State belongs to different owner $owner")
+
+/**
+ * Thrown by [[ZookeeperObjectState]] when a change cannot be completed due
+ * to a concurrent modification. */
+class ConcurrentStateModificationException private[storage](clazz: String,
+                                                            id: String,
+                                                            key: String,
+                                                            value: String,
+                                                            result: Int)
+    extends UnmodifiableStateException(clazz, id, key, value, result)
+
 
 /**
  * Thrown when attempting to create a node that already exists.
