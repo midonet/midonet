@@ -924,6 +924,9 @@ public class LocalDataClientImpl implements DataClient {
                                     log.error("Error serializing the"
                                               + " configuration for port {}",
                                               portID, t);
+                                } else {
+                                    log.error("Caught unexpected error "
+                                              + "activating port", t);
                                 }
                             }
                         });
