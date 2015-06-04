@@ -115,6 +115,13 @@
     <param-value>true</param-value>
   </context-param>
 
+  <!-- EXPERIMENTAL - FOR DEVELOPMENT ONLY: uncomment to use the new stack -->
+  <!-- This property should be removed when the migration is complete -->
+  <context-param>
+    <param-name>zookeeper-use_new_stack</param-name>
+    <param-value>false</param-value>
+  </context-param>
+
   <!-- Used to uniquely identify an API process for cluster services -->
   <context-param>
     <!-- In dev mode, just create one in /tmp -->
