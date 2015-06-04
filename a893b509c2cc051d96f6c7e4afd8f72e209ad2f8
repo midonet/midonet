@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_4b7882f2",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/DeviceOwner.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-04T09:00:36Z",
+      "side": 1,
+      "message": "Nit: `value\u003d` is not needed for the annotations having a `value` argument.",
+      "range": {
+        "startLine": 28,
+        "startChar": 19,
+        "endLine": 28,
+        "endChar": 27
+      },
+      "revId": "a893b509c2cc051d96f6c7e4afd8f72e209ad2f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_cb6e5201",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/RuleDirection.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-04T09:00:36Z",
+      "side": 1,
+      "message": "Missing @ZoomEnumValue annotations.",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 28,
+        "endChar": 23
+      },
+      "revId": "a893b509c2cc051d96f6c7e4afd8f72e209ad2f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_eb7156e1",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/RuleEthertype.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-04T09:00:36Z",
+      "side": 1,
+      "message": "Same here.",
+      "range": {
+        "startLine": 28,
+        "startChar": 3,
+        "endLine": 30,
+        "endChar": 53
+      },
+      "revId": "a893b509c2cc051d96f6c7e4afd8f72e209ad2f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0b783ac3",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/RuleProtocol.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-04T09:00:36Z",
+      "side": 1,
+      "message": "And here.",
+      "range": {
+        "startLine": 29,
+        "startChar": 4,
+        "endLine": 32,
+        "endChar": 65
+      },
+      "revId": "a893b509c2cc051d96f6c7e4afd8f72e209ad2f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0b5f5a42",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/PoolHealthMonitor.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-04T09:00:36Z",
+      "side": 1,
+      "message": "Does this correspond to the NeutronHealthMonitor? If so, do we need to set any of the missing fields?",
+      "range": {
+        "startLine": 24,
+        "startChar": 13,
+        "endLine": 24,
+        "endChar": 30
+      },
+      "revId": "a893b509c2cc051d96f6c7e4afd8f72e209ad2f8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
