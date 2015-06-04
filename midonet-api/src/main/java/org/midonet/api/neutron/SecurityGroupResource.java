@@ -41,7 +41,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.client.neutron.NeutronMediaType;
 import org.midonet.cluster.data.neutron.SecurityGroup;
-import org.midonet.cluster.data.neutron.SecurityGroupApi;
+import org.midonet.cluster.neutron_rest_api.SecurityGroupApi;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.event.neutron.SecurityGroupEvent;
 import org.midonet.midolman.serialization.SerializationException;
