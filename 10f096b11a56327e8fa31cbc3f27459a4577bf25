@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_6b8f06cd",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BgpMapperTest.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 659,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T08:38:43Z",
+      "side": 1,
+      "message": "I guess what I was asking is wether one of the three updates is due to the binding of the bgp to the port (this is related to our previous discussion about filtering such updates). So is it correct to say that the 3 updates are the following:\n-port\n-port (with bgpId set)\n-Bgp\nIf that\u0027s the case, then shouldn\u0027t we discard the 2nd update?",
+      "range": {
+        "startLine": 659,
+        "startChar": 12,
+        "endLine": 659,
+        "endChar": 53
+      },
+      "revId": "10f096b11a56327e8fa31cbc3f27459a4577bf25",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
