@@ -22,6 +22,7 @@ import scala.collection.concurrent.TrieMap
 import com.google.common.annotations.VisibleForTesting
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.cache.ChildData
+import org.apache.zookeeper.KeeperException.NoNodeException
 import rx.Observable
 import rx.functions.Func1
 
@@ -67,6 +68,11 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
                 onLastUnsubscribe(this)
             }
     }
+    private val onError = makeFunc1((error: Throwable) => error match {
+        case ex: NoNodeException =>
+            Observable.error(new NotFoundException(clazz, id))
+        case e: Throwable => Observable.error(e)
+    })
 
     /** The Observable where clients interested in updates about this entity may
       * subscribe. Elements will start flowing as soon as connect() is called
@@ -81,6 +87,7 @@ class InstanceSubscriptionCache[T](val clazz: Class[T],
       * InstanceSubscriptionCache and fetch the restored Observable. */
     val observable = nodeCache.observable
                               .map[T](DeserializerCache.deserializer(clazz))
+                              .onErrorResumeNext(onError)
                               .doOnSubscribe(onSubscribe)
                               .doOnUnsubscribe(onUnsubscribe)
 
