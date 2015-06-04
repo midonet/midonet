@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_865fdfe4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T12:25:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_02d90d57",
+      "range": {
+        "startLine": 34,
+        "startChar": 42,
+        "endLine": 34,
+        "endChar": 49
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e2ba69e0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
         "patchSetId": 9
@@ -82,6 +106,30 @@
       "writtenOn": "2015-06-01T07:56:06Z",
       "side": 1,
       "message": "This sentence is cryptic.",
+      "range": {
+        "startLine": 43,
+        "startChar": 7,
+        "endLine": 44,
+        "endChar": 33
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a66223ab",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T12:25:37Z",
+      "side": 1,
+      "message": "I simplified it.",
+      "parentUuid": "facab960_e2ba69e0",
       "range": {
         "startLine": 43,
         "startChar": 7,
@@ -111,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_86deff0f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T12:25:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_e2a189aa",
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c2c5655c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
         "patchSetId": 9
@@ -122,6 +188,30 @@
       "writtenOn": "2015-06-01T07:56:06Z",
       "side": 1,
       "message": "\"A subject publishing opinion removals.\"?",
+      "range": {
+        "startLine": 56,
+        "startChar": 7,
+        "endLine": 56,
+        "endChar": 74
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a6e143d2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T12:25:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_c2c5655c",
       "range": {
         "startLine": 56,
         "startChar": 7,
@@ -151,6 +241,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_c6e807b7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T12:25:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_02a74dbe",
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4288751f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
         "patchSetId": 9
@@ -162,6 +270,30 @@
       "writtenOn": "2015-06-01T07:56:06Z",
       "side": 1,
       "message": "Do we need this case? The argument type (\"(K, V, String)\") guarantees it\u0027s a triple and thus first 2 cases are exhaustive.",
+      "range": {
+        "startLine": 74,
+        "startChar": 12,
+        "endLine": 76,
+        "endChar": 34
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e6eb4bae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T12:25:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_4288751f",
       "range": {
         "startLine": 74,
         "startChar": 12,
@@ -191,6 +323,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_06d2efff",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T12:25:37Z",
+      "side": 1,
+      "message": "I\u0027m not sure what you mean. This method determines the winning opinion among  a set of opinions (one per owner). It is used to resolve conflicts. So in that sense it\u0027s not a dummy implementation.",
+      "parentUuid": "facab960_82a0bd91",
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4204f57a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
         "patchSetId": 9
@@ -214,6 +364,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_26cd335e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T12:25:37Z",
+      "side": 1,
+      "message": "After talking to Galo and Pino, we will get rid of the ownerMap and place putOpinion and removeOpinion directly in the MergedMap interface. So these two methods will go away. I\u0027ll keep in mind your idea of a helper method in case I need it.",
+      "parentUuid": "facab960_4204f57a",
+      "range": {
+        "startLine": 153,
+        "startChar": 3,
+        "endLine": 182,
+        "endChar": 5
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_22e8d1b3",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
         "patchSetId": 9
@@ -225,6 +399,30 @@
       "writtenOn": "2015-06-01T07:56:06Z",
       "side": 1,
       "message": "Maybe a stupid question, but why can\u0027t we use winners.contains(key)?",
+      "range": {
+        "startLine": 219,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 24
+      },
+      "revId": "214780e278849ebc69ff5db97fc0a081642a97e6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_46dcf712",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-04T12:25:37Z",
+      "side": 1,
+      "message": "Yes of course, I don\u0027t know why I coded this method like this.",
+      "parentUuid": "facab960_22e8d1b3",
       "range": {
         "startLine": 219,
         "startChar": 8,
