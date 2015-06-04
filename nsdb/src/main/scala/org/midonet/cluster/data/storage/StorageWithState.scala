@@ -82,6 +82,17 @@ private[storage] final class StateInfo {
     val keys = new TrieMap[String, WritePolicy]
 }
 
+object StorageWithState {
+
+    /** Owner identifier returned as result when there is no owner, such as
+      * idempotent deletion. */
+    final val NoOwnerId = 0L
+
+    /** Encoding used for string conversion to byte array. */
+    final val StringEncoding = "UTF-8"
+
+}
+
 /**
  * A trait that extends the [[Storage]] trait with support for state ephemeral
  * data. This is added as values to keys, which are registered before building
@@ -110,8 +121,9 @@ trait StorageWithState {
     : Future[StateResult]
 
     /** Removes a value from a key for the object with the specified class and
-      * identifier. The method is asynchronous, returning a future that contains
-      * the result of the operation. */
+      * identifier. For single value keys, the `value` is ignored, and any
+      * current value is deleted. The method is asynchronous, returning a future
+      * that contains the result of the operation. */
     @throws[ServiceUnavailableException]
     @throws[IllegalArgumentException]
     def removeValue(clazz: Class[_], id: ObjId, key: String, value: String)
