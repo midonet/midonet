@@ -30,7 +30,8 @@ public class MockSelectLoop implements SelectLoop {
 
     public void setEndOfLoopCallback(Runnable cb) {}
 
-    public void register(SelectableChannel ch, int ops, SelectListener arg)
+    public void register(SelectableChannel ch, int ops, SelectListener arg,
+                         Priority priority)
             throws ClosedChannelException {}
 
     public void unregister(SelectableChannel ch, int ops)
@@ -39,7 +40,8 @@ public class MockSelectLoop implements SelectLoop {
     public void registerForInputQueue(SelectorInputQueue<?> queue,
                                       SelectableChannel ch,
                                       int ops,
-                                      SelectListener arg) {}
+                                      SelectListener arg,
+                                      Priority priority) {}
 
     public void unregisterForInputQueue(SelectorInputQueue<?> queue) {}
 
