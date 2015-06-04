@@ -33,6 +33,7 @@ import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.cassandra.CassandraClient
+import org.midonet.cluster.util.CuratorTestFramework
 
 
 @RunWith(classOf[JUnitRunner])
@@ -40,7 +41,9 @@ class FlowStateStorageTest extends FeatureSpec
                             with BeforeAndAfter
                             with ShouldMatchers
                             with OneInstancePerTest
-                            with GivenWhenThen {
+                            with GivenWhenThen
+                            with CuratorTestFramework {
+
     implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
     implicit val actors = ActorSystem.create()
@@ -66,10 +69,13 @@ class FlowStateStorageTest extends FeatureSpec
 
     before {
         EmbeddedCassandraServerHelper.startEmbeddedCassandra()
+
         Thread.sleep(15000L)
         cass = new CassandraClient("127.0.0.1:9142", "TestCluster",
                                    "MidonetFlowState", 1,
-                                   FlowStateStorage.SCHEMA)
+                                   FlowStateStorage.SCHEMA,
+                                   FlowStateStorage.SCHEMA_TABLE_NAMES,
+                                   zk.getConnectString)
         val sessionF = cass.connect()
         Await.result(sessionF, 10 seconds)
         storage = FlowStateStorage(sessionF)
