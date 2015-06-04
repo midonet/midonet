@@ -478,7 +478,7 @@ class ZookeeperObjectMapperTests extends Suite
     }
 
     def testGetPath() {
-        zom.getPath(classOf[PojoBridge]) should equal (s"$ZK_ROOT/1/PojoBridge")
+        zom.getClassPath(classOf[PojoBridge]) shouldBe (s"$ZK_ROOT/1/PojoBridge")
     }
 
     def testCreateExclusiveOwner(): Unit = {

@@ -159,9 +159,10 @@ class StorageException(val msg: String, val cause: Throwable)
 trait Storage extends ReadOnlyStorage {
 
     @volatile private var built = false
-    protected[this] val allBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
-    protected[this] val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
-
+    protected[this] val allBindings =
+        ArrayListMultimap.create[Class[_], FieldBinding]()
+    protected[this] val classInfo =
+        new mutable.HashMap[Class[_], ClassInfo]()
 
     /**
      * Synchronous method that persists the specified object to the storage. The
@@ -303,6 +304,7 @@ trait Storage extends ReadOnlyStorage {
         built = true
     }
 
+    @throws[ServiceUnavailableException]
     protected[this] def assertBuilt(): Unit = {
         if (!isBuilt) throw new ServiceUnavailableException
     }
