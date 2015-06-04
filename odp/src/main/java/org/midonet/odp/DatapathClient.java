@@ -54,7 +54,7 @@ public abstract class DatapathClient {
                             throws IOException {
                         ovsConnection.handleReadEvent(Bucket.BOTTOMLESS);
                     }
-                });
+                }, SelectLoop.Priority.NORMAL);
 
         Thread loopThread = new Thread(new Runnable() {
             @Override

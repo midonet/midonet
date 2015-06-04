@@ -34,6 +34,7 @@ import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.{BatchCollector, Bucket}
+import org.midonet.util.eventloop.SelectLoop
 import org.slf4j.{Logger, LoggerFactory}
 
 /**
@@ -62,7 +63,8 @@ abstract class UpcallDatapathConnectionManagerBase(
 
     protected val log: Logger
 
-    protected def makeConnection(name: String, bucket: Bucket)
+    protected def makeConnection(name: String, bucket: Bucket,
+                                 channelType: ChannelType)
     : ManagedDatapathConnection
 
     protected def stopConnection(conn: ManagedDatapathConnection)
@@ -94,7 +96,7 @@ abstract class UpcallDatapathConnectionManagerBase(
 
         var conn: ManagedDatapathConnection = null
         try {
-            conn = makeConnection(connName, tbPolicy.link(port, t))
+            conn = makeConnection(connName, tbPolicy.link(port, t), t)
         } catch {
             case e: Throwable =>
                 tbPolicy.unlink(port)
@@ -222,7 +224,8 @@ class OneToOneDpConnManager(c: MidolmanConfig,
 
     protected override val log = LoggerFactory.getLogger(this.getClass)
 
-    override def makeConnection(name: String, bucket: Bucket) =
+    override def makeConnection(name: String, bucket: Bucket,
+                                channelType: ChannelType) =
         new SelectorBasedDatapathConnection(name, config, true, bucket, makeBufferPool())
 
     override def stopConnection(conn: ManagedDatapathConnection) {
@@ -254,10 +257,16 @@ class OneToManyDpConnManager(c: MidolmanConfig,
 
     private var upcallHandler: BatchCollector[Packet] = null
 
-    override def makeConnection(name: String, bucket: Bucket) = {
+    override def makeConnection(name: String, bucket: Bucket,
+                                channelType: ChannelType) = {
         if (!threadPair.isRunning)
             threadPair.start()
-        val conn = threadPair.addConnection(bucket, sendPool)
+
+        val priority = channelType match {
+            case OverlayTunnel => SelectLoop.Priority.HIGH
+            case _ => SelectLoop.Priority.NORMAL
+        }
+        val conn = threadPair.addConnection(bucket, sendPool, priority)
         conn.getConnection.setUsingSharedNotificationHandler(true)
         conn
     }
