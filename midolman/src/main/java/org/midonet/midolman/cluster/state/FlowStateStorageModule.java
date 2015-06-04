@@ -49,9 +49,10 @@ public class FlowStateStorageModule extends PrivateModule {
         @Override
         public FlowStateStorageFactory get() {
             CassandraClient cass = new CassandraClient(
-                    config.cassandra().servers(), config.cassandra().cluster(),
-                    "MidonetFlowState", config.cassandra().replication_factor(),
-                    FlowStateStorage$.MODULE$.SCHEMA());
+                    config.zookeeper(), config.cassandra(),
+                    "MidonetFlowState",
+                    FlowStateStorage$.MODULE$.SCHEMA(),
+                    FlowStateStorage$.MODULE$.SCHEMA_TABLE_NAMES());
             return new FlowStateStorageFactoryImpl(cass.connect());
         }
     }
