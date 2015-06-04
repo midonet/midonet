@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.config;
 
+import org.midonet.config.ConfigBool;
 import org.midonet.config.ConfigGroup;
 import org.midonet.config.ConfigInt;
 import org.midonet.config.ConfigString;
@@ -42,6 +43,9 @@ public interface ZookeeperConfig {
      */
     @ConfigInt(key = "session_timeout", defaultValue = DEFAULT_TIMEOUT_MS)
     public int getZkSessionTimeout();
+
+    @ConfigBool(key = "use_new_stack", defaultValue = false)
+    public boolean useNewStack();
 
     /**
      * The session grace time (in millis) indicates for how long after we
