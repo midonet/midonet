@@ -99,6 +99,14 @@ message NeutronPort {
     }
     optional UUID host_id = 12;
     optional BindingProfile profile = 13;
+    optional bool port_security_enabled = 14;
+
+    message AllowedAddressPair {
+        optional IPAddress ip_address = 1;
+        optional string mac_address = 2;
+    }
+
+    repeated AllowedAddressPair allowed_address_pairs = 15;
 }
 
 message NeutronRouter {
