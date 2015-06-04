@@ -108,7 +108,7 @@ class ZebraServer(val address: AfUnix.Address, val handler: ZebraProtocolHandler
                     clientConn.configureBlocking(true)
                     self ! SpawnConnection(clientConn)
                 }
-            })
+            }, SelectLoop.Priority.NORMAL)
     }
 
     override def postStop() {

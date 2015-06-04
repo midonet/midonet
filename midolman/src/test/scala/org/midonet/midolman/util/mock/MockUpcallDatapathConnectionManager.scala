@@ -45,7 +45,8 @@ class MockUpcallDatapathConnectionManager(config: MidolmanConfig)
         }
     }
 
-    override def makeConnection(name: String, bucket: Bucket) = null
+    override def makeConnection(name: String, bucket: Bucket,
+                                t: ChannelType) = null
 
     override def stopConnection(conn: ManagedDatapathConnection) {}
 
