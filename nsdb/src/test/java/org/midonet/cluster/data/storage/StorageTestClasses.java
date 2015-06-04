@@ -129,6 +129,10 @@ public class StorageTestClasses {
         public List<UUID> refIds;
     }
 
+    protected static class State {
+        public UUID id = UUID.randomUUID();
+    }
+
     protected static class ExclusiveState {
         public UUID id = UUID.randomUUID();
     }
