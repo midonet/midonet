@@ -17,9 +17,9 @@ package org.midonet.cluster.services
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
-
 import org.apache.curator.framework.CuratorFramework
-import org.slf4j.LoggerFactory
+import org.apache.curator.framework.imps.CuratorFrameworkState
+import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.{OwnershipType, Storage, StorageWithOwnership, ZookeeperObjectMapper}
@@ -53,27 +53,27 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Network],
              classOf[NeutronConfig],
              classOf[NeutronHealthMonitor],
-             classOf[NeutronLoadBalancerPool],
              classOf[NeutronLoadBalancerPoolMember],
+             classOf[NeutronLoadBalancerPool],
              classOf[NeutronNetwork],
              classOf[NeutronPort],
-             classOf[NeutronRouter],
              classOf[NeutronRouterInterface],
+             classOf[NeutronRouter],
              classOf[NeutronSubnet],
              classOf[NeutronVIP],
-             classOf[Pool],
              classOf[PoolMember],
-             classOf[Port],
+             classOf[Pool],
              classOf[PortBinding],
              classOf[PortGroup],
+             classOf[Port],
              classOf[Route],
              classOf[Router],
              classOf[Rule],
-             classOf[TunnelZone],
              classOf[SecurityGroup],
-             classOf[Vip],
-             classOf[Vtep],
-             classOf[VtepBinding]
+             classOf[TunnelZone],
+             classOf[VIP],
+             classOf[VtepBinding],
+             classOf[Vtep]
         ).foreach(store.registerClass)
 
         ownershipStore.registerClass(classOf[Host], OwnershipType.Exclusive)
@@ -134,6 +134,8 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
                                        curator: CuratorFramework)
     extends MidonetBackend {
 
+    private val log = getLogger("org.midonet.nsdb")
+
     private val zoom =
         new ZookeeperObjectMapper(cfg.rootKey + "/zoom", curator)
 
@@ -142,17 +144,21 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
     override def isEnabled = cfg.useNewStack
 
     protected override def doStart(): Unit = {
-        LoggerFactory.getLogger(this.getClass).info(s"Starting backend ${this}")
+        log.info(s"Starting backend ${this} store: $store")
         try {
-            if (cfg.curatorEnabled || cfg.useNewStack) {
+            if ((cfg.curatorEnabled || cfg.useNewStack) &&
+                curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
             }
             if (cfg.useNewStack) {
+                log.info("Setting up storage bindings")
                 setupBindings()
             }
             notifyStarted()
         } catch {
-            case e: Exception => this.notifyFailed(e)
+            case e: Exception =>
+                log.error("Failed to start backend service", e)
+                this.notifyFailed(e)
         }
     }
 

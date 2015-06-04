@@ -26,10 +26,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.RestApiService;
+import org.midonet.cluster.config.ZookeeperConfig;
+import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.ClusterNode;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
+import org.midonet.conf.ZookeeperConf;
+import org.midonet.config.ConfigProvider;
 
 public class JerseyGuiceServletContextListener extends
         GuiceServletContextListener {
@@ -61,11 +65,10 @@ public class JerseyGuiceServletContextListener extends
     }
 
     protected void initializeApplication() {
-        log.debug("initializeApplication: entered");
+        log.info("initializeApplication: entered");
 
         injector.getInstance(RestApiService.class).startAsync().awaitRunning();
         ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
-
         startConfApi();
 
         if (ctx.embed()) {

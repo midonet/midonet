@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,15 @@ import org.apache.commons.collections4.ListUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.collection.ListUtil;
 
-public class Pool {
+@ZoomClass(clazz = Neutron.NeutronLoadBalancerPool.class)
+public class Pool extends ZoomObject {
 
     @JsonProperty("admin_state_up")
     @ZoomField(name = "admin_state_up")
