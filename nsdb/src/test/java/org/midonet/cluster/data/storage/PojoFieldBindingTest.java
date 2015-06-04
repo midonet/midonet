@@ -18,11 +18,11 @@ package org.midonet.cluster.data.storage;
 import org.junit.Test;
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction;
-import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest.NoIdField;
-import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest.PojoBridge;
-import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest.PojoChain;
-import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest.PojoPort;
-import org.midonet.cluster.data.storage.ZookeeperObjectMapperTest.PojoRule;
+import org.midonet.cluster.data.storage.StorageTestClasses.NoIdField;
+import org.midonet.cluster.data.storage.StorageTestClasses.PojoBridge;
+import org.midonet.cluster.data.storage.StorageTestClasses.PojoChain;
+import org.midonet.cluster.data.storage.StorageTestClasses.PojoPort;
+import org.midonet.cluster.data.storage.StorageTestClasses.PojoRule;
 
 import static org.junit.Assert.fail;
 
