@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.storage
 
-import com.google.inject.{Inject, PrivateModule, Provider}
+import com.google.inject.{Singleton, Inject, PrivateModule, Provider}
 import com.typesafe.config.Config
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -50,7 +50,7 @@ class MidonetBackendModule(val conf: MidonetBackendConfig)
     protected def bindStorage(): Unit = {
         bind(classOf[MidonetBackend])
             .to(classOf[MidonetBackendService])
-            .asEagerSingleton()
+            .in(classOf[Singleton])
         expose(classOf[MidonetBackend])
     }
 
