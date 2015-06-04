@@ -18,7 +18,6 @@ package org.midonet.cluster.data.storage
 
 import java.util
 import java.util.UUID
-import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{Await, Future, ExecutionContext}
@@ -2017,7 +2016,6 @@ private object StorageTest {
         builder.build()
     }
 
-    def await[T](f: Future[T]) =
-        Await.result(f, Duration.create(1, TimeUnit.SECONDS))
+    def await[T](f: Future[T]): T = Await.result(f, 1 second)
 
 }

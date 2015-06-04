@@ -44,8 +44,8 @@ object TransactionManager {
     case class TxDelete(version: Int, ops: Seq[TxOwnerOp]) extends TxOp
     case class TxCreateOwner(owner: String) extends TxOwnerOp
     case class TxDeleteOwner(owner: String) extends TxOwnerOp
-    case class TxCreateNode(value: String) extends TxNodeOp
-    case class TxUpdateNode(value: String) extends TxNodeOp
+    case class TxCreateNode(value: String = null) extends TxNodeOp
+    case class TxUpdateNode(value: String = null) extends TxNodeOp
     case object TxDeleteNode extends TxNodeOp
 
     // No-op. Used in nodeOps map to indicate that we've checked the data store

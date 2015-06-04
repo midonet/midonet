@@ -498,7 +498,7 @@ class DeviceMapperTest extends MidolmanSpec {
             future.isCompleted shouldBe true
             future.value should not be None
             future.value.get.isFailure shouldBe true
-            future.value.get.failed.get shouldBe RichObservable.COMPLETED_EXCEPTION
+            future.value.get.failed.get shouldBe RichObservable.CompletedException
         }
 
         scenario("The future completes sync on completed") {

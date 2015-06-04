@@ -29,7 +29,7 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework {
     import StorageTest._
 
     protected override def setup(): Unit = {
-        storage = new ZookeeperObjectMapper(ZK_ROOT, curator)
+        storage = createStorage
         assert = () => {}
         initAndBuildStorage(storage)
     }
