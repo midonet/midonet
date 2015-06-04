@@ -85,6 +85,11 @@ object FlowStateStorage {
             Schema.NAT_IDX(NAT_BY_INGRESS_TABLE),
             Schema.NAT(NAT_BY_EGRESS_TABLE),
             Schema.NAT_IDX(NAT_BY_EGRESS_TABLE))
+    val SCHEMA_TABLE_NAMES = Array[String](
+        CONNTRACK_BY_INGRESS_TABLE, CONNTRACK_BY_INGRESS_TABLE,
+        CONNTRACK_BY_EGRESS_TABLE, CONNTRACK_BY_EGRESS_TABLE,
+        NAT_BY_INGRESS_TABLE, NAT_BY_INGRESS_TABLE,
+        NAT_BY_EGRESS_TABLE, NAT_BY_EGRESS_TABLE)
 
     val NAT_KEY_TYPES = Bimap[NatState.KeyType, String](List(
         NatState.FWD_DNAT -> "fwd_dnat",
