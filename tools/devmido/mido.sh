@@ -277,17 +277,25 @@ MIDO_CONF=$TOP_DIR/midolman/conf/midolman.conf
 cp $MIDO_CONF ${MIDO_CONF}.edited
 
 if [[ "$USE_CLUSTER" = "True" ]]; then
+    # MidoNet Cluster
+    # ---------------
 
     # Copy over the cluster config
     mkdir -p $TOP_DIR/conf
-    cp cluster/midonet-cluster/conf/midonet-cluster.conf $TOP_DIR/conf
+    CLUSTER_CONF=$TOP_DIR/conf/midonet-cluster.conf
+    cp cluster/midonet-cluster/conf/midonet-cluster.conf $CLUSTER_CONF
+    iniset ${CLUSTER_CONF} zookeeper zookeeper_hosts $ZOOKEEPER_HOSTS
 
-    # Configure the attributes for mm-ctl
-    iniset ${MIDO_CONF}.edited cluster enabled true
-    iniset ${MIDO_CONF}.edited cluster tasks_db_connection "mysql://localhost:3306/neutron?user=${TASKS_DB_USER}&password=${TASKS_DB_PASSWORD}"
+    # Configure the cluster using mn-conf
+    configure_mn "cluster.zookeeper.use_new_stack" "true"
+    configure_mn "cluster.rest_api.port" "true"
+    configure_mn "cluster.topology_api.enabled" "true"
+    configure_mn "cluster.topology_api.port" $TOPOLOGY_API_PORT
+    if [[ "$ENABLE_TASKS_IMPORTER" = "True" ]]; then
+        configure_mn "cluster.neutron_importer.enabled" "true"
+        configure_mn "cluster.neutron_importer.connection_string" "\"$TASKS_DB_CONN\""
+    fi
 
-    # MidoNet Cluster
-    # ---------------
     CLUSTER_LOG=$TOP_DIR/cluster/midonet-cluster/conf/logback.xml
     cp $CLUSTER_LOG.dev $TOP_DIR/cluster/midonet-cluster/build/resources/main/logback.xml
 
