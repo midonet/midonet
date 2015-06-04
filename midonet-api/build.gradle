@@ -125,12 +125,15 @@ rpm.dependsOn preparePkg
 debian.doFirst {
     project.packaging.version = project.debVersion
     project.packaging.fpmOpts.addAll([
+        '-d', 'java7-runtime-headless',
         '--deb-recommends', 'java7-runtime-headless | java7-runtime'])
 }
 
 rpm.doFirst {
     project.packaging.version = project.rpmVersion
     project.packaging.iteration = project.rpmRelease
+    project.packaging.fpmOpts.addAll([
+        '--depends', 'java-1.7.0'])
 }
 
 debian.doLast {
