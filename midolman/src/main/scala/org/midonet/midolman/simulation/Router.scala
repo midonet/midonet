@@ -17,6 +17,8 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
+import org.midonet.sdn.flows.FlowTagger
+
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
@@ -24,7 +26,7 @@ import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, Drop, NoOp, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
@@ -56,8 +58,8 @@ object Router {
      * Provided to the [[Router]] for operations on tags.
      */
     trait TagManager {
-        def addTag(dstIp: IPAddr)
-        def getFlowRemovalCallback(dstIp: IPAddr): Callback0
+        def addIPv4Tag(dstIp: IPv4Addr, matchLength: Int)
+        def getFlowRemovalCallback(dstIp: IPv4Addr): Callback0
     }
 
     trait RoutingTable {
@@ -117,6 +119,28 @@ class Router(override val id: UUID,
         } else
             None
     }
+
+    override def applyTagsForRoute(route: Route,
+                    simRes: SimulationResult)(implicit context: PacketContext): Unit = {
+        simRes match {
+            case TemporaryDrop | NoOp =>
+            case a => // We don't want to tag a temporary flow (e.g. created by
+                // a BLACKHOLE route), and we do that to avoid excessive
+                // interaction with the RouterManager, who needs to keep
+                // track of every IP address the router gives to it.
+                if (route ne null)
+                    context.addFlowTag(FlowTagger.tagForRoute(route))
+
+                val dstIp = context.wcmatch.getNetworkDstIP.asInstanceOf[IPv4Addr]
+                val len = if (route ne null) route.dstNetworkLength else 0
+
+                context.addFlowTag(FlowTagger.tagForDestinationIp(id, dstIp))
+                routerMgrTagger.addIPv4Tag(dstIp, len)
+                context.addFlowRemovedCallback(
+                    routerMgrTagger.getFlowRemovalCallback(dstIp))
+        }
+    }
+
 
     private def processArpRequest(pkt: ARP, inPort: RouterPort)
                                  (implicit context: PacketContext) {
