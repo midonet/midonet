@@ -21,13 +21,13 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
-import org.midonet.cluster.models.Commons.{IPAddress, UUID}
+import org.midonet.cluster.models.Commons.{Int32Range, IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
 import org.midonet.util.concurrent.toFutureOps
@@ -188,11 +188,13 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             midoDhcps: mutable.Map[UUID, Dhcp.Builder],
             inRules: ListBuffer[MidoOp[Rule]],
             outRules: ListBuffer[MidoOp[Rule]],
+            antiSpoofRules: ListBuffer[MidoOp[Rule]],
             chains: ListBuffer[MidoOp[Chain]],
             updatedIpAddrGrps: ListBuffer[MidoOp[IPAddrGroup]])
 
     private def initPortContext =
         PortContext(mutable.Map[UUID, Dhcp.Builder](),
+                    ListBuffer[MidoOp[Rule]](),
                     ListBuffer[MidoOp[Rule]](),
                     ListBuffer[MidoOp[Rule]](),
                     ListBuffer[MidoOp[Chain]](),
@@ -203,6 +205,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                            midoOps: MidoOpListBuffer) {
             midoOps ++= portContext.midoDhcps.values.map(d => Update(d.build))
             midoOps ++= portContext.inRules ++ portContext.outRules
+            midoOps ++= portContext.antiSpoofRules
             midoOps ++= portContext.chains
             midoOps ++= portContext.updatedIpAddrGrps
     }
@@ -277,6 +280,60 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         if (route >= 0) dhcp.removeOpt121Routes(route)
     }
 
+    /* Builds the list of rules that implement "anti-spoofing". The rules
+     * allowed are:
+     *     - DHCP
+     *     - ARP
+     *     - All MAC/IPs associated with the port's fixed IPs.
+     *     - All MAC/IPs listed in the port's Allowed Address pair list.
+     */
+    private def buildAntiSpoofRules(portCtx: PortContext,
+                                    nPort: NeutronPort,
+                                    portId: UUID,
+                                    inChainId: UUID): Unit = {
+
+        val mac = nPort.getMacAddress
+        val spoofChainId = aSpoofChainId(portId)
+
+        portCtx.inRules += Create(jumpRule(inChainId, spoofChainId))
+
+        // Don't filter ARP
+        portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
+            .setDlType(ARP.ETHERTYPE)
+            .build())
+
+        // Don't filter DHCP
+        val dhcpFrom = Int32Range.newBuilder
+                            .setStart(68)
+                            .setEnd(68)
+                            .build()
+        val dhcpTo = Int32Range.newBuilder
+                            .setStart(67)
+                            .setEnd(67)
+                            .build()
+
+        portCtx.antiSpoofRules += Create(returnRule(aSpoofChainId(portId))
+            .setTpDst(dhcpTo)
+            .setTpSrc(dhcpFrom)
+            .build())
+
+        for (fixedIp <- nPort.getFixedIpsList.asScala) {
+            portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
+                .setNwSrcIp(IPSubnetUtil.fromAddr(fixedIp.getIpAddress))
+                .setDlSrc(mac)
+                .build())
+        }
+
+        for (ipAddr <- nPort.getAllowedAddressPairsList.asScala) {
+            portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
+                .setNwSrcIp(IPSubnetUtil.fromAddr(ipAddr.getIpAddress))
+                .setDlSrc(ipAddr.getMacAddress)
+                .build())
+        }
+
+        portCtx.antiSpoofRules += Create(dropRuleBuilder(spoofChainId).build())
+    }
+
     /* Create chains, rules and IP Address Groups associated with nPort. */
     private def updateSecurityBindings(nPort: NeutronPort,
                                        nPortOld: NeutronPort,
@@ -287,30 +344,13 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val outChainId = mPort.getOutboundFilterId
         val mac = nPort.getMacAddress
 
-        // Create an IP spoofing protection rule.
-        for (dhcp <- portCtx.midoDhcps.values if dhcp.getHostsCount > 0) {
-            // NOTE: if a port belongs to more than 1 subnet, the drop rules
-            // that would be created below would drop all packets. Currently
-            // we don't "handle" more than 1 IP address per port, so there
-            // should be no problem, but this can potentially cause problems.
-            portCtx.inRules += Create(dropRuleBuilder(inChainId)
-                                      .setNwSrcIp(dhcp.getSubnetAddress)
-                                      .setNwSrcInv(true)
-                                      .setDlType(dhcp.etherType).build)
-
-            // TODO If a port is attached to an external NeutronNetwork,
-            // add a route to the provider router.
-        }
-
         // Create return flow rules.
         portCtx.outRules += Create(returnFlowRule(outChainId))
-        // MAC spoofing protection
-        portCtx.inRules += Create(dropRuleBuilder(inChainId)
-                                  .setDlSrc(mac)
-                                  .setInvDlSrc(true).build)
 
         // Create return flow rules matching for inbound chain.
         portCtx.inRules += Create(returnFlowRule(inChainId))
+
+        buildAntiSpoofRules(portCtx, nPort, portId, inChainId)
 
         // Add jump rules to corresponding inbound / outbound chains of IP
         // Address Groups (Neutron's Security Groups) that the port belongs to.
@@ -362,18 +402,29 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                                toRuleIdList(portCtx.inRules))
         val outChain = newChain(outChainId, ingressChainName(portId),
                                 toRuleIdList(portCtx.outRules))
+        val antiSpoofChain = newChain(aSpoofChainId(portId),
+                                      "Anti Spoof Chain",
+                                      toRuleIdList(portCtx.antiSpoofRules))
 
         if (nPortOld != null) { // Update
-            portCtx.chains += (Update(inChain), Update(outChain))
+            portCtx.chains += (Update(antiSpoofChain),
+                               Update(inChain),
+                               Update(outChain))
 
             val iChain = storage.get(classOf[Chain], inChainId).await()
-            portCtx.inRules ++= iChain.getRuleIdsList.asScala
-                                      .map(Delete(classOf[Rule], _))
+            portCtx.inRules ++= iChain
+                .getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
             val oChain = storage.get(classOf[Chain], outChainId).await()
-            portCtx.outRules ++= oChain.getRuleIdsList.asScala
-                                       .map(Delete(classOf[Rule], _))
+            portCtx.outRules ++= oChain
+                .getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
+            val aChain = storage.get(
+                classOf[Chain], aSpoofChainId(portId)).await()
+            portCtx.antiSpoofRules ++= aChain
+                .getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
         } else { // Create
-            portCtx.chains += (Create(inChain), Create(outChain))
+            portCtx.chains += (Create(inChain),
+                               Create(outChain),
+                               Create(antiSpoofChain))
         }
     }
 
@@ -384,14 +435,23 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val portId = nPortOld.getId
         val inChainId = mPort.getInboundFilterId
         val outChainId = mPort.getOutboundFilterId
+        val aChainId = aSpoofChainId(mPort.getId)
+
         val iChain = storage.get(classOf[Chain], inChainId).await()
+
+
         portContext.inRules ++= iChain.getRuleIdsList.asScala
                                    .map(Delete(classOf[Rule], _))
         val oChain = storage.get(classOf[Chain], outChainId).await()
         portContext.outRules ++= oChain.getRuleIdsList.asScala
-                                    .map(Delete(classOf[Rule], _))
+                                   .map(Delete(classOf[Rule], _))
+        val aChain = storage.get(classOf[Chain], aChainId).await()
+        portContext.outRules ++= aChain.getRuleIdsList.asScala
+                                   .map(Delete(classOf[Rule], _))
+
         portContext.chains += (Delete(classOf[Chain], inChainId),
-                            Delete(classOf[Chain], outChainId))
+                               Delete(classOf[Chain], outChainId),
+                               Delete(classOf[Chain], aChainId))
 
         // Remove the fixed IPs from IP Address Groups
         for (sgId <- nPortOld.getSecurityGroupsList.asScala) {
