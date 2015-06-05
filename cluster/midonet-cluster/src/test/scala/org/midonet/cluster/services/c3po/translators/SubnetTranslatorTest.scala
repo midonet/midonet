@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronSubnet}
+import org.midonet.cluster.models.Neutron.NeutronSubnet
 import org.midonet.cluster.models.Topology.Dhcp
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.models.ModelsUtil._

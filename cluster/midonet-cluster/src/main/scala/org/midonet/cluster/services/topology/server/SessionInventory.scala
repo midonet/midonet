@@ -59,8 +59,8 @@ object SessionInventory {
     /** generate an update response */
     def updateBuilder(m: Message, reqId: UUID = null): Response.Builder = {
         val u: Update = m match {
-            case h: BGP => Update.newBuilder().setBgp(h).build()
-            case h: BGPRoute => Update.newBuilder().setBgpRoute(h).build()
+            case h: Bgp => Update.newBuilder().setBgp(h).build()
+            case h: BgpRoute => Update.newBuilder().setBgpRoute(h).build()
             case h: Chain => Update.newBuilder().setChain(h).build()
             case h: Dhcp => Update.newBuilder().setDhcp(h).build()
             case h: HealthMonitor => Update.newBuilder().setHealthMonitor(h).build()
@@ -74,7 +74,7 @@ object SessionInventory {
             case h: Route => Update.newBuilder().setRoute(h).build()
             case h: Router => Update.newBuilder().setRouter(h).build()
             case h: LoadBalancer => Update.newBuilder().setLoadBalancer(h).build()
-            case h: VIP => Update.newBuilder().setVip(h).build()
+            case h: Vip => Update.newBuilder().setVip(h).build()
             case h: Rule => Update.newBuilder().setRule(h).build()
             case h: TunnelZone => Update.newBuilder().setTunnelZone(h).build()
             case h: Vtep => Update.newBuilder().setVtep(h).build()

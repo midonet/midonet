@@ -93,7 +93,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             store.create(pm)
 
             And("A vip")
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
             store.create(vip)
 
@@ -132,7 +132,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -179,7 +179,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -230,7 +230,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -277,7 +277,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -321,7 +321,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -368,7 +368,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -425,7 +425,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -470,7 +470,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -520,7 +520,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -547,7 +547,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
                 Await.result(store.get(classOf[Proto.Pool], pool.getId), timeout)
             // Change the health monitor
             val lb2 = createLoadBalancer()
-            val vip2 = createVIP(loadBalancerId = Some(lb2.getId),
+            val vip2 = createVip(loadBalancerId = Some(lb2.getId),
                                  poolId = Some(pool.getId))
             val poolUpdated = savedPool.setLoadBalancerId(lb2.getId)
             store.create(lb2)
@@ -580,7 +580,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -625,7 +625,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -672,7 +672,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             val pm1 = createPoolMember(poolId = Some(pool.getId),
                                        status = Some(LBStatus.ACTIVE),
                                        weight = Some(1))
-            val vip = createVIP(poolId = Some(pool.getId),
+            val vip = createVip(poolId = Some(pool.getId),
                                 loadBalancerId = Some(lb.getId))
 
             store.create(hm)
@@ -695,8 +695,8 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             obs.reset()
 
             // Add vips to load balancer (only one for existing pool)
-            val vip2 = createVIP(loadBalancerId = Some(lb.getId))
-            val vip3 = createVIP(loadBalancerId = Some(lb.getId),
+            val vip2 = createVip(loadBalancerId = Some(lb.getId))
+            val vip3 = createVip(loadBalancerId = Some(lb.getId),
                                  poolId = Some(pool.getId))
             store.create(vip2)
             store.create(vip3)

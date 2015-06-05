@@ -28,8 +28,8 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil;
 
-@ZoomClass(clazz = Topology.BGP.class)
-public class BGP extends UriResource {
+@ZoomClass(clazz = Topology.Bgp.class)
+public class Bgp extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
@@ -80,7 +80,7 @@ public class BGP extends UriResource {
     }
 
     @JsonIgnore
-    public void update(BGP from) {
+    public void update(Bgp from) {
         id = from.id;
         adRouteIds = from.adRouteIds;
     }

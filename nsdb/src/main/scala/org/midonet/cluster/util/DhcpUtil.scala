@@ -18,7 +18,7 @@ package org.midonet.cluster.util
 import org.midonet.cluster.models.Commons.IPVersion
 import org.midonet.cluster.models.Neutron.NeutronSubnetOrBuilder
 import org.midonet.cluster.models.Topology.DhcpOrBuilder
-import org.midonet.packets.{ARP, IPv4, IPv6}
+import org.midonet.packets.{IPv4, IPv6}
 
 object DhcpUtil {
 

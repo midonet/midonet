@@ -26,7 +26,7 @@ import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
 import org.midonet.packets.{IPAddr, IPv4Addr, TCP}
 
-@ZoomClass(clazz = classOf[Topology.VIP])
+@ZoomClass(clazz = classOf[Topology.Vip])
 final class VIP(
     @ScalaZoomField(name = "id", converter = classOf[UUIDConverter])
     val id: UUID,
