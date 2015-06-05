@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_626f20c6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-05T14:43:24Z",
+      "side": 1,
+      "message": "So Duarte further clarified that this was not meant to remove logic but to make isDangling logic actually possible, after the removal of the old netlink scanner sensor.\n\nMy 2c is that we can get rid of both this and the isDangling logic. Nobody is going/should delete dp ports from under us. I\u0027ve never heard of such a thing being reported.\n\nSo I pretty strongly think we should leave this logic out of this patch, removing moving parts and making the overall patch smaller and simpler.\n\n*maybe* later we want to support dangling port detection again. But I believe we won\u0027t.",
+      "parentUuid": "facab960_374e3c97",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_972548c4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 19
