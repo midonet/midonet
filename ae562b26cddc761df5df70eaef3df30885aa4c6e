@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_3cd46346",
+        "filename": "midonet-api/src/main/java/org/midonet/api/servlet/JerseyGuiceServletContextListener.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-05T08:32:47Z",
+      "side": 1,
+      "message": "Are these used? There is no other change.",
+      "range": {
+        "startLine": 35,
+        "startChar": 0,
+        "endLine": 36,
+        "endChar": 41
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5ccbe7a4",
+        "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.dev",
+        "patchSetId": 4
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-05T08:32:47Z",
+      "side": 1,
+      "message": "Trailing space",
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
