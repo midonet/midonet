@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_fcecbbf5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-05T09:31:45Z",
+      "side": 1,
+      "message": "nit: I guess since we\u0027re abstracting storage, this is not really of interest. But doesn\u0027t hurt, no need to remove.",
+      "range": {
+        "startLine": 72,
+        "startChar": 54,
+        "endLine": 73,
+        "endChar": 71
+      },
+      "revId": "8c57a514a9bc2347ba5ddb29004890cf7c81feaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1cbb1fe6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-05T09:31:45Z",
+      "side": 1,
+      "message": "should it be concurrenthashmap?",
+      "range": {
+        "startLine": 92,
+        "startChar": 36,
+        "endLine": 92,
+        "endChar": 55
+      },
+      "revId": "8c57a514a9bc2347ba5ddb29004890cf7c81feaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
