@@ -305,6 +305,41 @@
     },
     {
       "key": {
+        "uuid": "facab960_97caa84d",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:00:10Z",
+      "side": 1,
+      "message": "Hum.. i\u0027m totally lost. Lets keep things as they are and improve them later on.",
+      "parentUuid": "facab960_e7635b18",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_37e1dcd0",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:00:10Z",
+      "side": 1,
+      "message": "when is onCompleted called?",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_50ef8eb0",
         "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
         "patchSetId": 17
@@ -334,6 +369,24 @@
       "side": 1,
       "message": "Observers may want to inspect the message types or other headers to dispatch the processes for notified resources. OVS notifications are multiplexed in the payload, which is actually in the OVS specific headers such as command or version, though.\n\nI\u0027m confused with your comment. Only the first message matters even the reply is comprised of multiple messages because the existing links/addresses are ignored and a new link or address is always notified as the single message.\n\nAnd I might miss the point of your previous comment. I thought you meant we should always passing the first message but you didn\u0027t mean it?\n\nhttps://review.gerrithub.io/#/c/218410/16/netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala@156",
       "parentUuid": "facab960_50ef8eb0",
+      "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f7bf74a8",
+        "filename": "netlink/src/main/java/org/midonet/netlink/NetlinkNotificationReader.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:00:10Z",
+      "side": 1,
+      "message": "Sorry, I think I misunderstood the code. It\u0027s just that you are already calling flip(), so I don\u0027t see why you need to set position to 0 again.\n\nThe other part of my comment has to do with: where to observers expect the beginning of the buffer to be at? the netlink headers, or the notification contents? I think it should be the notification contents, like it is the reply contents in the NetlinkRequestBroker.",
+      "parentUuid": "facab960_a7815391",
       "revId": "4fd01bc30bacadea3f3eaf0c14de6604beeb4f87",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
