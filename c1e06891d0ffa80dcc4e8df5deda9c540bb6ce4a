@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_374e3c97",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-05T14:26:15Z",
+      "side": 1,
+      "message": "I don\u0027t think this is the place to parse ByteBuffers. If this is an OVS Datapath connection this functionality should be added to the OVS Datapath connection API we already have.\n\n...But, moreover, Duarte tells me that the purpose of these is getting rid of isDangling logic in the dp port engangler. If so, it feels like it\u0027s unnecessarily enlarging the scope of this already very big patch. I\u0027d leave it out and add it in a later patch.",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
