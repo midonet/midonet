@@ -116,6 +116,8 @@ object PortManager {
     def isRouterGatewayPort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
 
+    def antiSpoofChainId(deviceId: UUID) =
+        deviceId.xorWith(0xa7b611cfe7334feL, 0xbbac78cfe412ad35L)
 
     /** Link-local CIDR */
     val LL_CIDR = IPSubnet.newBuilder()
