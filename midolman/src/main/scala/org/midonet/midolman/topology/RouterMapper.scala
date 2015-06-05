@@ -278,17 +278,17 @@ object RouterMapper {
             ipv4RoutingTable.addRoute(route)
         }
 
-        override def lookup(flowMatch: FlowMatch): Iterable[Route] = {
+        override def lookup(flowMatch: FlowMatch): java.util.List[Route] = {
             ipv4RoutingTable.lookup(
                 flowMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr],
-                flowMatch.getNetworkDstIP.asInstanceOf[IPv4Addr]).asScala
+                flowMatch.getNetworkDstIP.asInstanceOf[IPv4Addr])
         }
 
-        override def lookup(flowMatch: FlowMatch, log: Logger): Iterable[Route] = {
+        override def lookup(flowMatch: FlowMatch, log: Logger): java.util.List[Route] = {
             ipv4RoutingTable.lookup(
                 flowMatch.getNetworkSrcIP.asInstanceOf[IPv4Addr],
                 flowMatch.getNetworkDstIP.asInstanceOf[IPv4Addr],
-                log.underlying).asScala
+                log.underlying)
         }
     }
 

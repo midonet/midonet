@@ -45,7 +45,7 @@ class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP])
      * TODO (ipv6): de facto implementation for ipv4, that explains the casts at
      * this point.
      */
-    def lookup(wmatch: FlowMatch): Iterable[Route] =
+    def lookup(wmatch: FlowMatch): java.util.List[Route] =
         rTable.lookup(wmatch.getNetworkSrcIP.asInstanceOf[IP],
                       wmatch.getNetworkDstIP.asInstanceOf[IP])
 
@@ -53,7 +53,7 @@ class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP])
      * TODO (ipv6): de facto implementation for ipv4, that explains the casts at
      * this point.
      */
-    def lookup(wmatch: FlowMatch, logger: Logger): Iterable[Route] =
+    def lookup(wmatch: FlowMatch, logger: Logger): java.util.List[Route] =
         rTable.lookup(wmatch.getNetworkSrcIP.asInstanceOf[IP],
                       wmatch.getNetworkDstIP.asInstanceOf[IP],
                       logger.underlying)

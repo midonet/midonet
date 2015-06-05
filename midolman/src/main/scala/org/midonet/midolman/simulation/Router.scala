@@ -61,8 +61,8 @@ object Router {
     }
 
     trait RoutingTable {
-        def lookup(flowMatch: FlowMatch): Iterable[Route]
-        def lookup(flowMatch: FlowMatch, log: Logger): Iterable[Route]
+        def lookup(flowMatch: FlowMatch): java.util.List[Route]
+        def lookup(flowMatch: FlowMatch, log: Logger): java.util.List[Route]
     }
 }
 
