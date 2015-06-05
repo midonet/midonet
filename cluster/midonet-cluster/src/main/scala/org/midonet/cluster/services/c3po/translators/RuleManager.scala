@@ -53,6 +53,12 @@ trait RuleManager {
                                  .build())
             .build()
 
+    protected def returnRule(chainId: UUID): Rule.Builder =
+        newRule(chainId)
+            .setType(Rule.Type.LITERAL_RULE)
+            .setAction(RETURN)
+            .setFragmentPolicy(FragmentPolicy.ANY)
+
     protected def natRuleData(addr: IPAddress, dnat: Boolean): NatRuleData = {
         val target = NatTarget.newBuilder
             .setNwStart(addr).setNwEnd(addr)
