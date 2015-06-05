@@ -33,6 +33,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.{ShardedFlowInvalidator, FlowInvalidator}
 import org.midonet.midolman.logging.ActorLogWithoutPath
+import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.simulation.{DhcpConfigFromDataclient, DhcpConfigFromZoom}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
@@ -115,6 +116,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     @Inject
     var hostIdProviderService: HostIdProviderService = _
 
+    @Inject
+    var flowRecorderFactory: FlowRecorderFactory = _
+
     var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
     var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
@@ -178,6 +182,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             storageFactory.create(),
             natLeaser,
             metrics,
+            flowRecorderFactory.newFlowRecorder(),
             counter.addAndGet(index, _: Int))
     }
 

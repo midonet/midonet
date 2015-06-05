@@ -31,6 +31,7 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
+import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.{DhcpConfigFromDataclient, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
@@ -376,7 +377,11 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    new ShardedFlowStateTable[TraceKey, TraceContext](),
                                    Future.successful(new MockStateStorage()),
                                    HappyGoLuckyLeaser,
-                                   metrics, packetOut)
+                                   metrics,
+                                   injector.getInstance(
+                                       classOf[FlowRecorderFactory])
+                                       .newFlowRecorder(),
+                                   packetOut)
             with MessageAccumulator {
 
         implicit override val dispatcher = this.context.dispatcher
