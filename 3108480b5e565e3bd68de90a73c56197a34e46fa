@@ -1,0 +1,164 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_f7edb4b8",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:28:27Z",
+      "side": 1,
+      "message": "why not just status \u003d\u003d DONE?",
+      "range": {
+        "startLine": 67,
+        "startChar": 8,
+        "endLine": 67,
+        "endChar": 51
+      },
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b7fdec3d",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/DanglingObserver.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:28:27Z",
+      "side": 1,
+      "message": "where is this being used?",
+      "range": {
+        "startLine": 26,
+        "startChar": 6,
+        "endLine": 26,
+        "endChar": 22
+      },
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_97262815",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/RtnetlinkResource.java",
+        "patchSetId": 22
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:28:27Z",
+      "side": 1,
+      "message": "where is this used?",
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d720b0f9",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkUtil.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:28:27Z",
+      "side": 1,
+      "message": "this is not always true, right?",
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5784a0d3",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkUtil.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:28:27Z",
+      "side": 1,
+      "message": "never mind my previous comment, this looks good to me now!",
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_77ec4490",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:28:27Z",
+      "side": 1,
+      "message": "Why do we need this?",
+      "range": {
+        "startLine": 42,
+        "startChar": 6,
+        "endLine": 42,
+        "endChar": 32
+      },
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d74ef0c0",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:28:27Z",
+      "side": 1,
+      "message": "What do we need this for?\n\nThis is wrong, since you can\u0027t ensure how many arguments the subclasses of RtnetlinkConnection take.",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 62
+      },
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_77ba846f",
+        "filename": "odp/build.gradle",
+        "patchSetId": 22
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:28:27Z",
+      "side": 1,
+      "message": "why the change?",
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
