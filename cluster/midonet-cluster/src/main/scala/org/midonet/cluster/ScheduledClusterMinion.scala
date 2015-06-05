@@ -17,6 +17,10 @@ package org.midonet.cluster
 
 import java.util.concurrent.{Executors, TimeUnit}
 
+import scala.util.control.NonFatal
+
+import com.google.common.annotations.VisibleForTesting
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
@@ -30,12 +34,21 @@ abstract class ScheduledClusterMinion(nodeContext: Context,
     protected val pool = Executors.newScheduledThreadPool(config.numThreads)
     protected val runnable: Runnable
 
-    override def doStart(): Unit = {
+    override def doStart(): Unit = try {
         log.info("Starting service: " + this.getClass.getName)
+        validateConfig()
         pool.scheduleAtFixedRate(runnable, config.delayMs,
                                  config.periodMs, TimeUnit.MILLISECONDS)
         notifyStarted()
+    } catch {
+        case NonFatal(ex) => notifyFailed(ex)
     }
+
+    /**
+     * Hook to validate minion's config prior to startup. Implementations should
+     * throw an exception to indicate failure.
+     */
+    protected def validateConfig(): Unit = {}
 
     override def doStop(): Unit = {
         log.info("Stopping service: " + this.getClass.getName)
@@ -54,6 +67,16 @@ abstract class ScheduledClusterMinion(nodeContext: Context,
                 Thread.currentThread().interrupt() // preserve status
         }
         notifyStopped()
+    }
+}
+
+@VisibleForTesting
+protected[cluster] object ScheduledClusterMinion {
+    val CfgParamUndefErrMsg = "Config parameter %s not defined."
+
+    def checkConfigParamDefined(str: String, name: String): Unit = {
+        if (str == null || str.isEmpty)
+            throw new IllegalArgumentException(CfgParamUndefErrMsg.format(name))
     }
 }
 
