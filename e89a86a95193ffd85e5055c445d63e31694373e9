@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_e2fc1041",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-05T17:04:40Z",
+      "side": 1,
+      "message": "The for should be inside the runnable.",
+      "range": {
+        "startLine": 311,
+        "startChar": 12,
+        "endLine": 325,
+        "endChar": 13
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
