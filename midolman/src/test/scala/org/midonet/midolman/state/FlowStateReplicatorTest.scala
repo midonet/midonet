@@ -18,13 +18,14 @@ package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
 import java.util.{ArrayList, UUID, HashSet => JHashSet, List => JList, Set => JSet}
-import com.google.protobuf.{CodedOutputStream, MessageLite}
 import org.midonet.rpc.FlowStateProto
 import org.midonet.util.FixedArrayOutputStream
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.Future
+
+import com.google.protobuf.{CodedOutputStream, MessageLite}
 
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
@@ -33,14 +34,11 @@ import org.scalatest._
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client.{BridgePort, Port}
-import org.midonet.midolman.UnderlayResolver
+import org.midonet.midolman.{HostRequestProxy, UnderlayResolver}
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.rcu.Host
-import org.midonet.odp.{Packet, Datapath}
-import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
-import org.midonet.odp.protos.{MockOvsDatapathConnection, OvsDatapathConnection}
 import org.midonet.packets.IPv4Addr
 import org.midonet.odp.{FlowMatches, Packet, Datapath}
 import org.midonet.odp.flows.{FlowActions, FlowAction, FlowActionOutput}
@@ -448,6 +446,22 @@ class FlowStateReplicatorTest extends FeatureSpec
             Then("Flows tagged with it should be invalidated")
             recipient.invalidatedKeys should have length (1)
             recipient.invalidatedKeys should contain (k)
+        }
+    }
+
+    feature("Importing flow state from storage") {
+        scenario("Invalidates flows") {
+            Given("A flow state batch")
+
+            val flowState = HostRequestProxy.EmptyFlowStateBatch()
+            flowState.strongConnTrack.add(connTrackKeys.head)
+
+            When("Importing it")
+            recipient.importFromStorage(flowState)
+
+            Then("Flows tagged with it should be invalidated")
+            recipient.invalidatedKeys should have length (1)
+            recipient.invalidatedKeys should contain (connTrackKeys.head)
         }
     }
 }
