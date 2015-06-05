@@ -395,6 +395,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_57b100e0",
+        "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
+        "patchSetId": 16
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T13:54:18Z",
+      "side": 1,
+      "message": "yeah, i meant it should be encapsulated there",
+      "parentUuid": "1a106d94_d818f977",
+      "range": {
+        "startLine": 127,
+        "startChar": 39,
+        "endLine": 127,
+        "endChar": 58
+      },
+      "revId": "e880bdde2fce09aeb257c9b919614e2de58ac9a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_7dd0d7c9",
         "filename": "netlink/src/main/java/org/midonet/netlink/SelectorBasedNetlinkNotificationReader.scala",
         "patchSetId": 16
