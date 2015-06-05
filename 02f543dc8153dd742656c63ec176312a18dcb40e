@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_e2c41042",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-05T16:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_9772a87a",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b76dec9b",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
         "patchSetId": 3
@@ -30,6 +48,24 @@
       "writtenOn": "2015-06-05T13:49:12Z",
       "side": 1,
       "message": "\u003e\u003e\u003e so it\u0027s unsigned extension",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_02c01429",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-05T16:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_b76dec9b",
       "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_c221ccfd",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-05T16:26:52Z",
+      "side": 1,
+      "message": "Polymorphism is needed because the last layer holds ints and not nodes, making the typing of nodes in this data structure heterogenous. \n\nYes the code can be rolled out, to much ugliness. So I\u0027m not promising anything on this front.\n\nAlso this requests feels like stepping on the feet of the JIT \u0026 compiler.",
+      "parentUuid": "facab960_779d2459",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_17a218ae",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
         "patchSetId": 3
@@ -64,6 +118,24 @@
       "writtenOn": "2015-06-05T13:49:12Z",
       "side": 1,
       "message": "could these be pre-filled?",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_22def811",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-05T16:26:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_17a218ae",
       "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
