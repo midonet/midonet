@@ -16,6 +16,23 @@
       "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_972548c4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-05T14:33:12Z",
+      "side": 1,
+      "message": "s/Throwable/Exception/",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
