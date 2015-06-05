@@ -16,6 +16,41 @@
       "revId": "fdc3e5818e6c6aa68b0622114b9751dc607330ba",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_918718d7",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 216,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-05T06:34:59Z",
+      "side": 1,
+      "message": "They are today, inside the RouterManager. \n\nNext patch will make the RouterManager use this class. Then we can move them to simulation threads, sharded, so they\u0027ll always be thread-local.",
+      "parentUuid": "facab960_ebaa3318",
+      "revId": "fdc3e5818e6c6aa68b0622114b9751dc607330ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b16dfc34",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-05T06:34:59Z",
+      "side": 1,
+      "message": "this should return NO_VALUE.",
+      "revId": "fdc3e5818e6c6aa68b0622114b9751dc607330ba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
