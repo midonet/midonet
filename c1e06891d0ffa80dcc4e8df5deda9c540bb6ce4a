@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_22751898",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/guice/HostModule.java",
+        "patchSetId": 19
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "if we\u0027re specifying singleton here, can we remove it from the annotation from the InterfaceScanner?",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_374e3c97",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 19
@@ -37,6 +54,74 @@
     },
     {
       "key": {
+        "uuid": "facab960_c20e2c32",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "complete the subject?",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b7208cb1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "maybe change port watcher to interface scanner?",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_62580033",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "the interface is always up if the dpport exists",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c2aaacd1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "complete the subject?",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_972548c4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 19
@@ -48,6 +133,97 @@
       "writtenOn": "2015-06-05T14:33:12Z",
       "side": 1,
       "message": "s/Throwable/Exception/",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_627d606e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "this is only true of dump requests",
+      "range": {
+        "startLine": 368,
+        "startChar": 19,
+        "endLine": 368,
+        "endChar": 27
+      },
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_42869c66",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "use awaitableobserver?",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_42785c8f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/InterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "subscribe to",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_429f7cb4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelector.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "do we need this?",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_82a984e1",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelectorProvider.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T14:47:51Z",
+      "side": 1,
+      "message": "do we need this?",
       "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
