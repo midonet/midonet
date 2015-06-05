@@ -24,6 +24,7 @@ import org.midonet.util.FixedArrayOutputStream
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.concurrent.Future
 
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith

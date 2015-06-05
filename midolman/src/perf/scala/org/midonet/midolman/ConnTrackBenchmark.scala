@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, Level, Benchmark, Scope, State, Fork, Measurement, Warmup, OutputTimeUnit, Mode, BenchmarkMode}
 import org.openjdk.jmh.infra.Blackhole
@@ -105,7 +106,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         macTable.add(leftMac, leftPort.getId)
         macTable.add(rightMac, rightPort.getId)
         replicator = new FlowStateReplicator(conntrackTable, natTable,
-                                             new MockStateStorage,
+                                             Future.successful(new MockStateStorage),
                                              underlayResolver, _ => { },
                                              new Datapath(1, "midonet", null))
     }

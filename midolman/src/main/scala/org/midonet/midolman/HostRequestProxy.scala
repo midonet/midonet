@@ -57,10 +57,11 @@ object HostRequestProxy {
   * host's ports is fetched from Cassandra before the subscriber receives
   * the host object.
   */
-class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
-        val subscriber: ActorRef) extends Actor
-                                  with ActorLogWithoutPath
-                                  with SingleThreadExecutionContextProvider {
+class HostRequestProxy(val hostId: UUID,
+                       val storageFuture: Future[FlowStateStorage],
+                       val subscriber: ActorRef) extends Actor
+                                                 with ActorLogWithoutPath
+                                                 with SingleThreadExecutionContextProvider {
 
     import HostRequestProxy._
     import context.system
@@ -73,7 +74,8 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
         VTPM ! HostRequest(hostId)
     }
 
-    private def stateForPort(port: UUID): Future[FlowStateBatch] = {
+    private def stateForPort(storage: FlowStateStorage,
+                             port: UUID): Future[FlowStateBatch] = {
         val scf = storage.fetchStrongConnTrackRefs(port)
         val wcf = storage.fetchWeakConnTrackRefs(port)
         val snf = storage.fetchStrongNatRefs(port)
@@ -84,16 +86,18 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
         }
     }
 
-    private def stateForPorts(ports: Iterable[UUID]): Future[FlowStateBatch] =
-        Future.fold(ports map stateForPort)(EmptyFlowStateBatch()) {
+    private def stateForPorts(storage: FlowStateStorage,
+                              ports: Iterable[UUID]): Future[FlowStateBatch] =
+        Future.fold(ports map (stateForPort(storage, _)))(EmptyFlowStateBatch()) {
             (batch: FlowStateBatch, v: FlowStateBatch) => batch.merge(v)
         }
 
     override def receive = super.receive orElse {
         case h: Host =>
+            subscriber ! h
             belt.handle(() => {
                 val ps = h.ports.keySet -- lastPorts
-                stateForPorts(ps).andThen {
+                storageFuture.map(stateForPorts(_, ps)).andThen {
                     case Success(stateBatch) =>
                         lastPorts = ps
                         PacketsEntryPoint ! stateBatch
@@ -102,5 +106,5 @@ class HostRequestProxy(val hostId: UUID, val storage: FlowStateStorage,
                 }.andThen {
                     case _ => subscriber ! h
                 }(singleThreadExecutionContext)})
-        }
+    }
 }
