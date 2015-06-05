@@ -302,6 +302,91 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         bind(sgId2, ipAddrGroup2)
     }
 
+    "Anti Spoof Chain" should "exist on a port with allowed addr pairs" in {
+
+        val vifPortWithAllowedAddressPairs = nPortFromTxt(s"""
+          $portBaseUp
+          fixed_ips {
+            ip_address {
+              version: V4
+              address: '6.6.6.6'
+            }
+            subnet_id { $nIpv4Subnet1Id }
+          }
+          port_security_enabled: true
+          allowed_address_pairs {
+            ip_address {
+              version: V4
+              address: '1.2.1.2'
+            }
+            mac_address: "01:02:03:0a:0b:0c"
+          }
+          allowed_address_pairs {
+            ip_address {
+              version: V4
+              address: '2.3.2.3'
+            }
+            mac_address: "0a:0b:0b:0a:0b:0c"
+          }
+          """)
+
+        val antiSpoofRule1 = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            action: RETURN
+            dl_dst: "0a:0b:0b:0a:0b:0c"
+            chain_id: { ${PortManager.inAntiSpoofChainId(portId)} }
+            nw_dst_ip {
+              version: V4
+              address: "2.3.2.3"
+              prefix_length: 32
+            }
+            fragment_policy: ANY
+            """)
+        val antiSpoofRule2 = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            action: RETURN
+            dl_src: "0a:0b:0b:0a:0b:0c"
+            chain_id: { ${PortManager.outAntiSpoofChainId(portId)} }
+            nw_src_ip {
+              version: V4
+              address: "2.3.2.3"
+              prefix_length: 32
+            }
+            fragment_policy: ANY
+            """)
+        val antiSpoofRule3 = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            action: RETURN
+            dl_dst: "01:02:03:0a:0b:0c"
+            chain_id: { ${PortManager.inAntiSpoofChainId(portId)} }
+            nw_dst_ip {
+              version: V4
+              address: '1.2.1.2'
+              prefix_length: 32
+            }
+            fragment_policy: ANY
+            """)
+        val antiSpoofRule4 = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            action: RETURN
+            dl_src: "01:02:03:0a:0b:0c"
+            chain_id: { ${PortManager.outAntiSpoofChainId(portId)} }
+            nw_src_ip {
+              version: V4
+              address: '1.2.1.2'
+              prefix_length: 32
+            }
+            fragment_policy: ANY
+            """)
+
+        val midoOps = translator.translate(neutron.Create(vifPortWithAllowedAddressPairs))
+
+        midoOps should containOp[Message] (midonet.Create(antiSpoofRule1))
+        midoOps should containOp[Message] (midonet.Create(antiSpoofRule2))
+        midoOps should containOp[Message] (midonet.Create(antiSpoofRule3))
+        midoOps should containOp[Message] (midonet.Create(antiSpoofRule4))
+    }
+
     "Fixed IPs for a new VIF port" should "add hosts to DHCPs" in {
         val midoOps = translator.translate(neutron.Create(vifPortWithFixedIps))
 
@@ -329,35 +414,6 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             action: ACCEPT
             match_return_flow: true
             chain_id { $inboundChainId }
-            """)
-
-        val ipSpoofProtectIpv4 = mRuleFromTxt(s"""
-            type: LITERAL_RULE
-            chain_id { $inboundChainId }
-            nw_src_ip: { $ipv4Subnet1 }
-            dl_type: ${IPv4.ETHERTYPE}
-            nw_src_inv: true
-            fragment_policy: ANY
-            action: DROP
-            """)
-
-        val ipSpoofProtectIpv6 = mRuleFromTxt(s"""
-            type: LITERAL_RULE
-            action: DROP
-            chain_id { $inboundChainId }
-            nw_src_ip: { $ipv6Subnet1 }
-            dl_type: ${IPv6.ETHERTYPE}
-            nw_src_inv: true
-            fragment_policy: ANY
-            """)
-
-        val macSpoofProtect = mRuleFromTxt(s"""
-            type: LITERAL_RULE
-            action: DROP
-            chain_id { $inboundChainId }
-            dl_src: '$mac'
-            inv_dl_src: true
-            fragment_policy: ANY
             """)
 
          val jumpRuleIn1 = mRuleFromTxt(s"""
@@ -417,7 +473,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         val inChain = findChainOp(midoOps, OpType.Create, inboundChainId)
         inChain should not be null
         inChain.getName shouldBe s"OS_PORT_${portJUuid}_INBOUND"
-        inChain.getRuleIdsList.size shouldBe 7
+        inChain.getRuleIdsList.size shouldBe 4
 
         val outChain= findChainOp(midoOps, OpType.Create, outboundChainId)
         outChain should not be null
@@ -425,9 +481,6 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         outChain.getRuleIdsList.size shouldBe 4
 
         midoOps should containOp[Message] (midonet.Create(revFlowRuleOutbound))
-        midoOps should containOp[Message] (midonet.Create(ipSpoofProtectIpv4))
-        midoOps should containOp[Message] (midonet.Create(ipSpoofProtectIpv6))
-        midoOps should containOp[Message] (midonet.Create(macSpoofProtect))
         midoOps should containOp[Message] (midonet.Create(revFlowRuleInbound))
         midoOps should containOp[Message] (midonet.Create(jumpRuleIn1))
         midoOps should containOp[Message] (midonet.Create(jumpRuleIn2))
@@ -581,15 +634,6 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             fragment_policy: ANY
             """)
 
-        val macSpoofProtect = mRuleFromTxt(s"""
-            action: DROP
-            type: LITERAL_RULE
-            chain_id { $inboundChainId }
-            dl_src: '$mac'
-            inv_dl_src: true
-            fragment_policy: ANY
-            """)
-
         val jumpRuleIn1 = mRuleFromTxt(s"""
             chain_id { $inboundChainId }
             type: JUMP_RULE
@@ -650,7 +694,6 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         midoOps should contain (midonet.Delete(classOf[Rule], outChainRule1))
         midoOps should containOp[Message] (midonet.Create(revFlowRuleOutbound))
         midoOps should containOp[Message] (midonet.Create(ipSpoofProtectIpv4))
-        midoOps should containOp[Message] (midonet.Create(macSpoofProtect))
         midoOps should containOp[Message] (midonet.Create(revFlowRuleInbound))
         midoOps should containOp[Message] (midonet.Create(jumpRuleIn1))
         midoOps should containOp[Message] (midonet.Create(jumpRuleIn2))
