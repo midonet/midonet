@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_021654f1",
+        "filename": "tools/devmido/functions",
+        "patchSetId": 4
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-05T15:51:22Z",
+      "side": 1,
+      "message": "this might need \n\nset -t default\n\nat the end so it applies to all nodes?",
+      "range": {
+        "startLine": 356,
+        "startChar": 59,
+        "endLine": 356,
+        "endChar": 70
+      },
+      "revId": "c0a989c82d446abf9d87153504906b6a187080ae",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
