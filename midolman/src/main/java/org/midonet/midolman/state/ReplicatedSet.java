@@ -53,13 +53,17 @@ public abstract class ReplicatedSet<T> {
         addedStrings.removeAll(oldStrings);
         Set<T> addedItems = new HashSet<T>();
         for (String str : addedStrings) {
-            addedItems.add(decode(str));
+            T decoded = decode(str);
+            if (decoded != null)
+                addedItems.add(decoded);
         }
         // Compute the newly deleted strings
         oldStrings.removeAll(newStrings);
         Set<T> deletedItems = new HashSet<T>();
         for (String str : oldStrings) {
-            deletedItems.add(decode(str));
+            T decoded = decode(str);
+            if (decoded != null)
+                deletedItems.add(decoded);
         }
         if (!addedItems.isEmpty() || !deletedItems.isEmpty()
                 || !firstUpdateSent) {
