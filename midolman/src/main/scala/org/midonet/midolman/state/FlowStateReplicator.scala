@@ -193,6 +193,7 @@ abstract class BaseFlowStateReplicator() {
             log.debug("importing state key from storage: {}", k)
             conntrackTable.putAndRef(k, v)
             conntrackTable.unref(k)
+            invalidateFlowsFor(k)
         }
     }
 
@@ -202,6 +203,7 @@ abstract class BaseFlowStateReplicator() {
             log.debug("importing state key from storage: {}", e.getKey)
             natTable.putAndRef(e.getKey, e.getValue)
             natTable.unref(e.getKey)
+            invalidateFlowsFor(e.getKey)
         }
     }
 
