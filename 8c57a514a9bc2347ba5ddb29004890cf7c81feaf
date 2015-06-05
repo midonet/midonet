@@ -93,6 +93,30 @@
       "revId": "8c57a514a9bc2347ba5ddb29004890cf7c81feaf",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_625ba087",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-05T16:56:00Z",
+      "side": 1,
+      "message": "if had 2 concurrent build() calls even if one would throw, but it could corrupt the map no? If you\u0027re resubmitting maybe it\u0027s worth making it a thread-safe map just to be on the safe side.",
+      "parentUuid": "facab960_976d4835",
+      "range": {
+        "startLine": 92,
+        "startChar": 36,
+        "endLine": 92,
+        "endChar": 55
+      },
+      "revId": "8c57a514a9bc2347ba5ddb29004890cf7c81feaf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
