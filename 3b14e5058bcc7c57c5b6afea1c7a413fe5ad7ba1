@@ -16,6 +16,24 @@
       "revId": "3b14e5058bcc7c57c5b6afea1c7a413fe5ad7ba1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9caf2fe3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-05T08:09:36Z",
+      "side": 1,
+      "message": "@Ryu?\n\n(I\u0027m keeping compatibility with the existing API, but happy to remove stuff :D)",
+      "parentUuid": "facab960_f106a41f",
+      "revId": "3b14e5058bcc7c57c5b6afea1c7a413fe5ad7ba1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
