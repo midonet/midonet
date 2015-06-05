@@ -131,6 +131,7 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
 
     val inboundChainId = inChainId(portId)
     val outboundChainId = outChainId(portId)
+    val spoofChainId = antiSpoofChainId(portId)
     val mPortWithChains = mPortFromTxt(s"""
         $midoPortBaseUp
         inbound_filter_id { $inboundChainId }
@@ -302,6 +303,126 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         bind(sgId2, ipAddrGroup2)
     }
 
+    "Anti Spoof Chain" should "exist on a port with allowed addr pairs" in {
+
+        val vifPortWithAllowedAddressPairs = nPortFromTxt(s"""
+          $portBaseUp
+          fixed_ips {
+            ip_address {
+              version: V4
+              address: '6.6.6.6'
+            }
+            subnet_id { $nIpv4Subnet1Id }
+          }
+          port_security_enabled: true
+          allowed_address_pairs {
+            ip_address {
+              version: V4
+              address: '1.2.1.2'
+            }
+            mac_address: "01:02:03:0a:0b:0c"
+          }
+          allowed_address_pairs {
+            ip_address {
+              version: V4
+              address: '2.3.2.3'
+            }
+            mac_address: "0a:0b:0b:0a:0b:0c"
+          }
+          """)
+
+        val jumpRule = mRuleFromTxt(s"""
+            chain_id { $inboundChainId }
+            type: JUMP_RULE
+            action: JUMP
+            jump_rule_data {
+              jump_to { $spoofChainId }
+            }
+            """)
+
+        val fixedIp = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            action: RETURN
+            dl_src: "$mac"
+            chain_id: { $spoofChainId }
+            nw_src_ip {
+              version: V4
+              address: "6.6.6.6"
+              prefix_length: 32
+            }
+            fragment_policy: ANY
+            """)
+
+        val addrPairOne = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            action: RETURN
+            dl_src: "0a:0b:0b:0a:0b:0c"
+            chain_id: { $spoofChainId }
+            nw_src_ip {
+              version: V4
+              address: "2.3.2.3"
+              prefix_length: 32
+            }
+            fragment_policy: ANY
+            """)
+
+        val addrPairTwo = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            action: RETURN
+            dl_src: "01:02:03:0a:0b:0c"
+            chain_id: { $spoofChainId }
+            nw_src_ip {
+              version: V4
+              address: '1.2.1.2'
+              prefix_length: 32
+            }
+            fragment_policy: ANY
+            """)
+
+        val dropAll = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            chain_id { $spoofChainId }
+            action: DROP
+            fragment_policy: ANY
+            """)
+
+        val arpRule = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            chain_id { $spoofChainId }
+            action: RETURN
+            dl_type: ${ARP.ETHERTYPE}
+            fragment_policy: ANY
+            """)
+
+        val dhcpRule = mRuleFromTxt(s"""
+            type: LITERAL_RULE
+            chain_id { $spoofChainId }
+            action: RETURN
+            tp_src: {
+              start: 68
+              end: 68
+            }
+            tp_dst: {
+              start: 67
+              end: 67
+            }
+            fragment_policy: ANY
+            """)
+
+        val midoOps = translator.translate(neutron.Create(vifPortWithAllowedAddressPairs))
+
+        // For the outbound chain
+        midoOps should containOp[Message] (midonet.Create(jumpRule))
+
+        // For the Anti Spoof Chain
+        midoOps should containOp[Message] (midonet.Create(arpRule))
+        midoOps should containOp[Message] (midonet.Create(dhcpRule))
+        midoOps should containOp[Message] (midonet.Create(fixedIp))
+        midoOps should containOp[Message] (midonet.Create(addrPairOne))
+        midoOps should containOp[Message] (midonet.Create(addrPairTwo))
+        midoOps should containOp[Message] (midonet.Create(dropAll))
+    }
+
     "Fixed IPs for a new VIF port" should "add hosts to DHCPs" in {
         val midoOps = translator.translate(neutron.Create(vifPortWithFixedIps))
 
@@ -331,36 +452,16 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             chain_id { $inboundChainId }
             """)
 
-        val ipSpoofProtectIpv4 = mRuleFromTxt(s"""
-            type: LITERAL_RULE
+        val antiSpoofJumpRule = mRuleFromTxt(s"""
             chain_id { $inboundChainId }
-            nw_src_ip: { $ipv4Subnet1 }
-            dl_type: ${IPv4.ETHERTYPE}
-            nw_src_inv: true
-            fragment_policy: ANY
-            action: DROP
+            type: JUMP_RULE
+            action: JUMP
+            jump_rule_data {
+              jump_to { $spoofChainId }
+            }
             """)
 
-        val ipSpoofProtectIpv6 = mRuleFromTxt(s"""
-            type: LITERAL_RULE
-            action: DROP
-            chain_id { $inboundChainId }
-            nw_src_ip: { $ipv6Subnet1 }
-            dl_type: ${IPv6.ETHERTYPE}
-            nw_src_inv: true
-            fragment_policy: ANY
-            """)
-
-        val macSpoofProtect = mRuleFromTxt(s"""
-            type: LITERAL_RULE
-            action: DROP
-            chain_id { $inboundChainId }
-            dl_src: '$mac'
-            inv_dl_src: true
-            fragment_policy: ANY
-            """)
-
-         val jumpRuleIn1 = mRuleFromTxt(s"""
+        val jumpRuleIn1 = mRuleFromTxt(s"""
             type: JUMP_RULE
             action: JUMP
             chain_id { $inboundChainId }
@@ -417,18 +518,21 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         val inChain = findChainOp(midoOps, OpType.Create, inboundChainId)
         inChain should not be null
         inChain.getName shouldBe s"OS_PORT_${portJUuid}_INBOUND"
-        inChain.getRuleIdsList.size shouldBe 7
+        inChain.getRuleIdsList.size shouldBe 5
 
         val outChain= findChainOp(midoOps, OpType.Create, outboundChainId)
         outChain should not be null
         outChain.getName shouldBe s"OS_PORT_${portJUuid}_OUTBOUND"
         outChain.getRuleIdsList.size shouldBe 4
 
+        val antiSpoofChain = findChainOp(midoOps, OpType.Create, spoofChainId)
+        antiSpoofChain should not be null
+        antiSpoofChain.getName shouldBe s"Anti Spoof Chain"
+        antiSpoofChain.getRuleIdsList.size shouldBe 5
+
         midoOps should containOp[Message] (midonet.Create(revFlowRuleOutbound))
-        midoOps should containOp[Message] (midonet.Create(ipSpoofProtectIpv4))
-        midoOps should containOp[Message] (midonet.Create(ipSpoofProtectIpv6))
-        midoOps should containOp[Message] (midonet.Create(macSpoofProtect))
         midoOps should containOp[Message] (midonet.Create(revFlowRuleInbound))
+        midoOps should containOp[Message] (midonet.Create(antiSpoofJumpRule))
         midoOps should containOp[Message] (midonet.Create(jumpRuleIn1))
         midoOps should containOp[Message] (midonet.Create(jumpRuleIn2))
         midoOps should containOp[Message] (midonet.Create(jumpRuleOut1))
@@ -495,6 +599,7 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         bind(sgId2, ipAddrGroup2)
         bind(inboundChainId, inboundChain)
         bind(outboundChainId, outboundChain)
+        bind(spoofChainId, antiSpoofChain)
     }
 
     "VIF port UPDATE" should "update port admin state" in {
@@ -550,6 +655,11 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         id { $outboundChainId }
         rule_ids { $outChainRule1 }
         """)
+    val antiSpoofChainRule = randomUuidProto
+    val antiSpoofChain = mChainFromTxt(s"""
+        id { $spoofChainId }
+        rule_ids { $antiSpoofChainRule }
+        """)
 
     "UPDATE VIF port with fixed IPs" should "update security rules" in {
         bind(portId, vifPortWithFipsAndSgs)
@@ -569,25 +679,6 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             action: ACCEPT
             match_return_flow: true
             chain_id { $inboundChainId }
-            """)
-
-        val ipSpoofProtectIpv4 = mRuleFromTxt(s"""
-            type: LITERAL_RULE
-            action: DROP
-            chain_id { $inboundChainId }
-            dl_type: ${IPv4.ETHERTYPE}
-            nw_src_ip: { $ipv4Subnet1 }
-            nw_src_inv: true
-            fragment_policy: ANY
-            """)
-
-        val macSpoofProtect = mRuleFromTxt(s"""
-            action: DROP
-            type: LITERAL_RULE
-            chain_id { $inboundChainId }
-            dl_src: '$mac'
-            inv_dl_src: true
-            fragment_policy: ANY
             """)
 
         val jumpRuleIn1 = mRuleFromTxt(s"""
@@ -648,9 +739,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule2))
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule3))
         midoOps should contain (midonet.Delete(classOf[Rule], outChainRule1))
+        midoOps should contain (midonet.Delete(classOf[Rule], antiSpoofChainRule))
         midoOps should containOp[Message] (midonet.Create(revFlowRuleOutbound))
-        midoOps should containOp[Message] (midonet.Create(ipSpoofProtectIpv4))
-        midoOps should containOp[Message] (midonet.Create(macSpoofProtect))
         midoOps should containOp[Message] (midonet.Create(revFlowRuleInbound))
         midoOps should containOp[Message] (midonet.Create(jumpRuleIn1))
         midoOps should containOp[Message] (midonet.Create(jumpRuleIn2))
@@ -662,12 +752,17 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         val inChain = findChainOp(midoOps, OpType.Update, inboundChainId)
         inChain should not be null
         inChain.getName shouldBe s"OS_PORT_${portJUuid}_INBOUND"
-        inChain.getRuleIdsList.size shouldBe 6
+        inChain.getRuleIdsList.size shouldBe 5
 
         val outChain= findChainOp(midoOps, OpType.Update, outboundChainId)
         outChain should not be null
         outChain.getName shouldBe s"OS_PORT_${portJUuid}_OUTBOUND"
         outChain.getRuleIdsList.size shouldBe 4
+
+        val antiSpoofChain = findChainOp(midoOps, OpType.Update, spoofChainId)
+        antiSpoofChain should not be null
+        antiSpoofChain.getName shouldBe s"Anti Spoof Chain"
+        antiSpoofChain.getRuleIdsList.size shouldBe 4
 
         val ipAddrGrp1 = mIPAddrGroupFromTxt(s"""
             id { $sgId1 }
@@ -711,8 +806,10 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule1))
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule2))
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule3))
+        midoOps should contain (midonet.Delete(classOf[Rule], antiSpoofChainRule))
         midoOps should contain (midonet.Delete(classOf[Chain], inboundChainId))
         midoOps should contain (midonet.Delete(classOf[Chain], outboundChainId))
+        midoOps should contain (midonet.Delete(classOf[Chain], spoofChainId))
         midoOps should contain (
             midonet.DeleteNode(macEntryPath(networkId, mac, portId)))
 
