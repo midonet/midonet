@@ -1,0 +1,326 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_11a6a853",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "In C3PO and the Translators, we usually import import \"org.midonet.util.concurrent.toFutureOps\" and call await on the Future returned by Storage. That way this code will be a bit less verbose, use the same time out and be a bit more consistent with C3PO.",
+      "range": {
+        "startLine": 77,
+        "startChar": 20,
+        "endLine": 77,
+        "endChar": 33
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_716e1403",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "I wonder can we just do:\n\n\nids map { backend.store.get(protoClass, _).map(fromProto(_, dtoClass)) }\n\n\nDoes the compiler complain?",
+      "range": {
+        "startLine": 105,
+        "startChar": 16,
+        "endLine": 105,
+        "endChar": 77
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3132cc10",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "Unnecessary.",
+      "range": {
+        "startLine": 181,
+        "startChar": 51,
+        "endLine": 181,
+        "endChar": 56
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d17280e2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 189,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "Update instead of delete?",
+      "range": {
+        "startLine": 189,
+        "startChar": 55,
+        "endLine": 189,
+        "endChar": 79
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_513590f5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 196,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "Unnecessary.",
+      "range": {
+        "startLine": 196,
+        "startChar": 53,
+        "endLine": 196,
+        "endChar": 59
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_713c54e3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "Unnecessary.",
+      "range": {
+        "startLine": 206,
+        "startChar": 57,
+        "endLine": 206,
+        "endChar": 65
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f1586458",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "Update?",
+      "range": {
+        "startLine": 220,
+        "startChar": 8,
+        "endLine": 220,
+        "endChar": 14
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_913f18d6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "Unnecessary.",
+      "range": {
+        "startLine": 228,
+        "startChar": 14,
+        "endLine": 228,
+        "endChar": 29
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9148f888",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "Do we need to do this?",
+      "range": {
+        "startLine": 236,
+        "startChar": 8,
+        "endLine": 236,
+        "endChar": 20
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_112b0895",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3119ec88",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/HealthMonitor.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_511cb077",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/Member.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_71137466",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/Pool.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_91163854",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/loadbalancer/VIP.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-05T07:51:46Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9993af9224e8c835c1b32f3a0c462f859e2d35de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
