@@ -102,6 +102,24 @@
       "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_62ac80a1",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T15:55:09Z",
+      "side": 1,
+      "message": "ah, it\u0027s true, it\u0027s in the other deleteIfPrefix",
+      "parentUuid": "facab960_17613839",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
