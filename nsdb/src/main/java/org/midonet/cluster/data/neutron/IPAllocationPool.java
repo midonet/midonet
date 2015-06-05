@@ -19,7 +19,14 @@ package org.midonet.cluster.data.neutron;
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
 
-public class IPAllocationPool {
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.IPAddressUtil;
+
+@ZoomClass(clazz = Neutron.NeutronSubnet.IPAllocationPool.class)
+public class IPAllocationPool extends ZoomObject {
 
     public IPAllocationPool() {}
 
@@ -29,9 +36,11 @@ public class IPAllocationPool {
     }
 
     @JsonProperty("first_ip")
+    @ZoomField(name = "start", converter = IPAddressUtil.Converter.class)
     public String firstIp;
 
     @JsonProperty("last_ip")
+    @ZoomField(name = "end", converter = IPAddressUtil.Converter.class)
     public String lastIp;
 
     @Override

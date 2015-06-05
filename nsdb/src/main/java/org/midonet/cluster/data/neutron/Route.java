@@ -17,7 +17,15 @@ package org.midonet.cluster.data.neutron;
 
 import com.google.common.base.Objects;
 
-public class Route {
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.IPSubnetUtil;
+
+@ZoomClass(clazz = Neutron.NeutronRoute.class)
+public class Route extends ZoomObject {
 
     public Route() {}
 
@@ -26,7 +34,10 @@ public class Route {
         this.nexthop = nexthop;
     }
 
+    @ZoomField(name = "destination", converter = IPSubnetUtil.Converter.class)
     public String destination;
+
+    @ZoomField(name = "nexthop", converter = IPAddressUtil.Converter.class)
     public String nexthop;
 
     @Override
@@ -38,8 +49,8 @@ public class Route {
 
         final Route other = (Route) obj;
 
-        return Objects.equal(destination, other.destination)
-                && Objects.equal(nexthop, other.nexthop);
+        return Objects.equal(destination, other.destination) &&
+               Objects.equal(nexthop, other.nexthop);
     }
 
     @Override

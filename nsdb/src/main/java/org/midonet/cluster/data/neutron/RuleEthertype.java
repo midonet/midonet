@@ -18,16 +18,27 @@ package org.midonet.cluster.data.neutron;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
 
+import org.midonet.cluster.data.ZoomEnum;
+import org.midonet.cluster.data.ZoomEnumValue;
+import org.midonet.cluster.models.Commons;
+import org.midonet.cluster.models.Neutron;
+
+@ZoomEnum(clazz = Commons.EtherType.class)
 public enum RuleEthertype {
 
+    @ZoomEnumValue("ARP")
     ARP("arp", org.midonet.packets.ARP.ETHERTYPE),
+
+    @ZoomEnumValue("IPV4")
     IPv4("ipv4", org.midonet.packets.IPv4.ETHERTYPE),
+
+    @ZoomEnumValue("IPV6")
     IPv6("ipv6", org.midonet.packets.IPv6.ETHERTYPE);
 
     private final String value;
     private final int number;
 
-    private RuleEthertype(final String value, final int number) {
+    RuleEthertype(final String value, final int number) {
         this.value = value;
         this.number = number;
     }
@@ -49,7 +60,6 @@ public enum RuleEthertype {
                 return type;
             }
         }
-
         return null;
     }
 }

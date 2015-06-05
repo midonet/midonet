@@ -18,9 +18,16 @@ package org.midonet.cluster.data.neutron;
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.UUIDUtil.Converter;
+
 import java.util.UUID;
 
-public class Network {
+@ZoomClass(clazz = Neutron.NeutronNetwork.class)
+public class Network extends ZoomObject {
 
     public Network() {}
 
@@ -33,18 +40,28 @@ public class Network {
         this.external = external;
     }
 
+    @ZoomField(name = "id", converter = Converter.class)
     public UUID id;
+
+    @ZoomField(name = "name")
     public String name;
+
+    @ZoomField(name = "status")
     public String status;
+
+    @ZoomField(name = "shared")
     public boolean shared;
 
     @JsonProperty("tenant_id")
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @JsonProperty("admin_state_up")
+    @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
 
     @JsonProperty("router:external")
+    @ZoomField(name = "external")
     public boolean external;
 
     @Override

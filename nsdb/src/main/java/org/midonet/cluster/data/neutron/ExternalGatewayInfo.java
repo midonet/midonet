@@ -18,9 +18,16 @@ package org.midonet.cluster.data.neutron;
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
+import org.midonet.cluster.util.UUIDUtil;
+
 import java.util.UUID;
 
-public class ExternalGatewayInfo {
+@ZoomClass(clazz = Neutron.NeutronRouter.ExternalGatewayInfo.class)
+public class ExternalGatewayInfo extends ZoomObject {
 
     public ExternalGatewayInfo() {}
 
@@ -30,9 +37,11 @@ public class ExternalGatewayInfo {
     }
 
     @JsonProperty("network_id")
+    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
     public UUID networkId;
 
     @JsonProperty("enable_snat")
+    @ZoomField(name = "enable_snat")
     public boolean enableSnat;
 
     @Override
