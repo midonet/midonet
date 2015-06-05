@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_9772a87a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T13:49:12Z",
+      "side": 1,
+      "message": "1 \u003c\u003c 6 - 1 to know how many bits are set to 1?",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b76dec9b",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T13:49:12Z",
+      "side": 1,
+      "message": "\u003e\u003e\u003e so it\u0027s unsigned extension",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_779d2459",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T13:49:12Z",
+      "side": 1,
+      "message": "I think the use of polymorphism here is not really needed, since you can do a simple loop where you start with 24 and decrement 8 at each step to obtain the shift, and then as a last step you call the \"terminal\" deletePrefix method. That first loop can be avoided and we also save the expensive interface polymorphism. I\u0027m willing to be my pinky finger it will give a nice perf boost.",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_17a218ae",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T13:49:12Z",
+      "side": 1,
+      "message": "could these be pre-filled?",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_17893826",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 203,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-05T13:49:12Z",
+      "side": 1,
+      "message": "if (...) { cleanIfEmpty() } ?",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
