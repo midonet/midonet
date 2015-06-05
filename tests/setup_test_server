@@ -1,10 +1,6 @@
 #!/bin/bash -xe
 
-ROOT=$1
-
-if [ ".$ROOT" == "." ]; then
-    ROOT=`pwd`
-fi
+ROOT=`pwd`
 
 # Install GIT as a base pre-requisite
 sudo apt-get install -y git
@@ -22,11 +18,11 @@ curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
 # TODO: This is an internal, private dependency which won't work
 #   for public consumption!!
 # Add MC repo for zkdump
-ZKDUMP_SERVER="artifactory-dev.bcn.midokura.com/artifactory/midonet"
+ZKDUMP_SERVER="repo.midonet.org/misc"
 # CURL URI to use to fetch the GPG key for artifactory
-ZKDUMP_CURL_URI="http://artifactory-dev.bcn.midokura.com/artifactory/api/gpg/key/public"
+ZKDUMP_CURL_URI="http://repo.midonet.org/packages.midokura.key"
 
-sudo bash -c "echo deb [arch=all] http://$ZKDUMP_SERVER thirdparty main > /etc/apt/sources.list.d/midokura-3rdparty.list"
+sudo bash -c "echo deb [arch=amd64] http://$ZKDUMP_SERVER stable main > /etc/apt/sources.list.d/midokura-3rdparty.list"
 curl -k $ZKDUMP_CURL_URI | sudo apt-key add -
 
 # update apt
@@ -143,12 +139,5 @@ sudo pip install -r ./python.dependencies
 # Install extra tools to work around https://github.com/docker/docker/issues/4036
 sudo apt-get install -y linux-image-extra-$(uname -r)
 curl -sSL https://get.docker.com/ubuntu/ | sudo sh
-
-#
-# Add midokura artifactory as a docker registry if it's there
-#
-if [ -f $ROOT/ci-tools/scripts/docker-image-setup ]; then
-    /bin/bash -c $ROOT/ci-tools/scripts/docker-image-setup
-fi
 
 echo $SECONDS
