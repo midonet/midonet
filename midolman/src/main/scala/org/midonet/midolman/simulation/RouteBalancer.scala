@@ -37,11 +37,11 @@ class RouteBalancer[IP <: IPAddr](val rTable: RoutingTable) {
         routes.size match {
             case 0 => null
             case 1 =>
-                logger.debug("routing to {}", routes.head)
-                routes.head
+                logger.debug("routing to {}", routes.get(0))
+                routes.get(0)
             case size =>
                 val pos = (lookups.getAndIncrement % size).toInt
-                val ret = routes.slice(pos, pos+1).head
+                val ret = routes.get(pos)
                 logger.debug("got multiple routes: {}, round robin to {}",
                              routes, ret)
                 ret

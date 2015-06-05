@@ -18,6 +18,8 @@ package org.midonet.midolman.layer3;
 import org.midonet.packets.IPAddr;
 import org.slf4j.Logger;
 
+import java.util.List;
+
 /**
  * Defines the common interface for a Routes table generic for all versions of
  * IP addresses.
@@ -41,11 +43,11 @@ public interface RoutingTableIfc<IP extends IPAddr> {
     /**
      * Returns a route.
      */
-    Iterable<Route> lookup(IP src, IP dst);
+    List<Route> lookup(IP src, IP dst);
 
     /**
      * Returns a route.
      */
-    Iterable<Route> lookup(IP src, IP dst, Logger logger);
+    List<Route> lookup(IP src, IP dst, Logger logger);
 
 }

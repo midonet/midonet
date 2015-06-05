@@ -32,7 +32,7 @@ object IPv4InvalidationArray {
  * upon a routing table change.
  *
  * It stores IP addresses along with their reference counts and the prefix length
- * of the route that match them.
+ * of the route that matched them.
  *
  * Stored IPs can be ref'ed/unref'ed as flows come an go. The data structure
  * offers the list of affected IP addresses.

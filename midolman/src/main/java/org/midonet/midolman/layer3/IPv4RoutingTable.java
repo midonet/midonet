@@ -20,6 +20,8 @@ import org.slf4j.Logger;
 
 import org.midonet.packets.IPv4Addr;
 
+import java.util.List;
+
 /**
  * TODO (galo) - transitional, wraps the legacy RoutesTrie implementation
  * into the new RoutingTableIfc interface. All classes depending on
@@ -37,11 +39,11 @@ public class IPv4RoutingTable implements RoutingTableIfc<IPv4Addr> {
         legacyTable.deleteRoute(rt);
     }
 
-    public Iterable<Route> lookup(IPv4Addr src, IPv4Addr dst) {
+    public List<Route> lookup(IPv4Addr src, IPv4Addr dst) {
         return legacyTable.lookup(src.toInt(), dst.toInt());
     }
 
-    public Iterable<Route> lookup(IPv4Addr src, IPv4Addr dst, Logger logger) {
+    public List<Route> lookup(IPv4Addr src, IPv4Addr dst, Logger logger) {
         return legacyTable.lookup(src.toInt(), dst.toInt(), logger);
     }
 

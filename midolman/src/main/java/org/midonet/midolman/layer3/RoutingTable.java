@@ -36,11 +36,11 @@ class RoutingTable extends RoutesTrie {
 
     private final static Logger log = LoggerFactory.getLogger("org.midonet.devices.router");
 
-    Iterable<Route> lookup(int src, int dst) {
+    List<Route> lookup(int src, int dst) {
         return lookup(src, dst, log);
     }
 
-    Iterable<Route> lookup(int src, int dst, Logger logger) {
+    List<Route> lookup(int src, int dst, Logger logger) {
         if (logger.isDebugEnabled()) {
             logger.debug(String.format("lookup: src %s dst %s in table with %d routes",
                                     IPv4Addr.intToString(src),
