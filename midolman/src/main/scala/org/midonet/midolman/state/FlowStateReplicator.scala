@@ -204,6 +204,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
             log.debug("importing state key from storage: {}", k)
             conntrackTable.putAndRef(k, v)
             conntrackTable.unref(k)
+            flowInvalidation.invalidateFlowsFor(k)
         }
     }
 
@@ -213,6 +214,7 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
             log.debug("importing state key from storage: {}", e.getKey)
             natTable.putAndRef(e.getKey, e.getValue)
             natTable.unref(e.getKey)
+            flowInvalidation.invalidateFlowsFor(e.getKey)
         }
     }
 

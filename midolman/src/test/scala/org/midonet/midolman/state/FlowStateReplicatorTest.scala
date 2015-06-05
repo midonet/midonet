@@ -25,6 +25,7 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.Future
 
+import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.slf4j.LoggerFactory
 import org.slf4j.helpers.NOPLogger
 
@@ -35,7 +36,7 @@ import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.UnderlayResolver
+import org.midonet.midolman.{HostRequestProxy, UnderlayResolver}
 import org.midonet.midolman.datapath.StatePacketExecutor
 import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
@@ -460,6 +461,21 @@ class FlowStateReplicatorTest extends MidolmanSpec {
 
             Then("Flows tagged with it should be invalidated")
             mockFlowInvalidation should haveInvalidated (k)
+        }
+    }
+
+    feature("Importing flow state from storage") {
+        scenario("Invalidates flows") {
+            Given("A flow state batch")
+
+            val flowState = HostRequestProxy.EmptyFlowStateBatch()
+            flowState.strongConnTrack.add(connTrackKeys.head)
+
+            When("Importing it")
+            recipient.importFromStorage(flowState)
+
+            Then("Flows tagged with it should be invalidated")
+            mockFlowInvalidation should haveInvalidated (connTrackKeys.head)
         }
     }
 
