@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_d1f440d1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-05T01:54:08Z",
+      "side": 1,
+      "message": "joe,\nmy understanding is that unknown fields are ignored here.",
+      "revId": "6352410e3f583fef309f3c283aeefb6d18dc7063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_0bcbda53",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/NeutronDeserializerTest.scala",
         "patchSetId": 1
