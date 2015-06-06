@@ -273,12 +273,6 @@ if [[ "$ENABLE_CLUSTER" = "True" ]]; then
         configure_mn "cluster.neutron_importer.connection_string" "\"$TASKS_DB_CONN\""
     fi
 
-    # MidoNet API starts this service so disable it for the cluster if API is
-    # enabled
-    if [[ "$ENABLE_API" = "True" ]]; then
-        configure_mn "cluster.conf_api.enabled" "false"
-    fi
-
     CLUSTER_LOG=$TOP_DIR/cluster/midonet-cluster/conf/logback.xml
     cp $CLUSTER_LOG.dev $TOP_DIR/cluster/midonet-cluster/build/resources/main/logback.xml
 
@@ -288,6 +282,10 @@ fi
 if [[ "$ENABLE_API" = "True" ]]; then
     # MidoNet API
     # -----------
+
+    # MidoNet API starts this service so disable it for the cluster if API is
+    # enabled
+    configure_mn "cluster.conf_api.enabled" "false"
 
     API_CFG=$TOP_DIR/midonet-api/src/main/webapp/WEB-INF/web.xml
     cp $API_CFG.dev $API_CFG
@@ -300,7 +298,6 @@ if [[ "$ENABLE_API" = "True" ]]; then
         die $LINENO "API server didn't start in $API_TIMEOUT seconds"
     fi
 fi
-
 
 # Midolman
 # --------
@@ -327,6 +324,10 @@ cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
 
 MIDO_CONF=$TOP_DIR/midolman/conf/midolman.conf
 cp $MIDO_CONF ${MIDO_CONF}.edited
+
+if [[ "$USE_NEW_STACK" = "True" ]]; then
+    configure_mn "zookeeper.use_new_stack" "true"
+fi
 
 sudo mv ${MIDO_CONF}.edited $AGENT_CONF_DIR/midolman.conf
 run_process midolman "./gradlew -a :midolman:runWithSudo"
