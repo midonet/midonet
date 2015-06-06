@@ -125,6 +125,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_a5e12f00",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-06T00:18:32Z",
+      "side": 1,
+      "message": "You realize this doesn\u0027t run per packet, but on flow invalidation, right?\n\nThe benchmarks don\u0027t even measure this for that reason.",
+      "parentUuid": "facab960_3d3b7d9d",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_17a218ae",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
         "patchSetId": 3
