@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_653567f6",
+        "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.dev",
+        "patchSetId": 6
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-06T09:59:54Z",
+      "side": 1,
+      "message": "Why comment it instead of defaulting to \u0027false\u0027?  It would be much easier to automate the update of this field if it\u0027s not commented out.\n\nAlso, it\u0027s worth adding a TODO comment to remove this when the work of API to Zoom is completed, which would reveal to everyone that this is a temporary flag (thus unneeded in web.xml.prod)",
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
