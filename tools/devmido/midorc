@@ -41,14 +41,18 @@ USE_SCREEN=${USE_SCREEN:-True}
 # ZK Hosts (comma delimited)
 ZOOKEEPER_HOSTS=${ZOOKEEPER_HOSTS:-127.0.0.1:2181}
 
+
 # MidoNet Agent
 # -------------
 
 # Midolman configuration file location
 AGENT_CONF_DIR=${AGENT_CONF_DIR:-/etc/midolman}
 
+
 # MidoNet API
 # -----------
+
+ENABLE_API=${ENABLE_API:-True}
 
 # MidoNet API port and the derived URI
 API_PORT=${API_PORT:-8081}
@@ -60,17 +64,18 @@ API_TIMEOUT=${API_TIMEOUT:-120}
 # MidoNet Cluster
 # ---------------
 
-USE_CLUSTER=${USE_CLUSTER:-False}
+ENABLE_CLUSTER=${ENABLE_CLUSTER:-True}
 
 # REST API port served by the cluster
 CLUSTER_API_PORT=${CLUSTER_API_PORT:-8082}
 
 # DB connection string for the tasks importer
-ENABLE_TASKS_IMPORTER=${ENABLE_TASKS_IMPORTER:-False}
+ENABLE_TASKS_IMPORTER=${ENABLE_TASKS_IMPORTER:-True}
 TASKS_DB_CONN=${TASKS_DB_CONN:-jdbc:mysql://localhost:3306/neutron?user=$MIDO_USER&password=$MIDO_PASSWORD}
 
 # Cluster Topology API
 TOPOLOGY_API_PORT=${TOPOLOGY_API_PORT:-8088}
+
 
 # MidoNet Client
 # --------------

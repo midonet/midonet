@@ -56,6 +56,11 @@ if [[ ! -r $MIDORC ]]; then
 fi
 source $MIDORC
 
+# Sanity checks
+if [[ $ENABLE_API = "False" && $ENABLE_CLUSTER = "False" ]]; then
+    die $LINENO "At least one of ENABLE_API or ENABLE_CLUSTER must be true"
+fi
+
 # Configure Logging
 TIMESTAMP_FORMAT=${TIMESTAMP_FORMAT:-"%F-%H%M%S"}
 if [[ -n "$LOGFILE" || -n "$SCREEN_LOGDIR" ]]; then
@@ -276,7 +281,7 @@ cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
 MIDO_CONF=$TOP_DIR/midolman/conf/midolman.conf
 cp $MIDO_CONF ${MIDO_CONF}.edited
 
-if [[ "$USE_CLUSTER" = "True" ]]; then
+if [[ "$ENABLE_CLUSTER" = "True" ]]; then
     # MidoNet Cluster
     # ---------------
 
@@ -296,12 +301,19 @@ if [[ "$USE_CLUSTER" = "True" ]]; then
         configure_mn "cluster.neutron_importer.connection_string" "\"$TASKS_DB_CONN\""
     fi
 
+    # MidoNet API starts this service so disable it for the cluster if API is
+    # enabled
+    if [[ "$ENABLE_API" = "True" ]]; then
+        configure_mn "cluster.conf_api.enabled" "false"
+    fi
+
     CLUSTER_LOG=$TOP_DIR/cluster/midonet-cluster/conf/logback.xml
     cp $CLUSTER_LOG.dev $TOP_DIR/cluster/midonet-cluster/build/resources/main/logback.xml
 
     run_process midonet-cluster "cd $TOP_DIR && ./gradlew :cluster:midonet-cluster:run"
+fi
 
-else
+if [[ "$ENABLE_API" = "True" ]]; then
     # MidoNet API
     # -----------
 
