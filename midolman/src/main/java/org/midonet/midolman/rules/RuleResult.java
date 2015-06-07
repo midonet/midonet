@@ -64,11 +64,13 @@ public class RuleResult {
         this.jumpToChain = jumpToChain;
     }
 
+    /*
     public RuleResult(UUID redirectPort, boolean redirectIngress) {
         this.action = Action.REDIRECT;
         this.redirectPort = redirectPort;
         this.redirectIngress = redirectIngress;
     }
+    */
 
     @Override
     public int hashCode() {
