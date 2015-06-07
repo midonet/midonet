@@ -40,33 +40,10 @@ public class RedirectRule extends Rule {
     @ZoomField(name = "fail_open")
     public boolean fail_open;
 
-    public RedirectRule(
-        Condition condition, UUID targetPort, boolean ingress,
-        boolean fail_open) {
-        super(condition, null);
-        this.targetPort = targetPort;
-        this.ingress = ingress;
-        this.fail_open = fail_open;
-    }
-
     // Default constructor for the Jackson deserialization.
     // This constructor is also needed by ZoomConvert.
     public RedirectRule() {
         super();
-    }
-
-    public RedirectRule(Condition condition, UUID targetPort, boolean ingress,
-                        boolean fail_open, UUID chainId, int position) {
-        super(condition, null, chainId, position);
-        this.targetPort = targetPort;
-        this.ingress = ingress;
-        this.fail_open = fail_open;
-    }
-
-    public RedirectRule(UUID chainId, UUID targetPort, boolean ingress,
-                        boolean fail_open) {
-        this(new Condition(), targetPort, ingress, fail_open);
-        this.chainId = chainId;
     }
 
     @Override
