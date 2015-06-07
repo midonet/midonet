@@ -30,7 +30,7 @@ import org.scalatest.matchers._
 
 import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, SimulationResult, AddVirtualWildcardFlow}
 import org.midonet.midolman.flows.{FlowTagIndexer, FlowInvalidator}
-import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
+import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, IPv4}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
@@ -52,6 +52,24 @@ trait CustomMatchers {
                     case _ =>
                         false
                 }, s"a drop flow containing tags {${expectedTags.toList}")
+    }
+
+    def hasPopVlan() = new BePropertyMatcher[(SimulationResult, PacketContext)] {
+        def apply(simRes: (SimulationResult, PacketContext)) =
+            BePropertyMatchResult(
+                simRes._2.virtualFlowActions.toList.exists({
+                    case pop: FlowActionPopVLAN => true
+                    case _ => false
+                }), s"a pop vlan action ")
+    }
+
+    def hasPushVlan(vlan: Short) = new BePropertyMatcher[(SimulationResult, PacketContext)] {
+        def apply(simRes: (SimulationResult, PacketContext)) =
+            BePropertyMatchResult(
+                simRes._2.virtualFlowActions.toList.exists({
+                    case vl: FlowActionPushVLAN => vl.getTagControlIdentifier == vlan
+                    case _ => false
+                }), s"a pop vlan action ")
     }
 
     def toPort(portId: UUID)(expectedTags: FlowTag*) =
