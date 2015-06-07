@@ -401,7 +401,13 @@ message Rule {
         UNFRAGMENTED = 4;
     }
     optional FragmentPolicy fragment_policy = 40;
+    optional bool no_vlan = 41;
+    optional uint32 vlan = 42;
     // end of condition fields
+
+    // probably not the right way to do this. Need vlan push/pop as side-effects
+    optional bool pop_vlan = 43;
+    optional uint32 push_vlan = 44;
 
     message JumpRuleData {
         optional UUID jump_to = 1;
