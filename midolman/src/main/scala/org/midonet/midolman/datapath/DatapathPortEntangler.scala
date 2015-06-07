@@ -140,18 +140,23 @@ trait DatapathPortEntangler {
      * Register new interfaces, update their status or delete them.
      */
     def updateInterfaces(itfs: JSet[InterfaceDescription]): Unit = {
+        log.debug(s"received ifdescs: $itfs")
+        log.debug(s"current interfaceToTriad: $interfaceToTriad")
         val interfacesToDelete = new HashSet(interfaceToTriad.keySet())
         val it = itfs.iterator()
         while (it.hasNext) {
             val itf = it.next()
             interfacesToDelete.remove(itf.getName)
+            log.debug(s"processing interfaces: $itf")
             conveyor.handle(itf.getName, () => processInterface(itf, itf.getName))
         }
 
         val toDelete = interfacesToDelete.iterator()
+        log.debug(s"interfacesToDelete: $interfacesToDelete")
         while (toDelete.hasNext) {
             val ifname = toDelete.next()
-            if (!itfs.contains(ifname)) {
+            if (!itfs.contains(ifname) && interfaceToTriad.contains(ifname)) {
+                log.debug(s"interface $ifname is not in notified ifdescs: $itfs")
                 conveyor.handle(ifname, () => deleteInterface(
                     interfaceToTriad.get(ifname)))
             }
@@ -253,7 +258,8 @@ trait DatapathPortEntangler {
         }
     }
 
-    private def tryRemoveDpPort(triad: DpTriad): Future[_] =
+    private def tryRemoveDpPort(triad: DpTriad): Future[_] = {
+        log.debug(s"trying to remove $triad")
         if ((triad.vport ne null) && triad.isUp) {
             log.info(s"Unbinding port ${triad.vport} from ${triad.ifname}")
             setVportStatus(triad, active = false)
@@ -270,6 +276,7 @@ trait DatapathPortEntangler {
         } else {
             Future successful null
         }
+    }
 
     private def shutdownIfNeeded(triad: DpTriad): Unit =
         if (!triad.isUp && (triad.vport eq null) && !isInternal(triad)) {
