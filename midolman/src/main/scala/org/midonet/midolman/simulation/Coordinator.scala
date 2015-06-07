@@ -228,7 +228,7 @@ class Coordinator(context: PacketContext)
                 if(result.redirectIngress)
                     packetIngressesPort(result.redirectPort, false)
                 else
-                    packetEgressesPort(result.redirectPort)
+                    packetEgressesPortNoFilters(result.redirectPort)
             case other =>
                 log.error("Port filter {} returned {} which was " +
                         "not ACCEPT, DROP or REJECT.", filterID, other)
@@ -259,6 +259,29 @@ class Coordinator(context: PacketContext)
                         log.warn("Port {} is unplugged", portID)
                         TemporaryDrop
                 })
+        }
+    }
+
+    /**
+     * Simulate the packet egressing a virtual port. This is NOT intended
+     * for flooding bridges
+     */
+    private def packetEgressesPortNoFilters(portID: UUID): SimulationResult = {
+        val port = tryAsk[Port](portID)
+        context.addFlowTag(port.deviceTag)
+        context.addFlowTag(port.txTag)
+        context.outPortId = port.id
+
+        port match {
+            case p if !p.adminStateUp =>
+                processAdminStateDown(p, isIngress = false)
+            case p if p.isExterior =>
+                emitFromPort(p)
+            case p if p.isInterior =>
+                packetIngressesPort(p.peerId, getPortGroups = false)
+            case _ =>
+                log.warn("Port {} is unplugged", portID)
+                TemporaryDrop
         }
     }
 

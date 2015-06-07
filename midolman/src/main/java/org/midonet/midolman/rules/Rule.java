@@ -56,6 +56,11 @@ public abstract class Rule extends BaseConfig {
     public Action action;
     @ZoomField(name = "chain_id", converter = UUIDUtil.Converter.class)
     public UUID chainId;
+    @ZoomField(name = "pop_vlan")
+    public boolean popVlan;
+    @ZoomField(name = "push_vlan")
+    public int pushVlan;
+
     @JsonIgnore
     public FlowTagger.UserTag meter;
     private Map<String, String> properties = new HashMap<>();
@@ -174,6 +179,15 @@ public abstract class Rule extends BaseConfig {
 
             if (meter != null)
                 pktCtx.addFlowTag(meter);
+            if (popVlan)
+                pktCtx.wcmatch().getVlanIds().remove(0);
+            if (pushVlan != 0)
+                pktCtx.wcmatch().addVlanId((short)pushVlan);
+            if (popVlan || pushVlan != 0)
+                pktCtx.jlog().debug("{} {}.",
+                    (popVlan ? "popping vlan " + condition.vlan: ""),
+                    (pushVlan > 0 ? " pushing vlan " + pushVlan : ""));
+
             apply(pktCtx, res, ownerId);
         }
     }
