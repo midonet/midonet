@@ -22,6 +22,230 @@
       "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d9cc5e64",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "maybe add some info re. key and value nodes?",
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_99b496d2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "nit: inside the if",
+      "range": {
+        "startLine": 75,
+        "startChar": 8,
+        "endLine": 75,
+        "endChar": 38
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b9d15afd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "this reads a bit confusing, maybe \"corresponding to the new owner\"? (if I\u0027m understanding correctly)",
+      "range": {
+        "startLine": 101,
+        "startChar": 10,
+        "endLine": 101,
+        "endChar": 48
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_19d7a6ee",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "Why not always Set?",
+      "range": {
+        "startLine": 151,
+        "startChar": 20,
+        "endLine": 151,
+        "endChar": 72
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1945e6b2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "Wouldn\u0027t these construction be more fluid composing on Future[StateResult]? This seems doable with removing the promise, setting a var future, and leveraging a getStateResultOrThrow: Try[StateResult]",
+      "range": {
+        "startLine": 375,
+        "startChar": 0,
+        "endLine": 405,
+        "endChar": 37
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d9f37e9d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 419,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "This chunk is used in several places with few differences, worth factoring out to a common resultOrThrow: Try[StateResult] that enables a promise.complete()?",
+      "range": {
+        "startLine": 412,
+        "startChar": 20,
+        "endLine": 419,
+        "endChar": 21
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b9f87a7d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "removeMultiValue?",
+      "range": {
+        "startLine": 432,
+        "startChar": 16,
+        "endLine": 432,
+        "endChar": 27
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_99865612",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "nit: UnmodifiableStateException?",
+      "range": {
+        "startLine": 172,
+        "startChar": 6,
+        "endLine": 172,
+        "endChar": 20
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d99e1e54",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "nit: NotStateOwnerException?",
+      "range": {
+        "startLine": 183,
+        "startChar": 6,
+        "endLine": 183,
+        "endChar": 29
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_39b70ada",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T11:29:51Z",
+      "side": 1,
+      "message": "extra nit: ConcurrentStateModificationException?",
+      "range": {
+        "startLine": 192,
+        "startChar": 6,
+        "endLine": 192,
+        "endChar": 31
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
