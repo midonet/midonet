@@ -330,23 +330,12 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         portCtx.antiSpoofRules += Create(dropRuleBuilder(spoofChainId).build())
     }
 
-    /* Create chains, rules and IP Address Groups associated with nPort. */
-    private def updateSecurityBindings(nPort: NeutronPort,
-                                       nPortOld: NeutronPort,
-                                       mPort: PortOrBuilder,
-                                       portCtx: PortContext) {
-        val portId = nPort.getId
-        val inChainId = mPort.getInboundFilterId
-        val outChainId = mPort.getOutboundFilterId
-        val mac = nPort.getMacAddress
-
-        // Create return flow rules.
-        portCtx.outRules += Create(returnFlowRule(outChainId))
-
-        // Create return flow rules matching for inbound chain.
-        portCtx.inRules += Create(returnFlowRule(inChainId))
-
-        buildAntiSpoofRules(portCtx, nPort, portId, inChainId)
+    private def buildSecurityGroupJumpRules(nPort: NeutronPort,
+                                            nPortOld: NeutronPort,
+                                            portCtx: PortContext,
+                                            portId: UUID,
+                                            inChainId: UUID,
+                                            outChainId: UUID): Unit = {
 
         // Add jump rules to corresponding inbound / outbound chains of IP
         // Address Groups (Neutron's Security Groups) that the port belongs to.
@@ -392,6 +381,31 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         portCtx.outRules += Create(dropRuleBuilder(outChainId)
                                    .setDlType(ARP.ETHERTYPE)
                                    .setInvDlType(true).build)
+    }
+
+    /* Create chains, rules and IP Address Groups associated with nPort. */
+    private def updateSecurityBindings(nPort: NeutronPort,
+                                       nPortOld: NeutronPort,
+                                       mPort: PortOrBuilder,
+                                       portCtx: PortContext) {
+        val portId = nPort.getId
+        val inChainId = mPort.getInboundFilterId
+        val outChainId = mPort.getOutboundFilterId
+        val mac = nPort.getMacAddress
+
+        if (nPort.getPortSecurityEnabled) {
+
+            // Create return flow rules.
+            portCtx.outRules += Create(returnFlowRule(outChainId))
+
+            // Create return flow rules matching for inbound chain.
+            portCtx.inRules += Create(returnFlowRule(inChainId))
+
+            buildAntiSpoofRules(portCtx, nPort, portId, inChainId)
+
+            buildSecurityGroupJumpRules(nPort, nPortOld, portCtx, portId,
+                                        inChainId, outChainId)
+        }
 
         // Create in/outbound chains with the IDs of the above rules.
         val inChain = newChain(inChainId, egressChainName(portId),
