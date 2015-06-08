@@ -2,6 +2,213 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_dce537a9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomApiModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T07:45:12Z",
+      "side": 1,
+      "message": "Or:\n    val classes \u003d List(classOf[NetworkApi], classOf[L3Api],\n                       classOf[SecurityGroupApi], classOf[LoadBalancerApi])\n    for (clazz \u003c- classes) {\n        bind(clazz).to(classOf[NeutronZoomPlugin])\n        expose(clazz)\n    }",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 40
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_be20604a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T07:45:12Z",
+      "side": 1,
+      "message": "You use this a lot. Maybe just alias it to val store?",
+      "range": {
+        "startLine": 53,
+        "startChar": 46,
+        "endLine": 53,
+        "endChar": 59
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_63355ff6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T07:45:12Z",
+      "side": 1,
+      "message": "protoClassOf(dtos.head)",
+      "range": {
+        "startLine": 71,
+        "startChar": 25,
+        "endLine": 72,
+        "endChar": 76
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5e03d40c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T07:45:12Z",
+      "side": 1,
+      "message": "Isn\u0027t this just creates.flatMap(c3po.toPersistenceOps(_))?",
+      "range": {
+        "startLine": 74,
+        "startChar": 8,
+        "endLine": 76,
+        "endChar": 9
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1ec4ec5d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T07:45:12Z",
+      "side": 1,
+      "message": "Why not use getAll()?\n\n  val protos \u003d backend.store.getAll(protoClass, ids).await(timeout)\n  protos.map(fromProto(_, dtoClass)).toList",
+      "range": {
+        "startLine": 110,
+        "startChar": 0,
+        "endLine": 114,
+        "endChar": 31
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5ea594b3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T07:45:12Z",
+      "side": 1,
+      "message": "What does this serialize to?",
+      "range": {
+        "startLine": 120,
+        "startChar": 17,
+        "endLine": 120,
+        "endChar": 30
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7eac18a1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T07:45:12Z",
+      "side": 1,
+      "message": "Is this necessary? dtoClass is already typed as Class[T].",
+      "range": {
+        "startLine": 122,
+        "startChar": 49,
+        "endLine": 122,
+        "endChar": 72
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_833c23e4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T07:45:12Z",
+      "side": 1,
+      "message": "Empty parentheses on pure accessor method.",
+      "range": {
+        "startLine": 140,
+        "startChar": 56,
+        "endLine": 140,
+        "endChar": 58
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9eaf1c94",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T07:45:12Z",
+      "side": 1,
+      "message": "Any particular reason these aren\u0027t implemented? We have a RouterInterfaceTranslator.",
+      "range": {
+        "startLine": 145,
+        "startChar": 0,
+        "endLine": 150,
+        "endChar": 27
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_3cd46346",
         "filename": "midonet-api/src/main/java/org/midonet/api/servlet/JerseyGuiceServletContextListener.java",
         "patchSetId": 4
