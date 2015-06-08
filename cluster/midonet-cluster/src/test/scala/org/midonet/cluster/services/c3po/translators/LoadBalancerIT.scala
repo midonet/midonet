@@ -99,6 +99,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
 
     private def vipJson(id: UUID,
                         adminStateUp: Boolean = true,
+                        address: String = null,
                         connectionLimit: Int = 10,
                         poolId: UUID = null,
                         portId: UUID = null,
@@ -110,6 +111,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val vip = nodeFactory.objectNode
         vip.put("id", id.toString)
         vip.put("admin_state_up", adminStateUp)
+        if (address != null) vip.put("address", address)
         vip.put("collection_limit", connectionLimit)
         if (poolId != null) vip.put("pool_id", poolId.toString)
         if (portId != null) vip.put("port_id", portId.toString)
@@ -208,12 +210,13 @@ class LoadBalancerIT extends C3POMinionTestBase {
 
         // #6 Create a VIP.
         val vipId = UUID.randomUUID()
-        val vJson = vipJson(vipId, poolId = poolId).toString
-        insertCreateTask(6, VIPType, vJson, vipId)
+        val vJson = vipJson(vipId, address = "10.0.0.2", poolId = poolId)
+        insertCreateTask(6, VIPType, vJson.toString, vipId)
         val vip = eventually(storage.get(classOf[Vip], vipId).await())
         vip.getLoadBalancerId shouldBe lb.getId
         vip.getAdminStateUp shouldBe true
         vip.getPoolId shouldBe toProto(poolId)
+        vip.getAddress shouldBe IPAddressUtil.toProto("10.0.0.2")
         vip.getProtocolPort shouldBe 12345
         vip.hasSessionPersistence shouldBe true
         vip.getSessionPersistence shouldBe Vip.SessionPersistence.SOURCE_IP
@@ -304,6 +307,9 @@ class LoadBalancerIT extends C3POMinionTestBase {
         pool.hasHealthMonitorId shouldBe true
         pool.getHealthMonitorId shouldBe toProto(hmId)
         pool.getPoolMemberIdsList shouldBe empty
+        // A Load Balancer object should be created.
+        val lb = eventually(
+                storage.get(classOf[LoadBalancer], routerId).await())
 
         // #4 Add a Pool Member with no Pool ID specified.
         val memberId = UUID.randomUUID()
@@ -342,17 +348,20 @@ class LoadBalancerIT extends C3POMinionTestBase {
                     toProto(memberId))
         }
 
-        // #6 Create a 2nd Pool.
+        // #6&7 Create a 2nd Router and Pool.
+        val router2Id = UUID.randomUUID()
+        val rtr2Json = routerJson(router2Id, name = "router2").toString
+        insertCreateTask(6, RouterType, rtr2Json, router2Id)
         val pool2Id = UUID.randomUUID()
-        val pool2Json = lbPoolJson(pool2Id, true, routerId).toString
-        insertCreateTask(6, PoolType, pool2Json, pool2Id)
+        val pool2Json = lbPoolJson(pool2Id, true, router2Id).toString
+        insertCreateTask(7, PoolType, pool2Json, pool2Id)
         val pool2 = eventually(storage.get(classOf[Pool], pool2Id).await())
         pool2.getPoolMemberIdsList.isEmpty shouldBe true
 
-        // #7 Re-attach the Pool Member to Pool2.
+        // #8 Re-attach the Pool Member to Pool2.
         val movedMemberJson =
             memberJson(memberId, pool2Id, memberAddress2).toString
-        insertUpdateTask(7, PoolMemberType, movedMemberJson, memberId)
+        insertUpdateTask(8, PoolMemberType, movedMemberJson, memberId)
         eventually {
             val movedMember =
                 storage.get(classOf[PoolMember], memberId).await()
@@ -365,10 +374,10 @@ class LoadBalancerIT extends C3POMinionTestBase {
                     toProto(memberId))
         }
 
-        // #8 Detach the Pool Member from Pool2.
+        // #9 Detach the Pool Member from Pool2.
         val detachedMemberJson =
             memberJson(memberId, poolId = null, memberAddress2).toString
-        insertUpdateTask(8, PoolMemberType, detachedMemberJson, memberId)
+        insertUpdateTask(9, PoolMemberType, detachedMemberJson, memberId)
         eventually {
             val detachedMember =
                 storage.get(classOf[PoolMember], memberId).await()
@@ -377,14 +386,62 @@ class LoadBalancerIT extends C3POMinionTestBase {
             pool2WithNoMember.getPoolMemberIdsList shouldBe empty
         }
 
-        // #9 Remove the Health Monitor from the Pool
+        // #10 Remove the Health Monitor from the Pool
         val poolWithNoHmJson = lbPoolJson(poolId, true, routerId).toString
-        insertUpdateTask(9, PoolType, poolWithNoHmJson, poolId)
+        insertUpdateTask(10, PoolType, poolWithNoHmJson, poolId)
         eventually {
             val pool = storage.get(classOf[Pool], poolId).await()
             pool.hasHealthMonitorId shouldBe false
             val detachedHm = storage.get(classOf[HealthMonitor], hmId).await()
             detachedHm.hasPoolId shouldBe false
+        }
+
+        // #11 Create a VIP.
+        val vipId = UUID.randomUUID()
+        val vJson = vipJson(vipId, address = "10.0.0.2", poolId = poolId)
+        insertCreateTask(11, VIPType, vJson.toString, vipId)
+        val vip = eventually(storage.get(classOf[Vip], vipId).await())
+        vip.getLoadBalancerId shouldBe lb.getId
+        vip.getAdminStateUp shouldBe true
+        vip.getPoolId shouldBe toProto(poolId)
+        vip.getAddress shouldBe IPAddressUtil.toProto("10.0.0.2")
+        vip.getProtocolPort shouldBe 12345
+        vip.hasSessionPersistence shouldBe true
+        vip.getSessionPersistence shouldBe Vip.SessionPersistence.SOURCE_IP
+        val lbWithVip = eventually(storage.get(classOf[LoadBalancer], routerId)
+                                   .await())
+        lbWithVip.getVipIdsList should contain (toProto(vipId))
+
+        // #12 Update the VIP.
+        val updatedVipJson = vipJson(vipId, poolId = pool2Id,
+                        adminStateUp = false,
+                        address = "10.0.0.4",
+                        protocolPort = 54321).toString
+        insertUpdateTask(12, VIPType, updatedVipJson, vipId)
+        eventually {
+            val updatedVip = storage.get(classOf[Vip], vipId).await()
+            updatedVip.getLoadBalancerId shouldBe toProto(router2Id)
+            updatedVip.getAdminStateUp shouldBe false
+            updatedVip.getPoolId shouldBe toProto(pool2Id)
+            updatedVip.getAddress shouldBe IPAddressUtil.toProto("10.0.0.4")
+            updatedVip.getProtocolPort shouldBe 54321
+            updatedVip.hasSessionPersistence shouldBe true
+            updatedVip.getSessionPersistence shouldBe
+                    Vip.SessionPersistence.SOURCE_IP
+            val lbWithVipRemoved = storage.get(classOf[LoadBalancer], routerId)
+                                          .await()
+            lbWithVipRemoved.getVipIdsList shouldBe empty
+            val lb2 = storage.get(classOf[LoadBalancer], router2Id).await()
+            lb2.getVipIdsList should contain (toProto(vipId))
+        }
+
+        // #13 Delete the VIP
+        insertDeleteTask(13, VIPType, vipId)
+        eventually {
+            storage.exists(classOf[Vip], vipId).await() shouldBe false
+            val lb2NoVip = storage.get(classOf[LoadBalancer], router2Id)
+                                  .await()
+            lb2NoVip.getVipIdsList shouldBe empty
         }
     }
 }
