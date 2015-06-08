@@ -16,29 +16,32 @@
 
 package org.midonet.cluster.data.storage
 
-import java.util.concurrent.{ExecutorService, ConcurrentHashMap}
 import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
 import scala.collection.JavaConverters._
+import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent}
+import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.utils.ZKPaths
-import org.apache.zookeeper.{KeeperException, CreateMode}
-import org.apache.zookeeper.KeeperException.{NoNodeException, Code}
+import org.apache.zookeeper.KeeperException.{Code, NoNodeException}
+import org.apache.zookeeper.{CreateMode, KeeperException}
 
-import rx.functions.Func1
-import rx.{Subscriber, Observable}
 import rx.Observable.OnSubscribe
+import rx.{Observable, Subscriber}
+import rx.functions.Func1
 
 import org.midonet.cluster.data._
-import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage.{NoOwnerId, StringEncoding}
-import org.midonet.cluster.data.storage.ZookeeperObjectState.makeThrowable
+import org.midonet.cluster.data.storage.TransactionManager._
+import org.midonet.cluster.data.storage.ZookeeperObjectState.{KeyIndex, makeThrowable}
+import org.midonet.cluster.util.{DirectoryObservableClosedException, NodeObservable, NodeObservableClosedException, PathDirectoryObservable}
 import org.midonet.util.functors._
 
 object ZookeeperObjectState {
@@ -54,6 +57,10 @@ object ZookeeperObjectState {
             new UnmodifiableStateException(clazz, id, key, value, result)
         }
     }
+
+    /** A unique index for an object key. It is used to index state key
+      * observables in a map. */
+    private case class KeyIndex(clazz: Class[_], id: String, key: String)
 
 }
 
@@ -133,6 +140,15 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         }
 
     }
+
+    private val objectObservables =
+        new TrieMap[Key, NodeObservable]
+    private val singleObservables =
+        new TrieMap[KeyIndex, NodeObservable]
+    private val multiObservables =
+        new TrieMap[KeyIndex, PathDirectoryObservable]
+
+    private val stateKeyMap: Func1[ChildData, StateKey] = makeFunc1(_ => null)
 
     private def statePath(version: Long) = s"$rootPath/$version/state"
 
@@ -275,11 +291,21 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         }
     }
 
+    /**
+     * Returns an observable that emits change notifications for the specified
+     * object and state key. The observable will emit an `onNext` notification
+     * whenever the value for the key has changed, for both single and multiple
+     * valued keys.
+     */
     override def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
         assertBuilt()
-        // TODO
-        ???
+
+        if (getWritePolicy(clazz, key).isSingle) {
+            singleObservable(clazz, id, key, version.longValue())
+        } else {
+            multiObservable(clazz, id, key, version.longValue())
+        }
     }
 
     @inline
@@ -540,6 +566,83 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     event.getResultCode))
             }
         }
+    }
+
+    /** Returns an node observable for the state path of the given object.
+      * This observable is used to detect when an object is deleted, in
+      * order to complete single-value key observables. */
+    private def objectObservable(clazz: Class[_], id: ObjId, version: Long)
+    : Observable[StateKey] = {
+
+        val key = Key(clazz, getIdString(clazz, id))
+        val path = getStateObjectPath(clazz, id, version)
+
+        objectObservables.getOrElse(key, {
+            val observable = NodeObservable.create(curator, path,
+                                                   completeOnDelete = false)
+            objectObservables.putIfAbsent(key, observable).getOrElse(observable)
+        }).ignoreElements()
+          .map[StateKey](stateKeyMap)
+          .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+            case e: NodeObservableClosedException =>
+                objectObservables.remove(key)
+                objectObservable(clazz, id, version)
+            case e: Throwable => Observable.error(e)
+        }))
+    }
+
+    /** Returns an observable for a single-value key, using a [[NodeObservable]]
+      * for the key path that ignores deletions. Completion of the observable
+      * is ensured by filtering elements through the object observable using
+      * `takeUntil`. */
+    private def singleObservable(clazz: Class[_], id: ObjId, key: String,
+                                 version: Long): Observable[StateKey] = {
+
+        val index = KeyIndex(clazz, getIdString(clazz, id), key)
+        val path = getKeyPath(clazz, getIdString(clazz, id), key, version)
+
+        singleObservables.getOrElse(index, {
+            val observable = NodeObservable.create(curator, path,
+                                                   completeOnDelete = true)
+            singleObservables.putIfAbsent(index, observable)
+                             .getOrElse(observable)
+        }).map[StateKey](makeFunc1((data: ChildData) => {
+            if ((data.getData ne null) && (data.getStat ne null)) {
+                val value = new String(data.getData, StringEncoding)
+                val owner = data.getStat.getEphemeralOwner
+                SingleValueKey(key, Some(value), owner)
+            } else {
+                SingleValueKey(key, None, NoOwnerId)
+            }
+        })).onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+            case e: NodeObservableClosedException =>
+                singleObservables.remove(index)
+                singleObservable(clazz, id, key, version)
+            case e: Throwable => Observable.error(e)
+        })).takeUntil(objectObservable(clazz, id, version))
+    }
+
+    /** Returns an observable for a multi-value key, using a
+      * [[PathDirectoryObservable]] for the key path.
+      */
+    private def multiObservable(clazz: Class[_], id: ObjId, key: String,
+                                version: Long): Observable[StateKey] = {
+
+        val index = KeyIndex(clazz, getIdString(clazz, id), key)
+        val path = getKeyPath(clazz, getIdString(clazz, id), key, version)
+
+        multiObservables.getOrElse(index, {
+            val observable = PathDirectoryObservable.create(curator, path)
+            multiObservables.putIfAbsent(index, observable)
+                            .getOrElse(observable)
+        }).map[StateKey](makeFunc1((values: Set[String]) => {
+            MultiValueKey(key, values)
+        })).onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+            case e: DirectoryObservableClosedException =>
+                multiObservables.remove(index)
+                multiObservable(clazz, id, key, version)
+            case e: Throwable => Observable.error(e)
+        }))
     }
 
 }
