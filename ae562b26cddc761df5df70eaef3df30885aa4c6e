@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_b996ba92",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomApiModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T10:30:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_dce537a9",
+      "range": {
+        "startLine": 32,
+        "startChar": 0,
+        "endLine": 43,
+        "endChar": 40
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_be20604a",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-08T07:45:12Z",
       "side": 1,
       "message": "You use this a lot. Maybe just alias it to val store?",
+      "range": {
+        "startLine": 53,
+        "startChar": 46,
+        "endLine": 53,
+        "endChar": 59
+      },
+      "revId": "ae562b26cddc761df5df70eaef3df30885aa4c6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f9904297",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T10:30:25Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_be20604a",
       "range": {
         "startLine": 53,
         "startChar": 46,
