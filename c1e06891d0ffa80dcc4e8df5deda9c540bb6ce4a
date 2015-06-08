@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_7e5978fd",
+        "filename": "midolman/src/main/java/org/midonet/midolman/host/guice/HostModule.java",
+        "patchSetId": 19
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_22751898",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_374e3c97",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 19
@@ -54,6 +72,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_7ecb38a5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "Got it. I eliminate this logic.",
+      "parentUuid": "facab960_626f20c6",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c20e2c32",
         "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
         "patchSetId": 19
@@ -65,6 +101,24 @@
       "writtenOn": "2015-06-05T14:47:51Z",
       "side": 1,
       "message": "complete the subject?",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5ed4b446",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "I eliminate the notification logic and this as well.",
+      "parentUuid": "facab960_c20e2c32",
       "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -88,6 +142,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_9ece3cb3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/DatapathController.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 287,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_b7208cb1",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_62580033",
         "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
         "patchSetId": 19
@@ -99,6 +171,24 @@
       "writtenOn": "2015-06-05T14:47:51Z",
       "side": 1,
       "message": "the interface is always up if the dpport exists",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_debfe4fa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/DatapathPortEntangler.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "I eliminated the recreate logic.",
+      "parentUuid": "facab960_62580033",
       "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -122,6 +212,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_febe68fe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_c2aaacd1",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_972548c4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 19
@@ -133,6 +241,24 @@
       "writtenOn": "2015-06-05T14:33:12Z",
       "side": 1,
       "message": "s/Throwable/Exception/",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1eba2c0a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 317,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_972548c4",
       "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -162,6 +288,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_3e38d09f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 368,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "s/Netlink requests/Netlink dump requests/",
+      "parentUuid": "facab960_627d606e",
+      "range": {
+        "startLine": 368,
+        "startChar": 19,
+        "endLine": 368,
+        "endChar": 27
+      },
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_42869c66",
         "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
         "patchSetId": 19
@@ -173,6 +323,24 @@
       "writtenOn": "2015-06-05T14:47:51Z",
       "side": 1,
       "message": "use awaitableobserver?",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7e27b864",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/DefaultInterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "I believe AwaitableObserver can\u0027t be used directly. So I just wrapped it as RequestObserver.",
+      "parentUuid": "facab960_42869c66",
       "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -196,6 +364,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_7e425811",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/scanner/InterfaceScanner.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_42785c8f",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_429f7cb4",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelector.scala",
         "patchSetId": 19
@@ -213,6 +399,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_fe5588c6",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelector.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "It\u0027s required by MockSelctorProvider.",
+      "parentUuid": "facab960_429f7cb4",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_82a984e1",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelectorProvider.scala",
         "patchSetId": 19
@@ -224,6 +428,24 @@
       "writtenOn": "2015-06-05T14:47:51Z",
       "side": 1,
       "message": "do we need this?",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1e514cd8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelectorProvider.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T07:15:04Z",
+      "side": 1,
+      "message": "It\u0027s required in MockNetlinkchannelFactory.",
+      "parentUuid": "facab960_82a984e1",
       "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
