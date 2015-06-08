@@ -253,6 +253,13 @@ git submodule update --init
 ./gradlew clean
 ./gradlew assemble
 
+# install jar to midolman's build dir
+./gradlew :midolman:installApp
+
+# install the midonet scripts.  This must happen before the cluster
+# configuration section since mn-conf is used to configure the cluster.
+sudo $DEVMIDO_DIR/install_mn_scripts.sh
+
 if [[ "$ENABLE_CLUSTER" = "True" ]]; then
     # MidoNet Cluster
     # ---------------
@@ -301,12 +308,6 @@ fi
 
 # Midolman
 # --------
-
-# install jar to midolman's build dir
-./gradlew :midolman:installApp
-
-# install the midonet scripts
-sudo $DEVMIDO_DIR/install_mn_scripts.sh
 
 # Create the midolman's conf dir in case it doesn't exist
 if [ ! -d $AGENT_CONF_DIR ]; then
