@@ -32,12 +32,12 @@ class IPv4InvalidationArrayBenchmark extends {
 
     var array: IPv4InvalidationArray = _
 
-    var add = 0
-    var del = 0
+    var add: Long = 0
+    var del: Long = 0
 
     val MAX_SIZE = 1000000
 
-    @Param(Array("4", "17", "49", "151"))
+    @Param(Array("1", "4", "27", "151", "539"))
     var step: Int = _
 
     @JmhSetup
@@ -46,13 +46,15 @@ class IPv4InvalidationArrayBenchmark extends {
     }
 
     @Benchmark
-    def benchmarkAddDelete(bh: Blackhole): Unit = {
-        array.ref(add, 32)
-        bh.consume(array(add))
+    def benchmarkAddDelete(bh: Blackhole): Int = {
+        val count = array.ref((add & 0xffffffff).toInt, 31)
         add += step
         if (((add - del) / step) > MAX_SIZE) {
-            bh.consume(array.unref(del))
+            val refCount = array.unref((del & 0xffffffff).toInt)
             del += step
+            refCount
+        } else {
+            count
         }
     }
 }
