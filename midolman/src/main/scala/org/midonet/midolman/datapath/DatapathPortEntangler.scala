@@ -158,11 +158,7 @@ trait DatapathPortEntangler {
             if (!itfs.contains(ifname)) {
                 log.debug(s"interface $ifname is not in notified ifdescs: $itfs")
                 conveyor.handle(ifname, () =>
-                    if (interfaceToTriad.contains(ifname)) {
-                        deleteInterface(interfaceToTriad.get(ifname))
-                    } else {
-                        Future.successful(null)
-                    }
+                    deleteInterface(interfaceToTriad.get(ifname))
                 )
             }
         }
