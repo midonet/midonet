@@ -309,6 +309,24 @@
       "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5e3594f5",
+        "filename": "odp/build.gradle",
+        "patchSetId": 22
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T10:01:38Z",
+      "side": 1,
+      "message": "In addition to that, we need to add \"sudo\" to execute this integration test and that makes gradle build project with sudo. I got \"permission denied\" in the middle of another build sometimes because of the leftover from the build last time. Comparing to that this commandLine enables us to execute the specific Java file with sudo but the build is still done with the permission of the user.",
+      "parentUuid": "facab960_3e90d042",
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
