@@ -45,6 +45,6 @@ SESSION=$(screen -ls | awk -v "pat=[0-9].mido" '$0 ~ pat { print $1 }')
 screen -X -S $SESSION quit
 
 # The midolman Java calls keep running after killing the processes
-for p in $(ps aux | grep mido | grep -v grep | awk '{print $2}'); do
+for p in $(ps aux | grep mido | grep java | awk '{print $2}'); do
     sudo kill -9 "$p"
 done
