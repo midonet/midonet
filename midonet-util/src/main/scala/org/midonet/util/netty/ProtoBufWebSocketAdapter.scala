@@ -24,6 +24,7 @@ import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http.websocketx._
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.protobuf.{ProtobufDecoder, ProtobufEncoder, ProtobufVarint32FrameDecoder, ProtobufVarint32LengthFieldPrepender}
+import io.netty.handler.ssl.SslContext
 import io.netty.util.concurrent.{DefaultEventExecutorGroup, EventExecutorGroup}
 
 import scala.collection.concurrent.TrieMap
@@ -36,7 +37,8 @@ import scala.concurrent.{Future, Promise}
  * @param uri is the websocket url.
  */
 abstract class ProtoBufWebSocketAdapter[T <: GeneratedMessage](
-    val handler: SimpleChannelInboundHandler[T], val prototype: T, val uri: URI)
+    val handler: SimpleChannelInboundHandler[T], val prototype: T,
+    val uri: URI, sslCtx: Option[SslContext])
     extends ChannelInitializer[SocketChannel] {
 
     import ProtoBufWebSocketAdapter._
@@ -81,10 +83,12 @@ abstract class ProtoBufWebSocketAdapter[T <: GeneratedMessage](
 
         generateWSHandler() match {
             case WSClientHandler(clientProtocolHandler) =>
+                sslCtx.foreach(ssl => pipe.addLast(ssl.newHandler(ch.alloc())))
                 pipe.addLast(new HttpClientCodec())
                 pipe.addLast(new HttpObjectAggregator(65536))
                 pipe.addLast(clientProtocolHandler)
             case WSServerHandler(serverProtocolHandler) =>
+                sslCtx.foreach(ssl => pipe.addLast(ssl.newHandler(ch.alloc())))
                 pipe.addLast(new HttpRequestDecoder())
                 pipe.addLast(new HttpObjectAggregator(65536))
                 pipe.addLast(serverProtocolHandler)
@@ -102,7 +106,6 @@ abstract class ProtoBufWebSocketAdapter[T <: GeneratedMessage](
 
         pipe.addLast(executor, handler)
     }
-
 }
 
 /**
@@ -142,8 +145,9 @@ protected object ProtoBufWebSocketAdapter {
  * interception of the handshake completion event.
  */
 class ProtoBufWebSocketServerAdapter[T <: GeneratedMessage](
-    handler: SimpleChannelInboundHandler[T], prototype: T, uri: URI)
-    extends ProtoBufWebSocketAdapter(handler, prototype, uri) {
+    handler: SimpleChannelInboundHandler[T], prototype: T, uri: URI,
+    sslCtx: Option[SslContext] = None)
+    extends ProtoBufWebSocketAdapter(handler, prototype, uri, sslCtx) {
     def this(handler: SimpleChannelInboundHandler[T], prototype: T,
              wsPath: String) =
         this(handler, prototype, URI.create(wsPath))
@@ -179,8 +183,9 @@ class ProtoBufWebSocketServerAdapter[T <: GeneratedMessage](
  * interception of the handshake completion event.
  */
 class ProtoBufWebSocketClientAdapter[T <: GeneratedMessage](
-    handler: SimpleChannelInboundHandler[T], prototype: T, uri: URI)
-    extends ProtoBufWebSocketAdapter(handler, prototype, uri) {
+    handler: SimpleChannelInboundHandler[T], prototype: T, uri: URI,
+    sslCtx: Option[SslContext] = None)
+    extends ProtoBufWebSocketAdapter(handler, prototype, uri, sslCtx) {
     def this(handler: SimpleChannelInboundHandler[T], prototype: T,
         uriString: String) =
         this(handler, prototype, URI.create(uriString))
