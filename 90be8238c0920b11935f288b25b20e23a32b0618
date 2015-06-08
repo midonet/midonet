@@ -1,0 +1,199 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_037813f1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-08T02:33:08Z",
+      "side": 1,
+      "message": "These should go to ChainManager.scala.",
+      "range": {
+        "startLine": 119,
+        "startChar": 0,
+        "endLine": 122,
+        "endChar": 65
+      },
+      "revId": "90be8238c0920b11935f288b25b20e23a32b0618",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a35e8774",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-08T02:33:08Z",
+      "side": 1,
+      "message": "1. These lines should go to deleteSecurityBindings().\n2. Right now, Chain does not cascading delete Rule, therefore you also need to delete Rules by hand. See the example in deleteSecurityBindings.",
+      "range": {
+        "startLine": 116,
+        "startChar": 8,
+        "endLine": 117,
+        "endChar": 66
+      },
+      "revId": "90be8238c0920b11935f288b25b20e23a32b0618",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_23735716",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-08T02:33:08Z",
+      "side": 1,
+      "message": "Why don\u0027t we define vals for inAntiSpoofChainId and outAntiSpoofChainId?",
+      "range": {
+        "startLine": 307,
+        "startChar": 58,
+        "endLine": 307,
+        "endChar": 84
+      },
+      "revId": "90be8238c0920b11935f288b25b20e23a32b0618",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_43613b38",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-08T02:33:08Z",
+      "side": 1,
+      "message": "This is repeated 4 times. Let\u0027s define antiSpoofRule (which would call returnRule from within) in RuleManager.",
+      "range": {
+        "startLine": 312,
+        "startChar": 52,
+        "endLine": 315,
+        "endChar": 28
+      },
+      "revId": "90be8238c0920b11935f288b25b20e23a32b0618",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_835b4386",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 395,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-08T02:33:08Z",
+      "side": 1,
+      "message": "You also need to add Update(inAntiSpoofChain) and Update(inAntiSpoofChain).",
+      "range": {
+        "startLine": 395,
+        "startChar": 30,
+        "endLine": 395,
+        "endChar": 65
+      },
+      "revId": "90be8238c0920b11935f288b25b20e23a32b0618",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_83d263d0",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 481,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-08T02:33:08Z",
+      "side": 1,
+      "message": "You also need to add test for the new anti-spoofing rule chains.",
+      "range": {
+        "startLine": 473,
+        "startChar": 8,
+        "endLine": 481,
+        "endChar": 47
+      },
+      "revId": "90be8238c0920b11935f288b25b20e23a32b0618",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a3d5a7ba",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 607,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-08T02:33:08Z",
+      "side": 1,
+      "message": "Please update this test as well.",
+      "revId": "90be8238c0920b11935f288b25b20e23a32b0618",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c3db8beb",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 713,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-08T02:33:08Z",
+      "side": 1,
+      "message": "Here as well.",
+      "range": {
+        "startLine": 705,
+        "startChar": 8,
+        "endLine": 713,
+        "endChar": 47
+      },
+      "revId": "90be8238c0920b11935f288b25b20e23a32b0618",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e3d6cfc2",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 745,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-08T02:33:08Z",
+      "side": 1,
+      "message": "Please update this too.",
+      "revId": "90be8238c0920b11935f288b25b20e23a32b0618",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
