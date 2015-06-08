@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_96d700bf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T18:00:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_f6a20cad",
+      "revId": "77064a990c7fd7807f2859e54994b829325f6a11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_f6892c27",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
         "patchSetId": 3
@@ -30,6 +48,30 @@
       "writtenOn": "2015-06-08T17:22:25Z",
       "side": 1,
       "message": "Some of this is redundant with the next paragraph, Or actually, we might just say that this gives a NodeObservable and refer to the javadoc in there which is pretty similar.",
+      "range": {
+        "startLine": 49,
+        "startChar": 32,
+        "endLine": 52,
+        "endChar": 56
+      },
+      "revId": "77064a990c7fd7807f2859e54994b829325f6a11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f6ef6c85",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T18:00:47Z",
+      "side": 1,
+      "message": "Rephrased and reorganized the scaladoc.",
+      "parentUuid": "facab960_f6892c27",
       "range": {
         "startLine": 49,
         "startChar": 32,
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_76035c42",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T18:00:47Z",
+      "side": 1,
+      "message": "By default the connection is assumed connected, until receiving a disconnect notification on the connection listener (i.e. there is no initial notification that the state has changed to connected).",
+      "parentUuid": "facab960_3684740b",
+      "range": {
+        "startLine": 84,
+        "startChar": 46,
+        "endLine": 84,
+        "endChar": 50
+      },
+      "revId": "77064a990c7fd7807f2859e54994b829325f6a11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_369b9468",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
         "patchSetId": 3
@@ -76,6 +142,30 @@
       "writtenOn": "2015-06-08T17:22:25Z",
       "side": 1,
       "message": "when can this happen?",
+      "range": {
+        "startLine": 129,
+        "startChar": 36,
+        "endLine": 129,
+        "endChar": 51
+      },
+      "revId": "77064a990c7fd7807f2859e54994b829325f6a11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_96fe2037",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T18:00:47Z",
+      "side": 1,
+      "message": "I agree: is not necessary. This can happen when, due to a race condition the subject is already in a terminal state when the child subscribe.",
+      "parentUuid": "facab960_369b9468",
       "range": {
         "startLine": 129,
         "startChar": 36,
