@@ -300,33 +300,43 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                 case Rtnetlink.Type.NEWADDR =>
                     log.debug("Received NEWADDR notification")
                     val addr = Addr.buildFrom(buf)
-                    addrs.get(addr.ifa.index) match {
-                        case Some(addrSet: mutable.Set[Addr])
+                    if (!interfaceDescriptions.containsKey(addr.ifa.index)) {
+                        addrs -= addr.ifa.index
+                        Observable.empty[Set[InterfaceDescription]]
+                    } else {
+                        addrs.get(addr.ifa.index) match {
+                            case Some(addrSet: mutable.Set[Addr])
                                 if addrSet.contains(addr) =>
-                            Observable.empty[Set[InterfaceDescription]]
-                        case _ =>
-                            addrs(addr.ifa.index) =
-                                addrs.getOrElse(addr.ifa.index,
-                                    mutable.Set.empty) + addr
-                            interfaceDescriptions += (addr.ifa.index ->
-                                addAddr(addr))
-                            Observable.just(filteredIfDescSet)
+                                Observable.empty[Set[InterfaceDescription]]
+                            case _ =>
+                                addrs(addr.ifa.index) =
+                                    addrs.getOrElse(addr.ifa.index,
+                                        mutable.Set.empty) + addr
+                                interfaceDescriptions += (addr.ifa.index ->
+                                    addAddr(addr))
+                                Observable.just(filteredIfDescSet)
+                        }
                     }
                 case Rtnetlink.Type.DELADDR =>
                     log.debug("Received DELADDR notification")
                     val addr = Addr.buildFrom(buf)
-                    addrs.get(addr.ifa.index) match {
-                        case Some(addrSet: mutable.Set[Addr])
+                    if (!interfaceDescriptions.containsKey(addr.ifa.index)) {
+                        addrs -= addr.ifa.index
+                        Observable.empty[Set[InterfaceDescription]]
+                    } else {
+                        addrs.get(addr.ifa.index) match {
+                            case Some(addrSet: mutable.Set[Addr])
                                 if addrSet.contains(addr) =>
-                            addrSet -= addr
-                            val descOption = removeAddr(addr)
-                            if (descOption.isDefined) {
-                                interfaceDescriptions += (addr.ifa.index ->
-                                    descOption.get)
-                            }
-                            Observable.just(filteredIfDescSet)
-                        case _ =>
-                            Observable.empty[Set[InterfaceDescription]]
+                                addrSet -= addr
+                                val descOption = removeAddr(addr)
+                                if (descOption.isDefined) {
+                                    interfaceDescriptions += (addr.ifa.index ->
+                                        descOption.get)
+                                }
+                                Observable.just(filteredIfDescSet)
+                            case _ =>
+                                Observable.empty[Set[InterfaceDescription]]
+                        }
                     }
                 case t: Short => // Ignore other notifications.
                     log.debug(s"Received a notification with the type $t")
