@@ -21,7 +21,8 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
-import org.midonet.cluster.models.Topology.Pool
+import org.midonet.cluster.models.Neutron.NeutronVIP
+import org.midonet.cluster.models.Topology.{Pool, Vip}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil
@@ -34,7 +35,7 @@ class VipTranslatorTestBase extends TranslatorTestBase {
     protected val subnetId = UUIDUtil.toProtoFromProtoStr("msb: 3 lsb: 1")
     protected val portId = UUIDUtil.toProtoFromProtoStr("msb: 4 lsb: 1")
     protected val lbId = UUIDUtil.toProtoFromProtoStr("msb: 5 lsb: 1")
-    private val vipCommonFlds = s"""
+    protected val vipCommonFlds = s"""
         id { $vipId }
         admin_state_up: true
         address { ${IPAddressUtil.toProto("10.10.10.1")} }
@@ -111,5 +112,64 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
 
         midoOps should contain only (
                 midonet.Create(midoVip(poolId = poolId, lbId = lbId)))
+    }
+}
+
+/**
+ * Tests Neutron VIP Update translation.
+ */
+@RunWith(classOf[JUnitRunner])
+class VipTranslatorUpdateTest extends VipTranslatorTestBase {
+    before {
+        initMockStorage()
+        translator = new VipTranslator(storage)
+        bind(pool2Id, midoPool(pool2Id, lb2Id))
+    }
+
+    protected val pool2Id = UUIDUtil.toProtoFromProtoStr("msb: 2 lsb: 2")
+    protected val lb2Id = UUIDUtil.toProtoFromProtoStr("msb: 5 lsb: 2")
+    private val commonUpdatedFlds = s"""
+        id { $vipId }
+        admin_state_up: false
+        address { ${IPAddressUtil.toProto("10.10.10.2")} }
+        protocol_port: 8888
+        pool_id { $pool2Id }
+       """
+    protected val updatedNeutronVip = nVIPFromTxt(s"""
+        $commonUpdatedFlds
+        session_persistence {
+            type: SOURCE_IP
+            cookie_name: "vip cookie"
+        }
+        """)
+    protected val updatedMidoVip = mVIPFromTxt(s"""
+        $commonUpdatedFlds
+        session_persistence: SOURCE_IP
+        load_balancer_id { $lb2Id }
+        """)
+
+    "Neutron VIP Update" should "update a Midonet VIP." in {
+        val midoOps = translator.translate(neutron.Update(updatedNeutronVip))
+
+        midoOps should contain only (midonet.Update(updatedMidoVip))
+    }
+}
+
+/**
+ * Tests Neutron VIP Delete translation.
+ */
+@RunWith(classOf[JUnitRunner])
+class VipTranslatorDeleteTest extends VipTranslatorTestBase {
+    before {
+        initMockStorage()
+        translator = new VipTranslator(storage)
+    }
+
+    "Neutron VIP Delete" should "delete a Midonet VIP." in {
+        val midoOps = translator.translate(
+                neutron.Delete(classOf[NeutronVIP], vipId))
+
+        midoOps should contain only (
+                midonet.Delete(classOf[Vip], vipId))
     }
 }
