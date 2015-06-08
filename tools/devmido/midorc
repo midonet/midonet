@@ -68,6 +68,18 @@ API_URI=http://$SERVICE_HOST:$API_PORT/midonet-api
 # Time (in sec) to wait for the API to start
 API_TIMEOUT=${API_TIMEOUT:-120}
 
+
+# MidoNet Client
+# --------------
+
+# Auth variables. They are exported so that you could source this file and
+# run midonet-cli using these credentials
+export MIDO_API_URL=$API_URI
+export MIDO_USER=${MIDO_USER:-admin}
+export MIDO_PROJECT_ID=${MIDO_PROJECT_ID:-admin}
+export MIDO_PASSWORD=${MIDO_PASSWORD:-midonet}
+
+
 # MidoNet Cluster
 # ---------------
 
@@ -82,14 +94,3 @@ TASKS_DB_CONN=${TASKS_DB_CONN:-jdbc:mysql://localhost:3306/neutron?user=$MIDO_US
 
 # Cluster Topology API
 TOPOLOGY_API_PORT=${TOPOLOGY_API_PORT:-8088}
-
-
-# MidoNet Client
-# --------------
-
-# Auth variables. They are exported so that you could source this file and
-# run midonet-cli using these credentials
-export MIDO_API_URL=$API_URI
-export MIDO_USER=${MIDO_USER:-admin}
-export MIDO_PROJECT_ID=${MIDO_PROJECT_ID:-admin}
-export MIDO_PASSWORD=${MIDO_PASSWORD:-midonet}
