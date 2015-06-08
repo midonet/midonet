@@ -26,11 +26,12 @@ import rx.observers.TestObserver
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class ObservablePathDirectoryCacheTest extends FeatureSpec
-                                       with CuratorTestFramework
-                                       with Matchers {
+class PathDirectoryObservableTest extends FeatureSpec
+                                  with CuratorTestFramework
+                                  with Matchers {
 
     val parentPath = ZK_ROOT + "/parent"
+    val timeout = 5 seconds
 
     def createParent(): String = {
         curator.create.forPath(parentPath)
@@ -63,10 +64,10 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Notification of empty children set") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val observable = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
-            opdc.subscribe(obs)
-            obs.awaitOnNext(1, 1.second)
+            observable.subscribe(obs)
+            obs.awaitOnNext(1, timeout) shouldBe true
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents shouldBe empty
@@ -77,10 +78,10 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createParent()
             createChildren(0, 4)
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val observable = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
-            opdc.subscribe(obs)
-            obs.awaitOnNext(1, 1.second)
+            observable.subscribe(obs)
+            obs.awaitOnNext(1, timeout) shouldBe true
 
             obs.getOnNextEvents should contain only Set("0", "1", "2", "3", "4")
             obs.getOnErrorEvents shouldBe empty
@@ -90,17 +91,17 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Notification of added children") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val observable = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
-            opdc.subscribe(obs)
+            observable.subscribe(obs)
 
-            obs.awaitOnNext(1, 1.second)
+            obs.awaitOnNext(1, timeout) shouldBe true
             createChild(0)
-            obs.awaitOnNext(2, 1.second)
+            obs.awaitOnNext(2, timeout) shouldBe true
             createChild(1)
-            obs.awaitOnNext(3, 1.second)
+            obs.awaitOnNext(3, timeout) shouldBe true
             createChild(2)
-            obs.awaitOnNext(4, 1.second)
+            obs.awaitOnNext(4, timeout) shouldBe true
 
             obs.getOnNextEvents should contain inOrderOnly(
                 Set(), Set("0"), Set("0", "1"), Set("0", "1", "2"))
@@ -112,15 +113,15 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
             createParent()
             createChildren(0, 4)
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val observable = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
-            opdc.subscribe(obs)
-            obs.awaitOnNext(1, 1.second)
+            observable.subscribe(obs)
+            obs.awaitOnNext(1, timeout) shouldBe true
             deleteChild(0)
-            obs.awaitOnNext(2, 1.second)
+            obs.awaitOnNext(2, timeout) shouldBe true
             deleteChild(1)
-            obs.awaitOnNext(3, 1.second)
+            obs.awaitOnNext(3, timeout) shouldBe true
 
             obs.getOnNextEvents should contain inOrderOnly(
                 Set("0", "1", "2", "3", "4"), Set("1", "2", "3", "4"),
@@ -134,17 +135,17 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Error on cache close") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val observable = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
-            opdc.subscribe(obs)
-            obs.awaitOnNext(1, 1.second)
-            opdc.close()
-            obs.awaitCompletion(1.second)
+            observable.subscribe(obs)
+            obs.awaitOnNext(1, timeout) shouldBe true
+            observable.close()
+            obs.awaitCompletion(timeout)
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                DirectoryCacheDisconnectedException]
+                DirectoryObservableClosedException]
             obs.getOnCompletedEvents shouldBe empty
         }
     }
@@ -152,11 +153,11 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
     feature("Test observable errors") {
         scenario("Error on parent does not exist") {
             val path = ZK_ROOT + "/none"
-            val opdc = ObservablePathDirectoryCache.create(curator, path)
+            val observable = PathDirectoryObservable.create(curator, path)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
-            opdc.subscribe(obs)
-            obs.awaitCompletion(1.second)
+            observable.subscribe(obs)
+            obs.awaitCompletion(timeout)
 
             obs.getOnNextEvents shouldBe empty
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
@@ -167,14 +168,14 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Error on parent deletion") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val observable = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
-            opdc.subscribe(obs)
-            obs.awaitOnNext(1, 1.second)
+            observable.subscribe(obs)
+            obs.awaitOnNext(1, timeout) shouldBe true
 
             deleteParent()
-            obs.awaitCompletion(1.second)
+            obs.awaitCompletion(timeout)
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
@@ -184,31 +185,31 @@ class ObservablePathDirectoryCacheTest extends FeatureSpec
         scenario("Error on connect failure") {
             curator.close()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val observable = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
-            opdc.subscribe(obs)
-            obs.awaitCompletion(1.second)
+            observable.subscribe(obs)
+            obs.awaitCompletion(timeout)
 
             obs.getOnNextEvents shouldBe empty
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                DirectoryCacheDisconnectedException]
+                DirectoryObservableDisconnectedException]
         }
 
         scenario("Error on lost connection") {
             createParent()
 
-            val opdc = ObservablePathDirectoryCache.create(curator, parentPath)
+            val observable = PathDirectoryObservable.create(curator, parentPath)
             val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
 
-            opdc.subscribe(obs)
-            obs.awaitOnNext(1, 1.second)
+            observable.subscribe(obs)
+            obs.awaitOnNext(1, timeout) shouldBe true
             zk.stop()
-            obs.awaitCompletion(30.seconds)
+            obs.awaitCompletion(30 seconds)
 
             obs.getOnNextEvents should contain only Set()
             obs.getOnErrorEvents.get(0).getClass shouldBe classOf[
-                DirectoryCacheDisconnectedException]
+                DirectoryObservableDisconnectedException]
             curator.close()
         }
     }
