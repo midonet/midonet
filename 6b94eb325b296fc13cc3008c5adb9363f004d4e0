@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_fedbc818",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 294,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-08T08:26:28Z",
+      "side": 1,
+      "message": "outChainId should not be necessary in this method.",
+      "revId": "6b94eb325b296fc13cc3008c5adb9363f004d4e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_decc4464",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 299,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-08T08:26:28Z",
+      "side": 1,
+      "message": "this should be inChainId",
+      "revId": "6b94eb325b296fc13cc3008c5adb9363f004d4e0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
