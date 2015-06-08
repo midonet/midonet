@@ -155,10 +155,15 @@ trait DatapathPortEntangler {
         log.debug(s"interfacesToDelete: $interfacesToDelete")
         while (toDelete.hasNext) {
             val ifname = toDelete.next()
-            if (!itfs.contains(ifname) && interfaceToTriad.contains(ifname)) {
+            if (!itfs.contains(ifname)) {
                 log.debug(s"interface $ifname is not in notified ifdescs: $itfs")
-                conveyor.handle(ifname, () => deleteInterface(
-                    interfaceToTriad.get(ifname)))
+                conveyor.handle(ifname, () =>
+                    if (interfaceToTriad.contains(ifname)) {
+                        deleteInterface(interfaceToTriad.get(ifname))
+                    } else {
+                        Future.successful(null)
+                    }
+                )
             }
         }
     }
