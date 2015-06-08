@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_3ed4501f",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T08:29:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_f7edb4b8",
+      "range": {
+        "startLine": 67,
+        "startChar": 8,
+        "endLine": 67,
+        "endChar": 51
+      },
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b7fdec3d",
         "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/DanglingObserver.scala",
         "patchSetId": 22
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-05T14:28:27Z",
       "side": 1,
       "message": "where is this being used?",
+      "range": {
+        "startLine": 26,
+        "startChar": 6,
+        "endLine": 26,
+        "endChar": 22
+      },
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bee78011",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/DanglingObserver.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T08:29:15Z",
+      "side": 1,
+      "message": "It\u0027s used in RtnetlinkIntegrationTest. I replaced this with RequestObserver, which is a concrete class of AwaitableObserver.",
+      "parentUuid": "facab960_b7fdec3d",
       "range": {
         "startLine": 26,
         "startChar": 6,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_1e9b0c73",
+        "filename": "netlink/src/main/java/org/midonet/netlink/rtnetlink/RtnetlinkResource.java",
+        "patchSetId": 22
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T08:29:15Z",
+      "side": 1,
+      "message": "This is originally planned to be used to group all of rtnetlink resources but I don\u0027t think we need this anymore. I remove this.",
+      "parentUuid": "facab960_97262815",
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d720b0f9",
         "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkUtil.scala",
         "patchSetId": 22
@@ -76,6 +142,24 @@
       "writtenOn": "2015-06-05T14:28:27Z",
       "side": 1,
       "message": "this is not always true, right?",
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_fef108ce",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/NetlinkUtil.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T08:29:15Z",
+      "side": 1,
+      "message": "No, it\u0027s not true anymore. I remove this.",
+      "parentUuid": "facab960_d720b0f9",
       "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -122,6 +206,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_de90c450",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T08:29:15Z",
+      "side": 1,
+      "message": "I originally added this to eliminate the boilerplates to instantiate RtnetlinkConnection and its subclasses but now we don\u0027t have many. I don\u0027t think we need this and I remove this.",
+      "parentUuid": "facab960_77ec4490",
+      "range": {
+        "startLine": 42,
+        "startChar": 6,
+        "endLine": 42,
+        "endChar": 32
+      },
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d74ef0c0",
         "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
         "patchSetId": 22
@@ -145,6 +253,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_fe9f485d",
+        "filename": "netlink/src/main/scala/org.midonet.netlink/rtnetlink/RtnetlinkConnection.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T08:29:15Z",
+      "side": 1,
+      "message": "I remove this.",
+      "parentUuid": "facab960_d74ef0c0",
+      "range": {
+        "startLine": 70,
+        "startChar": 0,
+        "endLine": 77,
+        "endChar": 62
+      },
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_77ba846f",
         "filename": "odp/build.gradle",
         "patchSetId": 22
@@ -156,6 +288,24 @@
       "writtenOn": "2015-06-05T14:28:27Z",
       "side": 1,
       "message": "why the change?",
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3e90d042",
+        "filename": "odp/build.gradle",
+        "patchSetId": 22
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-06-08T08:29:15Z",
+      "side": 1,
+      "message": "I thought this was not working but actually I missed to add sudo. I\u0027ll make rtnetlinkTest to follow this style.\n\nHowever, midolman/buil.gradle uses this style and it was a bit confusing which I should have followed.\nhttps://github.com/midonet/midonet/blob/b1fb2f0ef358563e288257af3d98ee31e4534c5e/midolman/build.gradle#L245-L251",
+      "parentUuid": "facab960_77ba846f",
       "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
