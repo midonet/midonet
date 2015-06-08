@@ -2,6 +2,98 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_5e93d44e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T08:26:30Z",
+      "side": 1,
+      "message": "If you\u0027re going to transform the NotFoundException for get() and update(), why not the ObjectExistsException for create()?",
+      "range": {
+        "startLine": 66,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 14
+      },
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_fe76683d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T08:26:30Z",
+      "side": 1,
+      "message": "Why replace the NotFoundException error message, which supplies more detail, with this?",
+      "range": {
+        "startLine": 101,
+        "startChar": 49,
+        "endLine": 101,
+        "endChar": 67
+      },
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1e722c49",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T08:26:30Z",
+      "side": 1,
+      "message": "Same.",
+      "range": {
+        "startLine": 116,
+        "startChar": 49,
+        "endLine": 116,
+        "endChar": 67
+      },
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3e05307a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POMinion.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-08T08:26:30Z",
+      "side": 1,
+      "message": "This same code is in the NeutronZoomPlugin. Maybe add an initStorageManager(storage: Storage): C3POStorageManager function to the companion object that does all this, and implement this function as initStorageManager(storage)?",
+      "range": {
+        "startLine": 135,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 5
+      },
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_653567f6",
         "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.dev",
         "patchSetId": 6
