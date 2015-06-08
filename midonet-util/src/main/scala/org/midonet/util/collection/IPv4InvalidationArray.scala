@@ -19,6 +19,7 @@ package org.midonet.util.collection
 import java.util.ArrayList
 
 object IPv4InvalidationArray {
+    val NO_ROUTE_VALUE = -1
     val VALUE_MASK = (1 << 6) -1
     val NO_VALUE = VALUE_MASK
 
@@ -44,7 +45,11 @@ object IPv4InvalidationArray {
  *
  * Implementation notes:
  *
- *   * Implemented as a very naive judy-array, with no compaction optimizations.
+ *   * Implemented as a naive 256-arity trie, with no compaction optimizations.
+ *   * Bits below /28 are ignored, making invalidation a bit coarser optimal
+ *     as a speed/memory vs precision trade-off. For this reason the 4th level
+ *     nodes are 32-element arrays. A fully expanded trie would take 1GB of
+ *     memory, as opposed to 16GB if the full 32 bits were tracked.
  *   * Levels 3 and 4 of of the trie use object pools to prevent allocations.
  *   * Levels 1 and 2 are allocated up front and never freed, this is 257 pointer
  *     arrays of 256 positions each.
@@ -59,17 +64,17 @@ final class IPv4InvalidationArray {
 
     private def makeB2: B2 = Array.fill[B3](256)(null)
     private def makeB3: B3 = Array.fill[Leaf](256)(null)
-    private def makeLeaf: Leaf = Array.fill[Int](256)(NO_VALUE)
+    private def makeLeaf: Leaf = Array.fill[Int](32)(NO_VALUE)
 
-    private val leafPool = new ArrayObjectPool[Array[Int]](2048, _ => makeLeaf)
-    private val b3Pool = new ArrayObjectPool[Array[Array[Int]]](512, _ => makeB3)
+    private val leafPool = new ArrayObjectPool[Leaf](2048, _ => makeLeaf)
+    private val b3Pool = new ArrayObjectPool[B3](512, _ => makeB3)
 
     private val root: B1 = Array.fill[B2](256)(makeB2)
 
     private def b1(v: Int): Int = (v >>> 24) & 0xff
     private def b2(v: Int): Int = (v >>> 16) & 0xff
     private def b3(v: Int): Int = (v >>> 8) & 0xff
-    private def b4(v: Int): Int = v & 0xff
+    private def b4(v: Int): Int = (v & 0xff) >>> 4
 
     private def getB2(key: Int): B2 = root(b1(key))
     private def getB3(key: Int): B3 = getB2(key)(b2(key))
@@ -93,7 +98,7 @@ final class IPv4InvalidationArray {
             while (i <= b4(last)) {
                 val originalMatchLen = extractValue(leaf(i))
                 if ((originalMatchLen != NO_VALUE) && (originalMatchLen <= prefixLen)) {
-                    deletions.add(prefix | i)
+                    deletions.add(prefix | (i<<4))
                     leaf(i) = NO_VALUE
                 }
                 i += 1
@@ -147,7 +152,7 @@ final class IPv4InvalidationArray {
 
     private def leafIsEmpty(leaf: Leaf): Boolean = {
         var i = 0
-        while (i < 256) {
+        while (i < 32) {
             if (leaf(i) != NO_VALUE)
                 return false
             i += 1
@@ -182,11 +187,38 @@ final class IPv4InvalidationArray {
      * prefix match length.
      */
     def ref(key: Int, v: Int): Int = {
-        val leaf = getOrMakeLeaf(key)
-        val e = leaf(b4(key))
-        val count = extractRefCount(e) + 1
-        leaf(b4(key)) = makeEntry(count, v)
-        count
+        /* Ignore route matches with prefix length of 32, because a route addition
+         * will never overshadow such a match, at most it will become a same-prefix
+         * route and flows using the pre-existing /32 route are still valid and
+         * thus don't need to be tracked. They would only become invalid if their
+         * route is removed, something this data structure does not track.
+         *
+         * The prefix length value we store is incremented by one to make the range
+         * of values 0-32, given that -1 is used to mark a no-route match. So,
+         * no routes become 0, and /31 matches become /32.
+         *
+         * Inside deletePrefix we compare the match length with the new route
+         * length using <=. Example: a flow doesn't match any route, and gets
+         * stored here with a prefix length of 0 (received as -1 by this method).
+         * A default, /0, route is added. Because the original corrected match
+         * length (-1 + 1 = 0) is <= new route's length (0), the flow will be
+         * invalidated.
+         *
+         * Example 2. A flow matches a default route, and this match is stored
+         * here with a corrected match length of 1 (0+1). A new default route
+         * is added. Because the stored corrected match length (1) is not <= the
+         * new route's prefix length (0), the flow will not be invalidated. Which
+         * is correct because the original route it matched has not been deleted.
+         */
+        if (v < 32) {
+            val leaf = getOrMakeLeaf(key)
+            val e = leaf(b4(key))
+            val count = extractRefCount(e) + 1
+            leaf(b4(key)) = makeEntry(count, v+1)
+            count
+        } else {
+            0
+        }
     }
 
     /*
@@ -194,7 +226,12 @@ final class IPv4InvalidationArray {
      * Returns NO_VALUE if the address is not contained in this invalidation array.
      */
     def apply(key: Int): Int = {
-        try extractValue(get(key)) catch {
+        try {
+            extractValue(get(key)) match {
+                case NO_VALUE => NO_VALUE
+                case c => c - 1
+            }
+        } catch {
             case e: NullPointerException => NO_VALUE
         }
     }
