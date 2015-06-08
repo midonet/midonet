@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_54c013e0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T14:21:50Z",
+      "side": 1,
+      "message": "Side note (it can be addressed in a different patch): should we address all exceptions returned by multi:\n\n    @throws[NotFoundException]\n    @throws[ObjectExistsException]\n    @throws[ObjectReferencedException]\n    @throws[ReferenceConflictException]\n\nWhich may occur because of bindings? As well as ConcurrentModificationException.",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 9
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
