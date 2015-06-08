@@ -467,6 +467,24 @@
       "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1eeeacb4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelectorProvider.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-08T08:30:06Z",
+      "side": 1,
+      "message": "Oops, ignore me. I was looking at an old version.",
+      "parentUuid": "facab960_bef8607d",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
