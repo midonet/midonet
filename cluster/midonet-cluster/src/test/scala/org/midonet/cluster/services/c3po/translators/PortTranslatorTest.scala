@@ -428,6 +428,40 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         midoOps should contain (midonet.Update(mIpv6DhcpWithHostAdded))
     }
 
+    "A created VIF port with port_security_enabled=false" should "not have " +
+    "any rules on its inbound, outbound, and antispoof chain" in {
+
+        val vifPortNoPortSec = nPortFromTxt(s"""
+          $portBaseUp
+          fixed_ips {
+            ip_address {
+              version: V4
+              address: '6.6.6.6'
+            }
+            subnet_id { $nIpv4Subnet1Id }
+          }
+          port_security_enabled: false
+          """)
+
+        val midoOps = translator.translate(neutron.Create(vifPortNoPortSec))
+
+        val inChain = findChainOp(midoOps, OpType.Create, inboundChainId)
+        inChain should not be null
+        inChain.getName shouldBe s"OS_PORT_${portJUuid}_INBOUND"
+        inChain.getRuleIdsList.size shouldBe 0
+
+        val outChain= findChainOp(midoOps, OpType.Create, outboundChainId)
+        outChain should not be null
+        outChain.getName shouldBe s"OS_PORT_${portJUuid}_OUTBOUND"
+        outChain.getRuleIdsList.size shouldBe 0
+
+        val antiSpoofChain = findChainOp(midoOps, OpType.Create,
+                                         antiSpoofChainId)
+        antiSpoofChain should not be null
+        antiSpoofChain.getName shouldBe s"Anti Spoof Chain"
+        antiSpoofChain.getRuleIdsList.size shouldBe 0
+    }
+
     "A created VIF port" should "have security bindings" in {
 
         val midoOps: List[Operation] =
