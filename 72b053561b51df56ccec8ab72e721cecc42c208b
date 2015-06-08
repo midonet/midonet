@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_1e1cecc0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T08:53:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_5e93d44e",
+      "range": {
+        "startLine": 66,
+        "startChar": 8,
+        "endLine": 66,
+        "endChar": 14
+      },
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_fe76683d",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-08T08:26:30Z",
       "side": 1,
       "message": "Why replace the NotFoundException error message, which supplies more detail, with this?",
+      "range": {
+        "startLine": 101,
+        "startChar": 49,
+        "endLine": 101,
+        "endChar": 67
+      },
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3e7a90f1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T08:53:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_fe76683d",
       "range": {
         "startLine": 101,
         "startChar": 49,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_7e8418d4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T08:53:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_1e722c49",
+      "range": {
+        "startLine": 116,
+        "startChar": 49,
+        "endLine": 116,
+        "endChar": 67
+      },
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_3e05307a",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POMinion.scala",
         "patchSetId": 6
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_7ed258d3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POMinion.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T08:53:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_3e05307a",
+      "range": {
+        "startLine": 135,
+        "startChar": 0,
+        "endLine": 143,
+        "endChar": 5
+      },
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_653567f6",
         "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.dev",
         "patchSetId": 6
@@ -105,6 +201,24 @@
       "writtenOn": "2015-06-06T09:59:54Z",
       "side": 1,
       "message": "Why comment it instead of defaulting to \u0027false\u0027?  It would be much easier to automate the update of this field if it\u0027s not commented out.\n\nAlso, it\u0027s worth adding a TODO comment to remove this when the work of API to Zoom is completed, which would reveal to everyone that this is a temporary flag (thus unneeded in web.xml.prod)",
+      "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9e871cd7",
+        "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.dev",
+        "patchSetId": 6
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T08:53:08Z",
+      "side": 1,
+      "message": "Yes.",
+      "parentUuid": "facab960_653567f6",
       "revId": "72b053561b51df56ccec8ab72e721cecc42c208b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
