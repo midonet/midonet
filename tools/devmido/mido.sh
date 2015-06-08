@@ -328,6 +328,8 @@ cp $MIDO_CONF ${MIDO_CONF}.edited
 
 if [[ "$USE_NEW_STACK" = "True" ]]; then
     configure_mn "zookeeper.use_new_stack" "true"
+else
+    configure_mn "zookeeper.use_new_stack" "false"
 fi
 
 sudo mv ${MIDO_CONF}.edited $AGENT_CONF_DIR/midolman.conf
