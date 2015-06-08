@@ -20,6 +20,9 @@
 (cd scratch && bash -x start)
 
 (cd zookeeper && bash -x start)
+
+(cd mn-conf && bash -x start)
+
 (cd cassandra && bash -x start)
 
 (cd quagga && bash -x start)
