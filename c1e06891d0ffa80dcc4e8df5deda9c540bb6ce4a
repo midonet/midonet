@@ -449,6 +449,24 @@
       "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bef8607d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockSelectorProvider.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-08T08:27:50Z",
+      "side": 1,
+      "message": "I missed it, can you point me to where you are using selectors?",
+      "parentUuid": "facab960_1e514cd8",
+      "revId": "c1e06891d0ffa80dcc4e8df5deda9c540bb6ce4a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
