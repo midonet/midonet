@@ -16,9 +16,9 @@
 package org.midonet.cluster.data.storage
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
+import scala.collection.concurrent.TrieMap
 
-import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.{Multimaps, ArrayListMultimap}
 import com.google.protobuf.Message
 import rx.Observable
 
@@ -159,9 +159,11 @@ class StorageException(val msg: String, val cause: Throwable)
 trait Storage extends ReadOnlyStorage {
 
     @volatile private var built = false
-    protected[this] val allBindings = ArrayListMultimap.create[Class[_], FieldBinding]()
-    protected[this] val classInfo = new mutable.HashMap[Class[_], ClassInfo]()
+    private val bindings = ArrayListMultimap.create[Class[_], FieldBinding]()
+    private val syncBindings = Multimaps.synchronizedListMultimap(bindings)
 
+    protected[this] val allBindings = Multimaps.unmodifiableListMultimap(bindings)
+    protected[this] val classInfo = new TrieMap[Class[_], ClassInfo]()
 
     /**
      * Synchronous method that persists the specified object to the storage. The
@@ -289,7 +291,7 @@ trait Storage extends ReadOnlyStorage {
         }
 
         for (entry <- bdgs.entries.asScala) {
-            allBindings.put(entry.getKey, entry.getValue)
+            syncBindings.put(entry.getKey, entry.getValue)
         }
     }
 
@@ -303,6 +305,7 @@ trait Storage extends ReadOnlyStorage {
         built = true
     }
 
+    @throws[ServiceUnavailableException]
     protected[this] def assertBuilt(): Unit = {
         if (!isBuilt) throw new ServiceUnavailableException
     }
