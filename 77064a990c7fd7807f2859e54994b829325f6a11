@@ -16,6 +16,75 @@
       "revId": "77064a990c7fd7807f2859e54994b829325f6a11",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f6892c27",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T17:22:25Z",
+      "side": 1,
+      "message": "Some of this is redundant with the next paragraph, Or actually, we might just say that this gives a NodeObservable and refer to the javadoc in there which is pretty similar.",
+      "range": {
+        "startLine": 49,
+        "startChar": 32,
+        "endLine": 52,
+        "endChar": 56
+      },
+      "revId": "77064a990c7fd7807f2859e54994b829325f6a11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3684740b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T17:22:25Z",
+      "side": 1,
+      "message": "false?",
+      "range": {
+        "startLine": 84,
+        "startChar": 46,
+        "endLine": 84,
+        "endChar": 50
+      },
+      "revId": "77064a990c7fd7807f2859e54994b829325f6a11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_369b9468",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T17:22:25Z",
+      "side": 1,
+      "message": "when can this happen?",
+      "range": {
+        "startLine": 129,
+        "startChar": 36,
+        "endLine": 129,
+        "endChar": 51
+      },
+      "revId": "77064a990c7fd7807f2859e54994b829325f6a11",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
