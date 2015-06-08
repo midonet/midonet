@@ -99,7 +99,7 @@ message NeutronPort {
     }
     optional UUID host_id = 12;
     optional BindingProfile profile = 13;
-    optional bool port_security_enabled = 14;
+    optional bool port_security_enabled = 14 [default = true];
 
     message AllowedAddressPair {
         optional IPAddress ip_address = 1;
