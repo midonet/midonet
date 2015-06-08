@@ -193,6 +193,7 @@ function screen_process {
     local command="$2"
 
     SERVICE_DIR=${SERVICE_DIR:-/tmp/status}
+    mkdir -p ${SERVICE_DIR}/${SCREEN_NAME}
 
     # Append the process to the screen rc file
     screen_rc ${SCREEN_NAME} "$name" "$command"
@@ -211,7 +212,7 @@ function screen_process {
     sleep 3
 
     NL=`echo -ne '\015'`
-    screen -S ${SCREEN_NAME} -p $name -X stuff "$command & echo \$! >$SERVICE_DIR/$screen/${name}.pid; fg || echo \"$name failed to start\" | tee \"$SERVICE_DIR/$screen/${name}.failure\"$NL"
+    screen -S ${SCREEN_NAME} -p $name -X stuff "$command & echo \$! >$SERVICE_DIR/${SCREEN_NAME}/${name}.pid; fg || echo \"$name failed to start\" | tee \"$SERVICE_DIR/$${SCREEN_NAME}/${name}.failure\"$NL"
 }
 
 # _run_process() is designed to be backgrounded by run_process() to simulate a
@@ -239,9 +240,7 @@ function _run_process {
     fi
 
     SERVICE_DIR=${SERVICE_DIR:-/tmp/status}
-    if [[ ! -d "${SERVICE_DIR}/${SCREEN_NAME}" ]]; then
-        mkdir -p ${SERVICE_DIR}/${SCREEN_NAME}
-    fi
+    mkdir -p ${SERVICE_DIR}/${SCREEN_NAME}
     setsid $command & echo $! > ${SERVICE_DIR}/${SCREEN_NAME}/${service}.pid
 
     # Just silently exit this process
