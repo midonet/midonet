@@ -31,17 +31,38 @@ class IPv4InvalidationArrayTest extends FeatureSpec with BeforeAndAfterEach with
     implicit def str2int(ip: String): Int = ip2int(str2ipv4(ip))
 
     val ints: List[Int] = List(
-        "192.168.0.0", "192.168.0.1", "192.168.0.2", "192.168.0.3",
-        "192.168.0.100", "192.168.0.101", "192.168.0.254", "192.168.0.255",
-        "192.168.1.0", "192.168.1.1", "192.168.1.2", "192.168.1.3",
-        "192.0.1.0", "192.0.1.1", "192.0.1.2", "192.0.1.3",
-        "1.0.1.0", "1.0.1.1", "1.0.1.2", "1.0.1.3")
+        "192.168.0.0", "192.168.0.16", "192.168.0.32", "192.168.0.48",
+        "192.168.0.100", "192.168.0.116", "192.168.0.200", "192.168.0.255",
+        "192.168.1.0", "192.168.1.16", "192.168.1.32", "192.168.1.48",
+        "192.168.1.100", "192.168.1.116", "192.168.1.200", "192.168.1.255",
+        "1.0.1.0", "1.0.1.16", "1.0.1.32", "1.0.1.48")
 
     override def beforeEach() {
         array = new IPv4InvalidationArray()
     }
 
-    feature("Invaliation array stores and deletes values") {
+    feature("Invalidation array stores and deletes values") {
+        scenario("Returns -1 when unref'ing an unknown address") {
+            array.unref(0x12345678) should be (-1)
+            array.ref(0x12345678 + 0x10, 31)
+            array.unref(0x12345678) should be (-1)
+        }
+
+        scenario("Drops the last 4 bits of each address") {
+            val base = 0x89abcd10
+            for (i <- 0 to 0xf) {
+                array.ref(base + i, 27) should be (i+1)
+                array.ref(base + i + 0x10, 19) should be (i+1)
+            }
+
+            for (i <- 0xf to(0, -1)) {
+                array.apply(base + i) should be (27)
+                array.unref(base + i) should be (i)
+                array.apply(base + i + 0x10) should be (19)
+                array.unref(base + i + 0x10) should be (i)
+            }
+        }
+
         scenario("Stores values") {
             var v = 0
             for (i <- ints) {
@@ -72,8 +93,8 @@ class IPv4InvalidationArrayTest extends FeatureSpec with BeforeAndAfterEach with
         }
 
         scenario("Cleans up trie nodes") {
-            array.ref("10.0.0.0", 32)
-            array.ref("10.0.0.0", 32)
+            array.ref("10.0.0.0", 31)
+            array.ref("10.0.0.0", 31)
 
             array should not be `empty`
             array.nonEmpty should be (true)
@@ -85,7 +106,7 @@ class IPv4InvalidationArrayTest extends FeatureSpec with BeforeAndAfterEach with
             array should be (`empty`)
         }
 
-        scenario("Unref'ing a non existent entry returns NO_VALUE") {
+        scenario("Ignores /32 matches") {
             array.unref("10.0.0.0") should be (-1)
             array.ref("10.0.0.1", 32)
             array.unref("10.0.0.0") should be (-1)
@@ -104,24 +125,24 @@ class IPv4InvalidationArrayTest extends FeatureSpec with BeforeAndAfterEach with
         }
 
         scenario("Invalidates subnets") {
-            array.ref("10.0.0.0", 32)
-            array.ref("10.0.0.1", 20)
-            array.ref("10.0.0.2", 15)
-            array.ref("10.0.0.3", 12)
+            array.ref("10.0.0.0", 31)
+            array.ref("10.0.0.17", 20)
+            array.ref("10.0.0.34", 15)
+            array.ref("10.0.0.49", 12)
             array.ref("11.0.0.3", 0)
-            array.ref("11.0.0.2", 0)
+            array.ref("11.0.0.1", 0)
             array.ref("11.0.0.20", 0)
 
             array.deletePrefix("10.0.0.0", 9) should have size 0
-            array.deletePrefix("10.0.0.0", 13) should have size 1
-            array.deletePrefix("10.0.0.0", 15) should have size 1
-            array.deletePrefix("10.0.0.0", 24) should have size 1
-            array.deletePrefix("10.0.0.0", 32) should have size 1
+            array.deletePrefix("10.0.0.48", 13) should have size 1
+            array.deletePrefix("10.0.0.33", 16) should have size 1
+            array.deletePrefix("10.0.0.16", 24) should have size 1
+            array.deletePrefix("10.0.0.1", 32) should have size 1
             array("11.0.0.3") should be (0)
-            val result = array.deletePrefix("11.0.0.0", 30)
+            val result = array.deletePrefix("11.0.0.0", 25)
             result should have size 2
-            result should contain (IPv4Addr.fromString("11.0.0.3").toInt)
-            result should contain (IPv4Addr.fromString("11.0.0.2").toInt)
+            result should contain (IPv4Addr.fromString("11.0.0.0").toInt)
+            result should contain (IPv4Addr.fromString("11.0.0.16").toInt)
         }
 
         scenario("tracks reference counts") {
@@ -132,12 +153,12 @@ class IPv4InvalidationArrayTest extends FeatureSpec with BeforeAndAfterEach with
         scenario("Cleans up trie nodes") {
             array.ref("10.0.0.0", 0)
             array.ref("10.0.0.0", 0)
-            array.ref("10.0.0.1", 24)
-            array.ref("10.0.0.1", 24)
+            array.ref("10.0.0.100", 24)
+            array.ref("10.0.0.100", 24)
 
             array.deletePrefix("10.0.0.0", 16) should have size 1
             array should not be `empty`
-            array.deletePrefix("10.0.0.1", 32) should have size 1
+            array.deletePrefix("10.0.0.100", 32) should have size 1
             array.nonEmpty should be (false)
             array should be (`empty`)
         }
