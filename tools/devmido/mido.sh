@@ -253,22 +253,12 @@ git submodule update --init
 ./gradlew clean
 ./gradlew assemble
 
-# Create the midolman's conf dir in case it doesn't exist
-if [ ! -d $AGENT_CONF_DIR ]; then
-    sudo mkdir -p $AGENT_CONF_DIR
-fi
-
 # install jar to midolman's build dir
 ./gradlew :midolman:installApp
 
 # install the midonet scripts.  This must happen before the cluster
 # configuration section since mn-conf is used to configure the cluster.
 sudo $DEVMIDO_DIR/install_mn_scripts.sh
-
-# These config files are needed - create if not present
-if [ ! -f $AGENT_CONF_DIR/logback-dpctl.xml ]; then
-    sudo cp $TOP_DIR/midolman/conf/logback-dpctl.xml $AGENT_CONF_DIR/
-fi
 
 # put config to the classpath and set loglevel to DEBUG for Midolman
 cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
@@ -323,16 +313,12 @@ fi
 # Midolman
 # --------
 
-MIDO_CONF=$TOP_DIR/midolman/conf/midolman.conf
-cp $MIDO_CONF ${MIDO_CONF}.edited
-
 if [[ "$USE_NEW_STACK" = "True" ]]; then
     configure_mn "zookeeper.use_new_stack" "true"
 else
     configure_mn "zookeeper.use_new_stack" "false"
 fi
 
-sudo mv ${MIDO_CONF}.edited $AGENT_CONF_DIR/midolman.conf
 run_process midolman "./gradlew -a :midolman:runWithSudo"
 
 
