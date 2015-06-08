@@ -159,7 +159,8 @@ public class Chain implements VirtualDevice {
         }
 
         if (context.jlog().isDebugEnabled()) {
-            context.jlog().debug("Testing against Chain:\n{}", chain.asList(4, false));
+            context.jlog().debug("Testing against Chain: {}",
+                                 chain.asList(4, false));
         }
 
         // Use ArrayList rather than HashSet because the list will be
@@ -211,7 +212,7 @@ public class Chain implements VirtualDevice {
         // Print rules.
         for (Rule rule : rules) {
             bld.append(indentBuf).append("    ");
-            bld.append(rule).append('\n');
+            bld.append(rule).append("; ");
             if (recursive && rule instanceof JumpRule) {
                 JumpRule jr = (JumpRule)rule;
                 Chain jumpTarget = jumpTargets.get(jr.jumpToChainID).get();
