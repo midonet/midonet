@@ -26,7 +26,7 @@ import org.apache.zookeeper.KeeperException.NoNodeException
 import rx.Observable
 import rx.functions.Func1
 
-import org.midonet.cluster.util.{ObservablePathDirectoryCache, ObservableNodeCache, ObservablePathChildrenCache}
+import org.midonet.cluster.util.{PathDirectoryObservable, ObservableNodeCache, ObservablePathChildrenCache}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /**
@@ -163,7 +163,7 @@ class DirectorySubscriptionCache(path: String,
                                  onLastUnsubscribe:
                                      (DirectorySubscriptionCache) => Unit) {
 
-    private val dirCache = ObservablePathDirectoryCache.create(curator, path)
+    private val dirCache = PathDirectoryObservable.create(curator, path)
     private val refCount = new AtomicInteger()
 
     private val decSubscribers = makeAction0 (
