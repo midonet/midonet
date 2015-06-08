@@ -327,6 +327,24 @@
       "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_59784e8f",
+        "filename": "odp/build.gradle",
+        "patchSetId": 22
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-08T10:10:47Z",
+      "side": 1,
+      "message": "cool!",
+      "parentUuid": "facab960_5e3594f5",
+      "revId": "3108480b5e565e3bd68de90a73c56197a34e46fa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
