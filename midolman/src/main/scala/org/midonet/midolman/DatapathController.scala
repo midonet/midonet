@@ -213,6 +213,9 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         }
     })
 
+    @volatile
+    private var interfaceDescriptionsCache: Set[InterfaceDescription] =
+        Set.empty[InterfaceDescription]
 
     private
     val ovsNotificationReadThread = new Thread(s"$name-notification") {
@@ -290,7 +293,10 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                         log.error(s"Port watcher got an error: $t")
                     }
                     def onNext(data: Set[InterfaceDescription]): Unit = {
-                        self ! InterfacesUpdate_(data)
+                        if (data != interfaceDescriptionsCache) {
+                            interfaceDescriptionsCache = data
+                            self ! InterfacesUpdate_(data)
+                        }
                     }
                 })
     }
