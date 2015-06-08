@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_d99b7b70",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_d9cc5e64",
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_99b496d2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 1
@@ -53,6 +71,30 @@
       "writtenOn": "2015-06-08T11:29:51Z",
       "side": 1,
       "message": "nit: inside the if",
+      "range": {
+        "startLine": 75,
+        "startChar": 8,
+        "endLine": 75,
+        "endChar": 38
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3984670b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_99b496d2",
       "range": {
         "startLine": 75,
         "startChar": 8,
@@ -88,6 +130,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_59876b0f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_b9d15afd",
+      "range": {
+        "startLine": 101,
+        "startChar": 10,
+        "endLine": 101,
+        "endChar": 48
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_19d7a6ee",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 1
@@ -99,6 +165,30 @@
       "writtenOn": "2015-06-08T11:29:51Z",
       "side": 1,
       "message": "Why not always Set?",
+      "range": {
+        "startLine": 151,
+        "startChar": 20,
+        "endLine": 151,
+        "endChar": 72
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b9779739",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "For single value keys, I wanted to expose also the ownerId, which could be useful to solve conflicts. Therefore the StateKey is a trait implemented as SingleValueKey or MultiValueKey. Hence. the single value key can include an Option rather than a Set.\n\nSo you think we should rather use a single class?",
+      "parentUuid": "facab960_19d7a6ee",
       "range": {
         "startLine": 151,
         "startChar": 20,
@@ -134,6 +224,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_599e8b57",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 405,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "According to the f2f discussion, will think about simplifying the background callback.",
+      "parentUuid": "facab960_1945e6b2",
+      "range": {
+        "startLine": 375,
+        "startChar": 0,
+        "endLine": 405,
+        "endChar": 37
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d9f37e9d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 1
@@ -145,6 +259,30 @@
       "writtenOn": "2015-06-08T11:29:51Z",
       "side": 1,
       "message": "This chunk is used in several places with few differences, worth factoring out to a common resultOrThrow: Try[StateResult] that enables a promise.complete()?",
+      "range": {
+        "startLine": 412,
+        "startChar": 20,
+        "endLine": 419,
+        "endChar": 21
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_39b2a7e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 419,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_d9f37e9d",
       "range": {
         "startLine": 412,
         "startChar": 20,
@@ -180,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_19940336",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 432,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "The comment was wrong :) This was initially intended for multi-value but ended up being used for both.",
+      "parentUuid": "facab960_b9f87a7d",
+      "range": {
+        "startLine": 432,
+        "startChar": 16,
+        "endLine": 432,
+        "endChar": 27
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_99865612",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
         "patchSetId": 1
@@ -191,6 +353,30 @@
       "writtenOn": "2015-06-08T11:29:51Z",
       "side": 1,
       "message": "nit: UnmodifiableStateException?",
+      "range": {
+        "startLine": 172,
+        "startChar": 6,
+        "endLine": 172,
+        "endChar": 20
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7940afa5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_99865612",
       "range": {
         "startLine": 172,
         "startChar": 6,
@@ -226,6 +412,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_593a0b37",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_d99e1e54",
+      "range": {
+        "startLine": 183,
+        "startChar": 6,
+        "endLine": 183,
+        "endChar": 29
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_39b70ada",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
         "patchSetId": 1
@@ -237,6 +447,30 @@
       "writtenOn": "2015-06-08T11:29:51Z",
       "side": 1,
       "message": "extra nit: ConcurrentStateModificationException?",
+      "range": {
+        "startLine": 192,
+        "startChar": 6,
+        "endLine": 192,
+        "endChar": 31
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d9453bb4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomExceptions.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-08T22:37:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_39b70ada",
       "range": {
         "startLine": 192,
         "startChar": 6,
