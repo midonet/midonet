@@ -149,8 +149,8 @@ class ProtoBufWebSocketServerAdapter[T <: GeneratedMessage](
     sslCtx: Option[SslContext] = None)
     extends ProtoBufWebSocketAdapter(handler, prototype, uri, sslCtx) {
     def this(handler: SimpleChannelInboundHandler[T], prototype: T,
-             wsPath: String) =
-        this(handler, prototype, URI.create(wsPath))
+             wsPath: String, sslCtx: Option[SslContext] = None) =
+        this(handler, prototype, URI.create(wsPath), sslCtx)
     import ProtoBufWebSocketAdapter._
 
     /**
@@ -187,8 +187,8 @@ class ProtoBufWebSocketClientAdapter[T <: GeneratedMessage](
     sslCtx: Option[SslContext] = None)
     extends ProtoBufWebSocketAdapter(handler, prototype, uri, sslCtx) {
     def this(handler: SimpleChannelInboundHandler[T], prototype: T,
-        uriString: String) =
-        this(handler, prototype, URI.create(uriString))
+        uriString: String, sslCtx: Option[SslContext] = None) =
+        this(handler, prototype, URI.create(uriString), sslCtx)
     import ProtoBufWebSocketAdapter._
 
     /**
