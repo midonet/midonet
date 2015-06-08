@@ -1,0 +1,222 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_94ec5b91",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "is there anything implementations are expected to provide? If we\u0027re providing the in/out in parameters channels then all the functionality seems present here, so the  class can be collapsed with the trait",
+      "range": {
+        "startLine": 34,
+        "startChar": 3,
+        "endLine": 34,
+        "endChar": 69
+      },
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d4fd033d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "If we go for 2 params, we should make them Observable and Observer. The Observable emits everybody\u0027s opinions (so that we can aggregate and CR them); the Observer receives the update stream with the winning stream.\n\nSo, maybe names like\n\nallOpinions: Observable, \nwinningOpinion: Observer\n\nseem less ambiguous (I actually intepreted input/output contrary to the documentation before reading it).\n\nJust to clarify: allOpinions are coming from the message bus (e.g., Kafka, ZK..), so there is no need to emit anything there. Whereas winningOpinion is emitted by ourselves.",
+      "range": {
+        "startLine": 47,
+        "startChar": 17,
+        "endLine": 47,
+        "endChar": 31
+      },
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d4ab431c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "why implicit?",
+      "range": {
+        "startLine": 48,
+        "startChar": 5,
+        "endLine": 48,
+        "endChar": 14
+      },
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f4aa0718",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "guava\u0027s Multimap?",
+      "range": {
+        "startLine": 53,
+        "startChar": 23,
+        "endLine": 53,
+        "endChar": 76
+      },
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f4fcc740",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "changes in",
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_14f84b48",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "what if no more opinions?",
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_344b8f88",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "filterIfWinner?",
+      "range": {
+        "startLine": 73,
+        "startChar": 16,
+        "endLine": 73,
+        "endChar": 28
+      },
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9471bbe2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "shouldn\u0027t it be enough with doing winningObserver.onNext(winner) ?",
+      "range": {
+        "startLine": 90,
+        "startChar": 4,
+        "endLine": 99,
+        "endChar": 44
+      },
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_34646f21",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "\u003d\u003d",
+      "range": {
+        "startLine": 214,
+        "startChar": 37,
+        "endLine": 214,
+        "endChar": 45
+      },
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_14a68b53",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMapBase.scala",
+        "patchSetId": 13
+      },
+      "lineNbr": 214,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-08T14:32:26Z",
+      "side": 1,
+      "message": "wrap",
+      "range": {
+        "startLine": 213,
+        "startChar": 13,
+        "endLine": 214,
+        "endChar": 13
+      },
+      "revId": "1bc83a03f121264917c48758a4a7a4930badc8d9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
