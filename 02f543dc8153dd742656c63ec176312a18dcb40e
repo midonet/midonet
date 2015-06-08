@@ -143,6 +143,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_9e9d5c5c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-08T07:54:37Z",
+      "side": 1,
+      "message": "that\u0027s the bonus. i just feel having these *Node classes didn\u0027t help readability much.",
+      "parentUuid": "facab960_a5e12f00",
+      "revId": "02f543dc8153dd742656c63ec176312a18dcb40e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_17a218ae",
         "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
         "patchSetId": 3
