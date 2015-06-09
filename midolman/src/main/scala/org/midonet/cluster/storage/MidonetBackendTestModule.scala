@@ -18,7 +18,7 @@ package org.midonet.cluster.storage
 import com.google.inject.Inject
 import com.typesafe.config.Config
 
-import org.midonet.cluster.data.storage.{StorageWithOwnership, InMemoryStorage, Storage}
+import org.midonet.cluster.data.storage.{StateStorage, StorageWithOwnership, InMemoryStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.MidoTestConfigurator
 
@@ -37,6 +37,7 @@ class MidonetTestBackend extends MidonetBackend {
 
     override def store: Storage = inMemoryZoom
     override def ownershipStore: StorageWithOwnership = inMemoryZoom
+    override def stateStore: StateStorage = inMemoryZoom
     override def isEnabled = cfg.useNewStack
 
 
