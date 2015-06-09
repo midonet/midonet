@@ -35,7 +35,7 @@ import com.typesafe.scalalogging.Logger
 import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.data.{ZoomObject, ZoomConvert}
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.rest_api.annotation.{AllowUpdate, AllowCreate, AllowGet, AllowList}
@@ -197,10 +197,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
             .map(fromProto(_, clazz))
     }
 
-    protected def getResourceOwners[U >: Null <: UriResource](clazz: Class[U],
-                                                              id: Any)
-    : Future[Set[String]] = {
-        backend.ownershipStore.getOwners(UriResource.getZoomClass(clazz), id)
+    protected def getResourceState[U >: Null <: UriResource](clazz: Class[U],
+                                                             id: Any, key: String)
+    : Future[StateKey] = {
+        backend.stateStore.getKey(UriResource.getZoomClass(clazz), id, key)
     }
 
     protected def createResource[U >: Null <: UriResource](resource: U)

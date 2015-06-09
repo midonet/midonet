@@ -15,16 +15,12 @@
  */
 package org.midonet.cluster.rest_api.models;
 
-import java.net.InetAddress;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
-
-import com.google.protobuf.Message;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 
@@ -46,7 +42,6 @@ public class Host extends UriResource {
 
     public List<String> addresses;
 
-    @ZoomField(name = "interfaces")
     @Since("3")
     public List<Interface> hostInterfaces;
 
@@ -79,16 +74,5 @@ public class Host extends UriResource {
     public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }
 
     public URI getPorts() { return relativeUri(ResourceUris.PORTS); }
-
-    @JsonIgnore
-    @Override
-    public void afterFromProto(Message proto) {
-        addresses = new ArrayList<>();
-        for (Interface iface : hostInterfaces) {
-            for (InetAddress address : iface.addresses) {
-                addresses.add(address.toString());
-            }
-        }
-    }
 
 }

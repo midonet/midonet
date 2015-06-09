@@ -45,7 +45,8 @@ class AbstractPortResource[P >: Null <: Port]
     protected override def listFilter = (port: P) => { setActive(port); true }
 
     private def isActive(id: String): Boolean = {
-        getResourceOwners(classOf[Port], id).getOrThrow.nonEmpty
+        getResourceState(classOf[Port], id, MidonetBackend.HostsKey)
+            .getOrThrow.nonEmpty
     }
 
     private def setActive(port: P): P = {
