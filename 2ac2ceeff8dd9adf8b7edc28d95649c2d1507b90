@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_3f2287a4",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a6e6d2e5",
+      "range": {
+        "startLine": 12,
+        "startChar": 25,
+        "endLine": 12,
+        "endChar": 56
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_46e39ed8",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_9f3633e6",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_46e39ed8",
+      "range": {
+        "startLine": 14,
+        "startChar": 9,
+        "endLine": 14,
+        "endChar": 49
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_e6d3aa01",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-05-14T06:03:40Z",
       "side": 1,
       "message": "just \"allocate\"?",
+      "range": {
+        "startLine": 18,
+        "startChar": 21,
+        "endLine": 18,
+        "endChar": 39
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bf35b7db",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_e6d3aa01",
       "range": {
         "startLine": 18,
         "startChar": 21,
@@ -183,6 +255,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_df30bbea",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_06d526e4",
+      "range": {
+        "startLine": 38,
+        "startChar": 36,
+        "endLine": 38,
+        "endChar": 40
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_460a7e8a",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -194,6 +290,30 @@
       "writtenOn": "2015-05-14T06:03:40Z",
       "side": 1,
       "message": "Remove.",
+      "range": {
+        "startLine": 39,
+        "startChar": 42,
+        "endLine": 39,
+        "endChar": 46
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1f522313",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_460a7e8a",
       "range": {
         "startLine": 39,
         "startChar": 42,
@@ -229,6 +349,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_ff4e5f6e",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a6fd3270",
+      "range": {
+        "startLine": 40,
+        "startChar": 0,
+        "endLine": 40,
+        "endChar": 9
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_06ec06ba",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -240,6 +384,30 @@
       "writtenOn": "2015-05-14T06:03:40Z",
       "side": 1,
       "message": "\"between\"",
+      "range": {
+        "startLine": 44,
+        "startChar": 35,
+        "endLine": 44,
+        "endChar": 40
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3f59a736",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "They may be \u003e2",
+      "parentUuid": "1a106d94_06ec06ba",
       "range": {
         "startLine": 44,
         "startChar": 35,
@@ -275,6 +443,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_5f5cab25",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_4631de58",
+      "range": {
+        "startLine": 45,
+        "startChar": 46,
+        "endLine": 47,
+        "endChar": 37
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_a634124a",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -286,6 +478,30 @@
       "writtenOn": "2015-05-14T06:03:40Z",
       "side": 1,
       "message": "\"configurations\"",
+      "range": {
+        "startLine": 49,
+        "startChar": 9,
+        "endLine": 49,
+        "endChar": 22
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7f424f3f",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_a634124a",
       "range": {
         "startLine": 49,
         "startChar": 9,
@@ -321,6 +537,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_bf4cd771",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_061a46c5",
+      "range": {
+        "startLine": 51,
+        "startChar": 60,
+        "endLine": 52,
+        "endChar": 44
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_0671a60b",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -344,6 +584,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_9f92b39d",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Oh I didn\u0027t mean it to be. I was just trying to clarify that it should be able to run regardless of what other services are running in the same Cluster JVM - meaning, they shouldn\u0027t expect do @Inject SomeOtherService, because this may not be running here. Of course once they are running, they may find failures (e.g., connecting to external services, etc. but that\u0027s normal operation), as part of normal operation.",
+      "parentUuid": "1a106d94_0671a60b",
+      "range": {
+        "startLine": 67,
+        "startChar": 37,
+        "endLine": 69,
+        "endChar": 43
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c6514e63",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -355,6 +619,30 @@
       "writtenOn": "2015-05-14T06:03:40Z",
       "side": 1,
       "message": "That\u0027s \"encapsulation\". \"Encapsulated\" and \"decoupled\" are related for sure, as a description for \"Decoupled\" it seems a bit off.",
+      "range": {
+        "startLine": 70,
+        "startChar": 14,
+        "endLine": 71,
+        "endChar": 48
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5ff82be5",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Same, I didn\u0027t mean to define decoupled but more expand on means to achieve it (e.g., encapsulation).",
+      "parentUuid": "1a106d94_c6514e63",
       "range": {
         "startLine": 70,
         "startChar": 14,
@@ -402,6 +690,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_7fdecf6e",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Added a note for this above in the autonomous section.",
+      "parentUuid": "1a106d94_264dc2c4",
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_c6d82ef1",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -413,6 +719,30 @@
       "writtenOn": "2015-05-14T06:03:40Z",
       "side": 1,
       "message": "Should we say \"the Storage API\"? ZOOM is not (yet at least) backend-agnostic.",
+      "range": {
+        "startLine": 78,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 40
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9fd9d385",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_c6d82ef1",
       "range": {
         "startLine": 78,
         "startChar": 0,
@@ -442,6 +772,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_bfe85711",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "no, I just mean that we\u0027ll provide tools for adding authentication to services, connecting to pub/sub systems..",
+      "parentUuid": "1a106d94_d899547a",
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_66f17a6a",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -453,6 +801,30 @@
       "writtenOn": "2015-05-14T06:03:40Z",
       "side": 1,
       "message": "s/brain/cluster/",
+      "range": {
+        "startLine": 88,
+        "startChar": 0,
+        "endLine": 88,
+        "endChar": 5
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ffd1ff57",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_66f17a6a",
       "range": {
         "startLine": 88,
         "startChar": 0,
@@ -488,6 +860,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_3fcc47bc",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_86eab671",
+      "range": {
+        "startLine": 93,
+        "startChar": 49,
+        "endLine": 93,
+        "endChar": 56
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_46f43e5a",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -499,6 +895,30 @@
       "writtenOn": "2015-05-14T06:03:40Z",
       "side": 1,
       "message": "s/brain/cluster/",
+      "range": {
+        "startLine": 95,
+        "startChar": 43,
+        "endLine": 95,
+        "endChar": 48
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1fd5c342",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_46f43e5a",
       "range": {
         "startLine": 95,
         "startChar": 43,
@@ -534,6 +954,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_5fcf4bb0",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done.\n\nYes, I\u0027m not in love with nsdb. The approach I\u0027m following for now is to put models in nsdb, anything involving logic in /cluster/midonet-cluster",
+      "parentUuid": "1a106d94_c6ff8e32",
+      "range": {
+        "startLine": 98,
+        "startChar": 2,
+        "endLine": 99,
+        "endChar": 50
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "1a106d94_06f6c65c",
         "filename": "docs/cluster_services_guide.md",
         "patchSetId": 1
@@ -545,6 +989,30 @@
       "writtenOn": "2015-05-14T06:03:40Z",
       "side": 1,
       "message": "s/brain/cluster/",
+      "range": {
+        "startLine": 110,
+        "startChar": 2,
+        "endLine": 110,
+        "endChar": 7
+      },
+      "revId": "2ac2ceeff8dd9adf8b7edc28d95649c2d1507b90",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bfbf77fa",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T08:06:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "1a106d94_06f6c65c",
       "range": {
         "startLine": 110,
         "startChar": 2,
