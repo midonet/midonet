@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_dc2b6992",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 478,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T07:13:59Z",
+      "side": 1,
+      "message": "Thanks, I didn\u0027t notice. I did some changes here, and then I reverted but I forgot to remove this.",
+      "parentUuid": "facab960_bc4f85bc",
+      "range": {
+        "startLine": 478,
+        "startChar": 12,
+        "endLine": 478,
+        "endChar": 15
+      },
+      "revId": "3f52bb3b294c36acc7a2ed54584c67d8959b8ba2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_bce6a5b2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-09T06:39:13Z",
       "side": 1,
       "message": "This doesn\u0027t seem to be used?",
+      "range": {
+        "startLine": 861,
+        "startChar": 4,
+        "endLine": 869,
+        "endChar": 5
+      },
+      "revId": "3f52bb3b294c36acc7a2ed54584c67d8959b8ba2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_fc190d89",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 869,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T07:13:59Z",
+      "side": 1,
+      "message": "You\u0027re right, I moved it to the base trait. Will remove.",
+      "parentUuid": "facab960_bce6a5b2",
       "range": {
         "startLine": 861,
         "startChar": 4,
