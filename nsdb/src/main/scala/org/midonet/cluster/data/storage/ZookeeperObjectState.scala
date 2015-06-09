@@ -247,6 +247,13 @@ trait ZookeeperObjectState extends StorageWithState with Storage {
         }
     }
 
+    /**
+     * Returns the session identifier.
+     */
+    override def sessionId = {
+        curator.getZookeeperClient.getZooKeeper.getSessionId
+    }
+
     @inline
     private[storage] def getStateClassPath(clazz: Class[_],
                                            version: Long = version.longValue())
