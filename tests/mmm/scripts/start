@@ -31,6 +31,8 @@
 
 (cd midonet-api && bash -x start)
 
+(cd vtep && bash -xe start)
+
 #Wait for agents to be registered before finishing start sequence
 RETRIES=30
 CONNECTED=false
