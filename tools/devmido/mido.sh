@@ -299,7 +299,11 @@ if [[ "$ENABLE_API" = "True" ]]; then
     configure_mn "cluster.conf_api.enabled" "false"
 
     API_CFG=$TOP_DIR/midonet-api/src/main/webapp/WEB-INF/web.xml
-    cp $API_CFG.dev $API_CFG
+    if [[ "$USE_NEW_STACK" = "True" ]]; then
+        sed ':begin;$!N;/zookeeper-use_new_stack/s/false/true/;tbegin;' $API_CFG.dev > $API_CFG
+    else
+        cp API_CFG.dev API_CFG
+    fi
 
     cp $TOP_DIR/midonet-api/conf/logback.xml.dev $TOP_DIR/midonet-api/build/classes/main/logback.xml
 
