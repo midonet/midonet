@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_dce36931",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/ChainManager.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-09T02:20:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_5ec034e0",
+      "range": {
+        "startLine": 40,
+        "startChar": 8,
+        "endLine": 40,
+        "endChar": 21
+      },
+      "revId": "89780cdcb554692008796ebe7695aa4c9d60d05b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_be5ea043",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-08T10:22:45Z",
       "side": 1,
       "message": "You can use RangeUtil.toProto",
+      "range": {
+        "startLine": 306,
+        "startChar": 23,
+        "endLine": 309,
+        "endChar": 36
+      },
+      "revId": "89780cdcb554692008796ebe7695aa4c9d60d05b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1ceeb122",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 309,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-09T02:20:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_be5ea043",
       "range": {
         "startLine": 306,
         "startChar": 23,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_5cf839e5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-09T02:20:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_de59a45c",
+      "range": {
+        "startLine": 315,
+        "startChar": 52,
+        "endLine": 315,
+        "endChar": 73
+      },
+      "revId": "89780cdcb554692008796ebe7695aa4c9d60d05b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_1e54ec1f",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 4
@@ -82,6 +154,30 @@
       "writtenOn": "2015-06-08T10:22:45Z",
       "side": 1,
       "message": "You decided not to do the list thing?",
+      "range": {
+        "startLine": 320,
+        "startChar": 0,
+        "endLine": 325,
+        "endChar": 9
+      },
+      "revId": "89780cdcb554692008796ebe7695aa4c9d60d05b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bce86511",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 325,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-09T02:20:45Z",
+      "side": 1,
+      "message": "Im not sure what you are referring to here. If it is fancy scala stuff, can I take care of it in a different patch? Getting CI to run reliably is killing me.",
+      "parentUuid": "facab960_1e54ec1f",
       "range": {
         "startLine": 320,
         "startChar": 0,
