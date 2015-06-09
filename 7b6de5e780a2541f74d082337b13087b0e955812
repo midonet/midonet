@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_3fb607fb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T08:38:39Z",
+      "side": 1,
+      "message": "Turns out the flatMap thing doesn\u0027t actually work because of some weird typing errors that I don\u0027t know how to fix. I think it will be fine if you use my suggestion of changing this from a map to a list of some case class, though.",
+      "parentUuid": "facab960_5c9e7957",
+      "range": {
+        "startLine": 107,
+        "startChar": 24,
+        "endLine": 107,
+        "endChar": 58
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_bc4a25c3",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 2
