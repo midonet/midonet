@@ -201,6 +201,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_8aa42fa7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:57:56Z",
+      "side": 1,
+      "message": "No, it\u0027s better like this. \n\nMaybe, rewording to \"will not contain any owner(s)\", but it\u0027s a big nit.",
+      "parentUuid": "facab960_b9779739",
+      "range": {
+        "startLine": 151,
+        "startChar": 20,
+        "endLine": 151,
+        "endChar": 72
+      },
+      "revId": "e89a86a95193ffd85e5055c445d63e31694373e9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_1945e6b2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 1
