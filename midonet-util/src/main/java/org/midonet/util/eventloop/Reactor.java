@@ -20,6 +20,8 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import scala.concurrent.ExecutionContext;
+
 import rx.Scheduler;
 
 /**
@@ -79,4 +81,9 @@ public interface Reactor {
      * Returns a rx Scheduler which can be used with Observable#observeOn
      */
     Scheduler rxScheduler();
+
+    /**
+     * Returns the scala execution context for this reactor.
+     */
+    ExecutionContext executor();
 }
