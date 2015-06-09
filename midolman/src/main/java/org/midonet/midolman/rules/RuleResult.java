@@ -58,6 +58,7 @@ public class RuleResult {
     public UUID jumpToChain;
     public UUID redirectPort;
     public boolean redirectIngress;
+    public boolean redirectFailOpen;
 
     public RuleResult(Action action, UUID jumpToChain) {
         this.action = action;
