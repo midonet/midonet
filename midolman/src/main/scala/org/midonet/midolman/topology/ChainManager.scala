@@ -240,15 +240,20 @@ class ChainManager(val id: UUID, val clusterClient: Client)
         log.debug("{} received update: {}", this, ipAddrGroup)
 
         // Update rules that reference this IPAddrGroup.
+        var tracking = false
         for (r <- rules) {
             val cond = r.getCondition
-            if (cond.ipAddrGroupIdDst == ipAddrGroup.id)
+            if (cond.ipAddrGroupIdDst == ipAddrGroup.id) {
+                tracking = true
                 cond.ipAddrGroupDst = ipAddrGroup
-            if (cond.ipAddrGroupIdSrc == ipAddrGroup.id)
+            }
+            if (cond.ipAddrGroupIdSrc == ipAddrGroup.id) {
+                tracking = true
                 cond.ipAddrGroupSrc = ipAddrGroup
+            }
         }
 
-        if (idToIPAddrGroup.put(ipAddrGroup.id, ipAddrGroup).isEmpty)
+        if (tracking && idToIPAddrGroup.put(ipAddrGroup.id, ipAddrGroup).isEmpty)
             waitingForResources -= 1
         publishUpdateIfReady()
     }
