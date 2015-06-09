@@ -222,8 +222,8 @@ public class Midolman {
             .awaitRunning();
 
         ConfigRenderOptions renderOpts = ConfigRenderOptions.defaults().
-                    setComments(true).
-                    setOriginComments(true).
+                    setComments(false).
+                    setOriginComments(false).
                     setFormatted(true);
         Config conf = injector.getInstance(MidolmanConfig.class).conf();
         log.info("Loaded configuration: {}", conf.root().render(renderOpts));
