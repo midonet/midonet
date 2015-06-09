@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_dc4529b4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "Unless I\u0027m missing something, this is never actually used as a map. So why not keep MinionDef but redefine it as (name: String, clazz: Class[_ \u003c: Minion]), and then just make minions a List[MinionDef]?\n\nThis way you can access the fields by name rather than by _1 and _2.",
+      "range": {
+        "startLine": 102,
+        "startChar": 26,
+        "endLine": 102,
+        "endChar": 63
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5c9e7957",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "I don\u0027t think this will ever throw a ClassCastException, because of type erasure. No exception in the interactive shell, anyway:\n\nscala\u003e classOf[Integer].asInstanceOf[Class[_ \u003c: String]]\nres0: Class[_ \u003c: String] \u003d class java.lang.Integer\n\nI would suggest an approach more like this:\n\n    private val minions: Map[String, Class[_ \u003c: Minion]] \u003d annotated.flatMap { m \u003d\u003e\n        val name \u003d m.getAnnotation(classOf[ClusterService]).name()\n        if (classOf[Minion].isAssignableFrom(m)) {\n            log.info(s\"Minion: $name provided by ${m.getName}\")\n            Some(name -\u003e m.asInstanceOf[Class[_ \u003c: Minion]])\n        } else {\n            log.warn(s\"Ignored $name provided by ${m.getName} because it \" +\n                     \"doesn\u0027t extend Minion\")\n            None\n        }\n    }(breakOut)\n\nAlso, since reflections and annotated are only used in this expression, it might be worthwhile to take this whole block and move it out into a separate function, to avoid polluting the class namespace.",
+      "range": {
+        "startLine": 107,
+        "startChar": 24,
+        "endLine": 107,
+        "endChar": 58
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bc4a25c3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "Just Minion, isn\u0027t it?",
+      "range": {
+        "startLine": 112,
+        "startChar": 56,
+        "endLine": 112,
+        "endChar": 69
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bc7865f3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "Unused.",
+      "range": {
+        "startLine": 29,
+        "startChar": 0,
+        "endLine": 29,
+        "endChar": 46
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5c403956",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "See my comment on startMinion below for the context of this comment. If startMinion just returns the future, then we can skip the countdown latch and just do this:\n\nval numFailed \u003d startups.count(Await.ready(_, timeout).value.get.isFailure)\n\nif (numFailed \u003d\u003d specs.size) {\n  // Log error\n} else {\n  if (numFailed \u003e 0) // Log error\n  notifyStarted()\n}\n\nMaybe it would be better to do a filter instead of count, and name the minions that failed, and log the exceptions. Or maybe that\u0027s done elsewhere. But if all you care about is whether zero, some, or all minions failed, then there\u0027s no need to do a partition.",
+      "range": {
+        "startLine": 50,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 27
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7c26ddcf",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "A minion could fail to start for some reason other than not being enabled.",
+      "range": {
+        "startLine": 54,
+        "startChar": 23,
+        "endLine": 54,
+        "endChar": 41
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_dc1c49c4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "We don\u0027t actually say at any point which ones were started and which weren\u0027t, do we?",
+      "range": {
+        "startLine": 59,
+        "startChar": 0,
+        "endLine": 60,
+        "endChar": 42
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_dca60953",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "Incomplete.",
+      "range": {
+        "startLine": 67,
+        "startChar": 0,
+        "endLine": 69,
+        "endChar": 49
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7c27bd12",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "That\u0027s not really true if it\u0027s not enabled, is it? Maybe we should only display this message if it\u0027s enabled, or another if it\u0027s disabled. Is there a risk of not being able to get the instance from the injector?",
+      "range": {
+        "startLine": 73,
+        "startChar": 8,
+        "endLine": 73,
+        "endChar": 56
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3cd375d7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "Is this needed? Can you just move the pendingInit.countDown() to the penultimate line of the async block?\n\nActually, do we need the countdown latch at all? Why not just delete the andThen block, have this method return the Future from async, and then...have doStart map it with Await.ready (see above)",
+      "range": {
+        "startLine": 79,
+        "startChar": 5,
+        "endLine": 81,
+        "endChar": 5
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7cdc1de5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "Isn\u0027t annot.name() the same as spec._1?",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 91,
+        "endChar": 68
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9cd721bf",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T07:11:58Z",
+      "side": 1,
+      "message": "Here you refer to the minion by its class name, but above you refer to it by the minion name.",
+      "range": {
+        "startLine": 95,
+        "startChar": 57,
+        "endLine": 95,
+        "endChar": 75
+      },
+      "revId": "7b6de5e780a2541f74d082337b13087b0e955812",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
