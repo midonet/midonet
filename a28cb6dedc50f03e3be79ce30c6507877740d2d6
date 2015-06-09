@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_5ccf59b0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T02:38:40Z",
+      "side": 1,
+      "message": "No longer need the check for if nPort.getPortSecurityEnabled begin true?",
+      "revId": "a28cb6dedc50f03e3be79ce30c6507877740d2d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9cc0017e",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 343,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T02:38:40Z",
+      "side": 1,
+      "message": "Capitalization.",
+      "range": {
+        "startLine": 343,
+        "startChar": 12,
+        "endLine": 343,
+        "endChar": 19
+      },
+      "revId": "a28cb6dedc50f03e3be79ce30c6507877740d2d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bcbf85fa",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 356,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T02:38:40Z",
+      "side": 1,
+      "message": "Capitalisation. Need more descriptive name.",
+      "range": {
+        "startLine": 356,
+        "startChar": 12,
+        "endLine": 356,
+        "endChar": 18
+      },
+      "revId": "a28cb6dedc50f03e3be79ce30c6507877740d2d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_dcba8909",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 369,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T02:38:40Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 369,
+        "startChar": 12,
+        "endLine": 369,
+        "endChar": 18
+      },
+      "revId": "a28cb6dedc50f03e3be79ce30c6507877740d2d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_fc382da2",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 414,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T02:38:40Z",
+      "side": 1,
+      "message": "The comment seems a bit misleading. Only the first one is for the inbound chain.",
+      "revId": "a28cb6dedc50f03e3be79ce30c6507877740d2d6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
