@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_4a7067a5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_54c013e0",
+      "range": {
+        "startLine": 86,
+        "startChar": 8,
+        "endLine": 92,
+        "endChar": 9
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b9307702",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
         "patchSetId": 12
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-09T00:57:50Z",
       "side": 1,
       "message": "Those method calls no longer serve any purpose, so you can give empty implementations here.",
+      "range": {
+        "startLine": 346,
+        "startChar": 4,
+        "endLine": 349,
+        "endChar": 78
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8a698fc0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPlugin.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 349,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "I\u0027ll keep the ??? so it screams if they are used",
+      "parentUuid": "facab960_b9307702",
       "range": {
         "startLine": 346,
         "startChar": 4,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_0a9d7fbc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POStorageManager.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_fc758d98",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_fc002d03",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPluginTest.scala",
         "patchSetId": 12
@@ -82,6 +154,30 @@
       "writtenOn": "2015-06-09T00:57:50Z",
       "side": 1,
       "message": "Alternatively, we can test:\n\n\nbackend.store.exists(classOf[Topology.Network], n.id)\n                             .await(timeout) shouldBe false",
+      "range": {
+        "startLine": 84,
+        "startChar": 12,
+        "endLine": 87,
+        "endChar": 13
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ea5e9b11",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/neutron_rest_api/NeutronZoomPluginTest.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_fc002d03",
       "range": {
         "startLine": 84,
         "startChar": 12,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_2aa083f3",
+        "filename": "midonet-api/src/main/java/org/midonet/api/rest_api/RestApiModule.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_1c795193",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_3c70d5a4",
         "filename": "midonet-api/src/main/java/org/midonet/api/rest_api/RestApiService.java",
         "patchSetId": 12
@@ -128,6 +248,30 @@
       "writtenOn": "2015-06-09T00:57:50Z",
       "side": 1,
       "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4aa7870c",
+        "filename": "midonet-api/src/main/java/org/midonet/api/rest_api/RestApiService.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_3c70d5a4",
       "range": {
         "startLine": 2,
         "startChar": 13,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_6aaa8bd5",
+        "filename": "midonet-api/src/main/java/org/midonet/cluster/config/ZookeeperConfig.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_dc19a97a",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_5c73d9b0",
         "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.dev",
         "patchSetId": 12
@@ -174,6 +342,30 @@
       "writtenOn": "2015-06-09T00:57:50Z",
       "side": 1,
       "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 14,
+        "endLine": 2,
+        "endChar": 18
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2a87a362",
+        "filename": "midonet-api/src/main/webapp/WEB-INF/web.xml.dev",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_5c73d9b0",
       "range": {
         "startLine": 2,
         "startChar": 14,
@@ -209,6 +401,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_4a7ea76c",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/RouterInterface.java",
+        "patchSetId": 12
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_7c697dbd",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_dc30c9ea",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 12
@@ -220,6 +436,24 @@
       "writtenOn": "2015-06-09T00:57:50Z",
       "side": 1,
       "message": "This makes out-of-order.",
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0aebbf13",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_dc30c9ea",
       "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -243,6 +477,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_ea8cdb81",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_fc4e6d6e",
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_9c3d61be",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 12
@@ -260,6 +512,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_ca91d79a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_9c3d61be",
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_1c523113",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 12
@@ -271,6 +541,24 @@
       "writtenOn": "2015-06-09T00:57:50Z",
       "side": 1,
       "message": "This as well.",
+      "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_aa92d39c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-09T11:09:18Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_1c523113",
       "revId": "4682c15c196a27be33015546b9c8ec0d72402003",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
