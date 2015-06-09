@@ -22,7 +22,8 @@ import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
-import org.midonet.cluster.data.storage.{OwnershipType, Storage, StorageWithOwnership, ZookeeperObjectMapper}
+import org.midonet.cluster.data.storage._
+import org.midonet.cluster.data.storage.WritePolicy._
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.C3POState
@@ -36,6 +37,7 @@ abstract class MidonetBackend extends AbstractService {
     /** Provides access to the Topology storage API */
     def store: Storage
     def ownershipStore: StorageWithOwnership
+    def stateStore: StorageWithState
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
@@ -123,6 +125,10 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[Route], "gateway_dhcp_id", CLEAR,
                              classOf[Dhcp], "gateway_route_ids", CLEAR)
 
+        stateStore.registerKey(classOf[Host], "alive", SingleFirstWriteWins)
+        stateStore.registerKey(classOf[Host], "interfaces", SingleFirstWriteWins)
+        stateStore.registerKey(classOf[Port], "hosts", Multiple)
+
         store.build()
     }
 
@@ -141,6 +147,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     override def store: Storage = zoom
     override def ownershipStore: StorageWithOwnership = zoom
+    override def stateStore: StorageWithState = zoom
     override def isEnabled = cfg.useNewStack
 
     protected override def doStart(): Unit = {
