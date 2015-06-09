@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_bf1e9761",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T07:46:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_7c033d42",
+      "range": {
+        "startLine": 52,
+        "startChar": 3,
+        "endLine": 52,
+        "endChar": 6
+      },
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_7c5fbd41",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-09T07:00:46Z",
       "side": 1,
       "message": "Does this mean there exists at most 1 storage session per owner (ID)?",
+      "range": {
+        "startLine": 73,
+        "startChar": 54,
+        "endLine": 74,
+        "endChar": 37
+      },
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1f2b0383",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T07:46:22Z",
+      "side": 1,
+      "message": "Yes, in the sense that the owner ID should identify the storage client, such that to distinguish between different clients.",
+      "parentUuid": "facab960_7c5fbd41",
       "range": {
         "startLine": 73,
         "startChar": 54,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_7f3b2fd1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T07:46:22Z",
+      "side": 1,
+      "message": "Ah.. yes! :) I did, but I chose in the end to make stand alone. Will update the scaladoc.",
+      "parentUuid": "facab960_5ca4b956",
+      "range": {
+        "startLine": 86,
+        "startChar": 11,
+        "endLine": 86,
+        "endChar": 39
+      },
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_9cac8137",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
         "patchSetId": 4
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_5f73cbb0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T07:46:22Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_9cac8137",
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_5cbbd971",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
         "patchSetId": 4
@@ -99,6 +189,30 @@
       "writtenOn": "2015-06-09T07:00:46Z",
       "side": 1,
       "message": "It seems to emit only the state keys whose values have changed.",
+      "range": {
+        "startLine": 126,
+        "startChar": 13,
+        "endLine": 126,
+        "endChar": 80
+      },
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9f6473e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T07:46:22Z",
+      "side": 1,
+      "message": "The intent is to emit an updates that contains all values for that key. For single-value keys, there will be only one value (i.e. the changing value). However, multi-value keys will include all values, even those that didn\u0027t change.",
+      "parentUuid": "facab960_5cbbd971",
       "range": {
         "startLine": 126,
         "startChar": 13,
