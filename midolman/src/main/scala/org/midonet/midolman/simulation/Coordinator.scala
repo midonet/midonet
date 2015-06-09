@@ -190,7 +190,8 @@ class Coordinator(context: PacketContext)
             case _ => simRes
         }
 
-    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean)
+    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean,
+                                    useAdminState: Boolean = true)
     : SimulationResult =
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
@@ -200,40 +201,57 @@ class Coordinator(context: PacketContext)
             context.addFlowTag(port.deviceTag)
             context.addFlowTag(port.rxTag)
             port match {
-                case p if !p.adminStateUp =>
+                case p if !p.adminStateUp && useAdminState =>
                     processAdminStateDown(p, isIngress = true)
                 case p =>
                     if (getPortGroups && p.isExterior) {
                         context.portGroups = p.portGroups
                     }
                     context.inPortId = portID
-                    applyPortFilter(p, p.inboundFilter, packetIngressesDevice)
+                    applyPortChains(p, p.inboundFilter :: p.inboundChains,
+                                    packetIngressesDevice)
             }
         }
 
-    private def applyPortFilter(port: Port, filterID: UUID,
+    private def applyPortChains(port: Port, chains: List[UUID],
                                 thunk: (Port) => SimulationResult)
     : SimulationResult = {
-        if (filterID == null)
+        if (chains.isEmpty)
             return thunk(port)
 
-        val chain = tryAsk[Chain](filterID)
-        val result = Chain.apply(chain, context, port.id, true)
-        result.action match {
-            case RuleResult.Action.ACCEPT =>
-                thunk(port)
-            case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
-                Drop
-            case RuleResult.Action.REDIRECT =>
-                if(result.redirectIngress)
-                    packetIngressesPort(result.redirectPort, false)
-                else
-                    packetEgressesPortNoFilters(result.redirectPort)
-            case other =>
-                log.error("Port filter {} returned {} which was " +
-                        "not ACCEPT, DROP or REJECT.", filterID, other)
-                TemporaryDrop
+        for (chainId <- chains) {
+            val chain = tryAsk[Chain](chainId)
+            val result = Chain.apply(chain, context, port.id, true)
+            result.action match {
+                case RuleResult.Action.ACCEPT => // Do nothing
+                case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                    return Drop
+                case RuleResult.Action.REDIRECT =>
+                    if(result.redirectIngress)
+                        return packetIngressesPort(result.redirectPort, false)
+                    else if (result.redirectFailOpen) {
+                        // Implement FAIL_OPEN
+                        // Specifically, if ingress=false, fail_open=true, and targetPort is:
+                        // 1) reachable: Redirect OUT-of the targetPort
+                        // 2) unreachable: Redirect IN-to the targetPort
+                        // #2 implements FAIL_OPEN behavior for a Service Function with a single
+                        // data-plane interface. FAIL_OPEN should not be used otherwise.
+                        // #2 emulates what the service VM would do if it were
+                        // reachable and it allowed the packet.
+                        val targetPort = tryAsk[Port](result.redirectPort)
+                        if (targetPort.isExterior &&
+                            (!targetPort.adminStateUp || !targetPort.isActive))
+                            return packetIngressesPort(result.redirectPort, false, useAdminState = false)
+                    }
+                    return packetEgressesPortNoFilters(result.redirectPort)
+
+                case other =>
+                    log.error("Port chain {} returned {} which was " +
+                              "not ACCEPT, DROP, REJECT or REDIRECT.", chainId, other)
+                    return TemporaryDrop
+            }
         }
+        return thunk(port)
     }
 
     /**
@@ -250,7 +268,7 @@ class Coordinator(context: PacketContext)
                 processAdminStateDown(p, isIngress = false)
             case p =>
                 context.outPortId = p.id
-                applyPortFilter(p, p.outboundFilter, {
+                applyPortChains(p, p.outboundChains ::: List(p.outboundFilter), {
                     case p: Port if p.isExterior =>
                         emitFromPort(p)
                     case p: Port if p.isInterior =>

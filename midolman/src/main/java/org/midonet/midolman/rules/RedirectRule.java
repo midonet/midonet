@@ -38,7 +38,7 @@ public class RedirectRule extends Rule {
     @ZoomField(name = "ingress")
     public boolean ingress;
     @ZoomField(name = "fail_open")
-    public boolean fail_open;
+    public boolean failOpen;
 
     // Default constructor for the Jackson deserialization.
     // This constructor is also needed by ZoomConvert.
@@ -51,14 +51,9 @@ public class RedirectRule extends Rule {
         res.action = Action.REDIRECT;
         res.redirectPort = targetPort;
         res.redirectIngress = ingress;
+        res.redirectFailOpen = failOpen;
         log.debug("Redirecting flow {} port with ID {}.",
                   (ingress ? "IN" : "OUT"), targetPort);
-        // TODO: Implement FAIL_OPEN
-        // Specifically, if ingress=false, fail_open=true, and targetPort is:
-        // 1) reachable: Redirect OUT-of the targetPort
-        // 2) unreachable: Redirect IN-to the targetPort
-        // #2 implements FAIL_OPEN behavior for a Service Function with a single
-        // data-plane interface. FAIL_OPEN should not be used otherwise.
     }
 
     @Override
@@ -85,7 +80,7 @@ public class RedirectRule extends Rule {
         sb.append(super.toString());
         sb.append(", targetPort=").append(targetPort);
         sb.append(", ingressing=").append(ingress);
-        sb.append(", fail_open=").append(fail_open);
+        sb.append(", failOpen=").append(failOpen);
         sb.append("]");
         return sb.toString();
     }
