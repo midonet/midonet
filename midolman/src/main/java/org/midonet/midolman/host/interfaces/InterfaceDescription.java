@@ -33,7 +33,7 @@ import org.midonet.cluster.util.MACUtil;
 import org.midonet.odp.DpPort;
 import org.midonet.packets.MAC;
 
-import static org.midonet.cluster.models.Topology.Host.Interface;
+import static org.midonet.cluster.models.State.HostState.Interface;
 
 /**
  * Represents a host network interface.

@@ -23,8 +23,8 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FlatSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology.Host.Interface
-import org.midonet.cluster.models.Topology.Host.Interface.{Type => ProtoType, Endpoint => ProtoEndpoint, DpPortType => ProtoPortType}
+import org.midonet.cluster.models.State.HostState.Interface
+import org.midonet.cluster.models.State.HostState.Interface.{Type => ProtoType, Endpoint => ProtoEndpoint, DpPortType => ProtoPortType}
 import org.midonet.packets.MAC
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription.{Type => PojoType, Endpoint => PojoEndpoint}

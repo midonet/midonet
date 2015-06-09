@@ -166,6 +166,9 @@ trait StateStorage {
     def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey]
 
+    /** Returns a number uniquely identifying the current session. */
+    def sessionId: Long
+
     /** Gets the key type for the given class and key. */
     @throws[IllegalArgumentException]
     protected[this] def getKeyType(clazz: Class[_], key: String): KeyType = {
