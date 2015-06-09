@@ -22,6 +22,30 @@
       "revId": "b5555a21e17c15de3f134b804aca9f4cbb2d0784",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3fa7e70d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/C3POMinion.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T07:48:03Z",
+      "side": 1,
+      "message": "As discussed off-line, it follows this Scala naming conventions for a constant.",
+      "parentUuid": "facab960_c36d4b34",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 186,
+        "endChar": 58
+      },
+      "revId": "b5555a21e17c15de3f134b804aca9f4cbb2d0784",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
