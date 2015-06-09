@@ -35,7 +35,7 @@ object MidonetBackend {
 
     final val AliveKey = "alive"
     final val HostsKey = "hosts"
-    final val InterfacesKey = "interfaces"
+    final val HostKey = "host"
 
 }
 
@@ -136,7 +136,7 @@ abstract class MidonetBackend extends AbstractService {
                              classOf[Dhcp], "gateway_route_ids", CLEAR)
 
         stateStore.registerKey(classOf[Host], AliveKey, SingleFirstWriteWins)
-        stateStore.registerKey(classOf[Host], InterfacesKey, SingleFirstWriteWins)
+        stateStore.registerKey(classOf[Host], HostKey, SingleFirstWriteWins)
         stateStore.registerKey(classOf[Port], HostsKey, Multiple)
 
         store.build()
