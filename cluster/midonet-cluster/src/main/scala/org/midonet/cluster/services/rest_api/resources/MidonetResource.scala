@@ -44,6 +44,7 @@ import org.midonet.cluster.rest_api.models.UriResource
 import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
+import org.midonet.util.reactivex._
 
 object MidonetResource {
 
@@ -226,10 +227,11 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
     }
 
-    protected def getResourceOwners[U >: Null <: UriResource](clazz: Class[U],
-                                                              id: Any)
-    : Future[Set[String]] = {
-        backend.ownershipStore.getOwners(UriResource.getZoomClass(clazz), id)
+    protected def getResourceState[U >: Null <: UriResource](clazz: Class[U],
+                                                             id: Any, key: String)
+    : Future[StateKey] = {
+        backend.stateStore.getKey(UriResource.getZoomClass(clazz), id, key)
+            .asFuture
     }
 
     protected def createResource[U >: Null <: UriResource](resource: U)
