@@ -166,6 +166,9 @@ trait StateStorage {
     def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey]
 
+    /** Returns a number uniquely identifying the current session. */
+    def sessionId: Long
+
     /** Gets the write policy for the given class and key. */
     @throws[IllegalArgumentException]
     protected[this] def getWritePolicy(clazz: Class[_], key: String)
