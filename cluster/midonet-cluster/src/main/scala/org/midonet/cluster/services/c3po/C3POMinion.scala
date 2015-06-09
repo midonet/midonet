@@ -22,7 +22,6 @@ import javax.sql.DataSource
 
 import scala.util.control.NonFatal
 
-import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.google.protobuf.Message
 import org.apache.curator.framework.CuratorFramework
@@ -143,7 +142,40 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
 
 }
 
-object C3POMinion {
+protected[cluster] object C3POMinion {
+    import ScheduledClusterMinion.checkConfigParamDefined
+
+    val CnxnStrCfgKey = "cluster.neutron_importer.connection_string"
+    val JdbcDriverCfgKey = "cluster.neutron_importer.jdbc_driver_class"
+
+    val JdbcDriverClassNotFoundErrMsg = "Could not load JDBC driver class: %s."
+    val NotDriverSubclassErrMsg =
+        s"The class specified by $JdbcDriverCfgKey, %s, is not a subclass of " +
+        "java.sql.Driver."
+    val InvalidCnxnStrErrMsg =
+        s"The connection string specified in $CnxnStrCfgKey is not a valid " +
+        "connection string for the specified JDBC driver."
+
+    def validateConfig(cfg: C3POConfig): Unit = {
+        val driverClassStr = cfg.jdbcDriver.trim
+        val cnxnStr = cfg.connectionString.trim
+        checkConfigParamDefined(driverClassStr, JdbcDriverCfgKey)
+        checkConfigParamDefined(cnxnStr, CnxnStrCfgKey)
+
+        val driverClass = try Class.forName(driverClassStr) catch {
+            case NonFatal(t) => throw new ClassNotFoundException(
+                JdbcDriverClassNotFoundErrMsg.format(driverClassStr), t)
+        }
+
+        if (!classOf[Driver].isAssignableFrom(driverClass))
+            throw new IllegalArgumentException(
+                NotDriverSubclassErrMsg.format(driverClass.getName))
+
+        val driver = driverClass.newInstance().asInstanceOf[Driver]
+        if (!driver.acceptsURL(cnxnStr))
+            throw new IllegalArgumentException(
+                InvalidCnxnStrErrMsg.format(cnxnStr))
+    }
 
     def initDataManager(storage: Storage, backendCfg: MidonetBackendConfig)
     : C3POStorageManager = {
@@ -175,44 +207,5 @@ object C3POMinion {
         dataMgr.init()
         dataMgr
     }
-}
-
-@VisibleForTesting
-protected[c3po] object C3POMinion {
-    import ScheduledClusterMinion.checkConfigParamDefined
-
-    val CnxnStrCfgKey = "cluster.neutron_importer.connection_string"
-    val JdbcDriverCfgKey = "cluster.neutron_importer.jdbc_driver_class"
-
-    val JdbcDriverClassNotFoundErrMsg = "Could not load JDBC driver class: %s."
-    val NotDriverSubclassErrMsg =
-        s"The class specified by $JdbcDriverCfgKey, %s, is not a subclass of " +
-        "java.sql.Driver."
-    val InvalidCnxnStrErrMsg =
-        s"The connection string specified in $CnxnStrCfgKey is not a valid " +
-        "connection string for the specified JDBC driver."
-
-
-    def validateConfig(cfg: C3POConfig): Unit = {
-        val driverClassStr = cfg.jdbcDriver.trim
-        val cnxnStr = cfg.connectionString.trim
-        checkConfigParamDefined(driverClassStr, JdbcDriverCfgKey)
-        checkConfigParamDefined(cnxnStr, CnxnStrCfgKey)
-
-        val driverClass = try Class.forName(driverClassStr) catch {
-            case NonFatal(t) => throw new ClassNotFoundException(
-                JdbcDriverClassNotFoundErrMsg.format(driverClassStr), t)
-        }
-
-        if (!classOf[Driver].isAssignableFrom(driverClass))
-            throw new IllegalArgumentException(
-                NotDriverSubclassErrMsg.format(driverClass.getName))
-
-        val driver = driverClass.newInstance().asInstanceOf[Driver]
-        if (!driver.acceptsURL(cnxnStr))
-            throw new IllegalArgumentException(
-                InvalidCnxnStrErrMsg.format(cnxnStr))
-    }
-
 }
 
