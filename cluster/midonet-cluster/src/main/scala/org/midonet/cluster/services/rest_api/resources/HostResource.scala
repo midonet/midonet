@@ -85,7 +85,8 @@ class HostResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     protected override def listFilter = (host: Host) => { setAlive(host); true }
 
     private def isAlive(id: String): Boolean = {
-        getResourceOwners(classOf[Host], id).getOrThrow.nonEmpty
+        getResourceState(classOf[Host], id, MidonetBackend.AliveKey)
+            .getOrThrow.nonEmpty
     }
 
     private def setAlive(host: Host): Host = {
