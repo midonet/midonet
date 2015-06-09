@@ -17,16 +17,27 @@ package org.midonet.cluster.services
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
+
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.slf4j.LoggerFactory.getLogger
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
-import org.midonet.cluster.data.storage.{OwnershipType, Storage, StorageWithOwnership, ZookeeperObjectMapper}
+import org.midonet.cluster.data.storage.KeyType._
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
+
+object MidonetBackend {
+
+    final val AliveKey = "alive"
+    final val HostsKey = "hosts"
+    final val InterfacesKey = "interfaces"
+
+}
 
 /** The trait that models the new Midonet Backend, managing all relevant
   * connections and APIs to interact with backend storages. */
@@ -36,6 +47,7 @@ abstract class MidonetBackend extends AbstractService {
     /** Provides access to the Topology storage API */
     def store: Storage
     def ownershipStore: StorageWithOwnership
+    def stateStore: StateStorage
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
@@ -123,6 +135,10 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[Route], "gateway_dhcp_id", CLEAR,
                              classOf[Dhcp], "gateway_route_ids", CLEAR)
 
+        stateStore.registerKey(classOf[Host], AliveKey, SingleFirstWriteWins)
+        stateStore.registerKey(classOf[Host], InterfacesKey, SingleFirstWriteWins)
+        stateStore.registerKey(classOf[Port], HostsKey, Multiple)
+
         store.build()
     }
 
@@ -141,6 +157,7 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
 
     override def store: Storage = zoom
     override def ownershipStore: StorageWithOwnership = zoom
+    override def stateStore: StateStorage = zoom
     override def isEnabled = cfg.useNewStack
 
     protected override def doStart(): Unit = {
