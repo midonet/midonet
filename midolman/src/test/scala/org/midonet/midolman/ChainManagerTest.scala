@@ -230,6 +230,39 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                                  ipAddrGroup.getId, Set(addr), null, null)
         }
 
+        scenario("Only track IPAddrGroups used in rules") {
+            Given("a chain with a rule with one IPAddrGroup")
+            val ipAddrGroup = createIpAddrGroup()
+            val addr = "10.0.1.1"
+            addAddrToIpAddrGroup(ipAddrGroup.getId, addr)
+
+            val chain = createChain("chain1")
+            val rule = newIpAddrGroupRuleOnChain(
+                chain, 1, Action.DROP, Some(ipAddrGroup.getId), None)
+
+            When("the VTA receives a request for it")
+            vta.self ! ChainRequest(chain.getId, update = true)
+
+            Then("It returns the chain with the IPAddrGroup")
+            var c = expectMsgType[Chain]
+            c.getRules.size shouldBe 1
+            checkIpAddrGroupRule(c.getRules.get(0), Action.DROP,
+                                 ipAddrGroup.getId, Set(addr), null, null)
+
+            When("The rule is removed and the IP group is modified")
+            deleteRule(rule.getId)
+            removeIpAddrFromIpAddrGroup(ipAddrGroup.getId, addr)
+            c = expectMsgType[Chain]
+            c.getRules.size() should be (0)
+            c = expectMsgType[Chain]
+            c.getRules.size() should be (0)
+
+            Then("We still get chain updates")
+            newTcpDstRuleOnChain(chain, 1, 80, Action.DROP)
+            c = expectMsgType[Chain]
+            c.getRules.size() should be (1)
+        }
+
         scenario("Add an address to an IPAddrGroup") {
             Given("A chain with a rule with one IPAddrGroup")
             val ipAddrGroup = createIpAddrGroup()

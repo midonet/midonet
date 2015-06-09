@@ -155,7 +155,7 @@ trait VirtualConfigurationBuilders {
 
     def newIpAddrGroupRuleOnChain(chain: Chain, pos: Int, action: Action,
                                   ipAddrGroupIdDst: Option[UUID],
-                                  ipAddrGroupIdSrc: Option[UUID]) {
+                                  ipAddrGroupIdSrc: Option[UUID]) = {
         val condition = newCondition(ipAddrGroupIdDst = ipAddrGroupIdDst,
                                      ipAddrGroupIdSrc = ipAddrGroupIdSrc)
         newLiteralRuleOnChain(chain, pos, condition, action)
