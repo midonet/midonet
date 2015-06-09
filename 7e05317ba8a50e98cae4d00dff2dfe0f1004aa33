@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_7c033d42",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T07:00:46Z",
+      "side": 1,
+      "message": "Duplicate.",
+      "range": {
+        "startLine": 52,
+        "startChar": 3,
+        "endLine": 52,
+        "endChar": 6
+      },
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7c5fbd41",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T07:00:46Z",
+      "side": 1,
+      "message": "Does this mean there exists at most 1 storage session per owner (ID)?",
+      "range": {
+        "startLine": 73,
+        "startChar": 54,
+        "endLine": 74,
+        "endChar": 37
+      },
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5ca4b956",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T07:00:46Z",
+      "side": 1,
+      "message": "Technically this doesn\u0027t extend Storage ;)",
+      "range": {
+        "startLine": 86,
+        "startChar": 11,
+        "endLine": 86,
+        "endChar": 39
+      },
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9cac8137",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T07:00:46Z",
+      "side": 1,
+      "message": "In general, I think more descriptions on what contract this trait should adhere to are desired.",
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5cbbd971",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T07:00:46Z",
+      "side": 1,
+      "message": "It seems to emit only the state keys whose values have changed.",
+      "range": {
+        "startLine": 126,
+        "startChar": 13,
+        "endLine": 126,
+        "endChar": 80
+      },
+      "revId": "7e05317ba8a50e98cae4d00dff2dfe0f1004aa33",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
