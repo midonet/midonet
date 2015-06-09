@@ -19,6 +19,9 @@ import java.util.UUID
 
 import javax.annotation.Nonnull
 
+import scala.util.{Failure, Success}
+import scala.util.control.NonFatal
+
 import com.google.inject.Inject
 import com.google.inject.name.Named
 
@@ -27,9 +30,10 @@ import org.apache.zookeeper.CreateMode.EPHEMERAL
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.{NotFoundException, OwnershipConflictException}
+import org.midonet.cluster.data.storage.StateResult
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterRouterManager, DataClient}
 import org.midonet.midolman.layer3.Route
@@ -37,15 +41,16 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.{SerializationException, Serializer}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
-import org.midonet.midolman.state.{PortConfig, PortDirectory, StateAccessException, _}
+import org.midonet.midolman.state._
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors._
+import org.midonet.util.reactivex._
 
 /**
  * An implementation of the [[StateStorage]] trait using the legacy ZooKeeper
  * managers as backend.
  */
-class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
+class ZookeeperStateStorage @Inject() (config: MidonetBackendConfig,
                                        backend: MidonetBackend,
                                        dataClient: DataClient,
                                        @Named("directoryReactor") reactor: Reactor,
@@ -130,56 +135,53 @@ class ZookeeperStateStorage @Inject() (backendCfg: MidonetBackendConfig,
 
     override def setPortLocalAndActive(portId: UUID, hostId: UUID,
                                        active: Boolean): Unit = runOnReactor {
-        // Activate the port for legacy ZK storage.
-        if (!backendCfg.useNewStack) {
+        if (!config.useNewStack) {
+            // Activate the port for legacy ZK storage.
             portZkManager.setActivePort(portId, hostId, active)
                 .observeOn(reactor.rxScheduler)
-                .flatMap(makeFunc1[Void,Observable[PortConfig]](
-                             (x: Void) => { portZkManager.getWithObservable(portId) }))
-                .doOnNext(makeAction1[PortConfig](portConfig => {
-                             if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
-                                 val deviceId: UUID = portConfig.device_id
-                                 routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                                     deviceId, portId, active)
-                             }
-                         }))
-                .subscribe(makeAction1[PortConfig](
-                               (p) => { subjectLocalPortActive.onNext(
-                                           LocalPortActive(portId, active)) }),
-                           makeAction1[Throwable](
-                               (t: Throwable) => {
-                                   t match {
-                                       case e: StateAccessException =>
-                                           log.error("Error retrieving the configuration for port {}",
-                                                     portId, e)
-                                       case e: SerializationException =>
-                                           log.error("Error serializing the configuration for port {}",
-                                                     portId, e)
-                                       case e: Exception =>
-                                           log.error("Unexpected exception caught", e)
-                                   }
-                               }))
-        }
-
-        // Activate the port for cluster storage.
-        if (backend.isEnabled) {
-            try {
-                val storage = backend.ownershipStore
-                if (active) {
-                    storage.updateOwner(classOf[Port], portId, hostId,
-                                        throwIfExists = true)
-                } else {
-                    storage.deleteOwner(classOf[Port], portId, hostId)
+                .flatMap(makeFunc1(_ => portZkManager.getWithObservable(portId)))
+                .doOnNext(makeAction1(portConfig => {
+                        if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
+                            routerManager.updateRoutesBecauseLocalPortChangedStatus(
+                                portConfig.device_id, portId, active)
+                        }
+                    }))
+                .subscribe(
+                    makeAction1(_ => {
+                        subjectLocalPortActive.onNext(LocalPortActive(portId, active))
+                    }),
+                    makeAction1 {
+                        case e: StateAccessException =>
+                            log.error("Error retrieving the configuration " +
+                                      "for port {}", portId, e)
+                        case e: SerializationException =>
+                            log.error("Error serializing the configuration " +
+                                      "for port {}", portId, e)
+                        case NonFatal(e) =>
+                            log.error("Unexpected exception caught", e)
+                    })
+        } else {
+            // Activate the port for cluster storage.
+            if (active) {
+                backend.stateStore.addValue(classOf[Port], portId, HostsKey,
+                                            hostId.toString) andThen {
+                    case Success(StateResult(ownerId)) =>
+                        log.debug("Port {} active (owner {})", portId,
+                                  Long.box(ownerId))
+                    case Failure(e) =>
+                        log.error("Failed to set port {} active", portId, e)
                 }
-            } catch {
-                case e: NotFoundException =>
-                    log.error("Port {} does not exist", portId)
-                case e: OwnershipConflictException =>
-                    log.error("Host {} does not have permission to activate " +
-                              "or deactivate port {}", hostId, portId)
+            } else {
+                backend.stateStore.removeValue(classOf[Port], portId, HostsKey,
+                                               hostId.toString) andThen {
+                    case Success(StateResult(ownerId)) =>
+                        log.debug("Port {} inactive (owner {})", portId,
+                                  Long.box(ownerId))
+                    case Failure(e) =>
+                        log.error("Failed to set port {} inactive", portId, e)
+                }
             }
-            subjectLocalPortActive.onNext(
-                                LocalPortActive(portId, active))
+            subjectLocalPortActive.onNext(LocalPortActive(portId, active))
         }
     }
 
