@@ -25,11 +25,15 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import scala.concurrent.ExecutionContext;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
+
+import org.midonet.util.concurrent.CallingThreadExecutionContext;
 
 public class MockReactor implements Reactor {
 
@@ -40,7 +44,7 @@ public class MockReactor implements Reactor {
     /* DelayedCall is parametrized to Any since the reactor can accept any
      * typed Callable */
     public PriorityQueue<DelayedCall<?>> calls =
-        new PriorityQueue<DelayedCall<?>>();
+        new PriorityQueue<>();
     long currentTimeMillis;
 
     public class DelayedCall<V> implements ScheduledFuture<V> {
@@ -186,5 +190,9 @@ public class MockReactor implements Reactor {
     @Override
     public Scheduler rxScheduler() {
         return Schedulers.trampoline();
+    }
+
+    public ExecutionContext executor() {
+        return CallingThreadExecutionContext.prepare();
     }
 }
