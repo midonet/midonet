@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_ca771739",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T12:02:39Z",
+      "side": 1,
+      "message": "I think :+ returns a copy of the `minions` list with this element appended, but it doesn\u0027t modify minions. Use +\u003d instead.",
+      "range": {
+        "startLine": 112,
+        "startChar": 20,
+        "endLine": 112,
+        "endChar": 22
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4a9b0767",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T12:02:39Z",
+      "side": 1,
+      "message": "Is it necessary to increase this timeout for minions that may access the storage during start?",
+      "range": {
+        "startLine": 51,
+        "startChar": 54,
+        "endLine": 51,
+        "endChar": 62
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6ab52bcc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-09T12:02:39Z",
+      "side": 1,
+      "message": "Do we start the cluster if all minions are disabled?",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 43
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
