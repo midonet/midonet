@@ -1,0 +1,228 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_6a9e0b58",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 7
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "completing?",
+      "range": {
+        "startLine": 16,
+        "startChar": 5,
+        "endLine": 16,
+        "endChar": 13
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_eaa93b7c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "extra line",
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8acb4f52",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 54,
+        "startChar": 7,
+        "endLine": 56,
+        "endChar": 6
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2ae243d5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "\u0027nullOnDelete\u0027 is set to \u0027true\u0027",
+      "range": {
+        "startLine": 57,
+        "startChar": 12,
+        "endLine": 57,
+        "endChar": 25
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6aed2b8b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "In this case the observable emits a null element and installs an exists watcher. The behaviour you describe here occurs when nullOnDelete is set to false.",
+      "range": {
+        "startLine": 57,
+        "startChar": 31,
+        "endLine": 57,
+        "endChar": 51
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ea45bbb3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "waiting?",
+      "range": {
+        "startLine": 179,
+        "startChar": 44,
+        "endLine": 179,
+        "endChar": 48
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8a550f52",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "used anymore",
+      "range": {
+        "startLine": 280,
+        "startChar": 53,
+        "endLine": 280,
+        "endChar": 59
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_aad733be",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "You use Zookeeper in plain above, why not here?",
+      "range": {
+        "startLine": 307,
+        "startChar": 4,
+        "endLine": 307,
+        "endChar": 6
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_cae637b4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "Same comment.",
+      "range": {
+        "startLine": 311,
+        "startChar": 4,
+        "endLine": 311,
+        "endChar": 6
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8a034f41",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/NodeObservableTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-09T12:45:21Z",
+      "side": 1,
+      "message": "Use timeout instead of literal (same comment for the awaitOnNext below)?",
+      "range": {
+        "startLine": 44,
+        "startChar": 28,
+        "endLine": 44,
+        "endChar": 36
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
