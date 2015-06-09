@@ -29,6 +29,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import scala.concurrent.ExecutionContext;
+import scala.concurrent.ExecutionContext$;
+
 import rx.Scheduler;
 import rx.schedulers.Schedulers;
 
@@ -206,5 +209,10 @@ public class TryCatchReactor implements Reactor {
     @Override
     public Scheduler rxScheduler() {
         return Schedulers.from(executor);
+    }
+
+    @Override
+    public ExecutionContext executor() {
+        return ExecutionContext$.MODULE$.fromExecutorService(executor);
     }
 }
