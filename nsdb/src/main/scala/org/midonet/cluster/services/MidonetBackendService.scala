@@ -53,27 +53,27 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Network],
              classOf[NeutronConfig],
              classOf[NeutronHealthMonitor],
-             classOf[NeutronLoadBalancerPoolMember],
              classOf[NeutronLoadBalancerPool],
+             classOf[NeutronLoadBalancerPoolMember],
              classOf[NeutronNetwork],
              classOf[NeutronPort],
-             classOf[NeutronRouterInterface],
              classOf[NeutronRouter],
+             classOf[NeutronRouterInterface],
              classOf[NeutronSubnet],
              classOf[NeutronVIP],
-             classOf[PoolMember],
              classOf[Pool],
+             classOf[PoolMember],
+             classOf[Port],
              classOf[PortBinding],
              classOf[PortGroup],
-             classOf[Port],
              classOf[Route],
              classOf[Router],
              classOf[Rule],
              classOf[SecurityGroup],
              classOf[TunnelZone],
              classOf[Vip],
-             classOf[VtepBinding],
-             classOf[Vtep]
+             classOf[Vtep],
+             classOf[VtepBinding]
         ).foreach(store.registerClass)
 
         ownershipStore.registerClass(classOf[Host], OwnershipType.Exclusive)

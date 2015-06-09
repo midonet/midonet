@@ -32,10 +32,10 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.ZoomConvert.{fromProto, toProto}
 import org.midonet.cluster.data.neutron._
 import org.midonet.cluster.data.neutron.loadbalancer._
-import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, PersistenceOp}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.data.{ZoomClass, ZoomObject}
 import org.midonet.cluster.models.Commons
-import org.midonet.cluster.rest_api.{ConflictHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.{C3POMinion, neutron}
 import org.midonet.cluster.storage.MidonetBackendConfig
@@ -89,6 +89,12 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         } catch {
             case e: ObjectExistsException =>
                 throw new ConflictHttpException(e.getMessage)
+            case e: NotFoundException =>
+                throw new NotFoundException(e.clazz, e.id)
+            case e: ObjectReferencedException =>
+                throw new InternalServerErrorHttpException(e.getMessage)
+            case e: ReferenceConflictException =>
+                throw new InternalServerErrorHttpException(e.getMessage)
         }
     }
 
