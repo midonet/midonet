@@ -30,6 +30,7 @@ import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models._
+import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{ResourceContext, Update}
 
@@ -42,7 +43,7 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
     protected override def listFilter = (port: P) => { setActive(port); true }
 
     private def isActive(id: String): Boolean = {
-        getResourceOwners(classOf[Port], id).getOrThrow.nonEmpty
+        getResourceState(classOf[Port], id, HostsKey).getOrThrow.nonEmpty
     }
 
     private def setActive(port: P): P = {
