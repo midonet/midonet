@@ -285,6 +285,9 @@ message Port {
     // VXLAN port specific
     optional UUID vtep_id = 20;
 
+    repeated UUID inbound_chain = 21;
+    repeated UUID outbound_chain = 22;
+
     // Backreferences
     repeated UUID rule_ids = 101;
 }
