@@ -307,7 +307,7 @@ if [[ "$ENABLE_API" = "True" ]]; then
 
     cp $TOP_DIR/midonet-api/conf/logback.xml.dev $TOP_DIR/midonet-api/build/classes/main/logback.xml
 
-    run_process midonet-api "./gradlew :midonet-api:jettyRun -Pport=$API_PORT"
+    run_process midonet-api "./gradlew :midonet-api:jettyRun -Pport=$API_PORT -PwebXml=$API_CFG"
 
     if ! timeout $API_TIMEOUT sh -c "while ! wget -q -O- $API_URI; do sleep 1; done"; then
         die $LINENO "API server didn't start in $API_TIMEOUT seconds"
