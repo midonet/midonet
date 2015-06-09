@@ -1,27 +1,36 @@
 package org.midonet.midolman.host.services;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import scala.collection.JavaConverters;
-import scala.collection.Set;
 import scala.concurrent.Await;
 import scala.concurrent.Future;
 import scala.concurrent.duration.Duration;
 
+import com.google.protobuf.TextFormat;
+
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
+import org.apache.zookeeper.CreateMode;
 import org.junit.Test;
 
-import org.midonet.cluster.data.storage.CreateWithOwnerOp;
-import org.midonet.cluster.data.storage.DeleteWithOwnerOp;
-import org.midonet.cluster.data.storage.PersistenceOp;
+import rx.Observable;
+
+import org.midonet.cluster.data.storage.SingleValueKey;
+import org.midonet.cluster.data.storage.StateKey;
+import org.midonet.cluster.models.State;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
 import org.midonet.midolman.util.mock.MockInterfaceScanner;
+import org.midonet.util.reactivex.RichObservable;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class BackendHostServiceTest extends HostServiceTest {
@@ -29,7 +38,7 @@ public class BackendHostServiceTest extends HostServiceTest {
     static byte MAX_ATTEMPTS = 100;
     static int WAIT_MILLIS = 500;
 
-    public BackendHostServiceTest() {
+    public BackendHostServiceTest() throws Exception {
         super(true);
     }
 
@@ -50,7 +59,6 @@ public class BackendHostServiceTest extends HostServiceTest {
         stopService(hostService);
         assertEquals(hostService.shutdownCalls, 0);
     }
-
 
     @Test
     public void hostServiceDoesNotOverwriteExistingHost() throws Throwable {
@@ -75,7 +83,8 @@ public class BackendHostServiceTest extends HostServiceTest {
         TestableHostService hostService = startAndStopService();
 
         assertEquals(exists(hostId), true);
-        assertEquals(getOwners(hostId).isEmpty(), true);
+        assertFalse(isAlive(hostId));
+        assertNull(getHostState(hostId));
         assertEquals(hostService.shutdownCalls, 0);
     }
 
@@ -93,16 +102,18 @@ public class BackendHostServiceTest extends HostServiceTest {
     @Test
     public void hostServiceReacquiresOwnershipWhenHostDeleted() throws Throwable {
         TestableHostService hostService = startService();
-        store.delete(Topology.Host.class, hostId, hostId);
+        store.delete(Topology.Host.class, hostId);
         eventuallyAssertHostState();
+        stopService(hostService);
         assertEquals(hostService.shutdownCalls, 0);
     }
 
     @Test
-    public void hostServiceReacquiresOwnershipWhenOwnerDeleted() throws Throwable {
+    public void hostServiceReacquiresOwnershipWhenAliveDeleted() throws Throwable {
         TestableHostService hostService = startService();
-        store.deleteOwner(Topology.Host.class, hostId, hostId);
+        getCurator().delete().forPath(getAlivePath(hostId));
         eventuallyAssertHostState();
+        stopService(hostService);
         assertEquals(hostService.shutdownCalls, 0);
     }
 
@@ -110,30 +121,55 @@ public class BackendHostServiceTest extends HostServiceTest {
     public void hostServiceShutsdownAgentIfDifferentHost() throws Throwable {
         TestableHostService hostService = startService();
 
-        Topology.Host host = get(hostId).toBuilder().setName("other").build();
-        List<PersistenceOp> ops = new ArrayList<>();
-        ops.add(new DeleteWithOwnerOp(Topology.Host.class, hostId,
-                                      hostId.toString()));
-        ops.add(new CreateWithOwnerOp(host, hostId.toString()));
-        store.multi(JavaConverters.asScalaBufferConverter(ops).asScala());
+        CuratorFramework curator =  CuratorFrameworkFactory
+            .newClient(server.getConnectString(), sessionTimeoutMs,
+                       cnxnTimeoutMs, retryPolicy);
+        curator.start();
+        if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
+            throw new Exception("Curator did not connect to the test ZK "
+                                + "server");
+        }
+
+        CuratorTransactionFinal txn =
+            (CuratorTransactionFinal) curator.inTransaction();
+        txn = txn.delete().forPath(getAlivePath(hostId)).and();
+        txn = txn.create().withMode(CreateMode.EPHEMERAL)
+                          .forPath(getAlivePath(hostId)).and();
+        txn.commit();
 
         eventuallyAssertShutdown(hostService);
+
+        curator.close();
     }
 
     @Test
     public void hostServiceUpdatesHostInterfaces() throws Throwable {
         TestableHostService hostService = startService();
+        State.HostState hostState;
 
-        assertTrue(get(hostId).getInterfacesList().isEmpty());
+        hostState = getHostState(hostId);
+        assertNotNull(hostState);
+        assertTrue(hostState.hasHostId());
+        assertEquals(UUIDUtil.fromProto(hostState.getHostId()), hostId);
+        assertEquals(hostState.getInterfacesCount(), 0);
 
         MockInterfaceScanner scanner = getInterfaceScanner();
         scanner.addInterface(new InterfaceDescription("eth0"));
 
-        assertEquals(get(hostId).getInterfacesList().size(), 1);
+        hostState = getHostState(hostId);
+        assertNotNull(hostState);
+        assertTrue(hostState.hasHostId());
+        assertEquals(UUIDUtil.fromProto(hostState.getHostId()), hostId);
+        assertEquals(hostState.getInterfacesCount(), 1);
+        assertEquals(hostState.getInterfaces(0).getName(), "eth0");
 
         scanner.removeInterface("eth0");
 
-        assertTrue(get(hostId).getInterfacesList().isEmpty());
+        hostState = getHostState(hostId);
+        assertNotNull(hostState);
+        assertTrue(hostState.hasHostId());
+        assertEquals(UUIDUtil.fromProto(hostState.getHostId()), hostId);
+        assertEquals(hostState.getInterfacesCount(), 0);
 
         stopService(hostService);
     }
@@ -143,18 +179,18 @@ public class BackendHostServiceTest extends HostServiceTest {
         throws Throwable {
         startAndStopService();
 
-        assertTrue(get(hostId).getInterfacesList().isEmpty());
+        assertNull(getHostState(hostId));
 
         MockInterfaceScanner scanner = getInterfaceScanner();
         scanner.addInterface(new InterfaceDescription("eth0"));
 
-        assertTrue(get(hostId).getInterfacesList().isEmpty());
+        assertNull(getHostState(hostId));
     }
 
     private void assertHostState() throws Exception {
         assertTrue(exists(hostId));
         assertEquals(get(hostId).getName(), hostName);
-        assertTrue(getOwners(hostId).contains(hostId.toString()));
+        assertTrue(isAlive(hostId));
     }
 
     private boolean exists(UUID hostId) throws Exception {
@@ -165,8 +201,24 @@ public class BackendHostServiceTest extends HostServiceTest {
         return await(store.get(Topology.Host.class, hostId));
     }
 
-    private Set<String> getOwners(UUID hostId) throws Exception {
-        return await(store.getOwners(Topology.Host.class, hostId));
+    private Boolean isAlive(UUID hostId) throws Exception {
+        StateKey key = await(stateStore.getKey(Topology.Host.class, hostId,
+                                               MidonetBackend.AliveKey()));
+        return !key.isEmpty();
+    }
+
+    private State.HostState getHostState(UUID hostId) throws Exception {
+        StateKey key = await(stateStore.getKey(Topology.Host.class, hostId,
+                                               MidonetBackend.HostKey()));
+
+        if (key.isEmpty()) return null;
+
+        String value = ((SingleValueKey)key).value().get();
+
+        State.HostState.Builder builder =
+            State.HostState.newBuilder();
+        TextFormat.merge(value, builder);
+        return builder.build();
     }
 
     private void eventuallyAssertHostState() throws Exception {
@@ -188,5 +240,17 @@ public class BackendHostServiceTest extends HostServiceTest {
 
     static <T> T await(Future<T> future) throws Exception {
         return Await.result(future, Duration.apply(5, TimeUnit.SECONDS));
+    }
+
+    static <T> T await(Observable<T> observable) throws Exception {
+        return await(new RichObservable<>(observable).asFuture());
+    }
+
+    public CuratorFramework getCurator() {
+        return injector.getInstance(CuratorFramework.class);
+    }
+
+    public String getAlivePath(UUID hostId) {
+        return basePath + "/zoom/1/state/Host/" + hostId + "/alive";
     }
 }
