@@ -17,6 +17,7 @@ package org.midonet.midolman.host.services;
 
 import java.net.InetAddress;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Inject;
 import com.typesafe.config.ConfigFactory;
@@ -28,17 +29,27 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValueFactory;
-import org.apache.zookeeper.CreateMode;
-import org.junit.Before;
 
+import org.apache.curator.RetryPolicy;
+import org.apache.curator.framework.CuratorFramework;
+import org.apache.curator.framework.CuratorFrameworkFactory;
+import org.apache.curator.retry.RetryNTimes;
+import org.apache.curator.test.TestingServer;
+import org.apache.zookeeper.CreateMode;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+
+import org.midonet.cluster.data.storage.Storage;
+import org.midonet.cluster.data.storage.StorageWithState;
+import org.midonet.cluster.data.storage.WritePolicy;
+import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.conf.HostIdGenerator;
-import org.midonet.cluster.data.storage.OwnershipType;
-import org.midonet.cluster.data.storage.StorageWithOwnership;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendConfig;
-import org.midonet.cluster.storage.MidonetTestBackend;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
@@ -58,11 +69,12 @@ import org.midonet.util.eventloop.Reactor;
 
 public abstract class HostServiceTest {
 
-    private Injector injector;
+    Injector injector;
 
     ZkManager zkManager;
     HostZkManager hostZkManager;
-    StorageWithOwnership store;
+    Storage store;
+    StorageWithState stateStore;
 
     UUID hostId;
     String hostName;
@@ -70,7 +82,13 @@ public abstract class HostServiceTest {
     String alivePath;
     String basePath = "/midolman";
 
+    private final boolean backendEnabled;
     private final Config config;
+    static TestingServer server = null;
+
+    RetryPolicy retryPolicy = new RetryNTimes(2, 1000);
+    int cnxnTimeoutMs = 2 * 1000;
+    int sessionTimeoutMs = 10 * 1000;
 
     static class TestableHostService extends HostService {
         public int shutdownCalls = 0;
@@ -96,6 +114,12 @@ public abstract class HostServiceTest {
 
     private class TestModule extends AbstractModule {
 
+        private final CuratorFramework curator;
+
+        public TestModule(CuratorFramework curator) {
+            this.curator = curator;
+        }
+
         @Override
         protected void configure() {
             bind(InterfaceDataUpdater.class)
@@ -105,12 +129,14 @@ public abstract class HostServiceTest {
                 .asEagerSingleton();
             bind(MidolmanConfig.class)
                 .toInstance(new MidolmanConfig(config, ConfigFactory.empty()));
-            bind(MidonetBackend.class)
-                .to(MidonetTestBackend.class).asEagerSingleton();
             bind(MidonetBackendConfig.class)
                 .toInstance(
                     new MidonetBackendConfig(config.withFallback(
                         MidoTestConfigurator.forAgents())));
+            bind(CuratorFramework.class)
+                .toInstance(curator);
+            bind(MidonetBackend.class)
+                .to(MidonetBackendService.class).asEagerSingleton();
             bind(Reactor.class)
                 .toProvider(ZookeeperConnectionModule.ZookeeperReactorProvider.class)
                 .asEagerSingleton();
@@ -143,7 +169,8 @@ public abstract class HostServiceTest {
         }
     }
 
-    public HostServiceTest(boolean backendEnabled) {
+    public HostServiceTest(boolean backendEnabled) throws Exception {
+        this.backendEnabled = backendEnabled;
         config =  MidoTestConfigurator.forAgents()
             .withValue("zookeeper.root_key",
                        ConfigValueFactory.fromAnyRef(basePath))
@@ -160,12 +187,17 @@ public abstract class HostServiceTest {
         HostIdGenerator.useTemporaryHostId();
         hostId = HostIdGenerator.getHostId();
 
+        CuratorFramework curator = CuratorFrameworkFactory
+            .newClient(server.getConnectString(), sessionTimeoutMs,
+                       cnxnTimeoutMs, retryPolicy);
+
         injector = Guice.createInjector(new SerializationModule(),
-                                        new TestModule());
+                                        new TestModule(curator));
 
         zkManager = injector.getInstance(ZkManager.class);
         hostZkManager = injector.getInstance(HostZkManager.class);
-        store = injector.getInstance(MidonetBackend.class).ownershipStore();
+        store = injector.getInstance(MidonetBackend.class).store();
+        stateStore = injector.getInstance(MidonetBackend.class).stateStore();
         versionPath = injector.getInstance(PathBuilder.class)
                               .getHostVersionPath(hostId,
                                                   DataWriteVersion.CURRENT);
@@ -173,8 +205,39 @@ public abstract class HostServiceTest {
                             .getHostPath(hostId) + "/alive";
         hostName = InetAddress.getLocalHost().getHostName();
 
-        store.registerClass(Topology.Host.class, OwnershipType.Exclusive());
-        store.build();
+        if (backendEnabled) {
+            curator.start();
+            if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
+                throw new Exception("Curator did not connect to the test ZK "
+                                    + "server");
+            }
+
+            store.registerClass(Topology.Host.class);
+            stateStore.registerKey(Topology.Host.class,
+                                   MidonetBackend.AliveKey(),
+                                   WritePolicy.SingleFirstWriteWins());
+            stateStore.registerKey(Topology.Host.class,
+                                   MidonetBackend.InterfacesKey(),
+                                   WritePolicy.SingleFirstWriteWins());
+            store.build();
+        }
+    }
+
+    @After
+    public void teardown() throws Exception {
+        if (backendEnabled) {
+            injector.getInstance(CuratorFramework.class).close();
+        }
+    }
+
+    @BeforeClass
+    public static void init() throws Exception {
+        server = new TestingServer(true);
+    }
+
+    @AfterClass
+    public static void cleanup() throws Exception {
+        server.stop();
     }
 
     private TestableHostService makeHostService() {

@@ -124,6 +124,16 @@ message Host {
     optional UUID id = 1;
     optional string name = 2;
 
+    optional int32 flooding_proxy_weight = 3;
+
+    // Backreference. Expected to be set from the Tunnel Zone side.
+    repeated UUID tunnel_zone_ids = 101;
+
+    // Backreference. Expected to be set from the Port side.
+    repeated UUID port_ids = 102;
+}
+
+message HostInterfaces {
     message Interface {
         enum Type {
             PHYSICAL = 1;
@@ -160,15 +170,9 @@ message Host {
         optional Endpoint endpoint = 8;
         optional DpPortType port_type = 9;
     }
-    repeated Interface interfaces = 3;
 
-    optional int32 flooding_proxy_weight = 4;
-
-    // Backreference. Expected to be set from the Tunnel Zone side.
-    repeated UUID tunnel_zone_ids = 101;
-
-    // Backreference. Expected to be set from the Port side.
-    repeated UUID port_ids = 102;
+    optional UUID hostId = 1;
+    repeated Interface interfaces = 2;
 }
 
 message IPAddrGroup {

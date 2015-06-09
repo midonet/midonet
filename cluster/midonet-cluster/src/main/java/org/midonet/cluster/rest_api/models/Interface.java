@@ -31,10 +31,10 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPAddressUtil;
 
-@ZoomClass(clazz = Topology.Host.Interface.class)
+@ZoomClass(clazz = Topology.HostInterfaces.Interface.class)
 public class Interface extends UriResource {
 
-    @ZoomEnum(clazz = Topology.Host.Interface.Type.class)
+    @ZoomEnum(clazz = Topology.HostInterfaces.Interface.Type.class)
     public enum InterfaceType {
         @ZoomEnumValue(value = "PHYSICAL")
         Physical,
@@ -46,7 +46,7 @@ public class Interface extends UriResource {
         Unknown
     }
 
-    @ZoomEnum(clazz = Topology.Host.Interface.Endpoint.class)
+    @ZoomEnum(clazz = Topology.HostInterfaces.Interface.Endpoint.class)
     public enum Endpoint {
         @ZoomEnumValue(value = "DATAPATH_EP")
         DATAPATH,
@@ -66,7 +66,7 @@ public class Interface extends UriResource {
         UNKNOWN
     }
 
-    @ZoomEnum(clazz = Topology.Host.Interface.DpPortType.class)
+    @ZoomEnum(clazz = Topology.HostInterfaces.Interface.DpPortType.class)
     public enum DpPortType {
         @ZoomEnumValue(value = "NET_DEV_DP")
         NetDev,
