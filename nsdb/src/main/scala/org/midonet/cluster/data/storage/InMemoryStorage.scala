@@ -762,6 +762,8 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
                .keyObservable(id, key, getWritePolicy(clazz, key))
     }
 
+    override def sessionId = DefaultOwnerId
+
     private def registerClassInternal(clazz: Class[_ <: Obj],
                                       ownershipType: OwnershipType): Unit = {
         classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
