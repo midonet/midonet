@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,16 @@ import java.util.UUID;
 import com.google.common.base.Objects;
 
 import org.codehaus.jackson.annotate.JsonProperty;
+
+import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 
-public class VIP {
+@ZoomClass(clazz = Neutron.NeutronVIP.class)
+public class VIP extends ZoomObject {
 
     @ZoomField(name = "address", converter = IPAddressUtil.Converter.class)
     public String address;

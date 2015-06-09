@@ -666,7 +666,6 @@ public class NeutronPlugin implements NetworkApi, L3Api, SecurityGroupApi,
         // Since the ports are already deleted by the time this is called,
         // there is nothing to do.
         return routerInterface;
-
     }
 
     @Override
