@@ -16,8 +16,13 @@
 
 package org.midonet.cluster.services.c3po
 
+import java.sql.Driver
+
 import javax.sql.DataSource
 
+import scala.util.control.NonFatal
+
+import com.google.common.annotations.VisibleForTesting
 import com.google.inject.Inject
 import com.google.protobuf.Message
 import org.apache.curator.framework.CuratorFramework
@@ -32,7 +37,7 @@ import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.cluster.services.c3po.translators._
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.cluster.{ClusterConfig, ClusterNode, ScheduledClusterMinion}
+import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode, ScheduledClusterMinion}
 import org.midonet.midolman.state.PathBuilder
 
 /** The service that translates and imports neutron models into the MidoNet
@@ -75,6 +80,11 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
         super.doStop()
     }
 
+    // Delegates to a static method to enable testing without creating a
+    // C3POMinion instance.
+    override protected def validateConfig(): Unit =
+        C3POMinion.validateConfig(config.c3po)
+
     protected override val runnable = new Runnable {
         override def run(): Unit = try {
             if (!leaderLatch.hasLeadership) {
@@ -106,7 +116,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
             if (C3POState.NO_TASKS_PROCESSED != newLastTaskId)
                 dataStateUpdater.updateLastProcessedId(newLastTaskId)
         } catch {
-            case ex: Throwable =>
+            case NonFatal(ex) =>
                 log.error("Unexpected exception in Neutron polling thread.", ex)
         }
     }
@@ -165,5 +175,44 @@ object C3POMinion {
         dataMgr.init()
         dataMgr
     }
+}
+
+@VisibleForTesting
+protected[c3po] object C3POMinion {
+    import ScheduledClusterMinion.checkConfigParamDefined
+
+    val CnxnStrCfgKey = "cluster.neutron_importer.connection_string"
+    val JdbcDriverCfgKey = "cluster.neutron_importer.jdbc_driver_class"
+
+    val JdbcDriverClassNotFoundErrMsg = "Could not load JDBC driver class: %s."
+    val NotDriverSubclassErrMsg =
+        s"The class specified by $JdbcDriverCfgKey, %s, is not a subclass of " +
+        "java.sql.Driver."
+    val InvalidCnxnStrErrMsg =
+        s"The connection string specified in $CnxnStrCfgKey is not a valid " +
+        "connection string for the specified JDBC driver."
+
+
+    def validateConfig(cfg: C3POConfig): Unit = {
+        val driverClassStr = cfg.jdbcDriver.trim
+        val cnxnStr = cfg.connectionString.trim
+        checkConfigParamDefined(driverClassStr, JdbcDriverCfgKey)
+        checkConfigParamDefined(cnxnStr, CnxnStrCfgKey)
+
+        val driverClass = try Class.forName(driverClassStr) catch {
+            case NonFatal(t) => throw new ClassNotFoundException(
+                JdbcDriverClassNotFoundErrMsg.format(driverClassStr), t)
+        }
+
+        if (!classOf[Driver].isAssignableFrom(driverClass))
+            throw new IllegalArgumentException(
+                NotDriverSubclassErrMsg.format(driverClass.getName))
+
+        val driver = driverClass.newInstance().asInstanceOf[Driver]
+        if (!driver.acceptsURL(cnxnStr))
+            throw new IllegalArgumentException(
+                InvalidCnxnStrErrMsg.format(cnxnStr))
+    }
+
 }
 
