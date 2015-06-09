@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2014 Midokura SARL
+# Copyright 2015 Midokura SARL
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,10 +15,14 @@
 # limitations under the License.
 #
 
-# Build a docker image for vtep emulator
-REPO=mdts
-TAG=vtep-emulator
+if [ -n $USE_VTEP ]; then
+    REPO=midonet/vtep-emu
+    TAG=ubuntu1404
 
-docker images |grep ^$REPO | awk '{print $2}'| grep -qw $TAG || {
-  sudo docker build -t mdts:vtep-emulator  .
-}
+    # Pull vtep-emu docker image from dockerhub if not present
+
+    docker images |grep ^$REPO | awk '{print $2}'| grep -qw $TAG || {
+        echo "Pulling midonet/vtep-emu:ubuntu1404 docker container..."
+        sudo docker pull midonet/vtep-emu:ubuntu1404
+    }
+fi
