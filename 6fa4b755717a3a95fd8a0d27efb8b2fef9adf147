@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_f964bf23",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T00:15:07Z",
+      "side": 1,
+      "message": "Though it is an integration test, it still just tests read / write into ZooKeeper, and doesn\u0027t test network connection. Therefore I don\u0027t see the point of randomisation.",
+      "parentUuid": "facab960_f91a0216",
+      "range": {
+        "startLine": 213,
+        "startChar": 45,
+        "endLine": 213,
+        "endChar": 55
+      },
+      "revId": "6fa4b755717a3a95fd8a0d27efb8b2fef9adf147",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b9e79a11",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-08T12:24:12Z",
       "side": 1,
       "message": "A Load Balancer...?",
+      "range": {
+        "startLine": 310,
+        "startChar": 11,
+        "endLine": 310,
+        "endChar": 24
+      },
+      "revId": "6fa4b755717a3a95fd8a0d27efb8b2fef9adf147",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_396f07ff",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T00:15:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_b9e79a11",
       "range": {
         "startLine": 310,
         "startChar": 11,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_59720be6",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 401,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T00:15:07Z",
+      "side": 1,
+      "message": "Ditto.",
+      "parentUuid": "facab960_1916c6f1",
+      "range": {
+        "startLine": 401,
+        "startChar": 45,
+        "endLine": 401,
+        "endChar": 55
+      },
+      "revId": "6fa4b755717a3a95fd8a0d27efb8b2fef9adf147",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_39d46a1f",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2015-06-08T12:24:12Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 418,
+        "startChar": 34,
+        "endLine": 418,
+        "endChar": 44
+      },
+      "revId": "6fa4b755717a3a95fd8a0d27efb8b2fef9adf147",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7978afc4",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T00:15:07Z",
+      "side": 1,
+      "message": "Ditto.",
+      "parentUuid": "facab960_39d46a1f",
       "range": {
         "startLine": 418,
         "startChar": 34,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_9973b3e6",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 419,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T00:15:07Z",
+      "side": 1,
+      "message": "Ditto.",
+      "parentUuid": "facab960_59d76e23",
+      "range": {
+        "startLine": 419,
+        "startChar": 39,
+        "endLine": 419,
+        "endChar": 44
+      },
+      "revId": "6fa4b755717a3a95fd8a0d27efb8b2fef9adf147",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_79def240",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/VipTranslatorTest.scala",
         "patchSetId": 2
@@ -140,6 +260,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_b994f7e2",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/VipTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T00:15:07Z",
+      "side": 1,
+      "message": "This is a unit test and just tests read and write into ZK, therefore I don\u0027t see the need for randomisation.",
+      "parentUuid": "facab960_79def240",
+      "range": {
+        "startLine": 134,
+        "startChar": 43,
+        "endLine": 134,
+        "endChar": 53
+      },
+      "revId": "6fa4b755717a3a95fd8a0d27efb8b2fef9adf147",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_99e1f600",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/VipTranslatorTest.scala",
         "patchSetId": 2
@@ -151,6 +295,30 @@
       "writtenOn": "2015-06-08T12:24:12Z",
       "side": 1,
       "message": "random port?",
+      "range": {
+        "startLine": 135,
+        "startChar": 23,
+        "endLine": 135,
+        "endChar": 27
+      },
+      "revId": "6fa4b755717a3a95fd8a0d27efb8b2fef9adf147",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d98ffbca",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/VipTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-09T00:15:07Z",
+      "side": 1,
+      "message": "Ditto.",
+      "parentUuid": "facab960_99e1f600",
       "range": {
         "startLine": 135,
         "startChar": 23,
