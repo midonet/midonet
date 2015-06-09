@@ -337,12 +337,14 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                            tenantId: String = "tenant",
                            securityGroups: List[UUID] = null,
                            hostId: UUID = null,
-                           ifName: String = null): JsonNode = {
+                           ifName: String = null,
+                           portSecurityEnabled: Boolean = true): JsonNode = {
         val p = nodeFactory.objectNode
         p.put("id", id.toString)
         p.put("network_id", networkId.toString)
         p.put("admin_state_up", adminStateUp)
         p.put("mac_address", macAddr)
+        p.put("port_security_enabled", portSecurityEnabled)
         if (name != null) p.put("name", name)
         if (fixedIps != null) {
             val fi = p.putArray("fixed_ips")

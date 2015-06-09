@@ -36,6 +36,10 @@ trait ChainManager {
     protected def outChainId(deviceId: UUID) =
         deviceId.xorWith(0x20940fb2cac401eL, 0x9ffaf9c05d04b524L)
 
+    /** Deterministically generate anti spoof chain ID from device ID. */
+    def antiSpoofChainId(deviceId: UUID) =
+        deviceId.xorWith(0xa7b611cfe7334feL, 0xbbac78cfe412ad35L)
+
     protected def newChain(id: UUID, name: String,
                            ruleIds: Seq[UUID] = Seq()): Chain = {
         val bldr = Chain.newBuilder.setId(id).setName(name)
