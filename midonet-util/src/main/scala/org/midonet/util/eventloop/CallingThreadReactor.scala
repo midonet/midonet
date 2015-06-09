@@ -18,12 +18,12 @@ package org.midonet.util.eventloop
 
 import java.util.concurrent.{Delayed, Future, ScheduledFuture, TimeUnit, Callable}
 
-import scala.{Boolean, Long}
-
-import rx.Scheduler;
-import rx.schedulers.Schedulers;
+import rx.Scheduler
+import rx.schedulers.Schedulers
 
 import com.google.common.util.concurrent.SettableFuture
+
+import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 class CallingThreadReactor extends Reactor {
     def currentTimeMillis(): Long = 0L
@@ -65,4 +65,6 @@ class CallingThreadReactor extends Reactor {
     def isShutDownOrTerminated: Boolean = false
 
     def rxScheduler: Scheduler = Schedulers.trampoline()
+
+    def executor = CallingThreadExecutionContext
 }
