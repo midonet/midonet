@@ -22,11 +22,18 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.{Response, UriInfo}
 
+import scala.collection.JavaConverters._
+import scala.concurrent.Future
+
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
+import com.google.protobuf.TextFormat
 
+import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.data.storage.SingleValueKey
+import org.midonet.cluster.models.State
 import org.midonet.cluster.rest_api.annotation.{AllowGet, AllowList}
-import org.midonet.cluster.rest_api.models.Host
+import org.midonet.cluster.rest_api.models.{HostState, Interface, Host}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
@@ -80,16 +87,34 @@ class HostResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
         new HostInterfacePortResource(hostId, backend, uriInfo)
     }
 
-    protected override def getFilter = (host: Host) => setAlive(host)
+    protected override def getFilter = (host: Host) => initHost(host)
 
-    protected override def listFilter = (host: Host) => { setAlive(host); true }
+    protected override def listFilter = (host: Host) => { initHost(host); true }
 
-    private def isAlive(id: String): Boolean = {
-        getResourceOwners(classOf[Host], id).getOrThrow.nonEmpty
-    }
+    private def initHost(host: Host): Host = {
+        val interfaces = getInterfaces(host.id.toString).getOrThrow
 
-    private def setAlive(host: Host): Host = {
         host.alive = isAlive(host.id.toString)
+        host.hostInterfaces = interfaces.asJava
+        host.addresses = interfaces.flatMap(_.addresses).map(_.toString).asJava
         host
     }
+
+    private def isAlive(id: String): Boolean = {
+        getResourceState(classOf[Host], id, MidonetBackend.AliveKey)
+            .getOrThrow.nonEmpty
+    }
+
+    private def getInterfaces(hostId: String): Future[Seq[Interface]] = {
+        getResourceState(classOf[Host], hostId, MidonetBackend.HostKey).map {
+            case SingleValueKey(_, Some(value), _) =>
+                val builder = State.HostState.newBuilder()
+                TextFormat.merge(value, builder)
+                val hostState = ZoomConvert.fromProto(builder.build(),
+                                                      classOf[HostState])
+                hostState.interfaces.asScala
+            case _ => List.empty
+        }
+    }
+
 }
