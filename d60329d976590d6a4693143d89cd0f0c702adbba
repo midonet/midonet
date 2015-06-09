@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_3cad359d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-09T04:12:25Z",
+      "side": 1,
+      "message": "Seems to be unused.",
+      "range": {
+        "startLine": 394,
+        "startChar": 12,
+        "endLine": 394,
+        "endChar": 15
+      },
+      "revId": "d60329d976590d6a4693143d89cd0f0c702adbba",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
