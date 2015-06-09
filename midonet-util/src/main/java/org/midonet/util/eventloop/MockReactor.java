@@ -39,8 +39,7 @@ public class MockReactor implements Reactor {
     // public so that unittests can access.
     /* DelayedCall is parametrized to Any since the reactor can accept any
      * typed Callable */
-    public PriorityQueue<DelayedCall<?>> calls =
-        new PriorityQueue<DelayedCall<?>>();
+    public PriorityQueue<DelayedCall<?>> calls = new PriorityQueue<>();
     long currentTimeMillis;
 
     public class DelayedCall<V> implements ScheduledFuture<V> {

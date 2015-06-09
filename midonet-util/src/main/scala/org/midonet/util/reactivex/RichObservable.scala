@@ -17,6 +17,7 @@ package org.midonet.util.reactivex
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Promise, Future}
+import scala.util.{Success, Failure, Try}
 
 import rx.{Observable, Subscriber}
 
@@ -55,6 +56,35 @@ class RichObservable[T](observable: Observable[T]) {
     @throws[Throwable]
     def await(timeout: Duration): T = {
         Await.result(asFuture, timeout)
+    }
+
+    /**
+     * Applies the given partial function to the next notification emitted by
+     * the underlying observable.
+     */
+    def andThen[U](pf: PartialFunction[Try[T], U]): Observable[T] = {
+        @volatile var completed = false
+        observable.subscribe(new Subscriber[T]() {
+            override def onCompleted(): Unit = {
+                if (completed) return
+                completed = true
+                pf apply Failure(RichObservable.CompletedException)
+            }
+
+            override def onError(e: Throwable): Unit = {
+                if (completed) return
+                completed = true
+                pf apply Failure(e)
+            }
+
+            override def onNext(t: T): Unit = {
+                if (completed) return
+                completed = true
+                pf apply Success(t)
+                unsubscribe()
+            }
+        })
+        observable
     }
 
 }
