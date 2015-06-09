@@ -20,15 +20,14 @@ import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.NeutronVIP
 import org.midonet.cluster.models.Topology.{Pool, Vip}
-import org.midonet.cluster.services.c3po.midonet.Create
+import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for VIP. */
 class VipTranslator(protected val storage: ReadOnlyStorage)
         extends NeutronTranslator[NeutronVIP]{
 
-    override protected def translateCreate(nVip: NeutronVIP)
-    : MidoOpList = {
+    private def translate(nVip: NeutronVIP): Vip = {
         val mVipBldr = Vip.newBuilder
                       .setId(nVip.getId)
                       .setAdminStateUp(nVip.getAdminStateUp)
@@ -44,12 +43,15 @@ class VipTranslator(protected val storage: ReadOnlyStorage)
             mVipBldr.setPoolId(pool.getId)
             mVipBldr.setLoadBalancerId(pool.getLoadBalancerId)
         }
-        List(Create(mVipBldr.build()))
+        mVipBldr.build()
     }
 
-    override protected def translateDelete(id: UUID)
-    : MidoOpList = throw new NotImplementedError()
+    override protected def translateCreate(nVip: NeutronVIP) : MidoOpList =
+        List(Create(translate(nVip)))
 
-    override protected def translateUpdate(nm: NeutronVIP)
-    : MidoOpList = throw new NotImplementedError()
+    override protected def translateDelete(id: UUID) : MidoOpList =
+        List(Delete(classOf[Vip], id))
+
+    override protected def translateUpdate(nVip: NeutronVIP) : MidoOpList =
+        List(Update(translate(nVip)))
 }
