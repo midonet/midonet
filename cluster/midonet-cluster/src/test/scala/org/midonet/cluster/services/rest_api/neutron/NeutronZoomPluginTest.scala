@@ -81,10 +81,8 @@ class NeutronZoomPluginTest extends FeatureSpec
                 plugin.getNetwork(n.id)
             }
 
-            intercept[NotFoundException] {
-                backend.store.get(classOf[Topology.Network], n.id)
-                             .await(timeout)
-            }
+            backend.store.exists(classOf[Topology.Network], n.id)
+                   .await(timeout) shouldBe false
         }
     }
 
