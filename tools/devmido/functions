@@ -212,7 +212,7 @@ function screen_process {
     sleep 3
 
     NL=`echo -ne '\015'`
-    screen -S ${SCREEN_NAME} -p $name -X stuff "$command & echo \$! >$SERVICE_DIR/${SCREEN_NAME}/${name}.pid; fg || echo \"$name failed to start\" | tee \"$SERVICE_DIR/$${SCREEN_NAME}/${name}.failure\"$NL"
+    screen -S ${SCREEN_NAME} -p $name -X stuff "$command & echo \$! >$SERVICE_DIR/${SCREEN_NAME}/${name}.pid; fg || echo \"$name failed to start\" | tee \"$SERVICE_DIR/${SCREEN_NAME}/${name}.failure\"$NL"
 }
 
 # _run_process() is designed to be backgrounded by run_process() to simulate a
