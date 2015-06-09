@@ -46,7 +46,6 @@ public class Host extends UriResource {
 
     public List<String> addresses;
 
-    @ZoomField(name = "interfaces")
     @Since("3")
     public List<Interface> hostInterfaces;
 
@@ -79,16 +78,5 @@ public class Host extends UriResource {
     public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }
 
     public URI getPorts() { return relativeUri(ResourceUris.PORTS); }
-
-    @JsonIgnore
-    @Override
-    public void afterFromProto(Message proto) {
-        addresses = new ArrayList<>();
-        for (Interface iface : hostInterfaces) {
-            for (InetAddress address : iface.addresses) {
-                addresses.add(address.toString());
-            }
-        }
-    }
 
 }

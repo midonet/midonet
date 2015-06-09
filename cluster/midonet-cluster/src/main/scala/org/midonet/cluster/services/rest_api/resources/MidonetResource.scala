@@ -197,10 +197,10 @@ abstract class MidonetResource[T >: Null <: UriResource]
             .map(fromProto(_, clazz))
     }
 
-    protected def getResourceOwners[U >: Null <: UriResource](clazz: Class[U],
-                                                              id: Any)
-    : Future[Set[String]] = {
-        backend.ownershipStore.getOwners(UriResource.getZoomClass(clazz), id)
+    protected def getResourceState[U >: Null <: UriResource](clazz: Class[U],
+                                                             id: Any, key: String)
+    : Future[StateKey] = {
+        backend.stateStore.getKey(UriResource.getZoomClass(clazz), id, key)
     }
 
     protected def createResource[U >: Null <: UriResource](resource: U)
