@@ -124,45 +124,7 @@ message Host {
     optional UUID id = 1;
     optional string name = 2;
 
-    message Interface {
-        enum Type {
-            PHYSICAL = 1;
-            VIRTUAL = 2;
-            TUNNEL = 3;
-            UNKNOWN = 4;
-        }
-        enum Endpoint {
-            DATAPATH_EP = 1;
-            PHYSICAL_EP = 2;
-            VM_EP = 3;
-            GRE_EP = 4;
-            CAPWAP_EP = 5;
-            LOCALHOST_EP = 6;
-            TUNTAP_EP = 7;
-            UNKNOWN_EP = 8;
-        }
-        enum DpPortType {
-            NET_DEV_DP = 1;
-            INTERNAL_DP = 2;
-            GRE_DP = 3;
-            VXLAN_DP = 4;
-            GRE64_DP = 5;
-            LISP_DP = 6;
-        }
-
-        optional string name = 1;
-        optional Type type = 2;
-        optional string mac = 3;
-        repeated IPAddress addresses = 4;
-        optional bool up = 5;
-        optional bool has_link = 6;
-        optional int32 mtu = 7;
-        optional Endpoint endpoint = 8;
-        optional DpPortType port_type = 9;
-    }
-    repeated Interface interfaces = 3;
-
-    optional int32 flooding_proxy_weight = 4;
+    optional int32 flooding_proxy_weight = 3;
 
     // Backreference. Expected to be set from the Tunnel Zone side.
     repeated UUID tunnel_zone_ids = 101;
