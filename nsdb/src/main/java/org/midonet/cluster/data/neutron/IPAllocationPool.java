@@ -35,11 +35,11 @@ public class IPAllocationPool extends ZoomObject {
         this.lastIp = lastIp;
     }
 
-    @JsonProperty("first_ip")
+    @JsonProperty("start")
     @ZoomField(name = "start", converter = IPAddressUtil.Converter.class)
     public String firstIp;
 
-    @JsonProperty("last_ip")
+    @JsonProperty("end")
     @ZoomField(name = "end", converter = IPAddressUtil.Converter.class)
     public String lastIp;
 
