@@ -34,6 +34,24 @@
       "revId": "6e3ff036f8eee02f89df4c03f5b90131c46d75a3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ddea800e",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/IPAllocationPool.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-10T04:06:49Z",
+      "side": 1,
+      "message": "i meant NMP would produce start/end.\n\n2015-06-10 03:23:40.331 DEBUG midonetclient.api_lib [req-7887c0e0-2840-4bd6-8a0d-aef5948ffa86 admin 5ab14413bf6140c59c5b429484ccecc0] do_request: body\u003d{\u0027ipv6_ra_mode\u0027: None, \u0027allocation_pools\u0027: [{\u0027start\u0027: \u002710.0.0.2\u0027, \u0027end\u0027: \u002710.0.0.254\u0027}], \u0027host_routes\u0027: [], \u0027ipv6_address_mode\u0027: None, \u0027cidr\u0027: \u002710.0.0.0/24\u0027, \u0027id\u0027: \u0027b5b5d239-ef40-4355-bd9c-ee3a5e84a96d\u0027, \u0027subnetpool_id\u0027: None, \u0027name\u0027: u\u0027private-subnet\u0027, \u0027enable_dhcp\u0027: True, \u0027network_id\u0027: u\u00272ef8391f-3d19-4ed0-9c97-ad7cded8da94\u0027, \u0027tenant_id\u0027: u\u00271606d1d2875d47ae81fe79de18561ee1\u0027, \u0027dns_nameservers\u0027: [], \u0027gateway_ip\u0027: u\u002710.0.0.1\u0027, \u0027ip_version\u0027: 4, \u0027shared\u0027: False} from (pid\u003d121417) do_request /opt/stack/midonet/python-midonetclient/src/midonetclient/api_lib.py:63",
+      "parentUuid": "facab960_5d975090",
+      "revId": "6e3ff036f8eee02f89df4c03f5b90131c46d75a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
