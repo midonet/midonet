@@ -250,22 +250,36 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
             }
         }
 
-        // Handle IP address groups. We only subscribe to an IP address group
-        // the first time we receive the rule. A rule's IP address groups are
-        // assumed to remain unchanged.
+        // Handle IP address groups.
+        val newCond = rule.getCondition
         if (ruleState.prevRule eq null) {
-            val cond = rule.getCondition
-            if (cond.ipAddrGroupIdSrc ne null) {
-                subscribeToIPAddrGroup(cond.ipAddrGroupIdSrc)
-            }
-            if (cond.ipAddrGroupIdDst ne null) {
-                subscribeToIPAddrGroup(cond.ipAddrGroupIdDst)
-            }
+            handleIPAddrGroupSubscription(prevIpAddrGroupId = null,
+                                          newCond.ipAddrGroupIdSrc)
+            handleIPAddrGroupSubscription(prevIpAddrGroupId = null,
+                                          newCond.ipAddrGroupIdDst)
+        } else {
+            val prevCond = ruleState.prevRule.getCondition
+            handleIPAddrGroupSubscription(prevCond.ipAddrGroupIdSrc,
+                                          newCond.ipAddrGroupIdSrc)
+            handleIPAddrGroupSubscription(prevCond.ipAddrGroupIdDst,
+                                          newCond.ipAddrGroupIdDst)
         }
-
         chainProto
     }
 
+    private def handleIPAddrGroupSubscription(prevIpAddrGroupId: UUID,
+                                              newIpAddrGroupId: UUID)
+    : Unit = (prevIpAddrGroupId, newIpAddrGroupId) match {
+        case (null, null) => // Do nothing.
+        case (null, newId) =>
+            subscribeToIPAddrGroup(newId)
+        case (prevId, null) =>
+            unsubscribeFromIPAddrGroup(prevId)
+        case (prevId, newId) =>
+            unsubscribeFromIPAddrGroup(prevId)
+            subscribeToIPAddrGroup(newId)
+    }
+    
     private def chainReady(update: Any): Boolean = {
         assertThread()
         val ready = rules.forall(_._2.isReady) && areChainsReady &&
