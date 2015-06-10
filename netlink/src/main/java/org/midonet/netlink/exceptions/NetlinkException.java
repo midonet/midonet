@@ -15,7 +15,11 @@
  */
 package org.midonet.netlink.exceptions;
 
+import java.util.HashMap;
+
 public class NetlinkException extends Exception {
+
+    private static HashMap<Integer, ErrorCode> codeToEnum = new HashMap<>();
 
     public enum ErrorCode {
         E_OK("No error"),
@@ -55,11 +59,18 @@ public class NetlinkException extends Exception {
         ERANGE("Math result not representable"),
         E_MAX(""),
         E_NOT_INITIALIZED("Not initialized exception"),
-        ETIMEOUT("Request timeout");
+        ETIMEOUT("Request timeout"),
+        EADDRINUSE("Address already in use", 98);
 
         String message;
         private ErrorCode(String message) {
             this.message = message;
+            codeToEnum.put(ordinal(), this);
+        }
+
+        private ErrorCode(String message, int code) {
+            this.message = message;
+            codeToEnum.put(code, this);
         }
 
         public String getMessage() {
@@ -103,11 +114,7 @@ public class NetlinkException extends Exception {
     }
 
     public ErrorCode getErrorCodeEnum() {
-        ErrorCode[] values = ErrorCode.values();
-        if ( errorCode > 0 && errorCode < values.length)
-            return values[errorCode];
-
-        return null;
+        return codeToEnum.get(errorCode);
     }
 
     @Override
