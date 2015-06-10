@@ -42,6 +42,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_bda69c51",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:01:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_eaa93b7c",
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_8acb4f52",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
         "patchSetId": 7
@@ -53,6 +71,30 @@
       "writtenOn": "2015-06-09T12:45:21Z",
       "side": 1,
       "message": "remove",
+      "range": {
+        "startLine": 54,
+        "startChar": 7,
+        "endLine": 56,
+        "endChar": 6
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_dd644024",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:01:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_8acb4f52",
       "range": {
         "startLine": 54,
         "startChar": 7,
@@ -111,6 +153,54 @@
     },
     {
       "key": {
+        "uuid": "facab960_1d6f88fe",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:01:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_2ae243d5",
+      "range": {
+        "startLine": 57,
+        "startChar": 12,
+        "endLine": 57,
+        "endChar": 25
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_fd674423",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:01:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_6aed2b8b",
+      "range": {
+        "startLine": 57,
+        "startChar": 31,
+        "endLine": 57,
+        "endChar": 51
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_ea45bbb3",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
         "patchSetId": 7
@@ -122,6 +212,30 @@
       "writtenOn": "2015-06-09T12:45:21Z",
       "side": 1,
       "message": "waiting?",
+      "range": {
+        "startLine": 179,
+        "startChar": 44,
+        "endLine": 179,
+        "endChar": 48
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3d728ce5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:01:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_ea45bbb3",
       "range": {
         "startLine": 179,
         "startChar": 44,
@@ -157,6 +271,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_5d7830c4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 280,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:01:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_8a550f52",
+      "range": {
+        "startLine": 280,
+        "startChar": 53,
+        "endLine": 280,
+        "endChar": 59
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_aad733be",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
         "patchSetId": 7
@@ -168,6 +306,30 @@
       "writtenOn": "2015-06-09T12:45:21Z",
       "side": 1,
       "message": "You use Zookeeper in plain above, why not here?",
+      "range": {
+        "startLine": 307,
+        "startChar": 4,
+        "endLine": 307,
+        "endChar": 6
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7d7334e7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 307,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:01:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_aad733be",
       "range": {
         "startLine": 307,
         "startChar": 4,
@@ -203,6 +365,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_9d82b892",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 311,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:01:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_cae637b4",
+      "range": {
+        "startLine": 311,
+        "startChar": 4,
+        "endLine": 311,
+        "endChar": 6
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_8a034f41",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/util/NodeObservableTest.scala",
         "patchSetId": 7
@@ -214,6 +400,30 @@
       "writtenOn": "2015-06-09T12:45:21Z",
       "side": 1,
       "message": "Use timeout instead of literal (same comment for the awaitOnNext below)?",
+      "range": {
+        "startLine": 44,
+        "startChar": 28,
+        "endLine": 44,
+        "endChar": 36
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bd7dbcb3",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/NodeObservableTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:01:00Z",
+      "side": 1,
+      "message": "At first Intellij didn\u0027t like it. It seems to be fine now. Done",
+      "parentUuid": "facab960_8a034f41",
       "range": {
         "startLine": 44,
         "startChar": 28,
