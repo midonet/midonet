@@ -18,13 +18,12 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-
-import org.midonet.cluster.data.neutron.DeviceOwner
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
 import org.midonet.cluster.models.Topology.{Dhcp, Network}
+import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
 import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet

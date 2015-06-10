@@ -19,6 +19,8 @@ package org.midonet.cluster.rest_api.models;
 import java.net.URI;
 import java.util.UUID;
 
+import org.midonet.cluster.rest_api.ResourceUris;
+
 public class Link extends UriResource {
 
     // TODO: @IsValidPortId

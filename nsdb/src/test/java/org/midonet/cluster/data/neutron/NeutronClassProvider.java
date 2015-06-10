@@ -15,10 +15,22 @@
  */
 package org.midonet.cluster.data.neutron;
 
-import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
-import org.midonet.cluster.data.neutron.loadbalancer.Pool;
-import org.midonet.cluster.data.neutron.loadbalancer.Member;
-import org.midonet.cluster.data.neutron.loadbalancer.VIP;
+import org.midonet.cluster.rest_api.neutron.models.HealthMonitor;
+import org.midonet.cluster.rest_api.neutron.models.Pool;
+import org.midonet.cluster.rest_api.neutron.models.Member;
+import org.midonet.cluster.rest_api.neutron.models.VIP;
+import org.midonet.cluster.rest_api.neutron.models.ExternalGatewayInfo;
+import org.midonet.cluster.rest_api.neutron.models.FloatingIp;
+import org.midonet.cluster.rest_api.neutron.models.IPAllocation;
+import org.midonet.cluster.rest_api.neutron.models.IPAllocationPool;
+import org.midonet.cluster.rest_api.neutron.models.Network;
+import org.midonet.cluster.rest_api.neutron.models.Port;
+import org.midonet.cluster.rest_api.neutron.models.Route;
+import org.midonet.cluster.rest_api.neutron.models.Router;
+import org.midonet.cluster.rest_api.neutron.models.RouterInterface;
+import org.midonet.cluster.rest_api.neutron.models.SecurityGroup;
+import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
+import org.midonet.cluster.rest_api.neutron.models.Subnet;
 
 import static junitparams.JUnitParamsRunner.$;
 

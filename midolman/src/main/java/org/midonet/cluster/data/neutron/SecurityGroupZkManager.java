@@ -26,6 +26,12 @@ import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
 
+import org.midonet.cluster.rest_api.neutron.models.IPAllocation;
+import org.midonet.cluster.rest_api.neutron.models.Port;
+import org.midonet.cluster.rest_api.neutron.models.RuleDirection;
+import org.midonet.cluster.rest_api.neutron.models.SecurityGroup;
+import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
+import org.midonet.cluster.rest_api.neutron.models.Subnet;
 import org.midonet.midolman.rules.JumpRule;
 import org.midonet.midolman.rules.Rule;
 import org.midonet.midolman.rules.RuleBuilder;

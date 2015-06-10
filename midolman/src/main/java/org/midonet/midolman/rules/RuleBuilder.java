@@ -19,8 +19,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.midonet.cluster.data.neutron.RuleProtocol;
-import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.cluster.rest_api.neutron.models.RuleProtocol;
+import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
 import org.midonet.packets.ARP;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4Addr;

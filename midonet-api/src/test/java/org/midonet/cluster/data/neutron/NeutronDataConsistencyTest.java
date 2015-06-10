@@ -22,6 +22,9 @@ import org.junit.Test;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.rest_api.neutron.models.Network;
+import org.midonet.cluster.rest_api.neutron.models.Port;
+import org.midonet.cluster.rest_api.neutron.models.Router;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 

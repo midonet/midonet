@@ -44,7 +44,7 @@ import org.midonet.api.error.ExceptionFilter;
 import org.midonet.api.network.NetworkModule;
 import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
-import org.midonet.cluster.neutron_rest_api.NeutronZoomApiModule;
+import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomApiModule;
 import org.midonet.cluster.rest_api.serialization.SerializationModule;
 import org.midonet.cluster.rest_api.validation.ValidationModule;
 import org.midonet.cluster.ClusterConfig;

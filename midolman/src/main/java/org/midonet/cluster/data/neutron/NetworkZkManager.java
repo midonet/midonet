@@ -32,11 +32,15 @@ import org.apache.zookeeper.Op;
 
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.Converter;
+import org.midonet.cluster.rest_api.neutron.models.IPAllocation;
+import org.midonet.cluster.rest_api.neutron.models.MetaDataService;
+import org.midonet.cluster.rest_api.neutron.models.Network;
+import org.midonet.cluster.rest_api.neutron.models.Port;
+import org.midonet.cluster.rest_api.neutron.models.Subnet;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.MacPortMap;
-import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
