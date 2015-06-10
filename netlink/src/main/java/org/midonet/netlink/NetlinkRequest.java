@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.ErrorCode;
 import org.midonet.netlink.exceptions.NetlinkException;
 
 /** Class used by AbstractNetlinkRequest to manage reply handlers and user given
@@ -121,9 +122,8 @@ public abstract class NetlinkRequest implements Runnable {
     }
 
     public Runnable expired() {
-        NetlinkException.ErrorCode er = NetlinkException.ErrorCode.ETIMEOUT;
         String msg = "request #" + seq + " timeout";
-        return failed(new NetlinkException(er, msg));
+        return failed(new NetlinkException(ErrorCode.ETIMEOUT, msg));
     }
 
     protected void changeState(State nextState, Object data) {
