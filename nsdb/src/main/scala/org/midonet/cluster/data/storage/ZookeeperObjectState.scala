@@ -589,7 +589,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
         objectObservables.getOrElse(key, {
             val observable = NodeObservable.create(curator, path,
-                                                   completeOnDelete = false)
+                                                   completeOnDelete = true)
             objectObservables.putIfAbsent(key, observable).getOrElse(observable)
         }).ignoreElements()
           .map[StateKey](stateKeyMap)
@@ -613,7 +613,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
         singleObservables.getOrElse(index, {
             val observable = NodeObservable.create(curator, path,
-                                                   completeOnDelete = true)
+                                                   completeOnDelete = false)
             singleObservables.putIfAbsent(index, observable)
                              .getOrElse(observable)
         }).map[StateKey](makeFunc1((data: ChildData) => {

@@ -27,27 +27,31 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.StorageWithOwnership
+import org.midonet.cluster.data.storage.{Storage, StateStorage}
 import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.MidonetBackend.AliveKey
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.{Host => SimHost}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPAddr
+import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class HostMapperTest extends MidolmanSpec
                      with TopologyBuilder {
 
     private var vt: VirtualTopology = _
-    private var store: StorageWithOwnership = _
+    private var store: Storage = _
+    private var stateStore: StateStorage = _
     private final val timeout = 5 seconds
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
+        store = injector.getInstance(classOf[MidonetBackend]).store
+        stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
     }
 
     feature("A host should come with its tunnel zones membership") {
@@ -305,8 +309,7 @@ class HostMapperTest extends MidolmanSpec
             hostObs.awaitOnNext(1, timeout) shouldBe true
 
             When("We delete the host")
-            store.delete(classOf[Host], protoHost.getId.asJava,
-                         protoHost.getId.asJava.toString)
+            store.delete(classOf[Host], protoHost.getId.asJava)
 
             Then("We obtain a simulation host with an onComplete notification")
             hostObs.awaitCompletion(timeout)
@@ -465,10 +468,11 @@ class HostMapperTest extends MidolmanSpec
      */
     private def setHostAliveStatus(hostId: UUID, alive: Boolean) = {
         if (alive)
-            store.updateOwner(classOf[Host], hostId.asProto, hostId.toString,
-                              throwIfExists = true)
+            stateStore.addValue(classOf[Host], hostId, AliveKey, AliveKey)
+                      .await(timeout)
         else
-            store.deleteOwner(classOf[Host], hostId.asProto, hostId.toString)
+            stateStore.removeValue(classOf[Host], hostId, AliveKey, null)
+                      .await(timeout)
     }
 
     private def addTunnelZoneToHost(protoHost: Host): (Host, TunnelZone) = {
@@ -479,16 +483,14 @@ class HostMapperTest extends MidolmanSpec
         val newTZId = newProtoTunnelZone.getId.asJava
         val updatedHost = newHost(protoHost.getId,
                                   Set(oldTZId, newTZId))
-        store.update(updatedHost, updatedHost.getId.asJava.toString,
-                     validator = null)
+        store.update(updatedHost)
         (updatedHost, newProtoTunnelZone)
     }
 
     private def removeHostFromAllTunnelZones(protoHost: Host): Host = {
 
         val updatedHost = newHost(protoHost.getId.asJava, Set[UUID]())
-        store.update(updatedHost, protoHost.getId.asJava.toString,
-                     validator = null)
+        store.update(updatedHost)
         updatedHost
     }
 
@@ -520,7 +522,9 @@ class HostMapperTest extends MidolmanSpec
         val protoTunnelZone = newTunnelZone(hostId)
         val protoHost = newHost(hostId, Set(protoTunnelZone.getId.asJava))
         store.create(protoTunnelZone)
-        store.create(protoHost, hostId.toString)
+        store.create(protoHost)
+        stateStore.addValue(classOf[Host], hostId, AliveKey, AliveKey)
+                  .await(timeout)
         (protoHost, protoTunnelZone)
     }
 
