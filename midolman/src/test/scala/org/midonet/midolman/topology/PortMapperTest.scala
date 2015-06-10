@@ -24,25 +24,29 @@ import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, StorageWithOwnership}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.{BridgePort, Port => SimPort, RouterPort, VxLanPort}
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class PortMapperTest extends MidolmanSpec with TopologyBuilder
                      with TopologyMatchers {
 
     private var vt: VirtualTopology = _
-    private var store: StorageWithOwnership = _
+    private var store: Storage = _
+    private var stateStore: StateStorage = _
     private final val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
+        store = injector.getInstance(classOf[MidonetBackend]).store
+        stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
     }
 
     feature("The port mapper emits port devices") {
@@ -208,8 +212,9 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             device1.isActive shouldBe false
 
             When("Adding a first owner to the port")
-            val owner1 = UUID.randomUUID
-            store.updateOwner(classOf[TopologyPort], id, owner1, true)
+            val owner1 = UUID.randomUUID.toString
+            stateStore.addValue(classOf[TopologyPort], id, HostsKey, owner1)
+                .await(timeout)
 
             Then("The observer should receive the update")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -219,20 +224,23 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             device2.isActive shouldBe true
 
             When("Adding a second owner to the port")
-            val owner2 = UUID.randomUUID
-            store.updateOwner(classOf[TopologyPort], id, owner2, true)
+            val owner2 = UUID.randomUUID.toString
+            stateStore.addValue(classOf[TopologyPort], id, HostsKey, owner2)
+                .await(timeout)
 
             Then("The observer should not receive a new update")
             obs.getOnNextEvents.size shouldBe 2
 
             When("Removing the first owner from the port")
-            store.deleteOwner(classOf[TopologyPort], id, owner1)
+            stateStore.removeValue(classOf[TopologyPort], id, HostsKey, owner1)
+                .await(timeout)
 
             Then("The observer should not receive a new update")
             obs.getOnNextEvents.size shouldBe 2
 
             When("Removing the second owner from the port")
-            store.deleteOwner(classOf[TopologyPort], id, owner2)
+            stateStore.removeValue(classOf[TopologyPort], id, HostsKey, owner2)
+                .await(timeout)
 
             Then("The observer should receive a new update")
             obs.awaitOnNext(3, timeout) shouldBe true
