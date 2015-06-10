@@ -16,6 +16,24 @@
       "revId": "6e3ff036f8eee02f89df4c03f5b90131c46d75a3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5d975090",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/IPAllocationPool.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-10T03:58:47Z",
+      "side": 1,
+      "message": "We need to handle the Json output from NMP, so we should expect first_ip / last_ip.",
+      "parentUuid": "facab960_1da7880d",
+      "revId": "6e3ff036f8eee02f89df4c03f5b90131c46d75a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
