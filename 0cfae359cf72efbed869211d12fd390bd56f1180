@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_b3edebf1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/resources/PoolHealthMonitorResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-10T13:04:21Z",
+      "side": 0,
+      "message": "Are these gone now?  I couldn\u0027t spot them in this patch but maybe I lost concentration while I went over all the files.",
+      "revId": "0cfae359cf72efbed869211d12fd390bd56f1180",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
