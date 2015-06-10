@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_1d0b0826",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-10T01:31:16Z",
+      "side": 1,
+      "message": "Does this TODO mean that the following is a to-do item, or that the following behaviour needs to be improved? I think that the former is the case. If so, the TODO item description below can/should go to ClusterNode for later reference, and we should note here just that we don\u0027t handle cases where multiple provides provide a service with the same name properly.",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 5
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5d14b043",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-10T01:31:16Z",
+      "side": 1,
+      "message": "\"the same ClusterService\" or \"a ClusterService with the same name\"?",
+      "range": {
+        "startLine": 41,
+        "startChar": 54,
+        "endLine": 42,
+        "endChar": 14
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_ca771739",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 5
@@ -18,6 +64,52 @@
         "startChar": 20,
         "endLine": 112,
         "endChar": 22
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_fd2ae47c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-10T01:31:16Z",
+      "side": 1,
+      "message": "Please remove.",
+      "range": {
+        "startLine": 117,
+        "startChar": 56,
+        "endLine": 117,
+        "endChar": 60
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5d3bd0d0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-10T01:31:16Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
       },
       "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -64,6 +156,75 @@
         "startChar": 8,
         "endLine": 54,
         "endChar": 43
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9d3558dc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-10T01:31:16Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_dd4e006f",
+        "filename": "midonet-api/src/test/java/org/midonet/api/servlet/JerseyGuiceTestServletContextListener.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-10T01:31:16Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_fd51040f",
+        "filename": "midonet-api/src/test/java/org/midonet/api/servlet/RestApiTestJerseyServletModule.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-10T01:31:16Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
       },
       "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
