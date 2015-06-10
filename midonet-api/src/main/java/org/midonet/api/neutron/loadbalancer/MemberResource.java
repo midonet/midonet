@@ -39,10 +39,10 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.loadbalancer.LBMediaType;
-import org.midonet.cluster.neutron_rest_api.LoadBalancerApi;
-import org.midonet.cluster.data.neutron.loadbalancer.Member;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.neutron.NeutronMediaType;
+import org.midonet.cluster.rest_api.neutron.models.Member;
+import org.midonet.cluster.services.rest_api.neutron.plugin.LoadBalancerApi;
 import org.midonet.event.neutron.PoolMemberEvent;
 
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
@@ -66,7 +66,7 @@ public class MemberResource extends AbstractResource {
 
     @GET
     @Path("{id}")
-    @Produces(LBMediaType.MEMBER_JSON_V1)
+    @Produces(NeutronMediaType.MEMBER_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Member get(@PathParam("id") UUID id) {
         log.info("MemberResource.get entered {}", id);
@@ -81,7 +81,7 @@ public class MemberResource extends AbstractResource {
     }
 
     @GET
-    @Produces(LBMediaType.MEMBERS_JSON_V1)
+    @Produces(NeutronMediaType.MEMBERS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public List<Member> list() {
         log.info("MemberResource.list entered");
@@ -89,8 +89,8 @@ public class MemberResource extends AbstractResource {
     }
 
     @POST
-    @Consumes(LBMediaType.MEMBER_JSON_V1)
-    @Produces(LBMediaType.MEMBER_JSON_V1)
+    @Consumes(NeutronMediaType.MEMBER_JSON_V1)
+    @Produces(NeutronMediaType.MEMBER_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response create(Member member) {
         log.info("PoolMemberResource.create entered {}", member);
@@ -114,8 +114,8 @@ public class MemberResource extends AbstractResource {
 
     @PUT
     @Path("{id}")
-    @Consumes(LBMediaType.MEMBER_JSON_V1)
-    @Produces(LBMediaType.MEMBER_JSON_V1)
+    @Consumes(NeutronMediaType.MEMBER_JSON_V1)
+    @Produces(NeutronMediaType.MEMBER_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response update(@PathParam("id") UUID id, Member member) {
         log.info("PoolMemberResource.update entered {}", member);

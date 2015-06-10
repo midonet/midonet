@@ -19,6 +19,8 @@ import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs;
+
+import org.midonet.cluster.rest_api.neutron.models.ProviderRouter;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.*;

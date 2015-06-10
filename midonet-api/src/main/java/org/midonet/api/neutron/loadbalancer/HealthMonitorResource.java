@@ -37,13 +37,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.neutron.NeutronUriBuilder;
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.loadbalancer.LBMediaType;
-import org.midonet.cluster.neutron_rest_api.LoadBalancerApi;
-import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.neutron.NeutronMediaType;
+import org.midonet.cluster.rest_api.neutron.models.HealthMonitor;
+import org.midonet.cluster.services.rest_api.neutron.plugin.LoadBalancerApi;
 import org.midonet.event.neutron.HealthMonitorEvent;
 
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
@@ -67,7 +67,7 @@ public class HealthMonitorResource extends AbstractResource {
 
     @GET
     @Path("{id}")
-    @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
+    @Produces(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public HealthMonitor get(@PathParam("id") UUID id) {
         LOG.info("HealthMonitorResource.get entered {}", id);
@@ -82,7 +82,7 @@ public class HealthMonitorResource extends AbstractResource {
     }
 
     @GET
-    @Produces(LBMediaType.HEALTH_MONITORS_JSON_V1)
+    @Produces(NeutronMediaType.HEALTH_MONITORS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public List<HealthMonitor> list() {
         LOG.info("HealthMonitorResource.list entered");
@@ -90,8 +90,8 @@ public class HealthMonitorResource extends AbstractResource {
     }
 
     @POST
-    @Consumes(LBMediaType.HEALTH_MONITOR_JSON_V1)
-    @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
+    @Consumes(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
+    @Produces(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public final Response create(HealthMonitor healthMonitor) {
         LOG.info("HealthMonitorResource.create entered {}", healthMonitor);
@@ -115,8 +115,8 @@ public class HealthMonitorResource extends AbstractResource {
 
     @PUT
     @Path("{id}")
-    @Consumes(LBMediaType.HEALTH_MONITOR_JSON_V1)
-    @Produces(LBMediaType.HEALTH_MONITOR_JSON_V1)
+    @Consumes(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
+    @Produces(NeutronMediaType.HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public final Response update(@PathParam("id") UUID id,
                                  HealthMonitor healthMonitor) {

@@ -15,14 +15,7 @@
  */
 package org.midonet.api.neutron;
 
-import com.google.inject.Inject;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.neutron.loadbalancer.LBResource;
-import org.midonet.api.neutron.loadbalancer.LBUriBuilder;
-import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.Neutron;
-import org.midonet.client.neutron.NeutronMediaType;
+import java.net.URI;
 
 import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.GET;
@@ -30,7 +23,17 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
-import java.net.URI;
+
+import com.google.inject.Inject;
+
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.neutron.loadbalancer.LBResource;
+import org.midonet.api.neutron.loadbalancer.LBUriBuilder;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.rest_api.neutron.NeutronMediaType;
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
+import org.midonet.cluster.rest_api.neutron.models.Neutron;
 
 @Path(NeutronUriBuilder.NEUTRON)
 public class NeutronResource extends AbstractResource {
@@ -93,7 +96,7 @@ public class NeutronResource extends AbstractResource {
     @GET
     @RolesAllowed(AuthRole.ADMIN)
     @Produces({NeutronMediaType.NEUTRON_JSON_V1,
-              NeutronMediaType.NEUTRON_JSON_V2})
+               NeutronMediaType.NEUTRON_JSON_V2})
     public Neutron get() {
 
         Neutron neutron = new Neutron();

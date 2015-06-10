@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.WatchableZkManager;
 import org.midonet.cluster.data.Bridge;
-import org.midonet.cluster.data.neutron.Network;
+import org.midonet.cluster.rest_api.neutron.models.Network;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;

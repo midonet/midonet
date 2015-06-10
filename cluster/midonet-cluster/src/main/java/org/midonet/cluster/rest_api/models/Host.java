@@ -31,6 +31,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.util.version.Since;
 import org.midonet.util.version.Until;
