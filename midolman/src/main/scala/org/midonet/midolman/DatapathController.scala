@@ -15,13 +15,8 @@
  */
 package org.midonet.midolman
 
-import java.lang.{Integer => JInteger}
-import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException}
 import java.util.concurrent.ConcurrentHashMap
-import java.util.{Set => JSet, HashMap, UUID}
-import java.io.IOException
-import java.lang.{Boolean => JBoolean, Integer => JInteger}
-import java.nio.ByteBuffer
+import java.lang.{Integer => JInteger}
 import java.util.{Set => JSet, UUID}
 
 import scala.collection.JavaConverters._
@@ -36,7 +31,6 @@ import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 import rx.{Observer, Subscription}
-import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.config.MidolmanConfig
@@ -47,18 +41,17 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.state.{FlowStateStorage, FlowStateStorageFactory}
+import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.netlink._
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
-import org.midonet.odp.{OpenVSwitch, Datapath, DpPort, OvsConnectionOps}
+import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
 import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError, OnNext}
 import org.midonet.util.concurrent._
 
 object UnderlayResolver {

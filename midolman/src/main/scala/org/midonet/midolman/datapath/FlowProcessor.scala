@@ -31,7 +31,7 @@ import org.midonet.netlink._
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowKey}
-import org.midonet.Util
+import org.midonet.{ErrorCode, Util}
 import org.midonet.util.concurrent.{NanoClock, Backchannel}
 
 object FlowProcessor {
@@ -185,10 +185,10 @@ class FlowProcessor(dpState: DatapathState,
             log.warn("Unexpected reply; probably the late answer of a request that timed out")
 
         override def onError(e: Throwable): Unit = e match {
-            case ne: NetlinkException if ne.getErrorCodeEnum == NetlinkException.ErrorCode.EEXIST =>
+            case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
                 log.debug("Tried to add duplicate DP flow")
             case ne: NetlinkException =>
-                log.warn(s"Unexpected error with code ${ne.getErrorCodeEnum}; " +
+                log.warn(s"Unexpected error ${ne.getErrorCodeEnum}; " +
                          "probably the late answer of a request that timed out")
             }
 
