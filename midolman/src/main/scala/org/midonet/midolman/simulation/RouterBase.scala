@@ -208,7 +208,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 context.log.debug(s"No route to network (dst:$dstIP)")
                 sendAnswer(inPort.id,
                            icmpErrors.unreachableNetIcmp(inPort, context))
-                return (rt, Drop)
+                return (rt, TemporaryDrop)
             }
 
             val action = rt.nextHop match {
@@ -237,13 +237,12 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                                icmpErrors.unreachableProhibitedIcmp(inPort, context))
                     context.log.debug("Dropping packet, REJECT route (dst:{})",
                         fmatch.getNetworkDstIP)
-                    Drop
+                    TemporaryDrop
 
                 case Route.NextHop.PORT if rt.nextHopPort == null =>
                     context.log.error(
                         "Routing table lookup for {} forwarded to port null.", dstIP)
-                    // TODO(pino): should we remove this route?
-                    Drop
+                    TemporaryDrop
 
                 case Route.NextHop.PORT =>
                     applyTimeToLive() match {
@@ -254,32 +253,11 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                     context.log.warn(
                         "Routing table lookup for {} returned invalid nextHop of {}",
                         dstIP, rt.nextHop)
-                    // rt.nextHop is invalid. The only way the simulation result
-                    // would change is if there are other matching routes that are
-                    // 'sane'. If such routes were created, this flow will be
-                    // invalidated. Thus, we can return Drop and not
-                    // TemporaryDrop.
-                    Drop
+                    TemporaryDrop
             }
 
             (rt, action)
         }
-
-        def applyTagsForRoute(route: Route, simRes: SimulationResult): Unit =
-            simRes match {
-                case TemporaryDrop | NoOp =>
-                case a => // We don't want to tag a temporary flow (e.g. created by
-                          // a BLACKHOLE route), and we do that to avoid excessive
-                          // interaction with the RouterManager, who needs to keep
-                          // track of every IP address the router gives to it.
-                    if (route != null) {
-                        context.addFlowTag(FlowTagger.tagForRoute(route))
-                    }
-                    context.addFlowTag(FlowTagger.tagForDestinationIp(id, dstIP))
-                    routerMgrTagger.addTag(dstIP)
-                    context.addFlowRemovedCallback(
-                        routerMgrTagger.getFlowRemovalCallback(dstIP))
-            }
 
         val (rt, action) = applyRoutingTable()
 
@@ -292,6 +270,9 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             case _ => action
         }
     }
+
+    protected def applyTagsForRoute(route: Route,
+        simRes: SimulationResult)(implicit context: PacketContext): Unit
 
     // POST ROUTING
     @throws[NotYetException]

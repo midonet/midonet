@@ -349,7 +349,7 @@ applied is the `FlowController`, explained above.
 
 But some other examples exist too:
 
-* Flow invalidation in the routing table. (`InvalidationTrie`)
+* Flow invalidation in the routing table. (`RouterManager`)
 * Flow book keeping (`FlowController`, `FlowManager`).
 * MAC learning table (`BridgeManager`).
 * ARP table (`ArpTableImpl`).
