@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_1da7880d",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/IPAllocationPool.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-10T03:27:16Z",
+      "side": 1,
+      "message": "actually neutron seems to send us start/end.\n\nin their db models, it\u0027s first_ip/last_ip.\nin their python dicts, which is a part of plugin api, it\u0027s start/end.\nNMP just converts the dict to json.\n\nhttps://github.com/openstack/neutron/blob/master/neutron/db/db_base_plugin_common.py#L94-L96",
+      "revId": "6e3ff036f8eee02f89df4c03f5b90131c46d75a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
