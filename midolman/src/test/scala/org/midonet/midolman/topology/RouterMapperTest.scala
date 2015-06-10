@@ -18,7 +18,6 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
-import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
@@ -32,7 +31,7 @@ import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.layer3.{InvalidationTrie, Route}
+import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.simulation.{Router => SimulationRouter}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
@@ -59,7 +58,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     implicit def asIPSubnet(str: String): IPSubnet[_] = IPSubnet.fromString(str)
-    implicit def asIPAddres(str: String): IPAddr = IPv4Addr(str)
+    implicit def asIPAddres(str: String): IPv4Addr = IPv4Addr(str)
     implicit def asMAC(str: String): MAC = MAC.fromString(str)
     implicit def asRoute(str: String): Route =
         new Route(0, 0, IPv4Addr(str).toInt, 32, null, null, 0, 0, null, null)
@@ -686,30 +685,31 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val obs = createObserver()
             val mapper = testRouterCreated(obs)._2
             val tagManager = obs.getOnNextEvents.get(0).routerMgrTagger
+            val ip: IPv4Addr = "10.0.0.1"
 
             When("Adding a destination IP")
-            tagManager.addTag("10.0.0.1")
+            tagManager.addIPv4Tag(ip, 0)
 
             Then("The tag to flow count should contain the IP")
             eventually {
-                mapper.tagToFlowCount should contain (IPv4Addr("10.0.0.1") -> 1)
+                mapper.dstIpTagTrie.countRefs(ip.toInt) should be (1)
             }
 
             When("Adding the IP a second time")
-            tagManager.addTag("10.0.0.1")
+            tagManager.addIPv4Tag(ip, 0)
 
             Then("The tag to flow count should increment the count")
             eventually {
-                mapper.tagToFlowCount should contain (IPv4Addr("10.0.0.1") -> 2)
+                mapper.dstIpTagTrie.countRefs(ip.toInt) should be (2)
             }
 
             When("Removing the IP")
-            val callback = tagManager.getFlowRemovalCallback("10.0.0.1")
+            val callback = tagManager.getFlowRemovalCallback(ip)
             callback.call()
 
             Then("The tag to flow count should decrement the count")
             eventually {
-                mapper.tagToFlowCount should contain (IPv4Addr("10.0.0.1") -> 1)
+                mapper.dstIpTagTrie.countRefs(ip.toInt) should be (1)
             }
 
             When("Removing the IP a second time")
@@ -717,7 +717,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("The tag to flow count should remove the IP")
             eventually {
-                mapper.tagToFlowCount should not contain key(IPv4Addr("10.0.0.1"))
+                mapper.dstIpTagTrie.countRefs(ip.toInt) should be (0)
             }
         }
 
@@ -727,13 +727,11 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val tagManager = obs.getOnNextEvents.get(0).routerMgrTagger
 
             When("Adding a destination IP")
-            tagManager.addTag("10.0.0.1")
+            tagManager.addIPv4Tag("10.0.0.1", 0)
 
             Then("The invalidation trie should contain the IP")
             eventually {
-                val subTree = mapper.dstIpTagTrie.projectRouteAndGetSubTree("10.0.0.1")
-                val ips = InvalidationTrie.getAllDescendantsIpDestination(subTree)
-                ips.asScala should contain only IPv4Addr("10.0.0.1")
+                mapper.dstIpTagTrie(IPv4Addr("10.0.0.1").toInt) should be (0)
             }
 
             When("Removing the destination IP")
@@ -741,9 +739,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("The invalidation trie should not contain the IP")
             eventually {
-                val subTree = mapper.dstIpTagTrie.projectRouteAndGetSubTree("10.0.0.1")
-                val ips = InvalidationTrie.getAllDescendantsIpDestination(subTree)
-                ips.asScala shouldBe empty
+                mapper.dstIpTagTrie shouldBe empty
             }
         }
     }
@@ -763,7 +759,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val tagManager = obs.getOnNextEvents.get(0).routerMgrTagger
 
             When("Adding a destination IP")
-            tagManager.addTag("2.0.0.1")
+            tagManager.addIPv4Tag("2.0.0.1", 0)
 
             When("Adding a route to the router")
             val route = createRoute(srcNetwork = "1.0.0.0/24",

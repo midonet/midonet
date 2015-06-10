@@ -167,7 +167,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst addressInSegment(port1) } <<
                   { udp src 10 dst 11 }
         val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort.getId, generatedPackets))
-        simRes should be (Drop)
+        simRes should be (TemporaryDrop)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   IPv4Addr.fromString(uplinkPortAddr), fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB.toByte)
@@ -206,7 +206,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst IPv4Addr.fromString("45.44.33.22") } <<
                   { udp src 10 dst 11 }
         val (simRes, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
-        simRes should be (Drop)
+        simRes should be (TemporaryDrop)
         matchIcmp(port1, port1.getHwAddr, fromMac,
                   IPv4Addr.fromString(port1.getPortAddr), fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
@@ -315,7 +315,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { udp src 10 dst 11 }
 
         val (simRes, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
-        simRes should be (Drop)
+        simRes should be (TemporaryDrop)
 
         matchIcmp(port1, port1.getHwAddr, fromMac,
                   IPv4Addr.fromString(port1.getPortAddr), fromIp,
@@ -386,7 +386,7 @@ class RouterSimulationTest extends MidolmanSpec {
               { ip4 src fromIp dst toIp } <<
               { icmp.echo request }
         val (simRes3, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
-        simRes3 should be (Drop)
+        simRes3 should be (TemporaryDrop)
         matchIcmp(port1, port1.getHwAddr, fromMac, IPv4Addr(port1.getPortAddr),
                   fromIp, ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
 
