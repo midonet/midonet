@@ -201,6 +201,29 @@
     },
     {
       "key": {
+        "uuid": "facab960_bd169cef",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-10T10:51:46Z",
+      "side": 1,
+      "message": "This seems unnecessarily verbose. Every line produced by this log is going to be prefixed with \"org.midonet.cluster.util.NodeObservable-\" plus the path. Could we just make it s\"NodeObservable-$path\"? There\u0027s not really a need to disambiguate, is there?",
+      "range": {
+        "startLine": 78,
+        "startChar": 20,
+        "endLine": 78,
+        "endChar": 54
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_ea45bbb3",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
         "patchSetId": 7
@@ -242,6 +265,23 @@
         "endLine": 179,
         "endChar": 48
       },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_20a7bf0d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 186,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-10T10:51:46Z",
+      "side": 1,
+      "message": "event.getResultCode match {...} would be a bit more clear, I think.",
       "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -429,6 +469,93 @@
         "startChar": 28,
         "endLine": 44,
         "endChar": 36
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_000abbd1",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/NodeObservableTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-10T10:51:46Z",
+      "side": 1,
+      "message": "1 second looks like asking for random test failures. Are you sure it will always be enough?",
+      "parentUuid": "facab960_bd7dbcb3",
+      "range": {
+        "startLine": 44,
+        "startChar": 28,
+        "endLine": 44,
+        "endChar": 36
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_20289f33",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/NodeObservableTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-10T10:51:46Z",
+      "side": 1,
+      "message": "There are many places in this class where you check the size of these three lists. What if you gave TestObserver a function like this?\n\n    def checkEvents(onNext: List[String] \u003d List(),\n                    completed: Boolean \u003d false,\n                    errClass: Option[Class[_]] \u003d None): Unit \u003d {\n        val received \u003d getOnNextEvents.asScala.toList\n            .map(cd \u003d\u003e new String(cd.getData))\n        received shouldBe onNext\n\n        getOnCompletedEvents.size shouldBe (if (completed) 1 else 0)\n\n        errClass match {\n            case None \u003d\u003e getOnErrorEvents shouldBe empty\n            case Some(ec) \u003d\u003e\n                getOnErrorEvents.size shouldBe 1\n                getOnErrorEvents.get(0).getClass shouldBe ec\n        }\n    }\n\nI assume there are a bunch of other tests that could use this, as well.",
+      "range": {
+        "startLine": 60,
+        "startChar": 0,
+        "endLine": 62,
+        "endChar": 50
+      },
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a0dcaf13",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/NodeObservableTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-10T10:51:46Z",
+      "side": 1,
+      "message": "Why error and not completion?",
+      "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c0ee13b4",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/util/NodeObservableTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-10T10:51:46Z",
+      "side": 1,
+      "message": "Would it be reasonable to test recovery from suspension with a mocked curator? I haven\u0027t really thought through it, so I\u0027m not sure how much behavior would have to be mocked. If you can do it without too much trouble, I think it would be nice to have.",
+      "range": {
+        "startLine": 177,
+        "startChar": 6,
+        "endLine": 177,
+        "endChar": 34
       },
       "revId": "e80e6ee05bf1f32c9f552c3daa0e59a97f8ed66d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
