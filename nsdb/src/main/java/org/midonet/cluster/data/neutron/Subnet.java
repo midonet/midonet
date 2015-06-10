@@ -83,7 +83,7 @@ public class Subnet extends ZoomObject {
     public String gatewayIp;
 
     @JsonProperty("allocation_pools")
-    @ZoomField(name = "allocation_pools", converter = IPAddressUtil.Converter.class)
+    @ZoomField(name = "allocation_pools")
     public List<IPAllocationPool> allocationPools = new ArrayList<>();
 
     @JsonProperty("dns_nameservers")
