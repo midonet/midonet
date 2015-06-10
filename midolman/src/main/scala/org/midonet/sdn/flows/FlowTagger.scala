@@ -19,7 +19,7 @@ package org.midonet.sdn.flows
 import java.util.{UUID, WeakHashMap}
 import java.lang.ref.WeakReference
 
-import org.midonet.packets.{IPAddr, MAC}
+import org.midonet.packets.{IPv6Addr, IPv4Addr, IPAddr, MAC}
 import org.midonet.midolman.layer3.Route
 
 object FlowTagger {
@@ -328,9 +328,8 @@ object FlowTagger {
         tag
     }
 
-    /**
-     * Tag for the flows associated with a particular IP when
-     * it changes on the specified router's ARP table.
+    /*
+     * Tag for destination IP addresses that traverse a routing table
      */
     case class DestinationIpTag(routerId: UUID, ipDestination: IPAddr) extends FlowTag {
         override def toString = "rtr_ip:" + routerId + ":" + ipDestination
@@ -340,12 +339,47 @@ object FlowTagger {
         override def initialValue = new TagsTrie
     }
 
-    def tagForDestinationIp(routerId: UUID, ipDestination: IPAddr): FlowTag = {
+    def tagForDestinationIp(routerId: UUID, ipDestination: IPv6Addr): FlowTag = {
         val segment = cachedDestinationIpTags.get().getOrAddSegment(routerId)
                                                    .getOrAddSegment(ipDestination)
         var tag = segment.value
         if (tag eq null) {
             tag = new DestinationIpTag(routerId, ipDestination)
+            segment.value = tag
+        }
+        tag
+    }
+
+    def tagForDestinationIp(routerId: UUID, ipDestination: IPv4Addr): FlowTag = {
+        val ip = IPv4Addr(ipDestination.toInt & 0xfffffff0)
+        val segment = cachedDestinationIpTags.get().getOrAddSegment(routerId)
+            .getOrAddSegment(ip)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new DestinationIpTag(routerId, ip)
+            segment.value = tag
+        }
+        tag
+    }
+
+    /**
+     * Tag for the flows associated with a particular IP when
+     * it changes on the specified router's ARP table.
+     */
+    case class ArpEntryTag(routerId: UUID, ipDestination: IPAddr) extends FlowTag {
+        override def toString = "rtr_arp_entry:" + routerId + ":" + ipDestination
+    }
+
+    val cachedArpEntryTags = new ThreadLocal[TagsTrie] {
+        override def initialValue = new TagsTrie
+    }
+
+    def tagForArpEntry(routerId: UUID, ipDestination: IPAddr): FlowTag = {
+        val segment = cachedArpEntryTags.get().getOrAddSegment(routerId)
+            .getOrAddSegment(ipDestination)
+        var tag = segment.value
+        if (tag eq null) {
+            tag = new ArpEntryTag(routerId, ipDestination)
             segment.value = tag
         }
         tag

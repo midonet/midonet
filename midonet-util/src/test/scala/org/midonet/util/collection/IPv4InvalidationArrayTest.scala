@@ -58,8 +58,10 @@ class IPv4InvalidationArrayTest extends FeatureSpec with BeforeAndAfterEach with
             for (i <- 0xf to(0, -1)) {
                 array.apply(base + i) should be (27)
                 array.unref(base + i) should be (i)
+                array.countRefs(base + i) should be (i)
                 array.apply(base + i + 0x10) should be (19)
                 array.unref(base + i + 0x10) should be (i)
+                array.countRefs(base + i + 0x10) should be (i)
             }
         }
 
