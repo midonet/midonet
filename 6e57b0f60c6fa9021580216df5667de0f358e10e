@@ -22,6 +22,30 @@
       "revId": "6e57b0f60c6fa9021580216df5667de0f358e10e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_33171b53",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-10T14:53:33Z",
+      "side": 1,
+      "message": "Yes of course, thanks for spotting this!",
+      "parentUuid": "facab960_33cf1bb2",
+      "range": {
+        "startLine": 278,
+        "startChar": 13,
+        "endLine": 278,
+        "endChar": 29
+      },
+      "revId": "6e57b0f60c6fa9021580216df5667de0f358e10e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
