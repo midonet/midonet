@@ -25,10 +25,8 @@ import scala.concurrent.duration.DurationInt
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 
 import org.midonet.cluster.data.ZoomConvert
@@ -470,6 +468,109 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Then("We receive only one update")
             obs.awaitOnNext(5, timeout) shouldBe true
             obs.getOnNextEvents should have size 5
+        }
+
+        scenario("A chain with a rule that changes its IPAddrGroup reference") {
+            Given("A chain with one rule")
+            val chainId = UUID.randomUUID()
+            val rule = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT)
+            val chain = buildAndStoreChain(chainId, "test-chain",
+                                           Set(rule.getId.asJava))
+
+            When("We subscribe to the chain")
+            val (_, obs) = subscribeToChain(count = 1, chainId)
+
+            Then("We receive the chain with the rule")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+            val simChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, simChain, List(rule), jumpChain = null)
+
+            And("When we add two IPAddrGroup to the rule")
+            var ipAddrGroupSrc = buildAndStoreIPAddrGroup("192.168.0.1",
+                                                          "ipAddrGroupSrc")
+            val ipAddrGroupDst = buildAndStoreIPAddrGroup("192.168.0.2",
+                                                          "ipAddrGroupDst")
+            var updatedRule = setCondition(rule.toBuilder,
+                ipAddrGroupIdSrc = Some(ipAddrGroupSrc.getId),
+                ipAddrGroupIdDst = Some(ipAddrGroupDst.getId)).build()
+            store.update(updatedRule)
+
+            Then("We receive the rule with the two IPAddrGroups")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            var updatedSimChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, updatedSimChain, List(updatedRule),
+                         jumpChain = null,
+                         Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc,
+                             ipAddrGroupDst.getId.asJava -> ipAddrGroupDst))
+
+            And("When we remove the two IPAddrGroups from the rule")
+            updatedRule = rule.toBuilder
+                              .clearIpAddrGroupIdSrc()
+                              .clearIpAddrGroupIdDst()
+                              .build()
+            store.update(updatedRule)
+
+            Then("We receive the rule with no IPAddrGroups")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents should have size 3
+            updatedSimChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, updatedSimChain, List(updatedRule),
+                         jumpChain = null)
+
+            And("When we add a source IPAddrGroup to the rule")
+            ipAddrGroupSrc = buildAndStoreIPAddrGroup("192.168.0.3",
+                                                      "ipAddrGroupSrc")
+            updatedRule =
+                setCondition(updatedRule.toBuilder,
+                             ipAddrGroupIdSrc = Some(ipAddrGroupSrc.getId))
+                    .build()
+            store.update(updatedRule)
+
+            Then("We receive the rule with the new source IPAddrGroup")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            obs.getOnNextEvents should have size 4
+            updatedSimChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, updatedSimChain, List(updatedRule),
+                         jumpChain = null,
+                         Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc))
+            updatedSimChain.getRules.get(0)
+                .getCondition.ipAddrGroupIdDst shouldBe null
+            updatedSimChain.getRules.get(0)
+                .getCondition.ipAddrGroupDst shouldBe null
+
+            And("When we change the source IPAddrGroup reference")
+            ipAddrGroupSrc = buildAndStoreIPAddrGroup("192.168.0.4",
+                                                      "ipAddrGroupSrc")
+            updatedRule =
+                setCondition(updatedRule.toBuilder,
+                             ipAddrGroupIdSrc = Some(ipAddrGroupSrc.getId))
+                    .build()
+            store.update(updatedRule)
+
+            Then("We receive the rule with the updated source IPAddrGroup")
+            obs.awaitOnNext(5, timeout) shouldBe true
+            obs.getOnNextEvents should have size 5
+            updatedSimChain = obs.getOnNextEvents.asScala.last
+            assertEquals(chain, updatedSimChain, List(updatedRule),
+                         jumpChain = null,
+                         Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc))
+            updatedSimChain.getRules.get(0)
+                .getCondition.ipAddrGroupIdDst shouldBe null
+            updatedSimChain.getRules.get(0)
+                .getCondition.ipAddrGroupDst shouldBe null
+
+            And("When we update the rule's IPAddrGroupIdSrc with the previous id")
+            store.update(updatedRule)
+            And("We update the rule")
+            store.update(updatedRule.toBuilder
+                                    .setAction(ProtoRule.Action.CONTINUE)
+                                    .build())
+
+            Then("We receive a single notification")
+            obs.awaitOnNext(6, timeout) shouldBe true
+            obs.getOnNextEvents should have size 6
         }
     }
 
