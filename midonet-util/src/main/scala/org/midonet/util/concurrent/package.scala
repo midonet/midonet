@@ -27,7 +27,8 @@ package object concurrent {
      */
     implicit def toFutureOps[T](f: Future[T]): FutureOps[T] = new FutureOps(f)
 
-    implicit def toCompanionFutureOps(f: Future.type) = new FutureCompanionOps(f)
+    implicit def toCompanionFutureOps(f: Future.type): FutureCompanionOps[_] =
+        new FutureCompanionOps(f)
 
     implicit class ExecutionContextOps(val ec: ExecutionContext.type)
             extends AnyVal {
