@@ -25,10 +25,9 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import org.midonet.api.ResourceTest;
-import org.midonet.cluster.data.neutron.SecurityGroup;
+import org.midonet.cluster.rest_api.neutron.models.SecurityGroup;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
-import org.midonet.midolman.state.NoStatePathException;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;

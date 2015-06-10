@@ -38,10 +38,10 @@ import org.slf4j.Logger;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.NeutronMediaType;
-import org.midonet.cluster.neutron_rest_api.L3Api;
-import org.midonet.cluster.data.neutron.Router;
-import org.midonet.cluster.data.neutron.RouterInterface;
+import org.midonet.cluster.services.rest_api.neutron.NeutronMediaType;
+import org.midonet.cluster.services.rest_api.neutron.plugin.L3Api;
+import org.midonet.cluster.rest_api.neutron.models.Router;
+import org.midonet.cluster.rest_api.neutron.models.RouterInterface;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.event.neutron.RouterEvent;
 

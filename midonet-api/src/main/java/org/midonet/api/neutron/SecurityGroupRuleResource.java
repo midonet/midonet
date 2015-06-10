@@ -38,9 +38,9 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.NeutronMediaType;
-import org.midonet.cluster.neutron_rest_api.SecurityGroupApi;
-import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.cluster.services.rest_api.neutron.NeutronMediaType;
+import org.midonet.cluster.services.rest_api.neutron.plugin.SecurityGroupApi;
+import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
 import org.midonet.event.neutron.SecurityGroupRuleEvent;
 
 public class SecurityGroupRuleResource extends AbstractResource {

@@ -34,7 +34,7 @@ import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
-import org.midonet.cluster.data.neutron.ExtraDhcpOpt;
+import org.midonet.cluster.rest_api.neutron.models.ExtraDhcpOpt;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.ports.VxLanPort;

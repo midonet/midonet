@@ -22,19 +22,9 @@ import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
 
 import org.midonet.api.ResourceUriBuilder;
+import org.midonet.cluster.rest_api.neutron.NeutronResourceUris;
 
-public class NeutronUriBuilder {
-
-    public static final String NEUTRON = "/neutron";
-    public final static String NETWORKS = "/networks";
-    public final static String SUBNETS = "/subnets";
-    public final static String PORTS = "/ports";
-    public final static String ROUTERS = "/routers";
-    public final static String ADD_ROUTER_INTF = "/add_router_interface";
-    public final static String REMOVE_ROUTER_INTF = "/remove_router_interface";
-    public final static String FLOATING_IPS = "/floating_ips";
-    public final static String SECURITY_GROUPS = "/security_groups";
-    public final static String SECURITY_GROUP_RULES = "/security_group_rules";
+public class NeutronUriBuilder extends NeutronResourceUris {
 
     public static URI getNeutron(URI baseUri) {
         return UriBuilder.fromUri(ResourceUriBuilder.getRoot(baseUri)).path(
