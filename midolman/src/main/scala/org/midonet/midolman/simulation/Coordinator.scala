@@ -135,8 +135,8 @@ class Coordinator(context: PacketContext)
             case (PacketWorkflow.Drop, action) => action
             case (action, PacketWorkflow.Drop) => action
 
-            case (PacketWorkflow.TemporaryDrop, _) => TemporaryDrop
-            case (_, PacketWorkflow.TemporaryDrop) => TemporaryDrop
+            case (PacketWorkflow.ErrorDrop, _) => ErrorDrop
+            case (_, PacketWorkflow.ErrorDrop) => ErrorDrop
 
             case (firstAction, secondAction) =>
                 val clazz1 = firstAction.getClass
@@ -194,7 +194,7 @@ class Coordinator(context: PacketContext)
     : SimulationResult =
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
-            TemporaryDrop
+            ErrorDrop
         } else {
             val port = tryAsk[Port](portID)
             context.addFlowTag(port.deviceTag)
@@ -227,7 +227,7 @@ class Coordinator(context: PacketContext)
             case other =>
                 log.error("Port filter {} returned {} which was " +
                         "not ACCEPT, DROP or REJECT.", filterID, other)
-                TemporaryDrop
+                ErrorDrop
         }
     }
 
@@ -252,7 +252,7 @@ class Coordinator(context: PacketContext)
                         packetIngressesPort(p.peerId, getPortGroups = false)
                     case _ =>
                         log.warn("Port {} is unplugged", portID)
-                        TemporaryDrop
+                        ErrorDrop
                 })
         }
     }

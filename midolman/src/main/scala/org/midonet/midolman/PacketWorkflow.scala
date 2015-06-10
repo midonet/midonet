@@ -61,7 +61,8 @@ object PacketWorkflow {
     trait SimulationResult
     case object NoOp extends SimulationResult
     case object Drop extends SimulationResult
-    case object TemporaryDrop extends SimulationResult
+    case object ErrorDrop extends SimulationResult
+    case object ShortDrop extends SimulationResult
     case object AddVirtualWildcardFlow extends SimulationResult
     case object StateMessage extends SimulationResult
     case object UserspaceFlow extends SimulationResult
@@ -125,7 +126,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         val tunnelKey = context.wcmatch.getTunnelKey
         dpState.dpPortForTunnelKey(tunnelKey) match {
             case null =>
-                processSimulationResult(context, TemporaryDrop)
+                processSimulationResult(context, ErrorDrop)
             case dpPort =>
                 addActionsForTunnelPacket(context, dpPort)
                 addTranslatedFlow(context, FlowExpirationIndexer.TUNNEL_FLOW_EXPIRATION)
@@ -452,7 +453,7 @@ class PacketWorkflow(
     private def handlePacketIngress(context: PacketContext): SimulationResult = {
         if (!context.origMatch.isUsed(Field.InputPortNumber)) {
             context.log.error("packet had no inPort number")
-            processSimulationResult(context, TemporaryDrop)
+            processSimulationResult(context, ErrorDrop)
         }
 
         val inPortNo = context.origMatch.getInputPortNumber
@@ -491,8 +492,13 @@ class PacketWorkflow(
                     applyState(context)
                 context.flowRemovedCallbacks.runAndClear()
                 NoOp
-            case TemporaryDrop =>
+            case ErrorDrop =>
                 context.clearFlowTags()
+                addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
+            case ShortDrop =>
+                context.clearFlowTags()
+                if (context.containsFlowState)
+                    applyState(context)
                 addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
             case Drop =>
                 if (context.containsFlowState)

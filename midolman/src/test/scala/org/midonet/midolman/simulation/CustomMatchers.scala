@@ -30,6 +30,8 @@ import org.scalatest.matchers._
 
 import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, SimulationResult, AddVirtualWildcardFlow}
 import org.midonet.midolman.flows.{FlowTagIndexer, FlowInvalidator}
+import org.midonet.midolman.PacketWorkflow._
+import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
 import org.midonet.packets.{Ethernet, IPv4}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
@@ -47,7 +49,7 @@ trait CustomMatchers {
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =
                 BePropertyMatchResult(simRes._1 match {
-                    case x if x == Drop || x == TemporaryDrop =>
+                    case x if x == Drop || x == ErrorDrop || x == ShortDrop =>
                         expectedTags forall simRes._2.flowTags.contains
                     case _ =>
                         false

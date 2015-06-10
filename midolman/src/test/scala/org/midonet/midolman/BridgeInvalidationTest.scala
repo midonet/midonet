@@ -25,7 +25,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter}
-import org.midonet.midolman.PacketWorkflow.TemporaryDrop
+import org.midonet.midolman.PacketWorkflow.ErrorDrop
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.topology.BridgeManager.CheckExpiredMacPorts
@@ -228,7 +228,7 @@ class BridgeInvalidationTest extends MidolmanSpec
 
             And("If a packet with the same dst mac comes from that port")
             val (_, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
-            action should be (TemporaryDrop)
+            action should be (ErrorDrop)
         }
     }
 
