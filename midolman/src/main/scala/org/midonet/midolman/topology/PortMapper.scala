@@ -21,6 +21,7 @@ import rx.Observable
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.util.functors.{makeAction0, makeFunc1, makeFunc2}
@@ -66,10 +67,10 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
         .combineLatest[TopologyPort, Boolean, SimulationPort](
             vt.store.observable(classOf[TopologyPort], id)
                 .distinctUntilChanged,
-            vt.store.ownersObservable(classOf[TopologyPort], id)
+            vt.stateStore.keyObservable(classOf[TopologyPort], id, HostsKey)
                 .map[Boolean](makeFunc1(_.nonEmpty))
                 .distinctUntilChanged
-                .onErrorResumeNext(Observable.empty),
+                .onErrorResumeNext(Observable.empty()),
             combinator)
         .observeOn(vt.vtScheduler)
         .doOnCompleted(makeAction0(portDeleted()))

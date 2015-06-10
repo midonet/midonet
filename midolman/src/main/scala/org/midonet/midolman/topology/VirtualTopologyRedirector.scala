@@ -63,7 +63,7 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
     private val newBackend: MidonetBackend = null
 
     protected def manageDevice(request: DeviceRequest, createManager: Boolean): Unit
-    protected def deviceRequested(request: DeviceRequest): Unit
+    protected def deviceRequested(request: DeviceRequest, useCache: Boolean): Unit
     protected def deviceUpdated(id: UUID, device: Device): Unit
     protected def deviceDeleted(id: UUID): Unit
     protected def deviceError(id: UUID, e: Throwable): Unit
@@ -76,18 +76,25 @@ abstract class VirtualTopologyRedirector extends Actor with MidolmanLogging {
         log.info("Topology redirector request for device: {}", request.id)
 
         // Get or create the virtual topology subscriber for this device.
+        var useCache = true
         subscriptions.getOrElseUpdate(request.id, {
             log.debug("Create device subscriber for device {}", request.id)
 
             val subscriber = new DeviceSubscriber(request.id)
             VirtualTopology.observable[D](request.id).subscribe(subscriber)
             manageDevice(request, createManager = false)
+
+            // Do not use the cache during the initial subscribe, to prevent
+            // duplicate notification of the same update: once from the cache,
+            // and once during the notification through the actor.
+            useCache = false
+
             subscriber
         })
 
         // Call the device requested method to add the sender to the client/
         // subscribers list.
-        deviceRequested(request)
+        deviceRequested(request, useCache)
     }
 
     /** Processes a device unsubscribe */

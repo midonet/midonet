@@ -308,14 +308,15 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         idToSubscribers.put(req.id, mutable.Set[ActorRef]())
     }
 
-    protected override def deviceRequested(req: DeviceRequest): Unit = {
+    protected override def deviceRequested(req: DeviceRequest,
+                                           useCache: Boolean): Unit = {
         val device = VirtualTopology.self.devices.get(req.id)
-        if (device eq null) {
+        if ((device ne null) && useCache) {
+            sender ! device
+        } else {
             log.debug("Adding requester {} to unanswered clients for {}",
                       sender(), req)
             idToUnansweredClients(req.id).add(sender())
-        } else {
-            sender ! device
         }
 
         if (req.update) {
@@ -402,7 +403,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
         case r: DeviceRequest =>
             log.debug("Received: {}", r)
             manageDevice(r, createManager = true)
-            deviceRequested(r)
+            deviceRequested(r, useCache = true)
         case u: Unsubscribe => unsubscribe(u.id, sender())
         case bridge: Bridge =>
             log.debug("Received device: {}", bridge)
