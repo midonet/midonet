@@ -52,6 +52,24 @@
       "revId": "6e3ff036f8eee02f89df4c03f5b90131c46d75a3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5de830e2",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/IPAllocationPool.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-10T05:41:02Z",
+      "side": 1,
+      "message": "Oh that\u0027s right, in the plugin we send the data that is stored in DB, not what the user sends in the API request, and the DB model has \u0027start\u0027 and \u0027end\u0027.  So I believe the deserialization was correct.  Perhaps the error we saw was from something else...",
+      "parentUuid": "facab960_ddea800e",
+      "revId": "6e3ff036f8eee02f89df4c03f5b90131c46d75a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
