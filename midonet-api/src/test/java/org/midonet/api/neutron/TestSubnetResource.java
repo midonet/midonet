@@ -25,7 +25,8 @@ import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import org.midonet.api.ResourceTest;
-import org.midonet.cluster.data.neutron.Subnet;
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
+import org.midonet.cluster.rest_api.neutron.models.Subnet;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 

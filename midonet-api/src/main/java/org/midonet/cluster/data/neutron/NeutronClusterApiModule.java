@@ -17,10 +17,10 @@ package org.midonet.cluster.data.neutron;
 
 import com.google.inject.PrivateModule;
 
-import org.midonet.cluster.neutron_rest_api.L3Api;
-import org.midonet.cluster.neutron_rest_api.LoadBalancerApi;
-import org.midonet.cluster.neutron_rest_api.NetworkApi;
-import org.midonet.cluster.neutron_rest_api.SecurityGroupApi;
+import org.midonet.cluster.services.rest_api.neutron.plugin.L3Api;
+import org.midonet.cluster.services.rest_api.neutron.plugin.LoadBalancerApi;
+import org.midonet.cluster.services.rest_api.neutron.plugin.NetworkApi;
+import org.midonet.cluster.services.rest_api.neutron.plugin.SecurityGroupApi;
 
 public class NeutronClusterApiModule extends PrivateModule {
 

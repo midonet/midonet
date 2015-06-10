@@ -26,11 +26,13 @@ import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
 
-import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
-import org.midonet.cluster.data.neutron.loadbalancer.Member;
-import org.midonet.cluster.data.neutron.loadbalancer.Pool;
-import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
-import org.midonet.cluster.data.neutron.loadbalancer.VIP;
+import org.midonet.cluster.rest_api.neutron.models.HealthMonitor;
+import org.midonet.cluster.rest_api.neutron.models.Member;
+import org.midonet.cluster.rest_api.neutron.models.Pool;
+import org.midonet.cluster.rest_api.neutron.models.PoolHealthMonitor;
+import org.midonet.cluster.rest_api.neutron.models.VIP;
+import org.midonet.cluster.rest_api.neutron.models.Network;
+import org.midonet.cluster.rest_api.neutron.models.Subnet;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;

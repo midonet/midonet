@@ -15,7 +15,7 @@
  */
 package org.midonet.api;
 
-import org.midonet.api.neutron.NeutronUriBuilder;
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.util.version.Since;
 
 import javax.xml.bind.annotation.XmlRootElement;

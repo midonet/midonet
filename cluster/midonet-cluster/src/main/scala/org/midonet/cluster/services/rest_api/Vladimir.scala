@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api
 
 import java.util
-
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.ext.Provider
 import javax.ws.rs.{Consumes, Produces}
@@ -26,7 +25,6 @@ import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
 import com.google.inject.{Guice, Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
-
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider
 import org.codehaus.jackson.map.DeserializationConfig.Feature._
 import org.codehaus.jackson.map.ObjectMapper
@@ -34,8 +32,10 @@ import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.rest_api.neutron.resources.NeutronResource
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources._
+import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
 
 object Vladimir {
@@ -78,7 +78,24 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
 
     private var server: Server = _
 
-    log.info(s"Backend: ${backend.store} ${backend.store.isBuilt}")
+    def servletModule = new JerseyServletModule {
+        override def configureServlets(): Unit = {
+            bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
+            bind(classOf[MidonetBackend]).toInstance(backend)
+            bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
+            bind(classOf[ApplicationResource])
+            bind(classOf[NeutronResource])
+            val initParams = new java.util.HashMap[String, String]
+            initParams.put(ContainerResponseFiltersClass,
+                           classOf[CorsFilter].getName)
+            initParams.put(ContainerRequestFiltersClass,
+                           LoggingFilterClass)
+            initParams.put(ContainerResponseFiltersClass,
+                           LoggingFilterClass)
+            initParams.put(POJOMappingFeatureClass, "true")
+            serve("/*").`with`(classOf[GuiceContainer], initParams)
+        }
+    }
 
     override def doStart(): Unit = {
         log.info(s"Starting REST API service at ${config.restApi.httpPort}")
@@ -89,26 +106,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                                                 ServletContextHandler.SESSIONS)
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
-                Guice.createInjector(new JerseyServletModule {
-                    override def configureServlets(): Unit = {
-                        bind(classOf[WildcardJacksonJaxbJsonProvider])
-                            .asEagerSingleton()
-                        bind(classOf[MidonetBackend])
-                            .toInstance(backend)
-                        bind(classOf[ApplicationResource])
-
-                        val initParams = new java.util.HashMap[String, String]
-                        initParams.put(ContainerResponseFiltersClass,
-                                       classOf[CorsFilter].getName)
-                        initParams.put(ContainerRequestFiltersClass,
-                                       LoggingFilterClass)
-                        initParams.put(ContainerResponseFiltersClass,
-                                       LoggingFilterClass)
-                        initParams.put(POJOMappingFeatureClass, "true")
-
-                        serve("/*").`with`(classOf[GuiceContainer], initParams)
-                    }
-                })
+                Guice.createInjector(servletModule)
             }
         })
         context.addFilter(classOf[GuiceFilter], "/*",
