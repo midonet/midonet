@@ -71,6 +71,29 @@
     },
     {
       "key": {
+        "uuid": "facab960_5d73d07f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-10T05:11:13Z",
+      "side": 1,
+      "message": "Again, I\u0027m pretty sure that, due to type erasure, this won\u0027t actually enforce the constraint that m be derived from Minion. Try this:\n\n    private val minions: List[MinionDef[_ \u003c: Minion]] \u003d annotated.flatMap { m\u003d\u003e\n        val name \u003d m.getAnnotation(classOf[ClusterService]).name()\n        if (classOf[Minion].isAssignableFrom(m)) {\n            log.info(s\"Minion: $name provided by ${m.getName}.\")\n            Some(MinionDef(name, m.asInstanceOf[Class[Minion]]))\n        } else {\n            log.warn(s\"Ignored $name provided by ${m.getName}: \" +\n                     \"doesn\u0027t extend Minion.\")\n            None\n        }\n    }(breakOut)",
+      "range": {
+        "startLine": 112,
+        "startChar": 51,
+        "endLine": 112,
+        "endChar": 79
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_fd2ae47c",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 5
@@ -128,6 +151,30 @@
       "writtenOn": "2015-06-09T12:02:39Z",
       "side": 1,
       "message": "Is it necessary to increase this timeout for minions that may access the storage during start?",
+      "range": {
+        "startLine": 51,
+        "startChar": 54,
+        "endLine": 51,
+        "endChar": 62
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bd685c88",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-10T05:11:13Z",
+      "side": 1,
+      "message": "Yeah, that seems a bit low. Since we only actually wait as long as the slowest minion, there\u0027s not much of a penalty to having a longer timeout.",
+      "parentUuid": "facab960_4a9b0767",
       "range": {
         "startLine": 51,
         "startChar": 54,
