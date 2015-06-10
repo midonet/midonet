@@ -138,7 +138,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         val path = parentPath + "/5"
 
         val observable = NodeObservable.create(curator, path,
-                                               completeOnDelete = true)
+                                               completeOnDelete = false)
 
         val obs = new TestObserver[ChildData] with AwaitableObserver[ChildData]
         observable.subscribe(obs)
