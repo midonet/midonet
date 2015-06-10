@@ -569,7 +569,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
             tagManager,
             arpCache
             )
-        log.debug("Router ready: {}", device)
+        log.debug("Router ready: {} {}", device, routes)
 
         device
     }
