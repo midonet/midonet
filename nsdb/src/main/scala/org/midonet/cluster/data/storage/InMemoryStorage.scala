@@ -275,7 +275,9 @@ class InMemoryStorage extends StorageWithOwnership with StorageWithState {
             val idStr = getIdString(clazz, id)
             instances.get(idStr) match {
                 case Some(instance) => instance.keyObservable(key, policy)
-                case None => Observable.empty()
+                case None =>
+                    Observable.error(new NotFoundException(clazz, id))
+                        .observeOn(eventScheduler)
             }
         }
 
