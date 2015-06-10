@@ -265,22 +265,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             (rt, action)
         }
 
-        def applyTagsForRoute(route: Route, simRes: SimulationResult): Unit =
-            simRes match {
-                case TemporaryDrop | NoOp =>
-                case a => // We don't want to tag a temporary flow (e.g. created by
-                          // a BLACKHOLE route), and we do that to avoid excessive
-                          // interaction with the RouterManager, who needs to keep
-                          // track of every IP address the router gives to it.
-                    if (route != null) {
-                        context.addFlowTag(FlowTagger.tagForRoute(route))
-                    }
-                    context.addFlowTag(FlowTagger.tagForDestinationIp(id, dstIP))
-                    routerMgrTagger.addTag(dstIP)
-                    context.addFlowRemovedCallback(
-                        routerMgrTagger.getFlowRemovalCallback(dstIP))
-            }
-
         val (rt, action) = applyRoutingTable()
 
         applyTagsForRoute(rt, action)
@@ -292,6 +276,9 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             case _ => action
         }
     }
+
+    protected def applyTagsForRoute(route: Route,
+        simRes: SimulationResult)(implicit context: PacketContext): Unit
 
     // POST ROUTING
     @throws[NotYetException]

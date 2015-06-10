@@ -236,6 +236,14 @@ final class IPv4InvalidationArray {
         }
     }
 
+    def countRefs(key: Int): Int = {
+        try {
+            extractRefCount(get(key))
+        } catch {
+            case e: NullPointerException => 0
+        }
+    }
+
     /*
      * Decrements the reference count on a particular IP address.
      */
