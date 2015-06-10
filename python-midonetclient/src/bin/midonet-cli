@@ -1862,6 +1862,16 @@ class Condition(ObjectType):
                                            'unfragmented': 'unfragmented'},
                                getter = 'get_fragment_policy',
                                setter = 'fragment_policy'))
+        self.put_attr(BooleanAttr(name = 'no-vlan',
+                                 getter = 'is_no_vlan',
+                                 setter = 'no_vlan',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'vlan',
+                                 value_type = StringType(),
+                                 getter = 'get_vlan',
+                                 setter = 'vlan',
+                                 optional = True))
+
 
 class Rule(Condition):
     def __init__(self, obj):
@@ -1880,6 +1890,7 @@ class Rule(Condition):
                                            'continue': 'continue',
                                            'drop': 'drop',
                                            'jump': 'jump',
+                                           'redirect': 'redirect',
                                            'reject': 'reject',
                                            'return': 'return',
                                            'trace': 'trace',
@@ -1899,6 +1910,28 @@ class Rule(Condition):
                                  value_type = ObjectRef('chain'),
                                  getter = 'get_jump_chain_id',
                                  setter = 'jump_chain_id',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'target-port',
+                                 value_type = PortRef(),
+                                 getter = 'get_target_port',
+                                 setter = 'target_port',
+                                 optional = True))
+        self.put_attr(BooleanAttr(name = 'ingress',
+                                 getter = 'is_ingress',
+                                 setter = 'ingress',
+                                 optional = True))
+        self.put_attr(BooleanAttr(name = 'fail-open',
+                                 getter = 'is_fail_open',
+                                 setter = 'fail_open',
+                                 optional = True))
+        self.put_attr(BooleanAttr(name = 'pop-vlan',
+                                 getter = 'is_pop_vlan',
+                                 setter = 'pop_vlan',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'push-vlan',
+                                 value_type = StringType(),
+                                 getter = 'get_push_vlan',
+                                 setter = 'push_vlan',
                                  optional = True))
         self.put_attr(NatTarget(name = 'target',
                                 getter = 'get_nat_targets',
@@ -1943,6 +1976,16 @@ class BridgePort(ObjectType):
                                  setter = 'outbound_filter_id',
                                  getter = 'get_outbound_filter_id',
                                  unsetter = 'outbound_filter_id'))
+        self.put_attr(ListAttr(name = 'inchains',
+                                 element_type = ObjectRef('chain'),
+                                 getter = 'get_inbound_chains',
+                                 setter = 'inbound_chains',
+                                 optional = True))
+        self.put_attr(ListAttr(name = 'outchains',
+                                 element_type = ObjectRef('chain'),
+                                 getter = 'get_outbound_chains',
+                                 setter = 'outbound_chains',
+                                 optional = True))
         self.put_attr(SingleAttr(name = 'vlan',
                                  value_type = StringType(),
                                  setter = 'vlan_id',
