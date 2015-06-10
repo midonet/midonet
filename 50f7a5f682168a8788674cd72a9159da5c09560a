@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_bd2bfc92",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 292,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:15:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_8a96ef4a",
+      "range": {
+        "startLine": 292,
+        "startChar": 20,
+        "endLine": 292,
+        "endChar": 28
+      },
+      "revId": "50f7a5f682168a8788674cd72a9159da5c09560a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_caa0f7a1",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-09T11:57:56Z",
       "side": 1,
       "message": "It\u0027s weird that Key expects an id in this param but it actually gets a String. Not sure if it might be worth or providing a StateKey extends Key that keeps the Id for its purpose and just adds the extra stuff",
+      "range": {
+        "startLine": 296,
+        "startChar": 38,
+        "endLine": 296,
+        "endChar": 56
+      },
+      "revId": "50f7a5f682168a8788674cd72a9159da5c09560a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bd021c09",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 296,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:15:45Z",
+      "side": 1,
+      "message": "Here I am reusing Brandon\u0027s code for create arbitrary ZK nodes using ZOOM. His convention was to reuse Key(clazz, id) for this purpose, where:\nclazz -\u003e null\nid -\u003e path",
+      "parentUuid": "facab960_caa0f7a1",
       "range": {
         "startLine": 296,
         "startChar": 38,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_e0007703",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 297,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:15:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_ea721b48",
+      "range": {
+        "startLine": 297,
+        "startChar": 41,
+        "endLine": 297,
+        "endChar": 45
+      },
+      "revId": "50f7a5f682168a8788674cd72a9159da5c09560a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_aa9f334f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 6
@@ -82,6 +154,30 @@
       "writtenOn": "2015-06-09T11:57:56Z",
       "side": 1,
       "message": "much nicer thanks!",
+      "range": {
+        "startLine": 272,
+        "startChar": 38,
+        "endLine": 272,
+        "endChar": 46
+      },
+      "revId": "50f7a5f682168a8788674cd72a9159da5c09560a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_60146744",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 272,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-10T09:15:45Z",
+      "side": 1,
+      "message": ":)",
+      "parentUuid": "facab960_aa9f334f",
       "range": {
         "startLine": 272,
         "startChar": 38,
