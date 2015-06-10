@@ -88,6 +88,24 @@
       "revId": "6e3ff036f8eee02f89df4c03f5b90131c46d75a3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5dcbd052",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/data/neutron/IPAllocationPool.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-10T07:18:50Z",
+      "side": 1,
+      "message": "Thank you @ryu and @yamamoto for pointing out the confusion. As both of you confirmed, \"stat\"/\"end\" are the correct field names. I reverted my change AND fixed the @JsonProperty annotation.",
+      "parentUuid": "facab960_fdbe64d3",
+      "revId": "6e3ff036f8eee02f89df4c03f5b90131c46d75a3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
