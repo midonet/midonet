@@ -23,7 +23,7 @@ public class ReverseDnatRule extends NatRule {
     }
 
     @Override
-    public String getType() {
+    public final String getType() {
         return Rule.RevDNAT;
     }
 

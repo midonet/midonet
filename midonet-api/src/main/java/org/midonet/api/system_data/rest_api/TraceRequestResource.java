@@ -52,13 +52,16 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.system_data.TraceRequest;
+import org.midonet.cluster.rest_api.conversion.TraceRequestDataConverter;
+import org.midonet.cluster.rest_api.models.TraceRequest;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
+import static org.midonet.cluster.rest_api.conversion.TraceRequestDataConverter.fromData;
+import static org.midonet.cluster.rest_api.conversion.TraceRequestDataConverter.toData;
 import static org.slf4j.LoggerFactory.getLogger;
 
 /**
@@ -97,11 +100,9 @@ public class TraceRequestResource extends AbstractResource {
         } else {
             traceRequestsData = dataClient.traceRequestFindByTenant(tenantId);
         }
-        List<TraceRequest> traceRequests = new ArrayList<TraceRequest>();
+        List<TraceRequest> traceRequests = new ArrayList<>();
         for (org.midonet.cluster.data.TraceRequest data : traceRequestsData) {
-            TraceRequest t = new TraceRequest(data);
-            t.setBaseUri(getBaseUri());
-            traceRequests.add(t);
+            traceRequests.add(fromData(data, getBaseUri()));
         }
         return traceRequests;
     }
@@ -159,10 +160,7 @@ public class TraceRequestResource extends AbstractResource {
 
         tryAuthorize(traceRequestData, "view this trace request");
 
-        TraceRequest traceRequest = new TraceRequest(traceRequestData);
-        traceRequest.setBaseUri(getBaseUri());
-
-        return traceRequest;
+        return fromData(traceRequestData, getBaseUri());
     }
 
     /**
@@ -178,12 +176,12 @@ public class TraceRequestResource extends AbstractResource {
         validate(traceRequest, Default.class);
 
         org.midonet.cluster.data.TraceRequest traceRequestData
-            = traceRequest.toData();
-        tryAuthorize(traceRequestData,
-                     "add a trace to this device.");
+            = toData(traceRequest);
+
+        tryAuthorize(traceRequestData, "add a trace to this device.");
 
         UUID id = dataClient.traceRequestCreate(traceRequestData,
-                                                traceRequest.getEnabled());
+                                                traceRequest.enabled);
         return Response.created(
                 ResourceUriBuilder.getTraceRequest(getBaseUri(), id)).build();
     }
@@ -208,8 +206,7 @@ public class TraceRequestResource extends AbstractResource {
         }
         tryAuthorize(traceRequest, "enable a trace to this device");
 
-        org.midonet.cluster.data.TraceRequest newData
-            = newTraceRequest.toData();
+        org.midonet.cluster.data.TraceRequest newData = toData(newTraceRequest);
         if (Objects.equals(newData.getName(), traceRequest.getName())
             && Objects.equals(newData.getDeviceType(),
                               traceRequest.getDeviceType())
@@ -217,7 +214,7 @@ public class TraceRequestResource extends AbstractResource {
                               traceRequest.getDeviceId())
             && Objects.equals(newData.getCondition(),
                               traceRequest.getCondition())) {
-            if (newTraceRequest.getEnabled()) {
+            if (newTraceRequest.enabled) {
                 dataClient.traceRequestEnable(id);
             } else {
                 dataClient.traceRequestDisable(id);

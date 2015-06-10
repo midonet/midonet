@@ -16,8 +16,12 @@
 
 package org.midonet.cluster.rest_api.models;
 
+import java.util.Objects;
+
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -50,4 +54,11 @@ public abstract class ForwardNatRule extends NatRule {
     @ZoomField(name = "nat_targets")
     public NatTarget[] natTargets = {};
 
+    @JsonIgnore
+    public boolean isFloatingIp() {
+        return natTargets != null && natTargets.length == 1 &&
+               Objects.equals(natTargets[0].addressFrom,
+                              natTargets[0].addressTo) &&
+               natTargets[0].portFrom == 0 && natTargets[0].portTo == 0;
+    }
 }

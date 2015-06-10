@@ -20,9 +20,9 @@ import java.util.EnumSet;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.models.Topology;
-import org.midonet.odp.flows.IPFragmentType;
+import org.midonet.packets.IPFragmentType;
 
-import static org.midonet.odp.flows.IPFragmentType.*;
+import static org.midonet.packets.IPFragmentType.*;
 
 /**
  * Different packet-matching behaviors. Can be specified in a Rule's
@@ -60,7 +60,7 @@ public enum FragmentPolicy {
 
     public static final String pattern = "any|nonheader|header|unfragmented";
 
-    private FragmentPolicy(IPFragmentType... fragmentTypes) {
+    FragmentPolicy(IPFragmentType... fragmentTypes) {
         acceptedFragmentTypes = EnumSet.noneOf(IPFragmentType.class);
         for (IPFragmentType fragmentType : fragmentTypes)
             acceptedFragmentTypes.add(fragmentType);

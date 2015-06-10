@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.odp.flows;
-
-import org.midonet.packets.IPv4;
+package org.midonet.packets;
 
 /**
 * Enum that encapsulates the types of IP Fragments available. Can convert to

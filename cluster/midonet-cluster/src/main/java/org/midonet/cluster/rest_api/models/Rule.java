@@ -17,6 +17,8 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.validation.constraints.Min;
@@ -101,15 +103,21 @@ public abstract class Rule extends Condition {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
+
     @ZoomField(name = "chain_id", converter = UUIDUtil.Converter.class)
     public UUID chainId;
+
     @JsonIgnore
     @ZoomField(name = "type")
+    @NotNull
     public final RuleType type;
     @ZoomField(name = "action")
+
     public RuleAction action;
+
     // TODO: Add support in ZOOM
     public String meterName;
+
     @Min(1)
     public int position = 1;
 

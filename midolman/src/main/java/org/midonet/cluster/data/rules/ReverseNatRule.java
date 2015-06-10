@@ -28,12 +28,23 @@ import java.util.UUID;
 public class ReverseNatRule
         extends NatRule<NatRule.Data, ReverseNatRule> {
 
+    public static ReverseNatRule snat(Condition condition,
+                                      RuleResult.Action action) {
+        return new ReverseNatRule(condition, action, false);
+    }
+
+    public static ReverseNatRule dnat(Condition condition,
+                                      RuleResult.Action action) {
+        return new ReverseNatRule(condition, action, true);
+    }
+
+    /** Avoid this one, prefer the static constructors */
     public ReverseNatRule(Condition condition, RuleResult.Action action,
-                          boolean isDnat) {
+                           boolean isDnat) {
         this(null, condition, action, isDnat, new Data());
     }
 
-    public ReverseNatRule(UUID uuid, Condition condition,
+    private ReverseNatRule(UUID uuid, Condition condition,
                           RuleResult.Action action, boolean isDnat,
                           NatRule.Data ruleData){
         super(uuid, condition, action, isDnat, ruleData);

@@ -566,8 +566,8 @@ public class Converter {
         Rule<?,?> rule = null;
 
         if (ruleConfig instanceof org.midonet.midolman.rules.LiteralRule) {
-            rule = new LiteralRule(ruleConfig.getCondition(),
-                    ruleConfig.action);
+            rule = new LiteralRule(ruleConfig.getCondition())
+                       .setAction(ruleConfig.action);
         }
 
         if (ruleConfig instanceof org.midonet.midolman.rules.TraceRule) {

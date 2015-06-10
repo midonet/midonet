@@ -134,8 +134,9 @@ trait VirtualConfigurationBuilders {
 
     def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
                               action: Action): LiteralRule = {
-        val rule = new LiteralRule(condition, action).
-                        setChainId(chain.getId).setPosition(pos)
+        val rule = new LiteralRule(condition)
+                       .setChainId(chain.getId).setPosition(pos)
+                       .setAction(action)
         val id = clusterDataClient().rulesCreate(rule)
         Thread.sleep(50)
         clusterDataClient().rulesGet(id).asInstanceOf[LiteralRule]
