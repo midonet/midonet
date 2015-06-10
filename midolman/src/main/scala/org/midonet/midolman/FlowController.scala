@@ -23,6 +23,7 @@ import akka.actor.{Actor, ActorSystem}
 import org.jctools.queues.SpscArrayQueue
 
 import com.codahale.metrics.Gauge
+import org.midonet.ErrorCode._
 
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
@@ -33,7 +34,6 @@ import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.FlowMatch
 import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
 import org.midonet.util.concurrent.{Backchannel, NanoClock}
@@ -150,11 +150,10 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         log.debug("Got an exception when trying to remove " +
                   s"${req.managedFlow}", req.failure)
         req.netlinkErrorCode match {
-            case ErrorCode.EBUSY | ErrorCode.EAGAIN | ErrorCode.EIO |
-                 ErrorCode.EINTR | ErrorCode.ETIMEOUT if req.retries > 0 =>
+            case EBUSY | EAGAIN | EIO | EINTR | ETIMEOUT if req.retries > 0 =>
                 scheduleRetry(req)
                 return
-            case ErrorCode.ENODEV | ErrorCode.ENOENT | ErrorCode.ENXIO =>
+            case ENODEV | ENOENT | ENXIO =>
                 log.debug(s"${req.managedFlow} was already deleted")
             case _ =>
                 log.error(s"Failed to delete ${req.managedFlow}", req.failure)

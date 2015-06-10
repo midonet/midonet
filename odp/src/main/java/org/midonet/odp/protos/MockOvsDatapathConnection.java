@@ -36,7 +36,7 @@ import org.midonet.odp.flows.*;
 import org.midonet.odp.ports.InternalPort;
 import org.midonet.util.BatchCollector;
 
-import static org.midonet.netlink.exceptions.NetlinkException.ErrorCode.*;
+import static org.midonet.ErrorCode.*;
 
 /**
  * Mock implementation to be used in test cases and non linux hosts.
@@ -273,7 +273,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
         if (removed != null) {
             callback.onSuccess(removed);
         } else {
-            callback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
+            callback.onError(new NetlinkException(ENOENT));
         }
     }
 
@@ -296,7 +296,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
             flowCallback.onSuccess(match);
         }
         else{
-            flowCallback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
+            flowCallback.onError(new NetlinkException(ENOENT));
         }
     }
 

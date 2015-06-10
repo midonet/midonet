@@ -25,8 +25,7 @@ import scala.concurrent.duration._
 import rx.Observer
 
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.Util
-import org.midonet.netlink.rtnetlink.Rtnetlink
+import org.midonet.{ErrorCode, Util}
 import org.midonet.util.concurrent.NanoClock
 
 object NetlinkRequestBroker {
@@ -39,7 +38,7 @@ object NetlinkRequestBroker {
     }
 
     private object timeoutException extends NetlinkException(
-        NetlinkException.ErrorCode.ETIMEOUT,
+        ErrorCode.ETIMEOUT,
         "Timeout while waiting for Nelink replies") {
 
         override def fillInStackTrace() = this
