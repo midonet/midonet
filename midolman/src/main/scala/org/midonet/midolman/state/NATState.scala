@@ -358,7 +358,11 @@ trait NatState extends FlowState { this: PacketContext =>
                         tpDst = binding.transportPort.toShort
                 }
                 val natBB = ByteBuffer.allocate(data.length)
-                natBB.put(header.serialize, 0, ipHeadSize)
+                natBB.put(header.serialize(), 0, ipHeadSize)
+                val pos = natBB.position()
+                natBB.position(pos - ipHeadSize + IPv4.TOTAL_LENGTH_OFFSET)
+                natBB.putShort(dataSize.toShort)
+                natBB.position(pos)
                 natBB.putShort(tpSrc)
                 natBB.putShort(tpDst)
                 bb.position(bb.position + 4)

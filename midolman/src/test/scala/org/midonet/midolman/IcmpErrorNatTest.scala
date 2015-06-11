@@ -194,6 +194,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
                     icmpError.getEthernet
                         .getPayload.asInstanceOf[IPv4]
                         .getPayload.asInstanceOf[ICMP].getData)
+                ip.getShort(IPv4.TOTAL_LENGTH_OFFSET) should be (28)
                 val wrapped = new IPv4()
                 wrapped.deserialize(ip)
                 matchIpv4(wrapped, srcIp.toNetworkAddress, dstIp.toNetworkAddress)
