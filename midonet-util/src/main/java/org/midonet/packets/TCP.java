@@ -297,6 +297,11 @@ public class TCP extends BasePacket implements Transport {
     }
 
     @Override
+    public void clearChecksum() {
+        // TODO: Implement TCP checksum calculation
+    }
+
+    @Override
     public int getSourcePort() {
         return sourcePort;
     }
@@ -314,7 +319,7 @@ public class TCP extends BasePacket implements Transport {
         try {
             return Unsigned.unsign(bb.getShort(0));
         } catch (Exception e) {
-            throw new MalformedPacketException("Cannot read tpSrc, corrupted data");
+            throw new MalformedPacketException("Cannot read tpSrc, corrupted data", e);
         }
     }
 
@@ -322,7 +327,7 @@ public class TCP extends BasePacket implements Transport {
         try {
             return Unsigned.unsign(bb.getShort(2));
         } catch (Exception e) {
-            throw new MalformedPacketException("Cannot read tpDst, corrupted data");
+            throw new MalformedPacketException("Cannot read tpDst, corrupted data", e);
         }
     }
 

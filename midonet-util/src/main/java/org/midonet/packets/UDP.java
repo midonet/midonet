@@ -104,6 +104,11 @@ public class UDP extends BasePacket implements Transport {
         this.destinationPort = destinationPort;
     }
 
+    @Override
+    public void clearChecksum() {
+        checksum = 0;
+    }
+
     /**
      * @return the length
      */
