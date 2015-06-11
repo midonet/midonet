@@ -291,7 +291,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
         }
 
         ByteBuffer buf = getBuffer();
-        protocol.prepareDpPortCreate(datapathId, port, buf);
+        protocol.prepareDpPortSet(datapathId, port, buf);
         sendNetlinkMessage(buf, callback, DpPort.deserializer, timeoutMillis);
     }
 
