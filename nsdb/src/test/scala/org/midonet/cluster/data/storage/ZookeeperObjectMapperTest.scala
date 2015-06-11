@@ -41,6 +41,9 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework {
     feature("Test subscribe") {
         scenario("Test subscribe with GC") {
             val bridge = createPojoBridge()
+            await(storage.exists(classOf[PojoBridge], bridge.id)) shouldBe false
+            storage.create(bridge)
+            await(storage.exists(classOf[PojoBridge], bridge.id)) shouldBe true
             val obs = new TestObserver[PojoBridge]
             val sub = storage.observable(classOf[PojoBridge], bridge.id)
                 .subscribe(obs)
