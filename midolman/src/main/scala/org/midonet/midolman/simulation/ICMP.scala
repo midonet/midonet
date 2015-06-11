@@ -86,7 +86,7 @@ object Icmp {
             }
             // Build the ICMP packet from inside-out: ICMP, IPv4, Ethernet headers.
             context.log.debug(s"Generating ICMP error $icmpType:$icmpCode")
-            val icmp = buildError(icmpType, icmpCode, fmatch, packet.clone())
+            val icmp = buildError(icmpType, icmpCode, fmatch, packet)
 
             val ip = new IPv4()
             ip.setPayload(icmp)

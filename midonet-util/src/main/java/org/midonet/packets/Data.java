@@ -54,6 +54,11 @@ public class Data extends BasePacket {
         return this;
     }
 
+    @Override
+    public int getPayloadLength() {
+        return data != null ? data.length : 0;
+    }
+
     public byte[] serialize() {
         return this.data;
     }

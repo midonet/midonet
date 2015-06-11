@@ -179,13 +179,15 @@ public class FlowStateEthernet extends Ethernet {
     }
 
     @Override
+    public int getPayloadLength() {
+        return getElasticDataLength();
+    }
+
+    @Override
     public int serialize(ByteBuffer bb) {
         int start = bb.position();
         bb.put(cachedFlowStateEthernetHeader);
-        final ElasticData elasticData = getCore();
-        if (elasticData.getLength() > 0) {
-            putElasticData(bb, start, elasticData);
-        }
+        putElasticData(bb, start, core);
         return FLOW_STATE_ETHERNET_OVERHEAD + getElasticDataLength();
     }
 
