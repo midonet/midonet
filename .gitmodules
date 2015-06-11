@@ -1,3 +1,3 @@
 [submodule "cluster/odl-ovsdb"]
 	path = cluster/odl-ovsdb
-	url = https://github.com/midokura/odp-ovsdb.git
+	url = http://github.com/midokura/odp-ovsdb.git
