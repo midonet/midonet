@@ -28,6 +28,7 @@ import scala.util.{Random, Try}
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
+import com.google.inject.{Guice, Inject, Injector, PrivateModule}
 import com.typesafe.config.ConfigFactory
 
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
@@ -40,6 +41,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
+import org.midonet.cluster.{DataClient => LegacyDataClient}
 import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
@@ -56,8 +58,12 @@ import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.conf.MidoTestConfigurator
-import org.midonet.midolman.state.{MacPortMap, PathBuilder}
+import org.midonet.midolman.cluster.LegacyClusterModule
+import org.midonet.midolman.cluster.serialization.SerializationModule
+import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
+import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, PathBuilder, ZkConnection, ZookeeperConnectionWatcher}
 import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC, UDP}
+import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -119,6 +125,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
           |cluster.neutron_importer.jdbc_driver_class : "org.sqlite.JDBC"
           |zookeeper.root_key : "$rootPath"
           |zookeeper.use_new_stack : true
+          |# The following is for legacy Data Client
+          |zookeeper.zookeeper_hosts : "$ZK_HOST"
         """.stripMargin)
 
     private val clusterCfg = new ClusterConfig(C3PO_CFG_OBJECT)
@@ -129,6 +137,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected val nodeFactory = new JsonNodeFactory(true)
 
     protected var pathBldr: PathBuilder = _
+    @Inject protected var dataClient: LegacyDataClient = _
+    protected var injector: Injector = _
 
     // Adapt the DriverManager interface to DataSource interface.
     // SQLite doesn't seem to provide JDBC 2.0 API.
@@ -250,6 +260,27 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     // TEST SETUP
     // ---------------------
 
+    /* Override this val to call injectLegacyDataClient if the test uses legacy
+     * Data Client. */
+    protected val useLegacyDataClient = false
+
+    private def injectLegacyDataClient() {
+        injector = Guice.createInjector(
+                new SerializationModule(),
+                new ZookeeperConnectionModule(
+                        classOf[ZookeeperConnectionWatcher]),
+                new LegacyClusterModule(),
+                new PrivateModule() {
+                    override def configure() {
+                        bind(classOf[MidonetBackendConfig])
+                        .toInstance(backendCfg)
+                        expose(classOf[MidonetBackendConfig])
+                    }
+                }
+        )
+        injector.injectMembers(this)
+    }
+
     override protected def beforeAll() {
         try {
             val retryPolicy = new ExponentialBackoffRetry(1000, 10)
@@ -281,6 +312,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         backend = new MidonetBackendService(backendCfg, curator)
         backend.startAsync().awaitRunning()
         curator.blockUntilConnected()
+
+        // Set up a legacy Data Client if necessary.
+        if (useLegacyDataClient) injectLegacyDataClient()
 
         val nodeCtx = new Context(UUID.randomUUID())
         c3po = new C3POMinion(nodeCtx, clusterCfg, dataSrc, backend, curator,
@@ -315,6 +349,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     }
 
     private def cleanup(): Unit = {
+        Try(if (injector != null)
+            injector.getInstance(classOf[ZkConnection]).close())
+        .getOrElse(log.error("Failed closing the ZK Connection"))
         Try(backend.stopAsync().awaitTerminated())
                                .getOrElse(log.error("Failed stopping backend"))
         Try(c3po.stopAsync().awaitTerminated())
@@ -537,7 +574,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def getChains(ipg: IPAddrGroup): ChainPair =
         getChains(ipg.getInboundChainId, ipg.getOutboundChainId)
 
-    protected def checkReplTables(bridgeId: UUID, shouldExist: Boolean)
+    protected def checkReplMaps(bridgeId: UUID, shouldExist: Boolean)
     : Unit = {
         val arpPath = pathBldr.getBridgeIP4MacMapPath(bridgeId)
         val macPath = pathBldr.getBridgeMacPortsPath(bridgeId)
@@ -556,6 +593,12 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def macEntryPath(nwId: UUID, mac: String, portId: UUID) = {
         val entry = MacPortMap.encodePersistentPath(MAC.fromString(mac), portId)
         pathBldr.getBridgeMacPortEntryPath(nwId, Bridge.UNTAGGED_VLAN_ID, entry)
+    }
+
+    protected def arpEntryPath(nwId: UUID, ipAddr: String, mac: String) = {
+        val entry = Ip4ToMacReplicatedMap.encodePersistentPath(
+                ipAddr, MAC.fromString(mac))
+        pathBldr.getBridgeIP4MacMapPath(nwId) + entry
     }
 
     protected def checkPortBinding(hostId: UUID, portId: UUID,
@@ -646,74 +689,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 @RunWith(classOf[JUnitRunner])
 class C3POMinionTest extends C3POMinionTestBase {
 
-    "C3PO" should "poll DB and update ZK via C3POStorageMgr" in {
-        val network1Uuid = UUID.randomUUID()
-
-        // Initially the Storage is empty.
-        storage.exists(classOf[Network], network1Uuid).await() shouldBe false
-
-        // Create a private Network
-        val network1Name = "private-network"
-        val network1Json = networkJson(network1Uuid, "tenant1", network1Name)
-        executeSqlStmts(insertTaskSql(2, Create, NetworkType,
-                                      network1Json.toString,
-                                      network1Uuid, "tx1"))
-        val network1 = eventually(
-            storage.get(classOf[Network], network1Uuid).await())
-
-        network1.getId shouldBe toProto(network1Uuid)
-        network1.getName shouldBe network1Name
-        network1.getAdminStateUp shouldBe true
-        eventually(getLastProcessedIdFromTable shouldBe Some(2))
-
-        eventually(checkReplTables(network1Uuid, shouldExist = true))
-
-        // Creates Network 2 and updates Network 1
-        val network2Uuid = UUID.randomUUID()
-        val network2Name = "corporate-network"
-        val network2Json = networkJson(network2Uuid, "tenant1", network2Name)
-
-        // Create a public Network
-        val network1Name2 = "public-network"
-        val network1Json2 = networkJson(network1Uuid, "tenant1", network1Name2,
-                                       external = true, adminStateUp = false)
-
-        executeSqlStmts(
-                insertTaskSql(id = 3, Create, NetworkType,
-                              network2Json.toString, network2Uuid, "tx2"),
-                insertTaskSql(id = 4, Update, NetworkType,
-                              network1Json2.toString, network1Uuid, "tx2"))
-
-        val network2 = eventually(
-            storage.get(classOf[Network], network2Uuid).await())
-        network2.getId shouldBe toProto(network2Uuid)
-        network2.getName shouldBe "corporate-network"
-        eventually(checkReplTables(network2Uuid, shouldExist = true))
-
-        eventually {
-            val network1a = storage.get(classOf[Network], network1Uuid).await()
-            network1a.getId shouldBe toProto(network1Uuid)
-            network1a.getName shouldBe "public-network"
-            network1a.getAdminStateUp shouldBe false
-            getLastProcessedIdFromTable shouldBe Some(4)
-        }
-
-        // Deletes Network 1
-        executeSqlStmts(insertTaskSql(
-                id = 5, Delete, NetworkType, json = "", network1Uuid, "tx3"))
-        eventually {
-            storage.exists(classOf[Network], network1Uuid).await() shouldBe false
-            getLastProcessedIdFromTable shouldBe Some(5)
-            checkReplTables(network1Uuid, shouldExist = false)
-        }
-
-        eventually {
-            storage.exists(classOf[Network], network2Uuid).await() shouldBe true
-        }
-
-    }
-
-    it should "execute VIF port CRUD tasks" in {
+    "C3PO" should "execute VIF port CRUD tasks" in {
         // Creates Network 1.
         val network1Uuid = UUID.randomUUID()
         val network1Json = networkJson(network1Uuid, "tenant1", "private-net")
