@@ -21,7 +21,7 @@ import java.util.UUID;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.data.neutron.SecurityGroupRule;
+import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.MACUtil;

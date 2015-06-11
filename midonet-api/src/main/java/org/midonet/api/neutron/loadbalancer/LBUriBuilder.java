@@ -21,7 +21,7 @@ import java.util.UUID;
 import javax.ws.rs.core.UriBuilder;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.neutron.NeutronUriBuilder;
+import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 
 public final class LBUriBuilder {
 

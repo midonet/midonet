@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.data.dhcp.ExtraDhcpOpt;
-import org.midonet.cluster.data.neutron.Route;
+import org.midonet.cluster.rest_api.neutron.models.Route;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
@@ -96,7 +96,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             this.enabled = enabled;
         }
 
-        public Subnet(org.midonet.cluster.data.neutron.Subnet subnet) {
+        public Subnet(org.midonet.cluster.rest_api.neutron.models.Subnet subnet) {
 
             this.serverAddr = subnet.gatewayIp == null ? null :
                 IPv4Addr.fromString(subnet.gatewayIp);
@@ -475,7 +475,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
     }
 
     public void prepareAddHost(List<Op> ops,
-                               org.midonet.cluster.data.neutron.Subnet subnet,
+                               org.midonet.cluster.rest_api.neutron.models.Subnet subnet,
                                Host host)
             throws SerializationException {
         String path = paths.getBridgeDhcpHostPath(subnet.networkId,

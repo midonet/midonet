@@ -39,10 +39,10 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.loadbalancer.LBMediaType;
-import org.midonet.cluster.neutron_rest_api.LoadBalancerApi;
-import org.midonet.cluster.data.neutron.loadbalancer.Pool;
-import org.midonet.cluster.data.neutron.loadbalancer.PoolHealthMonitor;
+import org.midonet.cluster.rest_api.neutron.NeutronMediaType;
+import org.midonet.cluster.rest_api.neutron.models.Pool;
+import org.midonet.cluster.rest_api.neutron.models.PoolHealthMonitor;
+import org.midonet.cluster.services.rest_api.neutron.plugin.LoadBalancerApi;
 import org.midonet.event.neutron.PoolEvent;
 import org.midonet.event.neutron.PoolHealthMonitorEvent;
 
@@ -65,7 +65,7 @@ public class PoolResource extends AbstractResource {
 
     @GET
     @Path("{id}")
-    @Produces(LBMediaType.POOL_JSON_V1)
+    @Produces(NeutronMediaType.POOL_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Pool get(@PathParam("id") UUID id) {
         log.info("PoolResource.get entered {}", id);
@@ -80,7 +80,7 @@ public class PoolResource extends AbstractResource {
     }
 
     @GET
-    @Produces(LBMediaType.POOLS_JSON_V1)
+    @Produces(NeutronMediaType.POOLS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public List<Pool> list() {
         log.info("PoolResource.list entered");
@@ -88,8 +88,8 @@ public class PoolResource extends AbstractResource {
     }
 
     @POST
-    @Consumes(LBMediaType.POOL_JSON_V1)
-    @Produces(LBMediaType.POOL_JSON_V1)
+    @Consumes(NeutronMediaType.POOL_JSON_V1)
+    @Produces(NeutronMediaType.POOL_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response create(Pool pool) {
         log.info("PoolResource.create entered {}", pool);
@@ -113,8 +113,8 @@ public class PoolResource extends AbstractResource {
 
     @PUT
     @Path("{id}")
-    @Consumes(LBMediaType.POOL_JSON_V1)
-    @Produces(LBMediaType.POOL_JSON_V1)
+    @Consumes(NeutronMediaType.POOL_JSON_V1)
+    @Produces(NeutronMediaType.POOL_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response update(@PathParam("id") UUID id, Pool pool) {
         log.info("PoolResource.update entered {}", pool);
@@ -129,8 +129,8 @@ public class PoolResource extends AbstractResource {
 
     @POST
     @Path("/{id}/health_monitors")
-    @Consumes(LBMediaType.POOL_HEALTH_MONITOR_JSON_V1)
-    @Produces(LBMediaType.POOL_HEALTH_MONITOR_JSON_V1)
+    @Consumes(NeutronMediaType.POOL_HEALTH_MONITOR_JSON_V1)
+    @Produces(NeutronMediaType.POOL_HEALTH_MONITOR_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public final Response create(@PathParam("id") UUID poolId,
                                  PoolHealthMonitor poolHealthMonitor) {

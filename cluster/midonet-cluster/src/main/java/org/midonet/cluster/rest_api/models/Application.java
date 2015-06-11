@@ -22,6 +22,8 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.midonet.cluster.rest_api.ResourceUris;
+
 @XmlRootElement
 public class Application {
 

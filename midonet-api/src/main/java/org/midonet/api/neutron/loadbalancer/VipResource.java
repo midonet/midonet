@@ -39,10 +39,10 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.client.neutron.loadbalancer.LBMediaType;
-import org.midonet.cluster.neutron_rest_api.LoadBalancerApi;
-import org.midonet.cluster.data.neutron.loadbalancer.VIP;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.neutron.NeutronMediaType;
+import org.midonet.cluster.rest_api.neutron.models.VIP;
+import org.midonet.cluster.services.rest_api.neutron.plugin.LoadBalancerApi;
 import org.midonet.event.neutron.VipEvent;
 
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
@@ -65,7 +65,7 @@ public class VipResource extends AbstractResource {
 
     @GET
     @Path("{id}")
-    @Produces(LBMediaType.VIP_JSON_V1)
+    @Produces(NeutronMediaType.VIP_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public VIP get(@PathParam("id") UUID id) {
         log.info("VipResource.get entered {}", id);
@@ -80,7 +80,7 @@ public class VipResource extends AbstractResource {
     }
 
     @GET
-    @Produces(LBMediaType.VIPS_JSON_V1)
+    @Produces(NeutronMediaType.VIPS_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public List<VIP> list() {
         log.info("VipResource.list entered");
@@ -88,8 +88,8 @@ public class VipResource extends AbstractResource {
     }
 
     @POST
-    @Consumes(LBMediaType.VIP_JSON_V1)
-    @Produces(LBMediaType.VIP_JSON_V1)
+    @Consumes(NeutronMediaType.VIP_JSON_V1)
+    @Produces(NeutronMediaType.VIP_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response create(VIP vip) {
         log.info("VipResource.create entered {}", vip);
@@ -113,8 +113,8 @@ public class VipResource extends AbstractResource {
 
     @PUT
     @Path("{id}")
-    @Consumes(LBMediaType.VIP_JSON_V1)
-    @Produces(LBMediaType.VIP_JSON_V1)
+    @Consumes(NeutronMediaType.VIP_JSON_V1)
+    @Produces(NeutronMediaType.VIP_JSON_V1)
     @RolesAllowed(AuthRole.ADMIN)
     public Response update(@PathParam("id") UUID id, VIP vip) {
         log.info("VipResource.update entered {}", vip);

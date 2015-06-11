@@ -50,7 +50,7 @@ import org.midonet.cluster.rest_api.conversion.HealthMonitorDataConverter;
 import org.midonet.cluster.rest_api.conversion.PoolDataConverter;
 import org.midonet.cluster.rest_api.models.HealthMonitor;
 import org.midonet.cluster.rest_api.models.Pool;
-import org.midonet.cluster.rest_api.models.ResourceUris;
+import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.event.topology.HealthMonitorEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
