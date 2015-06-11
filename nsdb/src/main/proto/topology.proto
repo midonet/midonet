@@ -290,6 +290,9 @@ message Port {
 
     // Backreferences
     repeated UUID rule_ids = 101;
+    repeated UUID insertions = 102;
+    repeated UUID srv_insertions = 103;
+    optional UUID l2service = 104;
 }
 
 message PortGroup {
@@ -441,6 +444,19 @@ message Rule {
         NatRuleData nat_rule_data = 101;
         RedirRuleData redir_rule_data = 102;
     }
+}
+
+message L2Insertion {
+    optional UUID id = 1;
+    optional UUID port = 2;
+    optional UUID srv_port = 3;
+    optional uint32 vlan = 4;
+    optional uint32 position = 5;
+}
+
+message L2Service {
+    optional UUID id = 1;
+    optional UUID port = 2;
 }
 
 message TunnelZone {
