@@ -405,10 +405,13 @@ public class IPv4 extends BasePacket {
             optionsLength = this.options.length / 4;
         this.headerLength = (byte) (5 + optionsLength);
 
-        this.totalLength = (this.headerLength * 4 + ((payloadData == null) ? 0
-                : payloadData.length));
+        int actualLength = (this.headerLength * 4 + ((payloadData == null)
+                                                     ? 0 : payloadData.length));
+        if (this.totalLength == 0) {
+            this.totalLength = actualLength;
+        }
 
-        byte[] data = new byte[this.totalLength];
+        byte[] data = new byte[actualLength];
         ByteBuffer bb = ByteBuffer.wrap(data);
 
         bb.put((byte) (((this.version & 0xf) << 4) | (this.headerLength & 0xf)));
