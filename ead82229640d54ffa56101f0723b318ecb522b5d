@@ -117,6 +117,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_626e2731",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:30:43Z",
+      "side": 1,
+      "message": "ok it\u0027s implicitly merged into the update stream, as noted below not sure they need to be separate",
+      "parentUuid": "facab960_2237bf4f",
+      "range": {
+        "startLine": 111,
+        "startChar": 16,
+        "endLine": 111,
+        "endChar": 30
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_02bb9bc4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 18
