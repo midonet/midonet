@@ -1,0 +1,257 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_82924b9d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "I don\u0027t understand this, probably because of a lack of context. Why not removing it?",
+      "range": {
+        "startLine": 87,
+        "startChar": 68,
+        "endLine": 88,
+        "endChar": 27
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_22f5ffed",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "Could you give an example of an object state and data here to make it more concrete? Are you referring to a bridge and a mac table for instance?",
+      "range": {
+        "startLine": 107,
+        "startChar": 11,
+        "endLine": 108,
+        "endChar": 35
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e264f723",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "Why not looping over the state objects that need to be deleted here? This way it is more symmetrical to how things are done for the topology.",
+      "range": {
+        "startLine": 267,
+        "startChar": 12,
+        "endLine": 267,
+        "endChar": 25
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c2a61353",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "createStatePathsOps?",
+      "range": {
+        "startLine": 96,
+        "startChar": 22,
+        "endLine": 96,
+        "endChar": 36
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c268d389",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "name parameter",
+      "range": {
+        "startLine": 100,
+        "startChar": 32,
+        "endLine": 100,
+        "endChar": 36
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e206b7cd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 103,
+        "startChar": 36,
+        "endLine": 103,
+        "endChar": 40
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_82f5ebcc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "same comment",
+      "range": {
+        "startLine": 126,
+        "startChar": 64,
+        "endLine": 126,
+        "endChar": 68
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a204afc0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 149,
+        "startChar": 73,
+        "endLine": 149,
+        "endChar": 76
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a2ae6f83",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "I feel that the write policy names don\u0027t really convey their meanings.  What about:\nSingleFirstWriteWins -\u003e FirstWriteOrOwnerWins\nSingleLastWriteWins -\u003e OwnerUpdateOtherReplace\nMultiple stays the same",
+      "range": {
+        "startLine": 164,
+        "startChar": 9,
+        "endLine": 179,
+        "endChar": 47
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_42bbe371",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "It seems to me that this block is repeated 3 times and could be placed inside a method that takes 3 arguments:\n-a function called when the node exists and we are the owner\n-a function called when the node exists and we are not the owner\n-a function called when the node does not exist.",
+      "range": {
+        "startLine": 323,
+        "startChar": 8,
+        "endLine": 351,
+        "endChar": 25
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e24b1785",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T15:14:57Z",
+      "side": 1,
+      "message": "1 second seems low if you\u0027re going to use curator.",
+      "range": {
+        "startLine": 43,
+        "startChar": 32,
+        "endLine": 43,
+        "endChar": 40
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
