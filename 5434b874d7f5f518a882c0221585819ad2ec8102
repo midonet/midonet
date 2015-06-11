@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_2770b1a4",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-11T09:32:51Z",
+      "side": 1,
+      "message": "They don\u0027t really hurt, but I don\u0027t think these calls to exists() are necessary. ZookeeperObjectMapper.create() is synchronous, so we don\u0027t have to wait to make sure it was created. And since creation isn\u0027t the behavior being tested here, you can just assume it was created.",
+      "range": {
+        "startLine": 46,
+        "startChar": 0,
+        "endLine": 46,
+        "endChar": 79
+      },
+      "revId": "5434b874d7f5f518a882c0221585819ad2ec8102",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
