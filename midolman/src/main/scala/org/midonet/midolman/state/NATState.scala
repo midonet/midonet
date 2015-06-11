@@ -333,7 +333,6 @@ trait NatState extends FlowState { this: PacketContext =>
             case ICMP.TYPE_PARAMETER_PROBLEM | ICMP.TYPE_TIME_EXCEEDED |
                  ICMP.TYPE_UNREACH if wcmatch.getIcmpData ne null =>
                 val data = wcmatch.getIcmpData
-                val dataSize = data.length
                 val bb = ByteBuffer.wrap(data)
                 val header = new IPv4
                 header.deserializeHeader(bb)
@@ -346,7 +345,6 @@ trait NatState extends FlowState { this: PacketContext =>
                     if (wcmatch.getNetworkSrcIP == natKey.networkSrc)
                         wcmatch.setNetworkSrc(binding.networkAddress)
                 }
-                val ipHeadSize = dataSize - bb.remaining
                 val packet = bb.slice
                 var tpSrc = TCP.getSourcePort(packet).toShort
                 var tpDst = TCP.getDestinationPort(packet).toShort
@@ -358,7 +356,13 @@ trait NatState extends FlowState { this: PacketContext =>
                         tpDst = binding.transportPort.toShort
                 }
                 val natBB = ByteBuffer.allocate(data.length)
-                natBB.put(header.serialize, 0, ipHeadSize)
+                val deserializedHeaderLength = header.getHeaderLength * 4
+                val deserializedTotalLength = header.getTotalLength
+                natBB.put(header.serialize(), 0, deserializedHeaderLength)
+                val pos = natBB.position()
+                natBB.position(pos - deserializedHeaderLength + IPv4.TOTAL_LENGTH_OFFSET)
+                natBB.putShort(deserializedTotalLength.toShort)
+                natBB.position(pos)
                 natBB.putShort(tpSrc)
                 natBB.putShort(tpDst)
                 bb.position(bb.position + 4)

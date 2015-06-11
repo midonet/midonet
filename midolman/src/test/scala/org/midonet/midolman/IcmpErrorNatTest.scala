@@ -160,7 +160,8 @@ class IcmpErrorNatTest extends MidolmanSpec {
     val tcpReq: Ethernet =
         { eth src srcMac dst nearLeftPortMac } <<
         { ip4 src srcIp.toNetworkAddress dst dstIp.toNetworkAddress } <<
-        { tcp src 1234 dst 6789 }
+        { tcp src 1234 dst 6789 } <<
+        { payload apply Array[Byte](1, 2) }
 
      val pingReq: Ethernet =
         { eth src srcMac dst nearLeftPortMac } <<
@@ -194,12 +195,13 @@ class IcmpErrorNatTest extends MidolmanSpec {
                     icmpError.getEthernet
                         .getPayload.asInstanceOf[IPv4]
                         .getPayload.asInstanceOf[ICMP].getData)
+                ip.getShort(IPv4.TOTAL_LENGTH_OFFSET) should be (42)
                 val wrapped = new IPv4()
                 wrapped.deserialize(ip)
                 matchIpv4(wrapped, srcIp.toNetworkAddress, dstIp.toNetworkAddress)
-                val tcp = ip.slice
-                TCP.getSourcePort(tcp) should be (1234)
-                TCP.getDestinationPort(tcp) should be (6789)
+                val tcp = wrapped.getPayload.asInstanceOf[TCP]
+                tcp.getSourcePort should be (1234)
+                tcp.getDestinationPort should be (6789)
 
                 // The modifications to the original icmp error
                 actions should contain theSameElementsAs List(

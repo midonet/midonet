@@ -60,6 +60,8 @@ public class IPv4 extends BasePacket {
 
     public final static int IP_CHECKSUM_OFFSET = 10;
 
+    public final static int TOTAL_LENGTH_OFFSET = 2;
+
     protected byte version;
     protected byte headerLength;
     protected byte diffServ;
