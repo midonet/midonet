@@ -1,0 +1,234 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_c2a9b37c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "why needed? these seem external use cases for the map, rather than map types",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 68,
+        "endChar": 5
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_62c5478d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "some separator?",
+      "range": {
+        "startLine": 73,
+        "startChar": 50,
+        "endLine": 73,
+        "endChar": 55
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a2c58f3d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "opinionBus, maybe?",
+      "range": {
+        "startLine": 93,
+        "startChar": 40,
+        "endLine": 93,
+        "endChar": 47
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_02e2bbd4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "A Multimap would simplify quite a bit of boilerplate below",
+      "range": {
+        "startLine": 100,
+        "startChar": 24,
+        "endLine": 100,
+        "endChar": 76
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2237bf4f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "where is this exposed?",
+      "range": {
+        "startLine": 111,
+        "startChar": 16,
+        "endLine": 111,
+        "endChar": 30
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_02bb9bc4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "nit: the message bus?",
+      "range": {
+        "startLine": 115,
+        "startChar": 49,
+        "endLine": 115,
+        "endChar": 56
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a24aefc2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "isn\u0027t this vulnerable to races between the snapshotting and the subscribe? \n\nIt could be avoided by ensuring that the winningSubject is exposed as winningSubject.subscribeOn(scheduler) so implicitly we\u0027re blocking updates to the map while we snapshot. But I can\u0027t find where the winning subject is exposed (search in gerrit doesn\u0027t work that well though),",
+      "range": {
+        "startLine": 131,
+        "startChar": 11,
+        "endLine": 132,
+        "endChar": 38
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_82c6cb47",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "why do we need updateStream and winningSubject? they seem the same thing",
+      "range": {
+        "startLine": 139,
+        "startChar": 16,
+        "endLine": 139,
+        "endChar": 22
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_82f40b88",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "I prefer doing this based on composing a filter because that way you don\u0027t need to proactively onNext on the winningSubject, but not a big problem anyway.",
+      "range": {
+        "startLine": 151,
+        "startChar": 16,
+        "endLine": 151,
+        "endChar": 33
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a2dcaf13",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-11T14:23:04Z",
+      "side": 1,
+      "message": "why? if the entry is there we would\u0027ve already counted it no?",
+      "range": {
+        "startLine": 156,
+        "startChar": 12,
+        "endLine": 156,
+        "endChar": 40
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
