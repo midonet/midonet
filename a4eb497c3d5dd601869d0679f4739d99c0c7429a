@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_6c970091",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-11T03:36:05Z",
+      "side": 1,
+      "message": "just a curious question; why not 4.1.0?",
+      "revId": "a4eb497c3d5dd601869d0679f4739d99c0c7429a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
