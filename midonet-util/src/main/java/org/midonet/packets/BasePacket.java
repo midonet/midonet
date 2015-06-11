@@ -46,6 +46,11 @@ public abstract class BasePacket implements IPacket {
         return payload;
     }
 
+    @Override
+    public int getPayloadLength() {
+        return payload != null ? payload.getPayloadLength() : 0;
+    }
+
     /**
      * @param payload the payload to set
      */

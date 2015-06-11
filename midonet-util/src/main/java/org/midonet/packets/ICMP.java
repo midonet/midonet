@@ -108,8 +108,9 @@ public class ICMP extends BasePacket {
     }
 
     private void setIPv4Packet(IPv4 ipPkt) {
+        int payloadLength = payload.getPayloadLength();
         byte[] data = ipPkt.serialize();
-        int length = ipPkt.headerLength*4 + HEADER_LEN;
+        int length = data.length - payloadLength;
         if (length >= data.length)
             this.data = data;
         else
@@ -194,13 +195,22 @@ public class ICMP extends BasePacket {
         this.data = data;
     }
 
+    public void clearChecksum() {
+        checksum = 0;
+    }
+
+    @Override
+    public int getPayloadLength() {
+        return data != null ? data.length : 0;
+    }
+
     /**
      * Serializes the packet. Will compute and set the checksum if it's set to
      * 0 (zero) at the time serialize is called.
      */
     @Override
     public byte[] serialize() {
-        int length = HEADER_LEN + ((data == null) ? 0 : data.length);
+        int length = HEADER_LEN + getPayloadLength();
         byte[] bytes = new byte[length];
         ByteBuffer bb = ByteBuffer.wrap(bytes);
         bb.put(type);
