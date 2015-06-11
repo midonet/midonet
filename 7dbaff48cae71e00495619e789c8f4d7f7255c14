@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_cc548c23",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 528,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T08:54:03Z",
+      "side": 1,
+      "message": "The indentation is off.",
+      "range": {
+        "startLine": 528,
+        "startChar": 11,
+        "endLine": 528,
+        "endChar": 36
+      },
+      "revId": "7dbaff48cae71e00495619e789c8f4d7f7255c14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0c367403",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 547,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T08:54:03Z",
+      "side": 1,
+      "message": "This indentation seems weird.",
+      "range": {
+        "startLine": 547,
+        "startChar": 29,
+        "endLine": 547,
+        "endChar": 37
+      },
+      "revId": "7dbaff48cae71e00495619e789c8f4d7f7255c14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2c3df8de",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 560,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T08:54:03Z",
+      "side": 1,
+      "message": "Shouldn\u0027t we rather check Src?",
+      "range": {
+        "startLine": 557,
+        "startChar": 12,
+        "endLine": 560,
+        "endChar": 58
+      },
+      "revId": "7dbaff48cae71e00495619e789c8f4d7f7255c14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
