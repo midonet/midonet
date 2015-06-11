@@ -22,6 +22,30 @@
       "revId": "9faa34852957a1929fc176bb75ec9ae437ac7905",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6c6e2031",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-11T08:07:17Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_d69c1dc3",
+      "range": {
+        "startLine": 56,
+        "startChar": 30,
+        "endLine": 56,
+        "endChar": 32
+      },
+      "revId": "9faa34852957a1929fc176bb75ec9ae437ac7905",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
