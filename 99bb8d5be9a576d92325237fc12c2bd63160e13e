@@ -22,6 +22,30 @@
       "revId": "99bb8d5be9a576d92325237fc12c2bd63160e13e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e2a237ad",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-11T13:39:00Z",
+      "side": 1,
+      "message": "Yes, I\u0027m pretty bad with names. But are they clear that mean single value keys, as opposed to Multiple?",
+      "parentUuid": "facab960_c25e1312",
+      "range": {
+        "startLine": 138,
+        "startChar": 56,
+        "endLine": 138,
+        "endChar": 76
+      },
+      "revId": "99bb8d5be9a576d92325237fc12c2bd63160e13e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
