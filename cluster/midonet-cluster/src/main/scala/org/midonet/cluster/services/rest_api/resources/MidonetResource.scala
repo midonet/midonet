@@ -112,7 +112,6 @@ abstract class MidonetResource[T >: Null <: UriResource]
     protected final implicit val log =
         Logger(LoggerFactory.getLogger(getClass))
 
-    @GET
     @Path("{id}")
     def get(@PathParam("id") id: String,
             @HeaderParam("Accept") accept: String): T = {
@@ -231,7 +230,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
     }
 
-    protected def deleteResource(clazz: Class[_ <: UriResource], id: Any,
+    protected def deleteResource[U >: Null <: UriResource]
+                                (clazz: Class[U], id: Any,
                                  response: Response = OkNoContentResponse)
     : Response = {
         log.info("DELETE: {}:{}", UriResource.getZoomClass(clazz),
