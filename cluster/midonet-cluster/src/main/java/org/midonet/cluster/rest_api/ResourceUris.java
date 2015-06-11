@@ -38,6 +38,8 @@ public final class ResourceUris {
     public static final String IP_ADDR_GROUPS = "ip_addr_groups";
     public static final String LINK = "link";
     public static final String LOAD_BALANCERS = "load_balancers";
+    public static final String L2INSERTIONS = "l2insertions";
+    public static final String L2SERVICES = "l2services";
     public static final String MAC_TABLE = "mac_table";
     public static final String PEER_PORTS = "peer_ports";
     public static final String POOLS = "pools";
