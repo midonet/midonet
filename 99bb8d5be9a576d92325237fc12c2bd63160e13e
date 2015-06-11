@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_c25e1312",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 138,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-11T12:46:26Z",
+      "side": 1,
+      "message": "I know that these names don\u0027t come from this patch but they are not 100% intuitive. What about FirstWriteWins and LastWriteWins instead (remove Single)?",
+      "range": {
+        "startLine": 138,
+        "startChar": 56,
+        "endLine": 138,
+        "endChar": 76
+      },
+      "revId": "99bb8d5be9a576d92325237fc12c2bd63160e13e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
