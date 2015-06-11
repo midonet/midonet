@@ -108,8 +108,14 @@ public class ICMP extends BasePacket {
     }
 
     private void setIPv4Packet(IPv4 ipPkt) {
+        IPacket payload = ipPkt.payload;
+        while (!(payload instanceof Data) && payload != null) {
+            payload = payload.getPayload();
+        }
+        int payloadLength = payload != null ? ((Data) payload).getData().length : 0;
+
         byte[] data = ipPkt.serialize();
-        int length = ipPkt.headerLength*4 + HEADER_LEN;
+        int length = ipPkt.totalLength - payloadLength;
         if (length >= data.length)
             this.data = data;
         else
@@ -192,6 +198,10 @@ public class ICMP extends BasePacket {
      */
     public void setData (byte[] data) {
         this.data = data;
+    }
+
+    public void clearChecksum() {
+        checksum = 0;
     }
 
     /**

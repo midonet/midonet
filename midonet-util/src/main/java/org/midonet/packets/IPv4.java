@@ -21,17 +21,14 @@ package org.midonet.packets;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 
 /**
  * @author David Erickson (daviderickson@cs.stanford.edu)
  *
  */
 public class IPv4 extends BasePacket {
-
     public static final String regex =
         "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" +
         "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$";
@@ -268,6 +265,11 @@ public class IPv4 extends BasePacket {
         return this;
     }
 
+    public IPv4 clearChecksum() {
+        this.checksum = 0;
+        return this;
+    }
+
     /**
      * @return the sourceAddress
      */
@@ -405,10 +407,13 @@ public class IPv4 extends BasePacket {
             optionsLength = this.options.length / 4;
         this.headerLength = (byte) (5 + optionsLength);
 
-        this.totalLength = (this.headerLength * 4 + ((payloadData == null) ? 0
-                : payloadData.length));
+        int actualLength = (this.headerLength * 4 + ((payloadData == null)
+                                                     ? 0 : payloadData.length));
+        if (this.totalLength == 0) {
+            this.totalLength = actualLength;
+        }
 
-        byte[] data = new byte[this.totalLength];
+        byte[] data = new byte[actualLength];
         ByteBuffer bb = ByteBuffer.wrap(data);
 
         bb.put((byte) (((this.version & 0xf) << 4) | (this.headerLength & 0xf)));
