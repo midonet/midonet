@@ -1,0 +1,280 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_6769d9bd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "I wonder why we just don\u0027t call this and the corresponding class simply \"StateStorage\"...",
+      "range": {
+        "startLine": 85,
+        "startChar": 7,
+        "endLine": 85,
+        "endChar": 23
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_270b5126",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 98,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "\"ephemeral state data\" is more natural?",
+      "range": {
+        "startLine": 97,
+        "startChar": 67,
+        "endLine": 98,
+        "endChar": 17
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_470e9535",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "Just suggesting a possible rephrase:\n\n\"They are added as key value pairs where \"state\" keys are registered prior to building the storage\"",
+      "range": {
+        "startLine": 98,
+        "startChar": 19,
+        "endLine": 99,
+        "endChar": 30
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_870fbd2d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "s/such/so/",
+      "range": {
+        "startLine": 108,
+        "startChar": 37,
+        "endLine": 108,
+        "endChar": 41
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_67147944",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StorageWithState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "s/an/the/",
+      "range": {
+        "startLine": 110,
+        "startChar": 26,
+        "endLine": 110,
+        "endChar": 28
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_67b0f943",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "Just a question, but StorageWithState will replace StorageWithOwnership?",
+      "range": {
+        "startLine": 117,
+        "startChar": 38,
+        "endLine": 117,
+        "endChar": 58
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a7ba0121",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 328,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "Just a wild idea, but can these be mixed in as some kind of TransactionManager trait?",
+      "range": {
+        "startLine": 290,
+        "startChar": 0,
+        "endLine": 328,
+        "endChar": 9
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e74ec96e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "Please remove.",
+      "range": {
+        "startLine": 56,
+        "startChar": 55,
+        "endLine": 56,
+        "endChar": 58
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_27599136",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "This part seems duplicitous of the first line of this comment block.",
+      "range": {
+        "startLine": 60,
+        "startChar": 2,
+        "endLine": 61,
+        "endChar": 24
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6742b93f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "s/It/It is/",
+      "range": {
+        "startLine": 70,
+        "startChar": 64,
+        "endLine": 70,
+        "endChar": 66
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0779ed92",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "I don\u0027t see the need for this trait to extend Storage.",
+      "range": {
+        "startLine": 77,
+        "startChar": 52,
+        "endLine": 77,
+        "endChar": 64
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e775e998",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-11T09:47:44Z",
+      "side": 1,
+      "message": "A white space between if and (isBuilt).",
+      "range": {
+        "startLine": 91,
+        "startChar": 8,
+        "endLine": 91,
+        "endChar": 19
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
