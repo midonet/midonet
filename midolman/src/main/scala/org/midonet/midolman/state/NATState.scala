@@ -27,7 +27,7 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
-import org.midonet.packets.{IPv4Addr, IPv4, ICMP, TCP, UDP}
+import org.midonet.packets._
 import org.midonet.sdn.state.FlowStateTransaction
 
 object NatState {
@@ -333,37 +333,29 @@ trait NatState extends FlowState { this: PacketContext =>
             case ICMP.TYPE_PARAMETER_PROBLEM | ICMP.TYPE_TIME_EXCEEDED |
                  ICMP.TYPE_UNREACH if wcmatch.getIcmpData ne null =>
                 val data = wcmatch.getIcmpData
-                val dataSize = data.length
                 val bb = ByteBuffer.wrap(data)
-                val header = new IPv4
-                header.deserializeHeader(bb)
+                val icmpPayload = new IPv4
+                icmpPayload.deserialize(bb)
                 if (isSnat) {
-                    header.setSourceAddress(binding.networkAddress)
+                    icmpPayload.setSourceAddress(binding.networkAddress)
                     if (wcmatch.getNetworkDstIP == natKey.networkDst)
                         wcmatch.setNetworkDst(binding.networkAddress)
                 } else {
-                    header.setDestinationAddress(binding.networkAddress)
+                    icmpPayload.setDestinationAddress(binding.networkAddress)
                     if (wcmatch.getNetworkSrcIP == natKey.networkSrc)
                         wcmatch.setNetworkSrc(binding.networkAddress)
                 }
-                val ipHeadSize = dataSize - bb.remaining
-                val packet = bb.slice
-                var tpSrc = TCP.getSourcePort(packet).toShort
-                var tpDst = TCP.getDestinationPort(packet).toShort
-                if (header.getProtocol == TCP.PROTOCOL_NUMBER ||
-                    header.getProtocol == UDP.PROTOCOL_NUMBER) {
-                    if (isSnat)
-                        tpSrc = binding.transportPort.toShort
-                    else
-                        tpDst = binding.transportPort.toShort
+                icmpPayload.getPayload match {
+                    case transport: Transport =>
+                        if (isSnat)
+                            transport.setSourcePort(binding.transportPort)
+                        else
+                            transport.setDestinationPort(binding.transportPort.toShort)
+                        transport.clearChecksum()
+                    case _ =>
                 }
-                val natBB = ByteBuffer.allocate(data.length)
-                natBB.put(header.serialize, 0, ipHeadSize)
-                natBB.putShort(tpSrc)
-                natBB.putShort(tpDst)
-                bb.position(bb.position + 4)
-                natBB.put(bb)
-                wcmatch.setIcmpData(natBB.array)
+                icmpPayload.clearChecksum()
+                wcmatch.setIcmpData(icmpPayload.serialize())
                 true
             case _ => false
         }

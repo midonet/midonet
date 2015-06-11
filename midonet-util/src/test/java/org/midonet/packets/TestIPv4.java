@@ -175,7 +175,6 @@ public class TestIPv4 {
             ipPkt = new IPv4();
             bb = ByteBuffer.wrap(truncatedIpBytes);
             ipPkt.deserialize(bb);
-            truncatedIpBytes[3] -= 20; // Update packet length
             Assert.assertArrayEquals(truncatedIpBytes, ipPkt.serialize());
         }
 
@@ -210,9 +209,11 @@ public class TestIPv4 {
             // Now deserializae/serialize the same packet from a larger-than-needed
             // buffer.
             byte[] longBuffer = Arrays.copyOf(data, data.length+100);
+            int totalLength = ipPkt.totalLength;
             ipPkt = new IPv4();
             bb = ByteBuffer.wrap(longBuffer, 0, longBuffer.length);
             ipPkt.deserialize(bb);
+            ipPkt.setTotalLength(totalLength);
             Assert.assertArrayEquals(data, ipPkt.serialize());
 
             // Now try a partial packet... lose 20 bytes from the IPv4.
@@ -272,7 +273,6 @@ public class TestIPv4 {
             // is truncated.
             byte[] expected = ipPkt.serialize();
             // Update IP and UDP length fields
-            data[3] = (byte ) data.length; // IP
             data[25] = (byte ) (data.length - 20); // UDP
             Assert.assertArrayEquals(data, expected);
 
@@ -340,7 +340,6 @@ public class TestIPv4 {
             ipPkt = new IPv4();
             bb = ByteBuffer.wrap(truncatedData);
             ipPkt.deserialize(bb);
-            truncatedData[3] -= 30; // Update packet length
             Assert.assertArrayEquals(truncatedData, ipPkt.serialize());
         }
     }
