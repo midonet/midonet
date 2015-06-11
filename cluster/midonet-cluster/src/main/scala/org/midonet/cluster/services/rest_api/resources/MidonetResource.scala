@@ -231,7 +231,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
     }
 
-    protected def deleteResource(clazz: Class[_ <: UriResource], id: Any,
+    protected def deleteResource[U >: Null <: UriResource]
+                                (clazz: Class[U], id: Any,
                                  response: Response = OkNoContentResponse)
     : Response = {
         log.info("DELETE: {}:{}", UriResource.getZoomClass(clazz),
