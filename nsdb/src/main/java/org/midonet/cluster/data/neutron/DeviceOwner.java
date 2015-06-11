@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,11 @@ import org.midonet.cluster.models.Neutron;
 @ZoomEnum(clazz = Neutron.NeutronPort.DeviceOwner.class)
 public enum DeviceOwner {
 
-    @ZoomEnumValue("network:dhcp") DHCP("network:dhcp"),
-    @ZoomEnumValue("network:floatingip") FLOATINGIP("network:floatingip"),
-    @ZoomEnumValue("network:router_gateway") ROUTER_GW("network:router_gateway"),
-    @ZoomEnumValue("network:router_interface") ROUTER_INTF("network:router_interface"),
-    @ZoomEnumValue("compute:nova") NOVA("compute:nova");
+    @ZoomEnumValue("DHCP") DHCP("network:dhcp"),
+    @ZoomEnumValue("FLOATINGIP") FLOATINGIP("network:floatingip"),
+    @ZoomEnumValue("ROUTER_GATEWAY") ROUTER_GW("network:router_gateway"),
+    @ZoomEnumValue("ROUTER_INTERFACE") ROUTER_INTF("network:router_interface"),
+    @ZoomEnumValue("NOVA") NOVA("compute:nova");
 
     private final String value;
 
