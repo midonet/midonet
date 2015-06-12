@@ -328,6 +328,12 @@ class RouterSimulationTest extends MidolmanSpec {
         simRes should be (Drop)
     }
 
+    scenario("Allows VLAN-0 traffic") {
+        val pkt = { eth src MAC.random dst port1.getHwAddr vlan 0 }
+        val (simRes, _) = simulate(packetContextFor(pkt, port1.getId))
+        simRes should be (AddVirtualWildcardFlow)
+    }
+
     scenario("Ping with forward match rule") {
         val chain = newOutboundChainOnRouter("egress chain", router)
         val forwardCond = new Condition()

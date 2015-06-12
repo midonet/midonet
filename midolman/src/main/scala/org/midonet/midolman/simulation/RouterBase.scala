@@ -69,7 +69,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     override def process(context: PacketContext): SimulationResult = {
         implicit val packetContext = context
 
-        if (!context.wcmatch.getVlanIds.isEmpty) {
+        if (context.wcmatch.isVlanTagged) {
             context.log.debug("Dropping VLAN tagged traffic")
             return Drop
         }
