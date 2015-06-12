@@ -1,0 +1,6 @@
+pyyaml
+futures
+nose
+pyhamcrest
+docker-py
+virtualenv

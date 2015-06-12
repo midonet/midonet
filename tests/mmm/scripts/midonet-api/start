@@ -1,7 +1,0 @@
-#! /bin/sh
-
-if test -x /etc/init.d/tomcat6; then
-    /etc/init.d/tomcat6 restart
-else
-    /etc/init.d/tomcat7 restart
-fi
