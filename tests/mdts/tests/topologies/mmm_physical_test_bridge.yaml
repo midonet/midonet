@@ -134,7 +134,7 @@ physical_topology:
           - interface:
               id: 5
               ifname: null
-              peer_ifname: dhcp
+              #peer_ifname: dhcp
               type: "netns"
               ipv4_addr: []
               ipv6_addr: []

@@ -15,11 +15,11 @@
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
 from mdts.lib.binding_manager import BindingManager
-from mdts.lib.failure.no_failure import NoFailure
-from mdts.lib.failure.netif_failure import NetifFailure
 from mdts.lib.failure.pkt_failure import PktFailure
 
-from mdts.tests.config import NS_BGP_PEERS
+from mdts.tests.utils.utils import bindings
+from mdts.tests.utils.utils import wait_on_futures
+
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils import *
 
@@ -132,15 +132,6 @@ binding_snat_3 = {
         ]
     }
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
 # Even though quickly copied from test_nat_router for now, utilities below
 # should probably be moved to somewhere shared among tests
 def set_filters(router_name, inbound_filter_name, outbound_filter_name):
@@ -221,22 +212,29 @@ def await_default_route(router, port):
     raise Exception("Timed out while waiting for BGP to be set up on router "
                     "{0} port {1}".format(router_id, port_id))
 
-# There are two uplinks available in MMM, one of which is from ns008(eth1)
-# to ns000(eth0) and another of which is from ns009(eth1) to ns000(eth1).
-# The BGP #1 is establed over the first and BGP #2 over the second.
-
 # routes BGP advertises:
 route_direct = [{'nwPrefix': '172.16.0.0', 'prefixLength': 16}]
 route_snat = [{'nwPrefix': '100.0.0.0', 'prefixLength': 16}]
 
 # 1.1.1.1 is assigned to lo in ns000 emulating a public IP address
-def ping_inet(count=3, interval=1, port=2):
-    sender = BM.get_iface_for_port('bridge-000-001', port)
+def ping_inet(count=10, interval=2, port=2, retries=10):
     try:
-        f1 = sender.ping_ipv4_addr('1.1.1.1', interval=interval, count=count)
+        sender = BM.get_iface_for_port('bridge-000-001', port)
+        f1 = sender.ping_ipv4_addr('1.1.1.1',
+                                   interval=interval,
+                                   count=count)
         wait_on_futures([f1])
-    except subprocess.CalledProcessError as e:
-        raise AssertionError(e.cmd, e.returncode)
+        output_stream, exec_id = f1.result()
+        exit_status = sender.compute_host.check_exit_status(exec_id,
+                                                            output_stream,
+                                                            timeout=60)
+
+        assert_that(exit_status, equal_to(0), "Ping did not return any data")
+    except:
+        if retries == 0:
+            assert_that(-1, equal_to(0), "Ping did not return any data")
+
+        ping_inet(count, interval, port, retries-1)
 
 @attr(version="v1.2.0", slow=False)
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
@@ -355,7 +353,8 @@ def test_icmp_failback():
 
     ping_inet() # BGP #1 and #2 are working
 
-    failure = PktFailure(NS_BGP_PEERS[0], 'eth0', 35)
+    failure = PktFailure('quagga', 'bgp0', 15)
+
     failure.inject()
     try:
         ping_inet() # BGP #1 is lost
@@ -364,7 +363,7 @@ def test_icmp_failback():
 
     ping_inet() # BGP #1 is back
 
-    failure = PktFailure(NS_BGP_PEERS[0], 'eth1', 35)
+    failure = PktFailure('quagga', 'bgp1', 15)
     failure.inject()
     try:
         ping_inet() # BGP #2 is lost

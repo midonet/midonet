@@ -1,5 +1,4 @@
 #!/bin/bash
 
-pushd tests/mmm/scripts
-sudo ./stop
-popd
+# Stop all conatiners so we don't have leaked processes
+sudo sandbox-manage -c sandbox.conf stop-all
