@@ -46,6 +46,30 @@
       "revId": "8101f47a2034cdc151969e71335f25d17615adb6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_eda5c7b5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T09:52:44Z",
+      "side": 1,
+      "message": "Sure, no problem",
+      "parentUuid": "facab960_0ddf4b3c",
+      "range": {
+        "startLine": 101,
+        "startChar": 47,
+        "endLine": 101,
+        "endChar": 58
+      },
+      "revId": "8101f47a2034cdc151969e71335f25d17615adb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
