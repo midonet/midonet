@@ -34,7 +34,6 @@ import org.midonet.cluster.rest_api.neutron.models.Neutron;
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin;
 
 @RequestScoped
-@Path(NeutronUriBuilder.NEUTRON)
 public class NeutronResource {
 
     private final UriInfo uriInfo;
@@ -86,7 +85,6 @@ public class NeutronResource {
                NeutronMediaType.NEUTRON_JSON_V2})
     public Neutron get() {
 
-        LoggerFactory.getLogger(this.getClass()).error("HELLOOOOOOOOO");
         Neutron neutron = new Neutron();
 
         URI baseUri = uriInfo.getBaseUri();
