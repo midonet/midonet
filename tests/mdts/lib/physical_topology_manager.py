@@ -18,10 +18,9 @@ Resource manager for physical topology data.
 
 import logging
 
-from mdts.lib.interface import Interface
 from mdts.lib.topology_manager import TopologyManager
-from mdts.tests.utils import wait_on_futures
 from mdts.tests.utils.conf import is_vxlan_enabled
+from mdts.services import service
 
 
 LOG = logging.getLogger(__name__)
@@ -32,8 +31,9 @@ class PhysicalTopologyManager(TopologyManager):
     def __init__(self, filename=None, data=None):
 
         super(PhysicalTopologyManager, self).__init__(filename, data)
-
         self._hosts = self._data['physical_topology'].get('hosts')
+        self._compute_hosts = service.get_all_containers('midolman')
+        self._external_hosts = service.get_all_containers('externalhost')
         self._bridges = self._data['physical_topology'].get('bridges') or []
         self._interfaces = {}  # (host_id, interface_id) to interface map
 
@@ -50,58 +50,57 @@ class PhysicalTopologyManager(TopologyManager):
         LOG.debug('-' * 80)
         LOG.debug("build")
         LOG.debug('-' * 80)
-        for b in self._bridges:
-            bridge = b['bridge']
-            # TODO(tomohiko) Need to something when not bridge['provided']?
-            if bridge['provided']:
-                LOG.info('Skipped building bridge=%r', bridge)
+        #for b in self._bridges:
+        #    bridge = b['bridge']
+        #    # TODO(tomohiko) Need to something when not bridge['provided']?
+        #    if bridge['provided']:
+        #        LOG.info('Skipped building bridge=%r', bridge)
 
+        midonet_api = self._midonet_api_host.get_midonet_api()
+
+        # Check if TZ exists and pick it if that's the case
+        tzones = midonet_api.get_tunnel_zones()
+        tz = None
+        for tzone in tzones:
+            if tzone.get_name() == 'mdts-test':
+                tz = tzone
+
+        # IF TZ does not exists, create it
+        if tz is None:
+            if is_vxlan_enabled():
+                tz = midonet_api.add_vxlan_tunnel_zone()
+            else:
+                tz = midonet_api.add_gre_tunnel_zone()
+            tz.name('mdts-test')
+            tz.create()
+
+        for host in self._compute_hosts:
+            tz_hosts = tz.get_hosts()
+            tz_host = filter(
+                lambda x: x.get_host_id() == host.get_midonet_host_id(),
+                tz_hosts)
+            if not tz_host:
+                tz_host = tz.add_tunnel_zone_host()
+                tz_host.ip_address(host.get_ip_address())
+                tz_host.host_id(host.get_midonet_host_id())
+                tz_host.create()
+
+        # Create mapping between host['id'], interface['id'] with interface
+        # description.
         for h in self._hosts:
             host = h['host']
-            if host.get('tunnel_zone'):
-                tz_data = host.get('tunnel_zone')
-                tzs = self._api.get_tunnel_zones()
-
-                # Ensure that TZ exists
-                tz = [t for t in tzs if t.get_name() == tz_data['name']]
-                if tz == []:
-                    if is_vxlan_enabled():
-                        tz = self._api.add_vxlan_tunnel_zone()
-                    else:
-                        tz = self._api.add_gre_tunnel_zone()
-                    tz.name(tz_data['name'])
-                    tz.create()
-                else:
-                    tz = tz[0]
-
-                # Ensure that the host is in the TZ
-                tz_hosts = tz.get_hosts()
-                tz_host = filter(
-                    lambda x: x.get_host_id() == host['mn_host_id'],
-                    tz_hosts)
-                if tz_host == []:
-                    tz_host = tz.add_tunnel_zone_host()
-                    tz_host.ip_address(tz_data['ip_addr'])
-                    tz_host.host_id(host['mn_host_id'])
-                    tz_host.create()
-
-
-            if host['provided'] == True:
-                LOG.info('Skipped building host=%r', host)
-            else:
-                #TODO(tomoe): when we support provisioning Midolman host with
-                # this tool.
-                pass
-            interfaces = host['interfaces']
-
-            futures = []
-            for i in interfaces:
-                iface = Interface(i['interface'], host)
-                self._interfaces[(host['id'], i['interface']['id'])] = iface
-                f = iface.create()
-                futures.append(f)
-
-            wait_on_futures(futures)
+            if 'mn_host_id' not in host:
+                hostname = host.get('hostname')
+                host_id = host.get('id')
+                externalhost = next(external for external in self._external_hosts
+                                    if external.get_hostname() == hostname)
+                interfaces = host['interfaces']
+                for interface in interfaces:
+                    interface = interface['interface']
+                    if interface['type'] == 'provided':
+                        interface_id = interface.get('id')
+                        iface = externalhost.create_provided(**interface)
+                        self._interfaces[(host_id, interface_id)] = iface
 
         LOG.debug('-' * 80)
         LOG.debug("end build")
@@ -113,38 +112,15 @@ class PhysicalTopologyManager(TopologyManager):
         LOG.debug("destroy")
         LOG.debug('-' * 80)
 
-        for h in self._hosts:
-            host = h['host']
+        midonet_api_host = service.get_container_by_hostname('api')
+        midonet_api = midonet_api_host.get_midonet_api()
+        tzs = midonet_api.get_tunnel_zones()
+        mdts_tzs = filter(lambda t: t.get_name() == 'mdts-test', tzs)
+        map(lambda tz: tz.delete(), mdts_tzs)
 
-            # Delete TZ
-            if host.get('tunnel_zone'):
-                tz_data = host.get('tunnel_zone')
-                tzs = self._api.get_tunnel_zones()
-                tz = filter(lambda x: x.get_name() == tz_data['name'], tzs)
-                # Delete tz, which has(have) the name in the config
-                map(lambda x: x.delete(), tz)
-
-            if host['provided'] == True:
-                LOG.info('Skipped destroying host=%r', host)
-            else:
-                #TODO(tomoe): when we support provisioning Midolman host with
-                # this tool.
-                pass
-            interfaces = host['interfaces']
-
-            futures = []
-            for i in interfaces:
-                iface = Interface(i['interface'], host)
-                f = iface.delete()
-                futures.append(f)
-
-            wait_on_futures(futures)
-
-        for b in self._bridges:
-            bridge = b['bridge']
-            # TODO(tomohiko) Need to do something when !host['provided']?
-            if host['provided']:
-                LOG.info('Skipped destroying bridge=%r', bridge)
+        for interface in self._interfaces.values():
+            interface.destroy()
+        self._interfaces = {}
 
         LOG.debug('-' * 80)
         LOG.debug("end destroy")
