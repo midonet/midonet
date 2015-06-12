@@ -783,6 +783,13 @@ public class FlowMatch {
         fieldSeen(Field.UserspaceMark);
     }
 
+    public boolean isVlanTagged() {
+        for (int i = 0; i < vlanIds.size(); i += 1)
+            if (vlanIds.get(i) != 0)
+                return true;
+        return false;
+    }
+
     // TODO(duarte): enhance as needed
     public void applyTo(Ethernet eth) {
         eth.setSourceMACAddress(ethSrc);
