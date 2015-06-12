@@ -21,7 +21,8 @@ import java.util.UUID;
 
 import com.google.common.base.Objects;
 
-import org.apache.commons.collections4.ListUtils;
+import static org.apache.commons.collections4.ListUtils.isEqualList;
+import static org.apache.commons.collections4.ListUtils.hashCodeForList;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -106,39 +107,58 @@ public class Port extends ZoomObject {
     @ZoomField(name = "security_groups", converter = Converter.class)
     public List<UUID> securityGroups = new ArrayList<>();
 
+    @JsonProperty("host_id")
+    @ZoomField(name = "host_id", converter = Converter.class)
+    public UUID hostId;
+
+    @JsonProperty("binding:profile")
+    @ZoomField(name = "profile")
+    public PortBindingProfile bindingProfile;
+
+    @JsonProperty("port_security_enabled")
+    @ZoomField(name = "port_security_enabled")
+    public boolean securityEnabled;
+
+    @JsonProperty("allowed_address_pairs")
+    @ZoomField(name = "allowed_address_pairs")
+    public List<PortAllowedAddressPair> allowedAddrPairs;
+
     @JsonProperty("extra_dhcp_opts")
     @ZoomField(name = "extra_dhcp_opts")
     public List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
 
     @Override
     public final boolean equals(Object obj) {
-
         if (obj == this) return true;
-
         if (!(obj instanceof Port)) return false;
-        final Port other = (Port) obj;
 
+        final Port other = (Port) obj;
         return Objects.equal(id, other.id)
                 && Objects.equal(name, other.name)
                 && Objects.equal(networkId, other.networkId)
-                && Objects.equal(adminStateUp, other.adminStateUp)
+                && adminStateUp == other.adminStateUp
                 && Objects.equal(macAddress, other.macAddress)
                 && Objects.equal(deviceId, other.deviceId)
-                && Objects.equal(deviceOwner, other.deviceOwner)
+                && deviceOwner == other.deviceOwner
                 && Objects.equal(tenantId, other.tenantId)
                 && Objects.equal(status, other.status)
-                && ListUtils.isEqualList(fixedIps, other.fixedIps)
-                && ListUtils.isEqualList(securityGroups, other.securityGroups)
-                && ListUtils.isEqualList(extraDhcpOpts, other.extraDhcpOpts);
+                && isEqualList(fixedIps, other.fixedIps)
+                && isEqualList(securityGroups, other.securityGroups)
+                && Objects.equal(hostId, other.hostId)
+                && Objects.equal(bindingProfile, other.bindingProfile)
+                && securityEnabled == other.securityEnabled
+                && isEqualList(allowedAddrPairs, other.allowedAddrPairs)
+                && isEqualList(extraDhcpOpts, other.extraDhcpOpts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(id, name, networkId, adminStateUp, macAddress,
-                deviceId, deviceOwner, tenantId, status,
-                ListUtils.hashCodeForList(fixedIps),
-                ListUtils.hashCodeForList(securityGroups),
-                ListUtils.hashCodeForList(extraDhcpOpts));
+        return Objects.hashCode(
+            id, name, networkId, adminStateUp, macAddress, deviceId,
+            deviceOwner, tenantId, status, hashCodeForList(fixedIps),
+            hashCodeForList(securityGroups), hashCodeForList(extraDhcpOpts),
+            hostId, bindingProfile, securityEnabled,
+            hashCodeForList(allowedAddrPairs), hashCodeForList(extraDhcpOpts));
     }
 
     @Override

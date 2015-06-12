@@ -64,27 +64,30 @@ public class Network extends ZoomObject {
     @ZoomField(name = "external")
     public boolean external;
 
+    @JsonProperty("provider:network_type")
+    @ZoomField(name = "network_type")
+    public NetworkType networkType;
+
     @Override
     public boolean equals(Object obj) {
-
         if (obj == this) return true;
-
         if (!(obj instanceof Network)) return false;
-        final Network other = (Network) obj;
 
+        final Network other = (Network) obj;
         return Objects.equal(id, other.id)
                 && Objects.equal(name, other.name)
                 && Objects.equal(status, other.status)
                 && Objects.equal(shared, other.shared)
                 && Objects.equal(tenantId, other.tenantId)
                 && Objects.equal(adminStateUp, other.adminStateUp)
-                && Objects.equal(external, other.external);
+                && Objects.equal(external, other.external)
+                && Objects.equal(networkType, other.networkType);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(id, name, status, shared, tenantId,
-                adminStateUp, external);
+                adminStateUp, external, networkType);
     }
 
     @Override
@@ -97,6 +100,7 @@ public class Network extends ZoomObject {
                 .add("shared", shared)
                 .add("tenantId", tenantId)
                 .add("adminStateUp", adminStateUp)
-                .add("external", external).toString();
+                .add("external", external)
+                .add("networkType", networkType).toString();
     }
 }
