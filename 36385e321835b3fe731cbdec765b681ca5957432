@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_8af261d0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-12T01:51:37Z",
+      "side": 1,
+      "message": "I think that owner info is one such example. We can use more concrete examples here for sure.",
+      "parentUuid": "facab960_22f5ffed",
+      "range": {
+        "startLine": 107,
+        "startChar": 11,
+        "endLine": 108,
+        "endChar": 35
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e264f723",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 8
@@ -82,6 +106,30 @@
       "writtenOn": "2015-06-11T15:14:57Z",
       "side": 1,
       "message": "createStatePathsOps?",
+      "range": {
+        "startLine": 96,
+        "startChar": 22,
+        "endLine": 96,
+        "endChar": 36
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0ab651fa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-12T01:51:37Z",
+      "side": 1,
+      "message": "Actually shouldn\u0027t this be createState to make it consistent with deleteState()?",
+      "parentUuid": "facab960_c2a61353",
       "range": {
         "startLine": 96,
         "startChar": 22,
@@ -179,6 +227,29 @@
         "startChar": 73,
         "endLine": 149,
         "endChar": 76
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2ab955e9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-12T01:51:37Z",
+      "side": 1,
+      "message": "The word \"owner\" seems to come out of nowhere, making this description a bit hard to understand, maybe.",
+      "range": {
+        "startLine": 167,
+        "startChar": 57,
+        "endLine": 167,
+        "endChar": 66
       },
       "revId": "36385e321835b3fe731cbdec765b681ca5957432",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
