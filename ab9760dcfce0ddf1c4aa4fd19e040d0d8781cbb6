@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_4d279312",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/BusObserver.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T11:01:26Z",
+      "side": 1,
+      "message": "Why do you use dataClient interface in some places and direct macPortMap access in others? (I vaguely remember there were some differences in behavior... but is this intended?)",
+      "range": {
+        "startLine": 135,
+        "startChar": 16,
+        "endLine": 135,
+        "endChar": 30
+      },
+      "revId": "ab9760dcfce0ddf1c4aa4fd19e040d0d8781cbb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
