@@ -60,6 +60,18 @@ binding_multihost = {
         ]
     }
 
+binding_vlan = {
+    'description': 'on single MM',
+    'bindings': [
+        {'binding':
+             {'device_name': 'bridge-000-001', 'port_id': 2,
+              'host_id': 1, 'interface_id': 3}},
+        {'binding':
+             {'device_name': 'bridge-000-002', 'port_id': 2,
+              'host_id': 1, 'interface_id': 2}},
+        ]
+    }
+
 
 def setup():
     PTM.build()
@@ -199,6 +211,20 @@ def test_spoofed_arp_reply():
                                              within_sec(2))
     wait_on_futures([f3])
 
+
+@bindings(binding_onehost)
+def test_vlan0_stripping():
+    sender = BM.get_iface_for_port('bridge-000-001', 2)
+    receiver = BM.get_iface_for_port('bridge-000-002', 2)
+
+    receiver.ping4(sender, 0.5, 3, True, 2000, do_arp=True)
+
+    f1 = async_assert_that(receiver,
+                           receives('dst host 172.16.3.1 and icmp and not vlan 0', within_sec(5)))
+
+    f2 = sender.ping4(receiver, 0.5, 3, False, 2000)
+
+    wait_on_futures([f1, f2])
 
 @nottest
 @bindings(binding_onehost, binding_multihost)
