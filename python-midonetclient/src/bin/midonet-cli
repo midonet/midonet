@@ -1736,6 +1736,14 @@ class L2Insertion(ObjectType):
                                  value_type = StringType(),
                                  getter = 'get_position',
                                  setter = 'position'))
+        self.put_attr(BooleanAttr(name = 'fail-open',
+                                 getter = 'get_fail_open',
+                                 setter = 'fail_open',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'mac',
+                                 value_type = StringType(),
+                                 getter = 'get_mac',
+                                 setter = 'mac'))
     def type_name(self):
         return "l2insertion"
 

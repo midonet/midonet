@@ -409,11 +409,12 @@ message Rule {
     optional FragmentPolicy fragment_policy = 40;
     optional bool no_vlan = 41;
     optional uint32 vlan = 42;
+    optional UUID orig_in_port = 43;
     // end of condition fields
 
     // probably not the right way to do this. Need vlan push/pop as side-effects
-    optional bool pop_vlan = 43;
-    optional uint32 push_vlan = 44;
+    optional bool pop_vlan = 200;
+    optional uint32 push_vlan = 201;
 
     message JumpRuleData {
         optional UUID jump_to = 1;
@@ -451,7 +452,13 @@ message L2Insertion {
     optional UUID port = 2;
     optional UUID srv_port = 3;
     optional uint32 vlan = 4;
-    optional uint32 position = 5;
+    optional bool fail_open = 5;
+    optional uint32 position = 6;
+    optional string mac = 7;
+
+    // Keep a reference to the corresponding service port rule
+    optional UUID srv_rule_in = 100;
+    optional UUID srv_rule_out = 101;
 }
 
 message L2Service {

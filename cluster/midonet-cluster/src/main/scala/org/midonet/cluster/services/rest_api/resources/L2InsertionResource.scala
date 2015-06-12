@@ -16,17 +16,16 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.UUID
-
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.{Response, UriInfo}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, UpdateOp}
+import org.midonet.cluster.models.L2InsertionTranslation._
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{UriResource, L2Insertion}
+import org.midonet.cluster.rest_api.models.{L2Insertion, UriResource}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
@@ -43,45 +42,47 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 class L2InsertionResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
     extends MidonetResource[L2Insertion](backend, uriInfo) {
 
-    /*def updateInsertions(portId: UUID,
-                         created: L2Insertion = None,
-                         updated: L2Insertion = None,
-                         deleted: Boolean = false): Response = {
-        backend.store.get(classOf[Port], portId).map{ p =>
-            // Get the list of insertions for this portId
-            // If the list is empty, then only create is allowed
-            //p.getInsertionsList()
-            // Find the chains (in and out) for this port's insertions
-            // Delete all the rules
-            // Recreate the rules
+    def check(res: Boolean): Response = {
+        res match {
+            case true => Response.noContent().build
+            case false => Response.status(Response.Status.PRECONDITION_FAILED).build
         }
-        Response.ok().build()
     }
 
     override protected def createResource[U >: Null <: UriResource]
                                          (resource: U) = {
-        //val ins = resource.asInstanceOf[L2Insertion]
-        //updateInsertions(ins.port, created = ins)
-        super.createResource(resource)
+        updateInsertions(backend.store, CreateOp(toProto(resource))) match {
+            case true =>
+                resource.setBaseUri(uriInfo.getBaseUri)
+                Response.created(resource.getUri).build
+            case false =>
+                Response.status(Response.Status.PRECONDITION_FAILED).build
+        }
     }
 
     override protected def updateResource[U >: Null <: UriResource]
                                          (resource: U,
                                           res: Response) = {
-        //val ins = resource.asInstanceOf[L2Insertion]
-        //updateInsertions(ins.port, updated = ins)
-        super.updateResource(resource)
+        check(updateInsertions(backend.store, UpdateOp(toProto(resource))))
     }
 
     override protected def deleteResource[U >: Null <: UriResource]
                                          (clazz: Class[U], id: Any,
                                           res: Response) = {
-        //updateInsertions(id.asInstanceOf[UUID], deleted = true)
-        super.deleteResource(clazz, id, res)
-    }*/
-
-    protected override def updateFilter = (to: L2Insertion, from: L2Insertion) => {
-        to.update(from)
+        check(updateInsertions(backend.store, DeleteOp(clazz, id)))
     }
 
+    protected override def updateFilter =
+        (to: L2Insertion, from: L2Insertion) => { to.update(from) }
+
+    protected override def listFilter: (L2Insertion) => Boolean = {
+        val srvPort = uriInfo.getQueryParameters.getFirst("srv_port")
+        val port = uriInfo.getQueryParameters.getFirst("port")
+        if (srvPort != null)
+            (i: L2Insertion) => i.srvPort.toString.equals(srvPort)
+        else if (port != null)
+            (i: L2Insertion) => i.port.toString.equals(port)
+        else
+            (_: L2Insertion) => true
+    }
 }
