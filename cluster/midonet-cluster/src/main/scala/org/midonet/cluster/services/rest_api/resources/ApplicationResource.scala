@@ -24,6 +24,7 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.models.Application
+import org.midonet.cluster.rest_api.neutron.resources.NeutronResource
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
@@ -38,6 +39,7 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
                                     hostResource: HostResource,
                                     loadBalancerResource: LoadBalancerResource,
                                     loginResource: LoginResource,
+                                    neutronResource: NeutronResource,
                                     poolResource: PoolResource,
                                     poolMemberResource: PoolMemberResource,
                                     portResource: PortResource,
@@ -78,6 +80,9 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
 
     @Path("login")
     def login = loginResource
+
+    @Path("neutron")
+    def neutron = neutronResource
 
     @Path("pools")
     def pools = poolResource
