@@ -471,76 +471,76 @@ class RedirectRuleSimulationTest extends MidolmanSpec with TopologyBuilder {
                                            adminStateUp = true,
                                            bridgeId = Some(vmBridge.getId))
 
-            // Inbound filters:
-            // - drop dst udp 40 in inFilter
-            // - redirect to port2 when dst udp 41 in InFilter
-            val inFilterR1 = createLiteralRuleBuilder(
-                action = Some(Action.DROP),
-                chainId = Some(inFilter.getId))
-                .setTpDst(
-                    Int32Range.newBuilder().setStart(40).setEnd(40).build())
-                .build()
-            val inFilterR2 = createRedirectRuleBuilder(
-                chainId = Some(inFilter.getId),
-                targetPortId = vm2Port.getId)
-                .setTpDst(
-                    Int32Range.newBuilder().setStart(41).setEnd(41).build())
-                .build()
-            inFilter = inFilter.toBuilder
-                .addRuleIds(inFilterR1.getId)
-                .addRuleIds(inFilterR2.getId).build()
-
-            // - drop dst udp 41 in inChain1 (ignored)
-            // - drop dst udp 42 in inChain1
-            // - redirect to port2 when dst udp 43 in Chain1
+            // - drop dst udp 40 in inChain1
+            // - redirect to port2 when dst udp 41 in Chain1
             val inChain1R1 = createLiteralRuleBuilder(
                 action = Some(Action.DROP),
                 chainId = Some(inChain1.getId))
                 .setTpDst(
+                    Int32Range.newBuilder().setStart(40).setEnd(40).build())
+                .build()
+            val inChain1R2 = createRedirectRuleBuilder(
+                chainId = Some(inChain1.getId),
+                targetPortId = vm2Port.getId)
+                .setTpDst(
                     Int32Range.newBuilder().setStart(41).setEnd(41).build())
                 .build()
-            val inChain1R2 = createLiteralRuleBuilder(
+            inChain1 = inChain1.toBuilder
+                .addRuleIds(inChain1R1.getId)
+                .addRuleIds(inChain1R2.getId).build()
+
+            // - drop dst udp 41 in inChain2 (ignored)
+            // - drop dst udp 42 in inChain2
+            // - redirect to port2 when dst udp 43 in InFilter
+            val inChain2R1 = createLiteralRuleBuilder(
                 action = Some(Action.DROP),
-                chainId = Some(inChain1.getId))
+                chainId = Some(inChain2.getId))
+                .setTpDst(
+                    Int32Range.newBuilder().setStart(41).setEnd(41).build())
+                .build()
+            val inChain2R2 = createLiteralRuleBuilder(
+                action = Some(Action.DROP),
+                chainId = Some(inChain2.getId))
                 .setTpDst(
                     Int32Range.newBuilder().setStart(42).setEnd(42).build())
                 .build()
-            val inChain1R3 = createRedirectRuleBuilder(
-                chainId = Some(inChain1.getId),
+            val inChain2R3 = createRedirectRuleBuilder(
+                chainId = Some(inChain2.getId),
                 targetPortId = vm2Port.getId)
                 .setTpDst(
                     Int32Range.newBuilder().setStart(43).setEnd(43).build())
                 .build()
-            inChain1 = inChain1.toBuilder
-                .addRuleIds(inChain1R1.getId)
-                .addRuleIds(inChain1R2.getId)
-                .addRuleIds(inChain1R3.getId).build()
+            inChain2 = inChain2.toBuilder
+                .addRuleIds(inChain2R1.getId)
+                .addRuleIds(inChain2R2.getId)
+                .addRuleIds(inChain2R3.getId).build()
 
-            // - drop dst udp 43 in inChain2 (ignored)
-            // - drop dst udp 44 in inChain2
-            val inChain2R1 = createLiteralRuleBuilder(
+            // Inbound filters:
+            // - drop dst udp 43 in inFilter (ignored)
+            // - drop dst udp 44 in inFilter (ignored)
+            val inFilterR1 = createLiteralRuleBuilder(
                 action = Some(Action.DROP),
-                chainId = Some(inChain1.getId))
+                chainId = Some(inFilter.getId))
                 .setTpDst(
                     Int32Range.newBuilder().setStart(43).setEnd(43).build())
                 .build()
-            val inChain2R2 = createLiteralRuleBuilder(
+            val inFilterR2 = createLiteralRuleBuilder(
                 action = Some(Action.DROP),
-                chainId = Some(inChain1.getId))
+                chainId = Some(inFilter.getId))
                 .setTpDst(
                     Int32Range.newBuilder().setStart(44).setEnd(44).build())
                 .build()
-            inChain2 = inChain2.toBuilder
-                .addRuleIds(inChain2R1.getId)
-                .addRuleIds(inChain2R2.getId).build()
+            inFilter = inFilter.toBuilder
+                .addRuleIds(inFilterR1.getId)
+                .addRuleIds(inFilterR2.getId).build()
 
             List(host, vmBridge,
                  inFilter, outFilter,
                  inChain1, outChain1,
                  inChain2, outChain2,
                  inFilterR1, inFilterR2,
-                 inChain1R1, inChain1R2, inChain1R3,
-                 inChain2R1, inChain2R2,
+                 inChain1R1, inChain1R2,
+                 inChain2R1, inChain2R2, inChain2R3,
                  vm1Port, vm2Port
             ).foreach {
                 store.create(_)

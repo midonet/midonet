@@ -223,12 +223,12 @@ public class Application {
         return templateFor(ResourceUris.ROUTERS);
     }
 
-    @XmlElement(name = "l2insertionTemplate")
+    @XmlElement(name = "l2InsertionTemplate")
     public String getL2InsertionTemplate() {
         return templateFor(ResourceUris.L2INSERTIONS);
     }
 
-    @XmlElement(name = "l2serviceTemplate")
+    @XmlElement(name = "l2ServiceTemplate")
     public String getL2ServiceTemplate() {
         return templateFor(ResourceUris.L2SERVICES);
     }

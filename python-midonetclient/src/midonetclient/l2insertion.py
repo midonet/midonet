@@ -27,6 +27,9 @@ class L2Insertion(resource_base.ResourceBase):
     def __init__(self, uri, dto, auth):
         super(L2Insertion, self).__init__(uri, dto, auth)
 
+    def get_id(self):
+        return self.dto['id']
+
     def get_port(self):
         return self.dto['port']
 
@@ -38,6 +41,16 @@ class L2Insertion(resource_base.ResourceBase):
 
     def get_position(self):
         return self.dto['position']
+
+    def get_fail_open(self):
+        return self.dto['failOpen']
+
+    def get_mac(self):
+        return self.dto['mac']
+
+    def id(self, id):
+        self.dto['id'] = id
+        return self
 
     def port(self, port):
         self.dto['port'] = port
@@ -53,4 +66,12 @@ class L2Insertion(resource_base.ResourceBase):
 
     def position(self, position):
         self.dto['position'] = position
+        return self
+
+    def fail_open(self, fail_open):
+        self.dto['failOpen'] = fail_open
+        return self
+
+    def mac(self, mac):
+        self.dto['mac'] = mac
         return self

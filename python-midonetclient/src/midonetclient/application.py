@@ -66,10 +66,10 @@ class Application(resource_base.ResourceBase):
         return self.dto['chainTemplate']
 
     def get_l2insertion_template(self):
-        return self.dto['l2insertionTemplate']
+        return self.dto['l2InsertionTemplate']
 
     def get_l2service_template(self):
-        return self.dto['l2serviceTemplate']
+        return self.dto['l2ServiceTemplate']
 
     def get_host_template(self):
         return self.dto['hostTemplate']
