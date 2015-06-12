@@ -55,9 +55,4 @@ public enum DeviceOwner {
 
         return null;
     }
-
-    @Override
-    public String toString() {
-        return value;
-    }
 }
