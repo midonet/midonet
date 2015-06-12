@@ -22,6 +22,30 @@
       "revId": "8101f47a2034cdc151969e71335f25d17615adb6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0ddf4b3c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:42:07Z",
+      "side": 1,
+      "message": "Yes, they are actually in sub packages.\n\nThere is a legitimate argument that classes in other packages could want to implement Minion, but I wanted to avoid scanning the entire class space. Can be in a later patch?",
+      "parentUuid": "facab960_4d4cf342",
+      "range": {
+        "startLine": 101,
+        "startChar": 47,
+        "endLine": 101,
+        "endChar": 58
+      },
+      "revId": "8101f47a2034cdc151969e71335f25d17615adb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
