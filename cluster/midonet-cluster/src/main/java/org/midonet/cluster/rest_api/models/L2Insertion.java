@@ -44,12 +44,17 @@ public class L2Insertion extends UriResource {
     public UUID srvPort;
 
     @ZoomField(name = "vlan")
-    @NotNull
     public int vlan;
 
     @ZoomField(name = "position")
-    @NotNull
     public int position;
+
+    @ZoomField(name = "fail_open")
+    public boolean failOpen;
+
+    @ZoomField(name = "mac")
+    @NotNull
+    public String mac;
 
     public L2Insertion() {}
 
