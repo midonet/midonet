@@ -18,10 +18,10 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import akka.actor.ActorSystem
+
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.topology.RoutingTableWrapper
-
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.layer3.Route
@@ -33,6 +33,7 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.IPFragmentType
 import org.midonet.packets.{Ethernet, IPAddr, MAC, Unsigned}
+import org.midonet.odp.flows.FlowActions
 import org.midonet.sdn.flows.FlowTagger
 
 /**
@@ -70,9 +71,14 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     override def process(context: PacketContext): SimulationResult = {
         implicit val packetContext = context
 
-        if (!context.wcmatch.getVlanIds.isEmpty) {
+        if (context.wcmatch.isVlanTagged) {
             context.log.debug("Dropping VLAN tagged traffic")
             return Drop
+        }
+
+        if (context.wcmatch.hasEthernetPcp) {
+            context.log.debug("Stripping off VLAN 0 tag")
+            context.addVirtualAction(FlowActions.popVLAN())
         }
 
         if (!isValidEthertype(context.wcmatch.getEtherType)) {

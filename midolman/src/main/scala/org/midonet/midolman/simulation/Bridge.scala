@@ -210,9 +210,8 @@ class Bridge(val id: UUID,
      * Tells if chains should be executed for the current frames. So far, all
      * will be, except those with a VLAN tag.
      */
-    private def areChainsApplicable()(implicit context: PacketContext) = {
-        context.wcmatch.getVlanIds.isEmpty
-    }
+    private def areChainsApplicable()(implicit context: PacketContext) =
+        !context.wcmatch.isVlanTagged
 
     /**
       * Used by normalProcess to deal with L2 Unicast frames, this just decides
@@ -242,17 +241,15 @@ class Bridge(val id: UUID,
                 // Tag the flow with the (src-port, src-mac) pair so we can
                 // invalidate the flow if the MAC migrates.
                 context.addFlowTag(tagForVlanPort(id, ethSrc, vlanId,
-                                                 context.inPortId))
+                                                  context.inPortId))
                 if (portId == null) {
-                    context.log.debug("Dst MAC {}, VLAN {} is not learned: Flood",
-                        ethDst, vlanId)
+                    context.log.debug(s"Dst MAC $ethDst, VLAN $vlanId is not learned: Flood")
                     context.addFlowTag(
                         tagForFloodedFlowsByDstMac(id, vlanId, ethDst))
                     multicastAction()
                 } else if (portId == context.inPortId) {
-                    context.log.warn(
-                        "MAC {} VLAN {} resolves to InPort {}: DROP (temp)",
-                        ethDst, vlanId, portId)
+                    context.log.debug(
+                        s"MAC $ethDst VLAN $vlanId resolves to InPort $portId: DROP")
                     // No tags because temp flows aren't affected by
                     // invalidations. would get byPort (ethDst, vlan, port)
                     //
@@ -262,8 +259,7 @@ class Bridge(val id: UUID,
                     //
                     ErrorDrop
                 } else {
-                    context.log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
-                        ethDst, vlanId, portId)
+                    context.log.debug(s"Dst MAC $ethDst, VLAN $vlanId on port $portId: Forward")
                     context.addFlowTag(tagForVlanPort(id, ethDst, vlanId, portId))
                     unicastAction(portId)
                 }
@@ -524,25 +520,6 @@ class Bridge(val id: UUID,
     /**
       * Decide what source VLAN this packet is from.
       *
-      * - If the in port is tagged with a vlan, that's the source VLAN
-      * - Else if the traffic is tagged with a vlan, the outermost tag
-      * is the source VLAN
-      * - Else it is untagged (None)
-      */
-    private def srcVlanTagOption(context: PacketContext): Option[JShort] = {
-        val inPortVlan = Option(vlanToPort.getVlan(context.inPortId))
-
-        def getVlanFromFlowMatch = context.wcmatch.getVlanIds match {
-            case l: java.util.List[_] if !l.isEmpty => Some(l.get(0))
-            case _ => None
-        }
-
-        inPortVlan orElse getVlanFromFlowMatch
-    }
-
-    /**
-      * Decide what source VLAN this packet is from.
-      *
       * - Vlan 0 ("untagged") will be used when:
       *   - The frame is actually untagged
       *   - The frame is vlan-tagged, but the bridge is a VUB (i.e.: the bridge
@@ -552,10 +529,22 @@ class Bridge(val id: UUID,
       *   is the source VLAN. This will be expected to exist as a tag in one
       *   of the bridge's interior ports.
       */
-    private def srcVlanTag(context: PacketContext): JShort = {
-        if (vlanMacTableMap.size == 1) UntaggedVlanId
-        else srcVlanTagOption(context).getOrElse(UntaggedVlanId)
-    }
+    private def srcVlanTag(context: PacketContext): Short =
+        if (vlanMacTableMap.size == 1) {
+            UntaggedVlanId
+        } else {
+            val inPortVlan = vlanToPort.getVlan(context.inPortId)
+            if (inPortVlan ne null) {
+                inPortVlan
+            } else {
+                val matchVlans = context.wcmatch.getVlanIds
+                if (!matchVlans.isEmpty) {
+                    matchVlans.get(0)
+                } else {
+                    UntaggedVlanId
+                }
+            }
+        }
 
     /**
       * Learns the given source MAC unless it's a logical port's, also
@@ -584,8 +573,7 @@ class Bridge(val id: UUID,
     }
 
     private def processArpRequest(arpReq: ARP, mac: MAC, inPortId: UUID)
-                                 (implicit actorSystem: ActorSystem,
-                                           originalPktContex: PacketContext) {
+                                 (implicit originalPktContex: PacketContext) {
         // Construct the reply, reversing src/dst fields from the request.
         val eth = ARP.makeArpReply(mac, arpReq.getSenderHardwareAddress,
                                    arpReq.getTargetProtocolAddress,

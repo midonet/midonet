@@ -41,6 +41,16 @@ physical_topology:
               ipv6_addr: []
               hw_addr: aa:bb:cc:00:01:02
               mtu: 1500
+          - interface:
+              id: 3
+              ifname: null
+              type: "netns"
+              ipv4_addr: [172.16.3.1/24]
+              ipv4_gw: 172.16.3.254
+              ipv6_addr: []
+              hw_addr: aa:bb:cc:00:01:03
+              mtu: 1500
+              vlan_id: 0
 
     - host:
         id: 2
