@@ -282,7 +282,10 @@ public final class NetlinkMessage {
 
             // restore original limit and move position to next attribute
             buf.limit(end);
-            buf.position(align(next));
+            next = align(next);
+            if (next >= end)
+                break;  // this can happen with OVS_DP_F_UNALIGNED
+            buf.position(next);
         }
         buf.position(start);
     }
@@ -313,6 +316,7 @@ public final class NetlinkMessage {
     public static int seekAttribute(ByteBuffer buf, short id) {
         id = unnest(id);
         int start = buf.position();
+        int end = buf.limit();
         while (buf.remaining() > 0) {
             // read attribute header
             short attrLen = buf.getShort();
@@ -325,7 +329,10 @@ public final class NetlinkMessage {
             }
 
             // move to next attr header
-            buf.position(align(current + attrLen - 4));
+            int next = align(current + attrLen - 4);
+            if (next >= end)
+                break;  // this can happen with OVS_DP_F_UNALIGNED
+            buf.position(next);
         }
         buf.position(start);
         return -1;
