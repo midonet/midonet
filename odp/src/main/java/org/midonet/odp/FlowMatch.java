@@ -777,6 +777,12 @@ public class FlowMatch {
 
     public void markUserspaceOnly() {
         fieldSeen(Field.UserspaceMark);
+
+    public boolean isVlanTagged() {
+        for (int i = 0; i < vlanIds.size(); i += 1)
+            if (vlanIds.get(i) != 0)
+                return true;
+        return false;
     }
 
     // TODO(duarte): enhance as needed
