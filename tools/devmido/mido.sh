@@ -276,7 +276,7 @@ if [[ "$ENABLE_CLUSTER" = "True" ]]; then
 
     # Configure the cluster using mn-conf
     configure_mn "cluster.zookeeper.use_new_stack" "true"
-    configure_mn "cluster.rest_api.port" "true"
+    configure_mn "cluster.rest_api.http_port" $CLUSTER_API_PORT
     configure_mn "cluster.topology_api.enabled" "true"
     configure_mn "cluster.topology_api.port" $TOPOLOGY_API_PORT
     if [[ "$ENABLE_TASKS_IMPORTER" = "True" ]]; then
