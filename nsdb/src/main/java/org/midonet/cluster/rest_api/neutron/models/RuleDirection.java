@@ -43,14 +43,13 @@ public enum RuleDirection {
     }
 
     @JsonCreator
+    @SuppressWarnings("unused")
     public static RuleDirection forValue(String v) {
         if (v == null) return null;
-        for (RuleDirection direction : RuleDirection.values()) {
-            if (v.equalsIgnoreCase(direction.value)) {
-                return direction;
-            }
+        try {
+            return valueOf(v.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return null;
         }
-
-        return null;
     }
 }
