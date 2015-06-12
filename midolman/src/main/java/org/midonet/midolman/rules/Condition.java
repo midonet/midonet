@@ -365,6 +365,12 @@ public class Condition extends BaseConfig {
         if (matchReturnFlow)
             sb.append("return-flow ");
 
+        if (noVlan)
+            sb.append("no-vlan ");
+
+        if (vlan != 0)
+            sb.append("vlan=").append(vlan).append(" ");
+
         if (inPortIds != null && !inPortIds.isEmpty()) {
             sb.append("input-ports=");
             sb.append(inPortInv ? "!{" : "{");
