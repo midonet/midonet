@@ -23,7 +23,7 @@ import javax.ws.rs.core.UriBuilder;
 
 public class NeutronUriBuilder {
 
-    public static final String NEUTRON = "/neutron";
+    public static final String NEUTRON = "neutron";
     public final static String NETWORKS = "/networks";
     public final static String SUBNETS = "/subnets";
     public final static String PORTS = "/ports";
