@@ -31,30 +31,30 @@ virtual_topology:
               admin_state_up: true
               members:
                 - member:
-                    address: 10.0.1.2
+                    address: 10.0.1.1
                     admin_state_up: true
-                    protocol_port: 10002
+                    protocol_port: 10000
                     weight: 1
                 - member:
-                    address: 10.0.1.3
+                    address: 10.0.1.2
                     admin_state_up: true
-                    protocol_port: 10003
+                    protocol_port: 10000
                     weight: 3
                 - member:
-                    address: 10.0.1.4
+                    address: 10.0.1.3
                     admin_state_up: false
-                    protocol_port: 10004
+                    protocol_port: 10000
                     weight: 20
               vips:
                 - vip:
                     address: 100.100.1.8
                     admin_state_up: true
-                    protocol_port: 10008
+                    protocol_port: 10000
                     session_persistence: SOURCE_IP
                 - vip:
                     address: 100.100.1.9
                     admin_state_up: true
-                    protocol_port: 10009
+                    protocol_port: 10000
           - pool:
               lb_method: ROUND_ROBIN
               admin_state_up: true
@@ -62,27 +62,27 @@ virtual_topology:
                 - member:
                     address: 10.0.2.1
                     admin_state_up: true
-                    protocol_port: 10002
+                    protocol_port: 10000
                     weight: 1
                 - member:
                     address: 10.0.2.2
                     admin_state_up: true
-                    protocol_port: 10003
+                    protocol_port: 10000
                     weight: 1
                 - member:
                     address: 10.0.2.3
                     admin_state_up: true
-                    protocol_port: 10004
+                    protocol_port: 10000
                     weight: 1
               vips:
                 - vip:
                     address: 100.100.2.8
                     admin_state_up: true
-                    protocol_port: 10008
+                    protocol_port: 10000
                 - vip:
                     address: 100.100.2.9
                     admin_state_up: true
-                    protocol_port: 10009
+                    protocol_port: 10000
                     session_persistence: SOURCE_IP
 
   routers:
@@ -113,7 +113,7 @@ virtual_topology:
               ipv6_addr: null
               links_to:
                   device: bridge-000-003
-                  port_id: 3
+                  port_id: 2
         routes:
           - route:
               id: 1
@@ -179,7 +179,4 @@ virtual_topology:
               type: exterior
           - port:
               id: 2
-              type: exterior
-          - port:
-              id: 3
               type: interior

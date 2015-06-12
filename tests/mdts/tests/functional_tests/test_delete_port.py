@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from nose import with_setup
 from nose.tools import nottest
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
 from mdts.lib.virtual_topology_manager import VirtualTopologyManager
@@ -55,23 +54,6 @@ binding_multihost = {
     }
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-
-def teardown():
-    time.sleep(2)
-    VTM.destroy()
-    PTM.destroy()
-
-
-def teardown_ping_delete_port():
-    VTM.clear()
-    VTM.build()
-
-
-@with_setup(teardown=teardown_ping_delete_port)
 @bindings(binding_onehost, binding_multihost)
 def test_ping_delete_port():
     """
@@ -110,6 +92,6 @@ def test_ping_delete_port():
     f1 = async_assert_that(receiver,
                            should_NOT_receive('dst host 172.16.2.1 and icmp',
                                               within_sec(5)))
-    f2 = sender.ping4(receiver, suppress_failure=True)
+    f2 = sender.ping4(receiver)
 
     wait_on_futures([f1, f2])

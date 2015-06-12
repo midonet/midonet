@@ -18,7 +18,7 @@ from mdts.lib.binding_manager import BindingManager
 from mdts.lib.failure.scan_port_failure import ScanPortFailure
 from mdts.tests.utils.asserts import *
 from mdts.tests.utils import *
-from nose.tools import with_setup, nottest
+from nose.tools import nottest
 from nose.plugins.attrib import attr
 
 import logging
@@ -107,14 +107,6 @@ bindings3 = {
         ]
     }
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
 
 def check_honest_with_random_udp():
     sender = BM.get_iface_for_port('bridge-000-001', 2)
@@ -129,6 +121,7 @@ def check_honest_with_random_udp():
                                    within_sec(5)))
     wait_on_futures([f1])
 
+# FIXME any reason to have this disactivated?
 @nottest
 @attr(version="v1.4", slow=True)
 @bindings(bindings1, bindings2, bindings3)
