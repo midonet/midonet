@@ -24,7 +24,7 @@ import javax.ws.rs.core.UriBuilder;
 public final class NeutronResourceUris {
 
     public static final String ID_TOKEN = "/{id}";
-    public static final String NEUTRON = "/neutron";
+    public static final String NEUTRON = "neutron";
     public static final String NETWORKS = "/networks";
     public static final String SUBNETS = "/subnets";
     public static final String PORTS = "/ports";

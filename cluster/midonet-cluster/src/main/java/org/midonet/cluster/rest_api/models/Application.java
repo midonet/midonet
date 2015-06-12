@@ -23,6 +23,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.rest_api.neutron.NeutronResourceUris;
 
 @XmlRootElement
 public class Application {
@@ -84,6 +85,11 @@ public class Application {
     @XmlElement(name = "healthMonitors")
     public URI getHealthMonitors() {
         return uriFor(ResourceUris.HEALTH_MONITORS);
+    }
+
+    @XmlElement(name = "neutron")
+    public URI getNeutron() {
+        return uriFor(NeutronResourceUris.NEUTRON);
     }
 
     @XmlElement(name = "poolMembers")
