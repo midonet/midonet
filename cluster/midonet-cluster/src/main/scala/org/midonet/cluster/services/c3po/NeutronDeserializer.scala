@@ -127,6 +127,8 @@ object NeutronDeserializer {
                 toMessage(node, classOf[NeutronHealthMonitor.Pool])
             case "org.midonet.cluster.models.NeutronPort.BindingProfile" =>
                 toMessage(node, classOf[NeutronPort.BindingProfile])
+            case "org.midonet.cluster.models.NeutronPort.ExtraDhcpOpts" =>
+                toMessage(node, classOf[NeutronPort.ExtraDhcpOpts])
             case "org.midonet.cluster.models.NeutronPort.IPAllocation" =>
                 toMessage(node, classOf[NeutronPort.IPAllocation])
             case "org.midonet.cluster.models.NeutronRoute" =>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,13 @@ package org.midonet.cluster.rest_api.neutron.models;
 import com.google.common.base.Objects;
 import org.codehaus.jackson.annotate.JsonProperty;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Neutron;
 
-public class ExtraDhcpOpt {
+@ZoomClass(clazz = Neutron.NeutronPort.ExtraDhcpOpts.class)
+public class ExtraDhcpOpt extends ZoomObject {
 
     public ExtraDhcpOpt() {}
 
@@ -29,9 +34,11 @@ public class ExtraDhcpOpt {
     }
 
     @JsonProperty("opt_name")
+    @ZoomField(name = "opt_name")
     public String optName;
 
     @JsonProperty("opt_value")
+    @ZoomField(name = "opt_value")
     public String optValue;
 
     @Override
