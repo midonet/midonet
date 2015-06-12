@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_2d816f4a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_1d0b0826",
+      "range": {
+        "startLine": 39,
+        "startChar": 0,
+        "endLine": 39,
+        "endChar": 5
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_5d14b043",
         "filename": "/COMMIT_MSG",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-10T01:31:16Z",
       "side": 1,
       "message": "\"the same ClusterService\" or \"a ClusterService with the same name\"?",
+      "range": {
+        "startLine": 41,
+        "startChar": 54,
+        "endLine": 42,
+        "endChar": 14
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ededc726",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_5d14b043",
       "range": {
         "startLine": 41,
         "startChar": 54,
@@ -94,6 +142,54 @@
     },
     {
       "key": {
+        "uuid": "facab960_0d702ba4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_5d73d07f",
+      "range": {
+        "startLine": 112,
+        "startChar": 51,
+        "endLine": 112,
+        "endChar": 79
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ea676d23",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "Oh I was using an immutable list while working on it and it slipped through, thanks.",
+      "parentUuid": "facab960_ca771739",
+      "range": {
+        "startLine": 112,
+        "startChar": 20,
+        "endLine": 112,
+        "endChar": 22
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_fd2ae47c",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
         "patchSetId": 5
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_2d732fb2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_fd2ae47c",
+      "range": {
+        "startLine": 117,
+        "startChar": 56,
+        "endLine": 117,
+        "endChar": 60
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_5d3bd0d0",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
         "patchSetId": 5
@@ -128,6 +248,30 @@
       "writtenOn": "2015-06-10T01:31:16Z",
       "side": 1,
       "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4d6953bd",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_5d3bd0d0",
       "range": {
         "startLine": 2,
         "startChar": 13,
@@ -187,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_6d6457e5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "I\u0027ll set 15s.",
+      "parentUuid": "facab960_bd685c88",
+      "range": {
+        "startLine": 51,
+        "startChar": 54,
+        "endLine": 51,
+        "endChar": 62
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_6ab52bcc",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
         "patchSetId": 5
@@ -198,6 +366,30 @@
       "writtenOn": "2015-06-09T12:02:39Z",
       "side": 1,
       "message": "Do we start the cluster if all minions are disabled?",
+      "range": {
+        "startLine": 54,
+        "startChar": 8,
+        "endLine": 54,
+        "endChar": 43
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ed9f87b2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "No, adding the condition",
+      "parentUuid": "facab960_6ab52bcc",
       "range": {
         "startLine": 54,
         "startChar": 8,
@@ -233,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_0da74b0d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/heartbeat/Heartbeat.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_9d3558dc",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_dd4e006f",
         "filename": "midonet-api/src/test/java/org/midonet/api/servlet/JerseyGuiceTestServletContextListener.java",
         "patchSetId": 5
@@ -256,6 +472,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_4db07343",
+        "filename": "midonet-api/src/test/java/org/midonet/api/servlet/JerseyGuiceTestServletContextListener.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_dd4e006f",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_fd51040f",
         "filename": "midonet-api/src/test/java/org/midonet/api/servlet/RestApiTestJerseyServletModule.java",
         "patchSetId": 5
@@ -267,6 +507,30 @@
       "writtenOn": "2015-06-10T01:31:16Z",
       "side": 1,
       "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "1cdf66dd250443f2d53f555a9531acd5c6335e92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6dab77d6",
+        "filename": "midonet-api/src/test/java/org/midonet/api/servlet/RestApiTestJerseyServletModule.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T09:03:53Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_fd51040f",
       "range": {
         "startLine": 2,
         "startChar": 13,
