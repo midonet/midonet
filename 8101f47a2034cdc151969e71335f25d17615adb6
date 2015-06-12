@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_4d4cf342",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T09:39:18Z",
+      "side": 1,
+      "message": "Does this mean that any classes providing services should be in the \u0027org.midonet\u0027 package?\n(I guess there is no problem if they are in a subpackage)",
+      "range": {
+        "startLine": 101,
+        "startChar": 47,
+        "endLine": 101,
+        "endChar": 58
+      },
+      "revId": "8101f47a2034cdc151969e71335f25d17615adb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
