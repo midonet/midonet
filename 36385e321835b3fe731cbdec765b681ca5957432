@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_04b2c8e5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_82924b9d",
+      "range": {
+        "startLine": 87,
+        "startChar": 68,
+        "endLine": 88,
+        "endChar": 27
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_22f5ffed",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
         "patchSetId": 8
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_24ec2cc7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "I am referring to any topology object data that is written by the agent, i.e. not created via neutron. At the moment this includes:\n- host alive\n- port active\n- host interfaces\n- (it could include other ephemeral host information)\n- whether a route is learned\n- the BGP status\n\nThis may also include mac mac and ip learning, but for performance reasons we use the replicated maps for that.\nThe Host objects, since they are created by the agent, could be ephemeral. However, because we use them to store the port bindings, they are the only objects created by the agent made persistent. Anyway, it\u0027s open to discussion to find a better way of handling them.",
+      "parentUuid": "facab960_22f5ffed",
+      "range": {
+        "startLine": 107,
+        "startChar": 11,
+        "endLine": 108,
+        "endChar": 35
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e264f723",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 8
@@ -83,6 +131,30 @@
       "writtenOn": "2015-06-11T15:14:57Z",
       "side": 1,
       "message": "Why not looping over the state objects that need to be deleted here? This way it is more symmetrical to how things are done for the topology.",
+      "range": {
+        "startLine": 267,
+        "startChar": 12,
+        "endLine": 267,
+        "endChar": 25
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_84dc1814",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 267,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "One earlier comment was to separate the state implementation, and add this into a different trait.",
+      "parentUuid": "facab960_e264f723",
       "range": {
         "startLine": 267,
         "startChar": 12,
@@ -142,6 +214,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_ca9629f0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "It prefer createState or createStateOps, because even though in this particular case the method only creates the path operations for a given object, that\u0027s not an exclusive requirement. It also I added `Ops` because unlike the method below, the method does not actually create any state znodes, but it returns the operations to create them.",
+      "parentUuid": "facab960_0ab651fa",
+      "range": {
+        "startLine": 96,
+        "startChar": 22,
+        "endLine": 96,
+        "endChar": 36
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c268d389",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 8
@@ -153,6 +249,30 @@
       "writtenOn": "2015-06-11T15:14:57Z",
       "side": 1,
       "message": "name parameter",
+      "range": {
+        "startLine": 100,
+        "startChar": 32,
+        "endLine": 100,
+        "endChar": 36
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2aa4f555",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "For this and the following comments, can you point me to some guidelines about naming arguments? Since this has been an often comment in the past too I\u0027ve been searching for additional information, but I could only find resources on forums and one Microsoft page. From these, my take on the matter is that it makes sense to name arguments when you have many arguments and of the same type, to prevent coding errors and ease readability. However, in this particular case I would like to know where is the benefit of naming arguments for, say, the `putIfAbsent` method of a hash map.",
+      "parentUuid": "facab960_c268d389",
       "range": {
         "startLine": 100,
         "startChar": 32,
@@ -188,6 +308,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_edbea7d3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "facab960_e206b7cd",
+      "range": {
+        "startLine": 103,
+        "startChar": 36,
+        "endLine": 103,
+        "endChar": 40
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_82f5ebcc",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 8
@@ -199,6 +343,30 @@
       "writtenOn": "2015-06-11T15:14:57Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 126,
+        "startChar": 64,
+        "endLine": 126,
+        "endChar": 68
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0db66bfa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "See above.",
+      "parentUuid": "facab960_82f5ebcc",
       "range": {
         "startLine": 126,
         "startChar": 64,
@@ -234,6 +402,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_2abb1573",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_a204afc0",
+      "range": {
+        "startLine": 149,
+        "startChar": 73,
+        "endLine": 149,
+        "endChar": 76
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_2ab955e9",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 8
@@ -245,6 +437,30 @@
       "writtenOn": "2015-06-12T01:51:37Z",
       "side": 1,
       "message": "The word \"owner\" seems to come out of nowhere, making this description a bit hard to understand, maybe.",
+      "range": {
+        "startLine": 167,
+        "startChar": 57,
+        "endLine": 167,
+        "endChar": 66
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2db96fe9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_2ab955e9",
       "range": {
         "startLine": 167,
         "startChar": 57,
@@ -280,6 +496,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_aded7ff1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "Then why not:\nSingleFirstWriteWins -\u003e OwnerUpdateOtherFail\n\nor:\nSingleLastWriteWins -\u003e LastWriteOrOwnerWins",
+      "parentUuid": "facab960_a2ae6f83",
+      "range": {
+        "startLine": 164,
+        "startChar": 9,
+        "endLine": 179,
+        "endChar": 47
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_42bbe371",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 8
@@ -303,6 +543,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_ea35adf7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "I am currently working on replacing futures with observables. However, i didn\u0027t really understand well your suggestion. How will a method with 3 arguments work, given that we also need: clazz, id, key, value, promise, and the path - which is different for single and multiple value keys.",
+      "parentUuid": "facab960_42bbe371",
+      "range": {
+        "startLine": 323,
+        "startChar": 8,
+        "endLine": 351,
+        "endChar": 25
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e24b1785",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
         "patchSetId": 8
@@ -314,6 +578,30 @@
       "writtenOn": "2015-06-11T15:14:57Z",
       "side": 1,
       "message": "1 second seems low if you\u0027re going to use curator.",
+      "range": {
+        "startLine": 43,
+        "startChar": 32,
+        "endLine": 43,
+        "endChar": 40
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8dc99b7a",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-12T09:49:49Z",
+      "side": 1,
+      "message": "I already received this comment, and it was fixed in a different patch.",
+      "parentUuid": "facab960_e24b1785",
       "range": {
         "startLine": 43,
         "startChar": 32,
