@@ -24,6 +24,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
+import org.midonet.cluster.rest_api.version.Version;
 
 @XmlRootElement
 public class Application {
@@ -44,7 +45,7 @@ public class Application {
 
     @XmlElement(name = "version")
     public String getVersion() {
-        return "5";
+        return Version.CURRENT;
     }
 
     @XmlElement(name = "bridges")
