@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_583673e8",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-12T13:01:35Z",
+      "side": 1,
+      "message": "binding:host_id ?",
+      "revId": "c99fa338732b0fb2b37c34ef8ef55c4f099aeb3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
