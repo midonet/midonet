@@ -107,6 +107,13 @@ message NeutronPort {
     }
 
     repeated AllowedAddressPair allowed_address_pairs = 15;
+
+    message ExtraDhcpOpts {
+        optional string opt_name = 1;
+        optional string opt_value = 2;
+    }
+
+    repeated ExtraDhcpOpts extra_dhcp_opts = 16;
 }
 
 message NeutronRouter {
