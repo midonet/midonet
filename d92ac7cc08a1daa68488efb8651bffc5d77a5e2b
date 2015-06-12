@@ -519,6 +519,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_eabe8dd3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-12T01:51:37Z",
+      "side": 1,
+      "message": "I\u0027ve tried to refactor ZOOM once, and one idea was that to factor out the meta data part which manages class registrations, etc. I think we can make ZOOM and ZoookeeperObjectState (ZOOS? lol) share only that metadata manager.",
+      "parentUuid": "facab960_e705e97a",
+      "range": {
+        "startLine": 77,
+        "startChar": 52,
+        "endLine": 77,
+        "endChar": 64
+      },
+      "revId": "d92ac7cc08a1daa68488efb8651bffc5d77a5e2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e775e998",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 7
