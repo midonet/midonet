@@ -17,13 +17,14 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
+import javax.ws.rs.core.{Response, UriInfo}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.data.storage.{DeleteOp, UpdateOp, CreateOp}
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.L2Service
+import org.midonet.cluster.rest_api.models.{UriResource, L2Service}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
