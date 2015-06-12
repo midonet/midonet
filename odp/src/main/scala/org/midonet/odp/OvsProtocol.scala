@@ -53,12 +53,14 @@ sealed class OvsProtocol(pid: Int,
     def prepareDatapathGet(datapathId: Int, name: String,
                            buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Datapath.Attr
+        import org.midonet.odp.OpenVSwitch.Datapath.UserFeat
 
         val message = messageFor(buf, datapathId, datapathFamily.contextGet,
             NLFlag.REQUEST)
         if (name ne null) {
             NetlinkMessage.writeStringAttr(buf, Attr.Name, name)
         }
+        NetlinkMessage.writeIntAttr(buf, Attr.UserFeat, UserFeat.Unaligned)
         message.finalize(pid)
     }
 
@@ -67,6 +69,7 @@ sealed class OvsProtocol(pid: Int,
 
     def prepareDatapathCreate(name: String, buf: ByteBuffer): Unit = {
         import org.midonet.odp.OpenVSwitch.Datapath.Attr
+        import org.midonet.odp.OpenVSwitch.Datapath.UserFeat
 
         val message = messageFor(buf, 0, datapathFamily.contextNew,
             NLFlag.REQUEST | NLFlag.ECHO)
@@ -74,6 +77,7 @@ sealed class OvsProtocol(pid: Int,
         if (name ne null) {
             NetlinkMessage.writeStringAttr(buf, Attr.Name, name)
         }
+        NetlinkMessage.writeIntAttr(buf, Attr.UserFeat, UserFeat.Unaligned)
         message.finalize(pid)
     }
 
