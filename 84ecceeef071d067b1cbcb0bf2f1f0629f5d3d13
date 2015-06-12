@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_2ab075f3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-12T02:59:15Z",
+      "side": 1,
+      "message": "Latent?",
+      "range": {
+        "startLine": 43,
+        "startChar": 12,
+        "endLine": 43,
+        "endChar": 18
+      },
+      "revId": "84ecceeef071d067b1cbcb0bf2f1f0629f5d3d13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_caa2a9ad",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-12T02:59:15Z",
+      "side": 1,
+      "message": "\"completeOnDelete\" or some other name that better matches the descriptions is desired.",
+      "range": {
+        "startLine": 56,
+        "startChar": 7,
+        "endLine": 63,
+        "endChar": 15
+      },
+      "revId": "84ecceeef071d067b1cbcb0bf2f1f0629f5d3d13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ca89c927",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-12T02:59:15Z",
+      "side": 1,
+      "message": "This method doesn\u0027t really test the existence, instead it sets a watcher for node creation. The method name should better reflect that.",
+      "revId": "84ecceeef071d067b1cbcb0bf2f1f0629f5d3d13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_aa9ba570",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-12T02:59:15Z",
+      "side": 1,
+      "message": "\"setting the exists watcher\"?",
+      "range": {
+        "startLine": 158,
+        "startChar": 40,
+        "endLine": 158,
+        "endChar": 50
+      },
+      "revId": "84ecceeef071d067b1cbcb0bf2f1f0629f5d3d13",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
