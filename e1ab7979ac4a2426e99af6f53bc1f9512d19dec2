@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_38fa8fbd",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_f94e82c0",
+      "range": {
+        "startLine": 58,
+        "startChar": 9,
+        "endLine": 58,
+        "endChar": 14
+      },
+      "revId": "e1ab7979ac4a2426e99af6f53bc1f9512d19dec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_194a46ac",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
         "patchSetId": 12
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-08T11:58:07Z",
       "side": 1,
       "message": "object?\n\nalso nit: wrap some of the extends when possible",
+      "range": {
+        "startLine": 85,
+        "startChar": 9,
+        "endLine": 85,
+        "endChar": 14
+      },
+      "revId": "e1ab7979ac4a2426e99af6f53bc1f9512d19dec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b82dbf48",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_194a46ac",
       "range": {
         "startLine": 85,
         "startChar": 9,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_182b0b31",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_79d272d3",
+      "revId": "e1ab7979ac4a2426e99af6f53bc1f9512d19dec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_99d576bb",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
         "patchSetId": 12
@@ -82,6 +148,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_3821af4d",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T17:15:42Z",
+      "side": 1,
+      "message": "long line...",
+      "parentUuid": "facab960_99d576bb",
+      "revId": "e1ab7979ac4a2426e99af6f53bc1f9512d19dec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_19e1669a",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
         "patchSetId": 12
@@ -93,6 +177,30 @@
       "writtenOn": "2015-06-08T11:58:07Z",
       "side": 1,
       "message": "nit: make a default in Broken so it doesn\u0027t need to be set explicitly",
+      "range": {
+        "startLine": 133,
+        "startChar": 42,
+        "endLine": 133,
+        "endChar": 52
+      },
+      "revId": "e1ab7979ac4a2426e99af6f53bc1f9512d19dec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5878332b",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T17:15:42Z",
+      "side": 1,
+      "message": "The maxRetries is set via parameter, so we should move the Broken definition from the companion object to the class... I would prefer keeping all state definitions together, if you don\u0027t mind...",
+      "parentUuid": "facab960_19e1669a",
       "range": {
         "startLine": 133,
         "startChar": 42,
@@ -128,6 +236,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_98a9db7d",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T17:15:42Z",
+      "side": 1,
+      "message": "Actually, this is only executed when the first user connects to the vtep. Doing it here allows reusing the vtep state machine to recover from things like temporary dns failures, instead of doing it separately (but I don\u0027t have a strong opinion on it, and I can change it if you think it\u0027s better to resolve the name when we create the class)",
+      "parentUuid": "facab960_39bd4a69",
+      "range": {
+        "startLine": 156,
+        "startChar": 30,
+        "endLine": 156,
+        "endChar": 74
+      },
+      "revId": "e1ab7979ac4a2426e99af6f53bc1f9512d19dec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_59c04ee0",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
         "patchSetId": 12
@@ -139,6 +271,30 @@
       "writtenOn": "2015-06-08T11:58:07Z",
       "side": 1,
       "message": "warn?",
+      "range": {
+        "startLine": 165,
+        "startChar": 24,
+        "endLine": 165,
+        "endChar": 29
+      },
+      "revId": "e1ab7979ac4a2426e99af6f53bc1f9512d19dec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f85bc784",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_59c04ee0",
       "range": {
         "startLine": 165,
         "startChar": 24,
@@ -174,6 +330,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_53f49486",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T17:15:42Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_99bad66c",
+      "range": {
+        "startLine": 174,
+        "startChar": 0,
+        "endLine": 179,
+        "endChar": 51
+      },
+      "revId": "e1ab7979ac4a2426e99af6f53bc1f9512d19dec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d9fd3e3d",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
         "patchSetId": 12
@@ -185,6 +365,30 @@
       "writtenOn": "2015-06-08T11:58:07Z",
       "side": 1,
       "message": "is this relevant \u0026 needed in every case? why not just \n\nif (users.isEmpty()) {\n  return\n}  \n\nat the start?",
+      "range": {
+        "startLine": 239,
+        "startChar": 38,
+        "endLine": 239,
+        "endChar": 55
+      },
+      "revId": "e1ab7979ac4a2426e99af6f53bc1f9512d19dec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_133a0c36",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepConnection.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-12T17:15:42Z",
+      "side": 1,
+      "message": "Fixed (moved the condition above and skipping the match if false)",
+      "parentUuid": "facab960_d9fd3e3d",
       "range": {
         "startLine": 239,
         "startChar": 38,
