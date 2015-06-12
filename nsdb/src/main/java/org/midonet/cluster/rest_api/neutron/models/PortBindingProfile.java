@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.neutron.models;
 
 import com.google.common.base.Objects;
@@ -21,45 +22,31 @@ import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.models.*;
+import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 
-@ZoomClass(clazz = Neutron.NeutronVIP.SessionPersistence.class)
-public class SessionPersistence {
-
-    public SessionPersistence() {}
-
-    public SessionPersistence(SessionPersistenceType type, String cookieName) {
-        this.type = type;
-        this.cookieName = cookieName;
-    }
-
-    @ZoomField(name = "type")
-    public SessionPersistenceType type;
-
-    @JsonProperty("cookie_name")
-    @ZoomField(name = "cookie_name")
-    public String cookieName;
+@ZoomClass(clazz = Neutron.NeutronPort.BindingProfile.class)
+public class PortBindingProfile extends ZoomObject {
+    @JsonProperty("interface_name")
+    @ZoomField(name = "interface_name")
+    String interfaceName;
 
     @Override
-    public final boolean equals(Object o) {
+    public boolean equals(Object o) {
         if (o == this) return true;
-        if (!(o instanceof SessionPersistence)) return false;
-        SessionPersistence other = (SessionPersistence) o;
-        return type == other.type &&
-               Objects.equal(cookieName, other.cookieName);
+        if (!(o instanceof PortBindingProfile)) return false;
+        final PortBindingProfile other = (PortBindingProfile)o;
+        return Objects.equal(interfaceName, other.interfaceName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(type, cookieName);
+        return Objects.hashCode(interfaceName);
     }
 
     @Override
     public String toString() {
         return Objects.toStringHelper(this)
-            .add("type", type)
-            .add("cookieName", cookieName)
-            .toString();
+            .add("interfaceName", interfaceName).toString();
     }
 }

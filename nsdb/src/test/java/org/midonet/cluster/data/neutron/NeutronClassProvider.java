@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,25 @@
  */
 package org.midonet.cluster.data.neutron;
 
-import org.midonet.cluster.rest_api.neutron.models.HealthMonitor;
-import org.midonet.cluster.rest_api.neutron.models.Pool;
-import org.midonet.cluster.rest_api.neutron.models.Member;
-import org.midonet.cluster.rest_api.neutron.models.VIP;
 import org.midonet.cluster.rest_api.neutron.models.ExternalGatewayInfo;
 import org.midonet.cluster.rest_api.neutron.models.FloatingIp;
+import org.midonet.cluster.rest_api.neutron.models.HealthMonitor;
 import org.midonet.cluster.rest_api.neutron.models.IPAllocation;
 import org.midonet.cluster.rest_api.neutron.models.IPAllocationPool;
+import org.midonet.cluster.rest_api.neutron.models.Member;
 import org.midonet.cluster.rest_api.neutron.models.Network;
+import org.midonet.cluster.rest_api.neutron.models.Pool;
 import org.midonet.cluster.rest_api.neutron.models.Port;
+import org.midonet.cluster.rest_api.neutron.models.PortAllowedAddressPair;
+import org.midonet.cluster.rest_api.neutron.models.PortBindingProfile;
 import org.midonet.cluster.rest_api.neutron.models.Route;
 import org.midonet.cluster.rest_api.neutron.models.Router;
 import org.midonet.cluster.rest_api.neutron.models.RouterInterface;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroup;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
+import org.midonet.cluster.rest_api.neutron.models.SessionPersistence;
 import org.midonet.cluster.rest_api.neutron.models.Subnet;
+import org.midonet.cluster.rest_api.neutron.models.VIP;
 
 import static junitparams.JUnitParamsRunner.$;
 
@@ -45,6 +48,8 @@ public class NeutronClassProvider {
                 $(IPAllocationPool.class),
                 $(Network.class),
                 $(Port.class),
+                $(PortAllowedAddressPair.class),
+                $(PortBindingProfile.class),
                 $(Route.class),
                 $(Router.class),
                 $(RouterInterface.class),
@@ -55,6 +60,7 @@ public class NeutronClassProvider {
                 $(Pool.class),
                 $(HealthMonitor.class),
                 $(Member.class),
+                $(SessionPersistence.class),
                 $(VIP.class)
         );
     }

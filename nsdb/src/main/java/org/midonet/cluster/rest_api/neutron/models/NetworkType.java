@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.midonet.cluster.rest_api.neutron.models;
 
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -21,20 +22,19 @@ import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.models.Neutron;
 
-@ZoomEnum(clazz = Neutron.NeutronVIP.SessionPersistence.Type.class)
-public enum SessionPersistenceType {
-
-    @ZoomEnumValue("SOURCE_IP") SOURCE_IP,
-    @ZoomEnumValue("HTTP_COOKIE") HTTP_COOKIE,
-    @ZoomEnumValue("APP_COOKIE") APP_COOKIE;
+@ZoomEnum(clazz = Neutron.NeutronNetwork.NetworkType.class)
+public enum NetworkType {
+    @ZoomEnumValue("LOCAL") LOCAL,
+    @ZoomEnumValue("FLAT") FLAT,
+    @ZoomEnumValue("GRE") GRE,
+    @ZoomEnumValue("VLAN") VLAN;
 
     @JsonCreator
     @SuppressWarnings("unused")
-    public static SessionPersistenceType forValue(String v) {
+    public static NetworkType forValue(String v) {
         if (v == null) return null;
-
         try {
-            return valueOf(v.toUpperCase());
+            return NetworkType.valueOf(v.toUpperCase());
         } catch (IllegalArgumentException ex) {
             return null;
         }
