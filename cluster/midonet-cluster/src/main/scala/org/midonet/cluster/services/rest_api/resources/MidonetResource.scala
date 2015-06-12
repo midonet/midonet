@@ -274,7 +274,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         resource
     }
 
-    private def toProto[U >: Null <: UriResource](resource: U): Message = {
+    protected def toProto[U >: Null <: UriResource](resource: U): Message = {
         try {
             ZoomConvert.toProto(resource, resource.getZoomClass)
         } catch {
