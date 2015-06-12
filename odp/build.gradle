@@ -60,10 +60,3 @@ task integrationTest(type: JavaExec, dependsOn: testClasses) {
     jvmArgs('-Djava.library.path=/lib:/usr/lib')
 }
 
-task rtnetlinkTest(type: JavaExec, dependsOn: testClasses) {
-    main = 'org.midonet.odp.test.RtnetlinkIntegrationTest'
-    classpath sourceSets.main.runtimeClasspath
-    classpath configurations.runtime
-    jvmArgs("-Xbootclasspath/p:${project.jdkBootstrap}")
-    jvmArgs('-Djava.library.path=/lib:/usr/lib')
-}
