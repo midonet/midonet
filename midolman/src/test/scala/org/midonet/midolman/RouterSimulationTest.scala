@@ -322,10 +322,43 @@ class RouterSimulationTest extends MidolmanSpec {
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
     }
 
-    scenario("Drops VLAN traffic") {
-        val pkt = { eth src MAC.random dst port1.getHwAddr vlan 10 }
+    scenario("Drops L2 traffic") {
+        val pkt = { eth src MAC.random dst port1.getHwAddr }
         val (simRes, _) = simulate(packetContextFor(pkt, port1.getId))
         simRes should be (Drop)
+    }
+
+    scenario("Drops VLAN traffic") {
+        val inFromMac = MAC.random
+        val inToMac = port1.getHwAddr
+        val outToMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val toIp = addressInSegment(port2)
+        val pkt = { eth src inFromMac dst inToMac vlan 10} <<
+                  { ip4 src fromIp dst toIp } <<
+                  { udp src 10 dst 11 }
+
+        feedArpTable(simRouter, toIp, outToMac)
+
+        val (simRes, _) = simulate(packetContextFor(pkt, port1.getId))
+        simRes should be (Drop)
+    }
+
+    scenario("Allows VLAN-0 traffic") {
+        val inFromMac = MAC.random
+        val inToMac = port1.getHwAddr
+        val outToMac = MAC.random
+        val fromIp = addressInSegment(port1)
+        val toIp = addressInSegment(port2)
+        val pkt = { eth src inFromMac dst inToMac vlan 0} <<
+                  { ip4 src fromIp dst toIp } <<
+                  { udp src 10 dst 11 }
+
+        feedArpTable(simRouter, toIp, outToMac)
+
+        val (simRes, context) = simulate(packetContextFor(pkt, port1.getId))
+        simRes should be (AddVirtualWildcardFlow)
+        context.virtualFlowActions should contain (FlowActions.popVLAN())
     }
 
     scenario("Ping with forward match rule") {
