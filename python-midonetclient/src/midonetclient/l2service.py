@@ -27,8 +27,15 @@ class L2Service(resource_base.ResourceBase):
     def __init__(self, uri, dto, auth):
         super(L2Service, self).__init__(uri, dto, auth)
 
+    def get_id(self):
+        return self.dto['id']
+
     def get_port(self):
         return self.dto['port']
+
+    def id(self, id):
+        self.dto['id'] = id
+        return self
 
     def port(self, port):
         self.dto['port'] = port
