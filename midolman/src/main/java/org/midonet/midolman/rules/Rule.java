@@ -251,6 +251,8 @@ public abstract class Rule extends BaseConfig {
         sb.append("condition=").append(condition);
         sb.append(", action=").append(action);
         sb.append(", chainId=").append(chainId);
+        sb.append(", popVlan=").append(popVlan);
+        sb.append(", pushVlan=").append(pushVlan);
         if (meter != null)
             sb.append(", meter=").append(meter);
         sb.append("]");
