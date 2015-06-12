@@ -208,8 +208,14 @@ class Coordinator(context: PacketContext)
                         context.portGroups = p.portGroups
                     }
                     context.inPortId = portID
-                    applyPortChains(p, p.inboundFilter :: p.inboundChains,
-                                    packetIngressesDevice)
+                    applyPortChains(p,
+                                    p.inboundFilter match {
+                                        case null => p.inboundChains
+                                        case f =>
+                                            // The inboundChains should be
+                                            // evaluated first (a convention).
+                                            p.inboundChains :+ p.inboundFilter
+                                    }, packetIngressesDevice)
             }
         }
 
@@ -268,7 +274,14 @@ class Coordinator(context: PacketContext)
                 processAdminStateDown(p, isIngress = false)
             case p =>
                 context.outPortId = p.id
-                applyPortChains(p, p.outboundChains ::: List(p.outboundFilter), {
+                applyPortChains(p,
+                                p.outboundFilter match {
+                                    case null => p.outboundChains
+                                    case f =>
+                                        // Evaluate the outbound chains last.
+                                        // Must be reverse order wrt inbound
+                                        p.outboundFilter +: p.outboundChains
+                                }, {
                     case p: Port if p.isExterior =>
                         emitFromPort(p)
                     case p: Port if p.isInterior =>
