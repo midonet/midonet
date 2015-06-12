@@ -289,11 +289,6 @@ object ZoomConvert {
     private def fromNew[T <: ZoomObject, U <: Message]
                        (proto: U, clazz: Class[T]): T = {
         val constructor = getZoomConstructor(clazz)
-        if (constructor eq null) {
-            throw new ConvertException(
-                s"Class $clazz requires a default constructor or a " +
-                s"constructor annotated with @Zoom annotation.")
-        }
 
         // Get the descriptor for the current message.
         val descriptor = proto.getDescriptorForType
@@ -401,24 +396,30 @@ object ZoomConvert {
      * Returns the default constructor for the given class.
      */
     private def getDefaultConstructor(clazz: Class[_]): Constructor[_] = {
-        for (constructor <- clazz.getDeclaredConstructors
-             if constructor.getParameterTypes.isEmpty) {
-            constructor.setAccessible(true)
-            return constructor
+        try {
+            val c = clazz.getDeclaredConstructor()
+            c.setAccessible(true)
+            c
+        } catch {
+            case ex: NoSuchMethodException => null
         }
-        null
     }
 
     /**
      * Returns the [[Zoom]] constructor for the given class.
      */
     private def getZoomConstructor(clazz: Class[_]): Constructor[_] = {
-        for (constructor <- clazz.getDeclaredConstructors
-             if constructor.getAnnotation(classOf[Zoom]) ne null) {
-            constructor.setAccessible(true)
-            return constructor
+        clazz.getDeclaredConstructors
+             .filter(_.getAnnotation(classOf[Zoom]) != null) match {
+            case Array(zc) =>
+                zc.setAccessible(true)
+                zc
+            case arr => throw new ConvertException(
+                s"Class ${clazz.getName} must have either a default " +
+                "constructor or exactly one constructor annotated with " +
+                s"@Zoom but has no default constructor and ${arr.length} " +
+                "constructors annotated with @Zoom.")
         }
-        null
     }
 
     /**
