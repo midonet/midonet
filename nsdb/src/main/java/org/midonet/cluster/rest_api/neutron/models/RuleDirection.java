@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,14 +43,13 @@ public enum RuleDirection {
     }
 
     @JsonCreator
+    @SuppressWarnings("unused")
     public static RuleDirection forValue(String v) {
         if (v == null) return null;
-        for (RuleDirection direction : RuleDirection.values()) {
-            if (v.equalsIgnoreCase(direction.value)) {
-                return direction;
-            }
+        try {
+            return valueOf(v.toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return null;
         }
-
-        return null;
     }
 }
