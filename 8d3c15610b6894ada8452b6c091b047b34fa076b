@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_586e7397",
+        "filename": "midonet-api/build.gradle",
+        "patchSetId": 5
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-12T13:22:50Z",
+      "side": 1,
+      "message": "unrelated change",
+      "revId": "8d3c15610b6894ada8452b6c091b047b34fa076b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_581cb313",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-12T13:22:50Z",
+      "side": 1,
+      "message": "Consider:\n\nboolean p \u003d Boolean.parseBoolean(System.getenv(\"withVlad\"));\n\nThis does case-insensitive comparison and \u0027null\u0027 input returns false, which seems to be what you want here.",
+      "revId": "8d3c15610b6894ada8452b6c091b047b34fa076b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_786df797",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-12T13:22:50Z",
+      "side": 1,
+      "message": "HELLO TO YOU TOO!",
+      "revId": "8d3c15610b6894ada8452b6c091b047b34fa076b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
