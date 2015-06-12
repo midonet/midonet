@@ -22,6 +22,30 @@
       "revId": "ab9760dcfce0ddf1c4aa4fd19e040d0d8781cbb6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_58f593c9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/BusObserver.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-12T13:19:09Z",
+      "side": 1,
+      "message": "The removal needs to be synchronous as per the note above. The mac port map does async removes.",
+      "parentUuid": "facab960_4d279312",
+      "range": {
+        "startLine": 135,
+        "startChar": 16,
+        "endLine": 135,
+        "endChar": 30
+      },
+      "revId": "ab9760dcfce0ddf1c4aa4fd19e040d0d8781cbb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
