@@ -22,8 +22,8 @@ from mdts.tests.utils.asserts import receives
 from mdts.tests.utils.asserts import receives_icmp_unreachable_for_udp
 from mdts.tests.utils.asserts import should_NOT_receive
 from mdts.tests.utils.asserts import within_sec
-from mdts.tests.utils import bindings
-from mdts.tests.utils import wait_on_futures
+from mdts.tests.utils.utils import bindings
+from mdts.tests.utils.utils import wait_on_futures
 
 import logging
 import time
@@ -60,17 +60,6 @@ binding_multihost = {
     }
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
-
 def set_filters(router_name, inbound_filter_name, outbound_filter_name):
     """Sets in-/out-bound filters to a router."""
     router = VTM.get_router(router_name)
@@ -98,11 +87,13 @@ def feed_receiver_mac(receiver):
     try:
         router_port = VTM.get_router('router-000-001').get_port(2)
         router_ip = router_port.get_mn_resource().get_port_address()
+        receiver_ip = receiver.get_ip()
+        f1 = async_assert_that(receiver, receives('dst host %s' % receiver_ip,
+                                                        within_sec(10)))
         receiver.send_arp_request(router_ip)
-        time.sleep(1)
+        wait_on_futures([f1])
     except:
         LOG.warn('Oops, sending ARP from the receiver VM failed.')
-        raise
 
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1643
@@ -130,7 +121,7 @@ def test_dnat():
 
     f2 = async_assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
                                              within_sec(5)))
-    f1 = sender.ping_ipv4_addr('100.100.100.100', suppress_failure=True)
+    f1 = sender.ping_ipv4_addr('100.100.100.100')
     wait_on_futures([f1, f2])
 
     # Set DNAT rule chains to the router
@@ -169,9 +160,9 @@ def test_dnat_for_udp():
     # Target hardware is a router's incoming port.
     router_port = VTM.get_router('router-000-001').get_port(1)
     router_mac = router_port.get_mn_resource().get_port_mac()
-
-    f2 = async_assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and udp',
-                                             within_sec(5)))
+    f2 = async_assert_that(receiver,
+                           should_NOT_receive('dst host 172.16.2.1 and udp',
+                                              within_sec(5)))
     f1 = sender.send_udp(router_mac, '100.100.100.100', 29,
                          src_port=9, dst_port=9)
     wait_on_futures([f1, f2])
@@ -179,14 +170,16 @@ def test_dnat_for_udp():
     # Set DNAT rule chains to the router
     set_filters('router-000-001', 'pre_filter_001', 'post_filter_001')
 
-    f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and udp',
-                                   within_sec(5)))
+    f1 = async_assert_that(receiver,
+                           receives('dst host 172.16.2.1 and udp',
+                                    within_sec(5)))
     # Sender should receive ICMP unreachable as the receiver port is not open.
-    f3 = async_assert_that(sender, receives_icmp_unreachable_for_udp(
-                                '172.16.1.1', '100.100.100.100',
-                                udp_src_port=9, udp_dst_port=9,
-                                timeout=within_sec(5)))
-    f1 = sender.send_udp(router_mac, '100.100.100.100', 29,
+    f2 = async_assert_that(sender,
+                           receives_icmp_unreachable_for_udp(
+                               '172.16.1.1', '100.100.100.100',
+                               udp_src_port=9, udp_dst_port=9,
+                               timeout=within_sec(10)))
+    f3 = sender.send_udp(router_mac, '100.100.100.100', 29,
                          src_port=9, dst_port=9)
     wait_on_futures([f1, f2, f3])
 
@@ -301,23 +294,22 @@ def test_floating_ip():
     """
     sender = BM.get_iface_for_port('bridge-000-001', 2)
     receiver = BM.get_iface_for_port('bridge-000-002', 2)
-
     # Reset in-/out-bound filters.
     unset_filters('router-000-001')
     feed_receiver_mac(receiver)
 
-    f2 = async_assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
-                                             within_sec(5)))
-    f1 = sender.ping_ipv4_addr('100.100.100.100', suppress_failure=True)
-    wait_on_futures([f1, f2])
+    f1 = async_assert_that(receiver, should_NOT_receive('dst host 172.16.2.1 and icmp',
+                                             within_sec(10)))
+    sender.ping_ipv4_addr('100.100.100.100')
+    wait_on_futures([f1])
 
     # Configure floating IP address with the router
     set_filters('router-000-001', 'pre_filter_floating_ip',
                 'post_filter_floating_ip')
 
-    f2 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
-                                   within_sec(5)))
-    f3 = async_assert_that(sender, receives('src host 100.100.100.100 and icmp',
-                                 within_sec(5)))
-    f1 = sender.ping_ipv4_addr('100.100.100.100')
-    wait_on_futures([f1, f2, f3])
+    f1 = async_assert_that(receiver, receives('dst host 172.16.2.1 and icmp',
+                                   within_sec(10)))
+    f2 = async_assert_that(sender, receives('src host 100.100.100.100 and icmp',
+                                 within_sec(10)))
+    sender.ping_ipv4_addr('100.100.100.100')
+    wait_on_futures([f1, f2])

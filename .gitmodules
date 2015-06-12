@@ -1,3 +1,9 @@
 [submodule "cluster/odl-ovsdb"]
 	path = cluster/odl-ovsdb
 	url = https://github.com/midokura/odp-ovsdb.git
+[submodule "tests/pipework"]
+	path = tests/pipework
+	url = https://github.com/midonet/pipework.git
+[submodule "midonet-sandbox"]
+	path = midonet-sandbox
+	url = https://github.com/midonet/midonet-sandbox.git

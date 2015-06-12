@@ -1,5 +1,0 @@
-#! /bin/sh
-
-
-(cd netns && bash -x boot)
-(cd midolman && bash -x boot)

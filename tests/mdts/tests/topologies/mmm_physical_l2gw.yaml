@@ -40,13 +40,8 @@ physical_topology:
               mtu: 1500
           - interface:
               id: 2
-              ifname: null
-              type: "trunk"
-              bridge: *brv0
-              ipv4_addr: []
-              ipv6_addr: []
-              hw_addr: aa:bb:cc:00:01:02
-              mtu: 1500
+              ifname: l2gw0
+              type: "provided"
 
     - host:
         id: 2
@@ -67,13 +62,8 @@ physical_topology:
               mtu: 1500
           - interface:
               id: 2
-              ifname: null
-              type: "trunk"
-              bridge: *brv0
-              ipv4_addr: []
-              ipv6_addr: []
-              hw_addr: aa:bb:cc:00:02:02
-              mtu: 1500
+              ifname: l2gw0
+              type: "provided"
 
     - host:
         id: 3
@@ -95,26 +85,26 @@ physical_topology:
 
     - host:
         id: 4
+        hostname: externalhost1
         provided: true
-        mn_host_id: none
         mm_namespace: nsv001.0
         interfaces:
           - interface:
               id: 1
-              ifname: eth0.1
+              ifname: l2gw0.10
               type: "provided"
-              ipv4_addr: [172.16.0.224/24]
-              vlan_id: 1
+              #ipv4_addr: [172.16.0.224/24]
+              #vlan_id: 10
 
     - host:
         id: 5
+        hostname: externalhost1
         provided: true
-        mn_host_id: none
         mm_namespace: nsv002.0
         interfaces:
           - interface:
               id: 1
-              ifname: eth0.2
+              ifname: l2gw1.20
               type: "provided"
-              ipv4_addr: [172.16.0.224/24]
-              vlan_id: 2
+              #ipv4_addr: [172.16.0.224/24]
+              #vlan_id: 20

@@ -17,10 +17,15 @@ import ConfigParser
 
 
 conf_file = os.getenv('MDTS_CONF_FILE', 'mdts.conf')
-
 conf = ConfigParser.ConfigParser()
 conf.read(conf_file)
 
+# TODO: FIX this hardcoded GLOBAL VARIABLES
+TEST_TENANT_NAME_PREFIX = 'MMM-TEST'
+
 def is_vxlan_enabled():
     """Returns boolean to indicate if vxlan tunnels are enabled"""
-    return conf.getboolean('functional_tests', 'vxlan')
+    return conf.getboolean('default', 'vxlan')
+
+def is_cluster_enabled():
+    return conf.getboolean('default', 'cluster')

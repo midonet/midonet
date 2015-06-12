@@ -1,2 +1,0 @@
-#! /bin/sh
-cd ../cassandra && sh container.3 ${*:-"/bin/bash"}
