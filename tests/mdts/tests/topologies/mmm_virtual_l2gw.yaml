@@ -54,14 +54,14 @@ virtual_topology:
           - port:
               id: 1
               type: interior
-              vlan_id: 1
+              vlan_id: 10
               links_to:
                   device: bridge-000-001-0001
                   port_id: 0
           - port:
               id: 2
               type: interior
-              vlan_id: 2
+              vlan_id: 20
               links_to:
                   device: bridge-000-001-0002
                   port_id: 0

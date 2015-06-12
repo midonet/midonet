@@ -26,7 +26,6 @@ virtual_topology:
               id: 1
               type: interior
               ipv4_addr: 172.16.1.254/24
-              ipv6_addr: null
               links_to:
                   device: bridge-000-001
                   port_id: 1

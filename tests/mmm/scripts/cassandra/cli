@@ -1,1 +1,0 @@
-sh container.1 /usr/bin/cassandra-cli -h 10.0.0.5
