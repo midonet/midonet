@@ -17,18 +17,17 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.{Response, UriInfo}
+import javax.ws.rs.core.Response
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation.{AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.Host
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_HOST_JSON_V2,
@@ -37,8 +36,8 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowList(Array(APPLICATION_HOST_COLLECTION_JSON_V2,
                  APPLICATION_HOST_COLLECTION_JSON_V3,
                  APPLICATION_JSON))
-class HostResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Host](backend, uriInfo) {
+class HostResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Host](resContext) {
 
     @DELETE
     @Path("{id}")
@@ -72,12 +71,12 @@ class HostResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
 
     @Path("{id}/interfaces")
     def interfaces(@PathParam("id") hostId: UUID): InterfaceResource = {
-        new InterfaceResource(hostId, backend, uriInfo)
+        new InterfaceResource(hostId, resContext)
     }
 
     @Path("{id}/ports")
     def ports(@PathParam("id") hostId: UUID): HostInterfacePortResource = {
-        new HostInterfacePortResource(hostId, backend, uriInfo)
+        new HostInterfacePortResource(hostId, resContext)
     }
 
     protected override def getFilter = (host: Host) => setAlive(host)

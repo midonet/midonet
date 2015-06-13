@@ -17,30 +17,29 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.core.{Response, UriInfo}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
+
 import org.midonet.cluster.rest_api.annotation.AllowCreate
-import org.midonet.cluster.rest_api.models.{DhcpSubnet, Bridge}
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.rest_api.models.{Bridge, DhcpSubnet}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.packets.IPv4Subnet
 
 @RequestScoped
 @AllowCreate(Array(APPLICATION_DHCP_SUBNET_JSON,
                    APPLICATION_DHCP_SUBNET_JSON_V2,
                    APPLICATION_JSON))
-class DhcpSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
-                                   uriInfo: UriInfo)
-    extends MidonetResource[DhcpSubnet](backend, uriInfo) {
+class DhcpSubnetResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
+    extends MidonetResource[DhcpSubnet](resContext) {
 
 
     @GET
@@ -98,7 +97,7 @@ class DhcpSubnetResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
     @Path("{subnetAddress}/hosts")
     def hosts(@PathParam("subnetAddress") subnetAddress: IPv4Subnet)
     : DhcpHostResource = {
-        new DhcpHostResource(bridgeId, subnetAddress, backend, uriInfo)
+        new DhcpHostResource(bridgeId, subnetAddress, resContext)
     }
 
     protected override def createFilter = (subnet: DhcpSubnet) => {

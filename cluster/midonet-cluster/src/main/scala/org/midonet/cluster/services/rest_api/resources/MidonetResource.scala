@@ -18,17 +18,21 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.lang.annotation.Annotation
 import java.util.concurrent.Executors
-import java.util.{ConcurrentModificationException, List => JList}
+import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
+import javax.validation.{ConstraintViolation, Validator}
+
 
 import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core._
 
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
 
+import com.google.inject.Inject
 import com.google.protobuf.Message
 import com.typesafe.scalalogging.Logger
 
@@ -38,7 +42,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.rest_api.{ConflictHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.annotation.{AllowUpdate, AllowCreate, AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.UriResource
 import org.midonet.cluster.services.MidonetBackend
@@ -68,12 +72,10 @@ object MidonetResource {
         } catch {
             case e: NotFoundException =>
                 throw new NotFoundHttpException("Resource not found")
-                // throw new WebApplicationException(e, Status.NOT_FOUND)
             case e: ObjectReferencedException =>
                 throw new WebApplicationException(e, Status.NOT_ACCEPTABLE)
             case e: ReferenceConflictException =>
                 throw new ConflictHttpException("Conflicting read")
-                // throw new WebApplicationException(e, Status.CONFLICT)
             case e: ObjectExistsException =>
                 throw new WebApplicationException(e, Status.CONFLICT)
         }
@@ -88,18 +90,15 @@ object MidonetResource {
                 case e: NotFoundException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
                     throw new NotFoundHttpException("Resource not found")
-                    return Response.status(HttpStatus.NOT_FOUND_404).build()
                 case e: ObjectReferencedException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
                     return Response.status(HttpStatus.NOT_ACCEPTABLE_406).build()
                 case e: ReferenceConflictException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
                     throw new ConflictHttpException("Conflicting write")
-                    // return Response.status(HttpStatus.CONFLICT_409).build()
                 case e: ObjectExistsException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
                     throw new ConflictHttpException("Conflicting write")
-                    // return Response.status(HttpStatus.CONFLICT_409).build()
                 case e: ConcurrentModificationException =>
                     attempt += 1
             }
@@ -107,16 +106,23 @@ object MidonetResource {
         Response.status(HttpStatus.CONFLICT_409).build()
     }
 
+    case class ResourceContext @Inject() (backend: MidonetBackend,
+                                          uriInfo: UriInfo,
+                                          validator: Validator)
 }
 
 abstract class MidonetResource[T >: Null <: UriResource]
-                              (backend: MidonetBackend, uriInfo: UriInfo)
+                              (resContext: ResourceContext)
                               (implicit tag: ClassTag[T]) {
 
     protected implicit val executionContext =
         ExecutionContext.fromExecutor(Executors.newCachedThreadPool())
     protected final implicit val log =
         Logger(LoggerFactory.getLogger(getClass))
+
+    private val validator = resContext.validator
+    private val backend = resContext.backend
+    private val uriInfo = resContext.uriInfo
 
     @GET
     @Path("{id}")
@@ -152,6 +158,12 @@ abstract class MidonetResource[T >: Null <: UriResource]
             log.info(s"I can't recognize media type: $contentType")
             throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
         }
+
+        val violations: JSet[ConstraintViolation[T]] = validator.validate(t)
+        if (violations.nonEmpty) {
+            throw new BadRequestHttpException(violations)
+        }
+
         createFilter(t)
         createResource(t)
     }
@@ -165,7 +177,14 @@ abstract class MidonetResource[T >: Null <: UriResource]
             log.info(s"I can't recognize media type: $contentType")
             throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
         }
+
         getResource(tag.runtimeClass.asInstanceOf[Class[T]], id).map(current => {
+
+            val violations: JSet[ConstraintViolation[T]] = validator.validate(t)
+            if (violations.nonEmpty) {
+                throw new BadRequestHttpException(violations)
+            }
+
             updateFilter(t, current)
             updateResource(t)
         }).getOrThrow

@@ -17,33 +17,30 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.Route
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTE_JSON,
                 APPLICATION_JSON))
 @AllowDelete
-class RouteResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Route](backend, uriInfo)
+class RouteResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Route](resContext)
 
 @RequestScoped
 @AllowList(Array(APPLICATION_ROUTE_COLLECTION_JSON,
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_ROUTE_JSON,
                    APPLICATION_JSON))
-class RouterRouteResource @Inject()(routerId: UUID, backend: MidonetBackend,
-                                    uriInfo: UriInfo)
-    extends MidonetResource[Route](backend, uriInfo) {
+class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
+    extends MidonetResource[Route](resContext) {
 
     protected override def listFilter = (route: Route) => {
         route.routerId == routerId

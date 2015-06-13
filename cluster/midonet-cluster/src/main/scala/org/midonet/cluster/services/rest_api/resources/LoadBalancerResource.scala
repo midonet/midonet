@@ -29,6 +29,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.LoadBalancer
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_LOAD_BALANCER_JSON,
@@ -40,17 +41,17 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowUpdate(Array(APPLICATION_LOAD_BALANCER_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class LoadBalancerResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[LoadBalancer](backend, uriInfo) {
+class LoadBalancerResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[LoadBalancer](resContext) {
 
     @Path("{id}/pools")
     def pools(@PathParam("id") id: UUID): LoadBalancerPoolResource = {
-        new LoadBalancerPoolResource(id, backend, uriInfo)
+        new LoadBalancerPoolResource(id, resContext)
     }
 
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): LoadBalancerVipResource = {
-        new LoadBalancerVipResource(id, backend, uriInfo)
+        new LoadBalancerVipResource(id, resContext)
     }
 
     protected override def updateFilter = (to: LoadBalancer, from: LoadBalancer) => {
