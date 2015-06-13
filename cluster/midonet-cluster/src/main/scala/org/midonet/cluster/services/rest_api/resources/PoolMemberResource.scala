@@ -17,17 +17,15 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.PoolMember
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_POOL_MEMBER_JSON,
@@ -39,8 +37,8 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowUpdate(Array(APPLICATION_POOL_MEMBER_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class PoolMemberResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[PoolMember](backend, uriInfo) {
+class PoolMemberResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[PoolMember](resContext) {
 
     protected override def updateFilter = (to: PoolMember, from: PoolMember) => {
         to.update(from)
@@ -53,9 +51,8 @@ class PoolMemberResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_POOL_MEMBER_JSON,
                    APPLICATION_JSON))
-class PoolPoolMemberResource @Inject()(poolId: UUID, backend: MidonetBackend,
-                                       uriInfo: UriInfo)
-    extends MidonetResource[PoolMember](backend, uriInfo) {
+class PoolPoolMemberResource @Inject()(poolId: UUID, resCtx: ResourceContext)
+    extends MidonetResource[PoolMember](resCtx) {
 
     protected override def listFilter = (poolMember: PoolMember) => {
         poolMember.poolId == poolId

@@ -17,17 +17,15 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Vip
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_VIP_JSON,
@@ -39,8 +37,8 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowUpdate(Array(APPLICATION_VIP_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class VipResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Vip](backend, uriInfo) {
+class VipResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Vip](resContext) {
 
     protected override def updateFilter = (to: Vip, from: Vip) => {
         to.update(from)
@@ -53,9 +51,8 @@ class VipResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_VIP_JSON,
                    APPLICATION_JSON))
-class PoolVipResource @Inject()(poolId: UUID, backend: MidonetBackend,
-                                uriInfo: UriInfo)
-    extends MidonetResource[Vip](backend, uriInfo) {
+class PoolVipResource @Inject()(poolId: UUID, resContext: ResourceContext)
+    extends MidonetResource[Vip](resContext) {
 
     protected override def listFilter = (vip: Vip) => {
         vip.poolId == poolId
@@ -71,9 +68,8 @@ class PoolVipResource @Inject()(poolId: UUID, backend: MidonetBackend,
 @AllowList(Array(APPLICATION_VIP_COLLECTION_JSON,
                  APPLICATION_JSON))
 class LoadBalancerVipResource @Inject()(loadBalancerId: UUID,
-                                        backend: MidonetBackend,
-                                        uriInfo: UriInfo)
-    extends MidonetResource[Vip](backend, uriInfo) {
+                                        resContext: ResourceContext)
+    extends MidonetResource[Vip](resContext) {
 
     protected override def listFilter = (vip: Vip) => {
         vip.loadBalancerId == loadBalancerId

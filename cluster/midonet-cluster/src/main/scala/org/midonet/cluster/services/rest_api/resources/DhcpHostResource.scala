@@ -17,11 +17,10 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.core.{Response, UriInfo}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -29,15 +28,15 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.models.{DhcpSubnet, DhcpHost, Bridge}
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.rest_api.models.{Bridge, DhcpHost, DhcpSubnet}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.packets.{IPv4Subnet, MAC}
 
 @RequestScoped
 class DhcpHostResource @Inject()(bridgeId: UUID, subnetAddress: IPv4Subnet,
-                                 backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[DhcpHost](backend, uriInfo) {
+                                 resContext: ResourceContext)
+    extends MidonetResource[DhcpHost](resContext) {
 
     @GET
     @Path("/{mac}")
