@@ -94,9 +94,9 @@ public class FuncTest {
     public static WebAppDescriptor.Builder getBuilder() {
         boolean withVlad = Boolean.parseBoolean(System.getenv("withVladimir"));
         if (withVlad) {
-            return getBuilderForLegacyApi();
-        } else {
             return getBuilderForVladimir();
+        } else {
+            return getBuilderForLegacyApi();
         }
     }
 

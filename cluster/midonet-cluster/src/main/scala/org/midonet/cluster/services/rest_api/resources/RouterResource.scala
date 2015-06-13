@@ -29,6 +29,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTER_JSON,
@@ -44,21 +45,22 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
                    APPLICATION_ROUTER_JSON_V2,
                    APPLICATION_JSON))
 @AllowDelete
-class RouterResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Router](backend, uriInfo) {
+class RouterResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Router](resContext) {
 
     @Path("{id}/ports")
     def ports(@PathParam("id") id: UUID): RouterPortResource = {
-        new RouterPortResource(id, backend, uriInfo)
+        new RouterPortResource(id, resContext)
     }
 
     @Path("{id}/routes")
     def routes(@PathParam("id") id: UUID): RouterRouteResource = {
-        new RouterRouteResource(id, backend, uriInfo)
+        new RouterRouteResource(id, resContext)
     }
 
     protected override def listFilter: (Router) => Boolean = {
-        val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
+        val tenantId = resContext.uriInfo.getQueryParameters
+                                         .getFirst("tenant_id")
         if (tenantId eq null) (_: Router) => true
         else (r: Router) => r.tenantId == tenantId
     }
