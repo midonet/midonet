@@ -29,6 +29,7 @@ import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.TunnelZone
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_TUNNEL_ZONE_JSON,
@@ -40,12 +41,12 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowUpdate(Array(APPLICATION_TUNNEL_ZONE_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class TunnelZoneResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[TunnelZone](backend, uriInfo) {
+class TunnelZoneResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[TunnelZone](resContext) {
 
     @Path("{id}/hosts")
     def hosts(@PathParam("id") id: UUID) = {
-        new TunnelZoneHostResource(id, backend, uriInfo)
+        new TunnelZoneHostResource(id, resContext)
     }
 
     protected override def updateFilter = (to: TunnelZone, from: TunnelZone) => {

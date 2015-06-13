@@ -17,11 +17,9 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
-
-import javax.ws.rs.core.Response.Status
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
+import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
 
@@ -29,13 +27,12 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.models.{Host, Interface}
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
-class InterfaceResource @Inject()(hostId: UUID, backend: MidonetBackend,
-                                  uriInfo: UriInfo)
-    extends MidonetResource[Interface](backend, uriInfo) {
+class InterfaceResource @Inject()(hostId: UUID, resContext: ResourceContext)
+    extends MidonetResource[Interface](resContext) {
 
     @GET
     @Path("{name}")
@@ -62,7 +59,7 @@ class InterfaceResource @Inject()(hostId: UUID, backend: MidonetBackend,
 
     private def setInterface(interface: Interface): Interface = {
         interface.hostId = hostId
-        interface.setBaseUri(uriInfo.getBaseUri)
+        interface.setBaseUri(resContext.uriInfo.getBaseUri)
         interface
     }
 }

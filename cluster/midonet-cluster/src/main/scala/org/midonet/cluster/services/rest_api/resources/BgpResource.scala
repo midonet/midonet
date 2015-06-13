@@ -17,29 +17,27 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
-import javax.ws.rs.{PathParam, Path}
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
+import javax.ws.rs.{Path, PathParam}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowList, AllowCreate, AllowDelete, AllowGet}
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.Bgp
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_BGP_JSON,
                 APPLICATION_JSON))
 @AllowDelete
-class BgpResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Bgp](backend, uriInfo) {
+class BgpResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Bgp](resContext) {
 
     @Path("{id}/ad_routes")
     def adRoutes(@PathParam("id") id: UUID): BGPAdRouteResource = {
-        new BGPAdRouteResource(id, backend, uriInfo)
+        new BGPAdRouteResource(id, resContext)
     }
 
 }
@@ -49,9 +47,8 @@ class BgpResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_BGP_JSON,
                    APPLICATION_JSON))
-class PortBgpResource @Inject()(portId: UUID, backend: MidonetBackend,
-                                uriInfo: UriInfo)
-    extends MidonetResource[Bgp](backend, uriInfo) {
+class PortBgpResource @Inject()(portId: UUID, resContext: ResourceContext)
+    extends MidonetResource[Bgp](resContext) {
 
     protected override def listFilter = (bgp: Bgp) => {
         bgp.portId == portId

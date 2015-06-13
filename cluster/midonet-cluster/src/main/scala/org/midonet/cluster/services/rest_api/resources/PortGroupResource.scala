@@ -17,20 +17,18 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
 
 import scala.collection.JavaConverters._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowList, AllowCreate, AllowDelete, AllowGet}
-import org.midonet.cluster.rest_api.models.{Port, PortGroupPort, PortGroup}
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
+import org.midonet.cluster.rest_api.models.{Port, PortGroup, PortGroupPort}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_PORTGROUP_JSON))
@@ -39,8 +37,10 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowCreate(Array(APPLICATION_PORTGROUP_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class PortGroupResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[PortGroup](backend, uriInfo) {
+class PortGroupResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[PortGroup](resContext) {
+
+    private val uriInfo = resContext.uriInfo
 
     protected override def listFilter: (PortGroup) => Boolean = {
         val portId = uriInfo.getQueryParameters.getFirst("port_id")
@@ -58,15 +58,15 @@ class PortGroupResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
 
     @Path("{id}/ports")
     def ports(@PathParam("id") id: UUID) = {
-        new PortGroupPortResource(id, backend, uriInfo)
+        new PortGroupPortResource(id, resContext)
     }
 
 }
 
 @RequestScoped
-class PortPortGroupResource @Inject()(portId: UUID, backend: MidonetBackend,
-                                      uriInfo: UriInfo)
-    extends MidonetResource[PortGroupPort](backend, uriInfo) {
+class PortPortGroupResource @Inject()(portId: UUID,
+                                      resContext: ResourceContext)
+    extends MidonetResource[PortGroupPort](resContext) {
 
     @GET
     @Produces(Array(APPLICATION_PORTGROUP_PORT_COLLECTION_JSON))
@@ -76,7 +76,7 @@ class PortPortGroupResource @Inject()(portId: UUID, backend: MidonetBackend,
             val portGroupPort = new PortGroupPort
             portGroupPort.portId = portId
             portGroupPort.portGroupId = id
-            portGroupPort.setBaseUri(uriInfo.getBaseUri)
+            portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
             portGroupPort
         }))
             .getOrThrow

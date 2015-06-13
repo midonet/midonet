@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.rest_api
 
 import java.util
+import javax.validation.Validator
 import javax.ws.rs.core.MediaType
 import javax.ws.rs.ext.Provider
 import javax.ws.rs.{Consumes, Produces}
@@ -33,6 +34,7 @@ import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
+import org.midonet.cluster.rest_api.validation.ValidatorProvider
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.storage.MidonetBackendConfig
@@ -74,6 +76,8 @@ object Vladimir {
                                       .asEagerSingleton()
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
             bind(classOf[ApplicationResource])
+            bind(classOf[Validator]).toProvider(classOf[ValidatorProvider])
+                                    .asEagerSingleton()
             val initParams = new java.util.HashMap[String, String]
             initParams.put(ContainerRequestFiltersClass,
                            LoggingFilterClass)

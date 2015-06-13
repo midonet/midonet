@@ -19,6 +19,7 @@ package org.midonet.cluster.services.rest_api.neutron.plugin
 import com.google.inject.PrivateModule
 
 import org.midonet.cluster.data.neutron.NeutronClusterModule
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 /** Injects an implementation of the Neutron Backend API that implements
   * all the methods required by the Neutron REST API based on a ZOOM storage.
@@ -29,6 +30,8 @@ class NeutronZoomApiModule extends PrivateModule {
         binder.requireExplicitBindings()
 
         install(new NeutronClusterModule)
+
+        bind(classOf[ResourceContext])
 
         List (
             classOf[NetworkApi],

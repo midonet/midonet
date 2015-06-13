@@ -17,10 +17,9 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
-
 import javax.ws.rs._
+import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.core.{Response, UriInfo}
 
 import scala.collection.JavaConverters._
 
@@ -28,14 +27,13 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.models.{TunnelZone, TunnelZoneHost}
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
-                                       backend: MidonetBackend,
-                                       uriInfo: UriInfo)
-    extends MidonetResource[TunnelZoneHost](backend, uriInfo) {
+                                       resContext: ResourceContext)
+    extends MidonetResource[TunnelZoneHost](resContext) {
 
     @GET
     @Produces(Array(APPLICATION_TUNNEL_ZONE_HOST_JSON,
@@ -72,7 +70,7 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
                 Response.status(Status.CONFLICT).build()
             } else {
                 tunnelZoneHost.create(tunnelZone.id)
-                tunnelZoneHost.setBaseUri(uriInfo.getBaseUri)
+                tunnelZoneHost.setBaseUri(resContext.uriInfo.getBaseUri)
                 tunnelZone.hosts.add(tunnelZoneHost)
                 tunnelZone.hostIds.add(tunnelZoneHost.hostId)
                 updateResource(tunnelZone,
