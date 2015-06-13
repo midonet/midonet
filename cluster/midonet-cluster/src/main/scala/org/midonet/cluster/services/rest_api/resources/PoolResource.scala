@@ -17,18 +17,16 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
-import javax.ws.rs.{Path, PathParam}
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
+import javax.ws.rs.{Path, PathParam}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Pool
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_POOL_JSON,
@@ -40,12 +38,12 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowUpdate(Array(APPLICATION_POOL_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class PoolResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Pool](backend, uriInfo) {
+class PoolResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Pool](resContext) {
 
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
-        new PoolVipResource(id, backend, uriInfo)
+        new PoolVipResource(id, resContext)
     }
 
     protected override def updateFilter = (to: Pool, from: Pool) => {
@@ -60,13 +58,12 @@ class PoolResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
 @AllowCreate(Array(APPLICATION_POOL_JSON,
                    APPLICATION_JSON))
 class LoadBalancerPoolResource @Inject()(loadBalancerId: UUID,
-                                         backend: MidonetBackend,
-                                         uriInfo: UriInfo)
-    extends MidonetResource[Pool](backend, uriInfo) {
+                                         resContext: ResourceContext)
+    extends MidonetResource[Pool](resContext) {
 
     @Path("{id}/pool_members")
     def poolMembers(@PathParam("id") id: UUID): PoolPoolMemberResource = {
-        new PoolPoolMemberResource(id, backend, uriInfo)
+        new PoolPoolMemberResource(id, resContext)
     }
 
     protected override def listFilter = (pool: Pool) => {

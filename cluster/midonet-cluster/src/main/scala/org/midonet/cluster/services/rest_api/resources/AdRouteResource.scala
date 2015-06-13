@@ -28,22 +28,22 @@ import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowList, AllowDel
 import org.midonet.cluster.rest_api.models.AdRoute
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_AD_ROUTE_JSON,
                 APPLICATION_JSON))
 @AllowDelete
-class AdRouteResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[AdRoute](backend, uriInfo)
+class AdRouteResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[AdRoute](resContext)
 
 @RequestScoped
 @AllowList(Array(APPLICATION_AD_ROUTE_COLLECTION_JSON,
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_AD_ROUTE_JSON,
                    APPLICATION_JSON))
-class BGPAdRouteResource @Inject()(bgpId: UUID, backend: MidonetBackend,
-                                   uriInfo: UriInfo)
-    extends MidonetResource[AdRoute](backend, uriInfo) {
+class BGPAdRouteResource @Inject()(bgpId: UUID, resContext: ResourceContext)
+    extends MidonetResource[AdRoute](resContext) {
 
     protected override def listFilter = (adRoute: AdRoute) => {
         adRoute.bgpId == bgpId

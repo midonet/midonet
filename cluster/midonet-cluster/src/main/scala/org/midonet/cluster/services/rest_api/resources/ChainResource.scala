@@ -29,6 +29,7 @@ import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowG
 import org.midonet.cluster.rest_api.models.Chain
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_CHAIN_JSON,
@@ -38,16 +39,17 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowCreate(Array(APPLICATION_CHAIN_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class ChainResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Chain](backend, uriInfo) {
+class ChainResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Chain](resContext) {
 
     @Path("{id}/rules")
     def rules(@PathParam("id") id: UUID): ChainRuleResource = {
-        new ChainRuleResource(id, backend, uriInfo)
+        new ChainRuleResource(id, resContext)
     }
 
     protected override def listFilter: (Chain) => Boolean = {
-        val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
+        val tenantId = resContext.uriInfo.getQueryParameters
+                                         .getFirst("tenant_id")
         if (tenantId eq null) (_: Chain) => true
         else (r: Chain) => r.tenantId == tenantId
     }
