@@ -18,20 +18,30 @@ package org.midonet.cluster.services.rest_api.neutron
 
 import java.util.UUID
 
+import scala.collection.JavaConversions._
+import scala.concurrent.duration._
+
 import com.typesafe.config.ConfigFactory
+
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
 import org.scalatest._
+
+import org.midonet.cluster.data.ZoomConvert.{fromProto, toProto}
 import org.midonet.cluster.data.storage.NotFoundException
-import org.midonet.cluster.rest_api.neutron.models.Network
-import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
-import org.midonet.util.concurrent.toFutureOps
+import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.NotFoundHttpException
+import org.midonet.cluster.rest_api.neutron.models.{DeviceOwner, ExtraDhcpOpt, IPAllocation, Network, Port}
+import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
 import org.midonet.util.MidonetEventually
-import scala.concurrent.duration._
+import org.midonet.util.concurrent.toFutureOps
 
+@RunWith(classOf[JUnitRunner])
 class NeutronZoomPluginTest extends FeatureSpec
                                    with BeforeAndAfter
                                    with ShouldMatchers
@@ -86,4 +96,38 @@ class NeutronZoomPluginTest extends FeatureSpec
         }
     }
 
+    feature("ZoomConvert correctly converts Port to protobuf.") {
+        val nPort = new Port()
+        nPort.id = UUID.randomUUID()
+        nPort.networkId = UUID.randomUUID()
+        nPort.tenantId = "tenant ID"
+        nPort.name = "port0"
+        nPort.macAddress = "01:01:01:01:01:01"
+        nPort.adminStateUp = true
+        nPort.fixedIps = List(new IPAllocation("10.0.0.1", UUID.randomUUID()))
+        nPort.deviceId = UUID.randomUUID().toString
+        nPort.deviceOwner = DeviceOwner.DHCP
+        nPort.status = "port status"
+        nPort.securityGroups = List(UUID.randomUUID(), UUID.randomUUID())
+        nPort.extraDhcpOpts = List(new ExtraDhcpOpt("opt1", "val1"))
+
+        val protoPort = toProto(nPort, classOf[NeutronPort])
+        protoPort.getId shouldBe toPuuid(nPort.id)
+        protoPort.getNetworkId shouldBe toPuuid(nPort.networkId)
+        protoPort.getTenantId shouldBe nPort.tenantId
+        protoPort.getName shouldBe nPort.name
+        protoPort.getMacAddress shouldBe nPort.macAddress
+        protoPort.getAdminStateUp shouldBe nPort.adminStateUp
+        protoPort.getFixedIpsCount shouldBe 1
+        protoPort.getFixedIps(0).getIpAddress.getAddress shouldBe "10.0.0.1"
+        protoPort.getDeviceId shouldBe nPort.deviceId
+        protoPort.getDeviceOwner shouldBe NeutronPort.DeviceOwner.DHCP
+        protoPort.getStatus shouldBe nPort.status
+        protoPort.getSecurityGroupsCount shouldBe 2
+        protoPort.getSecurityGroups(0) shouldBe toPuuid(nPort.securityGroups(0))
+        protoPort.getSecurityGroups(1) shouldBe toPuuid(nPort.securityGroups(1))
+        protoPort.getExtraDhcpOptsCount shouldBe 1
+        protoPort.getExtraDhcpOpts(0).getOptName shouldBe "opt1"
+        protoPort.getExtraDhcpOpts(0).getOptValue shouldBe "val1"
+    }
 }

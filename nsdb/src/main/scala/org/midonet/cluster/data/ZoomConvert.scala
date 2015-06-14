@@ -603,7 +603,8 @@ object ZoomConvert {
                             s"Enumeration $clazz requires a ZoomEnum " +
                             s"annotation or a custom converter")
                     }
-                val enumValue = enumClass.getField(pojoValue.toString) match {
+                val pojoEnumVal = pojoValue.asInstanceOf[Enum[_]]
+                val enumValue = enumClass.getField(pojoEnumVal.name) match {
                     case field: Field =>
                         field.getAnnotation(classOf[ZoomEnumValue]) match {
                             case zoomValue: ZoomEnumValue => zoomValue.value
