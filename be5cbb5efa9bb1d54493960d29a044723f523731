@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_ce3556f8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/ZoomConvert.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 607,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-14T22:00:49Z",
+      "side": 1,
+      "message": "Isn\u0027t it simpler to simply not override toString in DeviceOwner?",
+      "range": {
+        "startLine": 607,
+        "startChar": 51,
+        "endLine": 607,
+        "endChar": 67
+      },
+      "revId": "be5cbb5efa9bb1d54493960d29a044723f523731",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
