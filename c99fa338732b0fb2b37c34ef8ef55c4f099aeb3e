@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_e10a2b20",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/Network.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T00:35:54Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "c99fa338732b0fb2b37c34ef8ef55c4f099aeb3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c103670b",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/Port.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T00:35:54Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "c99fa338732b0fb2b37c34ef8ef55c4f099aeb3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_583673e8",
         "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/Port.java",
         "patchSetId": 1
@@ -13,6 +59,92 @@
       "writtenOn": "2015-06-12T13:01:35Z",
       "side": 1,
       "message": "binding:host_id ?",
+      "revId": "c99fa338732b0fb2b37c34ef8ef55c4f099aeb3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a1002302",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/RuleDirection.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T00:35:54Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "c99fa338732b0fb2b37c34ef8ef55c4f099aeb3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8e026e09",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/SessionPersistence.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T00:35:54Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "c99fa338732b0fb2b37c34ef8ef55c4f099aeb3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4e08662d",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/SessionPersistence.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T00:35:54Z",
+      "side": 1,
+      "message": "Need @JsonProperty(\"type\")",
+      "revId": "c99fa338732b0fb2b37c34ef8ef55c4f099aeb3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6e07ea1c",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/SessionPersistenceType.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T00:35:54Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
       "revId": "c99fa338732b0fb2b37c34ef8ef55c4f099aeb3e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
