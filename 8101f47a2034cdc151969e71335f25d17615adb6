@@ -70,6 +70,52 @@
       "revId": "8101f47a2034cdc151969e71335f25d17615adb6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4150375e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-15T07:37:19Z",
+      "side": 1,
+      "message": "Not a big deal, but if it happens that you submit another revision anyway, I think this might be a better message:\n\ns\"Ignoring service $name because provider class ${m.getName} doesn\u0027t extend ${classOf[Minion].getName}.\"",
+      "range": {
+        "startLine": 113,
+        "startChar": 21,
+        "endLine": 114,
+        "endChar": 45
+      },
+      "revId": "8101f47a2034cdc151969e71335f25d17615adb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_015f0f73",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/Daemon.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-15T07:37:19Z",
+      "side": 1,
+      "message": "Doesn\u0027t really matter, but this is redundant. If minionDefs is empty, then minionDefs.size and numFailed will both be 0.",
+      "range": {
+        "startLine": 54,
+        "startChar": 40,
+        "endLine": 54,
+        "endChar": 62
+      },
+      "revId": "8101f47a2034cdc151969e71335f25d17615adb6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
