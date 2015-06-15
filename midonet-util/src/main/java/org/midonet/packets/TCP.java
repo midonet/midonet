@@ -164,7 +164,64 @@ public class TCP extends BasePacket implements Transport {
             bb.put(this.options);
         if (payloadData != null)
             bb.put(payloadData);
+
+        if (checksum == 0)
+            calculateChecksum(bb, length);
+
         return data;
+    }
+
+    private void calculateChecksum(ByteBuffer bb, int length) {
+        bb.rewind();
+        int accumulation = 0;
+
+        if (this.parent != null && this.parent instanceof IPv4) {
+            IPv4 ipv4 = (IPv4) this.parent;
+            accumulation += ((ipv4.getSourceAddress() >> 16) & 0xffff)
+                    + (ipv4.getSourceAddress() & 0xffff);
+            accumulation += ((ipv4.getDestinationAddress() >> 16) & 0xffff)
+                    + (ipv4.getDestinationAddress() & 0xffff);
+            accumulation += ipv4.getProtocol() & 0xff;
+            accumulation += length & 0xffff;
+        }
+
+        if (this.parent != null && this.parent instanceof IPv6) {
+            IPv6 ipv6 = (IPv6) this.parent;
+            long sauw = ipv6.getSourceAddress().upperWord();
+            long salw = ipv6.getSourceAddress().lowerWord();
+            long dauw = ipv6.getDestinationAddress().upperWord();
+            long dalw = ipv6.getDestinationAddress().lowerWord();
+            accumulation +=  (sauw & 0xffff)
+                          + ((sauw  >> 16) & 0xffff)
+                          + ((sauw  >> 32) & 0xffff)
+                          + ((sauw  >> 48) & 0xffff)
+                          + (salw & 0xffff)
+                          + ((salw  >> 16) & 0xffff)
+                          + ((salw  >> 32) & 0xffff)
+                          + ((salw  >> 48) & 0xffff);
+            accumulation +=  (dauw & 0xffff)
+                          + ((dauw  >> 16) & 0xffff)
+                          + ((dauw  >> 32) & 0xffff)
+                          + ((dauw  >> 48) & 0xffff)
+                          + (dalw & 0xffff)
+                          + ((dalw  >> 16) & 0xffff)
+                          + ((dalw  >> 32) & 0xffff)
+                          + ((dalw  >> 48) & 0xffff);
+            accumulation += length;
+            accumulation += ipv6.getNextHeader() & 0xff;
+        }
+
+        for (int i = 0; i < length / 2; ++i) {
+            accumulation += 0xffff & bb.getShort();
+        }
+        // pad to an even number of shorts
+        if ((length & 1) == 1) {
+            accumulation += (bb.get() << 8);
+        }
+
+        accumulation = ((accumulation >> 16) & 0xffff) + (accumulation & 0xffff);
+        this.checksum = (short) ~accumulation;
+        bb.putShort(16, this.checksum);
     }
 
     @Override
@@ -298,7 +355,7 @@ public class TCP extends BasePacket implements Transport {
 
     @Override
     public void clearChecksum() {
-        // TODO: Implement TCP checksum calculation
+        checksum = 0;
     }
 
     @Override
