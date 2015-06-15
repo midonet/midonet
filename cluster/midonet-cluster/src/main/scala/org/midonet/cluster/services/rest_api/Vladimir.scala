@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources._
+import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterConfig, ClusterMinion, ClusterNode}
 
@@ -55,13 +56,13 @@ object Vladimir {
     @Produces(Array(MediaType.WILDCARD))
     class WildcardJacksonJaxbJsonProvider extends JacksonJaxbJsonProvider {
 
-        val mapper = new ObjectMapper()
+        val mapper = new MidonetObjectMapper()
         mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
         mapper.configure(USE_GETTERS_AS_SETTERS, false)
         configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
 
         override def locateMapper(`type`: Class[_], mediaType: MediaType)
-        :ObjectMapper = {
+        : ObjectMapper = {
             mapper
         }
     }
