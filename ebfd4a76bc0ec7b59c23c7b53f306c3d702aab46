@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_818f9fcb",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/Port.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T08:10:42Z",
+      "side": 1,
+      "message": "Please add back \"binding:\"",
+      "range": {
+        "startLine": 110,
+        "startChar": 18,
+        "endLine": 110,
+        "endChar": 27
+      },
+      "revId": "ebfd4a76bc0ec7b59c23c7b53f306c3d702aab46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
