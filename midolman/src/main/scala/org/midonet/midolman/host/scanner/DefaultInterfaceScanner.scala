@@ -246,21 +246,25 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
             //   http://www.infradead.org/~tgr/libnl/doc/route.html
             nlType match {
                 case Rtnetlink.Type.NEWLINK =>
-                    log.debug("Received NEWLINK notification")
+                    log.trace("Received NEWLINK notification")
                     val link = Link.buildFrom(buf)
                     links.get(link.ifi.index) match {
                         case Some(previous: Link) if link == previous =>
                             Observable.empty[Set[InterfaceDescription]]
                         case _ =>
+                            log.debug("Received NEWLINK notification with a" +
+                                "new link")
                             links += (link.ifi.index -> link)
                             interfaceDescriptions += (link.ifi.index ->
                                 linkToIntefaceDescription(link))
                             Observable.just(filteredIfDescSet)
                     }
                 case Rtnetlink.Type.DELLINK =>
-                    log.debug("Received DELLINK notification")
+                    log.trace("Received DELLINK notification")
                     val link = Link.buildFrom(buf)
                     if (links.containsKey(link.ifi.index)) {
+                        log.debug("Received DELLINK notification with the " +
+                            "existing link")
                         links -= link.ifi.index
                         interfaceDescriptions -= link.ifi.index
                         Observable.just(filteredIfDescSet)
@@ -268,17 +272,20 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                         Observable.empty[Set[InterfaceDescription]]
                     }
                 case Rtnetlink.Type.NEWADDR =>
-                    log.debug("Received NEWADDR notification")
+                    log.trace("Received NEWADDR notification")
                     val addr = Addr.buildFrom(buf)
                     if (!interfaceDescriptions.containsKey(addr.ifa.index)) {
                         addrs -= addr.ifa.index
                         Observable.empty[Set[InterfaceDescription]]
                     } else {
+
                         addrs.get(addr.ifa.index) match {
                             case Some(addrSet: mutable.Set[Addr])
                                 if addrSet.contains(addr) =>
                                 Observable.empty[Set[InterfaceDescription]]
                             case _ =>
+                                log.debug("Received NEWADDR notification " +
+                                    "with a new address")
                                 addrs(addr.ifa.index) =
                                     addrs.getOrElse(addr.ifa.index,
                                         mutable.Set.empty) + addr
@@ -288,7 +295,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                         }
                     }
                 case Rtnetlink.Type.DELADDR =>
-                    log.debug("Received DELADDR notification")
+                    log.trace("Received DELADDR notification")
                     val addr = Addr.buildFrom(buf)
                     if (!interfaceDescriptions.containsKey(addr.ifa.index)) {
                         addrs -= addr.ifa.index
@@ -297,6 +304,8 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                         addrs.get(addr.ifa.index) match {
                             case Some(addrSet: mutable.Set[Addr])
                                 if addrSet.contains(addr) =>
+                                log.debug("Received DELADDR notification " +
+                                    "with the existing address")
                                 addrSet -= addr
                                 val descOption = removeAddr(addr)
                                 if (descOption.isDefined) {
@@ -309,7 +318,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
                         }
                     }
                 case t: Short => // Ignore other notifications.
-                    log.debug(s"Received a notification with the type $t")
+                    log.trace(s"Received a notification with the type $t")
                     Observable.empty()
             }
         }
@@ -322,7 +331,7 @@ class DefaultInterfaceScanner(channelFactory: NetlinkChannelFactory,
         notificationSubject.flatMap(
             makeFunc1[ByteBuffer, Observable[Set[InterfaceDescription]]] {
                 buf => try {
-                    log.debug("Got a notification from the kernel")
+                    log.trace("Got a notification from the kernel")
                     toObservable(buf)
                 } catch {
                     case ex: Exception =>
