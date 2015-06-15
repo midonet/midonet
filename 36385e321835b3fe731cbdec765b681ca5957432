@@ -285,6 +285,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_441cc513",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T10:01:39Z",
+      "side": 1,
+      "message": "It\u0027s just that it\u0027s easier to parse when you know what the null corresponds to. If it\u0027s something like map.put(null) then it\u0027s quite easy to understand but in this example it\u0027s less obvious to me.",
+      "parentUuid": "facab960_2aa4f555",
+      "range": {
+        "startLine": 100,
+        "startChar": 32,
+        "endLine": 100,
+        "endChar": 36
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e206b7cd",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 8
@@ -520,6 +544,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_04e2bd02",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T10:01:39Z",
+      "side": 1,
+      "message": "yes that would convey the semantic more.",
+      "parentUuid": "facab960_aded7ff1",
+      "range": {
+        "startLine": 164,
+        "startChar": 9,
+        "endLine": 179,
+        "endChar": 47
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_42bbe371",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 8
@@ -555,6 +603,30 @@
       "side": 1,
       "message": "I am currently working on replacing futures with observables. However, i didn\u0027t really understand well your suggestion. How will a method with 3 arguments work, given that we also need: clazz, id, key, value, promise, and the path - which is different for single and multiple value keys.",
       "parentUuid": "facab960_42bbe371",
+      "range": {
+        "startLine": 323,
+        "startChar": 8,
+        "endLine": 351,
+        "endChar": 25
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_24e8a1e1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T10:01:39Z",
+      "side": 1,
+      "message": "Well you would pass these arguments as well. If you prefer to leave it like this because that would be too many arguments, fine by me.",
+      "parentUuid": "facab960_ea35adf7",
       "range": {
         "startLine": 323,
         "startChar": 8,
