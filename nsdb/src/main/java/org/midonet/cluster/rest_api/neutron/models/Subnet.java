@@ -87,7 +87,8 @@ public class Subnet extends ZoomObject {
     public List<IPAllocationPool> allocationPools = new ArrayList<>();
 
     @JsonProperty("dns_nameservers")
-    @ZoomField(name = "dns_nameservers")
+    @ZoomField(name = "dns_nameservers",
+               converter = IPAddressUtil.Converter.class)
     public List<String> dnsNameservers = new ArrayList<>();
 
     @JsonProperty("host_routes")

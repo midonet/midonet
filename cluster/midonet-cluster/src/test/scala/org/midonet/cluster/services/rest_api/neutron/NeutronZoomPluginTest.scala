@@ -29,10 +29,11 @@ import org.scalatest._
 
 import org.midonet.cluster.data.ZoomConvert.toProto
 import org.midonet.cluster.data.storage.NotFoundException
-import org.midonet.cluster.models.Neutron.NeutronPort
+import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRouter, NeutronRouterInterface, NeutronSubnet, SecurityGroup => NeutronSecurityGroup}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.NotFoundHttpException
-import org.midonet.cluster.rest_api.neutron.models.{DeviceOwner, ExtraDhcpOpt, IPAllocation, Network, Port}
+import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
@@ -109,6 +110,15 @@ class NeutronZoomPluginTest extends FeatureSpec
         nPort.deviceOwner = DeviceOwner.DHCP
         nPort.status = "port status"
         nPort.securityGroups = List(UUID.randomUUID(), UUID.randomUUID())
+        nPort.hostId = UUID.randomUUID()
+        val bindingProfile = new PortBindingProfile()
+        bindingProfile.interfaceName = "interface1"
+        nPort.bindingProfile = bindingProfile
+        nPort.securityEnabled = false  // Default: true
+        val allowedPair = new PortAllowedAddressPair()
+        allowedPair.ipAddress = "10.0.0.3"
+        allowedPair.macAddress = "0a:0a:0a:0a:0a:0a"
+        nPort.allowedAddrPairs = List(allowedPair)
         nPort.extraDhcpOpts = List(new ExtraDhcpOpt("opt1", "val1"))
 
         val protoPort = toProto(nPort, classOf[NeutronPort])
@@ -126,8 +136,159 @@ class NeutronZoomPluginTest extends FeatureSpec
         protoPort.getSecurityGroupsCount shouldBe 2
         protoPort.getSecurityGroups(0) shouldBe toPuuid(nPort.securityGroups(0))
         protoPort.getSecurityGroups(1) shouldBe toPuuid(nPort.securityGroups(1))
+        protoPort.getHostId shouldBe toPuuid(nPort.hostId)
+        protoPort.getProfile.getInterfaceName shouldBe
+                nPort.bindingProfile.interfaceName
+        protoPort.getPortSecurityEnabled shouldBe nPort.securityEnabled
+        protoPort.getAllowedAddressPairsCount shouldBe 1
+        val protoPair = protoPort.getAllowedAddressPairs(0)
+        protoPair.getIpAddress.getAddress shouldBe allowedPair.ipAddress
+        protoPair.getMacAddress shouldBe allowedPair.macAddress
         protoPort.getExtraDhcpOptsCount shouldBe 1
         protoPort.getExtraDhcpOpts(0).getOptName shouldBe "opt1"
         protoPort.getExtraDhcpOpts(0).getOptValue shouldBe "val1"
+    }
+
+    feature("ZoomConvert correctly converts Network to protobuf.") {
+        val pojoNetwork = new Network()
+        pojoNetwork.id = UUID.randomUUID()
+        pojoNetwork.name = "network1"
+        pojoNetwork.status = "network status"
+        pojoNetwork.shared = true
+        pojoNetwork.tenantId = "tenant ID"
+        pojoNetwork.adminStateUp = true
+        pojoNetwork.external = true
+        pojoNetwork.networkType = NetworkType.FLAT
+
+        val protoNetwork = toProto(pojoNetwork, classOf[NeutronNetwork])
+        protoNetwork.getId shouldBe toPuuid(pojoNetwork.id)
+        protoNetwork.getName shouldBe pojoNetwork.name
+        protoNetwork.getStatus shouldBe pojoNetwork.status
+        protoNetwork.getShared shouldBe pojoNetwork.shared
+        protoNetwork.getTenantId shouldBe pojoNetwork.tenantId
+        protoNetwork.getAdminStateUp shouldBe pojoNetwork.adminStateUp
+        protoNetwork.getExternal shouldBe pojoNetwork.external
+        protoNetwork.getNetworkType shouldBe NeutronNetwork.NetworkType.FLAT
+    }
+
+    feature("ZoomConvert correctly converts Subnet to protobuf.") {
+        val pojoSubnet = new Subnet()
+        pojoSubnet.id = UUID.randomUUID()
+        pojoSubnet.name = "subnet1"
+        pojoSubnet.ipVersion = 4
+        pojoSubnet.networkId = UUID.randomUUID()
+        pojoSubnet.cidr = "10.10.10.0/24"
+        pojoSubnet.gatewayIp = "10.10.10.1"
+        pojoSubnet.allocationPools =
+            List(new IPAllocationPool("10.10.10.100", "10.10.10.199"))
+        pojoSubnet.hostRoutes =
+            List(new Route("10.10.20.0/24", "10.10.20.1"))
+        pojoSubnet.dnsNameservers = List("10.10.10.3")
+        pojoSubnet.tenantId = "tenant ID"
+        pojoSubnet.enableDhcp = true
+        pojoSubnet.shared = true
+
+        val protoSubnet = toProto(pojoSubnet, classOf[NeutronSubnet])
+        protoSubnet.getId shouldBe toPuuid(pojoSubnet.id)
+        protoSubnet.getName shouldBe pojoSubnet.name
+        protoSubnet.getIpVersion shouldBe 4
+        protoSubnet.getNetworkId shouldBe toPuuid(pojoSubnet.networkId)
+        protoSubnet.getCidr shouldBe pojoSubnet.cidr
+        protoSubnet.getGatewayIp.getAddress shouldBe pojoSubnet.gatewayIp
+        protoSubnet.getAllocationPoolsCount shouldBe 1
+        val ipAlloc = protoSubnet.getAllocationPools(0)
+        ipAlloc.getStart.getAddress shouldBe
+                pojoSubnet.allocationPools(0).firstIp
+        ipAlloc.getEnd.getAddress shouldBe
+                pojoSubnet.allocationPools(0).lastIp
+        protoSubnet.getHostRoutesCount shouldBe 1
+        val route = protoSubnet.getHostRoutes(0)
+        route.getDestination.getAddress shouldBe "10.10.20.0"
+        route.getDestination.getPrefixLength shouldBe 24
+        route.getNexthop.getAddress shouldBe pojoSubnet.hostRoutes(0).nexthop
+        protoSubnet.getDnsNameserversCount shouldBe 1
+        protoSubnet.getDnsNameservers(0).getAddress shouldBe
+                pojoSubnet.dnsNameservers(0)
+        protoSubnet.getTenantId shouldBe pojoSubnet.tenantId
+        protoSubnet.getEnableDhcp shouldBe pojoSubnet.enableDhcp
+        protoSubnet.getShared shouldBe pojoSubnet.shared
+    }
+
+    feature("ZoomConvert correctly converts Router to protobuf.") {
+        val pojoRouter = new Router()
+        pojoRouter.id = UUID.randomUUID()
+        pojoRouter.name = "router1"
+        pojoRouter.status = "router1 status"
+        pojoRouter.tenantId = "tenant ID"
+        pojoRouter.adminStateUp = true
+        pojoRouter.gwPortId = UUID.randomUUID()
+        pojoRouter.externalGatewayInfo =
+            new ExternalGatewayInfo(UUID.randomUUID(), true)
+
+        val protoRouter = toProto(pojoRouter, classOf[NeutronRouter])
+        protoRouter.getId shouldBe toPuuid(pojoRouter.id)
+        protoRouter.getName shouldBe pojoRouter.name
+        protoRouter.getStatus shouldBe pojoRouter.status
+        protoRouter.getTenantId shouldBe pojoRouter.tenantId
+        protoRouter.getAdminStateUp shouldBe pojoRouter.adminStateUp
+        protoRouter.getGwPortId shouldBe toPuuid(pojoRouter.gwPortId)
+        protoRouter.getExternalGatewayInfo.getNetworkId shouldBe (
+                toPuuid(pojoRouter.externalGatewayInfo.networkId))
+    }
+
+    feature("ZoomConvert correctly converts RouterInterface to protobuf.") {
+        val pojoRouterIfc = new RouterInterface()
+        pojoRouterIfc.id = UUID.randomUUID()
+        pojoRouterIfc.tenantId = "tenant ID"
+        pojoRouterIfc.portId = UUID.randomUUID()
+        pojoRouterIfc.subnetId = UUID.randomUUID()
+
+        val protoRouterIfc = toProto(pojoRouterIfc,
+                                     classOf[NeutronRouterInterface])
+        protoRouterIfc.getId shouldBe toPuuid(pojoRouterIfc.id)
+        protoRouterIfc.getTenantId shouldBe pojoRouterIfc.tenantId
+        protoRouterIfc.getPortId shouldBe toPuuid(pojoRouterIfc.portId)
+        protoRouterIfc.getSubnetId shouldBe toPuuid(pojoRouterIfc.subnetId)
+    }
+
+    feature("ZoomConvert correctly converts SecurityGroup and " +
+            "SecurityGroupRule to protobuf.") {
+        val pojoSecurityGroup = new SecurityGroup()
+        pojoSecurityGroup.id = UUID.randomUUID()
+        pojoSecurityGroup.name = "tenant1"
+        pojoSecurityGroup.description = "sg desc"
+        pojoSecurityGroup.tenantId = "tenant ID"
+        val sgRule1 = new SecurityGroupRule()
+        sgRule1.id = UUID.randomUUID()
+        sgRule1.securityGroupId = UUID.randomUUID()
+        sgRule1.remoteGroupId = UUID.randomUUID()
+        sgRule1.direction = RuleDirection.INGRESS
+        sgRule1.protocol = RuleProtocol.UDP
+        sgRule1.portRangeMin = 1000
+        sgRule1.portRangeMax = 2000
+        sgRule1.ethertype = RuleEthertype.IPv4
+        sgRule1.remoteIpPrefix = "10.10.0.0"
+        sgRule1.tenantId = "tenant1"
+        pojoSecurityGroup.securityGroupRules = List(sgRule1)
+
+        val protoSecurityGroup = toProto(pojoSecurityGroup,
+                                         classOf[NeutronSecurityGroup])
+        protoSecurityGroup.getId shouldBe toPuuid(pojoSecurityGroup.id)
+        protoSecurityGroup.getName shouldBe pojoSecurityGroup.name
+        protoSecurityGroup.getDescription shouldBe pojoSecurityGroup.description
+        protoSecurityGroup.getTenantId shouldBe pojoSecurityGroup.tenantId
+        protoSecurityGroup.getSecurityGroupRulesCount shouldBe 1
+        val protoSgRule1 = protoSecurityGroup.getSecurityGroupRules(0)
+        protoSgRule1.getId shouldBe toPuuid(sgRule1.id)
+        protoSgRule1.getSecurityGroupId shouldBe toPuuid(
+                sgRule1.securityGroupId)
+        protoSgRule1.getRemoteGroupId shouldBe toPuuid(sgRule1.remoteGroupId)
+        protoSgRule1.getDirection shouldBe Commons.RuleDirection.INGRESS
+        protoSgRule1.getProtocol shouldBe Commons.Protocol.UDP
+        protoSgRule1.getPortRangeMin shouldBe sgRule1.portRangeMin
+        protoSgRule1.getPortRangeMax shouldBe sgRule1.portRangeMax
+        protoSgRule1.getEthertype shouldBe Commons.EtherType.IPV4
+        protoSgRule1.getRemoteIpPrefix shouldBe sgRule1.remoteIpPrefix
+        protoSgRule1.getTenantId shouldBe sgRule1.tenantId
     }
 }
