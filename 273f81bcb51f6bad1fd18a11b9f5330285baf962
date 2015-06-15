@@ -16,6 +16,24 @@
       "revId": "273f81bcb51f6bad1fd18a11b9f5330285baf962",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a19ca3c1",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T02:48:52Z",
+      "side": 1,
+      "message": "Oh, that\u0027s a good catch. I only tested this against ZoomConvert, but was forgetting to think about NeutronDeserializer. Thanks!",
+      "parentUuid": "facab960_61637bdc",
+      "revId": "273f81bcb51f6bad1fd18a11b9f5330285baf962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
