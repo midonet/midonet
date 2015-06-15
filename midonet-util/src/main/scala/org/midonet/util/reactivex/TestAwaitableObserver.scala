@@ -16,6 +16,4 @@
 
 package org.midonet.util.reactivex
 
-import rx.observers.TestObserver
-
-class TestAwaitableObserver[T] extends TestObserver[T] with AwaitableObserver[T]
+class TestAwaitableObserver[T] extends AwaitableObserver[T]

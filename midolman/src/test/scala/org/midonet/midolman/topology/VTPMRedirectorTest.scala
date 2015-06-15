@@ -26,14 +26,10 @@ import scala.concurrent.duration.DurationInt
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
-
 import com.typesafe.config.{Config, ConfigValueFactory}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
-import rx.observers.TestObserver
 
 import org.midonet.cluster.data.TunnelZone.HostConfig
 import org.midonet.cluster.data.storage.StorageWithOwnership
@@ -50,7 +46,7 @@ import org.midonet.midolman.topology.devices.{Host => SimHost}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPAddr, IPv4Addr}
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
@@ -181,7 +177,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             expectMsg(ZoneMembers(tunnelId, OldTunnel.Type.vtep, hosts))
 
             When("We create an observer to the VT observable")
-            val observer = new TestObserver[SimHost] with AwaitableObserver[SimHost]
+            val observer = new TestAwaitableObserver[SimHost]
             vt.observables(tunnelId.asJava)
                 .asInstanceOf[Observable[SimHost]]
                 .subscribe(observer)
@@ -333,7 +329,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             expectMsg(simHost)
 
             When("We create an observer to the VT observable")
-            val observer = new TestObserver[SimHost] with AwaitableObserver[SimHost]
+            val observer = new TestAwaitableObserver[SimHost]
             vt.observables(protoHost.getId.asJava)
                 .asInstanceOf[Observable[SimHost]]
                 .subscribe(observer)

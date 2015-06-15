@@ -24,15 +24,11 @@ import scala.concurrent.duration.Duration
 import scala.util.Random
 
 import com.google.protobuf.Message
-
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, ChannelHandlerContext}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 import org.slf4j.LoggerFactory
-
-import rx.observers.TestObserver
 import rx.subjects.{ReplaySubject, Subject}
 import rx.{Observable, Observer}
 
@@ -43,7 +39,7 @@ import org.midonet.cluster.services.topology.common._
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.functors.makeAction0
 import org.midonet.util.netty._
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class ServerFrontEndTest extends FeatureSpec with Matchers {
@@ -223,7 +219,7 @@ class ServerFrontEndTest extends FeatureSpec with Matchers {
             srv.startAsync().awaitRunning()
             srv.isRunning shouldBe true
 
-            val answers = new TestObserver[Commands.Response] with AwaitableObserver[Commands.Response]
+            val answers = new TestAwaitableObserver[Commands.Response]
             val client = newClient
             val subs = client.observable.subscribe(answers)
 

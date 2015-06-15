@@ -22,9 +22,7 @@ import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
-import rx.observers.TestObserver
 import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
@@ -36,7 +34,7 @@ import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
@@ -104,7 +102,7 @@ class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     private def createObserver() =
-        new TestObserver[TestableDevice] with AwaitableObserver[TestableDevice]
+        new TestAwaitableObserver[TestableDevice]
 
     feature("The device with chain mapper fetches chains") {
         scenario("The device chain does not exist") {
