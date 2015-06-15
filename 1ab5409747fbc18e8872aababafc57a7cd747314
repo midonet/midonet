@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_c108c793",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-15T05:54:36Z",
+      "side": 1,
+      "message": "Another option would be to have a boolean val:\n\n  protected val useLegacyDataClient \u003d false\n\nThen in before, do this:\n\n  if (useLegacyDataClient) injectLegacyDataClient()\n\nThis allows classes that need it just do a one-line val override. It\u0027s okay either way, though.",
+      "range": {
+        "startLine": 280,
+        "startChar": 0,
+        "endLine": 282,
+        "endChar": 50
+      },
+      "revId": "1ab5409747fbc18e8872aababafc57a7cd747314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
