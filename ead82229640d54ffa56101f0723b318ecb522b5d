@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_2155f34f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "How would you define the MergedMapId?",
+      "parentUuid": "facab960_c2a9b37c",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 68,
+        "endChar": 5
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_62c5478d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 18
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-11T14:23:04Z",
       "side": 1,
       "message": "some separator?",
+      "range": {
+        "startLine": 73,
+        "startChar": 50,
+        "endLine": 73,
+        "endChar": 55
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_81731f14",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_62c5478d",
       "range": {
         "startLine": 73,
         "startChar": 50,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_614ffbbd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_a2c58f3d",
+      "range": {
+        "startLine": 93,
+        "startChar": 40,
+        "endLine": 93,
+        "endChar": 47
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_02e2bbd4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 18
@@ -82,6 +154,30 @@
       "writtenOn": "2015-06-11T14:23:04Z",
       "side": 1,
       "message": "A Multimap would simplify quite a bit of boilerplate below",
+      "range": {
+        "startLine": 100,
+        "startChar": 24,
+        "endLine": 100,
+        "endChar": 76
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6491c998",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "If I use Guava\u0027s multimap I have to convert between java and scala maps to perform operations like maxBy. If I use scala\u0027s multimap then I couldn\u0027t find an operation equivalent to retain (defined on maps) to remove elements according to some predicate. I may have missed an easy way to do these things though...",
+      "parentUuid": "facab960_02e2bbd4",
       "range": {
         "startLine": 100,
         "startChar": 24,
@@ -141,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_243b41d2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "If there\u0027s a way to avoid updateStream that would be great!",
+      "parentUuid": "facab960_626e2731",
+      "range": {
+        "startLine": 111,
+        "startChar": 16,
+        "endLine": 111,
+        "endChar": 30
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_02bb9bc4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 18
@@ -152,6 +272,30 @@
       "writtenOn": "2015-06-11T14:23:04Z",
       "side": 1,
       "message": "nit: the message bus?",
+      "range": {
+        "startLine": 115,
+        "startChar": 49,
+        "endLine": 115,
+        "endChar": 56
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c1cb671c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_02bb9bc4",
       "range": {
         "startLine": 115,
         "startChar": 49,
@@ -187,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_24142143",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "The outside world subscribe to updateStream on myScheduler and opinions emitted on the opinion bus are observed on myScheduler as well. It thus seems to me that this avoid the problem you\u0027re describing.",
+      "parentUuid": "facab960_a24aefc2",
+      "range": {
+        "startLine": 131,
+        "startChar": 11,
+        "endLine": 132,
+        "endChar": 38
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_82c6cb47",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 18
@@ -198,6 +366,30 @@
       "writtenOn": "2015-06-11T14:23:04Z",
       "side": 1,
       "message": "why do we need updateStream and winningSubject? they seem the same thing",
+      "range": {
+        "startLine": 139,
+        "startChar": 16,
+        "endLine": 139,
+        "endChar": 22
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_81e15f9c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "updateStream is the observable exposed to the outside world. The subscriber subscribes to the winning subject after receiving the snapshot.",
+      "parentUuid": "facab960_82c6cb47",
       "range": {
         "startLine": 139,
         "startChar": 16,
@@ -233,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_04255daa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "Using a filter makes things more complicated because we need to create another subject on which new opinions are emitted due to opinion removals. That\u0027s why I now pro-actively call onNext on the winning subject.",
+      "parentUuid": "facab960_82f40b88",
+      "range": {
+        "startLine": 151,
+        "startChar": 16,
+        "endLine": 151,
+        "endChar": 33
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_a2dcaf13",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 18
@@ -244,6 +460,30 @@
       "writtenOn": "2015-06-11T14:23:04Z",
       "side": 1,
       "message": "why? if the entry is there we would\u0027ve already counted it no?",
+      "range": {
+        "startLine": 156,
+        "startChar": 12,
+        "endLine": 156,
+        "endChar": 40
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_641e2965",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-15T09:22:50Z",
+      "side": 1,
+      "message": "It could be that the entry is there in the cache but the map is empty. For instance this could happen when we put an opinion for some key and then remove it. Once we add an opinion for the same key again, we have to increment the entry count.",
+      "parentUuid": "facab960_a2dcaf13",
       "range": {
         "startLine": 156,
         "startChar": 12,
