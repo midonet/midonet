@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_da7d1070",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/annotation/JsonError.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-15T17:08:17Z",
+      "side": 1,
+      "message": "It would be nice to use Response.Status.BAD_REQUEST.ordinal() but not resolved as constant so..",
+      "range": {
+        "startLine": 40,
+        "startChar": 25,
+        "endLine": 40,
+        "endChar": 28
+      },
+      "revId": "24454655d5fa8dff48a7650eb90ae224ae81e784",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5abae023",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/serialization/MidonetObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-15T17:08:17Z",
+      "side": 1,
+      "message": "wrap",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 8
+      },
+      "revId": "24454655d5fa8dff48a7650eb90ae224ae81e784",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
