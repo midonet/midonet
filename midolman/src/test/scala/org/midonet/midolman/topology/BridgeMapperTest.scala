@@ -20,12 +20,9 @@ import java.util.UUID
 import scala.concurrent.duration._
 
 import com.typesafe.config.{Config, ConfigFactory}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
-import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort}
@@ -37,7 +34,6 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.MidonetEventually
-import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
@@ -45,8 +41,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
     import TopologyBuilder._
 
-    private type BridgeObserver = TestObserver[SimulationBridge]
-        with AwaitableObserver[SimulationBridge]
+    private type BridgeObserver = DeviceObserver[SimulationBridge]
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
@@ -70,7 +65,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             """.stripMargin).withFallback(config))
     }
 
-    private def createObserver(): DeviceObserver[SimulationBridge] = {
+    private def createObserver(): BridgeObserver = {
         Given("An observer for the bridge mapper")
         // It is possible to receive the initial notification on the current
         // thread, when the device was notified in the mapper's behavior subject

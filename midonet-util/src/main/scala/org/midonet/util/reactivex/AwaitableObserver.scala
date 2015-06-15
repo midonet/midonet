@@ -17,10 +17,11 @@ package org.midonet.util.reactivex
 
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.locks.LockSupport
+import java.util.{Collections, LinkedList => JLinkedList, List => JList}
 
 import scala.concurrent.duration.Duration
 
-import rx.Observer
+import rx.{Notification, Observer}
 
 object AwaitableObserver {
     private val AWAITING = 0
@@ -34,6 +35,9 @@ object AwaitableObserver {
  * thread until the specified number of calls to `onNext()` are made or until
  * the stream terminates, correspondingly returning true or false. It is also
  * subjected to a timeout. The `reset()` method allows the instance to be reused.
+ *
+ * In addition, this trait allows to retrieve the events observed with
+ * methods getOnNextEvents, getOnCompletedEvents, and getOnErrorEvents.
  */
 trait AwaitableObserver[T] extends Observer[T] {
     import AwaitableObserver._
@@ -42,26 +46,48 @@ trait AwaitableObserver[T] extends Observer[T] {
     @volatile private var status = AWAITING
     @volatile private var awaitingEvents = 0L
     @volatile private var thread: Thread = _
+    private val onNextEvents = new JLinkedList[T]()
+    private val onErrorEvents = new JLinkedList[Throwable]
+    private val onCompletedEvents = new JLinkedList[Notification[T]]
 
-    abstract override def onNext(value: T): Unit = {
-        super.onNext(value)
+    override def onNext(value: T): Unit = {
+        onNextEvents.add(value)
         events += 1
         if (events - awaitingEvents == 0) {
             wakeUp()
         }
     }
 
-    abstract override def onCompleted(): Unit = {
-        super.onCompleted()
+    /**
+     * @return a list of items observed by this observer, in the order in which
+     *         they were observed.
+     */
+    def getOnNextEvents: JList[T] = Collections.unmodifiableList(onNextEvents)
+
+    override def onCompleted(): Unit = {
+        onCompletedEvents.add(Notification.createOnCompleted[T])
         status = DONE
         wakeUp()
     }
 
-    abstract override def onError(e: Throwable): Unit = {
-        super.onError(e)
+    /**
+     * @return a list of Notifications representing calls to this observer's
+     *         onCompleted method.
+     */
+    def getOnCompletedEvents: JList[Notification[T]] =
+        Collections.unmodifiableList(onCompletedEvents)
+
+    override def onError(e: Throwable): Unit = {
+        onErrorEvents.add(e)
         status = DONE
         wakeUp()
     }
+
+    /**
+     * @return a list of Throwables passed to this observer's onError method.
+     */
+    def getOnErrorEvents: JList[Throwable] =
+        Collections.unmodifiableList(onErrorEvents)
 
     def isCompleted(): Boolean = status == DONE
 

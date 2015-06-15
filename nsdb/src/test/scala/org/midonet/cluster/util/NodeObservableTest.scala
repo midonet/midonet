@@ -24,9 +24,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import rx.observers.TestObserver
-
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class NodeObservableTest extends FlatSpec with CuratorTestFramework
@@ -37,8 +35,8 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
     "Node observable" should "emit notifications in create / delete" in {
         val path = makePath("1")
 
-        val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
-        val obs2 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+        val obs1 = new TestAwaitableObserver[ChildData]
+        val obs2 = new TestAwaitableObserver[ChildData]
 
         val observable = NodeObservable.create(curator, path)
 
@@ -67,7 +65,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
 
     "Node observable" should "emit error if node does not exist" in {
         val observable = NodeObservable.create(curator, "/nonExistent")
-        val obs = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+        val obs = new TestAwaitableObserver[ChildData]
 
         observable.subscribe(obs)
         obs.awaitCompletion(timeout)
@@ -82,7 +80,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         val path = makePath("3")
         val observable = NodeObservable.create(curator, path)
 
-        val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+        val obs1 = new TestAwaitableObserver[ChildData]
         observable.subscribe(obs1)
         obs1.awaitOnNext(1, timeout) shouldBe true
 
@@ -95,7 +93,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         obs1.getOnErrorEvents.get(0).isInstanceOf[
             NodeObservableClosedException] shouldBe true
 
-        val obs2 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+        val obs2 = new TestAwaitableObserver[ChildData]
         observable.subscribe(obs2)
         obs2.awaitCompletion(timeout)
 
@@ -110,9 +108,9 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         val path = makePath("3")
         val observable = NodeObservable.create(curator, path)
 
-        val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
-        val obs2 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
-        val obs3 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+        val obs1 = new TestAwaitableObserver[ChildData]
+        val obs2 = new TestAwaitableObserver[ChildData]
+        val obs3 = new TestAwaitableObserver[ChildData]
 
         val sub1 = observable.subscribe(obs1)
         val sub2 = observable.subscribe(obs2)
@@ -140,7 +138,7 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         val observable = NodeObservable.create(curator, path,
                                                completeOnDelete = true)
 
-        val obs = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+        val obs = new TestAwaitableObserver[ChildData]
         observable.subscribe(obs)
 
         obs.awaitOnNext(1, timeout) shouldBe true
@@ -189,7 +187,7 @@ class NodeObservableConnectionTest extends FlatSpec with CuratorTestFramework
         val path = makePath("1")
         val observable = NodeObservable.create(curator, path)
 
-        val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+        val obs1 = new TestAwaitableObserver[ChildData]
         observable.subscribe(obs1)
         obs1.awaitOnNext(1, timeout)
 
@@ -204,7 +202,7 @@ class NodeObservableConnectionTest extends FlatSpec with CuratorTestFramework
 
         // Later observers will also get a cache closed error, the Observable is
         // now useless
-        val obs2 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
+        val obs2 = new TestAwaitableObserver[ChildData]
         observable.subscribe(obs2)
         obs2.awaitCompletion(timeout)
 

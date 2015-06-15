@@ -22,20 +22,18 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
 import com.google.protobuf.Message
-
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
+import org.midonet.cluster.rpc.Commands.{Response, ResponseType}
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.util.reactivex.AwaitableObserver
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 /** Tests the session management of the Topology API service. */
 @RunWith(classOf[JUnitRunner])
@@ -228,7 +226,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -248,7 +246,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -271,7 +269,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -290,7 +288,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -315,7 +313,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -336,7 +334,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -372,7 +370,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -395,7 +393,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -426,7 +424,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -461,7 +459,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -496,7 +494,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req = UUID.randomUUID()
@@ -516,7 +514,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -554,7 +552,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             session.terminate()
@@ -571,7 +569,7 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs = session.observable().subscribe(collector)
 
             val req1 = UUID.randomUUID()
@@ -603,8 +601,8 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val partial = new TestObserver[Response] with AwaitableObserver[Response]
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val partial = new TestAwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs1 = session.observable().subscribe(partial)
 
             val req = UUID.randomUUID()
@@ -665,8 +663,8 @@ class SessionInventoryTest extends FeatureSpec
         {
             val sId = UUID.randomUUID()
             val session = inv.claim(sId)
-            val initial = new TestObserver[Response] with AwaitableObserver[Response]
-            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val initial = new TestAwaitableObserver[Response]
+            val collector = new TestAwaitableObserver[Response]
             val subs1 = session.observable().subscribe(initial)
 
             val req = UUID.randomUUID()

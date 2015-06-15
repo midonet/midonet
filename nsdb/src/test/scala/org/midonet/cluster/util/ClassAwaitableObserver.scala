@@ -28,7 +28,7 @@ import org.midonet.cluster.util.ClassAwaitableObserver.ChildObserver
 import org.midonet.util.reactivex.AwaitableObserver
 
 object ClassAwaitableObserver {
-    class ChildObserver[T] extends TestObserver[T] with AwaitableObserver[T]
+    class ChildObserver[T] extends AwaitableObserver[T]
 }
 
 class ClassAwaitableObserver[T](awaitCount: Int) extends TestObserver[Observable[T]] {

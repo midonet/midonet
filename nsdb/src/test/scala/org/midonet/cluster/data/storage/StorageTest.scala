@@ -21,12 +21,10 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{Await, Future, ExecutionContext}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
 
-import org.scalatest.{Matchers, BeforeAndAfter, FeatureSpec}
-
-import rx.observers.TestObserver
+import org.scalatest.{BeforeAndAfter, FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
@@ -34,8 +32,8 @@ import org.midonet.cluster.data.storage.StorageTestClasses._
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{ParentDeletedException, ClassAwaitableObserver, UUIDUtil}
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
+import org.midonet.cluster.util.{ClassAwaitableObserver, ParentDeletedException, UUIDUtil}
+import org.midonet.util.reactivex.{AssertableObserver, TestAwaitableObserver}
 
 abstract class StorageTest extends FeatureSpec with BeforeAndAfter
                            with Matchers {
@@ -118,7 +116,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
     }
 
     private def makeObservable[T](assertFunc: () => Unit = assert) =
-        new TestObserver[T] with AwaitableObserver[T] with AssertableObserver[T] {
+        new TestAwaitableObserver[T] with AssertableObserver[T] {
             override def assert() = assertFunc()
         }
 
@@ -1915,7 +1913,7 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
         scenario("Test subscribe owner when performing a multi operation") {
             val state = new SharedState
             val owner = UUID.randomUUID.toString
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
             storage.create(state, owner)
             storage.ownersObservable(classOf[SharedState], state.id).subscribe(obs)
             obs.awaitOnNext(1, 1 second) shouldBe true

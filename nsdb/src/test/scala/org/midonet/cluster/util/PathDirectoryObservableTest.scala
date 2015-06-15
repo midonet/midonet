@@ -18,12 +18,10 @@ package org.midonet.cluster.util
 import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FeatureSpec, Matchers}
 
-import rx.observers.TestObserver
-
-import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.reactivex.TestAwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class PathDirectoryObservableTest extends FeatureSpec
@@ -65,7 +63,7 @@ class PathDirectoryObservableTest extends FeatureSpec
             createParent()
 
             val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
             observable.subscribe(obs)
             obs.awaitOnNext(1, timeout) shouldBe true
 
@@ -79,7 +77,7 @@ class PathDirectoryObservableTest extends FeatureSpec
             createChildren(0, 4)
 
             val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
             observable.subscribe(obs)
             obs.awaitOnNext(1, timeout) shouldBe true
 
@@ -92,7 +90,7 @@ class PathDirectoryObservableTest extends FeatureSpec
             createParent()
 
             val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
             observable.subscribe(obs)
 
             obs.awaitOnNext(1, timeout) shouldBe true
@@ -114,7 +112,7 @@ class PathDirectoryObservableTest extends FeatureSpec
             createChildren(0, 4)
 
             val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
 
             observable.subscribe(obs)
             obs.awaitOnNext(1, timeout) shouldBe true
@@ -136,7 +134,7 @@ class PathDirectoryObservableTest extends FeatureSpec
             createParent()
 
             val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
 
             observable.subscribe(obs)
             obs.awaitOnNext(1, timeout) shouldBe true
@@ -154,7 +152,7 @@ class PathDirectoryObservableTest extends FeatureSpec
         scenario("Error on parent does not exist") {
             val path = ZK_ROOT + "/none"
             val observable = PathDirectoryObservable.create(curator, path)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
 
             observable.subscribe(obs)
             obs.awaitCompletion(timeout)
@@ -169,7 +167,7 @@ class PathDirectoryObservableTest extends FeatureSpec
             createParent()
 
             val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
 
             observable.subscribe(obs)
             obs.awaitOnNext(1, timeout) shouldBe true
@@ -186,7 +184,7 @@ class PathDirectoryObservableTest extends FeatureSpec
             curator.close()
 
             val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
 
             observable.subscribe(obs)
             obs.awaitCompletion(timeout)
@@ -200,7 +198,7 @@ class PathDirectoryObservableTest extends FeatureSpec
             createParent()
 
             val observable = PathDirectoryObservable.create(curator, parentPath)
-            val obs = new TestObserver[Set[String]] with AwaitableObserver[Set[String]]
+            val obs = new TestAwaitableObserver[Set[String]]
 
             observable.subscribe(obs)
             obs.awaitOnNext(1, timeout) shouldBe true
