@@ -282,6 +282,7 @@ if [[ "$ENABLE_CLUSTER" = "True" ]]; then
     if [[ "$ENABLE_TASKS_IMPORTER" = "True" ]]; then
         configure_mn "cluster.neutron_importer.enabled" "true"
         configure_mn "cluster.neutron_importer.connection_string" "\"$TASKS_DB_CONN\""
+        configure_mn "cluster.neutron_importer.jdbc_driver_class" "\"$TASKS_DB_DRIVER_CLASS\""
     fi
 
     CLUSTER_LOG=$TOP_DIR/cluster/midonet-cluster/conf/logback.xml
