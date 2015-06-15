@@ -128,6 +128,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_a12743b5",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/SessionPersistence.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-15T01:06:53Z",
+      "side": 1,
+      "message": "is it necessary even when json name is same as java name?",
+      "parentUuid": "facab960_4e08662d",
+      "revId": "c99fa338732b0fb2b37c34ef8ef55c4f099aeb3e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_6e07ea1c",
         "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/SessionPersistenceType.java",
         "patchSetId": 1
