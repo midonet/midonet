@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_640469c0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 574,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-15T10:02:17Z",
+      "side": 1,
+      "message": "is thread safety needed here? maybe useful to specify for later reference",
+      "revId": "1bda9ec72be9f84fd4344fcbcbda760fe279768e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
