@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_1f420a3e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T13:54:35Z",
+      "side": 1,
+      "message": "Just to comment that to me \"key\" and \"index\" mean the same thing, so here it seems to be repeating the same thing twice though I cannot think of a better idea.. :P",
+      "range": {
+        "startLine": 63,
+        "startChar": 23,
+        "endLine": 63,
+        "endChar": 31
+      },
+      "revId": "1bda9ec72be9f84fd4344fcbcbda760fe279768e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_640469c0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 8
@@ -13,6 +36,69 @@
       "writtenOn": "2015-06-15T10:02:17Z",
       "side": 1,
       "message": "is thread safety needed here? maybe useful to specify for later reference",
+      "revId": "1bda9ec72be9f84fd4344fcbcbda760fe279768e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ff800648",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 583,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T13:54:35Z",
+      "side": 1,
+      "message": "I think you can use getOrElseUpdate() here.",
+      "range": {
+        "startLine": 580,
+        "startChar": 26,
+        "endLine": 583,
+        "endChar": 41
+      },
+      "revId": "1bda9ec72be9f84fd4344fcbcbda760fe279768e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_df42620f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 607,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T13:54:35Z",
+      "side": 1,
+      "message": "Again, I think you can use getOrElseUpdate()",
+      "range": {
+        "startLine": 604,
+        "startChar": 26,
+        "endLine": 607,
+        "endChar": 41
+      },
+      "revId": "1bda9ec72be9f84fd4344fcbcbda760fe279768e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ff456617",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 608,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-15T13:54:35Z",
+      "side": 1,
+      "message": "I\u0027m not following what you want to do here.",
       "revId": "1bda9ec72be9f84fd4344fcbcbda760fe279768e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
