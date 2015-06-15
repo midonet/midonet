@@ -73,7 +73,9 @@ public class RuleDataConverter {
             org.midonet.cluster.data.rules.ForwardNatRule typedData
                 = (org.midonet.cluster.data.rules.ForwardNatRule) data;
             if (typedData.isDnat()) {
-                dto = new ForwardDnatRule();
+                ForwardDnatRule fdnDto = new ForwardDnatRule();
+                fdnDto.natTargets = makeTargetsFromRule(typedData);
+                dto = fdnDto;
             } else {
                 ForwardSnatRule fsnDto = new ForwardSnatRule();
                 fsnDto.natTargets = makeTargetsFromRule(typedData);
