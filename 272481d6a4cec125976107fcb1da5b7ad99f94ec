@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_bf8cbe36",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-15T16:30:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_24fa61bd",
+      "range": {
+        "startLine": 35,
+        "startChar": 46,
+        "endLine": 35,
+        "endChar": 51
+      },
+      "revId": "272481d6a4cec125976107fcb1da5b7ad99f94ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_a42d9148",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
         "patchSetId": 12
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_1fcbea53",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-15T16:30:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_a42d9148",
+      "range": {
+        "startLine": 105,
+        "startChar": 11,
+        "endLine": 106,
+        "endChar": 35
+      },
+      "revId": "272481d6a4cec125976107fcb1da5b7ad99f94ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c430d5a0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
         "patchSetId": 12
@@ -59,6 +107,30 @@
       "writtenOn": "2015-06-15T10:01:39Z",
       "side": 1,
       "message": "Sentence incomplete.",
+      "range": {
+        "startLine": 110,
+        "startChar": 3,
+        "endLine": 110,
+        "endChar": 19
+      },
+      "revId": "272481d6a4cec125976107fcb1da5b7ad99f94ec",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_3fc6ee49",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-15T16:30:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_c430d5a0",
       "range": {
         "startLine": 110,
         "startChar": 3,
