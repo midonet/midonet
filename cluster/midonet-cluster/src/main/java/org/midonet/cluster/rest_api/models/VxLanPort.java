@@ -24,13 +24,10 @@ import org.midonet.cluster.util.UUIDUtil;
 
 public class VxLanPort extends Port {
 
-    @ZoomField(name = "mgmtIpAddr", converter = UUIDUtil.Converter.class)
     public String mgmtIpAddr;
 
-    @ZoomField(name = "mgmtPort", converter = UUIDUtil.Converter.class)
     public int mgmtPort;
 
-    @ZoomField(name = "vni", converter = UUIDUtil.Converter.class)
     public int vni;
 
     @JsonIgnore

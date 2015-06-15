@@ -21,20 +21,16 @@ import javax.validation.ConstraintValidatorContext;
 
 import org.midonet.cluster.rest_api.models.Condition;
 import org.midonet.cluster.rest_api.models.ForwardNatRule;
-import org.midonet.midolman.rules.FragmentPolicy;
 
 import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_NAT_RULE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
-import static org.midonet.midolman.rules.FragmentPolicy.UNFRAGMENTED;
-import static org.midonet.packets.IPFragmentType.Later;
 
 public class FragmentTypeValidator
     implements ConstraintValidator<IsValidFragmentType, Condition> {
 
     @Override
     public void initialize(IsValidFragmentType constraintAnnotation) {
-
     }
 
     @Override
@@ -45,22 +41,12 @@ public class FragmentTypeValidator
             return true;
         }
 
-        if (cond.fragmentPolicy.equalsIgnoreCase("UNDEFINED")) {
-            context.disableDefaultConstraintViolation();
-            context.buildConstraintViolationWithTemplate(
-                getMessage(
-                    MessageProperty.FRAG_POLICY_UNDEFINED,
-                    (Object) cond)
-            ).addConstraintViolation();
-            return false;
-        }
-
         if (cond instanceof ForwardNatRule) {
             return isValid((ForwardNatRule) cond, context);
         } else {
-            FragmentPolicy fp = FragmentPolicy.valueOf(
-                cond.fragmentPolicy.toUpperCase());
-            if (cond.hasL4Fields() && fp.accepts(Later)) {
+            if (cond.hasL4Fields() &&
+                (cond.fragmentPolicy == Condition.FragmentPolicy.any ||
+                 cond.fragmentPolicy == Condition.FragmentPolicy.nonheader)) {
                 context.disableDefaultConstraintViolation();
                 context.buildConstraintViolationWithTemplate(
                     getMessage(FRAG_POLICY_INVALID_FOR_L4_RULE, (Object) cond)
@@ -77,9 +63,8 @@ public class FragmentTypeValidator
                             ConstraintValidatorContext context) {
         boolean unfragmentedOnly = !fnr.isFloatingIp() || fnr.hasL4Fields();
 
-        FragmentPolicy fp = FragmentPolicy.valueOf(
-            fnr.fragmentPolicy.toUpperCase());
-        if (unfragmentedOnly && fp != UNFRAGMENTED) {
+        if (unfragmentedOnly &&
+            fnr.fragmentPolicy != Condition.FragmentPolicy.unfragmented) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(
                 getMessage(FRAG_POLICY_INVALID_FOR_NAT_RULE, (Object) fnr)

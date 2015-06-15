@@ -61,7 +61,7 @@ object Vladimir {
         configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
 
         override def locateMapper(`type`: Class[_], mediaType: MediaType)
-        :ObjectMapper = {
+        : ObjectMapper = {
             mapper
         }
     }

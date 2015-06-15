@@ -23,7 +23,7 @@ public class ReturnRule extends Rule {
     }
 
     @Override
-    public String getType() {
+    public final String getType() {
         return Rule.Return;
     }
 

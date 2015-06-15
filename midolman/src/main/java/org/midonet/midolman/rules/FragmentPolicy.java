@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.rules;
 
+import java.util.Collections;
 import java.util.EnumSet;
 
 import org.midonet.cluster.data.ZoomEnum;
@@ -58,12 +59,9 @@ public enum FragmentPolicy {
 
     private final EnumSet<IPFragmentType> acceptedFragmentTypes;
 
-    public static final String pattern = "any|nonheader|header|unfragmented";
-
     FragmentPolicy(IPFragmentType... fragmentTypes) {
         acceptedFragmentTypes = EnumSet.noneOf(IPFragmentType.class);
-        for (IPFragmentType fragmentType : fragmentTypes)
-            acceptedFragmentTypes.add(fragmentType);
+        Collections.addAll(acceptedFragmentTypes, fragmentTypes);
     }
 
     public boolean accepts(IPFragmentType fragmentType) {

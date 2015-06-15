@@ -23,7 +23,7 @@ public class DropRule extends Rule {
     }
 
     @Override
-    public String getType() {
+    public final String getType() {
         return Rule.Drop;
     }
 

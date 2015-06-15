@@ -17,8 +17,6 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import javax.validation.constraints.Min;

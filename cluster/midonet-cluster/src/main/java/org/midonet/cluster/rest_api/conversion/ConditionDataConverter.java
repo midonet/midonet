@@ -130,7 +130,8 @@ public class ConditionDataConverter {
                 return unfragmentedOnly ? UNFRAGMENTED : ANY;
             }
 
-            FragmentPolicy fp = valueOf(dto.fragmentPolicy.toUpperCase());
+            FragmentPolicy fp = valueOf(
+                dto.fragmentPolicy.toString().toUpperCase());
             if (unfragmentedOnly && fp != UNFRAGMENTED) {
                 throw new IllegalArgumentException(getMessage(
                     FRAG_POLICY_INVALID_FOR_NAT_RULE));
@@ -141,7 +142,7 @@ public class ConditionDataConverter {
             if (dto.fragmentPolicy == null) {
                 return dto.hasL4Fields() ? HEADER : ANY;
             }
-            FragmentPolicy fp = valueOf(dto.fragmentPolicy.toUpperCase());
+            FragmentPolicy fp = valueOf(dto.fragmentPolicy.toString().toUpperCase());
             if (dto.hasL4Fields() && fp.accepts(IPFragmentType.Later)) {
                 throw new IllegalArgumentException(
                     getMessage(FRAG_POLICY_INVALID_FOR_L4_RULE));
@@ -209,7 +210,8 @@ public class ConditionDataConverter {
         if (null != c.nwTos) {
             dto.nwTos = unsign(c.nwTos);
         }
-        dto.fragmentPolicy = c.fragmentPolicy.toString().toLowerCase();
+        dto.fragmentPolicy = Condition.FragmentPolicy.valueOf(
+            c.fragmentPolicy.toString().toLowerCase());
         if (null != c.tpDst) {
             dto.tpDst = c.tpDst;
         }

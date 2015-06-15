@@ -15,9 +15,6 @@
  */
 package org.midonet.cluster.rest_api.models;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement
 public class WriteVersion {
     // TODO: review this
     public final String version = "5";
