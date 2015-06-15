@@ -29,6 +29,8 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Enclosed.class)
@@ -46,6 +48,33 @@ public class TestTCP {
             (byte) 0x02, (byte) 0x60, (byte) 0x02, (byte) 0x20, (byte) 0x00,
             (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0xFF,
             (byte) 0xFF, (byte) 0xFF, (byte) 0xFF };
+
+    private static byte[] tcpWithChecksum = new byte[] {
+            (byte) 0x45, (byte) 0x00, (byte) 0x00, (byte) 0x34, (byte) 0x87,
+            (byte) 0xb8, (byte) 0x00, (byte) 0x00, (byte) 0x37, (byte) 0x06,
+            (byte) 0x8e, (byte) 0x64, (byte) 0xd8, (byte) 0x3a, (byte) 0xd2,
+            (byte) 0xa1, (byte) 0xc0, (byte) 0xa8, (byte) 0x02, (byte) 0x23, // Ip header end
+            (byte) 0x01, (byte) 0xbb, (byte) 0xd7, (byte) 0xf5, (byte) 0xd3,
+            (byte) 0x14, (byte) 0x5b, (byte) 0xa5, (byte) 0x77, (byte) 0xdb,
+            (byte) 0xf1, (byte) 0x25, (byte) 0x80, (byte) 0x10, (byte) 0x01,
+            (byte) 0x5e, (byte) 0x5a, (byte) 0x5d, (byte) 0x00, (byte) 0x00,
+            (byte) 0x01, (byte) 0x01, (byte) 0x08, (byte) 0x0a, (byte) 0x6d,
+            (byte) 0x5a, (byte) 0x24, (byte) 0xf4, (byte) 0x4d, (byte) 0x1a,
+            (byte) 0x5c, (byte) 0x85 };
+
+    public static class TestTcpChecksumCalculation {
+
+        @Test
+        public void test() throws MalformedPacketException {
+            IPv4 ipPkt = new IPv4();
+            ipPkt.deserialize(ByteBuffer.wrap(tcpWithChecksum));
+            ipPkt.clearChecksum();
+            TCP tcp = (TCP)ipPkt.getPayload();
+            tcp.clearChecksum();
+            byte[] serializedTcpWithChecksum = ipPkt.serialize();
+            assertArrayEquals(tcpWithChecksum, serializedTcpWithChecksum);
+        }
+    }
 
     public static class TestTcpPacketGeneral {
 
