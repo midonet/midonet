@@ -19,13 +19,11 @@ import java.net.URI;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import org.midonet.cluster.data.TraceRequest.DeviceType;
 import org.midonet.cluster.rest_api.ResourceUris;
 
 /* Class representing trace info */
-@XmlRootElement
 public class TraceRequest extends UriResource {
 
     @NotNull

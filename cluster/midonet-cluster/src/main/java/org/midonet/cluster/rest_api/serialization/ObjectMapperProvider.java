@@ -27,6 +27,7 @@ import org.codehaus.jackson.map.SerializationConfig;
 import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
 
+import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.util.version.VersionCheckAnnotationIntrospector;
 
 /**
@@ -51,7 +52,7 @@ public class ObjectMapperProvider {
 
     private ObjectMapper getMapper(int version, MediaType mediaType) {
 
-        ObjectMapper mapper = new ObjectMapper();
+        ObjectMapper mapper = new MidonetObjectMapper();
         JacksonAnnotationIntrospector jackIntr =
                 new JacksonAnnotationIntrospector();
         JaxbAnnotationIntrospector jaxbIntro =

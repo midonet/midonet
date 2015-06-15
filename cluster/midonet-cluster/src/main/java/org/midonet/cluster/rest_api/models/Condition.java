@@ -18,7 +18,6 @@ package org.midonet.cluster.rest_api.models;
 
 import java.lang.reflect.Type;
 import java.net.URI;
-import java.util.EnumSet;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
@@ -36,12 +35,12 @@ import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.annotation.JsonError;
 import org.midonet.cluster.rest_api.validation.IsValidFragmentType;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.RangeUtil;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.packets.IPFragmentType;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Subnet;
@@ -49,31 +48,18 @@ import org.midonet.packets.MAC;
 import org.midonet.util.Range;
 import org.midonet.util.version.Since;
 
-import static org.midonet.packets.IPFragmentType.*;
-
 @IsValidFragmentType
 public class Condition extends UriResource {
 
+    /** This enumeration is equivalent with
+     * [[org.midonet.midolman.rules.FragmentPolicy]] except that this class
+     * uses the lower-case values for API compatibility. */
     @ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
     public enum FragmentPolicy {
-        @ZoomEnumValue(value = "ANY") any(First, Later, None),
-        @ZoomEnumValue(value = "NONHEADER") nonheader(Later),
-        @ZoomEnumValue(value = "HEADER") header(First, None),
-        @ZoomEnumValue(value = "UNFRAGMENTED") unfragmented(None);
-
-        public static final String pattern = "any|nonheader|header|unfragmented";
-
-        private final EnumSet<IPFragmentType> acceptedFragmentTypes;
-
-        FragmentPolicy(IPFragmentType... fragmentTypes) {
-            acceptedFragmentTypes = EnumSet.noneOf(IPFragmentType.class);
-            for (IPFragmentType fragmentType : fragmentTypes)
-                acceptedFragmentTypes.add(fragmentType);
-        }
-
-        public boolean accepts(IPFragmentType fragmentType) {
-            return acceptedFragmentTypes.contains(fragmentType);
-        }
+        @ZoomEnumValue(value = "ANY") any,
+        @ZoomEnumValue(value = "NONHEADER") nonheader,
+        @ZoomEnumValue(value = "HEADER") header,
+        @ZoomEnumValue(value = "UNFRAGMENTED") unfragmented
     }
 
     @XmlTransient
@@ -160,10 +146,9 @@ public class Condition extends UriResource {
     public boolean invNwDst;
 
     @Since("2")
-    @Pattern(regexp = FragmentPolicy.pattern,
-             message = MessageProperty.FRAG_POLICY_UNDEFINED)
+    @JsonError(message = MessageProperty.FRAG_POLICY_UNDEFINED)
     @ZoomField(name = "fragment_policy")
-    public String fragmentPolicy;
+    public FragmentPolicy fragmentPolicy;
 
     @ZoomField(name = "tp_src", converter = RangeUtil.Converter.class)
     public Range<Integer> tpSrc;
@@ -198,18 +183,18 @@ public class Condition extends UriResource {
         return null != tpDst || null != tpSrc;
     }
 
-    // TODO: remove the validation and http exception from here
-    protected String getAndValidateFragmentPolicy() {
-        if (fragmentPolicy == null)
-            return hasL4Fields() ? FragmentPolicy.header.toString()
-                                 : FragmentPolicy.any.toString();
+    private FragmentPolicy getAndValidateFragmentPolicy() {
+        if (null == fragmentPolicy)
+            return hasL4Fields() ? FragmentPolicy.header : FragmentPolicy.any;
 
-        FragmentPolicy fp = FragmentPolicy.valueOf(fragmentPolicy.toUpperCase());
-        if (hasL4Fields() && fp.accepts(Later))
+        if (hasL4Fields() &&
+            (fragmentPolicy == FragmentPolicy.any ||
+             fragmentPolicy == FragmentPolicy.nonheader)) {
             throw new BadRequestHttpException(MessageProperty.getMessage(
                 MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE));
+        }
 
-        return fp.toString();
+        return fragmentPolicy;
     }
 
     public static class MACMaskConverter

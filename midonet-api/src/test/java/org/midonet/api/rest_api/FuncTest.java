@@ -32,6 +32,7 @@ import org.midonet.api.auth.AuthConfig;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
+import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.conf.HostIdGenerator;
 
 public class FuncTest {
@@ -60,7 +61,7 @@ public class FuncTest {
 
     static {
         HostIdGenerator.useTemporaryHostId();
-        objectMapper = new ObjectMapper();
+        objectMapper = new MidonetObjectMapper();
         objectMapper.configure(
             DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         // Randomize GrizzlyWebTestContainer's port for parallelism
