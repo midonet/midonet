@@ -119,7 +119,7 @@ public class MessageProperty {
     public static final String VTEP_INACCESSIBLE =
             "{midokura.javarx.VtepInaccessible.message}";
     public static final String VTEP_MUST_USE_SAME_TUNNEL_ZONE =
-        "{midokura.javarx.VtepMustUseSameTunnelZone.message}";
+            "{midokura.javarx.VtepMustUseSameTunnelZone.message}";
     public static final String VTEP_NOT_FOUND =
             "{midokura.javarx.VtepNotFound.message}";
     public static final String VTEP_PORT_NOT_FOUND =

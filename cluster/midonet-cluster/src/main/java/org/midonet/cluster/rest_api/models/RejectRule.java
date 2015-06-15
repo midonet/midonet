@@ -23,7 +23,7 @@ public class RejectRule extends Rule {
     }
 
     @Override
-    public String getType() {
+    public final String getType() {
         return Rule.Reject;
     }
 
