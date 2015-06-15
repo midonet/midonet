@@ -29,7 +29,7 @@ import org.midonet.cluster.models.Neutron;
 public class PortBindingProfile extends ZoomObject {
     @JsonProperty("interface_name")
     @ZoomField(name = "interface_name")
-    String interfaceName;
+    public String interfaceName;
 
     @Override
     public boolean equals(Object o) {
