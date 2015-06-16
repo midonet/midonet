@@ -21,7 +21,7 @@ import scala.collection.JavaConverters._
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
-import org.midonet.cluster.models.Topology.{Network, Route}
+import org.midonet.cluster.models.Topology.{Network, Route, Host}
 import org.midonet.cluster.services.c3po.midonet.{Create, MidoOp}
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -97,7 +97,18 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         midoOps += Create(rifRoute)
 
         if (isUplink) {
-            midoOps ++= bindPortOps(routerPort, nPort.getHostId,
+            // FIXME: Find host ID by looping through all hosts
+            // This is temporary until host ID of MidoNet could be
+            // deterministically fetched from the host name.
+            val hosts = storage.getAll(classOf[Host]).await()
+            val host = hosts.find(_.getName == nPort.getHostId)
+            if (host.isEmpty) {
+                throw new IllegalStateException(
+                    "NeutronRouterInterface could not find host: "
+                    + nPort.getHostId)
+            }
+
+            midoOps ++= bindPortOps(routerPort, host.get.getId,
                                     nPort.getProfile.getInterfaceName)
         } else {
             midoOps ++= createMetadataServiceRoute(
