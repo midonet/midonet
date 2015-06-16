@@ -22,6 +22,132 @@
       "revId": "36216339b689a50728c9571c6d7300fd34e63768",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_50f39f9d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-16T08:58:01Z",
+      "side": 1,
+      "message": "We should also rename the parameter name.",
+      "range": {
+        "startLine": 128,
+        "startChar": 50,
+        "endLine": 128,
+        "endChar": 61
+      },
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_10dcb7e3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-16T08:58:01Z",
+      "side": 1,
+      "message": "This should be renamed, I guess.",
+      "range": {
+        "startLine": 171,
+        "startChar": 24,
+        "endLine": 171,
+        "endChar": 38
+      },
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f08753d5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-16T08:58:01Z",
+      "side": 1,
+      "message": "It should comment that what value \"result\" takes.",
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d0a08f45",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-16T08:58:01Z",
+      "side": 1,
+      "message": "Could this just be mutable.Map?",
+      "range": {
+        "startLine": 93,
+        "startChar": 27,
+        "endLine": 93,
+        "endChar": 48
+      },
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_904b6786",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-16T08:58:01Z",
+      "side": 1,
+      "message": "Is there a real necessity to call flatMap on an Observable and generate Observable.just(_) ? Can we do just call map instead?",
+      "range": {
+        "startLine": 244,
+        "startChar": 14,
+        "endLine": 244,
+        "endChar": 21
+      },
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b0c06be1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-16T08:58:01Z",
+      "side": 1,
+      "message": "Some kind of comments would be appreciated.\n\nAlso This seems to be always called together with asObservable. Perhaps we can inline this code inside asObservable with a control param, or provide 2 versions of  asObservable?",
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
