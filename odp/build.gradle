@@ -43,7 +43,8 @@ dependencies {
 
     compile libraries.hamcrest_core, libraries.hamcrest_lib,
             libraries.commons_cli, libraries.commons_exec,
-            libraries.jna, libraries.scala, libraries.rx
+            libraries.jna, libraries.scala, libraries.rx,
+            libraries.scallop
 
     testCompile libraries.scalatest
 }
