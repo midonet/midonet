@@ -16,6 +16,24 @@
       "revId": "814b0bcdaf0321bb13352838556abd391f19543c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_921a8c7b",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-16T12:02:51Z",
+      "side": 1,
+      "message": "Would you prefer that I add another trait to record events and then this way I can place this new trait after AwaitableObserver in DeviceMapper and ensure that onNext in AwaitableObserver is called last?",
+      "parentUuid": "facab960_528e447a",
+      "revId": "814b0bcdaf0321bb13352838556abd391f19543c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
