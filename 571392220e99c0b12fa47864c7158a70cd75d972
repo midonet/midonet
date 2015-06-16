@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_322460c4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterNode.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T12:01:24Z",
+      "side": 1,
+      "message": "Having a colon here doesn\u0027t really make sense. You get something like \"Ignored service neutron-importer because provider class NeutronImporter: doesn\u0027t extend Minion.\"",
+      "range": {
+        "startLine": 114,
+        "startChar": 35,
+        "endLine": 114,
+        "endChar": 36
+      },
+      "revId": "571392220e99c0b12fa47864c7158a70cd75d972",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
