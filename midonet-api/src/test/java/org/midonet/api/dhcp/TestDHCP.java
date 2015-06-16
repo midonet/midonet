@@ -97,7 +97,7 @@ public class TestDHCP extends JerseyTest {
         response = resource().uri(subnet1.getUri())
                 .type(APPLICATION_DHCP_SUBNET_JSON_V2)
                 .put(ClientResponse.class, subnet1);
-        assertEquals(200, response.getStatus());
+        assertEquals(204, response.getStatus());
 
         subnet1 = resource().uri(subnet1.getUri())
                 .accept(APPLICATION_DHCP_SUBNET_JSON_V2)
@@ -297,9 +297,9 @@ public class TestDHCP extends JerseyTest {
         subnet1.setDefaultGateway("172.0.0.254");
         subnet1.setServerAddr("172.0.0.118");
         subnet1.getOpt121Routes().add(
-                new DtoDhcpOption121("172.31.1.0", 24, "172.0.0.253"));
+            new DtoDhcpOption121("172.31.1.0", 24, "172.0.0.253"));
         subnet1.getOpt121Routes().add(
-                new DtoDhcpOption121("172.31.2.0", 24, "172.0.0.253"));
+            new DtoDhcpOption121("172.31.2.0", 24, "172.0.0.253"));
         response = resource().uri(bridge.getDhcpSubnets())
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .post(ClientResponse.class, subnet1);
@@ -315,19 +315,19 @@ public class TestDHCP extends JerseyTest {
 
 
         assertEquals("The DhcpSubnet client dto from GET should be " +
-                "identical to the one passed to create", subnet1, subnet2);
+                     "identical to the one passed to create", subnet1, subnet2);
 
         // Now modify the routes and do an update.
         subnet1.getOpt121Routes().remove(0);
         subnet1.getOpt121Routes().add(
                 new DtoDhcpOption121("172.31.3.0", 24, "172.0.0.252"));
         subnet1.getOpt121Routes().add(
-                new DtoDhcpOption121("172.31.4.0", 24, "172.0.0.253"));
+            new DtoDhcpOption121("172.31.4.0", 24, "172.0.0.253"));
         subnet1.setDefaultGateway("172.0.0.1");
         response = resource().uri(subnet1.getUri())
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .put(ClientResponse.class, subnet1);
-        assertEquals(200, response.getStatus());
+        assertEquals(204, response.getStatus());
         subnet2 = resource().uri(subnet1.getUri())
                 .accept(APPLICATION_DHCP_SUBNET_JSON)
                 .get(DtoDhcpSubnet.class);
@@ -341,7 +341,7 @@ public class TestDHCP extends JerseyTest {
         response = resource().uri(subnet1.getUri())
                 .type(APPLICATION_DHCP_SUBNET_JSON)
                 .put(ClientResponse.class, subnet1);
-        assertEquals(200, response.getStatus());
+        assertEquals(204, response.getStatus());
         subnet2 = resource().uri(subnet1.getUri())
                 .accept(APPLICATION_DHCP_SUBNET_JSON)
                 .get(DtoDhcpSubnet.class);
