@@ -16,11 +16,12 @@
 
 package org.midonet.client.dto;
 
-import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement
 public class DtoDhcpSubnet {
@@ -33,10 +34,10 @@ public class DtoDhcpSubnet {
     private List<DtoDhcpOption121> opt121Routes;
     private URI hosts;
     private URI uri;
-    private Boolean enabled;
+    private Boolean enabled = true;
 
     public DtoDhcpSubnet() {
-        this.opt121Routes = new ArrayList<DtoDhcpOption121>();
+        this.opt121Routes = new ArrayList<>();
     }
 
     public String getSubnetPrefix() {
