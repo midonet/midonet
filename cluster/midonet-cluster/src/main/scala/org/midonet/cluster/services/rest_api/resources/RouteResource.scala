@@ -16,16 +16,25 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.UUID
+import java.util.{List => JList, UUID}
+
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.{GET, HeaderParam, Produces}
+
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet, AllowList}
-import org.midonet.cluster.rest_api.models.Route
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet}
+import org.midonet.cluster.rest_api.models.{Route, Router}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.state.RoutingTableStorage._
+import org.midonet.util.functors._
+import org.midonet.util.reactivex._
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTE_JSON,
@@ -34,20 +43,40 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 class RouteResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Route](resContext)
 
+
 @RequestScoped
-@AllowList(Array(APPLICATION_ROUTE_COLLECTION_JSON,
-                 APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_ROUTE_JSON,
                    APPLICATION_JSON))
 class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
     extends MidonetResource[Route](resContext) {
 
-    protected override def listFilter = (route: Route) => {
-        route.routerId == routerId
+
+    @GET
+    @Produces(Array(APPLICATION_ROUTE_COLLECTION_JSON,
+                    APPLICATION_JSON))
+    override def list(@HeaderParam("Accept") accept: String)
+    : JList[Route] = {
+        getResource(classOf[Router], routerId).flatMap(router => {
+            val futures = new ArrayBuffer[Future[Seq[Route]]]
+            futures += listResources(classOf[Route], router.routeIds.asScala)
+            for (portId <- router.portIds.asScala) {
+                futures += getLearnedRoutes(portId)
+            }
+            Future.sequence(futures)
+        }).getOrThrow.flatten.asJava
     }
 
     protected override def createFilter = (route: Route) => {
         route.create(routerId)
+    }
+
+    private def getLearnedRoutes(portId: UUID): Future[Seq[Route]] = {
+        resContext.backend.stateStore.getPortRoutes(portId)
+            .map[Seq[Route]](makeFunc1(_.map(route => {
+                val r = Route.fromLearned(route)
+                r.setBaseUri(resContext.uriInfo.getBaseUri)
+                r
+            }).toSeq)).asFuture
     }
 
 }
