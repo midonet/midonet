@@ -333,6 +333,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_d09a4f62",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-16T07:24:23Z",
+      "side": 1,
+      "message": "Well it\u0027s a matter of taste :-)",
+      "parentUuid": "facab960_ba03ec0b",
+      "range": {
+        "startLine": 100,
+        "startChar": 32,
+        "endLine": 100,
+        "endChar": 36
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e206b7cd",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 8
@@ -616,6 +640,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_309ffb51",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-16T07:24:23Z",
+      "side": 1,
+      "message": "ok!",
+      "parentUuid": "facab960_ff71e6e0",
+      "range": {
+        "startLine": 164,
+        "startChar": 9,
+        "endLine": 179,
+        "endChar": 47
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_42bbe371",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 8
@@ -699,6 +747,30 @@
       "side": 1,
       "message": "The latest patch replaces this with observables. It is true that some code is duplicated there as well. Although I don\u0027t have a strong preference, I think it makes the workflow easier to understand because the reader doesn\u0027t have to jump between different methods.",
       "parentUuid": "facab960_24e8a1e1",
+      "range": {
+        "startLine": 323,
+        "startChar": 8,
+        "endLine": 351,
+        "endChar": 25
+      },
+      "revId": "36385e321835b3fe731cbdec765b681ca5957432",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_90b7e7d7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-16T07:24:23Z",
+      "side": 1,
+      "message": "That makes sense!",
+      "parentUuid": "facab960_5f4f32bd",
       "range": {
         "startLine": 323,
         "startChar": 8,
