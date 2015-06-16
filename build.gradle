@@ -180,7 +180,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:0.9.0-M3'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.1'
         classpath 'net.saliman:gradle-cobertura-plugin:2.2.8'
         classpath 'com.andrewkroh.gradle:gradle-protobuf-plugin:0.3.0'
     }
@@ -188,6 +188,7 @@ buildscript {
 
 allprojects {
     apply plugin: 'idea'
+    apply plugin: 'com.github.johnrengelman.shadow'
 
     plugins.withType(ScalaPlugin).whenPluginAdded {
         dependencies { compile libraries.scala }
@@ -386,18 +387,6 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
 
         if (project.hasProperty('jmh')) {
             args(jmh.split(' '))
-        }
-
-        dependsOn(compileBenchmarks)
-    }
-
-    shadowJar {
-        archiveName = "benchmarks.jar"
-        from sourceSets.perf.runtimeClasspath + files(benchOutput)
-        from configurations.perfRuntime
-
-        appendManifest {
-            attributes 'Main-Class': 'org.openjdk.jmh.Main'
         }
 
         dependsOn(compileBenchmarks)

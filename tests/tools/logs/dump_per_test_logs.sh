@@ -41,7 +41,7 @@ for mm_ns in $MIDOLMAN_NETNSs; do
     echo midolman.$((index++))
     echo ==========
 
-    SHOW_DP_CMDLINE="mm-dpctl --timeout $DPCTL_TIMEOUT_IN_SEC --show-dp midonet"
+    SHOW_DP_CMDLINE="mm-dpctl --timeout $DPCTL_TIMEOUT_IN_SEC datapath --show midonet"
     echo
     echo == DP status: $SHOW_DP_CMDLINE
     echo
@@ -49,7 +49,7 @@ for mm_ns in $MIDOLMAN_NETNSs; do
     ip netns exec $mm_ns $SHOW_DP_CMDLINE
 
 
-    DUMP_DP_CMDLINE="mm-dpctl --timeout $DPCTL_TIMEOUT_IN_SEC --dump-dp midonet"
+    DUMP_DP_CMDLINE="mm-dpctl --timeout $DPCTL_TIMEOUT_IN_SEC datapath --dump midonet"
     echo
     echo == flow dump: $DUMP_DP_CMDLINE
     echo

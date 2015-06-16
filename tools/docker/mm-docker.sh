@@ -201,7 +201,7 @@ EOF
 }
 
 COMMAND=$(basename $0)
-check_command_availability mm-dpctl --list-dps
+check_command_availability mm-dpctl datapath --list
 check_command_availability ip netns
 check_command_availability docker
 check_command_availability uuidgen
