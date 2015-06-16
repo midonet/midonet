@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_d21ed45e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterInterfaceTranslator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T09:12:48Z",
+      "side": 1,
+      "message": "It\u0027s fine as is, but this is more idiomatic and a bit more concise:\n\nval host \u003d hosts.find(_.getName \u003d\u003d nPort.getHostId).getOrElse {\n    throw new IllegalStateException(...)\n}\n\nHost\u0027s type will now be Host rather than Option[Host]",
+      "range": {
+        "startLine": 104,
+        "startChar": 0,
+        "endLine": 109,
+        "endChar": 13
+      },
+      "revId": "941915b3270e4685e6a850b0a2faa99e0863de0a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
