@@ -22,10 +22,21 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.Vip
+import org.midonet.cluster.rest_api.models.{Pool, Vip}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+
+/** Just a utility trait to share the create filter among all resources. */
+trait VipResourceCreateFilter extends MidonetResource[Vip] {
+    protected[this] val store: Storage
+    protected override def createFilter = (vip: Vip) => {
+        vip.loadBalancerId = getResource(classOf[Pool], vip.poolId)
+                                .getOrThrow.loadBalancerId
+        vip.create(vip.poolId)
+    }
+}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_VIP_JSON,
@@ -38,12 +49,13 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
                    APPLICATION_JSON))
 @AllowDelete
 class VipResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[Vip](resContext) {
+    extends MidonetResource[Vip](resContext) with VipResourceCreateFilter {
+
+    protected[this] val store = resContext.backend.store
 
     protected override def updateFilter = (to: Vip, from: Vip) => {
         to.update(from)
     }
-
 }
 
 @RequestScoped
@@ -52,14 +64,12 @@ class VipResource @Inject()(resContext: ResourceContext)
 @AllowCreate(Array(APPLICATION_VIP_JSON,
                    APPLICATION_JSON))
 class PoolVipResource @Inject()(poolId: UUID, resContext: ResourceContext)
-    extends MidonetResource[Vip](resContext) {
+    extends MidonetResource[Vip](resContext) with VipResourceCreateFilter {
+
+    protected[this] val store = resContext.backend.store
 
     protected override def listFilter = (vip: Vip) => {
         vip.poolId == poolId
-    }
-
-    protected override def createFilter = (vip: Vip) => {
-        vip.create(poolId)
     }
 
 }
@@ -69,7 +79,9 @@ class PoolVipResource @Inject()(poolId: UUID, resContext: ResourceContext)
                  APPLICATION_JSON))
 class LoadBalancerVipResource @Inject()(loadBalancerId: UUID,
                                         resContext: ResourceContext)
-    extends MidonetResource[Vip](resContext) {
+    extends MidonetResource[Vip](resContext) with VipResourceCreateFilter {
+
+    protected[this] val store = resContext.backend.store
 
     protected override def listFilter = (vip: Vip) => {
         vip.loadBalancerId == loadBalancerId

@@ -35,7 +35,9 @@ import org.midonet.client.dto.DtoPort;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.midonet.cluster.rest_api.VendorMediaType.*;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V3;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 public abstract class RestApiTestBase extends JerseyTest {
@@ -70,8 +72,10 @@ public abstract class RestApiTestBase extends JerseyTest {
     protected void assertErrorMatches(
             DtoError actual, String expectedTemplateCode, Object... args) {
         String expectedMsg = getMessage(expectedTemplateCode, args);
-        boolean withVlad = Boolean.parseBoolean(System.getenv("withVladimir"));
-        if (!withVlad) {
+        if (!FuncTest.isVladimirEnabled()) {
+            // TODO: remove all assertErrorMatches - this exclusion here is done
+            // when testing with the new compat api since error message text
+            // doesn't match exactly (codes do)
             assertErrorMatchesLiteral(actual, expectedMsg);
         }
     }

@@ -92,12 +92,18 @@ public class FuncTest {
      * variable is set to "true".
      */
     public static WebAppDescriptor.Builder getBuilder() {
-        boolean withVlad = Boolean.parseBoolean(System.getenv("withVladimir"));
-        if (withVlad) {
+        if (isVladimirEnabled()) {
             return getBuilderForVladimir();
         } else {
             return getBuilderForLegacyApi();
         }
+    }
+
+    /**
+     * Tells whether the API is running with the new Compat API resources.
+     */
+    public static boolean isVladimirEnabled() {
+        return Boolean.parseBoolean(System.getenv("withVladimir"));
     }
 
     private static WebAppDescriptor.Builder getBuilderForLegacyApi() {

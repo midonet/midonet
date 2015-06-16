@@ -49,8 +49,8 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
 object MidonetResource {
+    final val Timeout = 5 seconds
 
-    private final val Timeout = 5 seconds
     private final val StorageAttempts = 3
     private final val OkResponse = Response.ok().build()
     private final val OkNoContentResponse = Response.noContent().build()
@@ -218,13 +218,14 @@ abstract class MidonetResource[T >: Null <: UriResource]
                                                           ids: Seq[Any])
     : Future[Seq[U]] = {
         backend.store.getAll(UriResource.getZoomClass(clazz), ids)
-            .map(_.map(fromProto(_, clazz)))
+                     .map(_.map(fromProto(_, clazz)))
     }
 
     protected def getResource[U >: Null <: UriResource](clazz: Class[U], id: Any)
     : Future[U] = {
-        backend.store.get(UriResource.getZoomClass(clazz), id)
-            .map(fromProto(_, clazz))
+        backend.store.get(UriResource.getZoomClass(clazz), id).map { r =>
+            fromProto(r, clazz)
+        }
     }
 
     protected def getResourceOwners[U >: Null <: UriResource](clazz: Class[U],
@@ -237,7 +238,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     : Response = {
         resource.setBaseUri(uriInfo.getBaseUri)
         val message = toProto(resource)
-        log.info("CREATE: {}\n{}", message.getClass, message)
+        log.debug("CREATE: {}\n{}", message.getClass, message)
         tryWrite {
             backend.store.create(message)
             Response.created(resource.getUri).build()
@@ -249,7 +250,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
                                  response: Response = OkNoContentResponse)
     : Response = {
         val message = toProto(resource)
-        log.info("UPDATE: {}\n{}", message.getClass, message)
+        log.debug("UPDATE: {}\n{}", message.getClass, message)
         tryWrite {
             backend.store.update(message)
             response
@@ -259,7 +260,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     protected def deleteResource(clazz: Class[_ <: UriResource], id: Any,
                                  response: Response = OkNoContentResponse)
     : Response = {
-        log.info("DELETE: {}:{}", UriResource.getZoomClass(clazz),
+        log.debug("DELETE: {}:{}", UriResource.getZoomClass(clazz),
                  id.asInstanceOf[AnyRef])
         tryWrite {
             backend.store.delete(UriResource.getZoomClass(clazz), id)
@@ -272,14 +273,14 @@ abstract class MidonetResource[T >: Null <: UriResource]
         val zoomOps = ops.map {
             case Create(resource) =>
                 val msg = toProto(resource)
-                log.info("CREATE: {}\n{}", msg.getClass, msg)
+                log.debug("CREATE: {}\n{}", msg.getClass, msg)
                 CreateOp(msg)
             case Update(resource) =>
                 val msg = toProto(resource)
-                log.info("UPDATE: {}\n{}", msg.getClass, msg)
+                log.debug("UPDATE: {}\n{}", msg.getClass, msg)
                 UpdateOp(msg)
             case Delete(clazz, id) =>
-                log.info("DELETE: {}:{}", UriResource.getZoomClass(clazz),
+                log.debug("DELETE: {}:{}", UriResource.getZoomClass(clazz),
                          id.asInstanceOf[AnyRef])
                 DeleteOp(UriResource.getZoomClass(clazz), id)
         }
