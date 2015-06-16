@@ -108,8 +108,8 @@ public class Port extends ZoomObject {
     public List<UUID> securityGroups = new ArrayList<>();
 
     @JsonProperty("binding:host_id")
-    @ZoomField(name = "host_id", converter = Converter.class)
-    public UUID hostId;
+    @ZoomField(name = "host_id")
+    public String hostId;
 
     @JsonProperty("binding:profile")
     @ZoomField(name = "profile")
@@ -173,10 +173,14 @@ public class Port extends ZoomObject {
                 .add("deviceId", deviceId)
                 .add("deviceOwner", deviceOwner)
                 .add("tenantId", tenantId)
+                .add("hostId", hostId)
+                .add("bindingProfile", bindingProfile)
+                .add("securityEnabled", securityEnabled)
                 .add("status", status)
                 .add("fixedIps", ListUtil.toString(fixedIps))
                 .add("securityGroups", ListUtil.toString(securityGroups))
                 .add("dhcpExtraOpts", ListUtil.toString(extraDhcpOpts))
+                .add("allowedAddrPairs", ListUtil.toString(allowedAddrPairs))
                 .toString();
     }
 
