@@ -96,6 +96,11 @@ class PortResource @Inject()(resContext: ResourceContext)
         new PortPortGroupResource(id, resContext)
     }
 
+    @Path("{id}/bgps")
+    def bgps(@PathParam("id") id: UUID): PortBgpResource = {
+        new PortBgpResource(id, resContext)
+    }
+
     protected override def updateFilter = (to: Port, from: Port) => {
         to.update(from)
     }
@@ -190,16 +195,17 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
         getResource(classOf[Port], portGroupPort.portId).flatMap(port => {
             getResource(classOf[PortGroup], portGroupPort.portGroupId).map(pg => {
                 if (port.portGroupIds.contains(portGroupPort.portGroupId)) {
-                    throw new WebApplicationException(Status.CONFLICT)
+                    Response.status(Status.CONFLICT).build()
+                } else  if (pg.portIds.contains(portGroupPort.portId)) {
+                    Response.status(Status.CONFLICT).build()
+                } else {
+                    portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
+                    port.portGroupIds.add(portGroupPort.portGroupId)
+                    pg.portIds.add(portGroupPort.portId)
+                    multiResource(Seq(Update(port), Update(pg)),
+                                  Response.created(portGroupPort.getUri)
+                                      .build())
                 }
-                if (pg.portIds.contains(portGroupPort.portId)) {
-                    throw new WebApplicationException(Status.CONFLICT)
-                }
-                portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
-                port.portGroupIds.add(portGroupPort.portGroupId)
-                pg.portIds.add(portGroupPort.portId)
-                multiResource(Seq(Update(port), Update(pg)),
-                              Response.created(portGroupPort.getUri).build())
             })
         }).getOrThrow
     }
@@ -213,22 +219,24 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
         getResource(classOf[Port], portId).flatMap(port => {
             getResource(classOf[PortGroup], portGroupId).map(pg => {
                 if (!port.portGroupIds.contains(portGroupId)) {
-                    throw new NotFoundHttpException("Resource not found")
+                    Response.status(Status.NOT_FOUND).build()
+                } else if (!pg.portIds.contains(portId)) {
+                    MidonetResource.OkNoContentResponse
+                } else {
+                    port.portGroupIds.remove(portGroupId)
+                    pg.portIds.remove(portId)
+                    multiResource(Seq(Update(port), Update(pg)),
+                                  MidonetResource.OkNoContentResponse)
                 }
-                if (!pg.portIds.contains(portId)) {
-                    throw new NotFoundHttpException("Resource not found")
-                }
-                port.portGroupIds.remove(portGroupId)
-                pg.portIds.remove(portId)
-                multiResource(Seq(Update(port), Update(pg)))
             })
         }).fallbackTo(
             getResource(classOf[PortGroup], portGroupId).map(pg => {
                 if (!pg.portIds.contains(portId)) {
-                    throw new WebApplicationException(Status.NOT_FOUND)
+                    MidonetResource.OkNoContentResponse
+                } else {
+                    pg.portIds.remove(portId)
+                    updateResource(pg, MidonetResource.OkNoContentResponse)
                 }
-                pg.portIds.remove(portId)
-                updateResource(pg, MidonetResource.OkNoContentResponse)
             }))
         .getOrThrow
     }

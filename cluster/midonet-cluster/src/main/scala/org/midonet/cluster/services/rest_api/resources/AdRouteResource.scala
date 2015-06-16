@@ -42,7 +42,7 @@ class AdRouteResource @Inject()(resContext: ResourceContext)
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_AD_ROUTE_JSON,
                    APPLICATION_JSON))
-class BGPAdRouteResource @Inject()(bgpId: UUID, resContext: ResourceContext)
+class BgpAdRouteResource @Inject()(bgpId: UUID, resContext: ResourceContext)
     extends MidonetResource[AdRoute](resContext) {
 
     protected override def listFilter = (adRoute: AdRoute) => {
