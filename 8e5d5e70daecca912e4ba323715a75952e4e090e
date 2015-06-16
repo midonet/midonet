@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_92060c85",
+        "filename": "odp/src/integration/scala/org/midonet/odp/RtnetlinkOpsTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-16T11:22:06Z",
+      "side": 1,
+      "message": "Scenarios",
+      "revId": "8e5d5e70daecca912e4ba323715a75952e4e090e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
