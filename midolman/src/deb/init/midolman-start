@@ -19,6 +19,16 @@ set -e
 exec >> /var/log/midolman/upstart-stderr.log
 exec 2>&1
 
+# Default values for backwards compatibility
+MIDO_HOME=/usr/share/midolman
+MIDO_CFG=/etc/midolman
+MIDO_LOG_DIR=/var/log/midolman/
+MIDO_DEBUG_PORT=8001
+JMX_PORT="7200"
+MIDO_CFG_FILE=midolman.conf
+QUAGGA_DIR=/var/run/quagga
+WATCHDOG_TIMEOUT=10
+
 if [ -f /etc/midolman/midolman-env.sh ]; then
     . /etc/midolman/midolman-env.sh
 else
