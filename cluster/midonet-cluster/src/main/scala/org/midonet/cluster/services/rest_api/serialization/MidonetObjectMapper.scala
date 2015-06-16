@@ -20,9 +20,11 @@ import java.io.IOException
 
 import javax.ws.rs.WebApplicationException
 
+import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 import org.apache.commons.lang.StringUtils
+import org.codehaus.jackson.map.introspect.BasicBeanDescription
 import org.codehaus.jackson.{JsonParseException, JsonParser}
 import org.codehaus.jackson.`type`.JavaType
 import org.codehaus.jackson.map.{DeserializationConfig, JsonMappingException, ObjectMapper}
@@ -46,23 +48,38 @@ class MidonetObjectMapper extends ObjectMapper {
                                       valueType: JavaType): AnyRef = {
         try {
             super._readValue(cfg, jp, valueType)
-        }
-        catch {
+        } catch {
             case e: JsonMappingException if e.getPath.size() > 0 =>
                 val ref = e.getPath.get(0)
-                if (ref eq null) throw e
-                if (ref.getFrom eq null) throw e
-                val field = ref.getFrom.getClass.getField(ref.getFieldName)
-                if (field eq null) throw e
-                val annotation = field.getAnnotation(classOf[JsonError])
-                if (annotation eq null) throw e
-                val message = if (StringUtils.isNotEmpty(annotation.message())) {
-                    MessageProperty.getMessage(annotation.message())
-                } else annotation.value()
+                if ((ref eq null) || (ref.getFrom eq null)) throw e
+
+                val error = getError(cfg, valueType, ref.getFieldName)
+                if (error eq null) throw e
+
+                val message = if (StringUtils.isNotEmpty(error.message())) {
+                    MessageProperty.getMessage(error.message())
+                } else error.value()
                 throw new WebApplicationException(
-                    ResponseUtils.buildErrorResponse(annotation.status(),
-                                                     message))
+                    ResponseUtils.buildErrorResponse(error.status(), message))
             case NonFatal(e) => throw e
         }
     }
+
+    private def getError(cfg: DeserializationConfig, valueType: JavaType,
+                         fieldName: String): JsonError = {
+        try {
+            val beanDesc = cfg.introspect[BasicBeanDescription](valueType)
+            beanDesc.findProperties().asScala
+                    .find(_.getName == fieldName) flatMap { property =>
+                if ((property.getField ne null) &&
+                    (property.getField.getAnnotated ne null)) {
+                    val field = property.getField.getAnnotated
+                    Option(field.getAnnotation(classOf[JsonError]))
+                } else None
+            } orNull
+        } catch {
+            case NonFatal(_) => null
+        }
+    }
+
 }
