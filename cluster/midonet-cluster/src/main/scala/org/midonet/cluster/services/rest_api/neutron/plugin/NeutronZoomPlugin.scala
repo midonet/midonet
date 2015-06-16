@@ -53,18 +53,29 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
     private val store = backend.store
     private val c3po = C3POMinion.initDataManager(store, cfg)
 
+    /** Transform StorageExceptions to appropriate HTTP exceptions. */
+    private def tryAccess[T](f: => T): T = {
+        try f catch {
+            case e: NotFoundException =>
+                throw new NotFoundHttpException(e.getMessage)
+            case e: ObjectExistsException =>
+                throw new ConflictHttpException(e.getMessage)
+            case e: ReferenceConflictException =>
+                throw new ConflictHttpException(e.getMessage)
+            case e: ObjectReferencedException =>
+                throw new ConflictHttpException(e.getMessage)
+            case e: StorageException =>
+                throw new InternalServerErrorHttpException(e.getMessage)
+        }
+    }
+
     def create[T >: Null <: ZoomObject](dto: T)(implicit ct: ClassTag[T]): T = {
         log.info(s"A create: $dto ")
         val protoClass = protoClassOf(dto)
         val neutronOp = neutron.Create(toProto(dto, protoClass))
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
-        try {
-            store.multi(persistenceOps)
-        } catch {
-            case e: ObjectExistsException =>
-                throw new ConflictHttpException(e.getMessage)
-        }
+        tryAccess(store.multi(persistenceOps))
         get[T](id)
     }
 
@@ -82,32 +93,16 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
             c3po.toPersistenceOps(c)
         )
 
-        try {
-            store.multi(ops)
-            list[T](creates.map(c => idOf(c.model)))
-        } catch {
-            case e: ObjectExistsException =>
-                throw new ConflictHttpException(e.getMessage)
-            case e: NotFoundException =>
-                throw new NotFoundException(e.clazz, e.id)
-            case e: ObjectReferencedException =>
-                throw new InternalServerErrorHttpException(e.getMessage)
-            case e: ReferenceConflictException =>
-                throw new InternalServerErrorHttpException(e.getMessage)
-        }
+        tryAccess(store.multi(ops))
+        list[T](creates.map(c => idOf(c.model)))
     }
 
     def get[T >: Null <: ZoomObject](id: UUID)(implicit ct: ClassTag[T]): T = {
         val dtoClass = ct.runtimeClass.asInstanceOf[Class[T]]
         log.info(s"A get of $dtoClass: $id")
-        try {
-            val proto = store.get(protoClassOf(dtoClass), id).await(timeout)
-            fromProto(proto, dtoClass)
-        } catch {
-            case e: NotFoundException =>
-                throw new NotFoundHttpException("Resource not found: " +
-                                                e.getMessage)
-        }
+        val proto = tryAccess(
+            store.get(protoClassOf(dtoClass), id).await(timeout))
+        fromProto(proto, dtoClass)
     }
 
 
@@ -116,21 +111,15 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         val neutronOp = neutron.Update(toProto(dto, protoClass))
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
-        try {
-            store.multi(persistenceOps)
-            get[T](id)
-        } catch {
-            case e: NotFoundException =>
-                throw new NotFoundHttpException("Resource not found: " +
-                                                e.getMessage)
-        }
+        tryAccess(store.multi(persistenceOps))
+        get[T](id)
     }
 
     def delete[T >: Null <: ZoomObject](id: UUID, dtoClass: Class[T]): Unit = {
         val protoClass = protoClassOf(dtoClass)
         val neutronOp = neutron.Delete(protoClass, UUIDUtil.toProto(id))
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
-        store.multi(persistenceOps)
+        tryAccess(store.multi(persistenceOps))
     }
 
     def list[T >: Null <: ZoomObject](ids: util.List[UUID])
@@ -138,16 +127,20 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         val dtoClass = ct.runtimeClass.asInstanceOf[Class[T]]
         val protoClass = protoClassOf(dtoClass)
 
-        store.getAll(protoClass, ids).await(timeout)
-             .map(fromProto(_, dtoClass)).toList
+        tryAccess {
+            store.getAll(protoClass, ids).await(timeout)
+                 .map(fromProto(_, dtoClass)).toList
+        }
     }
 
     def listAll[T >: Null <: ZoomObject](dtoClass: Class[T]): util.List[T] = {
         val protoClass = protoClassOf(dtoClass)
         log.info(s"A list of all $dtoClass for proto: $protoClass")
-        store.getAll(protoClass).await(timeout)
-             .map { fromProto(_, dtoClass) }
-             .toList
+        tryAccess {
+            store.getAll(protoClass).await(timeout)
+                 .map(fromProto(_, dtoClass))
+                 .toList
+        }
     }
 
     @inline
