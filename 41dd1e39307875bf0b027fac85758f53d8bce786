@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_bb3e8b8a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-16T21:46:52Z",
+      "side": 1,
+      "message": "Just curious, shouldn\u0027t we be able to provide auth with some actual auth service and not just a mock?",
+      "range": {
+        "startLine": 76,
+        "startChar": 50,
+        "endLine": 76,
+        "endChar": 65
+      },
+      "revId": "41dd1e39307875bf0b027fac85758f53d8bce786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bb1f6b6b",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/RestApiTestBase.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-16T21:46:52Z",
+      "side": 1,
+      "message": "Shouldn\u0027t vladimir produce the same messages to be fully compatible?\nIs there another \u0027assert\u0027 to check for vladimir potentially wrong responses?",
+      "range": {
+        "startLine": 76,
+        "startChar": 8,
+        "endLine": 76,
+        "endChar": 9
+      },
+      "revId": "41dd1e39307875bf0b027fac85758f53d8bce786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
