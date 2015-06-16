@@ -23,18 +23,20 @@ import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
 import akka.util.Timeout
+
+import org.slf4j.{Logger, LoggerFactory}
+
+import org.midonet.ErrorCode.{EBUSY, EEXIST, EADDRINUSE}
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.midolman.{PacketWorkflow, NetlinkCallbackDispatcher, PacketsEntryPoint}
 import org.midonet.netlink.BufferPool
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode.{EBUSY, EEXIST}
 import org.midonet.odp._
 import org.midonet.odp.protos.OvsDatapathConnection
 import org.midonet.util.concurrent.NanoClock
 import org.midonet.util.{BatchCollector, Bucket}
-import org.slf4j.{Logger, LoggerFactory}
 
 /**
  * The UpcallDatapathConnectionManager will create a new netlink channel
@@ -127,14 +129,10 @@ abstract class UpcallDatapathConnectionManagerBase(
             // http://openvswitch.org/pipermail/dev/2013-May/027947.html
             case ex: NetlinkException
                 if ex.getErrorCodeEnum == EEXIST ||
-                    ex.getErrorCodeEnum == EBUSY =>
-                dpConnOps.getPort(port.getName, dp) flatMap {
-                    case existingPort =>
-                        log.info("setting upcall PID for existing port: {}",
-                                 port.getName)
-                        // OvsDatapathConnectionImpl#_doPortsSet() sets the port
-                        // upcall pid to the channel sending the request.
-                        dpConnOps.setPort(existingPort, dp)
+                   ex.getErrorCodeEnum == EBUSY ||
+                   ex.getErrorCodeEnum == EADDRINUSE =>
+                dpConnOps.delPort(port, dp) flatMap { _ =>
+                    dpConnOps.createPort(port, dp)
                 }
         } map { (_, con.getChannel.getLocalAddress.getPid) }
     }

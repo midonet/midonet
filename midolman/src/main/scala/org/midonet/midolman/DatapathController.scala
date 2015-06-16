@@ -30,7 +30,7 @@ import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.flows.FlowInvalidator
 import org.slf4j.LoggerFactory
 
-import org.midonet.Subscription
+import org.midonet.{ErrorCode, Subscription}
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
@@ -45,7 +45,6 @@ import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.netlink.Callback
 import org.midonet.netlink.exceptions.NetlinkException
-import org.midonet.netlink.exceptions.NetlinkException.ErrorCode
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
 import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}

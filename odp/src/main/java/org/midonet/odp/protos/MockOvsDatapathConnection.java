@@ -42,7 +42,7 @@ import org.midonet.packets.MalformedPacketException;
 import org.midonet.util.BatchCollector;
 import org.midonet.util.functors.Callback2;
 
-import static org.midonet.netlink.exceptions.NetlinkException.ErrorCode.*;
+import static org.midonet.ErrorCode.*;
 
 /**
  * Mock implementation to be used in test cases and non linux hosts.
@@ -301,7 +301,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
             if (flowsCb != null)
                 flowsCb.flowDeleted(removed);
         } else {
-            callback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
+            callback.onError(new NetlinkException(ENOENT));
         }
     }
 
@@ -324,7 +324,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
             flowCallback.onSuccess(match);
         }
         else{
-            flowCallback.onError(new NetlinkException(NetlinkException.ErrorCode.ENOENT));
+            flowCallback.onError(new NetlinkException(ENOENT));
         }
     }
 
@@ -362,8 +362,6 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
                                 deserializedFlowStateEthenet));
             } catch (MalformedPacketException ex) {
                 byte[] originalBytes = flowStateEthernet.getCore().getData();
-                // NOTE(tfukushima): This is a mock and I'm copying data here but we
-                // shouldn't in general and OvsDatapathConnectionImpl doesn't.
                 ElasticData slicedData = new ElasticData(Arrays.copyOf(
                         originalBytes, flowStateEthernet.getElasticDataLength()));
                 flowStateEthernet.setCore(slicedData);
