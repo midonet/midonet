@@ -110,7 +110,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         nPort.deviceOwner = DeviceOwner.DHCP
         nPort.status = "port status"
         nPort.securityGroups = List(UUID.randomUUID(), UUID.randomUUID())
-        nPort.hostId = UUID.randomUUID()
+        nPort.hostId = "host1"
         val bindingProfile = new PortBindingProfile()
         bindingProfile.interfaceName = "interface1"
         nPort.bindingProfile = bindingProfile
@@ -136,7 +136,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         protoPort.getSecurityGroupsCount shouldBe 2
         protoPort.getSecurityGroups(0) shouldBe toPuuid(nPort.securityGroups(0))
         protoPort.getSecurityGroups(1) shouldBe toPuuid(nPort.securityGroups(1))
-        protoPort.getHostId shouldBe toPuuid(nPort.hostId)
+        protoPort.getHostId shouldBe nPort.hostId
         protoPort.getProfile.getInterfaceName shouldBe
                 nPort.bindingProfile.interfaceName
         protoPort.getPortSecurityEnabled shouldBe nPort.securityEnabled
