@@ -42,6 +42,7 @@ import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv4Addr;
 
 @ZoomClass(clazz = Topology.Route.class)
 public class Route extends UriResource {
@@ -50,7 +51,8 @@ public class Route extends UriResource {
     public enum NextHop {
         @ZoomEnumValue(value = "PORT")Normal,
         @ZoomEnumValue(value = "BLACKHOLE")BlackHole,
-        @ZoomEnumValue(value = "REJECT")Reject
+        @ZoomEnumValue(value = "REJECT")Reject,
+        @ZoomEnumValue(value = "LOCAL")Local
     }
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -110,6 +112,23 @@ public class Route extends UriResource {
         setBaseUri(baseUri);
     }
 
+    public Route(String srcNetworkAddr, int srcNetworkLength,
+                 String dstNetworkAddr, int dstNetworkLength,
+                 NextHop nextHop, UUID nextHopPort, String nextHopGateway,
+                 int weight, UUID routerId, boolean learned) {
+        this.id = UUID.randomUUID();
+        this.srcNetworkAddr = srcNetworkAddr;
+        this.srcNetworkLength = srcNetworkLength;
+        this.dstNetworkAddr = dstNetworkAddr;
+        this.dstNetworkLength = dstNetworkLength;
+        this.type = nextHop;
+        this.nextHopPort = nextHopPort;
+        this.nextHopGateway = nextHopGateway;
+        this.weight = weight;
+        this.routerId = routerId;
+        this.learned = learned;
+    }
+
     @Override
     public URI getUri() {
         return absoluteUri(ResourceUris.ROUTES, id);
@@ -152,4 +171,21 @@ public class Route extends UriResource {
         }
         this.routerId = routerId;
     }
+
+    public static Route fromLearned(org.midonet.midolman.layer3.Route from) {
+        Route route = new Route();
+        route.id = new UUID(0xffffffffffffffffL, 0xffffffffffffffffL);
+        route.dstNetworkAddr = IPv4Addr.apply(from.dstNetworkAddr).toString();
+        route.dstNetworkLength = from.dstNetworkLength;
+        route.srcNetworkAddr = IPv4Addr.apply(from.srcNetworkLength).toString();
+        route.srcNetworkLength = from.srcNetworkLength;
+        route.nextHopGateway = IPv4Addr.apply(from.nextHopGateway).toString();
+        route.weight = from.weight;
+        route.routerId = from.routerId;
+        route.nextHopPort = from.nextHopPort;
+        route.type = NextHop.Normal;
+        route.learned = true;
+        return route;
+    }
+
 }
