@@ -97,7 +97,7 @@ message NeutronPort {
     message BindingProfile {
         optional string interface_name = 1;
     }
-    optional UUID host_id = 12;
+    optional string host_id = 12;
     optional BindingProfile profile = 13;
     optional bool port_security_enabled = 14 [default = true];
 

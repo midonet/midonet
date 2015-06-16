@@ -16,10 +16,11 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
-import org.midonet.cluster.models.Topology.{Port, PortOrBuilder}
+import org.midonet.cluster.models.Topology.{Host, Port, PortOrBuilder}
 import org.midonet.cluster.services.c3po.midonet.Update
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.packets.MAC
@@ -101,6 +102,18 @@ trait PortManager extends RouteManager {
     protected def isOnUplinkNetwork(np: NeutronPort) = {
         NetworkTranslator.isUplinkNetwork(
             storage.get(classOf[NeutronNetwork], np.getNetworkId).await())
+    }
+
+    protected def getHostIdByName(hostName: String) : UUID = {
+        // FIXME: Find host ID by looping through all hosts
+        // This is temporary until host ID of MidoNet could be
+        // deterministically fetched from the host name.
+        val hosts = storage.getAll(classOf[Host]).await()
+        val host = hosts.find(_.getName == hostName).getOrElse {
+            throw new NotFoundException(classOf[Host], hostName)
+        }
+
+        host.getId
     }
 }
 

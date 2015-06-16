@@ -570,7 +570,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected def createHost(hostId: UUID = null): Host = {
         val id = if (hostId != null) hostId else UUID.randomUUID()
-        val host = Host.newBuilder.setId(id).build()
+        val host = Host.newBuilder.setId(id).setName(id.toString).build()
         backend.ownershipStore.create(host, id)
         host
     }
