@@ -97,7 +97,8 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         midoOps += Create(rifRoute)
 
         if (isUplink) {
-            midoOps ++= bindPortOps(routerPort, nPort.getHostId,
+            midoOps ++= bindPortOps(routerPort,
+                                    getHostIdByName(nPort.getHostId),
                                     nPort.getProfile.getInterfaceName)
         } else {
             midoOps ++= createMetadataServiceRoute(

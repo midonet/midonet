@@ -153,7 +153,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             // won't tell us to do something we shouldn't.
             val bldr = mPort.toBuilder.setAdminStateUp(nPort.getAdminStateUp)
             if (hasBinding(nPort)) {
-                bldr.setHostId(nPort.getHostId)
+                bldr.setHostId(getHostIdByName(nPort.getHostId))
                 bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
             } else {
                 bldr.clearHostId().clearInterfaceName()
@@ -526,7 +526,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             .setAdminStateUp(nPort.getAdminStateUp)
 
         if (hasBinding(nPort)) {
-            bldr.setHostId(nPort.getHostId)
+            bldr.setHostId(getHostIdByName(nPort.getHostId))
             bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
         }
 
