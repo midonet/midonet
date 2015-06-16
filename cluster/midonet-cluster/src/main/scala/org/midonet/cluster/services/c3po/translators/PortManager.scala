@@ -92,6 +92,8 @@ trait PortManager extends RouteManager {
         if (port.hasHostId) throw new IllegalStateException(
             s"Port ${port.getId} is already bound.")
 
+        // Temporarily find the host by searching through the list
+
         val updatedPort = port.toBuilder
             .setHostId(hostId)
             .setInterfaceName(ifName)
