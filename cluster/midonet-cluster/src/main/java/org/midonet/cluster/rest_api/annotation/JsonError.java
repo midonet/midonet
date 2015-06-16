@@ -25,8 +25,8 @@ import java.lang.annotation.Target;
  * An annotation that specifies a custom response error message for
  * serialization/deserialization exceptions for API resource fields.
  */
-@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface JsonError {
 
     /** The response text. */
