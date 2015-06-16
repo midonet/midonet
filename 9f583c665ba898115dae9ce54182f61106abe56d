@@ -2,6 +2,46 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_30229b01",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "This is another reason I made it a trait. Extra wrapping due to long qualified names.",
+      "range": {
+        "startLine": 151,
+        "startChar": 0,
+        "endLine": 152,
+        "endChar": 75
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b07dcbe9",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "Should align with previous line.",
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_50047fbf",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupManager.scala",
         "patchSetId": 1
@@ -42,6 +82,29 @@
     },
     {
       "key": {
+        "uuid": "facab960_d0840fd6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "This seems to be used only in SecurityGroupTranslator. Why did you move it here?",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 17
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d027af62",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupManager.scala",
         "patchSetId": 1
@@ -65,6 +128,53 @@
     },
     {
       "key": {
+        "uuid": "facab960_f05e7375",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "Without toList, it\u0027s a Buffer. It\u0027s okay for this to be a buffer, but inboundRules and outboundRules need to be List[Rule], so somewhere along the line there needs to be a conversion to List.",
+      "parentUuid": "facab960_d027af62",
+      "range": {
+        "startLine": 67,
+        "startChar": 63,
+        "endLine": 67,
+        "endChar": 70
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b0678b24",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "This actually doesn\u0027t need to exist. The argument sg isn\u0027t used, and without it, this is identical to ChainManager.newChain()",
+      "range": {
+        "startLine": 99,
+        "startChar": 8,
+        "endLine": 99,
+        "endChar": 19
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_f02af32a",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupManager.scala",
         "patchSetId": 1
@@ -81,6 +191,29 @@
         "startChar": 28,
         "endLine": 100,
         "endChar": 35
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_704a63ad",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupManager.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "I guess we can remove this comment now.",
+      "range": {
+        "startLine": 101,
+        "startChar": 8,
+        "endLine": 101,
+        "endChar": 70
       },
       "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
@@ -134,6 +267,29 @@
     },
     {
       "key": {
+        "uuid": "facab960_b0994b21",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "Not used.",
+      "range": {
+        "startLine": 19,
+        "startChar": 0,
+        "endLine": 19,
+        "endChar": 36
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b0622bab",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
         "patchSetId": 1
@@ -180,6 +336,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_f0a3d34c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "Agreed. This looks like a translation error, unless there\u0027s some good, nonobvious reason to expect this.",
+      "parentUuid": "facab960_50563fd3",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 46,
+        "endChar": 29
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d0596fff",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
         "patchSetId": 1
@@ -191,6 +371,30 @@
       "writtenOn": "2015-06-16T06:50:56Z",
       "side": 1,
       "message": "This could be replaced with MidoOpListBuffer.",
+      "range": {
+        "startLine": 49,
+        "startChar": 22,
+        "endLine": 49,
+        "endChar": 54
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_30ac5b35",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "Or removed entirely. See below.",
+      "parentUuid": "facab960_d0596fff",
       "range": {
         "startLine": 49,
         "startChar": 22,
@@ -226,6 +430,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_108af7be",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "You\u0027re right this time. Code compiles fine if we just remove it.",
+      "parentUuid": "facab960_f05cb3ef",
+      "range": {
+        "startLine": 50,
+        "startChar": 63,
+        "endLine": 50,
+        "endChar": 70
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_306e1b97",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
         "patchSetId": 1
@@ -249,6 +477,53 @@
     },
     {
       "key": {
+        "uuid": "facab960_30853bad",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "Actually, I would remove this line entirely and change the next line to:\n\n  val ruleIds \u003d neutronRules.map(_.getId) :+ sgr.getId",
+      "parentUuid": "facab960_306e1b97",
+      "range": {
+        "startLine": 52,
+        "startChar": 8,
+        "endLine": 52,
+        "endChar": 34
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_10b1178f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "List(Create(SecurityGroupRuleManager.translate(sgr)), Update(chain))\n\nNo need to use a builder for something simple like this.",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 66,
+        "endChar": 18
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_f0459317",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
         "patchSetId": 1
@@ -260,6 +535,30 @@
       "writtenOn": "2015-06-16T06:50:56Z",
       "side": 1,
       "message": "Throw an IllegalArgumentException?",
+      "range": {
+        "startLine": 73,
+        "startChar": 11,
+        "endLine": 73,
+        "endChar": 56
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_50947fe1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "For consistency, do like we do in RouterInterfaceTranslator.update()",
+      "parentUuid": "facab960_f0459317",
       "range": {
         "startLine": 73,
         "startChar": 11,
@@ -318,6 +617,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_d0b7af84",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "Alternatively, I think chain.getRuleIdsList.asScala - sgrId works. But even better:\n\n  val ruleIdx \u003d chain.getRuleIdsList.asScala.indexOf(sgrId)\n  val updatedChain \u003d chain.toBuilder.removeRuleIds(ruleIdx).build()",
+      "parentUuid": "facab960_900607cd",
+      "range": {
+        "startLine": 90,
+        "startChar": 58,
+        "endLine": 90,
+        "endChar": 73
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b0094bdf",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
         "patchSetId": 1
@@ -329,6 +652,30 @@
       "writtenOn": "2015-06-16T06:50:56Z",
       "side": 1,
       "message": "MidoOpListBuffer",
+      "range": {
+        "startLine": 97,
+        "startChar": 22,
+        "endLine": 97,
+        "endChar": 54
+      },
+      "revId": "9f583c665ba898115dae9ce54182f61106abe56d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f0baf36c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupRuleTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-16T08:39:14Z",
+      "side": 1,
+      "message": "Or replace all four lines with this:\n\n  List(Delete(classOf[Rule], rule.getId), Update(updatedChain))\n\nIt doesn\u0027t really make sense to use a builder when we know exactly what\u0027s going into the list.",
+      "parentUuid": "facab960_b0094bdf",
       "range": {
         "startLine": 97,
         "startChar": 22,
