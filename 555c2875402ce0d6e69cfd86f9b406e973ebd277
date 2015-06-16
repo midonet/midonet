@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_12fafc74",
+        "filename": "midolman/src/integration/scala/org/midonet/midolman/host/scanner/InterfaceScannerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-16T11:22:37Z",
+      "side": 1,
+      "message": "scenarios",
+      "revId": "555c2875402ce0d6e69cfd86f9b406e973ebd277",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
