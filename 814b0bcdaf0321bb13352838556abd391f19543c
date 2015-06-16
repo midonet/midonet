@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_528e447a",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/reactivex/AwaitableObserver.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-16T09:39:54Z",
+      "side": 1,
+      "message": "I don\u0027t agree with this change. This is separate functionality, should be in a different trait.",
+      "revId": "814b0bcdaf0321bb13352838556abd391f19543c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
