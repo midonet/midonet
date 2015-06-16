@@ -147,27 +147,18 @@ public class Flow extends FlowMetadata {
 
     public List<String> toPrettyStrings() {
         List<String> desc = new ArrayList<>();
-        List<FlowKey> matchKeys = match.getKeys();
-        if (matchKeys.isEmpty())
-            desc.add("match keys: empty");
-        else {
-            desc.add("match keys:");
-            for (FlowKey key : matchKeys) {
-                desc.add("  " + key.toString());
-                if (mask != null)
-                    desc.add("    mask: " + mask.getMaskFor(key.attrId()).toString());
-            }
-        }
+        desc.add("Match: " + getMatch());
+        desc.add("Mask:  " + getMask());
         if (actions.isEmpty())
-            desc.add("actions: empty");
+            desc.add("Actions: []");
         else {
-            desc.add("actions: ");
+            desc.add("Actions: ");
             for (FlowAction act : actions) desc.add("  " + act.toString());
         }
         if (getStats() != null)
-            desc.add("stats: " + getStats());
-        desc.add("tcpFlags: " + TCP.Flag.allOfToString(getTcpFlags()));
-        desc.add("lastUsedTime: " + getLastUsedMillis());
+            desc.add("Stats: " + getStats());
+        desc.add("TCP flags: " + TCP.Flag.allOfToString(getTcpFlags()));
+        desc.add("Last used time: " + getLastUsedMillis());
         return  desc;
     }
 }

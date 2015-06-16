@@ -107,7 +107,7 @@ public class FlowMatch {
         },
         EtherType {
             public String toString(FlowMatch wcmatch) {
-                return toString() + "=" + wcmatch.etherType;
+                return toString() + "=" +  String.format("%04X", wcmatch.etherType);
             }
             public int hashCode(FlowMatch wcmatch) {
                 return wcmatch.etherType;
