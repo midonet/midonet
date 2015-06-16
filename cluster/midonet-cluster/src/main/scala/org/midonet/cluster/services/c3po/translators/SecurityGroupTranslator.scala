@@ -68,9 +68,11 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
         val (neutronIngressRules, neutronEgressRules) =
             neutronRules.partition(_.getDirection == RuleDirection.INGRESS)
 
-        val outboundRules = neutronIngressRules.map(translate)
+        val outboundRules = neutronIngressRules.map(
+            SecurityGroupRuleManager.translate)
         val outboundRuleIds = neutronIngressRules.map(_.getId)
-        val inboundRules = neutronEgressRules.map(translate)
+        val inboundRules = neutronEgressRules.map(
+            SecurityGroupRuleManager.translate)
         val inboundRuleIds = neutronEgressRules.map(_.getId)
 
         val inboundChainId = inChainId(sg.getId)
@@ -182,37 +184,6 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
         ops.appendAll(updatedRules.map(Update(_)))
         ops.appendAll(addedRules.map(Create(_)))
         ops.toList
-    }
-
-    /**
-     * Translate a Neutron SecurityGroupRule to a Midonet Rule.
-     */
-    private def translate(sgRule: SecurityGroupRule): Rule = {
-        val bldr = Rule.newBuilder
-            .setId(sgRule.getId)
-            .setType(Rule.Type.LITERAL_RULE)
-            .setAction(Rule.Action.ACCEPT)
-
-        if (sgRule.hasProtocol)
-            bldr.setNwProto(sgRule.getProtocol.getNumber)
-        if (sgRule.hasEthertype)
-            bldr.setDlType(sgRule.getEthertype.getNumber)
-        if (sgRule.hasPortRangeMin)
-            bldr.setTpDst(createRange(sgRule.getPortRangeMin,
-                                      sgRule.getPortRangeMax))
-
-        if (sgRule.getDirection == RuleDirection.INGRESS) {
-            if (sgRule.hasRemoteIpPrefix)
-                bldr.setNwSrcIp(IPSubnetUtil.toProto(sgRule.getRemoteIpPrefix))
-            if (sgRule.hasRemoteGroupId)
-                bldr.setIpAddrGroupIdSrc(sgRule.getRemoteGroupId)
-        } else {
-            if (sgRule.hasRemoteIpPrefix)
-                bldr.setNwDstIp(IPSubnetUtil.toProto(sgRule.getRemoteIpPrefix))
-            if (sgRule.hasRemoteGroupId)
-                bldr.setIpAddrGroupIdDst(sgRule.getRemoteGroupId)
-        }
-        bldr.build()
     }
 
     private def createRange(start: Int, end: Int): Int32Range = {

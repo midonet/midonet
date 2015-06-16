@@ -203,19 +203,6 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
         """
     val mNetworkWithIpv4Subnet = mNetworkFromTxt(midoNetworkWithIpv4Subnet)
 
-    /* Finds an operation on Chain with the specified chain ID, and returns a
-     * first one found.
-     */
-    protected def findChainOp(
-            ops: List[Operation], op: OpType.OpType, chainId: UUID) = {
-        ops.collectFirst {
-            case midonet.Create(c: Chain)
-                    if c.getId == chainId && op == OpType.Create => c
-            case midonet.Update(c: Chain, _)
-                    if c.getId == chainId && op == OpType.Update => c
-        }.orNull
-    }
-
     protected def macEntryPath(nwId: UUID, mac: String, portId: UUID) = {
         val entry = MacPortMap.encodePersistentPath(
             MAC.fromString(mac), UUIDUtil.fromProto(portId))
