@@ -211,6 +211,8 @@ class NodeObservableConnectionTest extends FlatSpec with CuratorTestFramework
         obs2.getOnNextEvents shouldBe empty
         obs2.getOnCompletedEvents shouldBe empty
         obs2.getOnErrorEvents should have size 1
+        print("*****Actual NodeObservable Exception*****: " +
+              obs2.getOnErrorEvents.get(0))
         obs2.getOnErrorEvents.get(0).isInstanceOf[
             NodeObservableClosedException] shouldBe true
     }
