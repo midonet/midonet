@@ -90,6 +90,12 @@ public interface OpenVSwitch {
         //    __u64 pad1;        /* Pad for future expension. */
         //    __u64 pad2;        /* Pad for future expension. */
         //};
+
+        // OVS_DP_F_ constants
+        public interface UserFeat {
+            int Unaligned = 1 << 0;
+            int VPortPids = 1 << 1;
+        }
     }
 
     public interface Packet {
