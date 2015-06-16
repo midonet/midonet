@@ -36,8 +36,8 @@ class BgpResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Bgp](resContext) {
 
     @Path("{id}/ad_routes")
-    def adRoutes(@PathParam("id") id: UUID): BGPAdRouteResource = {
-        new BGPAdRouteResource(id, resContext)
+    def adRoutes(@PathParam("id") id: UUID): BgpAdRouteResource = {
+        new BgpAdRouteResource(id, resContext)
     }
 
 }

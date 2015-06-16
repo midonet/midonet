@@ -52,6 +52,7 @@ object MidonetResource {
 
     private final val Timeout = 5 seconds
     private final val StorageAttempts = 3
+
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
 
@@ -130,7 +131,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
             @HeaderParam("Accept") accept: String): T = {
         val produces = getAnnotation(classOf[AllowGet])
         if ((produces eq null) || !produces.value().contains(accept)) {
-            log.info(s"I can't recognize media type: $accept")
+            log.info(s"Media type {} not acceptable", accept)
             throw new WebApplicationException(Status.NOT_ACCEPTABLE)
         }
         getResource(tag.runtimeClass.asInstanceOf[Class[T]], id)
@@ -142,7 +143,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     def list(@HeaderParam("Accept") accept: String): JList[T] = {
         val produces = getAnnotation(classOf[AllowList])
         if ((produces eq null) || !produces.value().contains(accept)) {
-            log.info(s"I can't recognize media type: $accept")
+            log.info(s"Media type {} not acceptable", accept)
             throw new WebApplicationException(Status.NOT_ACCEPTABLE)
         }
         listResources(tag.runtimeClass.asInstanceOf[Class[T]])
@@ -155,7 +156,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
     : Response = {
         val consumes = getAnnotation(classOf[AllowCreate])
         if ((consumes eq null) || !consumes.value().contains(contentType)) {
-            log.info(s"I can't recognize media type: $contentType")
+            log.info(s"Media type {} not supported", contentType)
             throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
         }
 
@@ -174,7 +175,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
                @HeaderParam("Content-Type") contentType: String): Response = {
         val consumes = getAnnotation(classOf[AllowUpdate])
         if ((consumes eq null) || !consumes.value().contains(contentType)) {
-            log.info(s"I can't recognize media type: $contentType")
+            log.info(s"Media type {} not supported", contentType)
             throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
         }
 
