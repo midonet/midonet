@@ -203,7 +203,8 @@ object C3POMinion {
              classOf[NeutronPort] -> new PortTranslator(storage, pathBldr),
              classOf[NeutronVIP] -> new VipTranslator(storage),
              classOf[PortBinding] -> new PortBindingTranslator(storage),
-             classOf[SecurityGroup] -> new SecurityGroupTranslator(storage)
+             classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),
+             classOf[SecurityGroupRule] -> new SecurityGroupRuleTranslator(storage)
         ).asInstanceOf[List[(Class[Message], NeutronTranslator[Message])]]
          .foreach { pair =>
             dataMgr.registerTranslator(pair._1, pair._2)
