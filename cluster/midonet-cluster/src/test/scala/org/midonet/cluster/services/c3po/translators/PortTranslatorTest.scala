@@ -84,8 +84,7 @@ trait OpMatchers {
 }
 
 /* A common base class for testing NeutronPort CRUD translation. */
-class PortTranslatorTest extends TranslatorTestBase with ChainManager
-                                                    with OpMatchers {
+class PortTranslatorTest extends TranslatorTestBase with OpMatchers {
     protected var translator: PortTranslator = _
 
     protected val zkRoot = "/midonet/test"
@@ -129,9 +128,9 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
         admin_state_up: false
         """)
 
-    val inboundChainId = inChainId(portId)
-    val outboundChainId = outChainId(portId)
-    val spoofChainId = antiSpoofChainId(portId)
+    val inboundChainId = ChainManager.inChainId(portId)
+    val outboundChainId = ChainManager.outChainId(portId)
+    val spoofChainId = ChainManager.antiSpoofChainId(portId)
     val mPortWithChains = mPortFromTxt(s"""
         $midoPortBaseUp
         inbound_filter_id { $inboundChainId }
@@ -202,19 +201,6 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
             dhcp_ids { $nIpv4Subnet1Id }
         """
     val mNetworkWithIpv4Subnet = mNetworkFromTxt(midoNetworkWithIpv4Subnet)
-
-    /* Finds an operation on Chain with the specified chain ID, and returns a
-     * first one found.
-     */
-    protected def findChainOp(
-            ops: List[Operation], op: OpType.OpType, chainId: UUID) = {
-        ops.collectFirst {
-            case midonet.Create(c: Chain)
-                    if c.getId == chainId && op == OpType.Create => c
-            case midonet.Update(c: Chain, _)
-                    if c.getId == chainId && op == OpType.Update => c
-        }.orNull
-    }
 
     protected def macEntryPath(nwId: UUID, mac: String, portId: UUID) = {
         val entry = MacPortMap.encodePersistentPath(

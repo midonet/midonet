@@ -45,7 +45,7 @@ object PortTranslator {
 class PortTranslator(protected val storage: ReadOnlyStorage,
                      protected val pathBldr: PathBuilder)
         extends NeutronTranslator[NeutronPort]
-        with ChainManager with PortManager with RouteManager with RuleManager {
+        with PortManager with RouteManager with RuleManager {
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
@@ -61,8 +61,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val portContext = initPortContext
         if (isVifPort(nPort)) {
             // Generate in/outbound chain IDs from Port ID.
-            midoPortBldr.setInboundFilterId(inChainId(portId))
-            midoPortBldr.setOutboundFilterId(outChainId(portId))
+            midoPortBldr.setInboundFilterId(ChainManager.inChainId(portId))
+            midoPortBldr.setOutboundFilterId(ChainManager.outChainId(portId))
 
             // Add MAC->port map entry.
             midoOps += CreateNode(pathBldr.getBridgeMacPortEntryPath(nPort))
@@ -295,7 +295,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                                     inChainId: UUID): Unit = {
 
         val mac = nPort.getMacAddress
-        val spoofChainId = antiSpoofChainId(portId)
+        val spoofChainId = ChainManager.antiSpoofChainId(portId)
 
         portCtx.inRules += Create(jumpRule(inChainId, spoofChainId))
 
@@ -407,13 +407,15 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
 
         // Create in/outbound chains with the IDs of the above rules.
-        val inChain = newChain(inChainId, egressChainName(portId),
-                               toRuleIdList(portCtx.inRules))
-        val outChain = newChain(outChainId, ingressChainName(portId),
-                                toRuleIdList(portCtx.outRules))
-        val antiSpoofChain = newChain(antiSpoofChainId(portId),
-                                      "Anti Spoof Chain",
-                                      toRuleIdList(portCtx.antiSpoofRules))
+        val inChain = ChainManager.newChain(inChainId,
+                                            egressChainName(portId),
+                                            toRuleIdList(portCtx.inRules))
+        val outChain = ChainManager.newChain(outChainId,
+                                             ingressChainName(portId),
+                                             toRuleIdList(portCtx.outRules))
+        val antiSpoofChain = ChainManager.newChain(
+            ChainManager.antiSpoofChainId(portId), "Anti Spoof Chain",
+                toRuleIdList(portCtx.antiSpoofRules))
 
         if (nPortOld != null) { // Update
             portCtx.chains += (Update(antiSpoofChain),
@@ -427,7 +429,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             portCtx.outRules ++= oChain
                 .getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
             val aChain = storage.get(
-                classOf[Chain], antiSpoofChainId(portId)).await()
+                classOf[Chain], ChainManager.antiSpoofChainId(portId)).await()
             portCtx.antiSpoofRules ++= aChain
                 .getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
         } else { // Create
@@ -444,7 +446,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val portId = nPortOld.getId
         val inChainId = mPort.getInboundFilterId
         val outChainId = mPort.getOutboundFilterId
-        val aChainId = antiSpoofChainId(mPort.getId)
+        val aChainId = ChainManager.antiSpoofChainId(mPort.getId)
 
         val iChain = storage.get(classOf[Chain], inChainId).await()
 

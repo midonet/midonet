@@ -29,16 +29,16 @@ import org.midonet.util.concurrent.toFutureOps
 
 class RouterTranslator(protected val storage: ReadOnlyStorage)
     extends NeutronTranslator[NeutronRouter]
-    with ChainManager with PortManager with RouteManager with RuleManager {
+    with PortManager with RouteManager with RuleManager {
     import RouterTranslator._
     import org.midonet.cluster.services.c3po.translators.RouteManager._
 
     override protected def translateCreate(nr: NeutronRouter): MidoOpList = {
         val r = translate(nr)
-        val inChain = newChain(r.getInboundFilterId,
-                               preRouteChainName(nr.getId))
-        val outChain = newChain(r.getOutboundFilterId,
-                                postRouteChainName(nr.getId))
+        val inChain = ChainManager.newChain(r.getInboundFilterId,
+                                            preRouteChainName(nr.getId))
+        val outChain = ChainManager.newChain(r.getOutboundFilterId,
+                                             postRouteChainName(nr.getId))
 
         // This is actually only needed for edge routers, but edge routers are
         // only defined by having an interface to an uplink network, so it's
@@ -60,8 +60,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
     }
 
     override protected def translateDelete(id: UUID): MidoOpList = {
-        List(Delete(classOf[Chain], inChainId(id)),
-             Delete(classOf[Chain], outChainId(id)),
+        List(Delete(classOf[Chain], ChainManager.inChainId(id)),
+             Delete(classOf[Chain], ChainManager.outChainId(id)),
              Delete(classOf[PortGroup], PortManager.portGroupId(id)),
              Delete(classOf[Router], id))
     }
@@ -86,8 +86,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
     private def translate(nr: NeutronRouter): Router = {
         val bldr = Router.newBuilder()
         bldr.setId(nr.getId)
-        bldr.setInboundFilterId(inChainId(nr.getId))
-        bldr.setOutboundFilterId(outChainId(nr.getId))
+        bldr.setInboundFilterId(ChainManager.inChainId(nr.getId))
+        bldr.setOutboundFilterId(ChainManager.outChainId(nr.getId))
         if (nr.hasTenantId) bldr.setTenantId(nr.getTenantId)
         if (nr.hasName) bldr.setName(nr.getName)
         if (nr.hasAdminStateUp) bldr.setAdminStateUp(nr.getAdminStateUp)

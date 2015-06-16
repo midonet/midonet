@@ -29,8 +29,7 @@ import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 
-class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
-                                                              with OpMatchers {
+class FloatingIpTranslatorTestBase extends TranslatorTestBase with OpMatchers {
     protected var translator: FloatingIpTranslator = _
 
     // Floating IP data setup
@@ -63,8 +62,8 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val prvRouterGatewayPortId = randomUuidProto
     protected val fipRouterInternalPortId = randomUuidProto
     protected val fipRouterGatewayPortId = randomUuidProto
-    protected val fipRouterInChainId = inChainId(fipRouterId)
-    protected val fipRouterOutChainId =outChainId(fipRouterId)
+    protected val fipRouterInChainId = ChainManager.inChainId(fipRouterId)
+    protected val fipRouterOutChainId = ChainManager.outChainId(fipRouterId)
 
     protected val fipRouter = mRouterFromTxt(s"""
         id { $fipRouterId }
@@ -288,8 +287,8 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     // Secondary tenant router setup
     protected val fipRouter2Id = randomUuidProto
     protected val prvRouterGatewayPort2Id = randomUuidProto
-    protected val fipRouter2InChainId = inChainId(fipRouter2Id)
-    protected val fipRouter2OutChainId =outChainId(fipRouter2Id)
+    protected val fipRouter2InChainId = ChainManager.inChainId(fipRouter2Id)
+    protected val fipRouter2OutChainId = ChainManager.outChainId(fipRouter2Id)
     protected val movedFip = fip(fipRouter2Id)
     protected val snat2 = snatRule(fipRouter2OutChainId, prvRouterGatewayPort2Id)
     protected val dnat2 = dnatRule(fipRouter2InChainId, prvRouterGatewayPort2Id)

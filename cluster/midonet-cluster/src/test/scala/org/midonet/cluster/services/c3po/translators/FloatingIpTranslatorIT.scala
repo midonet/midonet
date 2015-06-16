@@ -38,7 +38,7 @@ import org.midonet.packets.IPv4Subnet
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
-class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
+class FloatingIpTranslatorIT extends C3POMinionTestBase {
     private def floatingIpJson(id: UUID,
                                floatingNetworkId: UUID,
                                floatingIpAddress: String,
@@ -245,8 +245,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         // Tests that SNAT / DNAT rules for the floating IP have been set.
         val tRouter = storage.get(classOf[Router], tRouterId).await()
-        val inboundChainId = inChainId(tRouterId)
-        val outboundChainId = outChainId(tRouterId)
+        val inboundChainId = ChainManager.inChainId(tRouterId)
+        val outboundChainId = ChainManager.outChainId(tRouterId)
         tRouter.getInboundFilterId shouldBe inboundChainId
         tRouter.getOutboundFilterId shouldBe outboundChainId
         val inChain = storage.get(classOf[Chain], inboundChainId).await()

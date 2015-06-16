@@ -25,23 +25,23 @@ import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 /**
  * Contains chain-related operations shared by multiple translators.
  */
-trait ChainManager {
+object ChainManager {
     protected case class ChainIds(inChainId: UUID, outChainId: UUID)
 
     /** Deterministically generate inbound chain ID from device ID. */
-    protected def inChainId(deviceId: UUID) =
+    def inChainId(deviceId: UUID) =
         deviceId.xorWith(0xc84db1f73554442bL, 0x8e7b38f2c703ee6aL)
 
     /** Deterministically generate outbound chain ID from device ID. */
-    protected def outChainId(deviceId: UUID) =
+    def outChainId(deviceId: UUID) =
         deviceId.xorWith(0x20940fb2cac401eL, 0x9ffaf9c05d04b524L)
 
     /** Deterministically generate anti spoof chain ID from device ID. */
     def antiSpoofChainId(deviceId: UUID) =
         deviceId.xorWith(0xa7b611cfe7334feL, 0xbbac78cfe412ad35L)
 
-    protected def newChain(id: UUID, name: String,
-                           ruleIds: Seq[UUID] = Seq()): Chain = {
+    def newChain(id: UUID, name: String,
+                 ruleIds: Seq[UUID] = Seq()): Chain = {
         val bldr = Chain.newBuilder.setId(id).setName(name)
         ruleIds.foreach(bldr.addRuleIds)
         bldr.build()
@@ -50,11 +50,11 @@ trait ChainManager {
     /**
      * Returns a new Chain with the specified rule prepended to the rule ID
      * list. */
-    protected def prependRule(chain: Chain, ruleId: UUID): Chain =
+    def prependRule(chain: Chain, ruleId: UUID): Chain =
         chain.toBuilder.addRuleIds(0, ruleId).build()
 
     /** Returns a new Chain with the specified rule deleted if exists. */
-    protected def removeRule(chain: Chain, ruleId: UUID): Chain = {
+    def removeRule(chain: Chain, ruleId: UUID): Chain = {
         val removeRuleIdx = chain.getRuleIdsList.asScala.indexOf(ruleId)
         if (removeRuleIdx >= 0)
             chain.toBuilder().removeRuleIds(removeRuleIdx).build

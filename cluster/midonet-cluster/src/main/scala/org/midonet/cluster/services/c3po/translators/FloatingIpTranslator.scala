@@ -26,8 +26,7 @@ import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for FloatingIp. */
 class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
-        extends NeutronTranslator[FloatingIp] with ChainManager
-                                              with RouteManager
+        extends NeutronTranslator[FloatingIp] with RouteManager
                                               with RuleManager {
     import org.midonet.cluster.services.c3po.translators.RouteManager._
     implicit val storage: ReadOnlyStorage = readOnlyStorage
@@ -107,8 +106,8 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
 
     /* Generate Create Ops for SNAT and DNAT for the floating IP address. */
     private def generateNatRuleCreateOps(fip: FloatingIp, gwPortId: UUID) = {
-        val iChainId = inChainId(fip.getRouterId)
-        val oChainId = outChainId(fip.getRouterId)
+        val iChainId = ChainManager.inChainId(fip.getRouterId)
+        val oChainId = ChainManager.outChainId(fip.getRouterId)
         val snatRule = Rule.newBuilder
             .setId(fipSnatRuleId(fip.getId))
             .setChainId(oChainId)
@@ -128,8 +127,9 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
 
         val inChain = storage.get(classOf[Chain], iChainId).await()
         val outChain = storage.get(classOf[Chain], oChainId).await()
-        val updatedInChain = prependRule(inChain, dnatRule.getId)
-        val updatedOutChain = prependRule(outChain, snatRule.getId)
+        val updatedInChain = ChainManager.prependRule(inChain, dnatRule.getId)
+        val updatedOutChain = ChainManager.prependRule(outChain,
+                                                       snatRule.getId)
 
         List(Create(snatRule), Create(dnatRule),
              Update(updatedInChain), Update(updatedOutChain))
@@ -148,12 +148,14 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
     private def cleanUpNatRules(fip: FloatingIp): MidoOpList = {
         val fipId = fip.getId
         val routerId = fip.getRouterId
-        val inChain = storage.get(classOf[Chain], inChainId(routerId)).await()
-        val outChain = storage.get(classOf[Chain], outChainId(routerId)).await()
+        val inChain = storage.get(classOf[Chain],
+                                  ChainManager.inChainId(routerId)).await()
+        val outChain = storage.get(classOf[Chain],
+                                   ChainManager.outChainId(routerId)).await()
 
         List(Delete(classOf[Rule], fipSnatRuleId(fipId)),
              Delete(classOf[Rule], fipDnatRuleId(fipId)),
-             Update(removeRule(inChain, fipDnatRuleId(fipId))),
-             Update(removeRule(outChain, fipSnatRuleId(fipId))))
+             Update(ChainManager.removeRule(inChain, fipDnatRuleId(fipId))),
+             Update(ChainManager.removeRule(outChain, fipSnatRuleId(fipId))))
     }
 }
