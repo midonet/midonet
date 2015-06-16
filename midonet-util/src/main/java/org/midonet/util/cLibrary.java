@@ -16,8 +16,6 @@
 package org.midonet.util;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.List;
 
 import com.sun.jna.LastErrorException;
 import com.sun.jna.Library;
@@ -38,20 +36,10 @@ public interface cLibrary extends Library {
         public short nl_pad;
         public int nl_pid;
         public int nl_groups;
-
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("nl_family", "nl_pad", "nl_pid", "nl_groups");
-        }
     }
 
     public static class UnixPath extends Structure {
         public byte[] chars = new byte[108];
-
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("chars");
-        }
     }
 
     public static class UnixPathByVal extends UnixPath implements ByValue {}
@@ -60,11 +48,6 @@ public interface cLibrary extends Library {
     public static class UnixDomainSockAddress extends Structure {
         public short sun_family;
         public UnixPathByVal sun_path;
-
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("sun_family", "sun_path");
-        }
     }
 
     public static final int AF_UNIX = 1;

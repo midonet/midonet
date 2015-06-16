@@ -16,14 +16,14 @@
 package org.midonet.odp.util;
 
 import java.util.Arrays;
-import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Structure;
 import com.sun.jna.Union;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Tap {
 
@@ -496,11 +496,6 @@ public class Tap {
         public InterfaceReqName ifr_ifrn;
         public InterfaceReqParam ifr_ifru;
 
-        @Override
-        protected List getFieldOrder() {
-            return Arrays.asList("ifr_ifrn", "ifr_ifru");
-        }
-
         public static class InterfaceReqByRef extends InterfaceReq implements Structure.ByReference {
         }
 
@@ -530,11 +525,6 @@ public class Tap {
         public static class SockAddr extends Structure {
             public short sa_family_t;
             public byte[] sa_data = new byte[14];
-
-            @Override
-            protected List getFieldOrder() {
-                return Arrays.asList("sa_family_t", "sa_data");
-            }
         }
     }
 

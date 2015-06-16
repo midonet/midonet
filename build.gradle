@@ -58,7 +58,7 @@ project.ext {
         findbugs: "com.google.code.findbugs:jsr305:2.0.0",
         logback: "ch.qos.logback:logback-classic:1.1.2",
         logback_logstash: "net.logstash.logback:logstash-logback-encoder:3.5",
-        jna: ["net.java.dev.jna:jna:4.1.0", "net.java.dev.jna:jna-platform:4.1.0"],
+        jna: "net.java.dev.jna:jna:3.3.0",
         jsch: 'com.jcraft:jsch:0.1.45',
         collections4: 'org.apache.commons:commons-collections4:4.0',
         commons_codec: "commons-codec:commons-codec:1.2",
@@ -142,9 +142,7 @@ project.ext {
             "com.sun.jersey.jersey-test-framework:jersey-test-framework-core:${versions.jersey}") {
                 exclude group: 'junit', module: 'junit'},
 
-        mysql_jdbc: dependencies.create("org.mariadb.jdbc:mariadb-java-client:1.1.8") {
-            exclude group: 'net.java.dev.jna'
-        },
+        mysql_jdbc: "org.mariadb.jdbc:mariadb-java-client:1.1.8",
         sqlite: "org.xerial:sqlite-jdbc:3.8.7",
 
         vmware_midoapi: [ "com.vmware:vijava:5.1", "dom4j:dom4j:1.6.1" ],
