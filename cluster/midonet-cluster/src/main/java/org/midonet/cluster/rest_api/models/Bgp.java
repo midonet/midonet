@@ -63,7 +63,7 @@ public class Bgp extends UriResource {
     }
 
     public URI getAdRoutes() {
-        return absoluteUri(ResourceUris.AD_ROUTES, id);
+        return relativeUri(ResourceUris.AD_ROUTES);
     }
 
     @Override

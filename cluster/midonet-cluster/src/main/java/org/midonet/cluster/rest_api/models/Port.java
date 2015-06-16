@@ -115,6 +115,8 @@ public abstract class Port extends UriResource {
         return relativeUri(ResourceUris.LINK);
     }
 
+    public URI getBgps() { return relativeUri(ResourceUris.BGP); }
+
     @JsonIgnore
     @Override
     public void create() {

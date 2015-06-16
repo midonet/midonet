@@ -94,6 +94,11 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
         new PortPortGroupResource(id, backend, uriInfo)
     }
 
+    @Path("{id}/bgps")
+    def bgps(@PathParam("id") id: UUID): PortBgpResource = {
+        new PortBgpResource(id, backend, uriInfo)
+    }
+
     protected override def updateFilter = (to: Port, from: Port) => {
         to.update(from)
     }
@@ -213,22 +218,23 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
         getResource(classOf[Port], portId).flatMap(port => {
             getResource(classOf[PortGroup], portGroupId).map(pg => {
                 if (!port.portGroupIds.contains(portGroupId)) {
-                    throw new WebApplicationException(Status.NOT_FOUND)
+                    Response.status(Status.NOT_FOUND).build()
+                } else if (!pg.portIds.contains(portId)) {
+                    MidonetResource.OkResponse
+                } else {
+                    port.portGroupIds.remove(portGroupId)
+                    pg.portIds.remove(portId)
+                    multiResource(Seq(Update(port), Update(pg)))
                 }
-                if (!pg.portIds.contains(portId)) {
-                    throw new WebApplicationException(Status.NOT_FOUND)
-                }
-                port.portGroupIds.remove(portGroupId)
-                pg.portIds.remove(portId)
-                multiResource(Seq(Update(port), Update(pg)))
             })
         }).fallbackTo(
             getResource(classOf[PortGroup], portGroupId).map(pg => {
                 if (!pg.portIds.contains(portId)) {
-                    throw new WebApplicationException(Status.NOT_FOUND)
+                    MidonetResource.OkResponse
+                } else {
+                    pg.portIds.remove(portId)
+                    updateResource(pg)
                 }
-                pg.portIds.remove(portId)
-                updateResource(pg)
             }))
         .getOrThrow
     }

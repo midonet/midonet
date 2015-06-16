@@ -41,7 +41,7 @@ class AdRouteResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_AD_ROUTE_JSON,
                    APPLICATION_JSON))
-class BGPAdRouteResource @Inject()(bgpId: UUID, backend: MidonetBackend,
+class BgpAdRouteResource @Inject()(bgpId: UUID, backend: MidonetBackend,
                                    uriInfo: UriInfo)
     extends MidonetResource[AdRoute](backend, uriInfo) {
 
