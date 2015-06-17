@@ -67,32 +67,28 @@ class NeutronZoomPluginTest extends FeatureSpec
 
     feature("The Plugin should be able to CRUD") {
         scenario("The plugin handles a Network") {
-            val n = new Network
-            n.id = UUID.randomUUID()
-            n.name = UUID.randomUUID().toString
-            n.external = false
-            val n1 = plugin.createNetwork(n)
-            n1 shouldBe n
-            n1 shouldBe plugin.getNetwork(n.id)
+            val nwId = UUID.randomUUID()
+            val nw = new Network(nwId, null, "original-nw", false)
+            plugin.createNetwork(nw) shouldBe nw
+            plugin.getNetwork(nwId) shouldBe nw
 
-            backend.store.get(classOf[Topology.Network], n.id)
-                         .await(timeout).getName shouldBe n.name
+            backend.store.get(classOf[Topology.Network], nw.id)
+                         .await(timeout).getName shouldBe nw.name
 
-            n.name = UUID.randomUUID().toString
-            val n2 = plugin.updateNetwork(n.id, n)
-            n2 shouldBe n
-            n2 shouldNot be (n1)
+            val nwRenamed = new Network(nwId, null, "renamed-nw", false)
+            plugin.updateNetwork(nwId, nwRenamed) shouldBe nwRenamed
+            plugin.getNetwork(nwId) shouldBe nwRenamed
 
-            backend.store.get(classOf[Topology.Network], n.id)
-                   .await(timeout).getName shouldBe n.name
+            backend.store.get(classOf[Topology.Network], nwId)
+                   .await(timeout).getName shouldBe nwRenamed.name
 
-            plugin.deleteNetwork(n.id)
+            plugin.deleteNetwork(nwId)
 
             intercept[NotFoundHttpException] {
-                plugin.getNetwork(n.id)
+                plugin.getNetwork(nwId)
             }
 
-            backend.store.exists(classOf[Topology.Network], n.id)
+            backend.store.exists(classOf[Topology.Network], nwId)
                    .await(timeout) shouldBe false
         }
     }
