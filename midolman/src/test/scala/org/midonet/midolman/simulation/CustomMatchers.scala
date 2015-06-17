@@ -19,6 +19,9 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.UUID
 
+import org.midonet.midolman.topology.RouterManager
+import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel}
+
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 
@@ -29,9 +32,9 @@ import org.scalactic.Prettifier
 import org.scalatest.matchers._
 
 import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, SimulationResult, AddVirtualWildcardFlow}
-import org.midonet.midolman.flows.{FlowTagIndexer, FlowInvalidator}
+import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
-import org.midonet.packets.{Ethernet, IPv4}
+import org.midonet.packets.{IPv4Subnet, Ethernet, IPv4}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
 
@@ -118,8 +121,8 @@ trait CustomMatchers {
             } == 2
     }
 
-    def invalidate(tags: FlowTag*) = new Matcher[FlowInvalidator] {
-        def apply(invalidator: FlowInvalidator): MatchResult = {
+    def invalidate(tags: FlowTag*) = new Matcher[SimulationBackChannel] {
+        def apply(invalidator: SimulationBackChannel): MatchResult = {
             val invalidatedTags = invalidator.get()
             MatchResult(
                 tags forall invalidatedTags.contains,
@@ -129,6 +132,48 @@ trait CustomMatchers {
         }
 
         override def toString(): String = "invalidates (" + Prettifier.default(tags) + ")"
+    }
+
+    def invalidateForDeletedRoutes(ips: IPv4Subnet*) = new Matcher[SimulationBackChannel] {
+        def apply(backChannel: SimulationBackChannel): MatchResult = {
+            val msgs = backChannel.get()
+            MatchResult(
+                msgs forall {
+                    case msg: RouterManager.InvalidateFlows =>
+                        msg.deletedRoutes forall {
+                            case r =>
+                                ips.contains(new IPv4Subnet(r.dstNetworkAddr, r.dstNetworkLength))
+                        }
+                        ips.contains(msg.asInstanceOf[RouterManager.InvalidateFlows].addedRoutes)
+                    case _ => true
+                },
+                s"$msgs did not target all of $ips",
+                "invalidates the expected tags",
+                Vector(backChannel, ips))
+        }
+
+        override def toString(): String = "invalidates (" + Prettifier.default(ips) + ")"
+    }
+
+    def invalidateForNewRoutes(ips: IPv4Subnet*) = new Matcher[SimulationBackChannel] {
+        def apply(backChannel: SimulationBackChannel): MatchResult = {
+            val msgs = backChannel.get()
+            MatchResult(
+                msgs forall {
+                    case msg: RouterManager.InvalidateFlows =>
+                        msg.addedRoutes forall {
+                            case r =>
+                                ips.contains(new IPv4Subnet(r.dstNetworkAddr, r.dstNetworkLength))
+                        }
+                    ips.contains(msg.asInstanceOf[RouterManager.InvalidateFlows].addedRoutes)
+                    case _ => true
+                },
+                s"$msgs did not target all of $ips",
+                "invalidates the expected tags",
+                Vector(backChannel, ips))
+        }
+
+        override def toString(): String = "invalidates (" + Prettifier.default(ips) + ")"
     }
 
     def haveInvalidated (tags: FlowTag*) = new Matcher[FlowTagIndexer{var tags: List[FlowTag]}] {
@@ -143,13 +188,17 @@ trait CustomMatchers {
         override def toString(): String = "have invalidated (" + Prettifier.default(tags) + ")"
     }
 
-    implicit class FlowInvalidatorOps(val flowInvalidator: FlowInvalidator) {
+    implicit class FlowInvalidatorOps(val flowInvalidator: SimulationBackChannel) {
         def clear(): List[FlowTag] = {
             val invalidatedTags = mutable.ListBuffer[FlowTag]()
-            flowInvalidator.process(new FlowTagIndexer {
+            flowInvalidator.process(new FlowTagIndexer with BackChannelHandler {
                 override val log: Logger = Logger(NOPLogger.NOP_LOGGER)
-                override def invalidateFlowsFor(tag: FlowTag) = {
-                    invalidatedTags += tag
+                override def handle(message: BackChannelMessage): Unit = {
+                    message match {
+                        case tag: FlowTag =>
+                            invalidatedTags += tag
+                        case _ =>
+                    }
                 }
             })
             invalidatedTags.toList
@@ -157,7 +206,7 @@ trait CustomMatchers {
 
         def get(): List[FlowTag] = {
             val invalidatedTags = clear()
-            invalidatedTags foreach flowInvalidator.scheduleInvalidationFor
+            invalidatedTags foreach flowInvalidator.tell
             invalidatedTags
         }
     }

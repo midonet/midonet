@@ -26,6 +26,18 @@ object IPv4InvalidationArray {
     def makeEntry(refCount: Int, v: Int): Int = (refCount << 6) | (v & VALUE_MASK)
     def extractRefCount(entry: Int) = entry >> 6
     def extractValue(entry: Int) = entry & VALUE_MASK
+
+    private def newArray = new ThreadLocal[IPv4InvalidationArray] {
+        override def initialValue = new IPv4InvalidationArray()
+    }
+
+    private var theInvalidationArray = newArray
+
+    def reset() {
+        theInvalidationArray = newArray
+    }
+
+    def apply() = theInvalidationArray.get()
 }
 
 /*
@@ -214,6 +226,8 @@ final class IPv4InvalidationArray {
             val leaf = getOrMakeLeaf(key)
             val e = leaf(b4(key))
             val count = extractRefCount(e) + 1
+            val oldV = extractValue(e) - 1
+            val newV = Math.min(v, oldV)
             leaf(b4(key)) = makeEntry(count, v+1)
             count
         } else {

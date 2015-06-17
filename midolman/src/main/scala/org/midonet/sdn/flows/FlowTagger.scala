@@ -19,11 +19,12 @@ package org.midonet.sdn.flows
 import java.util.{UUID, WeakHashMap}
 import java.lang.ref.WeakReference
 
+import org.midonet.midolman.BackChannelMessage
 import org.midonet.packets.{IPv6Addr, IPv4Addr, IPAddr, MAC}
 import org.midonet.midolman.layer3.Route
 
 object FlowTagger {
-    trait FlowTag
+    trait FlowTag extends BackChannelMessage
 
     /**
      * Marker interface used to distinguish flow state tags from normal

@@ -31,7 +31,7 @@ import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
 import org.midonet.midolman.flows.FlowExpirationIndexer.Expiration
-import org.midonet.midolman.flows.{FlowExpirationIndexer, FlowInvalidator}
+import org.midonet.midolman.flows.FlowExpirationIndexer
 import org.midonet.midolman.logging.{ActorLogWithoutPath, FlowTracingContext}
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.FlowRecorder
@@ -44,14 +44,14 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser, _}
 import org.midonet.midolman.topology.devices.Port
-import org.midonet.midolman.topology.{VirtualTopologyActor, VxLanPortMapper}
+import org.midonet.midolman.topology.{RouterManager, VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger._
 import org.midonet.sdn.state.{FlowStateTable, FlowStateTransaction}
-import org.midonet.util.collection.Reducer
+import org.midonet.util.collection.{IPv4InvalidationArray, Reducer}
 import org.midonet.util.concurrent._
 
 object PacketWorkflow {
@@ -141,7 +141,7 @@ class PacketWorkflow(
             val clock: NanoClock,
             val dpChannel: DatapathChannel,
             val dhcpConfigProvider: DhcpConfig,
-            val flowInvalidator: FlowInvalidator,
+            val backChannel: SimulationBackChannel,
             val flowProcessor: FlowProcessor,
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateTable[NatKey, NatBinding],
@@ -153,7 +153,7 @@ class PacketWorkflow(
             val packetOut: Int => Unit)
         extends Actor with ActorLogWithoutPath with Stash with Backchannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
-        with FlowController {
+        with FlowController with BackChannelHandler {
 
     import PacketWorkflow._
 
@@ -185,7 +185,7 @@ class PacketWorkflow(
 
     protected val datapathId = dpState.datapath.getIndex
 
-    protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, flowInvalidator )
+    protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, backChannel )
 
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {
@@ -239,8 +239,35 @@ class PacketWorkflow(
         genPacketEmitter.pendingPackets > 0 ||
         arpBroker.shouldProcess()
 
+    def handle(msg: RouterManager.InvalidateFlows) {
+        val RouterManager.InvalidateFlows(id, added, deleted) = msg
+
+        for (route <- deleted) {
+            invalidateFlowsFor(FlowTagger.tagForRoute(route))
+        }
+
+        for (route <- added) {
+            log.debug(s"Calculate flows invalidated by new route " +
+            s"${route.getDstNetworkAddr}/${route.dstNetworkLength}")
+
+            val deletions = IPv4InvalidationArray().deletePrefix(
+            route.dstNetworkAddr, route.dstNetworkLength).iterator()
+            while (deletions.hasNext) {
+                val ip = IPv4Addr.fromInt(deletions.next)
+                log.debug(s"Got the following destination to invalidate $ip")
+                invalidateFlowsFor(FlowTagger.tagForDestinationIp(id, ip))
+            }
+        }
+    }
+
+    override def handle(msg: BackChannelMessage): Unit = msg match {
+        case m: RouterManager.InvalidateFlows => handle(m)
+        case tag: FlowTag => invalidateFlowsFor(tag)
+    }
+
     override def process(): Unit = {
         super.process()
+        backChannel.process(this)
         genPacketEmitter.process(runGeneratedPacket)
         connTrackStateTable.expireIdleEntries((), invalidateExpiredConnTrackKeys)
         natStateTable.expireIdleEntries((), invalidateExpiredNatKeys)

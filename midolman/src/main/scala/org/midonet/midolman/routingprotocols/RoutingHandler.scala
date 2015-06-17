@@ -28,7 +28,6 @@ import org.midonet.cluster.client.BGPListBuilder
 import org.midonet.cluster.data.{AdRoute, BGP, Route}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.io.{UpcallDatapathConnectionManager, VirtualMachine}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingManagerActor.BgpStatus
@@ -154,7 +153,7 @@ class LazyZkConnectionMonitor(down: () => Unit,
  * RoutingHandlers for different virtual ports of the same router. *
  */
 class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
-                     val flowInvalidator: FlowInvalidator,
+                     val flowInvalidator: SimulationBackChannel,
                      val dpState: DatapathState,
                      val upcallConnManager: UpcallDatapathConnectionManager,
                      val client: Client, val dataClient: DataClient,
@@ -792,7 +791,7 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
 
     private def invalidateFlows(bgp: BGP): Unit = {
         val tag = FlowTagger.tagForDpPort(bgp.getQuaggaPortNumber)
-        flowInvalidator.scheduleInvalidationFor(tag)
+        flowInvalidator.tell(tag)
     }
 }
 

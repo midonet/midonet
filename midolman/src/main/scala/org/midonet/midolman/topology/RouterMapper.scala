@@ -295,20 +295,6 @@ object RouterMapper {
     private def routeAsSet(route: Route) = {
         if (route ne null) Set(route) else EmptyRouteSet
     }
-
-    /** Creates a single host route for an IPv4 destination. */
-    @throws[DeviceMapperException]
-    private def createSingleHostRoute(dstAddress: IPAddr): Route = {
-        dstAddress match {
-            case addr: IPv4Addr =>
-                val route = new Route()
-                route.dstNetworkAddr = addr.toInt
-                route.dstNetworkLength = 32
-                route
-            case _ => throw new DeviceMapperException(
-                s"Destination address not supported $dstAddress")
-        }
-    }
 }
 
 /**
@@ -322,7 +308,10 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
     override def logSource = s"org.midonet.devices.router.router-$routerId"
 
     private class RemoveTagCallback(dst: IPv4Addr) extends Callback0 {
-        override def call(): Unit = vt.executeVt { removeTag(dst) }
+        override def call(): Unit = {
+            log.debug(s"Remove tag for destination address prefix $dst/28")
+            val refs = IPv4InvalidationArray().unref(dst.toInt)
+        }
     }
 
     private implicit val ec: ExecutionContext = actorSystem.dispatcher
@@ -340,14 +329,11 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
 
     private val routingTableBroker = new RoutingTableBroker(vt, routerId)
 
-    // This trie stores the tag that represents a destination IP, to be used for
-    // flow invalidation when a route is added or removed
-    private[topology] val dstIpTagTrie = new IPv4InvalidationArray()
-
     // Provides an implementation of the tag manager for the current router
     private val tagManager = new TagManager {
-        override def addIPv4Tag(dst: IPv4Addr, matchLength: Int): Unit = vt.executeVt {
-            RouterMapper.this.addTag(dst, matchLength)
+        override def addIPv4Tag(dst: IPv4Addr, matchLength: Int): Unit = {
+            val refs = IPv4InvalidationArray().ref(dst.toInt, matchLength)
+            log.debug(s"Increased ref count ip prefix $dst/28 to $refs")
         }
         override def getFlowRemovalCallback(dst: IPv4Addr): Callback0 = {
             new RemoveTagCallback(dst)
@@ -535,35 +521,11 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
         log.debug("Routes added {} removed {}", routeUpdates.added,
                   routeUpdates.removed)
         assertThread()
-
         // Update the current routes.
         routes ++= routeUpdates.added
         routes --= routeUpdates.removed
-
-        // Invalidate the flows for the removed routes.
-        for (route <- routeUpdates.removed) {
-            vt.invalidate(tagForRoute(route))
-        }
-        // Invalidate the flows for the added routes. This involves invalidating
-        // all flows tags that were previously added for a given destination
-        // prefix in the destination IP tag trie.
-        for (route <- routeUpdates.added) {
-            log.debug("Finding destinations IP addresses having the same " +
-                      "prefix as route {}", route)
-            // Determine the top node in the tag trie that corresponds to the
-            // given route, based on its destination prefix. Then invalidate the
-            // flows for all tags corresponding to all destinations in the tag
-            // tries that match the given route's prefix.
-            val deletions = dstIpTagTrie.deletePrefix(
-                route.dstNetworkAddr, route.dstNetworkLength).iterator()
-
-            while (deletions.hasNext) {
-                val ip = IPv4Addr.fromInt(deletions.next)
-                log.debug(s"Got the following destination to invalidate $ip")
-                vt.invalidate(tagForDestinationIp(routerId, ip))
-            }
-        }
-
+        vt.toBackChannel(RouterManager.InvalidateFlows(
+            id, routeUpdates.added, routeUpdates.removed))
         config
     }
 
@@ -610,32 +572,5 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
         log.debug("Router ready: {}", device)
 
         device
-    }
-
-    /** Invalidated the flow for the given IP address. */
-    private def invalidateFlowsByIp(ipAddr: IPv4Addr, oldMac: MAC, newMac: MAC)
-    : Unit = {
-        vt.invalidate(tagForDestinationIp(routerId, ipAddr))
-    }
-
-    /**
-     * Adds a tag for a destination address in the router's invalidation trie.
-     */
-    @throws[DeviceMapperException]
-    private def addTag(dst: IPv4Addr, matchLength: Int): Unit = {
-        assertThread()
-        val refs = dstIpTagTrie.ref(dst.toInt, matchLength)
-        log.debug(s"Increased ref count for tag ip prefix $dst/28 to $refs")
-    }
-
-    /**
-     * Removes a tag for a destination address from the router's invalidation
-     * trie.
-     */
-    @throws[DeviceMapperException]
-    private def removeTag(dst: IPv4Addr): Unit = {
-        assertThread()
-        log.debug(s"Remove tag for destination address prefix $dst/28")
-        val refs = dstIpTagTrie.unref(dst.toInt)
     }
 }

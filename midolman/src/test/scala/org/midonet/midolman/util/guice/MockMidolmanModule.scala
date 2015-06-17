@@ -18,31 +18,30 @@ package org.midonet.midolman.util.guice
 
 import java.util.LinkedList
 
+import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel, ShardedSimulationBackChannel}
 import org.midonet.midolman.cluster.MidolmanModule
-import org.midonet.midolman.flows.{ShardedFlowInvalidator, FlowInvalidationHandler, FlowInvalidator}
 import org.midonet.midolman.state.{MockNatBlockAllocator, NatBlockAllocator}
-import org.midonet.sdn.flows.FlowTagger.FlowTag
+import org.midonet.util.collection.IPv4InvalidationArray
 
 class MockMidolmanModule extends MidolmanModule {
+    protected override def bindSimulationBackChannel(): Unit = {
+        bind(classOf[SimulationBackChannel]).toInstance(new  SimulationBackChannel() {
+            private val q = new LinkedList[BackChannelMessage]()
 
-    protected override def bindFlowInvalidator: Unit = {
-        bind(classOf[FlowInvalidator]).toInstance(new FlowInvalidator {
-            private val q = new LinkedList[FlowTag]()
+            override def tell(msg: BackChannelMessage): Unit = q.offer(msg)
 
-            override def scheduleInvalidationFor(tag: FlowTag): Unit =
-                q.offer(tag)
+            override def hasMessages: Boolean = !q.isEmpty
 
-            override def hasInvalidations: Boolean =
-                !q.isEmpty
-
-            override def process(handler: FlowInvalidationHandler): Unit =
-                while (hasInvalidations) {
-                    handler.invalidateFlowsFor(q.pop())
+            override def process(handler: BackChannelHandler): Unit =
+                while (hasMessages) {
+                    handler.handle(q.pop())
                 }
         })
-        expose(classOf[FlowInvalidator])
-        bind(classOf[ShardedFlowInvalidator]).toInstance(new ShardedFlowInvalidator(null))
-        expose(classOf[ShardedFlowInvalidator])
+        expose(classOf[SimulationBackChannel])
+        bind(classOf[ShardedSimulationBackChannel]).toInstance(new ShardedSimulationBackChannel(null))
+        expose(classOf[ShardedSimulationBackChannel])
+
+        IPv4InvalidationArray.reset()
     }
 
     protected override def bindAllocator() {
