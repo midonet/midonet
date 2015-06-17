@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,17 @@ import scala.collection.JavaConversions._
 import com.codahale.metrics.{Counter, Metric, MetricRegistry, MetricSet}
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-
-import org.midonet.cluster.{ClusterConfig, ClusterConfig$, ClusterNode, ScheduledClusterMinion}
+import org.midonet.cluster.services.{ClusterService, ScheduledMinion}
+import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.util.functors.makeRunnable
 
 /** A sample Minion that executes a periodic heartbeat on a period determined by
-  * configuration. */
+  * configuration.  Mostly provided as an example.
+  */
+@ClusterService(name = "heartbeat")
 class Heartbeat @Inject()(nodeContext: ClusterNode.Context,
                           config: ClusterConfig, metrics: MetricRegistry)
-    extends ScheduledClusterMinion(nodeContext, config.hearbeat) {
+    extends ScheduledMinion(nodeContext, config.heartbeat) {
 
     private val log = LoggerFactory.getLogger(this.getClass)
     private val counter = new Counter()
@@ -42,6 +44,8 @@ class Heartbeat @Inject()(nodeContext: ClusterNode.Context,
         val metrics = Map[String, Metric]("beats" -> counter)
         override def getMetrics: JMap[String, Metric] = metrics
     }
+
+    override def isEnabled = config.heartbeat.isEnabled
 
     override def doStart(): Unit = {
         metrics.register("heartbeat", metricSet)

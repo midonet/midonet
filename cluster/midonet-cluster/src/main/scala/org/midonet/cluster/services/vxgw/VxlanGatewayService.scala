@@ -30,11 +30,10 @@ import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchList
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.{Observer, Subscription}
-
+import org.midonet.cluster.services.{ClusterService, Minion}
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory
-import org.midonet.cluster.{ClusterMinion, ClusterNode}
+import org.midonet.cluster._
 import org.midonet.cluster.EntityIdSetEvent.Type._
-import org.midonet.cluster.{DataClient, EntityIdSetEvent}
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -50,13 +49,16 @@ import org.midonet.util.functors._
   * Zookeeper. Only one node will be elected as leader and perform all VxLAN
   * Gateway management. When a node loses leadership (voluntarily, or because
   * of a failure, partition, etc.) a different instance will be elected and
-  * take over the management. */
+  * take over the management.
+  */
+@ClusterService(name = "vxgw")
 class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                                     dataClient: DataClient,
                                     zkConnWatcher: ZookeeperConnectionWatcher,
                                     vtepDataClientFactory: VtepDataClientFactory,
-                                    curator: CuratorFramework)
-    extends ClusterMinion(nodeCtx) {
+                                    curator: CuratorFramework,
+                                    conf: ClusterConfig)
+    extends Minion(nodeCtx) {
 
     private val log = LoggerFactory.getLogger(vxgwLog)
     private val LEADER_LATCH_PATH = "/midonet/vxgw/leader-latch"
@@ -205,6 +207,8 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
             becomePassive()
         }
     }
+
+    override def isEnabled = conf.vxgw.isEnabled
 
     override def doStart(): Unit = {
         log.info("Starting service")

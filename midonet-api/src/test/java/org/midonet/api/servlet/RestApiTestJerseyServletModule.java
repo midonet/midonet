@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,4 @@ public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
         });
     }
 
-    @Override
-    protected void installConfigApi(Config zkConf) {
-    }
 }
