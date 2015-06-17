@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_e7cf9027",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:39:00Z",
+      "side": 1,
+      "message": "interactionS",
+      "range": {
+        "startLine": 132,
+        "startChar": 19,
+        "endLine": 132,
+        "endChar": 30
+      },
+      "revId": "c9af99bb214efb451e2ac191b701f3babcfe9362",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c7ce0c2e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:39:00Z",
+      "side": 1,
+      "message": "~0xf? :p",
+      "range": {
+        "startLine": 141,
+        "startChar": 43,
+        "endLine": 141,
+        "endChar": 53
+      },
+      "revId": "c9af99bb214efb451e2ac191b701f3babcfe9362",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6791c0f0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Router.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:39:00Z",
+      "side": 1,
+      "message": "I wonder if this should be encapsulated inside the tagger: know which tags to apply and know to chop the ip address",
+      "revId": "c9af99bb214efb451e2ac191b701f3babcfe9362",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_27b25894",
+        "filename": "midolman/src/main/scala/org/midonet/sdn/flows/FlowTagger.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 354,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:39:00Z",
+      "side": 1,
+      "message": "this is duplicating what\u0027s already done in the router",
+      "revId": "c9af99bb214efb451e2ac191b701f3babcfe9362",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
