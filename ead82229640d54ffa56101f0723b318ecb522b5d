@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_47959c85",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T14:32:35Z",
+      "side": 1,
+      "message": "I\u0027d probably do:\n\nclass ArpTable(hostId: UUID) {\n  final val MERGED_MAP_ID \u003d s\"arpTable-$hostId\"\n  final val mm \u003d new MergedMap(MERGED_MAP_ID, ..)\n}\n\nclass MacPortTablehostId: UUID) {\n  final val MERGED_MAP_ID \u003d s\"macTable-$hostId\"\n  final val mm \u003d new MergedMap(MERGED_MAP_ID, ..)\n}",
+      "parentUuid": "facab960_2155f34f",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 68,
+        "endChar": 5
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_62c5478d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 18
