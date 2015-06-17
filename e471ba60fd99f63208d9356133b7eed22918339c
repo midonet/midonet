@@ -1,0 +1,163 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_0771d4df",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:55:38Z",
+      "side": 1,
+      "message": "IPv4InvalidationArray.get()? This seems like it\u0027s an apply() creating a new instance.",
+      "range": {
+        "startLine": 253,
+        "startChar": 28,
+        "endLine": 253,
+        "endChar": 49
+      },
+      "revId": "e471ba60fd99f63208d9356133b7eed22918339c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0748f485",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 254,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:55:38Z",
+      "side": 1,
+      "message": "indentation",
+      "revId": "e471ba60fd99f63208d9356133b7eed22918339c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c751ac37",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 265,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:55:38Z",
+      "side": 1,
+      "message": "log/throw when we fail to match? otherwise it appears we only get a warning :/",
+      "revId": "e471ba60fd99f63208d9356133b7eed22918339c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e7423067",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:55:38Z",
+      "side": 1,
+      "message": "i checked and it\u0027s okay to have this here",
+      "revId": "e471ba60fd99f63208d9356133b7eed22918339c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_877c04b7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:55:38Z",
+      "side": 1,
+      "message": "with this amount of work, simulation threads are going to unionize soon.",
+      "revId": "e471ba60fd99f63208d9356133b7eed22918339c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_27609800",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MidolmanServices.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:55:38Z",
+      "side": 1,
+      "message": "this is cheating :p",
+      "revId": "e471ba60fd99f63208d9356133b7eed22918339c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6756202c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:55:38Z",
+      "side": 1,
+      "message": "do we call reset? i may have missed it",
+      "revId": "e471ba60fd99f63208d9356133b7eed22918339c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_87532438",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:55:38Z",
+      "side": 1,
+      "message": "i would rename apply to current, like Thread::currentThread or something, so as not to mistake it with the ctor idiom.",
+      "revId": "e471ba60fd99f63208d9356133b7eed22918339c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a733c812",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:55:38Z",
+      "side": 1,
+      "message": "newV  seems to be unused. is it supposed to be here?",
+      "revId": "e471ba60fd99f63208d9356133b7eed22918339c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
