@@ -33,7 +33,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import org.midonet.cluster.storage.MidonetBackendTestModule;
-import org.midonet.cluster.storage.StateStorageModule;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.MidolmanActorsModule;
@@ -99,7 +98,6 @@ public class DefaultInterfaceDataUpdaterTest {
             new MockHostModule(),
             new MidonetBackendTestModule(configuration),
             new LegacyClusterModule(),
-            new StateStorageModule(),
             new MockMidolmanModule(),
             new MidolmanActorsModule() {
                 protected void configure() {
