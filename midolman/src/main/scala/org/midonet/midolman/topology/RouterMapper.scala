@@ -34,7 +34,7 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.{IPv4RoutingTable, InvalidationTrie, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.simulation.{LoadBalancer, Router => SimulationRouter}
-import org.midonet.midolman.state.{ArpCache, ArpTable => SimulationArpTable}
+import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterMapper._
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.FlowMatch

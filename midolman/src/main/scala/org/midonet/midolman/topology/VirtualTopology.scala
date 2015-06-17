@@ -29,7 +29,7 @@ import rx.schedulers.Schedulers
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.state.StateStorage
+import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.flows.FlowInvalidator
@@ -160,7 +160,7 @@ object VirtualTopology extends MidolmanLogging {
  */
 class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val config: MidolmanConfig,
-                                 val state: StateStorage,
+                                 val state: LegacyStorage,
                                  val dataClient: DataClient,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val flowInvalidator: FlowInvalidator,

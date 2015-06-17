@@ -52,7 +52,7 @@ dependencies {
 
     compile libraries.scala, libraries.akka, libraries.hamcrest, libraries.jna,
             libraries.commons_lang, libraries.commons_lang3,
-            libraries.commons_cli, libraries.commons_io,
+            libraries.commons_cli, libraries.commons_codec, libraries.commons_io,
             libraries.guava, libraries.guice, libraries.metrics, libraries.rx,
             libraries.logback, libraries.logback_logstash, libraries.zookeeper,
             libraries.jetty_websocket, libraries.jetty_deploy, libraries.jminix,
