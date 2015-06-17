@@ -19,7 +19,6 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.RuntimeMXBean;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -44,7 +43,6 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendModule;
-import org.midonet.cluster.storage.StateStorageModule;
 import org.midonet.event.agent.ServiceEvent;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.MidolmanActorsModule;
@@ -197,7 +195,6 @@ public class Midolman {
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new HostModule(),
-            new StateStorageModule(),
             new DatapathModule(),
             new LegacyClusterModule(),
             new MidolmanActorsModule(),
