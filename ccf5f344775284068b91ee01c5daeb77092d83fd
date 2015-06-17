@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_2756d85c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:24:35Z",
+      "side": 1,
+      "message": "should be 16",
+      "revId": "ccf5f344775284068b91ee01c5daeb77092d83fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e758708c",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/collection/IPv4InvalidationArray.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 155,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-17T16:24:35Z",
+      "side": 1,
+      "message": "should be 16",
+      "revId": "ccf5f344775284068b91ee01c5daeb77092d83fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
