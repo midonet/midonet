@@ -338,9 +338,9 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     private class DeleteCallBack implements DirectoryCallback<Void> {
-        private K key;
-        private V value;
-        private int version;
+        private final K key;
+        private final V value;
+        private final int version;
         private int attemptNo;
 
         DeleteCallBack(K k, V v, int ver) {
@@ -352,33 +352,52 @@ public abstract class ReplicatedMap<K, V> {
 
         public void onSuccess(Void result) {
             synchronized(ReplicatedMap.this) {
-                localMap.remove(key);
+                /* The map entry that was just removed from Zookeeper was or
+                   will be deleted from the local map in method run(). This is
+                   true if no value is inserted for the same key in the
+                   meantime. Watchers will be notified of this deletion in
+                   method run as well. */
                 ownedVersions.remove(version);
             }
-            notifyWatchers(key, value, null);
         }
 
         public void onError(KeeperException ex) {
-            log.error("ReplicatedMap deletion of key {} failed: {}, " +
-                      "attempt {} out of {}.",
-                      new Object[]{key, ex, attemptNo, DELETION_RETRIES});
+            log.info("ReplicatedMap deletion of key {} failed: {}, " +
+                     "attempt {} out of {}.", key, ex, attemptNo,
+                     DELETION_RETRIES);
             attemptNo++;
 
             // We do not resubmit a delete if the node does not exist anymore.
             if (ex.code() != KeeperException.Code.NONODE &&
                 attemptNo <= DELETION_RETRIES) {
                 dir.asyncDelete(encodePath(key, value, version), this);
+            } else if (attemptNo > DELETION_RETRIES) {
+                if (createsEphemeralNode) {
+                    log.warn("ReplicatedMap deletion of key {} failed {}, "
+                             + "giving up.", key, ex);
+                } else {
+                    log.error("ReplicatedMap deletion of key {} failed {}, "
+                              + "giving up.", key, ex);
+                }
             }
         }
 
         public void onTimeout() {
-            log.error("ReplicatedMap deletion of key {} timed out, " +
-                      "attempt {} out of {}.",
-                      new Object[]{key, attemptNo, DELETION_RETRIES});
+            log.info("ReplicatedMap deletion of key {} timed out, " +
+                     "attempt {} out of {}.", key, attemptNo,
+                     DELETION_RETRIES);
             attemptNo++;
 
             if (attemptNo <= DELETION_RETRIES) {
                 dir.asyncDelete(encodePath(key, value, version), this);
+            } else {
+                if (createsEphemeralNode) {
+                    log.warn("ReplicatedMap deletion of key {} timed out, "
+                             + "giving up.", key);
+                } else {
+                    log.error("ReplicatedMap deletion of key {} timed out, "
+                              + "giving up.", key);
+                }
             }
         }
     }
