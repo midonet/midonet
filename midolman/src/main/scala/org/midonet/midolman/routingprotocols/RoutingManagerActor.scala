@@ -22,7 +22,7 @@ import scala.collection.mutable
 import akka.actor._
 import com.google.inject.Inject
 
-import org.midonet.cluster.state.{StateStorage, LocalPortActive}
+import org.midonet.cluster.state.{LegacyStorage, LocalPortActive}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
@@ -62,7 +62,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     @Inject
     val client: Client = null
     @Inject
-    val stateStorage: StateStorage = null
+    val stateStorage: LegacyStorage = null
     @Inject
     var zkConnWatcher: ZkConnectionAwareWatcher = null
     @Inject

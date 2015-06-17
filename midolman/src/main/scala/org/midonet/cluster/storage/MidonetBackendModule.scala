@@ -54,7 +54,7 @@ class MidonetBackendModule(val conf: MidonetBackendConfig)
         expose(classOf[MidonetBackend])
     }
 
-    private def bindCurator(): Unit = {
+    protected def bindCurator(): Unit = {
         bind(classOf[CuratorFramework])
             .toProvider(classOf[CuratorFrameworkProvider])
             .asEagerSingleton()
