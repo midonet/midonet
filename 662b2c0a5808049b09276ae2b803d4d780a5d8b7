@@ -33,6 +33,24 @@
       "revId": "662b2c0a5808049b09276ae2b803d4d780a5d8b7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_f53e62d9",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T09:24:32Z",
+      "side": 1,
+      "message": "mm not really, I can fix it in a later patch if preferred (to avoid the rebase here and in the rest of patches)",
+      "parentUuid": "facab960_413677e8",
+      "revId": "662b2c0a5808049b09276ae2b803d4d780a5d8b7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
