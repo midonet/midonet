@@ -63,6 +63,7 @@ import org.midonet.cluster.rest_api.neutron.models.Subnet;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.storage.MidonetBackendConfig;
+import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
 import org.midonet.midolman.cluster.LegacyClusterModule;
@@ -126,9 +127,9 @@ public class DataCheckPointTest {
         @Override
         protected void configure() {
             super.configure();
-            MidonetBackendConfig mbc = new MidonetBackendConfig(config);
-            bind(MidonetBackendConfig.class).toInstance(mbc);
-            expose(MidonetBackendConfig.class);
+            //MidonetBackendConfig mbc = new MidonetBackendConfig(config);
+            //bind(MidonetBackendConfig.class).toInstance(mbc);
+            //expose(MidonetBackendConfig.class);
             ZookeeperLockFactory lockFactory = mock(ZookeeperLockFactory.class);
             InterProcessSemaphoreMutex lock = mock(
                 InterProcessSemaphoreMutex.class);
@@ -503,6 +504,7 @@ public class DataCheckPointTest {
         zkRoot = "/test_" + UUID.randomUUID();
         Config config = fillConfig(ConfigFactory.empty());
         injector = Guice.createInjector(
+            new MidonetBackendTestModule(fillConfig(config)),
             new TestDataClientModule(fillConfig(config)),
             new SerializationModule(),
             new ConfigProviderModule(fillLegacyConfig()),

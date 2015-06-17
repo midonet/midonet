@@ -34,7 +34,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
-import org.midonet.cluster.state.StateStorage
+import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
@@ -47,7 +47,7 @@ trait VirtualConfigurationBuilders {
 
     protected def clusterDataClient(): DataClient
 
-    protected def stateStorage: StateStorage
+    protected def stateStorage: LegacyStorage
 
     def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host = {
         val host = new Host().setName(name).setTunnelZones(tunnelZones)

@@ -24,7 +24,7 @@ import com.typesafe.config.{ConfigFactory, Config}
 
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
 import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
-import org.midonet.cluster.storage.{MidonetBackendTestModule, StateStorageModule}
+import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster._
 import org.midonet.midolman.cluster.datapath.MockDatapathModule
@@ -120,7 +120,6 @@ trait MidolmanSpec extends FeatureSpecLike
             new MockFlowStateStorageModule(),
             new MidonetBackendTestModule(conf),
             new MockZookeeperConnectionModule(),
-            new StateStorageModule(),
             new AbstractModule {
                 def configure() {
                     bind(classOf[HostIdProviderService])
