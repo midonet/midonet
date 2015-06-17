@@ -56,7 +56,7 @@ class SubnetTranslatorTest extends TranslatorTestBase {
         """)
     private val nUplinkNetwork = nNetworkFromTxt(s"""
         $nTenantNetwork
-        network_type: LOCAL
+        network_type: UPLINK
         """)
 
     "Basic subnet CREATE" should "produce an equivalent Dhcp Object" in {

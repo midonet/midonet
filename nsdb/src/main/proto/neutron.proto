@@ -36,6 +36,7 @@ message NeutronNetwork {
         FLAT = 1;
         VLAN = 2;
         GRE = 3;
+        UPLINK = 4;
     }
 }
 

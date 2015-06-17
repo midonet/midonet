@@ -495,7 +495,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         if (name != null) n.put("name", name)
         n.put("admin_state_up", adminStateUp)
         n.put("external", external)
-        if (uplink) n.put("provider:network_type", "local")
+        if (uplink) n.put("provider:network_type", "uplink")
         n
     }
 

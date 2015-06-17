@@ -16,7 +16,7 @@ database.
 ### CREATE
 
 If 'provider:network_type' key exists in the network data, and the value is
-'LOCAL', just exit.  This is a special uplink network[1].
+'UPLINK', just exit.  This is a special uplink network[1].
 
 Create a new MidoNet network.
 
@@ -30,8 +30,8 @@ Only the following fields are updated:
 ### UPDATE
 
 If 'provider:network_type' key exists in the network data, and the value is
-'LOCAL', update the Neutron network data.  Neutron disallows updating the
-'provider:network_type' field.
+'UPLINK', just exit.  Neutron disallows updating the 'provider:network_type'
+field, and there is no MidoNet network to update.
 
 Update the MidoNet network.
 
