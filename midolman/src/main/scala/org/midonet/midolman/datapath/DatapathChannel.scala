@@ -37,6 +37,7 @@ trait DatapathChannel {
 object DisruptorDatapathChannel {
     val PACKET_EXECUTION: Byte = 0
     val FLOW_CREATE: Byte = 1
+    val SKIP: Byte = 2
 
     sealed class DatapathEvent(var bb: ByteBuffer, var op: Byte)
 
@@ -91,9 +92,15 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
         val event = ringBuffer.get(seq)
         event.bb.clear()
 
-        protocol.preparePacketExecute(datapathId, packet, actions, event.bb)
-        event.op = PACKET_EXECUTION
-        ringBuffer.publish(seq)
+        try {
+            protocol.preparePacketExecute(datapathId, packet, actions, event.bb)
+            event.op = PACKET_EXECUTION
+        } catch { case t: Throwable =>
+            event.op = SKIP
+            throw t
+        } finally {
+            ringBuffer.publish(seq)
+        }
         seq
     }
 
@@ -103,9 +110,15 @@ class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
         val event = ringBuffer.get(seq)
         event.bb.clear()
 
-        protocol.prepareFlowCreate(datapathId, supportsMegaflow, flow, event.bb)
-        event.op = FLOW_CREATE
-        ringBuffer.publish(seq)
+        try {
+            protocol.prepareFlowCreate(datapathId, supportsMegaflow, flow, event.bb)
+            event.op = FLOW_CREATE
+        } catch { case t: Throwable =>
+            event.op = SKIP
+            throw t
+        } finally {
+            ringBuffer.publish(seq)
+        }
         seq
     }
 }
