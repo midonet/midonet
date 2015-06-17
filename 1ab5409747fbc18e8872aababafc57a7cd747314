@@ -22,6 +22,30 @@
       "revId": "1ab5409747fbc18e8872aababafc57a7cd747314",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_75733515",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-17T08:21:16Z",
+      "side": 1,
+      "message": "I thought about this option, too. Now that you mention, I think this would result in more concise code. Applied.",
+      "parentUuid": "facab960_c108c793",
+      "range": {
+        "startLine": 280,
+        "startChar": 0,
+        "endLine": 282,
+        "endChar": 50
+      },
+      "revId": "1ab5409747fbc18e8872aababafc57a7cd747314",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
