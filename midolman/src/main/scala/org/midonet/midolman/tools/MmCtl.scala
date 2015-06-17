@@ -25,14 +25,12 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.storage.MidonetBackendModule
+import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
 import org.midonet.cluster.util.UUIDUtil
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
-import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.toFutureOps
 
@@ -135,10 +133,9 @@ class MmCtl(injector: Injector) {
     private def getPortBinder(injector: Injector): PortBinder = {
         val dataClient = injector.getInstance(classOf[DataClient])
         val backend = injector.getInstance(classOf[MidonetBackend])
-        val config = injector.getInstance(classOf[MidolmanConfig])
+        val config = injector.getInstance(classOf[MidonetBackendConfig])
 
-        // TODO: Change 'neutron' to 'cluster'
-        if (config.neutron.enabled)
+        if (config.useNewStack)
             new ZoomPortBinder(backend.store)
         else
             new DataClientPortBinder(dataClient)
@@ -159,10 +156,9 @@ object MmCtl {
 
     def getInjector: Injector = {
         val configurator: MidoNodeConfigurator = MidoNodeConfigurator.apply()
-        val config: MidolmanConfig = MidolmanConfigModule
-            .createConfig(configurator)
-        Guice.createInjector(new MidolmanConfigModule(config),
-                             new MidonetBackendModule(config.zookeeper),
+        val config: MidonetBackendConfig = new MidonetBackendConfig(
+            configurator.runtimeConfig)
+        Guice.createInjector(new MidonetBackendModule(config),
                              new ZookeeperConnectionModule(
                                  classOf[ZookeeperConnectionWatcher]),
                              new SerializationModule,
