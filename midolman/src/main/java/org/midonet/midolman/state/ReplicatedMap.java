@@ -352,33 +352,37 @@ public abstract class ReplicatedMap<K, V> {
 
         public void onSuccess(Void result) {
             synchronized(ReplicatedMap.this) {
-                localMap.remove(key);
                 ownedVersions.remove(version);
             }
-            notifyWatchers(key, value, null);
         }
 
         public void onError(KeeperException ex) {
-            log.error("ReplicatedMap deletion of key {} failed: {}, " +
-                      "attempt {} out of {}.",
-                      new Object[]{key, ex, attemptNo, DELETION_RETRIES});
+            log.info("ReplicatedMap deletion of key {} failed: {}, " +
+                     "attempt {} out of {}.", key, ex, attemptNo,
+                     DELETION_RETRIES);
             attemptNo++;
 
             // We do not resubmit a delete if the node does not exist anymore.
             if (ex.code() != KeeperException.Code.NONODE &&
                 attemptNo <= DELETION_RETRIES) {
                 dir.asyncDelete(encodePath(key, value, version), this);
+            } else if (attemptNo > DELETION_RETRIES) {
+                log.error("ReplicatedMap deletion of key {} failed {}, "
+                          + "giving up.", key, ex);
             }
         }
 
         public void onTimeout() {
-            log.error("ReplicatedMap deletion of key {} timed out, " +
-                      "attempt {} out of {}.",
-                      new Object[]{key, attemptNo, DELETION_RETRIES});
+            log.info("ReplicatedMap deletion of key {} timed out, " +
+                     "attempt {} out of {}.", key, attemptNo,
+                     DELETION_RETRIES);
             attemptNo++;
 
             if (attemptNo <= DELETION_RETRIES) {
                 dir.asyncDelete(encodePath(key, value, version), this);
+            } else {
+                log.error("ReplicatedMap deletion of key {} timed out, "
+                          + "giving up.", key);
             }
         }
     }
