@@ -26,12 +26,13 @@ from mdts.lib.tenants import list_tenants
 from mdts.tests.config import IP_ZOOKEEPER_HOSTS
 from mdts.tests.config import MIDONET_API_URL
 
-
+from functools import wraps
 import inspect
 import logging
 import os
 import subprocess
 import time
+import tempfile
 
 from mdts.lib import subprocess_compat
 
@@ -144,6 +145,47 @@ def bindings(*args):
         return test_wrapped
     return test_method_wrapper
 
+def with_mn_conf(switch_flag, switch_id, config):
+    """
+    Decorator to execute_mn_conf with custom parameters before a test.
+    For that, the @with_mn_conf decorator should be declared just on top
+    of the test method.
+
+    e.g.:
+    @with_mn_conf("-t", "default",{
+        "agent.loggers.debug":"DEBUG",
+        "not.defined.key":"NULL"})
+    def test_mn_conf():
+        # Do something
+
+
+    Keyword arguments:
+    @param switch_flag: -t or -h (template or host)
+    @param switch_id: template name or host id
+    @param config: dictionary with key value pairs for config
+    """
+    def decorated(f):
+        @wraps(f)
+        def wrapped(*args, **kwargs):
+            # Execute mn-conf command with config string
+            print "Before mn-conf wrapped"
+            execute_mn_conf(switch_flag, switch_id, config)
+            print "After mn-conf wrapped"
+            return f
+        return wrapped
+    return decorated
+
+def execute_mn_conf(switch_flag, switch_id, config):
+    conf_file = tempfile.NamedTemporaryFile()
+    for k,v in config.items():
+        conf_file.write("%s=%s\n" % (k, v))
+    conf_file.flush()
+    process = subprocess.Popen("mn-conf set %s %s < %s" % (switch_flag,
+                                                           switch_id,
+                                                           conf_file.name),
+                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    stdout, stderr = process.communicate()
+    conf_file.close()
 
 def clear_virtual_topology_for_tenants(tenant_name_prefix):
     """
