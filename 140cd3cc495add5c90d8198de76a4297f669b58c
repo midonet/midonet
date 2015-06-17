@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_e69dd60b",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/NetworkIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-17T04:51:36Z",
+      "side": 1,
+      "message": "why eventually? isn\u0027t it enough with the await? (btw, shouldn\u0027t the await have a timeout?)\n(just curious...)",
+      "range": {
+        "startLine": 55,
+        "startChar": 23,
+        "endLine": 55,
+        "endChar": 33
+      },
+      "revId": "140cd3cc495add5c90d8198de76a4297f669b58c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
