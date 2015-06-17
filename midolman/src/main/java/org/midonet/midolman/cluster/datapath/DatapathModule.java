@@ -39,6 +39,7 @@ import org.midonet.Util;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.datapath.DatapathChannel;
 import org.midonet.midolman.datapath.DisruptorDatapathChannel;
+import org.midonet.midolman.datapath.DisruptorDatapathChannel$;
 import org.midonet.midolman.datapath.FlowProcessor;
 import org.midonet.midolman.datapath.PacketExecutor;
 import org.midonet.midolman.io.DatapathConnectionPool;
@@ -127,7 +128,7 @@ public class DatapathModule extends PrivateModule {
                     int capacity = Util.findNextPositivePowerOfTwo(
                         config.datapath().globalIncomingBurstCapacity() * 2);
                     RingBuffer<DatapathEvent> ringBuffer = RingBuffer.createMultiProducer(
-                        Factory$.MODULE$,
+                        DisruptorDatapathChannel$.MODULE$.eventFactory(config),
                         capacity);
                     SequenceBarrier barrier = ringBuffer.newBarrier();
                     EventProcessor processors[] = createProcessors(

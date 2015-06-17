@@ -48,22 +48,13 @@ class DatapathChannelTest extends MidolmanSpec {
 
     val capacity = 1024
 
-    val ovsFamilies = new OvsNetlinkFamilies(new DatapathFamily(1), new PortFamily(2),
-                                             new FlowFamily(3), new PacketFamily(4), 5, 6)
-    private val fp = new FlowProcessor(ovsFamilies, 1024, 2048, factory, clock)
-    val ringBuffer = RingBuffer.createSingleProducer[DatapathEvent](
-        DisruptorDatapathChannel.Factory, capacity)
-    val processors = Array(new BackchannelEventProcessor[DatapathEvent](
-        ringBuffer,
-        new AggregateEventPollerHandler(
-            fp,
-            new EventPollerHandlerAdapter(new PacketExecutor(1, 0, factory))),
-        fp))
-
-    val dpChannel = new DisruptorDatapathChannel(ovsFamilies, ringBuffer, processors)
+    var ringBuffer: RingBuffer[DatapathEvent] = _
+    var fp: FlowProcessor = _
+    var dpChannel: DisruptorDatapathChannel = _
 
     val ethernet = { eth src MAC.random() dst MAC.random() } <<
-                   { ip4 src IPv4Addr.random dst IPv4Addr.random } << payload(Array[Byte](0))
+                   { ip4 src IPv4Addr.random dst IPv4Addr.random } <<
+                   payload(Array[Byte](0))
 
     val packet = new Packet(ethernet, FlowMatches.fromEthernetPacket(ethernet))
     val actions = new ArrayList[FlowAction]()
@@ -75,6 +66,19 @@ class DatapathChannelTest extends MidolmanSpec {
     val datapathId = 11
 
     override def beforeTest() {
+        val ovsFamilies = new OvsNetlinkFamilies(new DatapathFamily(1), new PortFamily(2),
+                                                 new FlowFamily(3), new PacketFamily(4), 5, 6)
+        fp = new FlowProcessor(ovsFamilies, 1024, 2048, factory, clock)
+        ringBuffer = RingBuffer.createSingleProducer[DatapathEvent](
+            DisruptorDatapathChannel.eventFactory(config), capacity)
+        val processors = Array(new BackchannelEventProcessor[DatapathEvent](
+                               ringBuffer,
+                               new AggregateEventPollerHandler(
+                                   fp,
+                                   new EventPollerHandlerAdapter(
+                                        new PacketExecutor(1, 0, factory))),
+                               fp))
+        dpChannel = new DisruptorDatapathChannel(ovsFamilies, ringBuffer, processors)
         dpChannel.start(new Datapath(datapathId, "midonet"))
     }
 
