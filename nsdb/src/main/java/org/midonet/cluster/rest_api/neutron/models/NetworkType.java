@@ -27,7 +27,8 @@ public enum NetworkType {
     @ZoomEnumValue("LOCAL") LOCAL,
     @ZoomEnumValue("FLAT") FLAT,
     @ZoomEnumValue("GRE") GRE,
-    @ZoomEnumValue("VLAN") VLAN;
+    @ZoomEnumValue("VLAN") VLAN,
+    @ZoomEnumValue("UPLINK") UPLINK;
 
     @JsonCreator
     @SuppressWarnings("unused")

@@ -80,5 +80,5 @@ class NetworkTranslator(storage: ReadOnlyStorage, pathBldr: PathBuilder)
 
 private[translators] object NetworkTranslator {
     def isUplinkNetwork(nn: NeutronNetwork): Boolean =
-        nn.hasNetworkType && nn.getNetworkType == NetworkType.LOCAL
+        nn.hasNetworkType && nn.getNetworkType == NetworkType.UPLINK
 }
