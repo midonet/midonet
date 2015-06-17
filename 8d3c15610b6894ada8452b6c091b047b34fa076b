@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_b8905f44",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T09:24:32Z",
+      "side": 1,
+      "message": "true, thx!",
+      "parentUuid": "facab960_581cb313",
+      "revId": "8d3c15610b6894ada8452b6c091b047b34fa076b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_786df797",
         "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
         "patchSetId": 5
@@ -47,6 +65,24 @@
       "writtenOn": "2015-06-12T13:22:50Z",
       "side": 1,
       "message": "HELLO TO YOU TOO!",
+      "revId": "8d3c15610b6894ada8452b6c091b047b34fa076b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_387d2f1d",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/FuncTest.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T09:24:32Z",
+      "side": 1,
+      "message": "OH IT WORKS, MERGE!",
+      "parentUuid": "facab960_786df797",
       "revId": "8d3c15610b6894ada8452b6c091b047b34fa076b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
