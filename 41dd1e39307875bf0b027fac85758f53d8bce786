@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_e1c860aa",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T09:25:13Z",
+      "side": 1,
+      "message": "Certainly, the auth filter with keystone support will be added later as for now we\u0027re focusing on getting support for MDTS.",
+      "parentUuid": "facab960_bb3e8b8a",
+      "range": {
+        "startLine": 76,
+        "startChar": 50,
+        "endLine": 76,
+        "endChar": 65
+      },
+      "revId": "41dd1e39307875bf0b027fac85758f53d8bce786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_bb1f6b6b",
         "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/RestApiTestBase.java",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-16T21:46:52Z",
       "side": 1,
       "message": "Shouldn\u0027t vladimir produce the same messages to be fully compatible?\nIs there another \u0027assert\u0027 to check for vladimir potentially wrong responses?",
+      "range": {
+        "startLine": 76,
+        "startChar": 8,
+        "endLine": 76,
+        "endChar": 9
+      },
+      "revId": "41dd1e39307875bf0b027fac85758f53d8bce786",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_21c6c89a",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/RestApiTestBase.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T09:25:13Z",
+      "side": 1,
+      "message": "Ryu and I discussed this offline and agreed that we shouldn\u0027t be asserting on error messages. Ideally we could, but for that we should have more consistent messaging policy which is something we will be able to do leveraging the generic code for all resources. In the current implementation, this is not the case, every resource composes error messages very differently so it\u0027s both very time consuming to respect the exact messages, questionable in terms of code structure (e.g.: many current http errors are composed by directly inspecting zk exceptions, which is an undesired coupling) and not really worth the cost.\n\nNote however that having the same http response codes is a must of course.\n\nThanks for bringing it up, it\u0027s important to keep an eye on things :)",
+      "parentUuid": "facab960_bb1f6b6b",
       "range": {
         "startLine": 76,
         "startChar": 8,
