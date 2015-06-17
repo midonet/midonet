@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "facab960_2c0ebf3b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T15:20:45Z",
+      "side": 1,
+      "message": "why not instances.remove, then examine the return value?",
+      "range": {
+        "startLine": 255,
+        "startChar": 12,
+        "endLine": 260,
+        "endChar": 13
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4c24e3c4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 6
@@ -48,6 +71,75 @@
     },
     {
       "key": {
+        "uuid": "facab960_c7060c1d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T15:20:45Z",
+      "side": 1,
+      "message": "val toRemove \u003d if(keyType.isSingle) key else value\nval removed \u003d values.remove(toRemove)\nval ownerId \u003d if (removed.isEmpty) {\n                  NoOwnerId \n              } else {\n                  notifyState()\n                  DefaultOwnerId\n              }\nStateResult(ownerId)",
+      "range": {
+        "startLine": 477,
+        "startChar": 12,
+        "endLine": 491,
+        "endChar": 13
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4712fc57",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 500,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T15:20:45Z",
+      "side": 1,
+      "message": "nit, maybe:\n\nval value \u003d values.get(key)\nSingleValueKey(key, value,\n               if (value.isEmpty) NoOwnerId else DefaultOwnerId)",
+      "range": {
+        "startLine": 496,
+        "startChar": 16,
+        "endLine": 500,
+        "endChar": 17
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_87188476",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T15:20:45Z",
+      "side": 1,
+      "message": "ditto (not a great alternative either).\n\nanother is factoring out this to a method\n\ndef singleValKey(key, val): SingleValueKey\n\nto reduce nesting and repetition",
+      "range": {
+        "startLine": 509,
+        "startChar": 20,
+        "endLine": 514,
+        "endChar": 21
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_a7282887",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 6
@@ -64,6 +156,29 @@
         "startChar": 73,
         "endLine": 720,
         "endChar": 76
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a7010807",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 808,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-17T15:20:45Z",
+      "side": 1,
+      "message": "nit Observable.just(f).subscribe(child)",
+      "range": {
+        "startLine": 807,
+        "startChar": 24,
+        "endLine": 808,
+        "endChar": 43
       },
       "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
