@@ -22,6 +22,30 @@
       "revId": "140cd3cc495add5c90d8198de76a4297f669b58c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_015c64ec",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/NetworkIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-17T08:21:16Z",
+      "side": 1,
+      "message": "Because it makes the integration tests run faster. We used to use 1000 to 2000 ms sleep everywhere, and those would add up but we cannot reduce those because that would make the tests flaky. Brandon made a switch from fixed-length sleep to eventually and the tests now run an order of magnitude faster.",
+      "parentUuid": "facab960_e69dd60b",
+      "range": {
+        "startLine": 55,
+        "startChar": 23,
+        "endLine": 55,
+        "endChar": 33
+      },
+      "revId": "140cd3cc495add5c90d8198de76a4297f669b58c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
