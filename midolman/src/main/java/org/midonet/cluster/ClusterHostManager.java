@@ -93,7 +93,7 @@ public class ClusterHostManager extends ClusterManager<HostBuilder> {
             return;
         }
 
-        if (metadata != null) {
+        if (metadata != null && !isUpdate) {
             retrieveTunnelZoneConfigs(id, new HashSet<UUID>(), builder);
 
             retrieveHostDatapathName(id, builder, isUpdate);

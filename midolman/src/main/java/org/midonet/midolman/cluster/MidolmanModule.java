@@ -22,9 +22,10 @@ import com.google.inject.Provider;
 import com.google.inject.Scopes;
 
 import org.midonet.cluster.Client;
+import org.midonet.midolman.ShardedSimulationBackChannel;
+import org.midonet.midolman.ShardedSimulationBackChannel$;
+import org.midonet.midolman.SimulationBackChannel;
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.flows.FlowInvalidator;
-import org.midonet.midolman.flows.ShardedFlowInvalidator;
 import org.midonet.midolman.monitoring.FlowRecorderFactory;
 import org.midonet.midolman.services.DatapathConnectionService;
 import org.midonet.midolman.services.MidolmanActorsService;
@@ -51,6 +52,9 @@ public class MidolmanModule extends PrivateModule {
         bind(MidolmanService.class).asEagerSingleton();
         expose(MidolmanService.class);
 
+        bindSimulationBackChannel();
+        bindAllocator();
+
         bind(VirtualTopology.class)
             .asEagerSingleton();
         expose(VirtualTopology.class);
@@ -66,23 +70,21 @@ public class MidolmanModule extends PrivateModule {
 
         requestStaticInjection(Chain.class);
 
-        bindFlowInvalidator();
-        bindAllocator();
     }
 
-    protected void bindFlowInvalidator() {
-        bind(ShardedFlowInvalidator.class).toProvider(new Provider<ShardedFlowInvalidator>() {
+    protected void bindSimulationBackChannel() {
+        bind(ShardedSimulationBackChannel.class).toProvider(new Provider<ShardedSimulationBackChannel>() {
             @Inject
             private MidolmanActorsService service;
 
             @Override
-            public ShardedFlowInvalidator get() {
-                return new ShardedFlowInvalidator(service);
+            public ShardedSimulationBackChannel get() {
+                return ShardedSimulationBackChannel$.MODULE$.apply(service);
             }
         }).asEagerSingleton();
-        bind(FlowInvalidator.class).to(ShardedFlowInvalidator.class);
-        expose(FlowInvalidator.class);
-        expose(ShardedFlowInvalidator.class);
+        bind(SimulationBackChannel.class).to(ShardedSimulationBackChannel.class);
+        expose(SimulationBackChannel.class);
+        expose(ShardedSimulationBackChannel.class);
     }
 
     protected void bindAllocator() {

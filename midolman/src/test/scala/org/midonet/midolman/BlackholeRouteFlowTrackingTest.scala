@@ -32,7 +32,7 @@ import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Subnet, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.MidonetEventually
 
@@ -152,7 +152,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
             Then("an invalidation by destination IP is scheduled")
             val tag = FlowTagger.tagForDestinationIp(clusterRouter.getId,
                                                      IPv4Addr(rightOtherIp))
-            flowInvalidator should invalidate (tag)
+            flowInvalidator should invalidateForNewRoutes (new IPv4Subnet(rightOtherIp, 32))
         }
     }
 }

@@ -26,7 +26,6 @@ import scala.reflect._
 import akka.actor._
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
-import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.slf4j.LoggerFactory
@@ -34,8 +33,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.Client
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
-import org.midonet.midolman.NotYetException
-import org.midonet.midolman.Referenceable
+import org.midonet.midolman.{BackChannelMessage, SimulationBackChannel, NotYetException, Referenceable}
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.devices.{PoolHealthMonitorMap, RouterPort, BridgePort, Port}
 import org.midonet.util.concurrent._
@@ -282,7 +280,7 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
     val config: MidolmanConfig = null
 
     @Inject
-    var flowInvalidator: FlowInvalidator = _
+    var backChannel: SimulationBackChannel = _
 
     /** Manages the device, by adding the request sender to the set of
       * unanswered clients and subscribers, if needed.
@@ -434,7 +432,9 @@ class VirtualTopologyActor extends VirtualTopologyRedirector {
                    PoolHealthMonitorMap(mappings))
         case InvalidateFlowsByTag(tag) =>
             log.debug("Invalidating flows for tag {}", tag)
-            flowInvalidator.scheduleInvalidationFor(tag)
+            backChannel.tell(tag)
+        case m: BackChannelMessage =>
+            backChannel.tell(m)
         case unexpected: AnyRef =>
             log.error("Received unexpected message: {}", unexpected)
         case _ =>

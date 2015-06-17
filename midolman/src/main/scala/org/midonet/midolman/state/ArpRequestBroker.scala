@@ -27,9 +27,8 @@ import com.typesafe.scalalogging.Logger
 import org.jctools.queues.SpscLinkedQueue
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.NotYetException
+import org.midonet.midolman.{SimulationBackChannel, NotYetException}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.devices.RouterPort
@@ -80,7 +79,7 @@ object ArpRequestBroker {
  */
 class ArpRequestBroker(emitter: PacketEmitter,
                        config: MidolmanConfig,
-                       invalidator: FlowInvalidator,
+                       invalidator: SimulationBackChannel,
                        clock: UnixClock = UnixClock()) {
 
     val log = Logger(LoggerFactory.getLogger(s"org.midonet.devices.router.arptable"))
@@ -154,7 +153,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                                    arpCache: ArpCache,
                                    emitter: PacketEmitter,
                                    config: MidolmanConfig,
-                                   invalidator: FlowInvalidator,
+                                   invalidator: SimulationBackChannel,
                                    clock: UnixClock = UnixClock()) {
     import ArpRequestBroker._
 
@@ -383,7 +382,7 @@ class SingleRouterArpRequestBroker(id: UUID,
         if (newMac ne null) {
             if ((oldMac ne null) && (newMac != oldMac)) {
                 log.debug("Invalidating flows for {} in router {}", ip, id)
-                invalidator.scheduleInvalidationFor(FlowTagger.tagForArpEntry(id, ip))
+                invalidator.tell(FlowTagger.tagForArpEntry(id, ip))
             }
             keepPromises(ip, newMac)
         }

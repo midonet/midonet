@@ -36,7 +36,7 @@ import org.midonet.midolman.simulation.{Router => SimulationRouter}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, MAC}
+import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{tagForDestinationIp, tagForDevice, tagForRoute}
 
 @RunWith(classOf[JUnitRunner])
@@ -680,70 +680,6 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
         }
     }
 
-    feature("Test router tag manager") {
-        scenario("The router mapper updates the flow count map") {
-            val obs = createObserver()
-            val mapper = testRouterCreated(obs)._2
-            val tagManager = obs.getOnNextEvents.get(0).routerMgrTagger
-            val ip: IPv4Addr = "10.0.0.1"
-
-            When("Adding a destination IP")
-            tagManager.addIPv4Tag(ip, 0)
-
-            Then("The tag to flow count should contain the IP")
-            eventually {
-                mapper.dstIpTagTrie.countRefs(ip.toInt) should be (1)
-            }
-
-            When("Adding the IP a second time")
-            tagManager.addIPv4Tag(ip, 0)
-
-            Then("The tag to flow count should increment the count")
-            eventually {
-                mapper.dstIpTagTrie.countRefs(ip.toInt) should be (2)
-            }
-
-            When("Removing the IP")
-            val callback = tagManager.getFlowRemovalCallback(ip)
-            callback.call()
-
-            Then("The tag to flow count should decrement the count")
-            eventually {
-                mapper.dstIpTagTrie.countRefs(ip.toInt) should be (1)
-            }
-
-            When("Removing the IP a second time")
-            callback.call()
-
-            Then("The tag to flow count should remove the IP")
-            eventually {
-                mapper.dstIpTagTrie.countRefs(ip.toInt) should be (0)
-            }
-        }
-
-        scenario("The router mapper updates the tag trie") {
-            val obs = createObserver()
-            val mapper = testRouterCreated(obs)._2
-            val tagManager = obs.getOnNextEvents.get(0).routerMgrTagger
-
-            When("Adding a destination IP")
-            tagManager.addIPv4Tag("10.0.0.1", 0)
-
-            Then("The invalidation trie should contain the IP")
-            eventually {
-                mapper.dstIpTagTrie(IPv4Addr("10.0.0.1").toInt) should be (0)
-            }
-
-            When("Removing the destination IP")
-            tagManager.getFlowRemovalCallback("10.0.0.1").call()
-
-            Then("The invalidation trie should not contain the IP")
-            eventually {
-                mapper.dstIpTagTrie shouldBe empty
-            }
-        }
-    }
-
     feature("Test flow invalidation") {
         scenario("For router") {
             val obs = createObserver()
@@ -771,7 +707,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             And("The flow controller should receive the IP invalidation")
-            flowInvalidator should invalidate (tagForDestinationIp(mapper.id, "2.0.0.1"))
+            flowInvalidator should invalidateForNewRoutes(IPv4Subnet.fromCidr("2.0.0.0/24"))
         }
 
         scenario("For removed route") {
@@ -794,7 +730,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(3, timeout) shouldBe true
 
             Then("The flow controller should receive a route invalidation")
-            flowInvalidator should invalidate (tagForRoute(route.asJava))
+            flowInvalidator should invalidateForDeletedRoutes(IPv4Subnet.fromCidr("2.0.0.0/24"))
         }
     }
 }
