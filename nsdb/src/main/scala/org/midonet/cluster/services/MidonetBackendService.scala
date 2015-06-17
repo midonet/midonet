@@ -36,6 +36,7 @@ object MidonetBackend {
     final val AliveKey = "alive"
     final val HostsKey = "hosts"
     final val HostKey = "host"
+    final val RoutesKey = "routes"
 
 }
 
@@ -138,6 +139,7 @@ abstract class MidonetBackend extends AbstractService {
         stateStore.registerKey(classOf[Host], AliveKey, SingleFirstWriteWins)
         stateStore.registerKey(classOf[Host], HostKey, SingleFirstWriteWins)
         stateStore.registerKey(classOf[Port], HostsKey, Multiple)
+        stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
 
         store.build()
     }
