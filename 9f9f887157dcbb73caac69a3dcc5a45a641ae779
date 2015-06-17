@@ -22,6 +22,30 @@
       "revId": "9f9f887157dcbb73caac69a3dcc5a45a641ae779",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c167dc4b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BgpMapperTest.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 659,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-17T10:09:28Z",
+      "side": 1,
+      "message": "But they are two distinct updates: a port with bgpId\u003dnull, one with bgpId set. The purpose here is to issue the same updates as if they were emitted by the VT, in order to not require a second Port subscription by the routing handler.",
+      "parentUuid": "facab960_622627d0",
+      "range": {
+        "startLine": 659,
+        "startChar": 12,
+        "endLine": 659,
+        "endChar": 53
+      },
+      "revId": "9f9f887157dcbb73caac69a3dcc5a45a641ae779",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
