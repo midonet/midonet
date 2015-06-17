@@ -32,7 +32,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.state.StateStorage
+import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
 import org.midonet.midolman.flows.{FlowTagIndexer, FlowInvalidator}
@@ -58,7 +58,7 @@ trait MidolmanServices {
         injector.getInstance(classOf[DataClient])
 
     def stateStorage =
-        injector.getInstance(classOf[StateStorage])
+        injector.getInstance(classOf[LegacyStorage])
 
     def metrics = {
         val metricsReg = injector.getInstance(classOf[MetricRegistry])

@@ -47,22 +47,22 @@ import org.midonet.util.functors._
 import org.midonet.util.reactivex._
 
 /**
- * An implementation of the [[StateStorage]] trait using the legacy ZooKeeper
+ * An implementation of the [[LegacyStorage]] trait using the legacy ZooKeeper
  * managers as backend.
  */
-class ZookeeperStateStorage @Inject() (config: MidonetBackendConfig,
+class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
                                        backend: MidonetBackend,
                                        dataClient: DataClient,
                                        @Named("directoryReactor") reactor: Reactor,
                                        connectionWatcher: ZkConnectionAwareWatcher,
-                                       // Legacy
                                        serializer: Serializer,
                                        zkManager: ZkManager,
                                        portZkManager: PortZkManager,
                                        routerZkManager: RouterZkManager,
                                        routerManager: ClusterRouterManager,
                                        pathBuilder: PathBuilder)
-        extends StateStorage with MidolmanLogging {
+        extends LegacyStorage with MidolmanLogging {
+
 
     /**
      * An implementation of a route replicated set.
