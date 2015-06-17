@@ -45,7 +45,6 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     protected val config: MidolmanConfig
     protected val clock: NanoClock
     protected val flowProcessor: FlowProcessor
-    protected val flowInvalidator: FlowInvalidator
     protected val datapathId: Int
     val metrics: PacketPipelineMetrics
 
@@ -92,13 +91,10 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
         }
     }
 
-    override def shouldProcess() =
-        completedFlowOperations.size > 0 ||
-        flowInvalidator.hasInvalidations
+    override def shouldProcess() = completedFlowOperations.size > 0
 
     override def process(): Unit = {
         processCompletedFlowOperations()
-        flowInvalidator.process(this)
         checkFlowsExpiration(clock.tick)
     }
 

@@ -78,14 +78,15 @@ class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
         val table = new IPv4RoutingTable()
         for (rt <- routes)
             table.addRoute(rt)
+        routerManager ! TriggerUpdate(cfg, arpCache, new RoutingTableWrapper(table))
+
         if (routesToAdd.size > 0 || routesToRemove.size > 0) {
             val added = routesToAdd.clone()
             val deleted = routesToRemove.clone()
-            routerManager ! InvalidateFlows(added, deleted)
+            routerManager ! InvalidateFlows(id, added, deleted)
         }
         routesToAdd.clear()
         routesToRemove.clear()
-        routerManager ! TriggerUpdate(cfg, arpCache, new RoutingTableWrapper(table))
     }
 
     def start() = null

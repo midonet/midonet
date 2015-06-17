@@ -18,6 +18,8 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
+import org.midonet.midolman.SimulationBackChannel
+
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
@@ -35,7 +37,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.state.StateStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
-import org.midonet.midolman.flows.{FlowTagIndexer, FlowInvalidator}
+import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProviderService
@@ -89,8 +91,9 @@ trait MidolmanServices {
                 .asInstanceOf[MockFlowProcessor]
     }
 
-    def flowInvalidator =
-        injector.getInstance(classOf[FlowInvalidator])
+    def simBackChannel = injector.getInstance(classOf[SimulationBackChannel])
+
+    def flowInvalidator = simBackChannel
 
     val mockFlowInvalidation = new FlowTagIndexer() {
         val log = Logger(NOPLogger.NOP_LOGGER)

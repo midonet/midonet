@@ -26,7 +26,6 @@ import org.midonet.cluster.state.{StateStorage, LocalPortActive}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
-import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
@@ -35,7 +34,7 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
-import org.midonet.midolman.{DatapathState, Referenceable}
+import org.midonet.midolman.{SimulationBackChannel, DatapathState, Referenceable}
 import org.midonet.util.concurrent.ReactiveActor
 import org.midonet.util.concurrent.ReactiveActor.OnNext
 import org.midonet.util.eventloop.SelectLoop
@@ -70,7 +69,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     @ZEBRA_SERVER_LOOP
     var zebraLoop: SelectLoop = null
     @Inject
-    var flowInvalidator: FlowInvalidator = null
+    var flowInvalidator: SimulationBackChannel = null
     @Inject
     var dpState: DatapathState = null
 
