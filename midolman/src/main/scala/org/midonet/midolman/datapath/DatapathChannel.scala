@@ -19,6 +19,7 @@ import java.nio.ByteBuffer
 import java.util.{List => JList}
 
 import com.lmax.disruptor._
+import org.midonet.midolman.config.MidolmanConfig
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.DatapathEvent
 import org.midonet.netlink._
@@ -39,10 +40,14 @@ object DisruptorDatapathChannel {
 
     sealed class DatapathEvent(var bb: ByteBuffer, var op: Byte)
 
-    object Factory extends EventFactory[DatapathEvent] {
-        override def newInstance(): DatapathEvent =
-            new DatapathEvent(BytesUtil.instance.allocateDirect(8*1024), -1)
-    }
+    def eventFactory(config: MidolmanConfig): EventFactory[DatapathEvent] =
+        new EventFactory[DatapathEvent] {
+            override def newInstance(): DatapathEvent =
+                new DatapathEvent(
+                    BytesUtil.instance.allocateDirect(
+                        config.datapath.sendBufferPoolBufSizeKb * 1024),
+                    -1)
+        }
 }
 
 class DisruptorDatapathChannel(ovsFamilies: OvsNetlinkFamilies,
