@@ -212,6 +212,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_46c92258",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-17T02:46:40Z",
+      "side": 1,
+      "message": "i had some experiment.\n\nwith flows like below and static arp on the host,\ni was able to forward metadata traffic to an ordinary web server running on the hypervisor.\n\nport 6 is a VM port.\n10.0.0.3/fa:16:3e:d0:39:ca are its fixed_ip and mac_address.\n\nport 7 is the veth port manually plugged into the datapath.\nthe other side of the veth pair\u0027s addresses are 169.254.169.254/7e:a0:49:f4:5e:b7 and the web server is\nlistening on it.\n\nodp flows:\nin_port(7),eth_type(0x0800),ipv4(src\u003d169.254.169.254,dst\u003d169.254.1.1,proto\u003d6,frag\u003dno), actions:set(eth(src\u003d7e:a0:49:f4:5e:b7,dst\u003dfa:16:3e:d0:39:ca)),set(ipv4(src\u003d169.254.169.254,dst\u003d10.0.0.3,proto\u003d6,tos\u003d0,ttl\u003d10,frag\u003dno)),6\n\nin_port(6),eth_type(0x0800),ipv4(src\u003d10.0.0.3,dst\u003d169.254.169.254,proto\u003d6,frag\u003dno), actions:set(eth(src\u003dfa:16:3e:d0:39:ca,dst\u003d7e:a0:49:f4:5e:b7)),set(ipv4(src\u003d169.254.1.1,dst\u003d169.254.169.254,proto\u003d6,tos\u003d0,ttl\u003d10,frag\u003dno)),7\n\nstatic arp entry on hypervisor:\n? (169.254.1.1) at fa:16:3e:d0:39:ca [ether] PERM on fuga\n\n(note: proto/tos/ttl/frag stuffs in the above flows are not essential.\nwe can ignore them if we can use masked-set actions.\nunfortunately datapath found in ubuntu 14.04.2 doesn\u0027t seem to support it.)\n\nthe guest was cirros-0.3.4.\nit seems a host-route was injected via dhcp.\n$ ip r\ndefault via 10.0.0.1 dev eth0 \n10.0.0.0/24 dev eth0  src 10.0.0.3 \n169.254.169.254 via 10.0.0.2 dev eth0 \n$ \n\nfor guests which complies RFC 3927 and never send packets to a router, i think the above setup is not enough as arp request for 169.254.169.254 won\u0027t get answer.",
+      "parentUuid": "facab960_402b0a94",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_95f9f94f",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
