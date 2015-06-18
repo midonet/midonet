@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_efc846aa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T09:46:54Z",
+      "side": 1,
+      "message": "I added custom handling for these cases, thanks for pointing this out!",
+      "parentUuid": "facab960_dcbd02b9",
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_9ca8da78",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 21
@@ -30,6 +48,24 @@
       "writtenOn": "2015-06-18T01:21:26Z",
       "side": 1,
       "message": "extra white spaces...",
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4f405234",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T09:46:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_9ca8da78",
       "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_4f6cd235",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T09:46:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_bcdf5e0c",
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_5cd012f6",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 21
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_af4c7e9f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T09:46:54Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_5cd012f6",
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_5cf7328b",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 21
@@ -81,6 +153,30 @@
       "writtenOn": "2015-06-18T01:21:26Z",
       "side": 1,
       "message": "Mmm... I don\u0027t get this (sorry, probably lack of context from my side): shouldn\u0027t the \u0027putOpinion\u0027 affect the catch/winner hashes? (and the same for removeOpinion below...)",
+      "range": {
+        "startLine": 239,
+        "startChar": 8,
+        "endLine": 239,
+        "endChar": 18
+      },
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4f24d2c4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T09:46:54Z",
+      "side": 1,
+      "message": "This is to publish an opinion from this map on the bus. In principle it could both publish this opinion on the observer and insert it into the cache. I decided to not do that here and leave this decision to the implementation of MergedMapBus.\nIn the Kafka-based implementation this publishes the opinion on the Kafka topic and a consumer will notify it on opinionObservable.\n\nIs it clearer?",
+      "parentUuid": "facab960_5cf7328b",
       "range": {
         "startLine": 239,
         "startChar": 8,
