@@ -33,7 +33,7 @@ import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
-import org.midonet.midolman.state.{MacPortMap, PathBuilder}
+import org.midonet.midolman.state.MacPortMap
 import org.midonet.packets.{ARP, IPv4, IPv6, MAC}
 
 trait OpMatchers {
@@ -87,9 +87,6 @@ trait OpMatchers {
 class PortTranslatorTest extends TranslatorTestBase with ChainManager
                                                     with OpMatchers {
     protected var translator: PortTranslator = _
-
-    protected val zkRoot = "/midonet/test"
-    protected val pathBldr = new PathBuilder(zkRoot)
 
     protected val portId = randomUuidProto
     protected val portJUuid = UUIDUtil.fromProto(portId)

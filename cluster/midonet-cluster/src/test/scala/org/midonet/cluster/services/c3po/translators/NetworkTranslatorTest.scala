@@ -22,14 +22,12 @@ import org.midonet.cluster.models.Neutron.NeutronNetwork
 import org.midonet.cluster.models.Topology.Network
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.midolman.state.PathBuilder
 
 /**
  * Tests the Neutron Network model conversion layer.
  */
 @RunWith(classOf[JUnitRunner])
 class NetworkTranslatorTest extends TranslatorTestBase {
-    val zkRoot = "/midonet/v1"
     val tenantId = "neutron tenant"
     val networkName = "neutron test"
     val adminStateUp = true
@@ -37,7 +35,6 @@ class NetworkTranslatorTest extends TranslatorTestBase {
     def genId() = UUIDUtil.randomUuidProto
 
     initMockStorage()
-    val pathBldr: PathBuilder = new PathBuilder(zkRoot)
     val translator: NetworkTranslator = new NetworkTranslator(storage, pathBldr)
 
     val sampleNetwork = NeutronNetwork.newBuilder()
