@@ -69,6 +69,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
                 classOf[Port], Seq(rifPortId, rPeerPortId)).await()
             nwPort.getPeerId shouldBe rPeerPort.getId
             rPeerPort.getPeerId shouldBe nwPort.getId
+            rPeerPort.getPortAddress.getAddress shouldBe "10.0.0.3"
+            rPeerPort.getPortMac shouldBe "ab:cd:ef:01:02:03"
             rPeerPort
         }
 
@@ -140,6 +142,8 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         rPort.getHostId shouldBe hostId.asProto
         rPort.getInterfaceName shouldBe "eth0"
         rPort.getRouterId shouldBe routerId.asProto
+        rPort.getPortAddress.getAddress shouldBe "10.0.0.3"
+        rPort.getPortMac shouldBe "ab:cd:ef:01:02:03"
 
         rPort.getRouteIdsCount shouldBe 1
         val rifRoute = storage.get(classOf[Route], rPort.getRouteIds(0)).await()
@@ -185,10 +189,10 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         createSubnet(3, subnetId, extNwId, "10.0.1.0/24")
         createDhcpPort(4, dhcpPortId, extNwId, subnetId, "10.0.1.1")
         createRouterGatewayPort(5, extNwGwPort1Id, extNwId, tntRtr1Id,
-                                "10.0.1.2", subnetId)
+                                "10.0.1.2", "ab:cd:ef:00:00:02", subnetId)
         createRouter(6, tntRtr1Id, extNwGwPort1Id)
         createRouterGatewayPort(7, extNwGwPort2Id, extNwId, tntRtr2Id,
-                                "10.0.1.3", subnetId)
+                                "10.0.1.3", "ab:cd:ef:00:00:03", subnetId)
         createRouter(8, tntRtr2Id, extNwGwPort2Id)
 
 

@@ -135,16 +135,18 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             val rtrF = storage.get(classOf[Router], edgeRtrId)
             val (rPort, rtr) = (rPortF.await(), rtrF.await())
             rPort.getRouterId shouldBe rtr.getId
+            rPort.getPortAddress.getAddress shouldBe "10.0.1.2"
+            rPort.getPortMac shouldBe "03:03:03:03:03:03"
             rtr.getPortIdsCount shouldBe 2
             rtr.getPortIdsList.asScala should contain(rPort.getId)
         }
 
         // Create tenant router and check gateway setup.
         createRouterGatewayPort(13, extNwGwPortId, extNwId, tntRtrId,
-                                "10.0.1.3", extNwSubnetId)
+                                "10.0.1.3", "ab:cd:ef:00:00:03", extNwSubnetId)
         createRouter(14, tntRtrId, gwPortId = extNwGwPortId)
-        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3", "10.0.1.2")
-
+        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3",
+                        "ab:cd:ef:00:00:03", "10.0.1.2")
         // Rename router to make sure update doesn't break anything.
         val trRenamedJson = routerJson(tntRtrId, name = "tr-renamed",
                                        gwPortId = extNwGwPortId).toString
@@ -153,7 +155,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             val tr = storage.get(classOf[Router], tntRtrId).await()
             tr.getName shouldBe "tr-renamed"
             tr.getPortIdsCount shouldBe 1
-            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3", "10.0.1.2")
+            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3",
+                            "ab:cd:ef:00:00:03", "10.0.1.2")
         }
 
         // Delete gateway.
@@ -170,12 +173,12 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         // Re-add gateway.
         createRouterGatewayPort(17, extNwGwPortId, extNwId, tntRtrId,
-                                "10.0.1.4", extNwSubnetId)
+                                "10.0.1.4", "ab:cd:ef:00:00:04", extNwSubnetId)
         val trAddGwJson = routerJson(tntRtrId, name = "tr-add-gw",
                                      gwPortId = extNwGwPortId).toString
         insertUpdateTask(18, RouterType, trAddGwJson, tntRtrId)
-        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4", "10.0.1.2")
-
+        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+                        "ab:cd:ef:00:00:04", "10.0.1.2")
         // Delete gateway and router.
         insertDeleteTask(19, PortType, extNwGwPortId)
         insertDeleteTask(20, RouterType, tntRtrId)
@@ -193,7 +196,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
     }
 
     private def validateGateway(rtrId: UUID, nwGwPortId: UUID,
-                                trPortIpAddr: String,
+                                trPortIpAddr: String, trPortMac: String,
                                 gwIpAddr: String): Unit = {
         // Tenant router should have gateway port and no routes.
         val trGwPortId = tenantGwPortId(nwGwPortId)
@@ -229,6 +232,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         trGwPort.getPeerId shouldBe nwGwPort.getId
 
         trGwPort.getPortAddress.getAddress shouldBe trPortIpAddr
+        trGwPort.getPortMac shouldBe trPortMac
 
         validateLocalRoute(trLocalRt, trGwPort)
 

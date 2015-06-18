@@ -124,7 +124,10 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
 
         // Create port on tenant router and link to the external network port.
         val trPortId = tenantGwPortId(nr.getGwPortId)
-        val trPort = newTenantRouterGWPort(trPortId, nr.getId, gwIpAddr)
+        val gwMac = if (nGwPort.hasMacAddress) Some(nGwPort.getMacAddress)
+                    else None
+        val trPort = newTenantRouterGWPort(trPortId, nr.getId, gwIpAddr,
+                                           mac = gwMac)
 
         val linkOps = linkPortOps(trPort, extNwPort)
 

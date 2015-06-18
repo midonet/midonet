@@ -82,6 +82,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
             nPort.getFixedIps(0).getIpAddress
         } else ns.getGatewayIp
         routerPortBldr.setPortAddress(gatewayIp)
+        routerPortBldr.setPortMac(nPort.getMacAddress)
 
         // Add a route to the Interface subnet.
         val routerInterfaceRouteId =
