@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_9c153ae7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-18T00:13:27Z",
+      "side": 1,
+      "message": "I think we need to \"clone\" the DTO here as it\u0027s breaking the integration test because the caller is implicitly assuming that the returned object is not the same instance as the one passed. Please see the Network integration test in NeutronZoomPluginTest.\n\nT may not implement Cloneable, so we may need to convert the generated proto back to a POJO and pass it back as a return value.",
+      "revId": "58aacbb290fe247decb4e8c62432b4c5233d2664",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
