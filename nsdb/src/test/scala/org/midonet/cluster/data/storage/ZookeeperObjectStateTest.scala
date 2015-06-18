@@ -28,11 +28,14 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.{GivenWhenThen, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
+import rx.observers.TestObserver
+
 import org.midonet.cluster.data.storage.StorageTestClasses.State
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.cluster.data.storage.KeyType.{Multiple, SingleFirstWriteWins, SingleLastWriteWins}
 import org.midonet.util.reactivex._
+import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
@@ -40,7 +43,7 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
                                with Eventually {
 
     private var storage: ZookeeperObjectMapper = _
-    private final val timeout = 1 second
+    private final val timeout = 5 seconds
 
     protected override def setup(): Unit = {
         storage = new ZookeeperObjectMapper(ZK_ROOT, curator)
@@ -489,6 +492,331 @@ class ZookeeperObjectStateTest extends FeatureSpec with CuratorTestFramework
             e.owner shouldBe ownerId1
 
             curator2.close()
+        }
+    }
+
+    feature("Test observables for single value") {
+        scenario("Object does not exist") {
+            Given("A random object identifier")
+            val id = UUID.randomUUID()
+
+            When("An observer subscribes to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], id, "first")
+                .subscribe(obs)
+
+            Then("The observer should complete")
+            obs.awaitCompletion(timeout)
+            obs.getOnNextEvents shouldBe empty
+        }
+
+        scenario("Value does not exist") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            When("An observer subscribes to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "first")
+                   .subscribe(obs)
+
+            Then("The observer receives no value")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+        }
+
+        scenario("Value exists in storage") {
+            Given("An object in storage")
+            val obj = new State
+            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            Then("The observer receives the value")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+        }
+
+        scenario("Value is created") {
+            Given("An object in storage")
+            val obj = new State
+            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
+            storage.create(obj)
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            Then("The observer receives no value")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+
+            When("Adding a key value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+
+            Then("The observer receives no value")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+        }
+
+        scenario("Value is deleted and recreated") {
+            Given("An object in storage")
+            val obj = new State
+            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            And("The value is deleted")
+            storage.removeValue(classOf[State], obj.id, "first", null)
+                .await(timeout)
+
+            And("A new value is added")
+            storage.addValue(classOf[State], obj.id, "first", "2")
+                .await(timeout)
+
+            Then("The observer receives all updates")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+            obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+            obs.getOnNextEvents.get(2) shouldBe SingleValueKey(
+                "first", Some("2"), ownerId)
+        }
+
+        scenario("Observable completes on object deletion") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+
+            And("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "first")
+                .subscribe(obs)
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The object is deleted")
+            storage.delete(classOf[State], obj.id)
+
+            Then("The observable should complete")
+            obs.awaitCompletion(1 second)
+        }
+
+        scenario("Observable notifies identical values") {
+            Given("An object in storage")
+            val obj = new State
+            val ownerId = curator.getZookeeperClient.getZooKeeper.getSessionId
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "first")
+                .subscribe(obs)
+
+            And("The same value is added two more times")
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+            storage.addValue(classOf[State], obj.id, "first", "1")
+                .await(timeout)
+
+            And("Removing the value")
+            storage.removeValue(classOf[State], obj.id, "first", null)
+                .await(timeout)
+
+            Then("The observer receives all updates")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+            obs.getOnNextEvents.get(1) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+            obs.getOnNextEvents.get(2) shouldBe SingleValueKey(
+                "first", Some("1"), ownerId)
+            obs.getOnNextEvents.get(3) shouldBe SingleValueKey(
+                "first", None, NoOwnerId)
+        }
+    }
+
+    feature("Test observable for multi value") {
+        scenario("Object does not exist") {
+            Given("A random object identifier")
+            val id = UUID.randomUUID()
+
+            When("An observer subscribes to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], id, "multi")
+                .subscribe(obs)
+
+            Then("The observer should complete")
+            obs.awaitCompletion(timeout)
+            obs.getOnNextEvents shouldBe empty
+        }
+
+        scenario("Value does not exist") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            When("An observer subscribes to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            Then("The observer receives no value")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBe MultiValueKey("multi", Set())
+        }
+
+        scenario("Values exist in storage") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+            storage.addValue(classOf[State], obj.id, "multi", "2")
+                .await(timeout)
+            storage.addValue(classOf[State], obj.id, "multi", "3")
+                .await(timeout)
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            Then("The observer receives the value")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBe MultiValueKey(
+                "multi", Set("1", "2", "3"))
+        }
+
+        scenario("Values are added and deleted") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            And("Another value is added")
+            storage.addValue(classOf[State], obj.id, "multi", "2")
+                .await(timeout)
+
+            And("The first value is deleted")
+            storage.removeValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+
+            And("The second value is deleted")
+            storage.removeValue(classOf[State], obj.id, "multi", "2")
+                .await(timeout)
+
+            And("Another value is added")
+            storage.addValue(classOf[State], obj.id, "multi", "3")
+                .await(timeout)
+
+
+            Then("The observer receives all updates")
+            obs.awaitOnNext(5, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBe MultiValueKey(
+                "multi", Set("1"))
+            obs.getOnNextEvents.get(1) shouldBe MultiValueKey(
+                "multi", Set("1", "2"))
+            obs.getOnNextEvents.get(2) shouldBe MultiValueKey(
+                "multi", Set("2"))
+            obs.getOnNextEvents.get(3) shouldBe MultiValueKey(
+                "multi", Set())
+            obs.getOnNextEvents.get(4) shouldBe MultiValueKey(
+                "multi", Set("3"))
+        }
+
+        scenario("Observable completes on object deletion") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+
+            And("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "multi")
+                .subscribe(obs)
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The object is deleted")
+            storage.delete(classOf[State], obj.id)
+
+            Then("The observable should complete")
+            obs.awaitCompletion(1 second)
+        }
+
+        scenario("Observable does not notify identical values") {
+            Given("An object in storage")
+            val obj = new State
+            storage.create(obj)
+
+            And("A key value")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+
+            When("An observer subscribed to the key")
+            val obs = new TestObserver[StateKey] with AwaitableObserver[StateKey]
+            storage.keyObservable(classOf[State], obj.id, "multi")
+                .subscribe(obs)
+
+            And("The same value is added two more times")
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+            storage.addValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+
+            And("Removing the value")
+            storage.removeValue(classOf[State], obj.id, "multi", "1")
+                .await(timeout)
+
+            Then("The observer receives all updates")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) shouldBe MultiValueKey(
+                "multi", Set("1"))
+            obs.getOnNextEvents.get(1) shouldBe MultiValueKey(
+                "multi", Set())
         }
     }
 }

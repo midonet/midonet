@@ -114,7 +114,7 @@ object StateStorage {
  * exclusive access to the state value.
  *
  * Likewise, the agent uses it to add active state to local exterior ports.
- * Since ports can be set as active on more than one host a time, port active
+ * Since ports can be set as active on more than one host at a time, port active
  * uses [[KeyType.Multiple]], such that the state storage allows multiple values
  * for the same key.
  */
@@ -122,10 +122,10 @@ trait StateStorage {
 
     protected[this] val stateInfo = new TrieMap[Class[_], StateInfo]
 
-    /** Registers a new key for a class using the specified write policy. */
+    /** Registers a new key for a class using the specified key type. */
     @throws[IllegalStateException]
     @throws[IllegalArgumentException]
-    def registerKey(clazz: Class[_], key: String, writePolicy: KeyType)
+    def registerKey(clazz: Class[_], key: String, keyType: KeyType)
     : Unit
 
     /** Adds a value to a key for the object with the specified class and
@@ -166,10 +166,9 @@ trait StateStorage {
     def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey]
 
-    /** Gets the write policy for the given class and key. */
+    /** Gets the key type for the given class and key. */
     @throws[IllegalArgumentException]
-    protected[this] def getWritePolicy(clazz: Class[_], key: String)
-    : KeyType = {
+    protected[this] def getKeyType(clazz: Class[_], key: String): KeyType = {
         stateInfo.getOrElse(clazz, throw new IllegalArgumentException(
             s"Class ${clazz.getSimpleName} is not registered")).keys
                  .getOrElse(key, throw new IllegalArgumentException(
