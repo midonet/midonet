@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_b24f856a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T10:12:06Z",
+      "side": 1,
+      "message": "In a previous comment that I received, it was suggested that any generic StateException should be called UnmodifiableStateException.. hence, the name.",
+      "parentUuid": "facab960_2c279fcb",
+      "range": {
+        "startLine": 244,
+        "startChar": 30,
+        "endLine": 244,
+        "endChar": 56
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_2c0ebf3b",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 6
@@ -83,6 +107,30 @@
       "writtenOn": "2015-06-17T14:44:19Z",
       "side": 1,
       "message": "why not just _?",
+      "range": {
+        "startLine": 271,
+        "startChar": 21,
+        "endLine": 271,
+        "endChar": 25
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9246014e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T10:12:06Z",
+      "side": 1,
+      "message": "why not just None? :)\nwell, this does cover all posibilites",
+      "parentUuid": "facab960_4c24e3c4",
       "range": {
         "startLine": 271,
         "startChar": 21,
