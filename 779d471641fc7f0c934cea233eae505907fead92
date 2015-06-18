@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_281064a7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T16:06:22Z",
+      "side": 1,
+      "message": "Could you please simplify this sentence?",
+      "range": {
+        "startLine": 353,
+        "startChar": 73,
+        "endLine": 358,
+        "endChar": 47
+      },
+      "revId": "779d471641fc7f0c934cea233eae505907fead92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_482848e2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T16:06:22Z",
+      "side": 1,
+      "message": "notification",
+      "range": {
+        "startLine": 375,
+        "startChar": 8,
+        "endLine": 375,
+        "endChar": 19
+      },
+      "revId": "779d471641fc7f0c934cea233eae505907fead92",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
