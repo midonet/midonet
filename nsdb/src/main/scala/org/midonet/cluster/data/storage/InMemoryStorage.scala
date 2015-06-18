@@ -18,7 +18,7 @@ package org.midonet.cluster.data.storage
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.concurrent.{ConcurrentHashMap, ThreadFactory}
+import java.util.concurrent.{ExecutorService, ConcurrentHashMap, ThreadFactory}
 
 import scala.async.Async.async
 import scala.collection.JavaConversions._
@@ -27,27 +27,32 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext.fromExecutorService
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.util.control.NonFatal
 
-import org.apache.zookeeper.KeeperException.BadVersionException
+import org.apache.zookeeper.KeeperException.{BadVersionException, Code}
+
 import rx.Observable.OnSubscribe
 import rx._
 import rx.schedulers.Schedulers
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
-import org.midonet.cluster.data.storage.InMemoryStorage.copyObj
+import org.midonet.cluster.data.storage.InMemoryStorage.{asObservable, copyObj, DefaultOwnerId}
 import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
+import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
 import org.midonet.cluster.data.storage.TransactionManager._
+import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
 import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
 import org.midonet.util.concurrent._
+import org.midonet.util.functors._
 
 /**
  * A simple in-memory implementation of the [[Storage]] trait, equivalent to
  * the [[ZookeeperObjectMapper]] to use within unit tests.
  */
-class InMemoryStorage extends StorageWithOwnership {
+class InMemoryStorage extends StorageWithOwnership with StateStorage {
 
     private class ClassNode[T](val clazz: Class[T]) {
 
@@ -186,7 +191,7 @@ class InMemoryStorage extends StorageWithOwnership {
             instances.containsKey(getIdString(clazz, id))
         }
 
-        /** Lock free read, synchronous completion */
+        /* Lock free read, synchronous completion */
         def observable(id: ObjId): Observable[T] = {
             instances.get(getIdString(clazz, id)) match {
                 case Some(node) => node.observable
@@ -227,14 +232,65 @@ class InMemoryStorage extends StorageWithOwnership {
             streamUpdates.clear()
             instanceUpdates.clear()
         }
+
+        /* Object state is not synchronized. */
+        def addValue(id: ObjId, key: String, value: String, keyType: KeyType)
+        : Observable[StateResult] = {
+            val idStr = getIdString(clazz, id)
+            instances.get(idStr) match {
+                case Some(instance) => instance.addValue(key, value, keyType)
+                case None => asObservable {
+                    assertIoThread()
+                    throw new UnmodifiableStateException(
+                        clazz.getSimpleName, idStr, key, value,
+                        Code.NONODE.intValue)
+                }
+            }
+        }
+
+        /* Object state is not synchronized. */
+        def removeValue(id: ObjId, key: String, value: String,
+                        keyType: KeyType): Observable[StateResult] = {
+            val idStr = getIdString(clazz, id)
+            instances.get(idStr) match {
+                case Some(instance) => instance.removeValue(key, value, keyType)
+                case None => asObservable {
+                    assertIoThread(); StateResult(NoOwnerId)
+                }
+            }
+        }
+
+        /* Object state is not synchronized. */
+        def getKey(id: ObjId, key: String, keyType: KeyType)
+        : Observable[StateKey] = {
+            val idStr = getIdString(clazz, id)
+            instances.get(idStr) match {
+                case Some(instance) => instance.getKey(key, keyType)
+                case None if keyType.isSingle =>
+                    asObservable { SingleValueKey(key, None, NoOwnerId) }
+                case None =>
+                    asObservable { MultiValueKey(key, Set()) }
+            }
+        }
+
+        def keyObservable(id: ObjId, key: String, keyType: KeyType)
+        : Observable[StateKey] = {
+            val idStr = getIdString(clazz, id)
+            instances.get(idStr) match {
+                case Some(instance) => instance.keyObservable(key, keyType)
+                case None => Observable.empty()
+            }
+        }
+
     }
 
-    private class InstanceNode[T](val clazz: Class[T], id: ObjId, obj: T,
+    private class InstanceNode[T](clazz: Class[T], id: ObjId, obj: T,
                                   initOwnerOps: Seq[TxOwnerOp]) {
 
         private val ref = new AtomicReference[T](copyObj(obj))
         private val ver = new AtomicInteger
         private val owners = new TrieMap[String, Unit]
+        private val keys = new TrieMap[String, KeyNode]
 
         private val streamInstance = BehaviorSubject.create[T](value)
         private val streamOwners =
@@ -291,6 +347,10 @@ class InMemoryStorage extends StorageWithOwnership {
             if (!ver.compareAndSet(version, version + 1))
                 throw new BadVersionException
 
+            for (keyNode <- keys.values) {
+                keyNode.complete()
+            }
+
             updateOwners(ownerOps)
             instanceUpdate = Notification.createOnCompleted()
             ownersUpdate = Notification.createOnError(new ParentDeletedException(
@@ -344,6 +404,26 @@ class InMemoryStorage extends StorageWithOwnership {
             }
         }
 
+        def addValue(key: String, value: String, keyType: KeyType)
+        : Observable[StateResult] = {
+            getOrCreateKeyNode(key, keyType).add(value)
+        }
+
+        def removeValue(key: String, value: String, keyType: KeyType)
+        : Observable[StateResult] = {
+            getOrCreateKeyNode(key, keyType).remove(value)
+        }
+
+        def getKey(key: String, keyType: KeyType): Observable[StateKey] = {
+            getOrCreateKeyNode(key, keyType).get
+        }
+
+
+        def keyObservable(key: String, keyType: KeyType)
+        : Observable[StateKey] = {
+            getOrCreateKeyNode(key, keyType).observable
+        }
+
         /* Write synchronized by transaction */
         private def updateOwners(ops: Seq[TxOwnerOp]): Unit = {
             assertIoThread()
@@ -361,7 +441,86 @@ class InMemoryStorage extends StorageWithOwnership {
                 ownersUpdate = Notification.createOnNext(owners.keySet.toSet)
             }
         }
+
+        private def getOrCreateKeyNode(key: String, keyType: KeyType)
+        : KeyNode = {
+            keys.getOrElse(key, {
+                val node = new KeyNode(clazz.getSimpleName,
+                                       getIdString(clazz, id), key, keyType)
+                keys.putIfAbsent(key, node).getOrElse(node)
+            })
+        }
+
     }
+
+    private class KeyNode(clazz: String, id: String, key: String,
+                          keyType: KeyType) {
+
+        private val values = new TrieMap[String, String]
+        private val subject =
+            BehaviorSubject.create[Map[String, String]](Map[String, String]())
+
+        def add(value: String): Observable[StateResult] = asObservable {
+            if (keyType.isSingle) {
+                values.put(key, value)
+                notifyState()
+            } else {
+                values.putIfAbsent(value, null) match {
+                    case Some(_) =>
+                    case None => notifyState()
+                }
+            }
+            StateResult(DefaultOwnerId)
+        }
+
+        def remove(value: String): Observable[StateResult] = asObservable {
+            val toRemove = if (keyType.isSingle) key else value
+            val ownerId = if (values.remove(toRemove).isEmpty) {
+                              NoOwnerId
+                          } else {
+                              notifyState()
+                              DefaultOwnerId
+                          }
+            StateResult(ownerId)
+        }
+
+        def get: Observable[StateKey] = asObservable {
+            if (keyType.isSingle) {
+                val v = values.get(key)
+                SingleValueKey(key, v,
+                               if (v.isEmpty) NoOwnerId else DefaultOwnerId)
+            } else {
+                MultiValueKey(key, values.readOnlySnapshot().keySet.toSet)
+            }
+        }
+
+        def observable: Observable[StateKey] = {
+            if (keyType.isSingle) {
+                subject.map[StateKey](makeFunc1(map => {
+                    map.headOption match {
+                        case Some((_, value)) =>
+                            SingleValueKey(key, Some(value), DefaultOwnerId)
+                        case None =>
+                            SingleValueKey(key, None, NoOwnerId)
+                    }
+                })).observeOn(eventScheduler)
+            } else {
+                subject.map[StateKey](makeFunc1(map => {
+                    MultiValueKey(key, map.keySet)
+                }))
+            }
+        }
+
+        def complete(): Unit = {
+            subject.onCompleted()
+        }
+
+        private def notifyState(): Unit = {
+            subject.onNext(values.readOnlySnapshot().toMap)
+        }
+
+    }
+
 
     private class InMemoryTransactionManager
             extends TransactionManager(classInfo.toMap, allBindings) {
@@ -545,6 +704,55 @@ class InMemoryStorage extends StorageWithOwnership {
         classes.containsKey(clazz)
     }
 
+    @throws[IllegalStateException]
+    override def registerKey(clazz: Class[_], key: String,
+                             keyType: KeyType): Unit = {
+        if (isBuilt) {
+            throw new IllegalStateException("Cannot register a key after " +
+                                            "building the storage")
+        }
+        if (!isRegistered(clazz)) {
+            throw new IllegalArgumentException(s"Class ${clazz.getSimpleName}" +
+                                               s" is not registered")
+        }
+
+        stateInfo.getOrElse(clazz, {
+            val info = new StateInfo
+            stateInfo.putIfAbsent(clazz, info).getOrElse(info)
+        }).keys += key -> keyType
+    }
+
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
+    override def addValue(clazz: Class[_], id: ObjId, key: String,
+                          value: String): Observable[StateResult] = {
+        assertBuilt()
+        classes.get(clazz).addValue(id, key, value, getKeyType(clazz, key))
+    }
+
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
+    override def removeValue(clazz: Class[_], id: ObjId, key: String,
+                             value: String): Observable[StateResult] = {
+        assertBuilt()
+        classes.get(clazz).removeValue(id, key, value, getKeyType(clazz, key))
+    }
+
+    @throws[ServiceUnavailableException]
+    @throws[IllegalArgumentException]
+    override def getKey(clazz: Class[_], id: ObjId, key: String)
+    : Observable[StateKey] = {
+        assertBuilt()
+        classes.get(clazz).getKey(id, key, getKeyType(clazz, key))
+    }
+
+    @throws[ServiceUnavailableException]
+    override def keyObservable(clazz: Class[_], id: ObjId, key: String)
+    : Observable[StateKey] = {
+        assertBuilt()
+        classes.get(clazz).keyObservable(id, key, getKeyType(clazz, key))
+    }
+
     private def registerClassInternal(clazz: Class[_ <: Obj],
                                       ownershipType: OwnershipType): Unit = {
         classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
@@ -573,7 +781,23 @@ class InMemoryStorage extends StorageWithOwnership {
 object InMemoryStorage {
 
     final val IOTimeout = 5 seconds
+    final val DefaultOwnerId = 1L
 
     private def copyObj[T](obj: T): T =
         deserialize(serialize(obj.asInstanceOf[Obj]), obj.getClass)
+
+    private def asObservable[T](f: => T)(implicit ec: ExecutorService)
+    : Observable[T] = {
+        Observable.create(new OnSubscribe[T] {
+            override def call(child: Subscriber[_ >: T]): Unit = {
+                ec.submit(makeRunnable {
+                    try {
+                        Observable.just(f).subscribe(child)
+                    } catch {
+                        case NonFatal(e) => child.onError(e)
+                    }
+                })
+            }
+        })
+    }
 }

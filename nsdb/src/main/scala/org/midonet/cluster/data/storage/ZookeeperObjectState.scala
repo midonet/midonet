@@ -173,8 +173,10 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                                                s" is not registered")
         }
 
-        stateInfo.getOrElseUpdate(clazz, new StateInfo).keys +=
-            key -> keyType
+        stateInfo.getOrElse(clazz, {
+            val info = new StateInfo
+            stateInfo.putIfAbsent(clazz, info).getOrElse(info)
+        }).keys += key -> keyType
     }
 
     /**
@@ -300,6 +302,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
      * whenever the value for the key has changed, for both single and multiple
      * valued keys.
      */
+    @throws[ServiceUnavailableException]
     override def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
         assertBuilt()
