@@ -35,6 +35,8 @@ import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.rest_api.annotation.JsonError;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
@@ -95,6 +97,7 @@ public class Route extends UriResource {
 
     @NotNull
     @ZoomField(name = "next_hop")
+    @JsonError(message = MessageProperty.ROUTE_NEXT_HOP_PORT_INVALID)
     public NextHop type;
 
     @ZoomField(name = "weight")
