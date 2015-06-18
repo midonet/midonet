@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_cf67024c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T09:23:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_d0e88fb6",
+      "range": {
+        "startLine": 117,
+        "startChar": 58,
+        "endLine": 117,
+        "endChar": 64
+      },
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_50f39f9d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
         "patchSetId": 14
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-16T08:58:01Z",
       "side": 1,
       "message": "We should also rename the parameter name.",
+      "range": {
+        "startLine": 128,
+        "startChar": 50,
+        "endLine": 128,
+        "endChar": 61
+      },
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4f53f26a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T09:23:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_50f39f9d",
       "range": {
         "startLine": 128,
         "startChar": 50,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_6f4c36c9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateStorage.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T09:23:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_10dcb7e3",
+      "range": {
+        "startLine": 171,
+        "startChar": 24,
+        "endLine": 171,
+        "endChar": 38
+      },
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_f08753d5",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 14
@@ -88,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_afc9de27",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T09:23:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_f08753d5",
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d0a08f45",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 14
@@ -99,6 +189,30 @@
       "writtenOn": "2015-06-16T08:58:01Z",
       "side": 1,
       "message": "Could this just be mutable.Map?",
+      "range": {
+        "startLine": 93,
+        "startChar": 27,
+        "endLine": 93,
+        "endChar": 48
+      },
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0fd56ab8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T09:23:34Z",
+      "side": 1,
+      "message": "This is an abstract member here, the TransactionManager provides the implementation. There the set of ZK ops is a linked hash map because the order of the order, i.e. create child znodes after creating the parents.",
+      "parentUuid": "facab960_d0a08f45",
       "range": {
         "startLine": 93,
         "startChar": 27,
@@ -134,6 +248,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_6fe356a4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T09:23:34Z",
+      "side": 1,
+      "message": "The only problem was, that I didn\u0027t know how to map to an error. I think it can be done using dematerialize. Wii try.",
+      "parentUuid": "facab960_904b6786",
+      "range": {
+        "startLine": 244,
+        "startChar": 14,
+        "endLine": 244,
+        "endChar": 21
+      },
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b0c06be1",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 14
@@ -145,6 +283,24 @@
       "writtenOn": "2015-06-16T08:58:01Z",
       "side": 1,
       "message": "Some kind of comments would be appreciated.\n\nAlso This seems to be always called together with asObservable. Perhaps we can inline this code inside asObservable with a control param, or provide 2 versions of  asObservable?",
+      "revId": "36216339b689a50728c9571c6d7300fd34e63768",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8fe09a97",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 14
+      },
+      "lineNbr": 329,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T09:23:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_b0c06be1",
       "revId": "36216339b689a50728c9571c6d7300fd34e63768",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
