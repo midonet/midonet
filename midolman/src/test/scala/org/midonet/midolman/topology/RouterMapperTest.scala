@@ -31,6 +31,7 @@ import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.HostsKey
+import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.simulation.{Router => SimulationRouter}
@@ -89,6 +90,18 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
                          adminStateUp = adminStateUp,
                          hostId = Some(hostId),
                          interfaceName = Some("iface0"))
+    }
+
+    private def createLearnedRoute(srcNetwork: IPSubnet[_],
+                                   dstNetwork: IPSubnet[_],
+                                   portId: UUID): Route = {
+
+        new Route(srcNetwork.asInstanceOf[IPv4Subnet].getIntAddress,
+                  srcNetwork.getPrefixLen,
+                  dstNetwork.asInstanceOf[IPv4Subnet].getIntAddress,
+                  dstNetwork.getPrefixLen,
+                  Route.NextHop.PORT, portId, /*gateway*/0, /*weight*/ 100, "",
+                  portId, true)
     }
 
     private def testRouterCreated(obs: DeviceObserver[SimulationRouter])
@@ -257,8 +270,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val route = createRoute(srcNetwork = "1.0.0.0/24",
                                     dstNetwork = "2.0.0.0/24",
                                     nextHop = NextHop.PORT)
-            store.multi(Seq(CreateWithOwnerOp(port, UUID.randomUUID.toString),
-                            CreateOp(route),
+            store.multi(Seq(CreateOp(port), CreateOp(route),
                             UpdateOp(route.setNextHopPortId(port.getId))))
 
             And("Waiting for the first router notification")
@@ -374,13 +386,11 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val router = testRouterCreated(obs)._1
 
             When("Creating an exterior port with a route")
-            val ownerId = UUID.randomUUID.toString
             val port = createExteriorPort(router.getId)
             val route = createRoute(srcNetwork = "1.0.0.0/24",
                                     dstNetwork = "2.0.0.0/24",
                                     nextHop = NextHop.PORT)
-            store.multi(Seq(CreateWithOwnerOp(port, ownerId),
-                            CreateOp(route),
+            store.multi(Seq(CreateOp(port), CreateOp(route),
                             UpdateOp(route.setNextHopPortId(port.getId))))
 
             Then("The observer should receive a router update")
@@ -597,24 +607,34 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val obs = createObserver()
             val router = testRouterCreated(obs)._1
 
-            When("Creating an exterior port with a route")
+            When("Creating an exterior port")
             val port = createExteriorPort(router.getId)
+            store.create(port)
+            obs.awaitOnNext(2, timeout) shouldBe true
+
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                UUID.randomUUID.toString).await(timeout)
+
+            Then("The observer should receive a router update and no routes")
+            obs.awaitOnNext(3, timeout) shouldBe true
+
+            When("Adding a route to the port")
             val route = createRoute(srcNetwork = "1.0.0.0/24",
                                     dstNetwork = "2.0.0.0/24",
-                                    nextHop = NextHop.PORT)
-            store.multi(Seq(CreateWithOwnerOp(port, UUID.randomUUID.toString),
-                            CreateOp(route),
-                            UpdateOp(route.setNextHopPortId(port.getId))))
+                                    nextHop = NextHop.PORT,
+                                    nextHopPortId = Some(port.getId))
+            store.create(route)
 
-            Then("The observer should receive a router update")
-            obs.awaitOnNext(2, timeout) shouldBe true
+            Then("The observer should receive a router update with the route")
+            obs.awaitOnNext(4, timeout) shouldBe true
 
             When("The route is deleted")
             store.delete(classOf[TopologyRoute], route.getId)
 
             Then("The observer should receive a router update")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            val device = obs.getOnNextEvents.get(2)
+            obs.awaitOnNext(5, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(4)
             device shouldBeDeviceOf router
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
         }
@@ -686,6 +706,176 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val device = obs.getOnNextEvents.get(2)
             device shouldBeDeviceOf router
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+        }
+    }
+
+    feature("Test learned route updates") {
+        scenario("Learned route added and removed") {
+            val obs = createObserver()
+            val router = testRouterCreated(obs)._1
+
+            When("Creating an exterior port")
+            val port = createExteriorPort(router.getId)
+            store.create(port)
+            obs.awaitOnNext(2, timeout) shouldBe true
+
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                UUID.randomUUID.toString).await(timeout)
+
+            Then("The observer should receive a router update and no routes")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(2)
+            device1 shouldBeDeviceOf router
+            device1.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+
+            When("Adding a learned route to the port")
+            val route = createLearnedRoute(srcNetwork = "1.0.0.0/24",
+                                           dstNetwork = "2.0.0.0/24",
+                                           portId = port.getId)
+            stateStore.addRoute(route).await(timeout)
+
+            Then("The observer should receive a router update with the route")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(3)
+            device2 shouldBeDeviceOf router
+            device2.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route
+
+            When("The route is deleted")
+            stateStore.removeRoute(route).await(timeout)
+
+            Then("The observer should receive a router update with no route")
+            obs.awaitOnNext(5, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(4)
+            device3 shouldBeDeviceOf router
+            device3.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+        }
+
+        scenario("Learned route added when port becomes active") {
+            val obs = createObserver()
+            val router = testRouterCreated(obs)._1
+
+            When("Creating an exterior port")
+            val port = createExteriorPort(router.getId)
+            store.create(port)
+            obs.awaitOnNext(2, timeout) shouldBe true
+
+            When("Adding a learned route to the port")
+            val route = createLearnedRoute(srcNetwork = "1.0.0.0/24",
+                                           dstNetwork = "2.0.0.0/24",
+                                           portId = port.getId)
+            stateStore.addRoute(route).await(timeout)
+
+            Then("The observer should receive a router update with no routes")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(2)
+            device1 shouldBeDeviceOf router
+            device1.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+
+            When("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                UUID.randomUUID.toString).await(timeout)
+
+            Then("The observer should receive a router update with the route")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(3)
+            device2 shouldBeDeviceOf router
+            device2.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route
+        }
+
+        scenario("Learned route removed when port becomes inactive") {
+            val obs = createObserver()
+            val router = testRouterCreated(obs)._1
+
+            When("Creating an exterior port")
+            val port = createExteriorPort(router.getId)
+            store.create(port)
+            obs.awaitOnNext(2, timeout) shouldBe true
+
+            And("The port becomes active")
+            val ownerId = UUID.randomUUID.toString
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                ownerId).await(timeout)
+
+            Then("The observer should receive a router update and no routes")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(2)
+            device1 shouldBeDeviceOf router
+            device1.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+
+            When("Adding a learned route to the port")
+            val route = createLearnedRoute(srcNetwork = "1.0.0.0/24",
+                                           dstNetwork = "2.0.0.0/24",
+                                           portId = port.getId)
+            stateStore.addRoute(route).await(timeout)
+
+            Then("The observer should receive a router update with the route")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(3)
+            device2 shouldBeDeviceOf router
+            device2.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route
+
+            When("The port becomes inactive")
+            stateStore.removeValue(classOf[TopologyPort], port.getId, HostsKey,
+                                   ownerId).await(timeout)
+
+            Then("The observer should receive a router update with no route")
+            obs.awaitOnNext(5, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(4)
+            device3 shouldBeDeviceOf router
+            device3.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+        }
+
+        scenario("Learned routes are independent from static routes") {
+            val obs = createObserver()
+            val router = testRouterCreated(obs)._1
+
+            When("Creating an exterior port with a route")
+            val port = createExteriorPort(router.getId)
+            val route1 = createRoute(srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "2.0.0.0/24",
+                                     nextHop = NextHop.PORT,
+                                     weight = Some(200))
+            store.multi(Seq(CreateOp(port), CreateOp(route1),
+                            UpdateOp(route1.setNextHopPortId(port.getId))))
+            obs.awaitOnNext(2, timeout) shouldBe true
+
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                UUID.randomUUID.toString).await(timeout)
+
+            Then("The observer should receive a router update with the route")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(2)
+            device shouldBeDeviceOf router
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route1.setNextHopPortId(port.getId).asJava
+
+            When("Adding a learned route to the port with a smaller metric")
+            val route2 = createLearnedRoute(srcNetwork = "1.0.0.0/24",
+                                            dstNetwork = "2.0.0.0/24",
+                                            portId = port.getId)
+            stateStore.addRoute(route2).await(timeout)
+
+            Then("The observer should receive a router update with the route")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(3)
+            device2 shouldBeDeviceOf router
+            device2.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route2
+
+            When("The learned route is deleted")
+            stateStore.removeRoute(route2).await(timeout)
+
+            Then("The observer should receive a router update with the initial route")
+            obs.awaitOnNext(5, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(4)
+            device3 shouldBeDeviceOf router
+            device3.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
+                route1.setNextHopPortId(port.getId).asJava
         }
     }
 
