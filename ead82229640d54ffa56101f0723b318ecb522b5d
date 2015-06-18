@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_0f5baa2e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 18
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T07:27:38Z",
+      "side": 1,
+      "message": "OK, so I\u0027ll make the mapId a string.",
+      "parentUuid": "facab960_47959c85",
+      "range": {
+        "startLine": 65,
+        "startChar": 4,
+        "endLine": 68,
+        "endChar": 5
+      },
+      "revId": "ead82229640d54ffa56101f0723b318ecb522b5d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_62c5478d",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 18
