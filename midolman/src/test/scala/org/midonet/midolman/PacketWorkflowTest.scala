@@ -371,7 +371,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    hostId, new DatapathStateDriver(new Datapath(0, "midonet")),
                                    cookieGen, clock, dpChannel,
                                    new DhcpConfigFromDataclient(clusterDataClient),
-                                   flowInvalidator,
+                                   simBackChannel,
                                    flowProcessor,
                                    conntrackTable, natTable,
                                    new ShardedFlowStateTable[TraceKey, TraceContext](),

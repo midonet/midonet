@@ -282,7 +282,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             clock,
             dpChannel,
             new DhcpConfigFromDataclient(client),
-            flowInvalidator,
+            simBackChannel,
             flowProcessor,
             conntrackTable,
             natTable,
