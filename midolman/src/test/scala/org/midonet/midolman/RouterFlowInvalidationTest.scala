@@ -30,7 +30,7 @@ import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{EmptyActor, MessageAccumulator}
-import org.midonet.packets.{Packets, IPv4Addr, MAC}
+import org.midonet.packets.{IPv4Subnet, Packets, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
@@ -113,8 +113,8 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
             NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
-         feedArpTable(simRouter, IPv4Addr.fromString(ipVm1),
-                      MAC.fromString(macVm1))
+        feedArpTable(simRouter, IPv4Addr.fromString(ipVm1),
+                     MAC.fromString(macVm1))
 
         feedArpTable(simRouter, IPv4Addr.fromString(ipVm2),
                      MAC.fromString(macVm2))
@@ -147,9 +147,8 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
             NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
-        flowInvalidator should invalidate(
-            FlowTagger.tagForDestinationIp(router.getId, IPv4Addr.fromString(ipVm1Tag)),
-            FlowTagger.tagForDestinationIp(router.getId, IPv4Addr.fromString(ipVm2Tag)))
+        flowInvalidator should invalidateForNewRoutes(
+            new IPv4Subnet("11.11.1.0", networkToReachLength+8))
     }
 
     scenario("Clean up invalidation trie") {

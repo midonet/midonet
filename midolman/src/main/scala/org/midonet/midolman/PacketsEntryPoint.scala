@@ -31,7 +31,6 @@ import org.midonet.cluster.DataClient
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{DatapathChannel, FlowProcessor}
-import org.midonet.midolman.flows.{ShardedFlowInvalidator, FlowInvalidator}
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
@@ -40,7 +39,7 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
-import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.topology.{RouterManager, VirtualTopology}
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
 import org.midonet.util.concurrent.NanoClock
@@ -102,7 +101,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     var clock: NanoClock = null
 
     @Inject
-    var flowInvalidator: ShardedFlowInvalidator = null
+    var backChannel: ShardedSimulationBackChannel = null
 
     @Inject
     var flowProcessor: FlowProcessor = null
@@ -174,7 +173,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             clock,
             dpChannel,
             dhcpConfig,
-            flowInvalidator.registerProcessor(),
+            backChannel.registerProcessor(),
             flowProcessor,
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
@@ -189,6 +188,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     private def broadcast(m: Any) { workers foreach ( _ ! m ) }
 
     override def receive = LoggingReceive {
+        case m: RouterManager.InvalidateFlows => broadcast(m)
 
         case m: FlowStateBatch => broadcast(m)
 

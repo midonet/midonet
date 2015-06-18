@@ -35,7 +35,6 @@ import rx.{Observer, Subscription}
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
-import org.midonet.midolman.flows.FlowInvalidator
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.io._
@@ -143,7 +142,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                                     interfaceScanner: InterfaceScanner,
                                     config: MidolmanConfig,
                                     upcallConnManager: UpcallDatapathConnectionManager,
-                                    flowInvalidator: FlowInvalidator,
+                                    flowInvalidator: SimulationBackChannel,
                                     clock: NanoClock,
                                     storageFactory: FlowStateStorageFactory,
                                     val netlinkChannelFactory: NetlinkChannelFactory)
@@ -258,7 +257,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         for (zone <- dropped) {
             VirtualToPhysicalMapper ! TunnelZoneUnsubscribe(zone)
             for (tag <- driver.removePeersForZone(zone)) {
-                flowInvalidator.scheduleInvalidationFor(tag)
+                flowInvalidator.tell(tag)
             }
         }
 
@@ -323,7 +322,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         }
 
         def processTags(tags: TraversableOnce[FlowTag]): Unit =
-            tags foreach flowInvalidator.scheduleInvalidationFor
+            tags foreach flowInvalidator.tell
 
         def processDelPeer(): Unit =
             processTags(driver.removePeer(peerUUID, zone))
@@ -368,8 +367,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         //   - The case for invalidating on deactivation is obvious.
         //   - On activation we invalidate flows for this dp port number in case
         //     it has been reused by the dp: we want to start with a clean state
-        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForTunnelKey(tunnelKey))
-        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDpPort(port.getPortNo))
+        flowInvalidator.tell(FlowTagger.tagForTunnelKey(tunnelKey))
+        flowInvalidator.tell(FlowTagger.tagForDpPort(port.getPortNo))
     }
 
     private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
