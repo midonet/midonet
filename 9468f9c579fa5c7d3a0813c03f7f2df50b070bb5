@@ -46,6 +46,30 @@
       "revId": "9468f9c579fa5c7d3a0813c03f7f2df50b070bb5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_08348048",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VTPMRedirectorTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T16:06:22Z",
+      "side": 1,
+      "message": "Yes, that makes sense",
+      "parentUuid": "facab960_d232495e",
+      "range": {
+        "startLine": 67,
+        "startChar": 26,
+        "endLine": 67,
+        "endChar": 34
+      },
+      "revId": "9468f9c579fa5c7d3a0813c03f7f2df50b070bb5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
