@@ -126,6 +126,8 @@ abstract class MidonetBackend extends AbstractService {
 
         store.declareBinding(classOf[LoadBalancer], "vip_ids", ERROR,
                              classOf[Vip], "load_balancer_id", CLEAR)
+        store.declareBinding(classOf[Vip], "gateway_port_id", CLEAR,
+                             classOf[Port], "vip_id", CLEAR)
 
         store.declareBinding(classOf[Port], "bgp_id", CLEAR,
                              classOf[Bgp], "port_id", CLEAR)

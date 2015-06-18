@@ -151,6 +151,8 @@ message IPAddrGroup {
 }
 
 message LoadBalancer {
+    // Load Balancer ID is always the same as the Router ID to which the LB is
+    // attached. Therefore, LoadBalancer does not have a reference to Router.
     optional UUID id = 1;
     optional bool admin_state_up = 2;
     repeated UUID vip_ids = 3;
@@ -195,6 +197,7 @@ message Pool {
 
     optional UUID id = 1;
     optional UUID health_monitor_id = 2;
+    // load_balancer_id is always the same as the corresponding Router ID.
     optional UUID load_balancer_id = 3;
     optional bool admin_state_up = 4;
 
@@ -249,6 +252,9 @@ message Port {
 
     // Backreferences
     repeated UUID rule_ids = 101;
+    // For Router gateway port only. Back-references to VIPs that are associated
+    // with this Router gateway port.
+    repeated UUID vip_id = 102;
 }
 
 message PortGroup {
@@ -422,9 +428,10 @@ message Vip {
     optional IPAddress address = 4;
     optional uint32 protocol_port = 5;
     optional SessionPersistence session_persistence = 6;
+    optional UUID gateway_port_id = 7;
 
     // Backreference
-    optional UUID load_balancer_id = 7;
+    optional UUID load_balancer_id = 101;
 }
 
 message Vtep {
