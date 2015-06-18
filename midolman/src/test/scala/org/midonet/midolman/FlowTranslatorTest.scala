@@ -31,6 +31,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.UnderlayResolver.Route
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.{VxLanPort, Bridge, PacketContext}
@@ -284,6 +285,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         implicit override protected def executor = ExecutionContext.callingThread
         val log: LoggingAdapter = Logging.getLogger(system, this.getClass)
         override protected val hostId: UUID = FlowTranslatorTest.this.hostId
+        override protected val vxlanRecircMap: VxlanRecircMap = null
+        override protected val config: MidolmanConfig = null
 
         override def translateActions(pktCtx: PacketContext): Unit =
             super.translateActions(pktCtx)
@@ -311,6 +314,8 @@ class FlowTranslatorTest extends MidolmanSpec {
         def isVtepTunnellingPort(portNumber: Integer): Boolean =
             portNumber == vxlanPortNumber
         def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+        override def vxlanRecircOutputAction: FlowActionOutput = null
+        override def isVxlanRecircPort(portNumber: Integer): Boolean = false
 
         def datapath: Datapath = new Datapath(0, "midonet")
     }

@@ -76,6 +76,8 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     def outputChannels = getInt(s"$PREFIX.midolman.output_channels")
     def inputChannelThreading = getString(s"$PREFIX.midolman.input_channel_threading")
     def datapathName = Try(getString(s"$PREFIX.midolman.datapath")).getOrElse("midonet")
+    def datapathIfAddr = Try(getString(s"$PREFIX.midolman.datapath.addr")).getOrElse("169.254.123.129/30")
+    def datapathIfPeerAddr = Try(getString(s"$PREFIX.midolman.datapath.peerAddr")).getOrElse("169.254.123.130")
 
     def lockMemory = getBoolean(s"$PREFIX.midolman.lock_memory")
 
@@ -117,6 +119,7 @@ class DatapathConfig(val conf: Config, val schema: Config) extends TypeFailureFa
 
     def vxlanVtepUdpPort = getInt(s"$PREFIX.vxlan_vtep_udp_port")
     def vxlanOverlayUdpPort = getInt(s"$PREFIX.vxlan_overlay_udp_port")
+    def vxlanRecirculateUdpPort = getInt(s"$PREFIX.vxlan_recirculate_udp_port")
 
     def globalIncomingBurstCapacity = getInt(s"$PREFIX.global_incoming_burst_capacity")
     def vmIncomingBurstCapacity = getInt(s"$PREFIX.vm_incoming_burst_capacity")
