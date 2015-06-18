@@ -24,7 +24,7 @@ import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, TemporaryDrop}
+import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
@@ -175,7 +175,7 @@ class Bridge(val id: UUID,
                     context.log.warn(
                         s"PreBridging for $id returned $other which was not " +
                         "ACCEPT, DROP or REJECT.")
-                    return TemporaryDrop
+                    return ErrorDrop
             }
         } else {
             context.log.debug("Ignoring pre/post chains on vlan tagged traffic")
@@ -260,7 +260,7 @@ class Bridge(val id: UUID,
                     // dropping it. Some hardware vendors use L2 ping-pong
                     // packets for their specific purposes (e.g. keepalive message)
                     //
-                    TemporaryDrop
+                    ErrorDrop
                 } else {
                     context.log.debug("Dst MAC {}, VLAN {} on port {}: Forward",
                         ethDst, vlanId, portId)
@@ -408,7 +408,7 @@ class Bridge(val id: UUID,
             floodAction
         case _ =>
             context.log.warn("Unexpected input port type!")
-            TemporaryDrop
+            ErrorDrop
     }
 
     /**
@@ -517,7 +517,7 @@ class Bridge(val id: UUID,
                     other)
                 // TODO(pino): decrement the mac-port reference count?
                 // TODO(pino): remove the flow tag?
-                TemporaryDrop
+                ErrorDrop
         }
     }
 

@@ -47,7 +47,7 @@ trait CustomMatchers {
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =
                 BePropertyMatchResult(simRes._1 match {
-                    case x if x == Drop || x == TemporaryDrop =>
+                    case x if x == Drop || x == ErrorDrop || x == ShortDrop =>
                         expectedTags forall simRes._2.flowTags.contains
                     case _ =>
                         false

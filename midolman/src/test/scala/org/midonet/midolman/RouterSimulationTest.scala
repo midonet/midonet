@@ -26,7 +26,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, TemporaryDrop, Drop}
+import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{Router => SimRouter, RouteBalancer}
@@ -155,7 +155,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val pkt = { eth src MAC.random() dst uplinkMacAddr } <<
                   { ip4 src "11.0.0.31" dst addressInSegment(port1) } <<
                   { udp src 10 dst 11 }
-        simulate(packetContextFor(pkt, uplinkPort.getId))._1 should be (TemporaryDrop)
+        simulate(packetContextFor(pkt, uplinkPort.getId))._1 should be (ErrorDrop)
     }
 
     scenario("Reject route") {
@@ -167,7 +167,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst addressInSegment(port1) } <<
                   { udp src 10 dst 11 }
         val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort.getId, generatedPackets))
-        simRes should be (Drop)
+        simRes should be (ShortDrop)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   IPv4Addr.fromString(uplinkPortAddr), fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_FILTER_PROHIB.toByte)
@@ -206,7 +206,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst IPv4Addr.fromString("45.44.33.22") } <<
                   { udp src 10 dst 11 }
         val (simRes, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
-        simRes should be (Drop)
+        simRes should be (ShortDrop)
         matchIcmp(port1, port1.getHwAddr, fromMac,
                   IPv4Addr.fromString(port1.getPortAddr), fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
@@ -291,7 +291,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { udp src 10 dst 11 }
 
         val (simRes, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
-        simRes should be (TemporaryDrop)
+        simRes should be (ErrorDrop)
 
         matchIcmp(port1, port1.getHwAddr, fromMac,
                   IPv4Addr.fromString(port1.getPortAddr), fromIp,
@@ -315,7 +315,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { udp src 10 dst 11 }
 
         val (simRes, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
-        simRes should be (Drop)
+        simRes should be (ShortDrop)
 
         matchIcmp(port1, port1.getHwAddr, fromMac,
                   IPv4Addr.fromString(port1.getPortAddr), fromIp,
@@ -386,7 +386,7 @@ class RouterSimulationTest extends MidolmanSpec {
               { ip4 src fromIp dst toIp } <<
               { icmp.echo request }
         val (simRes3, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
-        simRes3 should be (Drop)
+        simRes3 should be (ShortDrop)
         matchIcmp(port1, port1.getHwAddr, fromMac, IPv4Addr(port1.getPortAddr),
                   fromIp, ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
 

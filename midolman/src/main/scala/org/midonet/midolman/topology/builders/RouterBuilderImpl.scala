@@ -20,13 +20,14 @@ import java.util.UUID
 import org.midonet.cluster.client.{ArpCache, RouterBuilder}
 import akka.actor.ActorRef
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
+import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.topology.RouterManager.{InvalidateFlows, TriggerUpdate}
-import org.midonet.midolman.topology.{RoutingTableWrapper, RouterConfig}
+import org.midonet.midolman.topology.RoutingTableWrapper
 
 class RouterBuilderImpl(val id: UUID, val routerManager: ActorRef)
     extends RouterBuilder {
 
-    private var cfg: RouterConfig = new RouterConfig
+    private var cfg: Router.Config = new Router.Config
     private var arpCache: ArpCache = null
     private val routes = new scala.collection.mutable.HashSet[Route]()
     private val routesToAdd = new scala.collection.mutable.HashSet[Route]()

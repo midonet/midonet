@@ -18,14 +18,16 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import org.midonet.cluster.client.ArpCache
+import org.midonet.util.functors.Callback0
+import org.midonet.sdn.flows.FlowTagger
 
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
-import org.midonet.midolman.PacketWorkflow.{TemporaryDrop, Drop, NoOp, SimulationResult}
 
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.midolman.NotYetException
+import org.midonet.midolman.PacketWorkflow.{ErrorDrop, Drop, NoOp, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
@@ -36,11 +38,28 @@ import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
 import org.midonet.util.concurrent._
 
+object Router {
+    case class Config(adminStateUp: Boolean = true,
+                            inboundFilter: UUID = null,
+                            outboundFilter: UUID = null,
+                            loadBalancer: UUID = null)
+
+
+    /**
+     * Provided to the Router for operations on Tags.
+     */
+    trait TagManager {
+        def addIPv4Tag(dstIp: IPv4Addr, matchLength: Int)
+        def getFlowRemovalCallback(dstIp: IPv4Addr): Callback0
+    }
+
+}
+
 /** The IPv4 specific implementation of a Router. */
 class Router(override val id: UUID,
-             override val cfg: RouterConfig,
+             override val cfg: Router.Config,
              override val rTable: RoutingTableWrapper[IPv4Addr],
-             override val routerMgrTagger: TagManager,
+             override val routerMgrTagger: Router.TagManager,
              val arpCache: ArpCache)
             (implicit system: ActorSystem)
         extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) {
@@ -87,6 +106,31 @@ class Router(override val id: UUID,
         } else
             None
     }
+
+    override def applyTagsForRoute(route: Route,
+                    simRes: SimulationResult)(implicit context: PacketContext): Unit = {
+        simRes match {
+            case ErrorDrop | NoOp =>
+            case a if (route ne null) && (route.dstNetworkLength == 32) =>
+            case a =>
+                var matchLen = -1
+                // We don't want to tag a temporary flow (e.g. created by
+                // a BLACKHOLE route), and we do that to avoid excessive
+                // interaction with the RouterManager, who needs to keep
+                // track of every IP address the router gives to it.
+                if (route ne null) {
+                    context.addFlowTag(FlowTagger.tagForRoute(route))
+                    matchLen = route.dstNetworkLength
+                }
+
+                val dstIp = context.wcmatch.getNetworkDstIP.asInstanceOf[IPv4Addr]
+                context.addFlowTag(FlowTagger.tagForDestinationIp(id, dstIp))
+                routerMgrTagger.addIPv4Tag(dstIp, matchLen)
+                context.addFlowRemovedCallback(
+                        routerMgrTagger.getFlowRemovalCallback(dstIp))
+        }
+    }
+
 
     private def processArpRequest(pkt: ARP, inPort: RouterPort)
                                  (implicit context: PacketContext) {
@@ -224,7 +268,7 @@ class Router(override val id: UUID,
                                  nextHopIP, port.id, extAddr)
                 null
             case _ =>
-                throw new IllegalArgumentException("Arping for non-IPv4 addr")
+                throw new IllegalArgumentException("ARP'ing for non-IPv4 addr")
         }
     }
 
@@ -248,6 +292,7 @@ class Router(override val id: UUID,
                 val nextHopIP =
                     if (nextHopInt == 0 || nextHopInt == -1) ipDest // last hop
                     else IPv4Addr(nextHopInt)
+                context.addFlowTag(FlowTagger.tagForArpEntry(id, nextHopIP))
                 getMacForIP(outPort, nextHopIP, context)
             case mac => mac
         }

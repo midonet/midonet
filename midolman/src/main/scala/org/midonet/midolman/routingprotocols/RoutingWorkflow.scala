@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.data.BGP
-import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, SimulationResult, TemporaryDrop}
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, SimulationResult, ErrorDrop}
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.devices.RouterPort
@@ -47,7 +47,7 @@ trait RoutingWorkflow {
                  (implicit as: ActorSystem): SimulationResult = {
         val bgp = inputPortToBgp.get(inPort)
         if (bgp eq null) {
-            return TemporaryDrop
+            return ErrorDrop
         }
 
         val port = VirtualTopologyActor.tryAsk[RouterPort](bgp.getPortId)
@@ -59,7 +59,7 @@ trait RoutingWorkflow {
             AddVirtualWildcardFlow
         } else {
             context.log.debug(s"BGP traffic not recognized for $bgp")
-            TemporaryDrop
+            ErrorDrop
         }
     }
 
