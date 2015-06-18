@@ -17,10 +17,12 @@
 package org.midonet.midolman.simulation
 
 import java.util.{ArrayList, UUID}
+import java.util.{List => JList}
 
 import akka.actor.ActorSystem
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.{Commons, Topology}
+import org.midonet.cluster.models.Topology.MacIp
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, Drop, ErrorDrop, SimulationResult}
 import org.midonet.midolman.rules.RuleResult
@@ -78,6 +80,21 @@ object Port {
             p.getPortGroupIdsList, false, p.getVlanId.toShort,
             if (p.hasNetworkId) p.getNetworkId else null)
 
+    /**
+     * This class implements the MapConverter trait to do the conversion between
+     * tuples of type (MAC, IPAddr) and HostToIp protos.
+     */
+    private def macVtepListToMap(vteps: JList[MacIp]): Map[MAC, IPv4Addr] = {
+        val map = Map.empty[MAC, IPv4Addr]
+        var i = 0
+        while (i < vteps.size()) {
+            val vt = vteps.get(i)
+            map.updated(MAC.fromString(vt.getMac),
+                        toIPv4Addr(vt.getIp))
+        }
+        map
+    }
+
     private def routerPort(p: Topology.Port) = RouterPort(
             p.getId,
             if (p.hasInboundFilterId) p.getInboundFilterId else null,
@@ -91,7 +108,12 @@ object Port {
             if (p.hasPortSubnet) fromV4Proto(p.getPortSubnet) else null,
             if (p.hasPortAddress) toIPv4Addr(p.getPortAddress) else null,
             if (p.hasPortMac) MAC.fromString(p.getPortMac) else null,
-            p.getRouteIdsList)
+            p.getRouteIdsList,
+            if (p.hasVni) p.getVni else 0,
+            if (p.hasLocalVtep) toIPv4Addr(p.getLocalVtep) else null,
+            if (p.hasDefaultRemoteVtep) toIPv4Addr(p.getDefaultRemoteVtep) else null,
+            if (p.getRemoteVtepsCount == 0) macVtepListToMap(p.getRemoteVtepsList) else Map.empty[MAC, IPv4Addr],
+            p.getOffRampVxlan)
 
     private def vxLanPort(p: Topology.Port) = VxLanPort(
             p.getId,
@@ -294,7 +316,12 @@ case class RouterPort(override val id: UUID,
                       portSubnet: IPv4Subnet,
                       portIp: IPv4Addr,
                       portMac: MAC,
-                      routeIds: Set[UUID] = Set.empty) extends Port {
+                      routeIds: Set[UUID] = Set.empty,
+                      vni: Int = 0,
+                      localVtep: IPv4Addr = null,
+                      defaultRemoteVtep: IPv4Addr = null,
+                      remoteVteps: Map[MAC, IPv4Addr] = null,
+                      offRampVxlan: Boolean = false) extends Port {
 
     val _portAddr = new IPv4Subnet(portIp, portSubnet.getPrefixLen)
 
