@@ -1,0 +1,95 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_dcbd02b9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-18T01:21:26Z",
+      "side": 1,
+      "message": "shouldn\u0027t the completion/errors be captured also?\nDo we assume that the observable from the bus is never going to be neither closed nor interrupted by some error?",
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9ca8da78",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-18T01:21:26Z",
+      "side": 1,
+      "message": "extra white spaces...",
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bcdf5e0c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-18T01:21:26Z",
+      "side": 1,
+      "message": "what if the previous winner had the same value but a different owner... shouldn\u0027t we skip the winningSubject onNext in that case? (i.e. shouldn\u0027t we just compare the values, instead of the (owner,value) pairs?)",
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5cd012f6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 185,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-18T01:21:26Z",
+      "side": 1,
+      "message": "again, the new value could be the same as the previous, but with a different owner... maybe we should skip the onNext in this case...",
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5cf7328b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-18T01:21:26Z",
+      "side": 1,
+      "message": "Mmm... I don\u0027t get this (sorry, probably lack of context from my side): shouldn\u0027t the \u0027putOpinion\u0027 affect the catch/winner hashes? (and the same for removeOpinion below...)",
+      "range": {
+        "startLine": 239,
+        "startChar": 8,
+        "endLine": 239,
+        "endChar": 18
+      },
+      "revId": "9854ef5b7de2b3558afef3ccac2bb8ae612be114",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
