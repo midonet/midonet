@@ -22,15 +22,22 @@ import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
 import org.midonet.cluster.models.Commons.UUID
+import org.midonet.midolman.state.PathBuilder
 
 /**
  * Abstract base class for C3PO Translator unit test classes.
  */
-abstract class TranslatorTestBase  extends FlatSpec with BeforeAndAfter
-                                                    with Matchers {
+abstract class TranslatorTestBase  extends FlatSpec
+                                   with BeforeAndAfter
+                                   with Matchers
+                                   with BridgeStateTableManager {
     /* Each implementing unit test class initializes the (mock) storage by
      * calling initMockStorage() below. */
     protected var storage: ReadOnlyStorage = _
+
+    // For testing CRUD on the old ZK data structure (e.g. ARP table)
+    private val zkRoot = "/test"
+    protected val pathBldr: PathBuilder = new PathBuilder(zkRoot)
 
     protected def initMockStorage() {
         storage = mock(classOf[ReadOnlyStorage])

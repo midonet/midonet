@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.{DataClient => LegacyDataClient}
-import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
@@ -54,6 +53,7 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackendService
 import org.midonet.cluster.services.c3po.C3POMinion
+import org.midonet.cluster.services.c3po.translators.BridgeStateTableManager
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
@@ -61,9 +61,8 @@ import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
-import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, PathBuilder, ZkConnection, ZookeeperConnectionWatcher}
+import org.midonet.midolman.state.{PathBuilder, ZkConnection, ZookeeperConnectionWatcher}
 import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC, UDP}
-import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -71,7 +70,8 @@ import org.midonet.util.concurrent.toFutureOps
 class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                           with BeforeAndAfterAll
                                           with Matchers
-                                          with MidonetEventually {
+                                          with MidonetEventually
+                                          with BridgeStateTableManager {
 
     protected val log = LoggerFactory.getLogger(this.getClass)
 
@@ -576,9 +576,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
 
     protected def checkReplMaps(bridgeId: UUID, shouldExist: Boolean)
     : Unit = {
-        val arpPath = pathBldr.getBridgeIP4MacMapPath(bridgeId)
-        val macPath = pathBldr.getBridgeMacPortsPath(bridgeId)
-        val vlansPath = pathBldr.getBridgeVlansPath(bridgeId)
+        val arpPath = getBridgeIP4MacMapPath(bridgeId)
+        val macPath = getBridgeMacPortsPath(bridgeId)
+        val vlansPath = getBridgeVlansPath(bridgeId)
         if (shouldExist) {
             curator.checkExists.forPath(arpPath) shouldNot be(null)
             curator.checkExists.forPath(macPath) shouldNot be(null)
@@ -588,17 +588,6 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
             curator.checkExists.forPath(macPath) shouldBe null
             curator.checkExists.forPath(vlansPath) shouldBe null
         }
-    }
-
-    protected def macEntryPath(nwId: UUID, mac: String, portId: UUID) = {
-        val entry = MacPortMap.encodePersistentPath(MAC.fromString(mac), portId)
-        pathBldr.getBridgeMacPortEntryPath(nwId, Bridge.UNTAGGED_VLAN_ID, entry)
-    }
-
-    protected def arpEntryPath(nwId: UUID, ipAddr: String, mac: String) = {
-        val entry = Ip4ToMacReplicatedMap.encodePersistentPath(
-                ipAddr, MAC.fromString(mac))
-        pathBldr.getBridgeIP4MacMapPath(nwId) + entry
     }
 
     protected def checkPortBinding(hostId: UUID, portId: UUID,
@@ -625,7 +614,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def createTenantNetwork(taskId: Int, nwId: UUID,
                                       external: Boolean = false): Unit = {
         val json = networkJson(nwId, name = "tenant-network-" + nwId,
-                               tenantId = "tenant").toString
+                               tenantId = "tenant",
+                               external = external).toString
         insertCreateTask(taskId, NetworkType, json, nwId)
     }
 
