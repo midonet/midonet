@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.{Matcher, Pattern}
 import java.util.zip.ZipInputStream
 
+import org.slf4j.helpers.NOPLogger
+
 import scala.collection.JavaConversions._
 import scala.util.Try
 
@@ -136,7 +138,7 @@ object MidoNodeConfigurator {
 
         val locations = (inifile map ( List(_) ) getOrElse Nil) ::: MIDONET_CONF_LOCATIONS
 
-        def loadCfg = (loc: String) => Try(new LegacyConf(loc).get).getOrElse(ConfigFactory.empty)
+        def loadCfg = (loc: String) => Try(new LegacyConf(loc, NOPLogger.NOP_LOGGER).get).getOrElse(ConfigFactory.empty)
 
         ENVIRONMENT.withFallback({ for (l <- locations) yield loadCfg(l)
         } reduce((a, b) => a.withFallback(b))
@@ -734,9 +736,11 @@ class ZookeeperSchema(zk: CuratorFramework, path: String,
  *
  * @param filename
  */
-class LegacyConf(val filename: String) extends MidoConf {
+class LegacyConf(val filename: String,
+                 val logger: org.slf4j.Logger =
+                     LoggerFactory.getLogger("org.midonet.conf")) extends MidoConf {
 
-    val log = Logger(LoggerFactory.getLogger("org.midonet.conf"))
+    val log = Logger(logger)
 
     private val iniconf: HierarchicalINIConfiguration = new HierarchicalINIConfiguration()
     iniconf.setDelimiterParsingDisabled(true)
