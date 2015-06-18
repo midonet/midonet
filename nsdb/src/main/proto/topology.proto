@@ -249,6 +249,7 @@ message Port {
 
     // Backreferences
     repeated UUID rule_ids = 101;
+    optional UUID vip_id = 102;
 }
 
 message PortGroup {
@@ -422,9 +423,10 @@ message Vip {
     optional IPAddress address = 4;
     optional uint32 protocol_port = 5;
     optional SessionPersistence session_persistence = 6;
+    optional UUID gateway_port_id = 7;
 
     // Backreference
-    optional UUID load_balancer_id = 7;
+    optional UUID load_balancer_id = 101;
 }
 
 message Vtep {
