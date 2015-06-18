@@ -28,6 +28,7 @@ import scala.reflect.ClassTag
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -151,7 +152,7 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
         val portGroupPort = getResource(classOf[PortGroupPort], portId)
             .getOrThrow
         if (!portGroupPort.portGroupIds.contains(portGroupId)) {
-            throw new WebApplicationException(Response.Status.NOT_FOUND)
+            throw new NotFoundHttpException("Resource not found")
         }
         portGroupPort.portGroupId = portGroupId
         portGroupPort
@@ -168,7 +169,7 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
             .getOrThrow
         portGroupPorts.foreach(portGroupPort => {
             if (!portGroupPort.portGroupIds.contains(portGroupId)) {
-                throw new WebApplicationException(Response.Status.NOT_FOUND)
+                throw new NotFoundHttpException("Resource not found")
             }
             portGroupPort.portGroupId = portGroupId
         })
@@ -208,10 +209,10 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
         getResource(classOf[Port], portId).flatMap(port => {
             getResource(classOf[PortGroup], portGroupId).map(pg => {
                 if (!port.portGroupIds.contains(portGroupId)) {
-                    throw new WebApplicationException(Status.NOT_FOUND)
+                    throw new NotFoundHttpException("Resource not found")
                 }
                 if (!pg.portIds.contains(portId)) {
-                    throw new WebApplicationException(Status.NOT_FOUND)
+                    throw new NotFoundHttpException("Resource not found")
                 }
                 port.portGroupIds.remove(portGroupId)
                 pg.portIds.remove(portId)
@@ -226,5 +227,6 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
                 updateResource(pg)
             }))
         .getOrThrow
+        MidonetResource.OkNoContentResponse
     }
 }
