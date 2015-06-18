@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import javax.ws.rs.core.{MediaType, UriInfo}
+import javax.ws.rs.core.MediaType
 import javax.ws.rs.{GET, Path, Produces}
 
 import com.google.inject.Inject
@@ -24,13 +24,12 @@ import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.models.Application
 import org.midonet.cluster.rest_api.neutron.resources.NeutronResource
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @Path("/")
-class ApplicationResource @Inject()(backend: MidonetBackend,
-                                    uriInfo: UriInfo,
+class ApplicationResource @Inject()(resContext: ResourceContext,
                                     adRouteResource: AdRouteResource,
                                     bgpResource: BgpResource,
                                     bridgeResource: BridgeResource,
@@ -50,13 +49,14 @@ class ApplicationResource @Inject()(backend: MidonetBackend,
                                     tunnelZoneResource: TunnelZoneResource,
                                     vipResource: VipResource,
                                     tenantResource: TenantResource)
-    extends MidonetResource(backend, uriInfo) {
+    extends MidonetResource(resContext) {
 
     @GET
     @Produces(Array(MediaType.APPLICATION_JSON, APPLICATION_JSON_V5))
     def application: Application = {
-        log.debug(s"${getClass.getName} entered on ${uriInfo.getAbsolutePath}")
-        new Application(uriInfo.getAbsolutePathBuilder.build())
+        log.debug(s"${getClass.getName} entered on " +
+                  "${resContext.uriInfo.getAbsolutePath}")
+        new Application(resContext.uriInfo.getAbsolutePathBuilder.build())
     }
 
     @Path("ad_routes")

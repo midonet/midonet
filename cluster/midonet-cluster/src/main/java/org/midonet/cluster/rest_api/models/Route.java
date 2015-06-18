@@ -97,6 +97,7 @@ public class Route extends UriResource {
     @ZoomField(name = "next_hop")
     public NextHop type;
 
+    @ZoomField(name = "weight")
     @Min(0)
     public int weight;
 

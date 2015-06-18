@@ -17,18 +17,16 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Bridge
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_BRIDGE_JSON,
@@ -48,21 +46,22 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
                    APPLICATION_BRIDGE_JSON_V3,
                    APPLICATION_JSON))
 @AllowDelete
-class BridgeResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Bridge](backend, uriInfo) {
+class BridgeResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Bridge](resContext) {
 
     @Path("{id}/ports")
     def ports(@PathParam("id") id: UUID): BridgePortResource = {
-        new BridgePortResource(id, backend, uriInfo)
+        new BridgePortResource(id, resContext)
     }
 
     @Path("{id}/dhcp")
     def dhcps(@PathParam("id") id: UUID): DhcpSubnetResource = {
-        new DhcpSubnetResource(id, backend, uriInfo)
+        new DhcpSubnetResource(id, resContext)
     }
 
     protected override def listFilter: (Bridge) => Boolean = {
-        val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
+        val tenantId = resContext.uriInfo
+                                 .getQueryParameters.getFirst("tenant_id")
         if (tenantId eq null) (_: Bridge) => true
         else (r: Bridge) => r.tenantId == tenantId
     }

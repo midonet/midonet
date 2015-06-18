@@ -17,11 +17,10 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.{List => JList, UUID}
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.core.{Response, UriInfo}
 
 import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
@@ -31,14 +30,12 @@ import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models._
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.Update
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{ResourceContext, Update}
 
-class AbstractPortResource[P >: Null <: Port]
-                          (backend: MidonetBackend, uriInfo: UriInfo)
-                          (implicit tag: ClassTag[P])
-    extends MidonetResource[P](backend, uriInfo)(tag) {
+class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
+                                              (implicit tag: ClassTag[P])
+    extends MidonetResource[P](resContext)(tag) {
 
     protected override def getFilter = (port: P) => setActive(port)
 
@@ -66,8 +63,8 @@ class AbstractPortResource[P >: Null <: Port]
                    APPLICATION_PORT_V2_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends AbstractPortResource[Port](backend, uriInfo) {
+class PortResource @Inject()(resContext: ResourceContext)
+    extends AbstractPortResource[Port](resContext) {
 
     @POST
     @Path("{id}/link")
@@ -91,7 +88,7 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
 
     @Path("{id}/port_groups")
     def portGroups(@PathParam("id") id: UUID): PortPortGroupResource = {
-        new PortPortGroupResource(id, backend, uriInfo)
+        new PortPortGroupResource(id, resContext)
     }
 
     protected override def updateFilter = (to: Port, from: Port) => {
@@ -107,9 +104,8 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
 @AllowCreate(Array(APPLICATION_PORT_JSON,
                    APPLICATION_PORT_V2_JSON,
                    APPLICATION_JSON))
-class BridgePortResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
-                                   uriInfo: UriInfo)
-    extends AbstractPortResource[BridgePort](backend, uriInfo) {
+class BridgePortResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
+    extends AbstractPortResource[BridgePort](resContext) {
 
     protected override def listFilter = (port: Port) => {
         port.getDeviceId == bridgeId
@@ -127,9 +123,8 @@ class BridgePortResource @Inject()(bridgeId: UUID, backend: MidonetBackend,
 @AllowCreate(Array(APPLICATION_PORT_JSON,
                    APPLICATION_PORT_V2_JSON,
                    APPLICATION_JSON))
-class RouterPortResource @Inject()(routerId: UUID, backend: MidonetBackend,
-                                   uriInfo: UriInfo)
-    extends AbstractPortResource[RouterPort](backend, uriInfo) {
+class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
+    extends AbstractPortResource[RouterPort](resContext) {
 
     protected override def listFilter = (port: Port) => {
         port.getDeviceId == routerId
@@ -143,8 +138,8 @@ class RouterPortResource @Inject()(routerId: UUID, backend: MidonetBackend,
 
 @RequestScoped
 class PortGroupPortResource @Inject()(portGroupId: UUID,
-                                      backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[PortGroupPort](backend, uriInfo) {
+                                      resContext: ResourceContext)
+    extends MidonetResource[PortGroupPort](resContext) {
 
     @GET
     @Produces(Array(APPLICATION_PORTGROUP_PORT_JSON,
@@ -195,7 +190,7 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
                 if (pg.portIds.contains(portGroupPort.portId)) {
                     throw new WebApplicationException(Status.CONFLICT)
                 }
-                portGroupPort.setBaseUri(uriInfo.getBaseUri)
+                portGroupPort.setBaseUri(resContext.uriInfo.getBaseUri)
                 port.portGroupIds.add(portGroupPort.portGroupId)
                 pg.portIds.add(portGroupPort.portId)
                 multiResource(Seq(Update(port), Update(pg)),

@@ -32,14 +32,14 @@ import org.midonet.cluster.rest_api.annotation.AllowGet
 import org.midonet.cluster.rest_api.models.{Chain, Rule}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Delete, Create, Update}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{ResourceContext, Delete, Create, Update}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_RULE_JSON,
                 APPLICATION_RULE_JSON_V2,
                 APPLICATION_JSON))
-class RuleResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[Rule](backend, uriInfo) {
+class RuleResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Rule](resContext) {
 
     @DELETE
     @Path("{id}")
@@ -59,9 +59,8 @@ class RuleResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
 }
 
 @RequestScoped
-class ChainRuleResource @Inject()(chainId: UUID, backend: MidonetBackend,
-                                  uriInfo: UriInfo)
-    extends MidonetResource[Rule](backend, uriInfo) {
+class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
+    extends MidonetResource[Rule](resContext) {
 
     @GET
     @Produces(Array(APPLICATION_RULE_COLLECTION_JSON,
@@ -84,7 +83,7 @@ class ChainRuleResource @Inject()(chainId: UUID, backend: MidonetBackend,
     : Response = {
         getResource(classOf[Chain], chainId).map(chain => {
             rule.create(chainId)
-            rule.setBaseUri(uriInfo.getBaseUri)
+            rule.setBaseUri(resContext.uriInfo.getBaseUri)
             if (rule.position <= 0 || rule.position > chain.ruleIds.size() + 1) {
                 throw new WebApplicationException(Status.BAD_REQUEST)
             }
