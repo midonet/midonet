@@ -188,6 +188,11 @@ message LoadBalancer {
     repeated UUID vip_ids = 103;
 }
 
+message MacIp {
+    optional string mac = 1;
+    optional IPAddress ip = 2;
+}
+
 message Network {
     // Neutron / MidoNet common attributes
     optional UUID id = 1;
@@ -277,6 +282,13 @@ message Port {
 
     // VXLAN port specific
     optional UUID vtep_id = 19;
+
+    // Overlay VTEP on Routers
+    optional uint32 vni = 30;
+    optional bool off_ramp_vxlan = 31;
+    optional IPAddress local_vtep = 32;
+    optional IPAddress default_remote_vtep = 33;
+    repeated MacIp remote_vteps = 34;
 
     // Backreferences
 
