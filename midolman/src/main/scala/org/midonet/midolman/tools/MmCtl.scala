@@ -124,7 +124,8 @@ class MmCtl(injector: Injector) {
                 return HOST_ID_NOT_FOUND
             case e: StateAccessException =>
                 return STATE_ERROR
-            case _: Exception =>
+            case e: Exception =>
+                e.printStackTrace(System.err)
                 return UNKNOWN_ERROR
         }
         SUCCESS
