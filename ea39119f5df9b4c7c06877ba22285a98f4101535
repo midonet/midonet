@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_e8675c4b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-18T16:13:42Z",
+      "side": 1,
+      "message": "Simplify? :-) (Ignore me if this is not the patch where this was added, there are some many patches touching this file...)",
+      "range": {
+        "startLine": 346,
+        "startChar": 6,
+        "endLine": 351,
+        "endChar": 50
+      },
+      "revId": "ea39119f5df9b4c7c06877ba22285a98f4101535",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
