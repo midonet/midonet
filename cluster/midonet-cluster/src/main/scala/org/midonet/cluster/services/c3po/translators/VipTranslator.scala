@@ -18,16 +18,20 @@ package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.NeutronVIP
+import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter, NeutronSubnet, NeutronNetwork, NeutronVIP}
 import org.midonet.cluster.models.Topology.{Pool, Vip}
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
+import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for VIP. */
-class VipTranslator(protected val storage: ReadOnlyStorage)
-        extends NeutronTranslator[NeutronVIP]{
+class VipTranslator(protected val storage: ReadOnlyStorage,
+                    protected val pathBldr: PathBuilder)
+        extends NeutronTranslator[NeutronVIP]
+        with BridgeStateTableManager {
 
-    private def translate(nVip: NeutronVIP): Vip = {
+    private def translate(nVip: NeutronVIP): Vip.Builder = {
         val mVipBldr = Vip.newBuilder
                       .setId(nVip.getId)
                       .setAdminStateUp(nVip.getAdminStateUp)
@@ -43,15 +47,84 @@ class VipTranslator(protected val storage: ReadOnlyStorage)
             mVipBldr.setPoolId(pool.getId)
             mVipBldr.setLoadBalancerId(pool.getLoadBalancerId)
         }
-        mVipBldr.build()
+        mVipBldr
     }
 
-    override protected def translateCreate(nVip: NeutronVIP) : MidoOpList =
-        List(Create(translate(nVip)))
+    override protected def translateCreate(nVip: NeutronVIP) : MidoOpList = {
+        val mVip = translate(nVip)
 
-    override protected def translateDelete(id: UUID) : MidoOpList =
-        List(Delete(classOf[Vip], id))
+        // VIP is not associated with LB. Don't add an ARP entry yet.
+        if (!nVip.hasPoolId) return List(Create(mVip.build()))
 
-    override protected def translateUpdate(nVip: NeutronVIP) : MidoOpList =
-        List(Update(translate(nVip)))
+        val midoOps = new MidoOpListBuffer
+        val subnet = storage.get(classOf[NeutronSubnet], nVip.getSubnetId)
+                            .await()
+        val networkId = subnet.getNetworkId
+        val network = storage.get(classOf[NeutronNetwork],
+                                  networkId).await()
+        // If the VIP's DHCP is not on external, no need to add an ARP entry.
+        if (!network.getExternal) return List(Create(mVip.build()))
+
+        val pool = storage.get(classOf[Pool], nVip.getPoolId).await()
+        // The Load Balancer and its Router share the same ID.
+        val router = storage.get(classOf[NeutronRouter],
+                                 pool.getLoadBalancerId).await()
+        if (router.hasGwPortId) {
+            val gwPort = storage.get(classOf[NeutronPort],
+                                     router.getGwPortId).await()
+            val arpPath = arpEntryPath(networkId,
+                                       nVip.getAddress.getAddress,
+                                       gwPort.getMacAddress)
+            midoOps += CreateNode(arpPath, null)
+            // Set a back reference from gateway port to VIP.
+            mVip.setGatewayPortId(router.getGwPortId)
+        } else {
+            log.warn("VIP's associated to a Router without a gateway " +
+                     "port. No ARP entry is added now, nor will be " +
+                     "when the router is set a gateway port.")
+            // TODO: Update the ARP entry when a gateway port is set to a tenant
+            // router with LB / VIP.
+            // Does Neutron allow creation of a VIP to a Router that doesn't
+            // have a gateway Port?
+        }
+
+        midoOps += Create(mVip.build())
+        midoOps.toList
+    }
+
+    override protected def translateDelete(id: UUID) : MidoOpList = {
+        val midoOps = new MidoOpListBuffer
+        midoOps += Delete(classOf[Vip], id)
+
+        val vip = storage.get(classOf[Vip], id).await()
+        // TODO: Need to delete the ARP entry on Router gateway port deletion.
+        // Does Neutron allow deletion of a Router gateway port with which a VIP
+        // is still associated?
+        if (vip.hasGatewayPortId) {
+            val gwPort = storage.get(classOf[NeutronPort],
+                                     vip.getGatewayPortId).await()
+            val arpPath = arpEntryPath(gwPort.getNetworkId,
+                                       vip.getAddress.getAddress,
+                                       gwPort.getMacAddress)
+            midoOps += DeleteNode(arpPath)
+        }
+
+        midoOps.toList
+    }
+
+    override protected def translateUpdate(nVip: NeutronVIP) : MidoOpList = {
+        // The specs don't allow the IP address of the VIP to change, and that
+        // the MAC address of a port also does not change on the port update.
+        // If the gateway port of the Router may be somehow changed, the ARP
+        // entry for the VIP should be updated at that timing. Therefore, here
+        // we don't need to update the ARP entry here and just check if the VIP
+        // IP address is indeed not changed.
+        val oldVip = storage.get(classOf[NeutronVIP], nVip.getId).await()
+        if (oldVip.getAddress != nVip.getAddress) {
+            throw new IllegalArgumentException(
+                    s"VIP's IP changed from ${oldVip.getAddress.getAddress} " +
+                    s"to ${nVip.getAddress.getAddress}")
+        }
+        List(Update(translate(nVip).build()))
+    }
 }
