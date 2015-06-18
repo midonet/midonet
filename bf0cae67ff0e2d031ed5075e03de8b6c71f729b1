@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_aff0fe67",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 260,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "Oh ignore me, can\u0027t read",
+      "parentUuid": "facab960_2c0ebf3b",
+      "range": {
+        "startLine": 255,
+        "startChar": 12,
+        "endLine": 260,
+        "endChar": 13
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4c24e3c4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 6
@@ -94,6 +118,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_4fda12e9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 491,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_c7060c1d",
+      "range": {
+        "startLine": 477,
+        "startChar": 12,
+        "endLine": 491,
+        "endChar": 13
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4712fc57",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 6
@@ -105,6 +153,30 @@
       "writtenOn": "2015-06-17T15:20:45Z",
       "side": 1,
       "message": "nit, maybe:\n\nval value \u003d values.get(key)\nSingleValueKey(key, value,\n               if (value.isEmpty) NoOwnerId else DefaultOwnerId)",
+      "range": {
+        "startLine": 496,
+        "startChar": 16,
+        "endLine": 500,
+        "endChar": 17
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0f872ad8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 500,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_4712fc57",
       "range": {
         "startLine": 496,
         "startChar": 16,
@@ -140,6 +212,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_cff54258",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 514,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "not quite possible, sadly",
+      "parentUuid": "facab960_87188476",
+      "range": {
+        "startLine": 509,
+        "startChar": 20,
+        "endLine": 514,
+        "endChar": 21
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_a7282887",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 6
@@ -151,6 +247,30 @@
       "writtenOn": "2015-06-17T14:44:19Z",
       "side": 1,
       "message": "remove",
+      "range": {
+        "startLine": 720,
+        "startChar": 73,
+        "endLine": 720,
+        "endChar": 76
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_efe686af",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 720,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_a7282887",
       "range": {
         "startLine": 720,
         "startChar": 73,
@@ -186,6 +306,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_4f3e9229",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 808,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_a7010807",
+      "range": {
+        "startLine": 807,
+        "startChar": 24,
+        "endLine": 808,
+        "endChar": 43
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_878b2467",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
         "patchSetId": 6
@@ -197,6 +341,30 @@
       "writtenOn": "2015-06-17T14:44:19Z",
       "side": 1,
       "message": "I don\u0027t understand why IllegalArgumentException is thrown here...",
+      "range": {
+        "startLine": 59,
+        "startChar": 12,
+        "endLine": 59,
+        "endChar": 47
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2f04ee48",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "because a value is added to a key that doesn\u0027t exist (it\u0027s an illegal entry)",
+      "parentUuid": "facab960_878b2467",
       "range": {
         "startLine": 59,
         "startChar": 12,
@@ -232,6 +400,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_8ff7ba58",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 321,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_e73f9085",
+      "range": {
+        "startLine": 321,
+        "startChar": 40,
+        "endLine": 321,
+        "endChar": 48
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_07455416",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
         "patchSetId": 6
@@ -243,6 +435,30 @@
       "writtenOn": "2015-06-17T14:44:19Z",
       "side": 1,
       "message": "timeout",
+      "range": {
+        "startLine": 378,
+        "startChar": 32,
+        "endLine": 378,
+        "endChar": 40
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4f8852c5",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 378,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_07455416",
       "range": {
         "startLine": 378,
         "startChar": 32,
@@ -278,6 +494,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_2f8b0ec4",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 536,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_c7652cb6",
+      "range": {
+        "startLine": 536,
+        "startChar": 32,
+        "endLine": 536,
+        "endChar": 40
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_075c74ec",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
         "patchSetId": 6
@@ -289,6 +529,30 @@
       "writtenOn": "2015-06-17T14:44:19Z",
       "side": 1,
       "message": "only receives updates for different values?",
+      "range": {
+        "startLine": 564,
+        "startChar": 31,
+        "endLine": 564,
+        "endChar": 51
+      },
+      "revId": "bf0cae67ff0e2d031ed5075e03de8b6c71f729b1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0fa3aa4f",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/InMemoryStateStorageTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 564,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-18T09:29:14Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_075c74ec",
       "range": {
         "startLine": 564,
         "startChar": 31,
