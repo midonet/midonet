@@ -87,9 +87,7 @@ final class FlowInvalidator(actorsService: MidolmanActorsService,
         }
     }
 
-    def needsToInvalidateTags(id: Int): Boolean =
-        queues(waitingFor).size() < MAX_PENDING_INVALIDATIONS
+    def needsToInvalidateTags(id: Int): Boolean = !queues(id).isEmpty
 
-    override def shouldWakeUp(): Boolean =
-        needsToInvalidateTags(waitingFor)
+    override def shouldWakeUp(): Boolean = needsToInvalidateTags(waitingFor)
 }
