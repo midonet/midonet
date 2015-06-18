@@ -467,5 +467,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         override def vtepTunnellingOutputAction: FlowActionOutput = null
         override def isVtepTunnellingPort(portNumber: Integer): Boolean = false
         override def isOverlayTunnellingPort(portNumber: Integer): Boolean = false
+        override def vxlanRecircOutputAction: FlowActionOutput = null
+        override def isVxlanRecircPort(portNumber: Integer): Boolean = false
     }
 }

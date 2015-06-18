@@ -31,6 +31,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology._
@@ -383,6 +384,8 @@ class AdminStateTest extends MidolmanSpec {
         val cookieStr: String = ""
 
         override protected val hostId: UUID = AdminStateTest.this.hostId
+        override protected val vxlanRecircMap: VxlanRecircMap = null
+        override protected val config: MidolmanConfig = null
 
         protected val dpState: DatapathState = new DatapathState {
             val host = rcu.ResolvedHost(hostId, true, Map.empty, Map.empty)
@@ -391,6 +394,8 @@ class AdminStateTest extends MidolmanSpec {
             def dpPortForTunnelKey(key: Long) = null
             def greOverlayTunnellingOutputAction: FlowActionOutput = null
             def vxlanOverlayTunnellingOutputAction: FlowActionOutput = null
+            def vxlanRecircOutputAction: FlowActionOutput = null
+            def isVxlanRecircPort(portNumber: Integer): Boolean = false
             def vtepTunnellingOutputAction: FlowActionOutput = null
             def getDpPortNumberForVport(vportId: UUID): Integer = 1
             def getDpPortForInterface(itfName: String): DpPort = null

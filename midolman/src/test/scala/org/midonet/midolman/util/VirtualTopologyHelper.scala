@@ -299,6 +299,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             override def isOverlayTunnellingPort(portNumber: Integer): Boolean =
                 tunnelPorts.contains(portNumber)
             override def vtepTunnellingOutputAction: FlowActionOutput = null
+            override def vxlanRecircOutputAction: FlowActionOutput = null
+            override def isVxlanRecircPort(portNumber: Integer): Boolean = false
             override def getVportForDpPortNumber(portNum: Integer): UUID =
                 dpPortToVport get portNum orNull
             override def dpPortForTunnelKey(tunnelKey: Long): DpPort =
@@ -328,7 +330,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             HappyGoLuckyLeaser,
             metrics,
             flowRecorder,
-            _ => { }) {
+            _ => { },
+            new VxlanRecircMap()) {
 
             override def runWorkflow(pktCtx: PacketContext) = {
                 packetCtxTrap.offer(pktCtx)

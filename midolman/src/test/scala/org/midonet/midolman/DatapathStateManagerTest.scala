@@ -57,9 +57,7 @@ class DatapathStateManagerTest extends Suite with Matchers with BeforeAndAfter {
         stateMgr.tunnelOverlayGre shouldBe null
         stateMgr.tunnelOverlayVxLan shouldBe null
         stateMgr.tunnelVtepVxLan shouldBe null
-        stateMgr.tunnelOverlayGre shouldBe null
-        stateMgr.tunnelOverlayVxLan shouldBe null
-        stateMgr.tunnelVtepVxLan shouldBe null
+        stateMgr.tunnelRecircVxLan shouldBe null
         for (p <- peers) { (stateMgr peerTunnelInfo p) shouldBe None }
     }
 

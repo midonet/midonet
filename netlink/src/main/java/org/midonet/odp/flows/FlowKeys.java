@@ -172,6 +172,10 @@ public class FlowKeys {
         return intern(new FlowKeyTunnel(id, srcIpv4, dstIpv4, tos));
     }
 
+    public static FlowKeyTunnel tunnel(long id, int srcIpv4, int dstIpv4, byte tos, byte ttl) {
+        return intern(new FlowKeyTunnel(id, srcIpv4, dstIpv4, tos, ttl));
+    }
+
     public static FlowKey newBlankInstance(short type) {
         switch (NetlinkMessage.unnest(type)) {
 

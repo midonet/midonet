@@ -56,6 +56,7 @@ import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent._
+import org.midonet.util.process.ProcessHelper
 
 object UnderlayResolver {
     case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput) {
@@ -77,7 +78,11 @@ trait UnderlayResolver {
 
     def vtepTunnellingOutputAction: FlowActionOutput
 
+    def vxlanRecircOutputAction: FlowActionOutput
+
     def isVtepTunnellingPort(portNumber: Integer): Boolean
+
+    def isVxlanRecircPort(portNumber: Integer): Boolean
 
     def isOverlayTunnellingPort(portNumber: Integer): Boolean
 }
@@ -195,6 +200,18 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     val DatapathInitializationActor: Receive = {
         case Initialize =>
+            // We use the datapath's "local" port to recirculate packets that
+            // need encap/decap before futher processing.
+            // TODO: add a new/separate internal port for this purpose.
+            var cmd = s"ip address add ${config.datapathIfAddr} dev ${config.datapathName}"
+            var result = ProcessHelper.executeCommandLine(cmd, false)
+            cmd = s"ip link set ${config.datapathName} address 02:00:11:00:11:01"
+            result = ProcessHelper.executeCommandLine(cmd, false)
+            cmd = s"ip link set ${config.datapathName} up"
+            result = ProcessHelper.executeCommandLine(cmd, false)
+            cmd = s"ip neigh add ${config.datapathIfPeerAddr} 02:00:11:00:11:02 nud permanent"
+            // Ignore the errors seeding the neighbor table.
+            result = ProcessHelper.executeCommandLine(cmd, true)
             makeTunnelPort(OverlayTunnel) { () =>
                 GreTunnelPort make "tngre-overlay"
             } flatMap { gre =>
@@ -209,8 +226,14 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                     val vtepUdpPort = config.datapath.vxlanVtepUdpPort
                     VxLanTunnelPort make("tnvxlan-vtep", vtepUdpPort)
                }
-            } map { vtep =>
+            } flatMap { vtep =>
                 driver.tunnelVtepVxLan = vtep
+                makeTunnelPort(VtepTunnel) { () =>
+                    val vlxanRecircPort = config.datapath.vxlanRecirculateUdpPort
+                    VxLanTunnelPort make("tnvxlan-recirc", vlxanRecircPort)
+                }
+            } map { recirc =>
+                driver.tunnelRecircVxLan = recirc
                 TunnelPortsCreated_
             } pipeTo self
 
@@ -407,6 +430,7 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
     var tunnelOverlayGre: GreTunnelPort = _
     var tunnelOverlayVxLan: VxLanTunnelPort = _
     var tunnelVtepVxLan: VxLanTunnelPort = _
+    var tunnelRecircVxLan: VxLanTunnelPort = _
 
     val interfaceToTriad = new ConcurrentHashMap[String, DpTriad]()
     val vportToTriad = new ConcurrentHashMap[UUID, DpTriad]()
@@ -415,8 +439,13 @@ class DatapathStateDriver(val datapath: Datapath) extends DatapathState  {
 
     override def vtepTunnellingOutputAction = tunnelVtepVxLan.toOutputAction
 
+    override def vxlanRecircOutputAction = tunnelRecircVxLan.toOutputAction
+
     def isVtepTunnellingPort(portNumber: Integer) =
         tunnelVtepVxLan.getPortNo == portNumber
+
+    def isVxlanRecircPort(portNumber: Integer) =
+        tunnelRecircVxLan.getPortNo == portNumber
 
     def isOverlayTunnellingPort(portNumber: Integer) =
         tunnelOverlayGre.getPortNo == portNumber ||

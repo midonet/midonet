@@ -19,7 +19,7 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.UUID
 
-import org.midonet.midolman.simulation.Simulator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.{VxlanEncap, VxlanDecap, ToPortAction}
 import org.midonet.midolman.topology.RouterManager
 import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel}
 
@@ -36,7 +36,7 @@ import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult, AddVirtualWi
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
-import org.midonet.packets.{IPv4Subnet, Ethernet, IPv4}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, Ethernet, IPv4}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 trait CustomMatchers {
@@ -84,7 +84,56 @@ trait CustomMatchers {
                     case ToPortAction(id) => id == portId
                     case _ => false
                 }), s"a port action to $portId")
-    }
+        }
+
+    def decap(routerId: UUID)(expectedTags: FlowTag*) =
+        new BePropertyMatcher[(SimulationResult, PacketContext)] {
+            def apply(simRes: (SimulationResult, PacketContext)) =
+                BePropertyMatchResult((simRes._1 match {
+                    case AddVirtualWildcardFlow =>
+                        if (expectedTags forall simRes._2.flowTags.contains)
+                            simRes._2.virtualFlowActions.toList
+                        else Nil
+                    case _ => Nil
+                }).exists({
+                    case VxlanDecap(id) => id == routerId
+                    case _ => false
+                }), s"a decap action to $routerId")
+        }
+
+    def encapRecirc(vni: Int, l2portId: UUID, vtep: IPv4Addr)(expectedTags: FlowTag*) =
+        new BePropertyMatcher[(SimulationResult, PacketContext)] {
+            def apply(simRes: (SimulationResult, PacketContext)) =
+                BePropertyMatchResult((simRes._1 match {
+                    case AddVirtualWildcardFlow =>
+                        if (expectedTags forall simRes._2.flowTags.contains)
+                            simRes._2.virtualFlowActions.toList
+                        else Nil
+                    case _ => Nil
+                }).exists({
+                    case VxlanEncap(vniVal, id, ip) =>
+                        vni == vniVal && l2portId == id && vtep == ip
+                    case _ => false
+                }), s"a encap/Recirc action with vni=$vni, remote vtep $vtep and port $l2portId")
+        }
+
+    def encapNoRecirc(vni: Int, outPortId: UUID)(expectedTags: FlowTag*) =
+        new BePropertyMatcher[(SimulationResult, PacketContext)] {
+            def apply(simRes: (SimulationResult, PacketContext)) =
+                BePropertyMatchResult((simRes._1 match {
+                    case AddVirtualWildcardFlow =>
+                        val inner = simRes._2.innerLayer
+                        if (inner == null || inner.vni != vni)
+                            Nil
+                        else if (expectedTags forall simRes._2.flowTags.contains)
+                            simRes._2.virtualFlowActions.toList
+                        else Nil
+                    case _ => Nil
+                }).exists({
+                    case ToPortAction(id) => id == outPortId
+                    case _ => false
+                }), s"an inner (encap'd) layer with vni=$vni and a port action to $outPortId")
+        }
 
     def toBridge(bridge: Bridge, brPorts: List[UUID], expectedTags: FlowTag*) =
         new BePropertyMatcher[(SimulationResult, PacketContext)] {

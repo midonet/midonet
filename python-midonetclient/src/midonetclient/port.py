@@ -77,6 +77,21 @@ class Port(resource_base.ResourceBase,
     def get_port_mac(self):
         return self.dto['portMac']
 
+    def get_rtr_port_vni(self):
+        return self.dto['rtrPortVni']
+
+    def get_default_remote_vtep(self):
+        return self.dto['defaultRemoteVtep']
+
+    def get_local_vtep(self):
+        return self.dto['localVtep']
+
+    def get_remote_vteps(self):
+        return self.dto['remoteVteps']
+
+    def can_off_ramp_vxlan(self):
+        return self.dto['offRampVxlan']
+
     def get_bgps(self):
         query = {}
         headers = {'Accept':
@@ -123,6 +138,26 @@ class Port(resource_base.ResourceBase,
 
     def port_mac(self, port_mac):
         self.dto['portMac'] = port_mac
+        return self
+
+    def rtr_port_vni(self, vni):
+        self.dto['rtrPortVni'] = vni
+        return self
+
+    def default_remote_vtep(self, vtep):
+        self.dto['defaultRemoteVtep'] = vtep
+        return self
+
+    def remote_vteps(self, vteps):
+        self.dto['remoteVteps'] = vteps
+        return self
+
+    def local_vtep(self, vtep):
+        self.dto['localVtep'] = vtep
+        return self
+
+    def off_ramp_vxlan(self, ramp):
+        self.dto['offRampVxlan'] = ramp
         return self
 
     def type(self, type_):

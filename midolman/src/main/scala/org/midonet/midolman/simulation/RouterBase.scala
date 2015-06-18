@@ -17,6 +17,9 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
+import scala.collection.mutable
+import scala.util.Random
+
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.NotYetException
@@ -28,9 +31,10 @@ import org.midonet.midolman.simulation.Icmp._
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.odp.FlowMatch
+import org.midonet.odp.{FlowMatches, Packet, FlowMatch}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets._
+import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
 
 /**
@@ -57,12 +61,47 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     override def outfilter = cfg.outboundFilter
     override def adminStateUp = cfg.adminStateUp
 
-    private val routeAndMirrorOut: ContinueWith = ContinueWith((context, actorSystem) => {
+    private def preRt(context: PacketContext, actorSystem: ActorSystem): SimulationResult = {
+        implicit val packetContext = context
+        val inPort = tryAsk[RouterPort](context.inPortId)
+        context.addFlowTag(deviceTag)
+        // If it's a L2/VTEP port, encap the packet, then pre-route.
+        if (inPort.vni != 0)
+            return encap(inPort)
+        // If it's a vxlan packet and matches both the vni and local
+        // VTEP ip of a L2 port, decap and emit from the L2 port.
+        // TODO: make the UDP port configurable? Or per-L2 port?
+        if (context.wcmatch.getNetworkProto == UDP.PROTOCOL_NUMBER
+                 && context.wcmatch.getDstPort == UDP.VXLAN) {
+            val vni = context.ethernet.getPayload.getPayload
+                .getPayload.asInstanceOf[VXLAN].getVni
+            // Since the kernel flow rules don't match any of the VXLAN
+            // header, we read the UDP source port. This guarantees that
+            // whatever treatment we give this packet (route or decap)
+            // will apply to only flows with the same source port.
+            val udpSrc = context.wcmatch.getSrcPort
+            context.log.debug(s"Processing vxlan packet with vni=$vni" +
+                              s"and udpSrc=$udpSrc")
+            vniToL2Port.get(vni) match {
+                case None => // drop through
+                case Some(l2portId) =>
+                    val l2port = tryAsk[RouterPort](l2portId)
+                    if (l2port.localVtep == context.wcmatch.getNetworkDstIP)
+                    //if (l2port.localVtep.equals(context.wcmatch.getNetworkDstIP)) {
+                        return decapAndEmit(l2portId)
+            }
+            // else drop through
+        }
         preRouting()(context) match {
             case toPort: ToPortAction => mirroringOutbound(context, toPort, system)
             case action => action
         }
-    })
+    }
+
+    private val routeAndMirrorOut: ContinueWith = ContinueWith(preRt)
+
+    // This is populated by the RouterMapper
+    val vniToL2Port = new mutable.HashMap[Int, UUID]
 
     /**
      * Process the packet. Will validate first the ethertype and ensure that
@@ -121,6 +160,98 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
         }
     }
 
+    /**
+     * Process a packet that was recirculated.
+     * @param context
+     * @return
+     */
+    def recircEncap(context: PacketContext, l2port: RouterPort,
+                    vtep: IPv4Addr): SimulationResult = {
+        context.addFlowTag(deviceTag)
+        context.wcmatch.setNetworkSrc(l2port.localVtep)
+        context.wcmatch.setNetworkDst(vtep)
+        context.wcmatch.setSrcPort(Random.nextInt() >>> 17)
+        context.wcmatch.setDstPort(UDP.VXLAN.toShort)
+        // TODO: verify we need to set this manually
+        context.inPortId = l2port.id
+        continue(context, preRouting()(context))
+    }
+
+    def recircDecap(context: PacketContext): SimulationResult = {
+        context.addFlowTag(deviceTag)
+        val vni = context.wcmatch.getTunnelKey.toInt
+        vniToL2Port.get(vni) match {
+            case None =>
+                context.log.warn(s"Could not find a L2 port with vni=$vni")
+                Drop
+            case Some(portId) =>
+                ToPortAction(portId)
+        }
+    }
+
+    private def encap(fromL2Port: RouterPort)
+                     (implicit context: PacketContext): SimulationResult = {
+        // TODO: propagate inner flow's state to ingresses of encap's return
+        // Find the remote VTEP appropriate for the dst MAC of the inner pkt.
+        var remoteVtep = fromL2Port.remoteVteps.get(context.wcmatch.getEthDst) match {
+            case None => fromL2Port.defaultRemoteVtep
+            case Some(ip) => ip
+        }
+        if (remoteVtep eq null) {
+            context.log.warn(s"Could not find a remote VTEP for mac=${context.wcmatch.getEthSrc}")
+            return Drop
+        }
+        if (!fromL2Port.offRampVxlan) {
+            // We will need to locally recirculate the packet to add the vxlan
+            // header before emitting it.
+            context.log.debug("Encap and recirculate packet that " +
+                              "ingressed l2Port {}", fromL2Port.id)
+            context.calculateActionsFromMatchDiff()
+            context.addVirtualAction(
+                VxlanEncap(fromL2Port.vni, fromL2Port.id, remoteVtep))
+            return AddVirtualWildcardFlow
+        }
+        // Since vxlan encap can be off-ramped, we add the encapsulation
+        // headers on the packet and continue the simulation.
+        // TODO: choose the source port by hashing?
+        val udpSrc = Random.nextInt() >>> 17
+        val outerEthernet =  (eth addr "00:00:00:00:00:00" -> fromL2Port.portMac.toString)  <<
+                             (ip4 src fromL2Port.localVtep dst remoteVtep) <<
+                             (udp ports udpSrc ---> UDP.VXLAN.toShort) <<
+                             (vxlan vni fromL2Port.vni) <<
+                             payload(context.ethernet.serialize())
+        val outerMatch = FlowMatches.fromEthernetPacket(outerEthernet)
+        val outerPacket = new Packet(outerEthernet, outerMatch)
+        // Return an error if the last step was Encap: we can't do two encaps
+        // in a row.
+        context.encap(outerPacket, fromL2Port.vni, fromL2Port.offRampVxlan) match {
+            case false =>
+                context.log.warn("Cannot add 2 layers of encapsulation")
+                ErrorDrop
+            case true =>
+                // TODO: is this ok?
+                context.inPortId = fromL2Port.id
+                preRouting()
+        }
+    }
+
+    private def decapAndEmit(outPortId: UUID)
+                             (implicit context: PacketContext): SimulationResult =
+        context.decap() match {
+            case true => ToPortAction(outPortId)
+            case false =>
+                // If there was no previous encapsulation added by the network
+                // simulation, then we return *Decap* as a result so that the
+                // outer frame can be decapsulated by the hypervisor and the
+                // inner frame is recirculated (and gets its own simulation).
+                context.log.debug("Decap and recirculate packet so that it " +
+                                  "can be emitted from l2port {}", outPortId)
+                // We don't need to modify the outer headers since they're just
+                // going to be removed.
+                context.addVirtualAction(VxlanDecap(id))
+                AddVirtualWildcardFlow
+        }
+
     private def handlePreRoutingResult(preRoutingResult: RuleResult,
                                        inPort: RouterPort)
                                       (implicit context: PacketContext)
@@ -165,7 +296,6 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             return Drop
         }
 
-        context.addFlowTag(deviceTag)
         handleNeighbouring(inPort) match {
             case None =>
             case Some(simRes) => return simRes

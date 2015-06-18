@@ -57,7 +57,7 @@ object RouterMapper {
      */
     private class PortState(val portId: UUID, vt: VirtualTopology, log: Logger) {
 
-        private var currentPort: RouterPort = null
+        var currentPort: RouterPort = null
         private val mark = PublishSubject.create[RouteUpdates]
 
         private val routes = new mutable.HashMap[UUID, RouteState]
@@ -675,6 +675,12 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology,
             tagManager,
             arpCache
             )
+        for ((portId, portState) <- ports.toList) {
+            portState.currentPort.vni match {
+                case 0 =>
+                case value => device.vniToL2Port.put(value, portId)
+            }
+        }
         log.debug("Build router: {} {}", device, routes)
 
         device

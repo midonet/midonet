@@ -45,6 +45,7 @@ import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStatePackets, FlowStateReplicator, FlowStateStorage, NatLeaser, _}
 import org.midonet.midolman.simulation.Port
+import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{RouterManager, VirtualTopologyActor, VxLanPortMapper}
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp._
@@ -94,8 +95,37 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     def handleFromTunnel(context: PacketContext, inPortNo: Int): SimulationResult =
         if (dpState isOverlayTunnellingPort inPortNo) {
             handleFromUnderlay(context)
-        } else {
+        } else if (dpState isVtepTunnellingPort inPortNo) {
             handleFromVtep(context)
+        } else if (dpState isVxlanRecircPort inPortNo) {
+            // Packets that need to be decapsulated are emitted from the
+            // datapath's local/internal port to the L3 address of the midonet
+            // datapath/bridge's interface. The tunnel TOS/TTL encode the Id
+            // of the router where the inner packet's simulation must begin.
+            if (context.wcmatch.getTunnelSrc != IPv4Addr(config.datapathIfPeerAddr).toInt ||
+                context.wcmatch.getTunnelDst != IPv4Addr(config.datapathIfAddr).toInt) {
+                context.log.warn("Vxlan recirc port received a packet with " +
+                                 "unexpected tunnel L3 addresses.")
+                processSimulationResult(context, Drop)
+            }
+            // TODO: fetch the flow state for the inner packet.
+            val tos = context.wcmatch.getTunnelTOS
+            val ttl = context.wcmatch.getTunnelTTL
+            val routerInt = vxlanRecircMap.bytePairToInt(tos, ttl)
+            vxlanRecircMap.intToRouter(routerInt) match {
+                case None =>
+                    context.log.warn("Unrecognized router encoded in " +
+                                     "tos/ttl of recirc'd decap'd packet.")
+                    processSimulationResult(context, Drop)
+                case Some(routerId) =>
+                    log.debug("Simulating an decap'ed packet arriving at " +
+                              s"router $routerId")
+                    val router = tryAsk[Router](routerId)
+                    processSimulationResult(context, router.recircDecap(context))
+            }
+        } else {
+            context.log.warn("A packet ingressed an unrecognized tunnel port.")
+            processSimulationResult(context, Drop)
         }
 
     private def handleFromVtep(context: PacketContext): SimulationResult = {
@@ -158,7 +188,8 @@ class PacketWorkflow(
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
             val flowRecorder: FlowRecorder,
-            val packetOut: Int => Unit)
+            val packetOut: Int => Unit,
+            val vxlanRecircMap: VxlanRecircMap)
         extends Actor with ActorLogWithoutPath with Stash with Backchannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
         with FlowController with BackChannelHandler {
@@ -487,6 +518,48 @@ class PacketWorkflow(
             handleFromTunnel(context, inPortNo)
         } else if (resolveVport(context, inPortNo)) {
             processSimulationResult(context, simulatePacketIn(context))
+        } else if (inPortNo == 0) {
+            // Packets that need to be encapsulated are emitted from the vxlan
+            // recirculation tunnel port towards the internal port.
+            if (context.wcmatch.getNetworkSrcIP.asInstanceOf[IPv4Addr].toInt != IPv4Addr(config.datapathIfAddr).toInt ||
+                context.wcmatch.getNetworkDstIP.asInstanceOf[IPv4Addr].toInt != IPv4Addr(config.datapathIfPeerAddr).toInt) {
+                context.log.warn("Internal port 0 received a packet with " +
+                                 "unexpected L3 addresses.")
+                processSimulationResult(context, Drop)
+            }
+            if (context.wcmatch.getNetworkProto != UDP.PROTOCOL_NUMBER
+                || context.wcmatch.getDstPort != config.datapath.vxlanRecirculateUdpPort) {
+                context.log.warn("The packet arriving on port 0 is not VXLAN " +
+                                 "or not from the vxlan recirculate UDP port.")
+                processSimulationResult(context, Drop)
+            } else {
+                // On Encap, the TOS/TTL encode the router L2 port where
+                // encap occurred, and the remote VTEP appropriate for the
+                // inner dst MAC.
+                val tos = context.wcmatch.getNetworkTOS
+                val ttl = context.wcmatch.getNetworkTTL
+                val portVtep = vxlanRecircMap.bytePairToInt(tos, ttl)
+                vxlanRecircMap.intToPortVtep(portVtep) match {
+                    case None =>
+                        context.log.warn("Unrecognized router encoded in " +
+                                         "tos/ttl of recirc'd encap'd packet.")
+                        processSimulationResult(context, Drop)
+                    case Some((portId, vtep)) =>
+                        val port = tryAsk[RouterPort](portId)
+                        if (port.vni == 0) {
+                            context.log.warn("Port encoded in tos/ttl of " +
+                                             "recirc'd encap'd packet is not L2.")
+                            processSimulationResult(context, Drop)
+                        } else {
+                            val router = tryAsk[Router](port.deviceId)
+                            log.debug(
+                                "Simulating an encap'ed packet arriving at " +
+                                s"router ${router.id} port $portId")
+                            processSimulationResult(context,
+                                router.recircEncap(context, port, vtep))
+                        }
+                }
+            }
         } else {
             processSimulationResult(context, handleBgp(context, inPortNo))
         }

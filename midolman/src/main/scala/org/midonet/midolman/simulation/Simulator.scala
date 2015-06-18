@@ -25,6 +25,7 @@ import org.midonet.midolman.PacketWorkflow.{SimStep, SimulationResult => Result,
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
 import org.midonet.odp.FlowMatch
+import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
 import org.midonet.util.concurrent.{InstanceStash1, InstanceStash2}
 
@@ -35,6 +36,8 @@ object Simulator {
 
     sealed trait ForwardAction extends Result
     case class ToPortAction(outPort: UUID) extends ForwardAction with VirtualFlowAction
+    case class VxlanDecap(routerId: UUID) extends ForwardAction with VirtualFlowAction
+    case class VxlanEncap(vni: Int, routerL2portId: UUID, remoteVtep: IPv4Addr) extends ForwardAction with VirtualFlowAction
 
     // This action is used when one simulation has to return N forward actions
     // A good example is when a bridge that has a vlan id set receives a

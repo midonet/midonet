@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.simulation
 
+import java.util
 import java.util.{Arrays, ArrayList, HashSet, Set => JSet, UUID}
 import org.midonet.midolman.layer3.Route
 
@@ -53,9 +54,10 @@ object PacketContext {
  * in memory.
  */
 trait FlowContext extends Clearable { this: PacketContext =>
-    val virtualFlowActions = new ArrayList[FlowAction]()
+    var virtualFlowActions = new ArrayList[FlowAction]()
     val flowActions = new ArrayList[FlowAction]()
     val packetActions = new ArrayList[FlowAction]()
+
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
     val flowTags = new ArrayList[FlowTag]()
@@ -212,6 +214,17 @@ trait RecordedContext extends Clearable {
 }
 
 /**
+ * This HeaderLayer represents an inner layer of headers that has been
+ * encapsulated. The VNI value indicates the value for the VXLAN header
+ * that should be added *outside* this layer.
+ * @param packet
+ * @param modifiedMatch
+ * @param vni
+ */
+case class HeaderLayer(packet: Packet, modifiedMatch: FlowMatch, vni: Int,
+                       virtualFlowActions: ArrayList[FlowAction])
+
+/**
  * The PacketContext represents the simulation of a packet traversing the
  * virtual topology. Since a simulation runs-to-completion, always in the
  * context of the same thread, the PacketContext can be safely mutated and
@@ -219,8 +232,8 @@ trait RecordedContext extends Clearable {
  * devices.
  */
 class PacketContext(val cookie: Int,
-                    val packet: Packet,
-                    val origMatch: FlowMatch,
+                    var packet: Packet,
+                    var origMatch: FlowMatch,
                     val egressPort: UUID = null) extends Clearable
                                                  with FlowContext
                                                  with RecordedContext
@@ -242,10 +255,12 @@ class PacketContext(val cookie: Int,
     var currentDevice: UUID = _
     var routeTo: Route = _
 
-    val wcmatch = origMatch.clone()
+    var wcmatch = origMatch.clone()
     val diffBaseMatch = origMatch.clone()
 
     var inputPort: UUID = _
+
+    var innerLayer: HeaderLayer = null
 
     var packetEmitter: PacketEmitter = _
     var arpBroker: ArpRequestBroker = _
@@ -254,6 +269,47 @@ class PacketContext(val cookie: Int,
     val flowRemovedCallbacks = new ArrayList[Callback0]()
     def addFlowRemovedCallback(cb: Callback0): Unit = {
         flowRemovedCallbacks.add(cb)
+    }
+
+    /**
+     * Remove one stored encapsulation layer.
+     * @return true if there was a previous encapsulation to remove, else false.
+     */
+    def decap(): Boolean = {
+        innerLayer match {
+            case null => false
+                // There was no previous encapsulation to remove.
+            case _ =>
+                packet = innerLayer.packet
+                origMatch = packet.getMatch
+                wcmatch = innerLayer.modifiedMatch
+                innerLayer = null
+                true
+        }
+    }
+
+    /**
+     * Add one encapsulation layer. The previous packet and flow match are
+     * stored in 'innerLayer'. The outerpacket is used as the new packet and
+     * flow match on which the network simulation should operate.
+     * @param outerPacket
+     * @param vni
+     * @return true if it was possible to add an encap layer (there wasn't a
+     *         previous one).
+     */
+    def encap(outerPacket: Packet, vni: Int = 0, offRamp: Boolean): Boolean = {
+        innerLayer match {
+            case null =>
+                innerLayer = new HeaderLayer(packet, wcmatch, vni,
+                                             virtualFlowActions)
+                packet = outerPacket
+                origMatch = packet.getMatch
+                wcmatch = origMatch.clone()
+                virtualFlowActions = new ArrayList[FlowAction]()
+                true
+            case _ =>
+                false
+        }
     }
 
     def ethernet = packet.getEthernet

@@ -36,9 +36,9 @@ import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.sdn.flows.FlowTagger
 
 object Port {
-    import IPAddressUtil._
-    import IPSubnetUtil._
-    import UUIDUtil.{fromProto, fromProtoList}
+    import org.midonet.cluster.util.IPAddressUtil._
+    import org.midonet.cluster.util.IPSubnetUtil._
+    import org.midonet.cluster.util.UUIDUtil.{fromProto, fromProtoList}
 
     val NO_MIRRORS = new JArrayList[UUID]()
 
@@ -83,6 +83,21 @@ object Port {
             p.getInboundMirrorsList,
             p.getOutboundMirrorsList)
 
+    /**
+     * This class implements the MapConverter trait to do the conversion between
+     * tuples of type (MAC, IPAddr) and HostToIp protos.
+     */
+    private def macVtepListToMap(vteps: JList[Topology.MacIp]): Map[MAC, IPv4Addr] = {
+        val map = Map.empty[MAC, IPv4Addr]
+        var i = 0
+        while (i < vteps.size()) {
+            val vt = vteps.get(i)
+            map.updated(MAC.fromString(vt.getMac),
+                        toIPv4Addr(vt.getIp))
+        }
+        map
+    }
+
     private def routerPort(p: Topology.Port) = RouterPort(
             p.getId,
             if (p.hasInboundFilterId) p.getInboundFilterId else null,
@@ -98,7 +113,12 @@ object Port {
             if (p.hasPortMac) MAC.fromString(p.getPortMac) else null,
             p.getRouteIdsList,
             p.getInboundMirrorsList,
-            p.getOutboundMirrorsList)
+            p.getOutboundMirrorsList,
+            if (p.hasVni) p.getVni else 0,
+            if (p.hasLocalVtep) toIPv4Addr(p.getLocalVtep) else null,
+            if (p.hasDefaultRemoteVtep) toIPv4Addr(p.getDefaultRemoteVtep) else null,
+            if (p.getRemoteVtepsCount == 0) macVtepListToMap(p.getRemoteVtepsList) else Map.empty[MAC, IPv4Addr],
+            p.getOffRampVxlan)
 
     private def vxLanPort(p: Topology.Port) = VxLanPort(
             p.getId,
@@ -302,7 +322,12 @@ case class RouterPort(override val id: UUID,
                       portMac: MAC,
                       routeIds: Set[UUID] = Set.empty,
                       override val inboundMirrors: JList[UUID] = NO_MIRRORS,
-                      override val outboundMirrors: JList[UUID] = NO_MIRRORS)
+                      override val outboundMirrors: JList[UUID] = NO_MIRRORS,
+                      vni: Int = 0,
+                      localVtep: IPv4Addr = null,
+                      defaultRemoteVtep: IPv4Addr = null,
+                      remoteVteps: Map[MAC, IPv4Addr] = null,
+                      offRampVxlan: Boolean = false)
     extends Port {
 
     protected def device(implicit as: ActorSystem) = tryAsk[Router](routerId)
@@ -323,7 +348,7 @@ case class RouterPort(override val id: UUID,
     }
 
     private def sendIcmpProhibited(from: RouterPort, context: PacketContext): Unit = {
-        import Icmp.IPv4Icmp._
+        import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
         val ethOpt = unreachableProhibitedIcmp(from, context)
         if (ethOpt.isDefined)
             context.addGeneratedPacket(from.id, ethOpt.get)
