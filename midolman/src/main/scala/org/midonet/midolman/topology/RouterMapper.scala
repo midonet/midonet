@@ -30,6 +30,7 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute, Router => TopologyRouter}
+import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.{IPv4RoutingTable, InvalidationTrie, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
@@ -78,6 +79,10 @@ object RouterMapper {
         private val routesObservable = Observable
             .merge(routesSubject)
             .map[RouteUpdates](makeFunc1(routeUpdated))
+        private val learnedRoutesObservable = vt.stateStore
+            .portRoutesObservable(portId)
+            .observeOn(vt.vtScheduler)
+            .map[RouteUpdates](makeFunc1(learnedRoutesUpdated))
 
         // The output observable for this port state. It merges the
         // notifications for port and route updates, and emits route updates
@@ -85,13 +90,19 @@ object RouterMapper {
         // port changes, and when the port changes (routes are added, removed
         // or the port changes state between active and inactive).
         //             +-------------+
-        // VT[Port] -> | portUpdated |--------------------+
-        //             +-------------+                    |
-        //                    | route added/removed       +-> route updates
-        //                    |          +--------------+ |
-        //              routesSubject -> | routeUpdated |-+
-        //                               +--------------+
-        val observable = Observable.merge(routesObservable, portObservable)
+        // VT[Port] -> | portUpdated |---------------------+
+        //             +-------------+                     |
+        //                    | route added/removed        |
+        //                    |          +--------------+  |
+        //              routesSubject -> | routeUpdated |--+-> route updates
+        //                               +--------------+  |
+        //                                                 |
+        //                        +----------------------+ |
+        // State[Port, Routes] -> | learnedRoutesUpdated |-+
+        //                        +----------------------+
+        val observable = Observable.merge(routesObservable,
+                                          learnedRoutesObservable,
+                                          portObservable)
             .onErrorResumeNext(Observable.just(RouteUpdates(EmptyRouteSet,
                                                             publishedRoutes)))
             .takeUntil(mark)
@@ -183,6 +194,34 @@ object RouterMapper {
             routesCache --= updates.removed
 
             if (isPublishingRoutes) updates else EmptyRouteUpdates
+        }
+
+        /** A method called when the set of learned routes is updated. It
+          * computes the difference between the previous learned routes update
+          * and this one, and returns a [[RouteUpdates]] instance with the
+          * difference. */
+        private def learnedRoutesUpdated(routes: Set[Route]): RouteUpdates = {
+            vt.assertThread()
+            log.debug("Learned port routes updated: {} routes",
+                      Int.box(routes.size))
+
+            val added = new mutable.HashSet[Route]
+            val removed = new mutable.HashSet[Route]
+
+            for (route <- routes if !routesCache.contains(route)) {
+                added += route
+            }
+
+            for (route <- routesCache
+                 if route.learned && !routes.contains(route)) {
+                removed += route
+            }
+
+            routesCache ++= added
+            routesCache --= removed
+
+            if (isPublishingRoutes) RouteUpdates(added.toSet, removed.toSet)
+            else EmptyRouteUpdates
         }
 
         /** Indicates whether the state has currently published routes. */
