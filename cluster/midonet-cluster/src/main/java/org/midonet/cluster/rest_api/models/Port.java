@@ -115,6 +115,10 @@ public abstract class Port extends UriResource {
         return relativeUri(ResourceUris.LINK);
     }
 
+    public URI getPortGroups() {
+        return relativeUri(ResourceUris.PORT_GROUPS);
+    }
+
     @JsonIgnore
     @Override
     public void create() {

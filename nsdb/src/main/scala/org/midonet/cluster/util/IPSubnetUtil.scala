@@ -28,11 +28,12 @@ object IPSubnetUtil {
             case _ =>
                 throw new IllegalArgumentException("Unsupported subnet type")
         }
-        Commons.IPSubnet.newBuilder
-            .setVersion(version)
-            .setAddress(subnet.getAddress.toString)
-            .setPrefixLength(subnet.getPrefixLen)
-            .build()
+        val bldr = Commons.IPSubnet.newBuilder.setVersion(version)
+        if (subnet.getAddress != null) {
+            bldr.setAddress(subnet.getAddress.toString)
+            bldr.setPrefixLength(subnet.getPrefixLen)
+        }
+        bldr.build()
     }
 
     def fromV4Proto(subnet: Commons.IPSubnet): IPv4Subnet = {

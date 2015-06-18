@@ -52,8 +52,8 @@ object MidonetResource {
 
     private final val Timeout = 5 seconds
     private final val StorageAttempts = 3
-    private final val OkResponse = Response.ok().build()
-    private final val OkNoContentResponse = Response.noContent().build()
+    final val OkResponse = Response.ok().build()
+    final val OkNoContentResponse = Response.noContent().build()
 
     sealed trait Multi
     case class Create[T <: UriResource](resource: T) extends Multi
