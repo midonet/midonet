@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_2d5eb676",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/ApplicationResource.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T14:06:49Z",
+      "side": 1,
+      "message": "I think the string interpolation s is missing. Let\u0027s fix it later.",
+      "revId": "be57c27ea8adc74ccb734210162f19ebac4051f4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
