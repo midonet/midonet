@@ -78,6 +78,8 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
             port.peerId = link.peerId
             updateResource(port)
         }).getOrThrow
+        // We want a CREATED, not an UPDATED code.
+        Response.created(link.getUri).build()
     }
 
     @DELETE
@@ -87,6 +89,8 @@ class PortResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
             port.peerId = null
             updateResource(port)
         }).getOrThrow
+        // We want a CREATED, not an UPDATED code.
+        MidonetResource.OkNoContentResponse
     }
 
     @Path("{id}/port_groups")

@@ -17,17 +17,16 @@
 package org.midonet.cluster.services.rest_api.serialization
 
 import java.io.IOException
-
 import javax.ws.rs.WebApplicationException
 
 import scala.collection.JavaConverters._
 import scala.util.control.NonFatal
 
 import org.apache.commons.lang.StringUtils
-import org.codehaus.jackson.map.introspect.BasicBeanDescription
-import org.codehaus.jackson.{JsonParseException, JsonParser}
 import org.codehaus.jackson.`type`.JavaType
+import org.codehaus.jackson.map.introspect.BasicBeanDescription
 import org.codehaus.jackson.map.{DeserializationConfig, JsonMappingException, ObjectMapper}
+import org.codehaus.jackson.{JsonParseException, JsonParser}
 
 import org.midonet.cluster.rest_api.ResponseUtils
 import org.midonet.cluster.rest_api.annotation.JsonError
