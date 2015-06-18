@@ -27,7 +27,7 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
+import org.midonet.midolman.topology.devices._
 import org.midonet.odp.flows._
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
 
@@ -121,6 +121,8 @@ class Coordinator(context: PacketContext)
             case _: BridgePort => tryAsk[Bridge](port.deviceId)
             case _: VxLanPort => tryAsk[Bridge](port.deviceId)
             case _: RouterPort => tryAsk[Router](port.deviceId)
+            case _: OverlayVtepTunPort => tryAsk[Vtep](port.deviceId)
+            case _: OverlayVtepSwitchPort => tryAsk[VtepLogSwitch](port.deviceId)
         }
         numDevicesSimulated += 1
         log.debug(s"packet ingresses port: ${port.id} at device ${port.deviceId}")

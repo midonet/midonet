@@ -284,6 +284,8 @@ message Port {
 
     // VXLAN port specific
     optional UUID vtep_id = 20;
+    optional UUID overlay_vtep_id = 21;
+    optional UUID overlay_vtep_log_switch_id = 22;
 
     // Backreferences
     repeated UUID rule_ids = 101;
@@ -481,4 +483,23 @@ message VtepBinding {
     optional uint32 vlan_id = 3;    // A VLAN ID is a short int.
     optional UUID network_id = 4;
     optional UUID vtep_id = 5;      // A forward ref to VtEP.
+}
+
+message OverlayVtep {
+    optional UUID id = 1;
+
+    // Backreferences
+    repeated UUID switch_ids = 101;
+    optional UUID tun_port_id = 102;
+}
+
+message OverlayVtepLogSwitch {
+    optional UUID id = 1;
+    optional uint32 vni = 2;
+    optional string name = 3;
+    optional bool admin_state_up = 4;
+    optional UUID vtep_id = 5;
+
+    // Backreferences
+    optional UUID l2port_id = 101;
 }

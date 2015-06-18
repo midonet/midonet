@@ -61,6 +61,8 @@ abstract class MidonetBackend extends AbstractService {
              classOf[NeutronRouterInterface],
              classOf[NeutronSubnet],
              classOf[NeutronVIP],
+             classOf[OverlayVtep],
+             classOf[OverlayVtepLogSwitch],
              classOf[Pool],
              classOf[PoolMember],
              classOf[Port],
@@ -93,6 +95,15 @@ abstract class MidonetBackend extends AbstractService {
                              classOf[PortGroup], "port_ids", CLEAR)
         store.declareBinding(classOf[Port], "route_ids", CASCADE,
                              classOf[Route], "next_hop_port_id", CLEAR)
+
+        store.declareBinding(classOf[OverlayVtep], "tun_port_id", CLEAR,
+                             classOf[Port], "overlay_vtep_id", CLEAR)
+        store.declareBinding(classOf[OverlayVtep], "switch_ids", CASCADE,
+                             classOf[OverlayVtepLogSwitch], "vtep_id", CLEAR)
+        store.declareBinding(classOf[OverlayVtepLogSwitch], "l2port_id", CLEAR,
+                             classOf[Port], "overlay_vtep_log_switch_id", CLEAR)
+        store.declareBinding(classOf[OverlayVtepLogSwitch], "vtep_id", CLEAR,
+                             classOf[Port], "overlay_vtep_id", CLEAR)
 
         store.declareBinding(classOf[Router], "port_ids", CASCADE,
                              classOf[Port], "router_id", CLEAR)

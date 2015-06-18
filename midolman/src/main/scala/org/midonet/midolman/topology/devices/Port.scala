@@ -165,6 +165,52 @@ class VxLanPort extends Port {
         s"VxLanPort [${super.toString} networkId=$networkId vtepId=$vtepId]"
 }
 
+class OverlayVtepTunPort extends Port {
+
+    @ZoomField(name = "overlay_vtep_id", converter = classOf[UUIDConverter])
+    var vtepId: UUID = _
+    @ZoomField(name = "port_mac", converter = classOf[MACConverter])
+    var portMac: MAC = _
+    @ZoomField(name = "port_address", converter = classOf[IPAddressConverter])
+    var portIp: IPv4Addr = _
+
+    override def deviceId = vtepId
+
+    override def equals(obj: Any): Boolean = obj match {
+        case port: OverlayVtepTunPort =>
+            super.equals(obj) && vtepId == port.vtepId &&
+            portIp == port.portIp && portMac == port.portMac
+        case _ => false
+    }
+
+    override def hashCode: Int =
+        Objects.hashCode(super.hashCode, vtepId)
+
+    override def toString =
+        s"OlayVtepTunPort [${super.toString} vtepId=$vtepId]"
+}
+
+class OverlayVtepSwitchPort extends Port {
+
+    @ZoomField(name = "overlay_vtep_log_switch_id",
+               converter = classOf[UUIDConverter])
+    var vtepSwitchId: UUID = _
+
+    override def deviceId = vtepSwitchId
+
+    override def equals(obj: Any): Boolean = obj match {
+        case port: OverlayVtepSwitchPort =>
+            super.equals(obj) && vtepSwitchId == port.vtepSwitchId
+        case _ => false
+    }
+
+    override def hashCode: Int =
+        Objects.hashCode(super.hashCode, vtepSwitchId)
+
+    override def toString =
+        s"OlayVtepSwitchPort [${super.toString} switchId=$vtepSwitchId]"
+}
+
 class BridgePort extends Port {
 
     @ZoomField(name = "network_id", converter = classOf[UUIDConverter])
@@ -235,6 +281,8 @@ sealed class PortFactory extends ZoomConvert.Factory[Port, Topology.Port] {
     override def getType(proto: Topology.Port): Class[_ <: Port] = {
         if (proto.hasVtepId) classOf[VxLanPort]
         else if (proto.hasNetworkId) classOf[BridgePort]
+        else if (proto.hasOverlayVtepLogSwitchId) classOf[OverlayVtepSwitchPort]
+        else if (proto.hasOverlayVtepId) classOf[OverlayVtepTunPort]
         else if (proto.hasRouterId) classOf[RouterPort]
         else throw new ConvertException("Unknown port type")
     }
