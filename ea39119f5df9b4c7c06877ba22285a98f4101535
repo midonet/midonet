@@ -22,6 +22,30 @@
       "revId": "ea39119f5df9b4c7c06877ba22285a98f4101535",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_283f84d7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 351,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-18T16:44:06Z",
+      "side": 1,
+      "message": "Will do. Tomohiko was asking for more details here :)",
+      "parentUuid": "facab960_e8675c4b",
+      "range": {
+        "startLine": 346,
+        "startChar": 6,
+        "endLine": 351,
+        "endChar": 50
+      },
+      "revId": "ea39119f5df9b4c7c06877ba22285a98f4101535",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
