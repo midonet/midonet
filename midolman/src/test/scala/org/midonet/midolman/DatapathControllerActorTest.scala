@@ -113,12 +113,14 @@ class DatapathControllerActorTest extends MidolmanSpec {
         dpc.driver.tunnelOverlayGre should be (null)
         dpc.driver.tunnelOverlayVxLan should be (null)
         dpc.driver.tunnelVtepVxLan should be (null)
+        dpc.driver.tunnelRecircVxLan should be (null)
 
         initialize()
 
         dpc.driver.tunnelOverlayGre should not be null
         dpc.driver.tunnelOverlayVxLan should not be null
         dpc.driver.tunnelVtepVxLan should not be null
+        dpc.driver.tunnelRecircVxLan should be (null)
     }
 
     scenario("DatapathActor handles tunnel zones") {

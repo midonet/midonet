@@ -41,6 +41,7 @@ object PacketBuilder {
     def ip4 = IPv4Builder()
     def tcp = TcpBuilder()
     def udp = UdpBuilder()
+    def vxlan = VxlanBuilder()
     def icmp = IcmpBuilder()
     def payload = DataBuilder()
     def elasticPayload = ElasticDataBuilder()
@@ -240,6 +241,12 @@ case class UdpBuilder(packet: UDP = new UDP()) extends PacketBuilder[UDP] {
     def ports(ports: PortPair): UdpBuilder = { src(ports.src) ; dst(ports.dst) }
     def src(port: Short): UdpBuilder = { packet.setSourcePort(port) ; this }
     def dst(port: Short): UdpBuilder = { packet.setDestinationPort(port) ; this }
+}
+
+case class VxlanBuilder(packet: VXLAN = new VXLAN()) extends PacketBuilder[VXLAN] {
+    import org.midonet.packets.util.PacketBuilder._
+
+    def vni(value: Int): VxlanBuilder = { packet.setVni(value) ; this }
 }
 
 case class IPv4Builder(packet: IPv4 = new IPv4()) extends PacketBuilder[IPv4] {

@@ -58,6 +58,25 @@ public class RouterPort extends Port {
     @ZoomField(name = "port_mac")
     public String portMac;
 
+    @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
+    @ZoomField(name = "local_vtep", converter = IPAddressUtil.Converter.class)
+    public String localVtep;
+
+    @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
+    @ZoomField(name = "default_remote_vtep", converter = IPAddressUtil.Converter.class)
+    public String defaultRemoteVtep;
+
+    @Min(0)
+    @Max(2^24 - 1)
+    @ZoomField(name = "vni")
+    public int rtrPortVni;
+
+    @ZoomField(name = "off_ramp_vxlan")
+    public boolean offRampVxlan;
+
+    @ZoomField(name = "remote_vteps")
+    public List<MacIp> remoteVteps;
+
     @JsonIgnore
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;

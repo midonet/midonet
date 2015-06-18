@@ -122,6 +122,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
     var traceStateTable: ShardedFlowStateTable[TraceKey, TraceContext] = _
+    var vxlanRecircMap = new VxlanRecircMap
 
     override def preStart(): Unit = {
         super.preStart()
@@ -182,7 +183,8 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             natLeaser,
             metrics,
             flowRecorderFactory.newFlowRecorder(),
-            counter.addAndGet(index, _: Int))
+            counter.addAndGet(index, _: Int),
+            vxlanRecircMap)
     }
 
     private def broadcast(m: Any) { workers foreach ( _ ! m ) }

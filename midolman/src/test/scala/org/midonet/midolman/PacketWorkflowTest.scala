@@ -427,7 +427,8 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    injector.getInstance(
                                        classOf[FlowRecorderFactory])
                                        .newFlowRecorder(),
-                                   packetOut)
+                                   packetOut,
+                                   new VxlanRecircMap())
             with MessageAccumulator {
 
         implicit override val dispatcher = this.context.dispatcher
