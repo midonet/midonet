@@ -274,6 +274,17 @@ message Port {
     // VXLAN port specific
     optional UUID vtep_id = 19;
 
+    // Overlay VTEP on Routers
+    optional uint32 vni = 30;
+    optional bool off_ramp_vxlan = 31;
+    optional IPAddress local_vtep = 32;
+    optional IPAddress default_remote_vtep = 33;
+    message MacToVtep {
+        optional string mac = 1;
+        optional IPAddress ip = 2;
+    }
+    repeated MacToVtep remote_vteps = 34;
+
     // Backreferences
 
     // For Router gateway port only. Back-references to VIPs that are associated

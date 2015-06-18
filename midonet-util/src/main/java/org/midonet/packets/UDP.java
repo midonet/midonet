@@ -31,6 +31,7 @@ public class UDP extends BasePacket implements Transport {
     public static final int DHCP_CLIENT = 68;
     public static final int DHCPV6_CLIENT = 546;
     public static final int DHCPV6_SERVER = 547;
+    public static final int VXLAN = 4789;
 
     /**
      * UDP header length in bytes.
@@ -50,6 +51,7 @@ public class UDP extends BasePacket implements Transport {
         UDP.decodeMap.put(DHCP_CLIENT, DHCP.class);
         UDP.decodeMap.put(DHCPV6_CLIENT, DHCPv6.class);
         UDP.decodeMap.put(DHCPV6_SERVER, DHCPv6.class);
+        UDP.decodeMap.put(VXLAN, VXLAN.class);
     }
 
     protected int sourcePort;
