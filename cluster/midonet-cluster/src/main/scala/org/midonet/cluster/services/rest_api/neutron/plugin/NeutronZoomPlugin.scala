@@ -76,7 +76,7 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
         tryAccess(store.multi(persistenceOps))
-        get[T](id)
+        dto
     }
 
     def bulkCreate[T >: Null <: ZoomObject](dtos: util.List[T])
@@ -112,7 +112,7 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
         tryAccess(store.multi(persistenceOps))
-        get[T](id)
+        dto
     }
 
     def delete[T >: Null <: ZoomObject](id: UUID, dtoClass: Class[T]): Unit = {
