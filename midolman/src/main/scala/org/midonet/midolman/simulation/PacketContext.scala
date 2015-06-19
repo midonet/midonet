@@ -60,8 +60,8 @@ trait FlowContext extends Clearable { this: PacketContext =>
     override def clear(): Unit = {
         virtualFlowActions.clear()
         flowActions.clear()
-        flowTags.clear()
         packetActions.clear()
+        flowTags.clear()
         super.clear()
     }
 
@@ -242,17 +242,16 @@ class PacketContext(val cookie: Int,
     override def clear(): Unit = {
         super.clear()
         flowRemovedCallbacks.runAndClear()
-        wcmatch.reset(origMatch)
     }
 
     def prepareForSimulation() {
         idle = false
         runs += 1
+        wcmatch.reset(origMatch)
     }
 
     def prepareForDrop(): Unit = {
         idle = false
-        clear()
     }
 
     def postpone() {
