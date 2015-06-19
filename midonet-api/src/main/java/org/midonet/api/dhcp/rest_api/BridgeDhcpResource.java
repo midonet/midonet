@@ -141,7 +141,7 @@ public class BridgeDhcpResource extends AbstractResource {
         subnet.setSubnetPrefix(subnetAddr.toUnicastString());
         subnet.setSubnetLength(subnetAddr.getPrefixLen());
         dataClient.dhcpSubnetsUpdate(bridgeId, subnet.toData());
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     /**

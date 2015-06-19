@@ -86,7 +86,7 @@ public class DhcpSubnet extends UriResource {
     @ZoomField(name = "opt121_routes")
     public List<DhcpOption121> opt121Routes;
 
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "hosts")
     public List<DhcpHost> hosts;
 
@@ -108,6 +108,9 @@ public class DhcpSubnet extends UriResource {
     public void afterFromProto(Message proto) {
         subnetPrefix = subnetAddress.getAddress().toString();
         subnetLength = subnetAddress.getPrefixLen();
+        if (dnsServerAddrs != null && dnsServerAddrs.isEmpty()) {
+            dnsServerAddrs = null;
+        }
     }
 
     @JsonIgnore
