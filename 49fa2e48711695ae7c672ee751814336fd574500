@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_e6c94827",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-19T10:24:09Z",
+      "side": 1,
+      "message": "considering that we know from outside that the sessionId is the ownerId, I\u0027d rename stateStore.sessionId to stateStore.ownerId",
+      "range": {
+        "startLine": 134,
+        "startChar": 31,
+        "endLine": 134,
+        "endChar": 40
+      },
+      "revId": "49fa2e48711695ae7c672ee751814336fd574500",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_86015c3a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/host/services/HostService.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-19T10:24:09Z",
+      "side": 1,
+      "message": "nit: maybe warn (it\u0027s not a \"broken thing to be attended immediately\")",
+      "range": {
+        "startLine": 374,
+        "startChar": 20,
+        "endLine": 374,
+        "endChar": 25
+      },
+      "revId": "49fa2e48711695ae7c672ee751814336fd574500",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_666ff82b",
+        "filename": "midolman/src/test/java/org/midonet/midolman/host/services/BackendHostServiceTest.java",
+        "patchSetId": 11
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-19T10:24:09Z",
+      "side": 1,
+      "message": "nit: doesn\u0027t it fit in 1 line? (can be fixed later)",
+      "range": {
+        "startLine": 218,
+        "startChar": 8,
+        "endLine": 219,
+        "endChar": 41
+      },
+      "revId": "49fa2e48711695ae7c672ee751814336fd574500",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
