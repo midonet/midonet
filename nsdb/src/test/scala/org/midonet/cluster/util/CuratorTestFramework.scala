@@ -82,8 +82,9 @@ trait CuratorTestFramework extends BeforeAndAfterEach
     override def beforeEach() {
         setUpCurator()
         curator.start()
-        if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS))
-           fail("Curator did not connect to the test ZK server")
+        if (!curator.blockUntilConnected(1000, TimeUnit.SECONDS)) {
+            fail("Curator did not connect to the test ZK server")
+        }
 
         clearZookeeper()
         curator.create().forPath(ZK_ROOT)
@@ -93,8 +94,8 @@ trait CuratorTestFramework extends BeforeAndAfterEach
 
     override def afterEach() {
         clearZookeeper()
-        curator.close()
         teardown()
+        curator.close()
     }
 
     protected def clearZookeeper(): Unit =
