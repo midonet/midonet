@@ -401,7 +401,7 @@ public interface DataClient {
     EntityMonitor<UUID, TunnelZone.Data, TunnelZone> tunnelZonesGetMonitor(
             ZookeeperConnectionWatcher zkConnection);
 
-    EntityIdSetMonitor tunnelZonesGetUuidSetMonitor(
+    EntityIdSetMonitor<UUID> tunnelZonesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     EntityIdSetMonitor<UUID> tunnelZonesGetMembershipsMonitor(

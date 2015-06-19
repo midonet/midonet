@@ -18,9 +18,8 @@ package org.midonet.client.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-
-import org.codehaus.jackson.annotate.JsonProperty;
 
 @XmlRootElement
 public class DtoExtraDhcpOpt {
@@ -73,7 +72,7 @@ public class DtoExtraDhcpOpt {
     @Override
     public String toString() {
 
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
             .add("optName", optName)
             .add("optValue", optValue).toString();
     }

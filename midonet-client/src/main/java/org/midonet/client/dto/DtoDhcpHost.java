@@ -20,6 +20,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.List;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 @XmlRootElement
@@ -89,7 +90,7 @@ public class DtoDhcpHost {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
             .add("macAddr", macAddr)
             .add("ipAddr", ipAddr)
             .add("name", name)

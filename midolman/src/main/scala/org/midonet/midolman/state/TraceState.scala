@@ -18,13 +18,13 @@ package org.midonet.midolman.state
 
 import java.util.{ArrayList, List, Objects, UUID}
 
-import org.slf4j.{LoggerFactory,MDC}
+import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.logging.FlowTracingContext
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{MAC, IPAddr, ICMP}
+import org.midonet.packets.{ICMP, IPAddr, MAC}
 import org.midonet.sdn.state.FlowStateTransaction
 
 object TraceState {
@@ -90,7 +90,7 @@ object TraceState {
         def addRequest(request: UUID): Boolean = requests.add(request)
         def containsRequest(request: UUID): Boolean = requests.contains(request)
 
-        override def hashCode(): Int = Objects.hashCode(flowTraceId, requests)
+        override def hashCode(): Int = Objects.hash(flowTraceId, requests)
         override def equals(other: Any): Boolean = other match {
             case that: TraceContext =>
                 Objects.equals(flowTraceId, that.flowTraceId) &&

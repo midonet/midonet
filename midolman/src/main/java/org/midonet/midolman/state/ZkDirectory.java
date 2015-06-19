@@ -221,15 +221,9 @@ public class ZkDirectory implements Directory {
             throws KeeperException, InterruptedException {
         String absPath = getAbsolutePath(relativePath);
         Stat returnStat = new Stat();
-        int version = -1;
-
-        byte[] data = zk.getZooKeeper().getData(absPath, wrapCallback(watcher), returnStat);
-
-        if(returnStat != null){
-            version = returnStat.getVersion();
-        }
-
-        return new AbstractMap.SimpleEntry<byte[], Integer>(data, version);
+        byte[] data = zk.getZooKeeper().getData(
+            absPath, wrapCallback(watcher), returnStat);
+        return new AbstractMap.SimpleEntry<>(data, returnStat.getVersion());
     }
 
     @Override
@@ -262,7 +256,7 @@ public class ZkDirectory implements Directory {
         }
 
         return
-            new HashSet<String>(
+            new HashSet<>(
                 zk.getZooKeeper().getChildren(absPath, wrapCallback(watcher)));
     }
 
@@ -277,7 +271,7 @@ public class ZkDirectory implements Directory {
                 public void processResult(int rc, String path, Object ctx,
                                           List<String> children, Stat stat) {
                     if (rc == KeeperException.Code.OK.intValue()) {
-                        cb.onSuccess(new HashSet<String>(children));
+                        cb.onSuccess(new HashSet<>(children));
                     } else {
                         cb.onError(KeeperException.create(KeeperException.Code.get(rc), path));
                     }
@@ -310,7 +304,8 @@ public class ZkDirectory implements Directory {
                         } else if (rc == KeeperException.Code.NONODE.intValue()) {
                             cb.onSuccess(false);
                         } else {
-                            cb.onError(KeeperException.create(rc));
+                            cb.onError(KeeperException.create(
+                                KeeperException.Code.get(rc)));
                         }
                     }
             }, null);
@@ -386,8 +381,7 @@ public class ZkDirectory implements Directory {
         // TODO(rossella) probably it's better to return a ConcurrentMap and make
         // sure that all the updates are seen
         // (http://www.javamex.com/tutorials/synchronization_concurrency_8_hashmap2.shtml)
-        final Map<String, byte[]> callbackResults =
-            new HashMap<String, byte[]>();
+        final Map<String, byte[]> callbackResults = new HashMap<>();
         for(final String path: relativePaths){
             asyncGet(path, new DirectoryCallback<byte[]>(){
 
@@ -412,7 +406,7 @@ public class ZkDirectory implements Directory {
                     synchronized (callbackResults){
                         callbackResults.put(path, data);
                         if(callbackResults.size() == relativePaths.size()){
-                            Set<byte[]> results = new HashSet<byte[]>();
+                            Set<byte[]> results = new HashSet<>();
                             for(Map.Entry entry : callbackResults.entrySet()){
                                 if(entry != null)
                                     results.add((byte[])entry.getValue());

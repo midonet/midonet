@@ -873,7 +873,7 @@ public class LocalDataClientImpl implements DataClient {
     public EntityIdSetMonitor<UUID> tunnelZonesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection)
         throws StateAccessException {
-        return new EntityIdSetMonitor(zonesZkManager, zkConnection);
+        return new EntityIdSetMonitor<>(zonesZkManager, zkConnection);
     }
 
     @Override
