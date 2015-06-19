@@ -22,6 +22,30 @@
       "revId": "3de10c0690b78f7ff0aaa0edd907400e6a0a8195",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2359628e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-19T08:27:25Z",
+      "side": 1,
+      "message": "A test is doing it intentionally. However, I didn\u0027t check whether after adding the rest of fixes in this patch this was still needed, and it\u0027s not. So removing it. Thanks!",
+      "parentUuid": "facab960_23b3220b",
+      "range": {
+        "startLine": 32,
+        "startChar": 12,
+        "endLine": 32,
+        "endChar": 37
+      },
+      "revId": "3de10c0690b78f7ff0aaa0edd907400e6a0a8195",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
