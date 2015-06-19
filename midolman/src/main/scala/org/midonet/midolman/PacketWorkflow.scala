@@ -20,6 +20,7 @@ import java.util.UUID
 
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
 import akka.actor._
@@ -313,14 +314,15 @@ class PacketWorkflow(
 
     private def drop(context: PacketContext): Unit =
         try {
+            MDC.put("cookie", context.cookieStr)
             if (context.ingressed) {
                 context.prepareForDrop()
                 addTranslatedFlow(context, FlowExpiration.ERROR_CONDITION_EXPIRATION)
             }
-        } catch {
-            case e: Exception =>
-                context.log.error("Failed to install drop flow", e)
+        } catch { case NonFatal(e) =>
+            context.log.error("Failed to install drop flow", e)
         } finally {
+            MDC.remove("cookie")
             metrics.packetsDropped.mark()
         }
 
