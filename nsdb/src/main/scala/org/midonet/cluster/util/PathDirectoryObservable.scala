@@ -51,8 +51,8 @@ object PathDirectoryObservable {
      * a [[ParentDeletedException]] error. If the connection to storage is lost,
      * the observable emits a [[DirectoryObservableDisconnectedException]] error.
      * When any other error is received, the observable emits a
-     * [[DirectoryObservableDisconnectedException]] error. When the cache is closed
-     * by calling the `close()` method, the observable emits a
+     * [[DirectoryObservableDisconnectedException]] error. When the observable
+     * is closed by calling the `close()` method, the observable emits a
      * [[DirectoryObservableClosedException]].
      */
     def create(curator: CuratorFramework, path: String)
@@ -121,7 +121,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String)
                 .forPath(path)
         } catch {
             case e: Exception =>
-                log.debug("Exception on refreshing the directory cache", e)
+                log.debug("Exception on refreshing the directory observable", e)
                 close(new DirectoryObservableDisconnectedException(path, e))
         }
     }
@@ -142,7 +142,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String)
             children.set(event.getChildren.asScala.toSet)
             subject.onNext(children.get)
         } else if (event.getResultCode == Code.NONODE.intValue) {
-            log.debug("Node deleted: closing the cache")
+            log.debug("Node deleted: closing the observable")
             close(new ParentDeletedException(path))
         } else if (event.getResultCode == Code.CONNECTIONLOSS.intValue) {
             log.debug("Connection lost")
@@ -154,15 +154,15 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String)
     }
 
     private def processStateChanged(state: ConnectionState): Unit = state match {
-        case ConnectionState.CONNECTED => log.debug("Cache connected")
-        case ConnectionState.SUSPENDED => log.debug("Cache suspended")
+        case ConnectionState.CONNECTED => log.debug("Observable connected")
+        case ConnectionState.SUSPENDED => log.debug("Observable suspended")
         case ConnectionState.RECONNECTED =>
-            log.debug("Cache reconnected")
+            log.debug("Observable reconnected")
             refresh()
         case ConnectionState.LOST =>
             log.debug("Connection lost")
-            subject.onError(new DirectoryObservableDisconnectedException(path))
-        case ConnectionState.READ_ONLY => log.debug("Cache read-only")
+            close(new DirectoryObservableDisconnectedException(path))
+        case ConnectionState.READ_ONLY => log.debug("Observable read-only")
     }
 
     /** Terminates the connection and complete the observable */
@@ -182,14 +182,14 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String)
     /** Exposes the current sequence of children */
     def allChildren: Set[String] = children.get
 
-    /** Closes the directory cache. */
+    /** Closes the directory observable. */
     def close(): Unit = close(new DirectoryObservableClosedException(path))
 
     /** Indicates that the underlying subject has one or more observers
       * subscribed to it. */
     def hasObservers = subject.hasObservers
 
-    /** Indicates that the cache is in the closed state and therefore
+    /** Indicates that the observable is in the closed state and therefore
       * unusable. */
     def isClosed = state.get() == State.Closed
 
@@ -201,15 +201,17 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String)
  * current children. The observable only watches for changes in the children
  * set, it does not monitor nor it notifies for changes in the children data.
  *
- * The cache manages the underlying ZooKeeper connection according to the
+ * The observable manages the underlying ZooKeeper connection according to the
  * configuration set in the provided [[CuratorFramework]] instance. When the
  * connection to the ZooKeeper server is lost, the observable will emit a
- * [[DirectoryObservableDisconnectedException]] error and the cache becomes closed.
+ * [[DirectoryObservableDisconnectedException]] error and the observable becomes
+ * closed.
  *
- * A call to `close()` will disconnect the cache from ZooKeeper and complete
- * the observable with a [[DirectoryObservableClosedException]] error. After the
- * cache becomes closed, either when the underlying connection was lost or when
- * the `close()` method was called explicitly, the cache cannot be reused.
+ * A call to `close()` will disconnect the observable from ZooKeeper and
+ * complete the observable with a [[DirectoryObservableClosedException]] error.
+ * After the observable becomes closed, either when the underlying connection
+ * was lost or when the `close()` method was called explicitly, the observable
+ * cannot be reused.
  */
 class PathDirectoryObservable(onSubscribe: OnSubscribeToDirectory)
     extends Observable[Set[String]](onSubscribe) {
@@ -218,24 +220,24 @@ class PathDirectoryObservable(onSubscribe: OnSubscribeToDirectory)
       *  connection to ZK. */
     def close(): Unit = onSubscribe.close()
 
-    /** Returns all children known to the cache. */
+    /** Returns all children known to the observable. */
     def allChildren: Set[String] = onSubscribe.allChildren
 
-    /** Indicates that the underlying cache has one or more observers subscribed
-      * to the cache. */
+    /** Indicates that the underlying observable has one or more observers
+      * subscribed to the observable. */
     def hasObservers = onSubscribe.hasObservers
 
-    /** Indicates that the underlying cache has closed its ZooKeeper connection
-      * and is therefore unusable. */
+    /** Indicates that the underlying observable has closed its ZooKeeper
+      * connection and is therefore unusable. */
     def isClosed = onSubscribe.isClosed
 
 }
 
-/** Signals that the underlying cache has lost the connection to ZK. */
+/** Signals that the underlying observable has lost the connection to ZK. */
 class DirectoryObservableDisconnectedException(val path: String, e: Throwable)
     extends RuntimeException(s"Storage connection for $path was lost.", e) {
     def this(path: String) = this(path, null)
 }
-/** Signals that the underlying cache has closed its connection to ZK. */
+/** Signals that the underlying observable has closed its connection to ZK. */
 class DirectoryObservableClosedException(val path: String)
     extends RuntimeException(s"Storage connection for $path was closed.")

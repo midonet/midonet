@@ -47,8 +47,8 @@ object NodeObservable {
      * Creates an [[Observable]] that emits updates when the data for a node
      * at a given path changes. If the connection to storage is lost, the
      * observable emits a [[NodeObservableDisconnectedException]]. When the
-     * cache is closed by calling the `close()` method, the observable emits a
-     * [[NodeObservableClosedException]].
+     * observable is closed by calling the `close()` method, the observable
+     * emits a [[NodeObservableClosedException]].
      *
      * The argument specifies whether the observable should
      * terminate with a [[NoNodeException]] if the node does not exist.
@@ -203,7 +203,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
                     log.debug("Node does not exist")
                     close(new NoNodeException(path))
                 } else {
-                    log.debug("Node deleted: closing the cache")
+                    log.debug("Node deleted: closing the observable")
                     close(null)
                 }
             }
@@ -218,22 +218,22 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
 
     private def processStateChanged(state: ConnectionState): Unit = state match {
         case ConnectionState.CONNECTED =>
-            log.debug("Cache connected")
+            log.debug("Observable connected")
             connected.set(true)
         case ConnectionState.SUSPENDED =>
-            log.debug("Cache suspended")
+            log.debug("Observable suspended")
             connected.set(false)
         case ConnectionState.RECONNECTED =>
-            log.debug("Cache reconnected")
+            log.debug("Observable reconnected")
             if (connected.compareAndSet(false, true)) {
                 refresh()
             }
         case ConnectionState.LOST =>
             log.debug("Connection lost")
             connected.set(false)
-            subject.onError(new NodeObservableDisconnectedException(path))
+            close(new NodeObservableDisconnectedException(path))
         case ConnectionState.READ_ONLY =>
-            log.debug("Cache read-only")
+            log.debug("Observable read-only")
             connected.set(false)
     }
 
@@ -254,14 +254,14 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
     /** Gets the current node data. */
     def current = currentData.get
 
-    /** Closes the node cache. */
+    /** Closes the node observable. */
     def close(): Unit = close(new NodeObservableClosedException(path))
 
     /** Indicates that the underlying subject has one or more observers
       * subscribed to it. */
     def hasObservers = subject.hasObservers
 
-    /** Indicates that the cache is in the closed state and therefore
+    /** Indicates that the observable is in the closed state and therefore
       * unusable. */
     def isClosed = state.get() == State.Closed
 }
@@ -271,12 +271,14 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
  * given path changes. It manages the underlying ZooKeeper connection according
  * to the configuration set in the provided [[CuratorFramework]] instance. When
  * the connection to the ZooKeeper server is lost, the observable will emit a
- * [[NodeObservableDisconnectedException]] error and the cache becomes closed.
+ * [[NodeObservableDisconnectedException]] error and the observable becomes
+ * closed.
  *
- * A call to `close()` will disconnect the cache from ZooKeeper and complete the
- * observable with a [[NodeObservableClosedException]] error. After the cache becomes
- * closed, either when the underlying connection was lost or when the `close()`
- * method was called explicitly, the cache cannot be used anymore.
+ * A call to `close()` will disconnect the observable from ZooKeeper and
+ * complete the observable with a [[NodeObservableClosedException]] error. After
+ * the observable becomes closed, either when the underlying connection was lost
+ * or when the `close()` method was called explicitly, the observable cannot be
+ * used anymore.
  */
 class NodeObservable(onSubscribe: OnSubscribeToNode)
     extends Observable[ChildData](onSubscribe) {
@@ -292,12 +294,13 @@ class NodeObservable(onSubscribe: OnSubscribeToNode)
       * [[NodeObservableClosedException]] error. */
     def close(): Unit = onSubscribe.close()
 
-    /** Indicates that the underlying cache has one ot more observers subscribed
-      * to the cache. */
+    /** Indicates that the underlying observable has one ot more observers
+      * subscribed to the observable. */
     def hasObservers = onSubscribe.hasObservers
 
-    /** Indicates that the underlying cache is closed, either because it was
-      * disconnected from ZooKeeper or because the `close` method was called. */
+    /** Indicates that the underlying observable is closed, either because it
+      * was disconnected from ZooKeeper or because the `close` method was
+      * called. */
     def isClosed = onSubscribe.isClosed
 
 }
