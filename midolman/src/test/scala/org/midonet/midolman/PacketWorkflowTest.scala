@@ -21,6 +21,7 @@ import scala.concurrent.{Future, Promise}
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
+
 import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -28,7 +29,6 @@ import org.slf4j.helpers.NOPLogger
 
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.PacketWorkflow._
-import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.FlowRecorderFactory
@@ -38,21 +38,22 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.state.{FlowStatePackets, HappyGoLuckyLeaser, MockFlowStateTable, MockStateStorage}
-import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.flows.FlowActions.output
 import org.midonet.odp.flows.FlowKeys.tunnel
-import org.midonet.odp.flows.{FlowAction, FlowActionOutput}
-import org.midonet.odp.{Datapath, DpPort, FlowMatches, Packet}
+import org.midonet.odp.flows.{FlowActions, FlowAction}
+import org.midonet.odp.{Datapath, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
 import org.midonet.packets.util.EthBuilder
 import org.midonet.packets.util.PacketBuilder.{udp, _}
+import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.state.ShardedFlowStateTable
+import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
 class PacketWorkflowTest extends MidolmanSpec {
-    var packetsSeen = List[(Packet, Int)]()
+    var packetsSeen = List[PacketContext]()
     var ddaRef: TestActorRef[TestableDDA] = _
     def dda = ddaRef.underlyingActor
     var packetsOut = 0
@@ -139,7 +140,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetsOut should be (4)
 
             And("4 packet workflows should be executed")
-            packetsSeen map (_._2) should be (1 to 4)
+            packetsSeen map (_.cookie) should be (1 to 4)
         }
 
         scenario("simulates generated packets") {
@@ -153,14 +154,14 @@ class PacketWorkflowTest extends MidolmanSpec {
             dda.completeWithGenerated(List(output(1)), GeneratedPacket(id, frame))
 
             Then("the generated packet should be simulated")
-            packetsSeen map { _._1.getEthernet } should be (List(frame))
+            packetsSeen map { _.ethernet } should be (List(frame))
 
             And("packetsOut should not be called for the generated packet")
             packetsOut should be (1)
         }
 
         scenario("expires packets") {
-            Given("a pending packet in the DDA")
+            Given("a pending packet in the packet workflow")
             createDda(0)
             val pkts = List(makePacket(1), makePacket(1))
             ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
@@ -172,6 +173,33 @@ class PacketWorkflowTest extends MidolmanSpec {
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
+        }
+
+        scenario("packet context is cleared in the waiting room") {
+            Given("a simulation result")
+            dda.nextActions = List(FlowActions.output(1))
+
+            When("a packet is placed in the waiting room")
+            val pkts = List(makePacket(1))
+            ddaRef ! PacketWorkflow.HandlePackets(pkts.toArray)
+            packetsOut should be (1)
+
+            Then("the packet context should be clear")
+            packetsSeen.head.flowTags should be (empty)
+            packetsSeen.head.flowRemovedCallbacks should be (empty)
+            packetsSeen.head.packetActions should be (empty)
+            packetsSeen.head.flowActions should be (empty)
+            packetsSeen.head.origMatch should be (packetsSeen.head.wcmatch)
+
+            When("completing the packet")
+            dda.complete(List(FlowActions.output(1)))
+
+            Then("the packet context should contain the simulation state")
+            packetsSeen.head.flowTags should not be empty
+            packetsSeen.head.flowRemovedCallbacks should not be empty
+            packetsSeen.head.packetActions should not be empty
+            packetsSeen.head.flowActions should not be empty
+            packetsSeen.head.origMatch should not be packetsSeen.head.wcmatch
         }
     }
 /*
@@ -405,8 +433,16 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         override def start(pktCtx: PacketContext) = {
             pktCtx.runs += 1
+            pktCtx.addFlowTag(FlowTagger.tagForDpPort(1))
+            pktCtx.addFlowRemovedCallback(new Callback0 {
+                override def call(): Unit = { }
+            })
+            pktCtx.wcmatch.setSrcPort(pktCtx.wcmatch.getSrcPort + 1)
+            if (nextActions ne null) {
+                nextActions foreach pktCtx.addFlowAndPacketAction
+            }
             if (pktCtx.runs == 1) {
-                packetsSeen = packetsSeen :+ (pktCtx.packet, pktCtx.cookie)
+                packetsSeen = packetsSeen :+ pktCtx
                 if (pktCtx.isGenerated) {
                     FlowCreated
                 } else {
@@ -419,10 +455,6 @@ class PacketWorkflowTest extends MidolmanSpec {
                 if (generatedPacket ne null) {
                     pktCtx.packetEmitter.schedule(generatedPacket)
                     generatedPacket = null
-                }
-                if (nextActions ne null) {
-                    nextActions foreach pktCtx.addFlowAndPacketAction
-                    nextActions = null
                 }
                 FlowCreated
             }
