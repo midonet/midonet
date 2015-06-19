@@ -61,6 +61,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
         virtualFlowActions.clear()
         flowActions.clear()
         flowTags.clear()
+        packetActions.clear()
         super.clear()
     }
 
