@@ -102,7 +102,9 @@ public class DataCheckPointTest {
 
     Config fillConfig(Config config) {
         return config.withValue("zookeeper.root_key",
-                    ConfigValueFactory.fromAnyRef(zkRoot));
+                                ConfigValueFactory.fromAnyRef(zkRoot))
+                     .withValue("zookeeper.buffer_size",
+                                ConfigValueFactory.fromAnyRef(4194304));
     }
 
     HierarchicalConfiguration fillLegacyConfig() {
