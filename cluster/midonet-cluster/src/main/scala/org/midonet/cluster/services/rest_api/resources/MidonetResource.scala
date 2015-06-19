@@ -20,14 +20,12 @@ import java.lang.annotation.Annotation
 import java.util.concurrent.Executors
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 import javax.validation.{ConstraintViolation, Validator}
-
-
 import javax.ws.rs._
 import javax.ws.rs.core.Response.Status
 import javax.ws.rs.core._
 
-import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.reflect.ClassTag
@@ -35,16 +33,15 @@ import scala.reflect.ClassTag
 import com.google.inject.Inject
 import com.google.protobuf.Message
 import com.typesafe.scalalogging.Logger
-
 import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
-import org.midonet.cluster.rest_api.annotation.{AllowUpdate, AllowCreate, AllowGet, AllowList}
+import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList, AllowUpdate}
 import org.midonet.cluster.rest_api.models.UriResource
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 
@@ -52,6 +49,7 @@ object MidonetResource {
 
     private final val Timeout = 5 seconds
     private final val StorageAttempts = 3
+
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
 
