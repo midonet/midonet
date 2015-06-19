@@ -17,8 +17,6 @@ package org.midonet.api.servlet;
 
 import javax.servlet.ServletContext;
 
-import com.typesafe.config.Config;
-
 import org.midonet.api.rest_api.DataclientTopologyBackdoor;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.rest_api.TopologyBackdoor;

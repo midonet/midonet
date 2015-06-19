@@ -22,6 +22,7 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
@@ -39,6 +40,7 @@ public class RestApiModule extends AbstractModule {
 
         requireBinding(ConfigProvider.class);
         requireBinding(MidonetBackend.class);
+        requireBinding(ClusterConfig.class);
 
         bind(WebApplicationExceptionMapper.class).asEagerSingleton();
 
