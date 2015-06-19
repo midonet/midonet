@@ -21,6 +21,7 @@ import com.typesafe.config.Config;
 
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.vtep.VtepMockableDataClientFactory;
+import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 
 /**
@@ -49,6 +50,6 @@ public class RestApiTestJerseyServletModule extends RestApiJerseyServletModule {
     }
 
     @Override
-    protected void installConfigApi(Config zkConf) {
+    protected void installConfigApi(ClusterConfig clusterConf) {
     }
 }
