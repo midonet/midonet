@@ -171,6 +171,14 @@ class PacketWorkflowTest extends MidolmanSpec {
             val pkt2 = makePacket(2)
             ddaRef ! PacketWorkflow.HandlePackets(Array(pkt2))
 
+            Then("packets are expired and dropped")
+            isCleared(packetsSeen.head)
+            isCleared(packetsSeen.drop(1).head)
+
+            And("the modified flow match is not reset")
+            packetsSeen.head.wcmatch should not be packetsSeen.head.origMatch
+            packetsSeen.drop(1).head.wcmatch should not be packetsSeen.drop(1).head.origMatch
+
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
         }
@@ -185,11 +193,8 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetsOut should be (1)
 
             Then("the packet context should be clear")
-            packetsSeen.head.flowTags should be (empty)
-            packetsSeen.head.flowRemovedCallbacks should be (empty)
-            packetsSeen.head.packetActions should be (empty)
-            packetsSeen.head.flowActions should be (empty)
-            packetsSeen.head.origMatch should be (packetsSeen.head.wcmatch)
+            isCleared(packetsSeen.head)
+            packetsSeen.head.origMatch should not be packetsSeen.head.wcmatch
 
             When("completing the packet")
             dda.complete(List(FlowActions.output(1)))
@@ -201,6 +206,13 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetsSeen.head.flowActions should not be empty
             packetsSeen.head.origMatch should not be packetsSeen.head.wcmatch
         }
+    }
+
+    private def isCleared(context: PacketContext): Unit = {
+        context.flowTags should be (empty)
+        context.flowRemovedCallbacks should be (empty)
+        context.packetActions should be (empty)
+        context.flowActions should be (empty)
     }
 /*
     feature("A PacketWorkflow handles results from the simulation layer") {
