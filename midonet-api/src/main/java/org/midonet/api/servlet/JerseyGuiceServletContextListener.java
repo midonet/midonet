@@ -26,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.RestApiService;
+import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.ClusterNode;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
@@ -66,10 +67,11 @@ public class JerseyGuiceServletContextListener extends
 
         injector.getInstance(RestApiService.class).startAsync().awaitRunning();
         ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
+        ClusterConfig clusterConf = injector.getInstance(ClusterConfig.class);
 
         startConfApi();
 
-        if (ctx.embed()) {
+        if (ctx.embed() && clusterConf.vxgw().isEnabled()) {
             log.info("initializeApplication: starting embedded Cluster node");
             injector.getInstance(VxlanGatewayService.class)
                     .startAsync()
@@ -77,9 +79,8 @@ public class JerseyGuiceServletContextListener extends
         } else {
             log.warn("initializeApplication: skip embedded Cluster node - "
                      + "Control functions for VxLAN Gateway will be inactive. "
-                     + "If this is not intentional, change the"
-                     + "midocluster.vxgw_enabled property in the application's "
-                     + "web.xml");
+                     + "If this is not intentional, change the "
+                     + "cluster.vxgw.enabled config setting");
         }
 
         startFlowTracingService();
@@ -99,7 +100,7 @@ public class JerseyGuiceServletContextListener extends
         log.info("Launch embedded flow tracing web socket service");
         try {
             injector.getInstance(FlowTracingMinion.class)
-                .startAsync();
+                    .startAsync();
         } catch (Throwable t) {
             log.error("Caught exception", t);
         }
@@ -117,7 +118,9 @@ public class JerseyGuiceServletContextListener extends
         stopFlowTracingService();
 
         ClusterNode.Context ctx = injector.getInstance(ClusterNode.Context.class);
-        if (ctx.embed()) {
+        ClusterConfig clusterConf = injector.getInstance(ClusterConfig.class);
+
+        if (ctx.embed() && clusterConf.vxgw().isEnabled()) {
             log.info("Stopping embedded Cluster service for node {}",
                      ctx.nodeId());
             injector.getInstance(VxlanGatewayService.class)

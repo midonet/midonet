@@ -26,22 +26,15 @@ import com.sun.jersey.api.container.filter.RolesAllowedResourceFilterFactory;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.guice.JerseyServletModule;
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+
 import org.apache.commons.lang3.StringUtils;
-import org.midonet.cluster.ClusterConfig;
-import org.midonet.cluster.ClusterNode;
-import org.midonet.cluster.services.conf.ConfMinion;
-import org.midonet.cluster.config.ZookeeperConfig;
-import org.midonet.conf.HostIdGenerator;
-import org.midonet.conf.MidoNodeConfigurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthContainerRequestFilter;
-import org.midonet.cluster.auth.AuthFilter;
 import org.midonet.api.auth.AuthModule;
 import org.midonet.api.auth.LoginFilter;
 import org.midonet.api.auth.StateFilter;
@@ -53,9 +46,16 @@ import org.midonet.api.neutron.NeutronRestApiModule;
 import org.midonet.api.rest_api.RestApiModule;
 import org.midonet.api.serialization.SerializationModule;
 import org.midonet.api.validation.ValidationModule;
-import org.midonet.cluster.services.flowtracing.FlowTracingMinion;
+import org.midonet.cluster.ClusterConfig;
+import org.midonet.cluster.ClusterNode;
+import org.midonet.cluster.auth.AuthFilter;
+import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
+import org.midonet.cluster.services.conf.ConfMinion;
+import org.midonet.cluster.services.flowtracing.FlowTracingMinion;
 import org.midonet.cluster.storage.MidonetBackendModule;
+import org.midonet.conf.HostIdGenerator;
+import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;
 import org.midonet.midolman.cluster.LegacyClusterModule;
@@ -138,21 +138,28 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         ZookeeperConfig zkCfg = cfgProvider.getConfig(ZookeeperConfig.class);
         bind(ZookeeperConfig.class).toInstance(zkCfg);
 
+        UUID clusterNodeId;
         try {
-            UUID clusterNodeId = HostIdGenerator.getHostId();
-            bind(ClusterNode.Context.class).toInstance(
-                    new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
+            clusterNodeId = HostIdGenerator.getHostId();
         } catch (Exception e) {
             log.error("Could not register cluster node host id", e);
             throw new RuntimeException(e);
         }
+
+        Config zkConf = zkConfToConfig(zkCfg);
+        ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
+            MidoNodeConfigurator.apply(zkConf).runtimeConfig(clusterNodeId)));
+
+        bind(ClusterConfig.class).toInstance(clusterConf);
+        bind(ClusterNode.Context.class).toInstance(
+            new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
 
         bind(ConfigProvider.class).toInstance(cfgProvider);
         install(new SerializationModule());
         install(new AuthModule());
         install(new ErrorModule());
 
-        installConfigApi(zkConfToConfig(zkCfg));
+        installConfigApi(clusterConf);
         install(new MidonetBackendModule(zkConfToConfig(zkCfg)));
         installFlowTracingService(zkConfToConfig(zkCfg));
 
@@ -190,11 +197,10 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         install(new RestApiModule());
     }
 
-    protected void installConfigApi(Config zkConf) {
+    protected void installConfigApi(ClusterConfig clusterConf) {
         try {
             UUID hostId = HostIdGenerator.getHostId();
-            ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
-                MidoNodeConfigurator.apply(zkConf).runtimeConfig(hostId)));
+
             ClusterNode.Context ctx = new ClusterNode.Context(hostId, true);
             bind(ConfMinion.class).toInstance(new ConfMinion(ctx, clusterConf));
         } catch (Exception e) {
