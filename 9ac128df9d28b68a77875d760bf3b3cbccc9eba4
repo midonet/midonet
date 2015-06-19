@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_cfbe1765",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/L2Insertion.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-19T17:23:02Z",
+      "side": 1,
+      "message": "Probably these should be removed. The purpose of the update is to copy from the old object to new object, the fields that are invisible to the API, such as the backreferences, or fields that should never be modified through an HTTP PUT (e.g. id). Otherwise, this will prevent updating any of these fields via the API, since they will always take the old value.\n\nExample: The Bridge uses update() to copy from the old object to the new one the list of ports and DHCP  subnets, because these are considered subresources and should be modified when updating the bridge.",
+      "range": {
+        "startLine": 77,
+        "startChar": 8,
+        "endLine": 80,
+        "endChar": 38
+      },
+      "revId": "9ac128df9d28b68a77875d760bf3b3cbccc9eba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4fb20795",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/L2Service.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-19T17:23:02Z",
+      "side": 1,
+      "message": "Possibly the same comment here.",
+      "range": {
+        "startLine": 60,
+        "startChar": 8,
+        "endLine": 60,
+        "endChar": 30
+      },
+      "revId": "9ac128df9d28b68a77875d760bf3b3cbccc9eba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2fa30350",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Port.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-19T17:23:02Z",
+      "side": 1,
+      "message": "This is not wrong, but it will prevent changing the chains via the API by updating the port with an HTTP PUT. Another method would be needed such as using ZOOM bindings.",
+      "range": {
+        "startLine": 150,
+        "startChar": 8,
+        "endLine": 151,
+        "endChar": 45
+      },
+      "revId": "9ac128df9d28b68a77875d760bf3b3cbccc9eba4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
