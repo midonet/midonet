@@ -213,7 +213,7 @@ allprojects {
                 sourceDirs += dir
             }
 
-            ['test', 'perf'].each { type ->
+            ['test', 'perf', 'integration'].each { type ->
                 dir = file("${projectDir}/src/${type}/${lang}")
                 if (dir.exists()) {
                     testSourceDirs += dir
@@ -274,6 +274,12 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         perf.compileClasspath += sourceSets.test.output
         perf.runtimeClasspath += sourceSets.main.runtimeClasspath
         perf.runtimeClasspath += sourceSets.test.runtimeClasspath
+        integration {
+            resources.srcDir file('src/integration/resources')
+            compileClasspath += sourceSets.main.compileClasspath
+            compileClasspath += sourceSets.main.output
+            runtimeClasspath += sourceSets.main.runtimeClasspath
+        }
     }
 
     repositories {
@@ -308,6 +314,20 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
         scopes.PROVIDED.plus += [configurations.perfCompile]
         scopes.PROVIDED.plus += [configurations.provided]
     }
+
+    dependencies {
+        integrationCompile sourceSets.main.output
+        integrationCompile configurations.testCompile
+        integrationCompile sourceSets.test.output
+        integrationRuntime configurations.testRuntime
+    }
+
+    task integration(type: Test) {
+        testClassesDir = sourceSets.integration.output.classesDir
+        classpath = sourceSets.integration.runtimeClasspath
+    }
+
+    check.dependsOn integration
 
     // The JMH annotation processor doesn't support Scala (yet?), so
     // we use the bytecode generator, which requires these two tasks.

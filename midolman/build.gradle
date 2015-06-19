@@ -39,6 +39,10 @@ sourceSets {
         scala { srcDirs = ['src/perf/scala', 'src/perf/java'] }
         java { srcDirs = [] }
     }
+    integration {
+        scala { srcDirs = ['src/integration/scala', 'src/integration/java'] }
+        java { srcDirs = [] }
+    }
 }
 
 dependencies {
