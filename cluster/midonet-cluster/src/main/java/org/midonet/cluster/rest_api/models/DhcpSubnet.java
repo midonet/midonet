@@ -88,7 +88,7 @@ public class DhcpSubnet extends UriResource {
 
     @JsonIgnore
     @ZoomField(name = "hosts")
-    public List<DhcpHost> hosts;
+    public List<DhcpHost> dhcpHosts;
 
     @ZoomField(name = "enabled")
     public Boolean enabled = true;
@@ -132,6 +132,6 @@ public class DhcpSubnet extends UriResource {
         id = from.id;
         subnetAddress = from.subnetAddress;
         bridgeId = from.bridgeId;
-        hosts = from.hosts;
+        dhcpHosts = from.dhcpHosts;
     }
 }
