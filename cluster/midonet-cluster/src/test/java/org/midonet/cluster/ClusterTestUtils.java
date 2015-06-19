@@ -38,7 +38,7 @@ import org.midonet.midolman.state.Directory;
 /**
  * Some utility classes to write tests in the Brain module.
  */
-public class BrainTestUtils {
+public class ClusterTestUtils {
 
     public static String zkRoot = "/midonet";
 
