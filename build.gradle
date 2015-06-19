@@ -325,6 +325,7 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     task integration(type: Test) {
         testClassesDir = sourceSets.integration.output.classesDir
         classpath = sourceSets.integration.runtimeClasspath
+        bootstrapClasspath = files("${project.jdkBootstrap}")
     }
 
     check.dependsOn integration
