@@ -5,3 +5,9 @@
 # Use a single, standalone cassandra
 #CASSANDRA_STANDALONE=yes
 
+# Bootstrap info for mn-conf
+export MIDO_ZOOKEEPER_HOSTS="10.0.0.2:2181,10.0.0.3:2181,10.0.0.4:2181"
+export MIDO_ZOOKEEPER_ROOT_KEY="/midonet/v1"
+
+# mn-conf bash script
+#MN_CONF_SCRIPT=path_to_mn_conf_script

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# This script will execute the commands contained in the mn-conf.sh
+# script in this directory unless the MN_CONF_SCRIPT env var is
+# defined (in which case the env var takes precedence)
+# You can define the env var in the mmmrc file or passing it
+# through the command line as in:
+# MN_CONF_SCRIPT=/path/to/your/mn-conf-script.sh ./start
+
+. ../mmmrc
+
+if [ -z "$MN_CONF_SCRIPT" ]; then
+    MN_CONF_SCRIPT=mn-conf.sh
+fi
+
+. $MN_CONF_SCRIPT
