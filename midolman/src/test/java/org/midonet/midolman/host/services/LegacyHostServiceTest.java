@@ -8,7 +8,7 @@ import static org.junit.Assert.assertEquals;
 
 public class LegacyHostServiceTest extends HostServiceTest {
 
-    public LegacyHostServiceTest() {
+    public LegacyHostServiceTest() throws Exception {
         super(false);
     }
 
