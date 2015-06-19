@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_23b3220b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/IPSubnetUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-19T05:50:28Z",
+      "side": 1,
+      "message": "Are you sure that the solution is to check for null here, and not to fix whatever caused a subnet with a null address to be passed to this function?",
+      "range": {
+        "startLine": 32,
+        "startChar": 12,
+        "endLine": 32,
+        "endChar": 37
+      },
+      "revId": "3de10c0690b78f7ff0aaa0edd907400e6a0a8195",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
