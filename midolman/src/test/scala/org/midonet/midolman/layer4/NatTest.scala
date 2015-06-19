@@ -405,7 +405,7 @@ class NatTest extends MidolmanSpec {
             applyPacketActions(packet3.getEthernet, actions3))
         mapping.flowCount should be (2)
 
-        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
+        simBackChannel.tell(FlowTagger.tagForDevice(router.getId))
         pktWkfl.underlyingActor.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
@@ -466,7 +466,7 @@ class NatTest extends MidolmanSpec {
             applyPacketActions(packet3.getEthernet, actions3))
         mapping.flowCount should be (2)
 
-        flowInvalidator.scheduleInvalidationFor(FlowTagger.tagForDevice(router.getId))
+        simBackChannel.tell(FlowTagger.tagForDevice(router.getId))
         pktWkfl.underlyingActor.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
