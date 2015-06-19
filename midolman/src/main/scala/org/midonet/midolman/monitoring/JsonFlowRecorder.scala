@@ -157,7 +157,7 @@ class JsonFlowRecorder(hostId: UUID, config: FlowHistoryConfig)
         simRes match {
             case PacketWorkflow.NoOp => SimulationResult.NOOP
             case PacketWorkflow.Drop => SimulationResult.DROP
-            case PacketWorkflow.TemporaryDrop => SimulationResult.TEMP_DROP
+            case PacketWorkflow.ErrorDrop => SimulationResult.TEMP_DROP
             case PacketWorkflow.AddVirtualWildcardFlow =>
                 SimulationResult.ADD_VIRTUAL_WILDCARD_FLOW
             case PacketWorkflow.StateMessage => SimulationResult.STATE_MESSAGE

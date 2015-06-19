@@ -383,7 +383,7 @@ class SingleRouterArpRequestBroker(id: UUID,
         if (newMac ne null) {
             if ((oldMac ne null) && (newMac != oldMac)) {
                 log.debug("Invalidating flows for {} in router {}", ip, id)
-                invalidator.scheduleInvalidationFor(FlowTagger.tagForDestinationIp(id, ip))
+                invalidator.scheduleInvalidationFor(FlowTagger.tagForArpEntry(id, ip))
             }
             keepPromises(ip, newMac)
         }

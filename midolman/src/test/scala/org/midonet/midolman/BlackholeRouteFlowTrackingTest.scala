@@ -22,7 +22,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.cluster.data.{Router => ClusterRouter}
-import org.midonet.midolman.PacketWorkflow.TemporaryDrop
+import org.midonet.midolman.PacketWorkflow.ErrorDrop
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.services.HostIdProviderService
@@ -123,7 +123,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
         scenario("blackhole route") {
             When("a packet hits a blackhole route")
             val (pktContext, action) = simulateDevice(simRouter, frameThatWillBeDropped, leftPort.getId)
-            action shouldEqual TemporaryDrop
+            action shouldEqual ErrorDrop
 
             And("the routing table changes")
             newRoute(clusterRouter, "0.0.0.0", 0, blackholedDestination, 32,

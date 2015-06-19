@@ -25,7 +25,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Bridge => ClusterBridge, Entity, Port, Router => ClusterRouter}
-import org.midonet.midolman.PacketWorkflow.{SimulationResult, TemporaryDrop}
+import org.midonet.midolman.PacketWorkflow.{SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
 import org.midonet.midolman.rules.RuleResult.Action
@@ -240,7 +240,7 @@ class IPFragmentationTest extends MidolmanSpec {
     private def assertDropFlowCreated(simRes: (SimulationResult, PacketContext),
                                       temporary: Boolean = false) {
         if (temporary) {
-            simRes._1 shouldBe TemporaryDrop
+            simRes._1 shouldBe ErrorDrop
             return
         }
 
