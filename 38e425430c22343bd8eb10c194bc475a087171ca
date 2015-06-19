@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_66cc586b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-19T09:51:12Z",
+      "side": 1,
+      "message": "Timeout increased due to a failing test:\nhttp://jenkins-dev.bcn.midokura.com/job/midonet-unit-tester/495/testReport/org.midonet.midolman.topology/ChainMapperTest/Feature__Obtaining_a_chain_with_its_observable_Scenario__A_chain_with_one_literal_rule/",
+      "range": {
+        "startLine": 56,
+        "startChar": 4,
+        "endLine": 56,
+        "endChar": 34
+      },
+      "revId": "38e425430c22343bd8eb10c194bc475a087171ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
