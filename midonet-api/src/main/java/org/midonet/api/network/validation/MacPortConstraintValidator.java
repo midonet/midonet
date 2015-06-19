@@ -64,7 +64,7 @@ public class MacPortConstraintValidator implements
                         MessageProperty.VLAN_ID_MATCHES_PORT_VLAN_ID,
                         data.vlanId);
                 context.buildConstraintViolationWithTemplate(msg)
-                        .addNode("macPort").addConstraintViolation();
+                        .addPropertyNode("macPort").addConstraintViolation();
                 return false;
             }
         }
@@ -75,7 +75,7 @@ public class MacPortConstraintValidator implements
     private boolean portNotOnBridgeError(ConstraintValidatorContext context) {
         context.buildConstraintViolationWithTemplate(
                 MessageProperty.MAC_PORT_ON_BRIDGE)
-                        .addNode("macPort").addConstraintViolation();
+                        .addPropertyNode("macPort").addConstraintViolation();
         return false;
     }
 }

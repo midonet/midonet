@@ -20,13 +20,12 @@ import java.util
 import java.util.UUID
 
 import scala.collection.JavaConversions._
-import scala.concurrent.ExecutionContext.fromExecutor
 import scala.concurrent.duration._
 import scala.reflect.ClassTag
 
-import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.Inject
 import com.google.protobuf.Message
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.ZoomConvert.{fromProto, toProto}
@@ -46,8 +45,6 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
                 with LoadBalancerApi with NetworkApi with SecurityGroupApi {
 
     private val log = LoggerFactory.getLogger("org.midonet.rest_api.neutron")
-
-    private implicit val ec = fromExecutor(MoreExecutors.sameThreadExecutor())
 
     private val timeout = 10.seconds
     private val store = backend.store
@@ -74,7 +71,6 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         val protoClass = protoClassOf(dto)
         val neutronOp = neutron.Create(toProto(dto, protoClass))
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
-        val id = idOf(neutronOp.model)
         tryAccess(store.multi(persistenceOps))
         dto
     }
@@ -110,7 +106,6 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         val protoClass = protoClassOf(dto)
         val neutronOp = neutron.Update(toProto(dto, protoClass))
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
-        val id = idOf(neutronOp.model)
         tryAccess(store.multi(persistenceOps))
         dto
     }

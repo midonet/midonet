@@ -112,7 +112,7 @@ project.ext {
         persistence: "javax.persistence:persistence-api:1.0",
         jsr250: "javax.annotation:jsr250-api:1.0",
         jsr311: "javax.ws.rs:jsr311-api:1.1",
-        validation: "javax.validation:validation-api:1.0.0.GA",
+        validation: "javax.validation:validation-api:1.1.0.Final",
         servlet: "javax.servlet:servlet-api:2.5",
 
         jetty_server: dependencies.create("org.eclipse.jetty:jetty-server:${versions.jetty}") {

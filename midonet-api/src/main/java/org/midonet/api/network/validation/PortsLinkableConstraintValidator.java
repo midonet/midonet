@@ -52,7 +52,7 @@ public class PortsLinkableConstraintValidator implements
 
         context.disableDefaultConstraintViolation();
         context.buildConstraintViolationWithTemplate(
-                MessageProperty.PORTS_LINKABLE).addNode("link")
+                MessageProperty.PORTS_LINKABLE).addPropertyNode("link")
                 .addConstraintViolation();
 
         org.midonet.cluster.data.Port<?, ?> portData = null;

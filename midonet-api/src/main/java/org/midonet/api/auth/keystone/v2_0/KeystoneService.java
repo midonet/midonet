@@ -44,6 +44,8 @@ import org.midonet.cluster.auth.UserIdentity;
 import org.midonet.cluster.auth.keystone.v2_0.KeystoneClient;
 import org.midonet.cluster.auth.keystone.v2_0.KeystoneInvalidFormatException;
 
+import static org.midonet.Util.uncheckedCast;
+
 /**
  * Keystone Service.
  */
@@ -240,6 +242,6 @@ public class KeystoneService implements AuthService {
                 + tenantList.getTenants().size()
                 + " tenants found with marker = " + marker + ", limit = ",
                 + limit);
-        return (List<Tenant>) tenantList.get();
+        return uncheckedCast(tenantList.get());
     }
 }

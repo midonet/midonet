@@ -22,7 +22,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
@@ -66,7 +66,7 @@ public class VSphereSSOService implements AuthService {
         this.vSphereConfig = vSphereConfig;
 
         log.debug("Using the following configuration: {}",
-                Objects.toStringHelper(vSphereConfig)
+                MoreObjects.toStringHelper(vSphereConfig)
                         .add("AdminToken", vSphereConfig.getAdminToken())
                         .add("Datacenter ID", vSphereConfig.getServiceDCId())
                         .add("Service URL", vSphereConfig.getServiceSdkUrl())
@@ -241,7 +241,7 @@ public class VSphereSSOService implements AuthService {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("VSphereClient", vSphereClient)
                 .add("VSphereConfig", vSphereConfig)
                 .add("TenantID", globalTenantId)

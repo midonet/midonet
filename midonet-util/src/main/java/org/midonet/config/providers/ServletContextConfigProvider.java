@@ -22,6 +22,8 @@ import javax.servlet.ServletContext;
 
 import org.midonet.config.ConfigProvider;
 
+import static org.midonet.Util.uncheckedCast;
+
 /**
  * ConfigProvider which adapts the servlet context parameters to be automatically
  * used by config interfaces.
@@ -80,7 +82,7 @@ public class ServletContextConfigProvider extends ConfigProvider {
     @Override
     public Map<String,Object> getAll() {
         Map<String,Object> values = new HashMap<>();
-        Enumeration<String> names = ctxt.getInitParameterNames();
+        Enumeration<String> names = uncheckedCast(ctxt.getInitParameterNames());
         while (names.hasMoreElements()) {
             String name = names.nextElement();
             values.put(name, ctxt.getInitParameter(name));

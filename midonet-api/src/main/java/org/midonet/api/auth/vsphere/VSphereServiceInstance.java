@@ -22,7 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.jcabi.aspects.RetryOnFailure;
 import com.vmware.vim25.AuthorizationRole;
@@ -31,6 +31,7 @@ import com.vmware.vim25.mo.Datacenter;
 import com.vmware.vim25.mo.InventoryNavigator;
 import com.vmware.vim25.mo.ManagedEntity;
 import com.vmware.vim25.mo.ServiceInstance;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -165,7 +166,7 @@ public class VSphereServiceInstance {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this)
+        return MoreObjects.toStringHelper(this)
                 .add("ServiceInstance", serviceInstance)
                 .add("isSessionActive", isSessionActive())
                 .add("Username", getUserName())
