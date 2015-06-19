@@ -23,8 +23,6 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
-import org.midonet.cluster.rest_api.validation.GuiceConstraintValidatorFactory;
-
 /**
  * Validator provider
  */

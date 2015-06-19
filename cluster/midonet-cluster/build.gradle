@@ -59,6 +59,7 @@ dependencies {
             "org.reflections:reflections:0.9.10",
             libraries.metrics,
             libraries.validation,
+            libraries.hibernate_validator,
             libraries.jersey_client,
             libraries.jersey_core,
             libraries.jersey_json,
