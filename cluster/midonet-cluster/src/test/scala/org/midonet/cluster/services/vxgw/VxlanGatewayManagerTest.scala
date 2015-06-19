@@ -30,7 +30,7 @@ import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.BrainTestUtils._
+import org.midonet.cluster.ClusterTestUtils._
 import org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName
 import org.midonet.cluster.util.TestZkTools
 import org.midonet.cluster.DataClient

@@ -16,24 +16,26 @@
 
 package org.midonet.cluster.services.vxgw
 
-import java.util.concurrent.{RejectedExecutionException, ConcurrentHashMap}
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.{ConcurrentHashMap, RejectedExecutionException}
 import java.util.{Random, UUID}
 
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
 
+import com.codahale.metrics.MetricRegistry
 import com.google.inject.Inject
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.recipes.leader.{LeaderLatch, LeaderLatchListener}
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
 import rx.{Observer, Subscription}
+
+import org.midonet.cluster.EntityIdSetEvent.Type._
+import org.midonet.cluster._
 import org.midonet.cluster.services.{ClusterService, Minion}
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory
-import org.midonet.cluster._
-import org.midonet.cluster.EntityIdSetEvent.Type._
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.NamedThreadFactory
@@ -57,11 +59,17 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                                     zkConnWatcher: ZookeeperConnectionWatcher,
                                     vtepDataClientFactory: VtepDataClientFactory,
                                     curator: CuratorFramework,
+                                    metrics: MetricRegistry,
                                     conf: ClusterConfig)
     extends Minion(nodeCtx) {
 
     private val log = LoggerFactory.getLogger(vxgwLog)
-    private val LEADER_LATCH_PATH = "/midonet/vxgw/leader-latch"
+
+    // TODO: take these out to a service metrics container
+    private val networkCount = metrics.counter(s"${conf.vxgw.PREFIX}.networks")
+    private val vxgwCount = metrics.counter(s"${conf.vxgw.PREFIX}.vxgws")
+    def numNetworks: Long = networkCount.getCount
+    def numVxGWs: Long = vxgwCount.getCount
 
     // Executor on which we schedule tasks to release the ZK event thread.
     private val executor = newSingleThreadExecutor(
@@ -69,6 +77,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     )
 
     // Latch to coordinate active-passive with other instances
+    private val LEADER_LATCH_PATH = "/midonet/vxgw/leader-latch"
     private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
                                               nodeCtx.nodeId.toString)
 
@@ -108,18 +117,34 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
             executor submit monitorReset
         }
         override def onNext(t: EntityIdSetEvent[UUID]): Unit = {
-            if (t.`type` == CREATE || t.`type` == STATE) {
+            if (t.`type` != DELETE) {
                 bootstrapIfInVxlanGateway(t.value) // creation, or startup
             }
-            // Deletions are managed by the individual network watcher
+            // Deletes are dealt with by each individual network watcher
         }
     }
 
-    // Reset the monitor so we start watching creations in networks.
+    // Monitorization of networks in the system.  This will load the existing
+    // ones at startup, and keep watching while alive for updates.
+    private val bridgeBufSize = conf.vxgw.networkBufferSize
+
+    private val alertOverflow = makeAction0 {
+        val ex = new IllegalStateException(
+            "Network monitoring failed due to buffer overflow. " +
+            "Please raise cluster.vxgw.network_buffer_size -  this value" +
+            "should be an order of magnitude higher than the expected "+
+            "number of virtual networks in your system.  The service will " +
+            "require a restart.  Buffer size is now " + bridgeBufSize)
+        log.error("Terminating service: ", ex)
+        notifyFailed(ex)
+        shutdown()
+    }
+
     private val monitorReset: Runnable = makeRunnable {
         log.info("Watching for new VxLAN Gateways")
         val monitor = dataClient.bridgesGetUuidSetMonitor(zkConnWatcher)
         networkSub = monitor.getObservable
+                            .onBackpressureBuffer(bridgeBufSize, alertOverflow)
                             .observeOn(Schedulers.from(executor))
                             .subscribe(bridgesWatcher)
         monitor.notifyState()
@@ -131,7 +156,6 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
       * process. */
     private def networkWatcher(id: UUID) = new DefaultTypedWatcher {
         override def pathDataChanged(path: String): Unit = {
-            log.info(s"Network update notification")
             VxlanGateway.executor submit makeRunnable {
                 bootstrapIfInVxlanGateway(id)
             }
@@ -149,13 +173,23 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                 dataClient.bridgesGet(id)
             } else {
                 val watcher = networkWatcher(id)
-                networkUpdateMonitor.putIfAbsent(id, watcher)
-                dataClient.bridgeGetAndWatch(id, watcher)
+                val prev = networkUpdateMonitor.putIfAbsent(id, watcher)
+                if (prev == null) {
+                    networkCount.inc()
+                    dataClient.bridgeGetAndWatch(id, watcher)
+                } else {
+                    dataClient.bridgesGet(id)
+                }
             }
         ) match {
             case Success(b) if b.getVxLanPortIds == null
                                || b.getVxLanPortIds.isEmpty =>
-                log.info(s"Updated network ${b.getId} not part of a VxGW")
+                if (managers.remove(b.getId) != null) {
+                    vxgwCount.dec()
+                }
+                log.debug(s"Network ${b.getId} changed but isn't bound to " +
+                          s"any VTEPs. Watching $numNetworks networks and " +
+                          s"$numVxGWs VxLAN Gateways")
             case Success(b) =>
                 initVxlanGatewayManager(b.getId)
             case Failure(e: StateAccessException) =>
@@ -172,26 +206,28 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     /** React to the deletion of a network by cleaning any existing watcher as
       * well as the VxLAN Gateway manager, should one exist. */
     private def removeNetwork(id: UUID): Unit = {
-        log.info(s"Network $id is deleted")
+        log.info(s"Network $id deleted, now watching $numNetworks")
+        networkCount.dec()
         networkUpdateMonitor.remove(id)
         val mgr = managers.remove(id)
         if (mgr != null) {
-            log.info(s"VxLAN Gateway for network $id terminates")
+            log.info(s"Network: $id is no longer a VxLAN Gateway " +
+                     s"(total left: $numVxGWs)")
             mgr.terminate()
         }
     }
 
     /** Create and run a new VxlanGatewayManager for the given network id */
     private def initVxlanGatewayManager(id: UUID) {
-        log.info(s"Network $id is now part of a VxLAN Gateway")
         val nw = new VxlanGatewayManager(id, dataClient, vteps,
                                          tzState, zkConnWatcher,
                                          () => managers.remove(id))
         if (managers.putIfAbsent(id, nw) == null) {
-            log.debug(s"Start VxLAN Gateway manager for network $id")
+            log.info(s"Network $id is a new VxLAN Gateway (total: $numVxGWs)")
+            vxgwCount.inc()
             nw.start()
         } else {
-            log.debug(s"VxLAN Gateway manager for network $id already exists")
+            log.debug(s"VxLAN Gateway manager already exists for network $id")
         }
 
     }
@@ -228,19 +264,12 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                     log.info("Unsubscribe irrelevant: executor is closing...")
             }
         }
-        managers.values().foreach {_.terminate() }
+        managers.values().foreach { _.terminate() }
     }
 
     override def doStop(): Unit = {
-        executor.shutdown()
         try {
-            if (!executor.awaitTermination(5, SECONDS)) {
-                log.warn("Failed to stop network monitor orderly, insisting..")
-                executor.shutdownNow()
-            }
-            leaderLatch.removeListener(latchListener)
-            becomePassive()
-            leaderLatch.close()
+            shutdown()
             notifyStopped()
         } catch {
             case t: Throwable =>
@@ -248,6 +277,20 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                 Thread.currentThread().interrupt()
                 notifyFailed(t)
         }
+    }
+
+    private def shutdown(): Unit = {
+        if (networkSub != null) {
+            networkSub.unsubscribe()
+        }
+        executor.shutdown()
+        if (!executor.awaitTermination(5, SECONDS)) {
+            log.warn("Failed to stop network monitor orderly, insisting..")
+            executor.shutdownNow()
+        }
+        leaderLatch.removeListener(latchListener)
+        becomePassive()
+        leaderLatch.close()
     }
 
 }
