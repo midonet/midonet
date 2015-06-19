@@ -19,14 +19,19 @@ import collection.{Set => ROSet, mutable, Iterable}
 import collection.JavaConversions._
 import java.util.UUID
 
-import org.slf4j.Logger
+import org.midonet.util.collection.IPv4InvalidationArray
+
+import scala.collection.{Set => ROSet}
+
+import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.ArpCache
 import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.layer3.{RoutingTableIfc, InvalidationTrie, Route}
+import org.midonet.midolman.layer3.{Route, RoutingTableIfc}
 import org.midonet.midolman.simulation.Router
+import org.midonet.midolman.simulation.Router.{TagManager, Config => RouterConfig}
 import org.midonet.midolman.topology.RouterManager._
 import org.midonet.midolman.topology.builders.RouterBuilderImpl
 import org.midonet.odp.FlowMatch
@@ -38,7 +43,7 @@ class RoutingTableWrapper[IP <: IPAddr](val rTable: RoutingTableIfc[IP]) {
 
     import collection.JavaConversions._
 
-    def lookup(wmatch: FlowMatch, logger: Logger): Iterable[Route] =
+    def lookup(wmatch: FlowMatch, logger: org.slf4j.Logger): Iterable[Route] =
     // TODO (ipv6) de facto implementation for ipv4, that explains
     // the casts at this point.
         rTable.lookup(wmatch.getNetworkSrcIP.asInstanceOf[IP],
@@ -55,27 +60,13 @@ object RouterManager {
     case class InvalidateFlows(addedRoutes: ROSet[Route],
                                deletedRoutes: ROSet[Route])
 
-    case class AddTag(dstIp: IPAddr)
+    case class AddIPv4Tag(dstIp: IPv4Addr, matchLength: Int)
 
-    case class RemoveTag(dstIp: IPAddr)
+    case class RemoveIPv4Tag(dstIp: IPv4Addr)
 
     // these msg are used for testing
     case class RouterInvTrieTagCountModified(dstIp: IPAddr, count: Int)
 
-}
-
-case class RouterConfig(adminStateUp: Boolean = true,
-                        inboundFilter: UUID = null,
-                        outboundFilter: UUID = null,
-                        loadBalancer: UUID = null)
-
-/**
- * Provided to the Router for operations on Tags.
- */
-trait TagManager {
-    def addTag(dstIp: IPAddr)
-
-    def getFlowRemovalCallback(dstIp: IPAddr): Callback0
 }
 
 /**
@@ -101,10 +92,7 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
     private var arpCache: ArpCache = null
     // This trie is to store the tag that represent the ip destination to be
     // able to do flow invalidation properly when a route is added or deleted
-    private val dstIpTagTrie: InvalidationTrie = new InvalidationTrie()
-    // key is dstIp tag, value is the count
-    private val tagToFlowCount: mutable.Map[IPAddr, Int]
-                                = new mutable.HashMap[IPAddr, Int]
+    private val dstIpTagTrie = new IPv4InvalidationArray()
 
     def topologyReady() {
         log.debug("Sending a Router to the VTA")
@@ -158,75 +146,40 @@ class RouterManager(id: UUID, val client: Client, val config: MidolmanConfig)
             }
             for (route <- addedRoutes) {
                 log.debug("Projecting added route {}", route)
-                val subTree = dstIpTagTrie.projectRouteAndGetSubTree(route)
-                val ipToInvalidate = InvalidationTrie.getAllDescendantsIpDestination(subTree)
-                log.debug("Got the following ip destination to invalidate {}",
-                          ipToInvalidate)
+                val deletions = dstIpTagTrie.deletePrefix(
+                    route.dstNetworkAddr, route.dstNetworkLength).iterator()
 
-                val it = ipToInvalidate.iterator()
-                it.foreach(ip => VirtualTopologyActor !
-                    InvalidateFlowsByTag(FlowTagger.tagForDestinationIp(id, ip)))
-                }
-
-        case AddTag(dstIp) =>
-            // check if the tag is already in the map
-            if (tagToFlowCount contains dstIp) {
-                adjustMapValue(tagToFlowCount, dstIp)(_ + 1)
-                log.debug("Increased count for tag ip {} count {}", dstIp,
-                    tagToFlowCount(dstIp).underlying())
-            } else {
-                tagToFlowCount += (dstIp -> 1)
-                dstIpTagTrie.addRoute(createSingleHostRoute(dstIp))
-                log.debug("Added IP {} to invalidation trie", dstIp)
-            }
-            context.system.eventStream.publish(
-                new RouterInvTrieTagCountModified(dstIp, tagToFlowCount(dstIp)))
-
-
-        case RemoveTag(dstIp: IPAddr) =>
-            if (!(tagToFlowCount contains dstIp)) {
-                log.debug("{} is not in the invalidation trie, cannot remove it!",
-                    dstIp)
-
-            } else {
-                if (tagToFlowCount(dstIp) == 1) {
-                    // we need to remove the tag
-                    tagToFlowCount.remove(dstIp)
-                    dstIpTagTrie.deleteRoute(createSingleHostRoute(dstIp))
-                    log.debug("Removed IP {} from invalidation trie", dstIp)
-                } else {
-                    adjustMapValue(tagToFlowCount, dstIp)(_ - 1)
-                    log.debug("Decreased count for tag IP {} count {}", dstIp,
-                        tagToFlowCount(dstIp).underlying())
+                while (deletions.hasNext) {
+                    val ip = IPv4Addr.fromInt(deletions.next)
+                    log.debug(s"Got the following destination to invalidate $ip")
+                    VirtualTopologyActor !
+                        InvalidateFlowsByTag(FlowTagger.tagForDestinationIp(id, ip))
                 }
             }
+
+        case AddIPv4Tag(dstIp, matchLength) =>
+            val refs = dstIpTagTrie.ref(dstIp.toInt, matchLength)
+            log.debug(s"Increased ref count ip prefix $dstIp/28 to $refs")
+
             context.system.eventStream.publish(
-                new RouterInvTrieTagCountModified(dstIp,
-                    if (tagToFlowCount contains dstIp) tagToFlowCount(dstIp)
-                    else 0))
-    }
+                new RouterInvTrieTagCountModified(dstIp, refs))
 
-    def adjustMapValue[A, B](m: mutable.Map[A, B], k: A)(f: B => B) {
-        m.update(k, f(m(k)))
-    }
-
-    def createSingleHostRoute(dstIP: IPAddr): Route = {
-        val route: Route = new Route()
-        route.setDstNetworkAddr(dstIP.toString)
-        route.dstNetworkLength = 32
-        route
+        case RemoveIPv4Tag(dstIp) =>
+            val refs = dstIpTagTrie.unref(dstIp.toInt)
+            context.system.eventStream.publish(
+                new RouterInvTrieTagCountModified(dstIp, refs))
     }
 
     private class TagManagerImpl extends TagManager {
 
-        def addTag(dstIp: IPAddr) {
-            self ! AddTag(dstIp)
+        def addIPv4Tag(dstIp: IPv4Addr, matchLength: Int) {
+            self ! AddIPv4Tag(dstIp, matchLength)
         }
 
-        def getFlowRemovalCallback(dstIp: IPAddr) = {
+        def getFlowRemovalCallback(dstIp: IPv4Addr) = {
             new Callback0 {
                 def call() {
-                    self ! RemoveTag(dstIp)
+                    self ! RemoveIPv4Tag(dstIp)
                 }
             }
         }

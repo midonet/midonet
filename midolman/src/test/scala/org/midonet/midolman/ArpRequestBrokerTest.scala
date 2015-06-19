@@ -337,7 +337,7 @@ class ArpRequestBrokerTest extends Suite
         eventually(ZK_RTT_TIMEOUT) {
             arpBroker.process()
             invalidations should have size 1
-            invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
+            invalidations.poll() should be (FlowTagger.tagForArpEntry(routerId, THEIR_IP))
         }
     }
 
@@ -351,7 +351,7 @@ class ArpRequestBrokerTest extends Suite
         eventually(ZK_RTT_TIMEOUT) {
             arpBroker.process()
             invalidations should have size 1
-            invalidations.poll() should be (FlowTagger.tagForDestinationIp(routerId, THEIR_IP))
+            invalidations.poll() should be (FlowTagger.tagForArpEntry(routerId, THEIR_IP))
         }
     }
 

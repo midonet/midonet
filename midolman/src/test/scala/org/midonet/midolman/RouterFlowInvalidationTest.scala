@@ -77,8 +77,8 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
     scenario("Routes are referenced by flows") {
         val ipToReach = "11.11.0.2"
         val macToReach = "02:11:22:33:48:10"
-        // add a route from ipSource to ipToReach/32, next hop is outPort
-        newRoute(router, ipSource, 32, ipToReach, 32, NextHop.PORT,
+        // add a route from ipSource to ipToReach/31, next hop is outPort
+        newRoute(router, ipSource, 32, ipToReach, 31, NextHop.PORT,
                  outPort.getId, new IPv4Addr(NO_GATEWAY).toString, 2)
 
         feedArpTable(simRouter, IPv4Addr.fromString(ipToReach),
@@ -101,7 +101,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
     scenario("Flows are invalidated when adding a route") {
         val ipVm1 = "11.11.1.2"
         val macVm1 = "11:22:33:44:55:02"
-        val ipVm2 = "11.11.1.3"
+        val ipVm2 = "11.11.1.22"
         val macVm2 = "11:22:33:44:55:03"
 
         // this vm is on a different sub network
@@ -154,7 +154,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
     scenario("Clean up invalidation trie") {
         val ipVm1 = "11.11.1.2"
         val macVm1 = "11:22:33:44:55:02"
-        val ipVm2 = "11.11.1.3"
+        val ipVm2 = "11.11.1.23"
         val macVm2 = "11:22:33:44:55:03"
 
         newRoute(router, "0.0.0.0", 0, networkToReach, networkToReachLength,

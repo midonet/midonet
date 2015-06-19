@@ -18,15 +18,16 @@ package org.midonet.midolman.simulation
 import java.util.UUID
 
 import akka.actor.ActorSystem
-import org.midonet.midolman.PacketWorkflow.{Drop, TemporaryDrop, NoOp, SimulationResult}
+import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
+import org.midonet.midolman.topology.RoutingTableWrapper
 
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp._
-import org.midonet.midolman.topology.{RouterConfig, RoutingTableWrapper, TagManager}
+import org.midonet.midolman.simulation.Router.{Config => RouterConfig, TagManager}
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
@@ -107,7 +108,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 } else {
                     sendAnswer(inPort.id,
                                icmpErrors.unreachableFragNeededIcmp(inPort, context))
-                    TemporaryDrop
+                    ErrorDrop
                 }
             case RuleResult.Action.REJECT =>
                 sendAnswer(inPort.id,
@@ -116,7 +117,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             case _ =>
                 context.log.warn("Pre-routing returned an action which was {}, " +
                                  "not ACCEPT, DROP, or REJECT.", preRoutingResult.action)
-                TemporaryDrop
+                ErrorDrop
         }
 
     @throws[NotYetException]
@@ -190,7 +191,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 if (ttl <= 1) {
                     sendAnswer(inPort.id,
                                icmpErrors.timeExceededIcmp(inPort, context))
-                    TemporaryDrop
+                    ErrorDrop
                 } else {
                     context.wcmatch.setNetworkTTL((ttl - 1).toByte)
                     NoOp
@@ -208,7 +209,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 context.log.debug(s"No route to network (dst:$dstIP)")
                 sendAnswer(inPort.id,
                            icmpErrors.unreachableNetIcmp(inPort, context))
-                return (rt, Drop)
+                return (rt, ShortDrop)
             }
 
             val action = rt.nextHop match {
@@ -221,7 +222,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                     handleBgp(context, inPort) match {
                         case NoOp =>
                             context.log.debug("Dropping non icmp_req addressed to local port")
-                            TemporaryDrop
+                            ErrorDrop
                         case simRes =>
                             context.log.debug("Matched BGP traffic")
                             simRes
@@ -230,20 +231,19 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 case Route.NextHop.BLACKHOLE =>
                     context.log.debug("Dropping packet, BLACKHOLE route (dst:{})",
                         fmatch.getNetworkDstIP)
-                    TemporaryDrop
+                    ErrorDrop
 
                 case Route.NextHop.REJECT =>
                     sendAnswer(inPort.id,
                                icmpErrors.unreachableProhibitedIcmp(inPort, context))
                     context.log.debug("Dropping packet, REJECT route (dst:{})",
                         fmatch.getNetworkDstIP)
-                    Drop
+                    ShortDrop
 
                 case Route.NextHop.PORT if rt.nextHopPort == null =>
                     context.log.error(
                         "Routing table lookup for {} forwarded to port null.", dstIP)
-                    // TODO(pino): should we remove this route?
-                    Drop
+                    ErrorDrop
 
                 case Route.NextHop.PORT =>
                     applyTimeToLive() match {
@@ -254,32 +254,11 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                     context.log.warn(
                         "Routing table lookup for {} returned invalid nextHop of {}",
                         dstIP, rt.nextHop)
-                    // rt.nextHop is invalid. The only way the simulation result
-                    // would change is if there are other matching routes that are
-                    // 'sane'. If such routes were created, this flow will be
-                    // invalidated. Thus, we can return Drop and not
-                    // TemporaryDrop.
-                    Drop
+                    ErrorDrop
             }
 
             (rt, action)
         }
-
-        def applyTagsForRoute(route: Route, simRes: SimulationResult): Unit =
-            simRes match {
-                case TemporaryDrop | NoOp =>
-                case a => // We don't want to tag a temporary flow (e.g. created by
-                          // a BLACKHOLE route), and we do that to avoid excessive
-                          // interaction with the RouterManager, who needs to keep
-                          // track of every IP address the router gives to it.
-                    if (route != null) {
-                        context.addFlowTag(FlowTagger.tagForRoute(route))
-                    }
-                    context.addFlowTag(FlowTagger.tagForDestinationIp(id, dstIP))
-                    routerMgrTagger.addTag(dstIP)
-                    context.addFlowRemovedCallback(
-                        routerMgrTagger.getFlowRemovalCallback(dstIP))
-            }
 
         val (rt, action) = applyRoutingTable()
 
@@ -292,6 +271,9 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             case _ => action
         }
     }
+
+    protected def applyTagsForRoute(route: Route,
+        simRes: SimulationResult)(implicit context: PacketContext): Unit
 
     // POST ROUTING
     @throws[NotYetException]
@@ -342,12 +324,12 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 context.log.debug("icmp host unreachable, host mac unknown")
                 sendAnswer(inPort.id,
                            icmpErrors.unreachableHostIcmp(inPort, context))
-                TemporaryDrop
+                ErrorDrop
             case null =>
                 context.log.debug("icmp net unreachable, gw mac unknown")
                 sendAnswer(inPort.id,
                            icmpErrors.unreachableNetIcmp(inPort, context))
-                TemporaryDrop
+                ErrorDrop
             case nextHopMac =>
                 context.log.debug("routing packet to {}", nextHopMac)
                 pMatch.setEthSrc(outPort.portMac)
