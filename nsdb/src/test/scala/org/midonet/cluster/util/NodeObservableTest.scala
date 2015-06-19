@@ -173,8 +173,8 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
     }
 }
 
-/** Tests related to connection failures handling that tweak session and cnxn
-  * timeouts. */
+/** Tests related to connection failures handling that tweak session and
+  * connection timeouts. */
 @RunWith(classOf[JUnitRunner])
 class NodeObservableConnectionTest extends FlatSpec with CuratorTestFramework
                                    with Matchers {
@@ -199,8 +199,8 @@ class NodeObservableConnectionTest extends FlatSpec with CuratorTestFramework
         obs1.getOnCompletedEvents shouldBe empty
         obs1.getOnNextEvents should have size 1
         obs1.getOnErrorEvents should have size 1
-        obs1.getOnErrorEvents.get(0).isInstanceOf[
-            NodeObservableDisconnectedException] shouldBe true
+        obs1.getOnErrorEvents.get(0).getClass shouldBe classOf[
+            NodeObservableDisconnectedException]
 
         // Later observers will also get a cache closed error, the Observable is
         // now useless
@@ -211,7 +211,7 @@ class NodeObservableConnectionTest extends FlatSpec with CuratorTestFramework
         obs2.getOnNextEvents shouldBe empty
         obs2.getOnCompletedEvents shouldBe empty
         obs2.getOnErrorEvents should have size 1
-        obs2.getOnErrorEvents.get(0).isInstanceOf[
-            NodeObservableClosedException] shouldBe true
+        obs2.getOnErrorEvents.get(0).getClass shouldBe classOf[
+            NodeObservableClosedException]
     }
 }

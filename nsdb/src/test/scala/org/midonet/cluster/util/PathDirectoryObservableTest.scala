@@ -17,8 +17,9 @@ package org.midonet.cluster.util
 
 import scala.concurrent.duration._
 
+import org.apache.curator.retry.RetryOneTime
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, FeatureSpec}
+import org.scalatest.{FlatSpec, Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
@@ -212,5 +213,51 @@ class PathDirectoryObservableTest extends FeatureSpec
                 DirectoryObservableDisconnectedException]
             curator.close()
         }
+    }
+}
+
+/** Tests related to connection failures handling that tweak session and
+  * connection timeouts. */
+@RunWith(classOf[JUnitRunner])
+class PathDirectoryObservableConnectionTest extends FlatSpec
+                                            with CuratorTestFramework
+                                            with Matchers {
+
+    override protected val retryPolicy = new RetryOneTime(500)
+
+    override def cnxnTimeoutMs = 3000
+    override def sessionTimeoutMs = 10000
+    private val timeout = 1 second
+
+    "Directory observable" should "emit error on losing connection" in {
+        val path = makePath("1")
+        val observable = PathDirectoryObservable.create(curator, path)
+
+        val obs1 = new TestObserver[Set[String]]
+                       with AwaitableObserver[Set[String]]
+        observable.subscribe(obs1)
+        obs1.awaitOnNext(1, timeout)
+
+        zk.stop()      // This will send us the error after the cnxn times out
+        obs1.awaitCompletion(cnxnTimeoutMs * 2 millis)
+
+        obs1.getOnCompletedEvents shouldBe empty
+        obs1.getOnNextEvents should have size 1
+        obs1.getOnErrorEvents should have size 1
+        obs1.getOnErrorEvents.get(0).getClass shouldBe classOf[
+            DirectoryObservableDisconnectedException]
+
+        // Later observers will also get a cache closed error, the Observable is
+        // now useless
+        val obs2 = new TestObserver[Set[String]]
+                       with AwaitableObserver[Set[String]]
+        observable.subscribe(obs2)
+        obs2.awaitCompletion(timeout)
+
+        obs2.getOnNextEvents shouldBe empty
+        obs2.getOnCompletedEvents shouldBe empty
+        obs2.getOnErrorEvents should have size 1
+        obs2.getOnErrorEvents.get(0).getClass shouldBe classOf[
+            DirectoryObservableClosedException]
     }
 }
