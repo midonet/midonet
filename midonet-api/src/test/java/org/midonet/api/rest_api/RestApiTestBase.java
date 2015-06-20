@@ -17,7 +17,11 @@ package org.midonet.api.rest_api;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
@@ -35,7 +39,10 @@ import org.midonet.client.dto.DtoPort;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.midonet.cluster.rest_api.VendorMediaType.*;
+import static org.junit.Assert.assertTrue;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V3;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 public abstract class RestApiTestBase extends JerseyTest {
@@ -93,6 +100,16 @@ public abstract class RestApiTestBase extends JerseyTest {
         assertEquals(expectedProperty, violation.get("property"));
         assertEquals(getMessage(expectedTemplateCode, args),
                      violation.get("message"));
+    }
+
+    protected void assertValidationProperties(DtoError error,
+                                              String ... properties) {
+        Set<String> propertySet = new HashSet<>(Arrays.asList(properties));
+        List<Map<String, String>> violations = error.getViolations();
+        assertEquals(propertySet.size(), violations.size());
+        for (Map<String, String> v : violations) {
+            assertTrue(propertySet.contains(v.get("property")));
+        }
     }
 
     protected URI addIdToUri(URI base, UUID id) throws URISyntaxException {

@@ -19,7 +19,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,8 +34,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.DtoWebResource;
@@ -62,10 +59,12 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V2;
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON_V3;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_IP4_MAC_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_JSON_V5;
@@ -363,6 +362,42 @@ public class TestBridge {
 
             dtoResource.deleteAndVerifyNoContent(b2.getUri(),
                     APPLICATION_BRIDGE_JSON);
+        }
+
+        @Test
+        public void testBridgeCreateWithNoName() throws Exception {
+            DtoBridge bridge = postBridge(null);
+            assertNull(bridge.getName());
+        }
+
+        @Test
+        public void testBridgeUpdateWithNoName() throws Exception {
+            DtoBridge bridge = postBridge("foo");
+            assertEquals("foo", bridge.getName());
+
+            bridge.setName(null);
+            bridge = dtoResource.putAndVerifyNoContent(
+                bridge.getUri(), APPLICATION_BRIDGE_JSON_V3, bridge,
+                DtoBridge.class);
+            assertNull(bridge.getName());
+        }
+
+        @Test
+        public void testBridgeCreateWithNoTenant() throws Exception {
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                app.getBridges(), APPLICATION_BRIDGE_JSON_V3, new DtoBridge());
+
+            assertValidationProperties(error, "tenantId");
+        }
+
+        @Test
+        public void testBridgeUpdateWithNoTenant() throws Exception {
+            DtoBridge bridge = postBridge("foo");
+
+            bridge.setTenantId(null);
+            DtoError error = dtoResource.putAndVerifyBadRequest(
+                bridge.getUri(), APPLICATION_BRIDGE_JSON_V3, bridge);
+            assertValidationProperties(error, "tenantId");
         }
 
         @Test
@@ -848,126 +883,6 @@ public class TestBridge {
             mp2 = new DtoIP4MacPair("host", "02:aa:bb:cc:dd:ee");
             dtoResource.postAndVerifyBadRequest(bridge.getArpTable(),
                 APPLICATION_IP4_MAC_JSON, mp2);
-        }
-    }
-
-    @RunWith(Parameterized.class)
-    public static class TestCreateBridgeBadRequest extends JerseyTest {
-
-        private Topology topology;
-        private DtoWebResource dtoWebResource;
-        private final DtoBridge bridge;
-        private final String property;
-
-        public TestCreateBridgeBadRequest(DtoBridge bridge, String property) {
-            super(FuncTest.appDesc);
-            this.bridge = bridge;
-            this.property = property;
-        }
-
-        @Before
-        public void setUp() {
-
-            WebResource resource = resource();
-            dtoWebResource = new DtoWebResource(resource);
-
-            // Create a bridge - useful for checking duplicate name error
-            DtoBridge b = new DtoBridge();
-            b.setName("bridge1-name");
-            b.setTenantId("tenant1");
-
-            topology = new Topology.Builder(dtoWebResource)
-                    .create("bridge1", b).build();
-        }
-
-        @Parameters
-        public static Collection<Object[]> data() {
-
-            List<Object[]> params = new ArrayList<>();
-
-            // Null name
-            DtoBridge nullNameBridge = new DtoBridge();
-            nullNameBridge.setTenantId("tenant1");
-            params.add(new Object[] { nullNameBridge, "name" });
-
-            // Bridge with tenantID missing
-            DtoBridge noTenant = new DtoBridge();
-            noTenant.setName("noTenant-bridge-name");
-            params.add(new Object[] { noTenant, "tenantId" });
-
-            return params;
-        }
-
-        @Test
-        public void testBadInputCreate() {
-            DtoApplication app = topology.getApplication();
-
-            DtoError error = dtoWebResource.postAndVerifyBadRequest(
-                    app.getBridges(), APPLICATION_BRIDGE_JSON, bridge);
-            List<Map<String, String>> violations = error.getViolations();
-            assertEquals(1, violations.size());
-            assertEquals(property, violations.get(0).get("property"));
-        }
-    }
-
-    @RunWith(Parameterized.class)
-    public static class TestUpdateBridgeBadRequest extends JerseyTest {
-
-        private final DtoBridge testBridge;
-        private final String property;
-        private DtoWebResource dtoWebResource;
-        private Topology topology;
-
-        public TestUpdateBridgeBadRequest(DtoBridge testBridge,
-                                          String property) {
-            super(FuncTest.appDesc);
-            this.testBridge = testBridge;
-            this.property = property;
-        }
-
-        @Before
-        public void setUp() {
-
-            WebResource resource = resource();
-            dtoWebResource = new DtoWebResource(resource);
-
-            // Create a bridge
-            DtoBridge b1 = new DtoBridge();
-            b1.setName("bridge1-name");
-            b1.setTenantId("tenant1");
-
-            topology = new Topology.Builder(dtoWebResource)
-                    .create("bridge1", b1).build();
-        }
-
-        @Parameters
-        public static Collection<Object[]> data() {
-
-            List<Object[]> params = new ArrayList<>();
-
-            // Null name
-            DtoBridge nullNameBridge = new DtoBridge();
-            nullNameBridge.setTenantId("tenant1");
-            params.add(new Object[] { nullNameBridge, "name" });
-
-            // Bridge with tenantID missing
-            DtoBridge noTenant = new DtoBridge();
-            noTenant.setName("noTenant-bridge-name");
-            params.add(new Object[] { noTenant, "tenantId" });
-
-            return params;
-        }
-
-        @Test
-        public void testBadInput() {
-            // Get the bridge
-            DtoBridge bridge = topology.getBridge("bridge1");
-
-            DtoError error = dtoWebResource.putAndVerifyBadRequest(
-                    bridge.getUri(), APPLICATION_BRIDGE_JSON, testBridge);
-            List<Map<String, String>> violations = error.getViolations();
-            assertEquals(1, violations.size());
-            assertEquals(property, violations.get(0).get("property"));
         }
     }
 }
