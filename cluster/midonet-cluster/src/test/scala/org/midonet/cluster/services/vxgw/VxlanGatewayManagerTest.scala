@@ -40,12 +40,14 @@ import org.midonet.cluster.data.vtep.model.VtepMAC.{UNKNOWN_DST, fromMac}
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
 class VxlanGatewayManagerTest extends FlatSpec with Matchers
                                                with BeforeAndAfter
                                                with GivenWhenThen
-                                               with VxlanGatewayTest {
+                                               with VxlanGatewayTest
+                                               with MidonetEventually {
 
     val log = LoggerFactory.getLogger(classOf[VxlanGatewayManagerTest])
 
