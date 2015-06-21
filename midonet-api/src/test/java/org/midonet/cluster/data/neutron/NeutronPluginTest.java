@@ -32,9 +32,11 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner;
 import org.midonet.cluster.rest_api.neutron.models.ExternalGatewayInfo;
 import org.midonet.cluster.rest_api.neutron.models.FloatingIp;
+import org.midonet.cluster.rest_api.neutron.models.HealthMonitor;
 import org.midonet.cluster.rest_api.neutron.models.IPAllocation;
 import org.midonet.cluster.rest_api.neutron.models.IPAllocationPool;
 import org.midonet.cluster.rest_api.neutron.models.Network;
+import org.midonet.cluster.rest_api.neutron.models.Pool;
 import org.midonet.cluster.rest_api.neutron.models.Port;
 import org.midonet.cluster.rest_api.neutron.models.Route;
 import org.midonet.cluster.rest_api.neutron.models.Router;
@@ -142,6 +144,15 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         Arrays.asList(new IPAllocation("200.0.0.5", extSubnet.id)),
         DeviceOwner.FLOATINGIP, floatingIp.id.toString(), null);
 
+    // Pool
+    protected static final Pool pool = new Pool(UUID.randomUUID(), ADMIN_ID,
+                                                subnet.id, "pool", "TCP",
+                                                "ROUND_ROBIN", true,
+                                                router.id);
+
+    // Health Monitor
+    protected static final HealthMonitor healthMonitor = new HealthMonitor(
+        UUID.randomUUID(), ADMIN_ID, 3, 5, 30, "TCP", true, pool.id);
 
     protected NeutronPlugin plugin;
 
@@ -220,5 +231,10 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         // Create a floating IP to associate with a fixed IP
         plugin.createPort(floatingIpPort);
         plugin.createFloatingIp(floatingIp);
+
+        // Create a pool and health monitor
+        plugin.createPool(pool);
+        plugin.createHealthMonitor(healthMonitor);
+
     }
 }

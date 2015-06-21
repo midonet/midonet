@@ -72,6 +72,16 @@ public class DirectoryVerifier {
         }
     }
 
+    public void assertPathNotExists(String path) {
+        Preconditions.checkNotNull(path);
+
+        try {
+            Assert.assertFalse(this.directory.exists(path, (Watcher)null));
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     private String getJsonStr(String path) {
         try {
             byte[] byteData = this.directory.get(path, null);

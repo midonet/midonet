@@ -17,6 +17,7 @@ package org.midonet.cluster.data.neutron;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -380,14 +381,12 @@ public class LBZkManager extends BaseZkManager {
         UUID oldHmId = oldPool.getHealthMonitor();
         UUID newHmId = pool.getHealthMonitor();
 
-
-
         if (oldHmId == null && newHmId != null) {
             // case 1: a health monitor is added.
             PoolConfig poolConfig = new PoolConfig(pool, lbID);
             HealthMonitor healthMonitor = getNeutronHealthMonitor(pool.id);
             healthMonitor.addPool(pool.id);
-            prepareUpdateNeutronHealthMonitor(ops, healthMonitor);;
+            prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
             prepareAssociatePoolHealthMonitor(ops,
                 loadBalancerZkManager.get(lbID), poolConfig,
                 healthMonitorZkManager.get(newHmId));
@@ -857,17 +856,17 @@ public class LBZkManager extends BaseZkManager {
     public void prepareCreateHealthMonitor(List<Op> ops,
                                            HealthMonitor healthMonitor)
         throws SerializationException, StateAccessException {
-        // Creating health monitors is the easiest case because:
-        // 1) You can not create a health monitor with a pool id, and
-        //    so you dont have to worry about the mapping.
-        // 2) no other members besides the pool have dependencies on the
-        //    health monitor, so you don't have to worry about refs.
-        checkArgument(!healthMonitor.hasPoolAssociated(),
-                      "Health Monitors can not be created with pool id set.");
         prepareCreateNeutronHealthMonitor(ops, healthMonitor);
         HealthMonitorConfig config = new HealthMonitorConfig(healthMonitor);
         ops.addAll(healthMonitorZkManager.prepareCreate(healthMonitor.id,
                                                         config));
+
+        if (healthMonitor.hasPoolAssociated()) {
+            // Starting in Kilo, MidoNet plugin adopted the advanced service
+            // driver model.  In that model, HM-Pool association happens when
+            // creating a health monitor.
+            prepareCreatePoolHealthMonitor(ops, healthMonitor, config);
+        }
     }
 
     public void prepareUpdateHealthMonitor(List<Op> ops, UUID id,
@@ -886,62 +885,77 @@ public class LBZkManager extends BaseZkManager {
 
     public void prepareDeleteHealthMonitor(List<Op> ops, UUID id)
         throws StateAccessException, SerializationException {
-        HealthMonitor oldHmConfig = getNeutronHealthMonitor(id);
-        checkState(!oldHmConfig.hasPoolAssociated(), "Health monitors must" +
-                   " have no pools using them in order to delete");
+        HealthMonitor hm = getNeutronHealthMonitor(id);
+        if (hm.hasPoolAssociated()) {
+            prepareUpdatePoolWithHealthMonitor(ops, hm.getPoolId(), null);
+            prepareDisassociatePoolHealthMonitor(ops, id, hm.getPoolId());
+        }
+
         prepareDeleteNeutronHealthMonitor(ops, id);
         ops.addAll(healthMonitorZkManager.prepareDelete(id));
+    }
+
+    private PoolConfig prepareUpdatePoolWithHealthMonitor(List<Op> ops,
+                                                          UUID poolId,
+                                                          UUID hmId)
+        throws SerializationException, StateAccessException {
+        Pool pool = getNeutronPool(poolId);
+        checkNotNull(pool.id, "The neutron pool must have an id to update");
+        if (hmId == null) {
+            pool.healthMonitors = null;
+        } else {
+            pool.healthMonitors = Collections.singletonList(hmId);
+        }
+        prepareUpdateNeutronPool(ops, pool);
+
+        PoolConfig pConfig = poolZkManager.get(poolId);
+        pConfig.healthMonitorId = hmId;
+        ops.addAll(poolZkManager.prepareUpdate(poolId, pConfig));
+
+        return pConfig;
+    }
+
+    private void prepareCreatePoolHealthMonitor(List<Op> ops,
+                                                HealthMonitor healthMonitor,
+                                                HealthMonitorConfig hmConfig)
+        throws SerializationException, StateAccessException {
+        PoolConfig pConfig = prepareUpdatePoolWithHealthMonitor(
+            ops, healthMonitor.getPoolId(), healthMonitor.id);
+
+        LoadBalancerConfig lbConf
+            = loadBalancerZkManager.get(pConfig.loadBalancerId);
+
+        prepareAssociatePoolHealthMonitor(ops, lbConf, pConfig, hmConfig);
     }
 
     // Pool Health Monitors
     public void createPoolHealthMonitor(List<Op> ops, UUID poolId,
                                         PoolHealthMonitor poolHealthMonitor)
         throws StateAccessException, SerializationException {
-        Pool pool = getNeutronPool(poolId);
-        checkNotNull(pool.id, "The neutron pool must have an id to update");
-        pool.healthMonitors = Arrays.asList(poolHealthMonitor.id);
-        prepareUpdateNeutronPool(ops, pool);
+
+        PoolConfig pConfig = prepareUpdatePoolWithHealthMonitor(
+            ops, poolId, poolHealthMonitor.id);
 
         HealthMonitor healthMonitor = getNeutronHealthMonitor(
             poolHealthMonitor.id);
         healthMonitor.addPool(poolId);
         prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
 
-        PoolConfig pConfig = poolZkManager.get(poolId);
-
-        checkState(pConfig.healthMonitorId == null, "The pool config " +
-            "already has a health monitor associated with it");
-        pConfig.healthMonitorId = poolHealthMonitor.id;
-
         HealthMonitorConfig hmConfig
             = healthMonitorZkManager.get(poolHealthMonitor.id);
         LoadBalancerConfig lbConf
             = loadBalancerZkManager.get(pConfig.loadBalancerId);
-        PoolConfig poolConfig = poolZkManager.get(poolId);
-        poolConfig.healthMonitorId = poolHealthMonitor.id;
-        ops.addAll(poolZkManager.prepareUpdate(poolId, poolConfig));
 
         prepareAssociatePoolHealthMonitor(ops, lbConf, pConfig, hmConfig);
     }
 
     public void deletePoolHealthMonitor(List<Op> ops, UUID poolId, UUID hmId)
         throws StateAccessException, SerializationException {
-        Pool pool = getNeutronPool(poolId);
-        checkNotNull(pool.id, "The neutron pool must have an id to update");
-        pool.healthMonitors = null;
-        prepareUpdateNeutronPool(ops, pool);
+        prepareUpdatePoolWithHealthMonitor(ops, poolId, null);
 
         HealthMonitor healthMonitor = getNeutronHealthMonitor(hmId);
         healthMonitor.removePool(poolId);
         prepareUpdateNeutronHealthMonitor(ops, healthMonitor);
-
-        PoolConfig poolConfig = poolZkManager.get(poolId);
-
-        checkState(poolConfig.healthMonitorId != null, "The pool config did " +
-            "not already have a health monitor associated with it");
-
-        poolConfig.healthMonitorId = null;
-        ops.addAll(poolZkManager.prepareUpdate(poolId, poolConfig));
 
         prepareDisassociatePoolHealthMonitor(ops, hmId, poolId);
     }

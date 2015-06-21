@@ -210,4 +210,15 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         verifyRoute(null, extSubnet.gatewayIp, "LOCAL", 0);
         verifyRoute(null, newGatewayIp, "LOCAL", 1);
     }
+
+    @Test
+    public void testPoolHeathMonitorMapping() {
+
+        String mappingPath = pathBuilder.getPoolHealthMonitorMappingsPath(
+            pool.id, healthMonitor.id);
+        dirVerifier.assertPathExists(mappingPath);
+
+        plugin.deleteHealthMonitor(healthMonitor.id);
+        dirVerifier.assertPathNotExists(mappingPath);
+    }
 }
