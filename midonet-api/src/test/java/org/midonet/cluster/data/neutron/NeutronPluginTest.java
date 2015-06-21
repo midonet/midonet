@@ -28,6 +28,8 @@ import org.junit.BeforeClass;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.ZookeeperTest;
+import org.midonet.cluster.data.neutron.loadbalancer.HealthMonitor;
+import org.midonet.cluster.data.neutron.loadbalancer.Pool;
 import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -126,6 +128,15 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         Arrays.asList(new IPAllocation("200.0.0.5", extSubnet.id)),
         DeviceOwner.FLOATINGIP, floatingIp.id.toString(), null);
 
+    // Pool
+    protected static final Pool pool = new Pool(UUID.randomUUID(), ADMIN_ID,
+                                                subnet.id, "pool", "TCP",
+                                                "ROUND_ROBIN", true,
+                                                router.id);
+
+    // Health Monitor
+    protected static final HealthMonitor healthMonitor = new HealthMonitor(
+        UUID.randomUUID(), ADMIN_ID, 3, 5, 30, "TCP", true, pool.id);
 
     protected NeutronPlugin plugin;
 
@@ -204,5 +215,10 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         // Create a floating IP to associate with a fixed IP
         plugin.createPort(floatingIpPort);
         plugin.createFloatingIp(floatingIp);
+
+        // Create a pool and health monitor
+        plugin.createPool(pool);
+        plugin.createHealthMonitor(healthMonitor);
+
     }
 }
