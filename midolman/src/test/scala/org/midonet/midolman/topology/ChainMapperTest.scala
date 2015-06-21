@@ -53,7 +53,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
     private var vt: VirtualTopology = _
     private implicit var store: Storage = _
-    private val timeout = 2 second
+    private val timeout = 5 second
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
