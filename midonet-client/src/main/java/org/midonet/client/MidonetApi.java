@@ -50,12 +50,11 @@ public class MidonetApi {
     private static final String DEFAULT_MIDONET_URI =
         "http://localhost:8080/midonet-api";
 
-    private final URI midonetUri;
     private final WebResource resource;
     private Application application;
 
     public MidonetApi(String midonetUriStr) {
-        this.midonetUri = URI.create(midonetUriStr);
+        URI midonetUri = URI.create(midonetUriStr);
         resource = new WebResource(midonetUri);
     }
 
@@ -357,8 +356,7 @@ public class MidonetApi {
 
     private void ensureApplication() {
         if (application == null) {
-            DtoApplication dtoApplication = resource
-                .get("",
+            DtoApplication dtoApplication = resource.get("",
                      DtoApplication.class,
                      VendorMediaType.APPLICATION_JSON_V5);
             application = new Application(resource, dtoApplication,

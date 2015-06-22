@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
@@ -36,7 +35,7 @@ import org.midonet.cluster.rest_api.annotation.{AllowGet, AllowList}
 import org.midonet.cluster.rest_api.models.{Host, HostState, Interface}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkResponse, ResourceContext}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_HOST_JSON_V2,
@@ -69,13 +68,18 @@ class HostResource @Inject()(resContext: ResourceContext)
     override def update(@PathParam("id") id: String, host: Host,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        if (host.floodingProxyWeight eq null) {
-            return Response.status(Response.Status.BAD_REQUEST).build()
-        }
-        getResource(classOf[Host], id).map(current => {
-            current.floodingProxyWeight = host.floodingProxyWeight
-            updateResource(current)
-        }).getOrThrow
+
+        // We only allow modifying the Flooding Proxy in this method, all other
+        // updates are disallowed.
+        getResource(classOf[Host], id).map(current =>
+            if (host.floodingProxyWeight != null) {
+                current.floodingProxyWeight = host.floodingProxyWeight
+                updateResource(current, OkResponse)
+            } else {
+                log.warn("Tried to set flooding proxy weight to null value")
+                Response.status(Response.Status.BAD_REQUEST).build()
+            }
+        ).getOrThrow
     }
 
     @Path("{id}/interfaces")
@@ -94,6 +98,10 @@ class HostResource @Inject()(resContext: ResourceContext)
 
     private def initHost(host: Host): Host = {
         val interfaces = getInterfaces(host.id.toString).getOrThrow
+        interfaces.foreach { i =>
+            i.hostId = host.id
+            i.setBaseUri(resContext.uriInfo.getBaseUri)
+        }
 
         host.alive = isAlive(host.id.toString)
         host.hostInterfaces = interfaces.asJava

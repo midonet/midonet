@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import javax.servlet.ServletContextEvent;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.servlet.GuiceFilter;
@@ -68,11 +69,6 @@ public class FuncTest {
     // GuiceServletContextListener that is implemented to start up the API.
     public static Injector _injector = null;
 
-    // This is required at some of the tests to be able to manipulate the
-    // ZK configuration through a backend-agnostic interface for objects
-    // that cannot be modified through the REST API.
-    public static TopologyBackdoor topologyBackdoor;
-
     static {
         HostIdGenerator.useTemporaryHostId();
         objectMapper = new MidonetObjectMapper();
@@ -91,12 +87,18 @@ public class FuncTest {
      * variable is set to "true".
      */
     public static WebAppDescriptor.Builder getBuilder() {
-        boolean withVlad = Boolean.parseBoolean(System.getenv("withVladimir"));
-        if (withVlad) {
+        if (isCompatApiEnabled()) {
             return getBuilderForVladimir();
         } else {
             return getBuilderForLegacyApi();
         }
+    }
+
+    /**
+     * Tells if we're testing against the Compat API.
+     */
+    public static boolean isCompatApiEnabled() {
+        return Boolean.parseBoolean(System.getenv("withVladimir"));
     }
 
     private static WebAppDescriptor.Builder getBuilderForLegacyApi() {
@@ -126,7 +128,8 @@ public class FuncTest {
                 .contextPath(CONTEXT_PATH).clientConfig(config);
     }
 
-    public static class VladimirServletContextListener extends GuiceServletContextListener {
+    public static class VladimirServletContextListener
+        extends GuiceServletContextListener {
 
         private TestingServer testZk;
 
@@ -177,17 +180,27 @@ public class FuncTest {
             MidonetBackendService backend =
                 new MidonetBackendService(cfg.backend(), curator);
             backend.startAsync().awaitRunning();
-            return Guice.createInjector(
-                Vladimir.servletModule(backend, cfg)
+
+            FuncTest._injector = Guice.createInjector(
+                Vladimir.servletModule(backend, cfg),
+                new AbstractModule() {
+                    @Override
+                    protected void configure() {
+                        bind(TopologyBackdoor.class)
+                        .to(ZoomTopologyBackdoor.class);
+                    }
+                }
             );
+
+            return _injector;
         }
     }
 
-    public static WebAppDescriptor.Builder getBuilderForVladimir() {
+    private static WebAppDescriptor.Builder getBuilderForVladimir() {
         config.getSingletons()
               .add(new Vladimir.WildcardJacksonJaxbJsonProvider());
         LoggerFactory.getLogger(FuncTest.class)
-                     .info("TESTING MIDONET API AGAINST VLADIMIR");
+                     .info("TESTING MIDONET API AGAINST ZOOM IMPLEMENTATION");
         return new WebAppDescriptor.Builder()
             .contextListenerClass(VladimirServletContextListener.class)
             .filterClass(GuiceFilter.class)

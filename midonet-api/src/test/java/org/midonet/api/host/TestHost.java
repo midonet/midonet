@@ -20,11 +20,14 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
 import org.codehaus.jackson.type.JavaType;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -56,6 +59,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.*;
 import static org.junit.Assert.fail;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_COLLECTION_JSON_V3;
@@ -144,7 +148,7 @@ public class TestHost extends JerseyTest {
     public void testNoHosts() throws Exception {
         ClientResponse response = resource()
             .path("hosts/")
-            .type(APPLICATION_HOST_COLLECTION_JSON_V3)
+            .accept(APPLICATION_HOST_COLLECTION_JSON_V3)
             .get(ClientResponse.class);
 
         assertThat("We should have a proper response",
@@ -207,14 +211,14 @@ public class TestHost extends JerseyTest {
         hosts = api.getHosts();
 
         assertThat("Hosts array should not be null", hosts, is(notNullValue()));
-        assertThat("We should expose 1 host via the API",
-                   hosts.size(), equalTo(1));
-        assertThat("The returned host should have the same UUID",
-                   hosts.get(0).getId(), equalTo(hostId));
+        assertEquals("We should expose 1 host via the API",
+                     hosts.size(), 1);
+        assertEquals("The returned host should have the same UUID",
+                     hosts.get(0).getId(), hostId);
 
-        Integer weight = topologyBackdoor.getFloodingProxyWeight(hostId);
-        assertThat("The flooding proxy weight should be null",
-                   weight, is(nullValue()));
+        int weight = hosts.get(0).getFloodingProxyWeight();
+        assertEquals("The flooding proxy weight should be the default value",
+                     weight, DEFAULT_FLOODING_PROXY_WEIGHT);
 
         topologyBackdoor.setFloodingProxyWeight(hostId, FLOODING_PROXY_WEIGHT);
         weight = topologyBackdoor.getFloodingProxyWeight(hostId);
@@ -223,12 +227,12 @@ public class TestHost extends JerseyTest {
         assertThat("The flooding proxy weight has the proper value",
                    weight, equalTo(FLOODING_PROXY_WEIGHT));
 
-        topologyBackdoor.setFloodingProxyWeight(hostId, 0);
+        topologyBackdoor.setFloodingProxyWeight(hostId, 1);
         weight = topologyBackdoor.getFloodingProxyWeight(hostId);
         assertThat("The flooding proxy weight should not be null",
                    weight, is(notNullValue()));
         assertThat("The flooding proxy weight has the proper value",
-                   weight, equalTo(0));
+                   weight, equalTo(1));
     }
 
     @Test
@@ -451,20 +455,26 @@ public class TestHost extends JerseyTest {
             host.getName(), equalTo(hostName));
         assertThat("The returned host should have a not null address list",
                    host.getAddresses(), not(nullValue()));
-        assertThat(
-            "The returned host should have the same number of addresses as the metadata",
-            host.getAddresses().length, equalTo(addrs.length));
-        assertThat("The host should not be alive",
-                   host.isAlive(), equalTo(false));
 
-        for (int i = 0; i < addrs.length; i++) {
-            InetAddress inetAddress = addrs[i];
+        assertFalse("The host should not be alive", host.isAlive());
 
-            assertThat("Returned address in the dto should not be null",
-                       host.getAddresses()[i], not(nullValue()));
+        if (!FuncTest.isCompatApiEnabled()) {
+            // V2 has no addresses in the host metadata
+            assertEquals(
+                "The returned host should have the same number of addresses "
+                + "as the metadata",
+                host.getAddresses().length, addrs.length);
 
-            assertThat("Address from the Dto should match the one in metadata",
-                       host.getAddresses()[i], equalTo(inetAddress.toString()));
+            for (int i = 0; i < addrs.length; i++) {
+                InetAddress inetAddress = addrs[i];
+
+                assertNotNull("Returned address in the dto should not be null",
+                              host.getAddresses()[i]);
+
+                assertEquals("Address from the Dto should match the one in "
+                             + "metadata", host.getAddresses()[i],
+                             inetAddress.toString());
+            }
         }
     }
 
@@ -515,12 +525,10 @@ public class TestHost extends JerseyTest {
                    hosts.size(), equalTo(1));
 
         Host h1 = hosts.get(0);
-        assertThat(
+        assertEquals(
             "The returned host should have the same UUID as the one in ZK",
-            h1.getId(), equalTo(hostId));
-        assertThat(
-            "The returned host should have the same UUID as the one in ZK",
-            h1.isAlive(), equalTo(true));
+            h1.getId(), hostId);
+        assertTrue("The returned host should be alive", h1.isAlive());
 
 
         boolean caught403 = false;
@@ -549,15 +557,14 @@ public class TestHost extends JerseyTest {
             .accept(APPLICATION_HOST_JSON_V3)
             .get(DtoHost.class);
 
-        assertThat(host, is(notNullValue()));
-        assertThat(host.getHostInterfaces(), is(notNullValue()));
+        assertNotNull(host);
+        assertNotNull(host.getHostInterfaces());
 
         ResourceCollection<Host> hosts = api.getHosts();
         Host h = hosts.get(0);
         List<HostInterface> hIfaces = h.getHostInterfaces();
 
-        assertThat("Host doesn't have any interfaces", hIfaces.size(),
-                   equalTo(0));
+        assertEquals("Host doesn't have any interfaces", hIfaces.size(), 0);
 
     }
 
@@ -581,26 +588,25 @@ public class TestHost extends JerseyTest {
         ResourceCollection<Host> hosts = api.getHosts();
         Host host = hosts.get(0);
 
-        List<HostInterface> hIfaces = host.getHostInterfaces();
+        List<HostInterface> ifs = host.getHostInterfaces();
 
 
-        assertThat("The host should return a proper interfaces object",
-                   hIfaces, is(notNullValue()));
+        assertNotNull("The host should return a proper interfaces object", ifs);
 
-        assertThat(hIfaces.size(), equalTo(1));
+        assertEquals(ifs.size(), 1);
 
-        HostInterface hIface = hIfaces.get(0);
+        HostInterface hIface = ifs.get(0);
 
-        assertThat("The DtoInterface object should have a proper host id",
-                   hIface.getHostId(), equalTo(hostId));
-        assertThat("The DtoInterface object should have a proper name",
-                   hIface.getName(), equalTo(name));
-        assertThat("The DtoInterface should have a proper MTU valued",
-                   hIface.getMtu(), equalTo(mtu));
-        assertThat("The DtoInterface should have the proper mac address",
-                   hIface.getMac(), equalTo(mac.toString()));
-        assertThat("The DtoInterface type should be returned properly",
-                   hIface.getType(), equalTo(DtoInterface.Type.Physical));
+        assertEquals("The DtoInterface object should have a proper host id",
+                     hIface.getHostId(), hostId);
+        assertEquals("The DtoInterface object should have a proper name",
+                     hIface.getName(), name);
+        assertEquals("The DtoInterface should have a proper MTU valued",
+                     hIface.getMtu(), mtu);
+        assertEquals("The DtoInterface should have the proper mac address",
+                     hIface.getMac(), mac.toString());
+        assertEquals("The DtoInterface type should be returned properly",
+                     hIface.getType(), DtoInterface.Type.Physical);
     }
 
     @Test
@@ -627,8 +633,12 @@ public class TestHost extends JerseyTest {
         int mtu = 213;
         MAC mac = MAC.fromString("16:1f:5c:19:a0:60");
         topologyBackdoor.createInterface(hostId, name, mac, mtu,
-            new InetAddress[]{InetAddress.getByAddress(new byte[]{10,10,10,1})
-        });
+                                         new InetAddress[]{InetAddress
+                                                               .getByAddress(
+                                                                   new byte[]{
+                                                                       10, 10,
+                                                                       10, 1})
+                                         });
 
         DtoHost host = resource()
             .path("hosts/" + hostId.toString())
@@ -650,12 +660,12 @@ public class TestHost extends JerseyTest {
             .accept(VendorMediaType.APPLICATION_INTERFACE_JSON)
             .get(DtoInterface.class);
 
-        assertThat(
+        assertNotNull(
             "The interface should be properly retrieved when requested by uri",
-            rereadInterface, notNullValue());
+            rereadInterface);
 
-        assertThat(
+        assertEquals(
             "When retrieving by uri we should get the same interface object",
-            rereadInterface.getId(), equalTo(dtoHostInterface.getId()));
+            rereadInterface.getId(), dtoHostInterface.getId());
     }
 }

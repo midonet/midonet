@@ -21,6 +21,9 @@ import java.net.URI;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
@@ -29,6 +32,7 @@ import org.midonet.cluster.rest_api.version.Version;
 @XmlRootElement
 public class Application {
 
+    @XmlTransient
     private final URI root;
 
     public Application(URI root)  {
@@ -41,6 +45,10 @@ public class Application {
 
     private String templateFor(String s) {
         return uriFor(s).toString() + "/{id}";
+    }
+
+    public URI getUri() {
+        return root;
     }
 
     @XmlElement(name = "version")
