@@ -270,6 +270,26 @@ class VifPortTranslationTest extends PortTranslatorTest {
             ip_address { $ipv6Addr1 }
           }
         """)
+
+    val inChainRule1 = randomUuidProto
+    val inChainRule2 = randomUuidProto
+    val inChainRule3 = randomUuidProto
+    val inboundChain = mChainFromTxt(s"""
+        id { $inboundChainId }
+        rule_ids { $inChainRule1 }
+        rule_ids { $inChainRule2 }
+        rule_ids { $inChainRule3 }
+        """)
+    val outChainRule1 = randomUuidProto
+    val outboundChain = mChainFromTxt(s"""
+        id { $outboundChainId }
+        rule_ids { $outChainRule1 }
+        """)
+    val antiSpoofChainRule = randomUuidProto
+    val antiSpoofChain = mChainFromTxt(s"""
+        id { $spoofChainId }
+        rule_ids { $antiSpoofChainRule }
+        """)
 }
 
 /**
@@ -599,6 +619,51 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
 }
 
 /**
+ * Tests the Neutron port specific to the port binding fields
+ */
+@RunWith(classOf[JUnitRunner])
+class VifPortBindingTranslationTest extends VifPortTranslationTest {
+
+    protected val hostId = randomUuidProto
+    protected val hostName = "hostname"
+    protected val interfaceName = "tap0"
+    protected val vifPortWithBinding = nPortFromTxt(s"""
+        $portBaseUp
+        host_id: '$hostName'
+        profile {
+            interface_name: '$interfaceName'
+        }
+        """)
+
+    protected val mPortWithBinding = mPortFromTxt(s"""
+        $mPortWithChains
+        host_id { $hostId }
+        interface_name: '$interfaceName'
+        """)
+
+    before {
+        initMockStorage()
+        translator = new PortTranslator(storage, pathBldr)
+
+        bind(inboundChainId, inboundChain)
+        bind(outboundChainId, outboundChain)
+        bind(spoofChainId, antiSpoofChain)
+
+        bind(portId, mPortWithBinding)
+        bind(portId, vifPortWithBinding)
+    }
+
+    "VIF port UPDATE with no change " should "NOT update binding" in {
+        val midoOps = translator.translate(neutron.Update(vifPortWithBinding))
+
+        midoOps.exists {
+            case midonet.Update(obj: Port, _) => true
+            case _ => false
+        } shouldBe false
+    }
+}
+
+/**
  * Tests the Neutron VIF Port model Update / Delete.
  */
 @RunWith(classOf[JUnitRunner])
@@ -658,26 +723,6 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         $vifPortWithFixedIps2
         security_groups { $sgId1 }
         security_groups { $sgId2 }
-        """)
-
-    val inChainRule1 = randomUuidProto
-    val inChainRule2 = randomUuidProto
-    val inChainRule3 = randomUuidProto
-    val inboundChain = mChainFromTxt(s"""
-        id { $inboundChainId }
-        rule_ids { $inChainRule1 }
-        rule_ids { $inChainRule2 }
-        rule_ids { $inChainRule3 }
-        """)
-    val outChainRule1 = randomUuidProto
-    val outboundChain = mChainFromTxt(s"""
-        id { $outboundChainId }
-        rule_ids { $outChainRule1 }
-        """)
-    val antiSpoofChainRule = randomUuidProto
-    val antiSpoofChain = mChainFromTxt(s"""
-        id { $spoofChainId }
-        rule_ids { $antiSpoofChainRule }
         """)
 
     "UPDATE VIF port with fixed IPs" should "update security rules" in {
