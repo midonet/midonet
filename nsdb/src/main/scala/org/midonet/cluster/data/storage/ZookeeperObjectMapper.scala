@@ -260,7 +260,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 case nne: NoNodeException => rethrowException(ops, nne)
                 case nee: NotEmptyException => rethrowException(ops, nee)
                 case rce: ReferenceConflictException => throw rce
-                case ex: Exception =>
+                case ex: Throwable =>
                     throw new InternalObjectMapperException(ex)
             }
 

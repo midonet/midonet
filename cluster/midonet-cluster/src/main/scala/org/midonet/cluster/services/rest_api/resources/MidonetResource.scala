@@ -48,9 +48,9 @@ import org.midonet.util.reactivex._
 
 object MidonetResource {
 
-    private final val Timeout = 5 seconds
     private final val StorageAttempts = 3
 
+    final val Timeout = 5 seconds
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
 
@@ -100,6 +100,8 @@ object MidonetResource {
                     throw new ConflictHttpException("Conflicting write")
                 case e: ConcurrentModificationException =>
                     attempt += 1
+                case t: Throwable =>
+                    log.error("Unhandled exception", t)
             }
         }
         Response.status(HttpStatus.CONFLICT_409).build()

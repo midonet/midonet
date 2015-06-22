@@ -23,10 +23,13 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status.NOT_FOUND
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.models.Topology
+import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -67,6 +70,28 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
     override def create(binding: HostInterfacePort,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
+
+        val store = resContext.backend.store
+        val h = Await.result(store.get(classOf[Topology.Host], hostId),
+                             MidonetResource.Timeout)
+
+        if (h.getTunnelZoneIdsList.isEmpty) {
+            throw new BadRequestHttpException(s"Host $hostId does not belong " +
+                                              "to any tunnel zones")
+        }
+
+        import scala.collection.JavaConversions._
+        Await.result(store.getAll(classOf[Topology.Port], h.getPortIdsList),
+                     MidonetResource.Timeout) find { p =>
+            p.getInterfaceName == binding.interfaceName
+        } match {
+            case Some(conflictingPort) =>
+                throw new BadRequestHttpException(
+                    s"Interface ${binding.interfaceName} at host $hostId is" +
+                    s"already bound to port ${conflictingPort.getId}")
+            case _ =>
+        }
+
         getResource(classOf[Port], binding.portId).map(port => {
             binding.setBaseUri(resContext.uriInfo.getBaseUri)
             binding.create(hostId)
@@ -82,7 +107,7 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
         getResource(classOf[Port], id).map(port => {
             port.hostId = null
             port.interfaceName = null
-            updateResource(port)
+            updateResource(port, MidonetResource.OkNoContentResponse)
         }).getOrThrow
     }
 

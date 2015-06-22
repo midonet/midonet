@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.WebResource;
@@ -119,10 +120,11 @@ public class TestTunnelZoneHost {
                     mapping,
                     DtoTunnelZoneHost.class);
             // Verify that trying to create again fails with a 400 error.
-            dtoResource.postAndVerifyBadRequest(
+            dtoResource.postAndVerifyStatus(
                     tz.getHosts(),
                     tzhMediaType,
-                    mapping);
+                    mapping,
+                    Response.Status.CONFLICT.getStatusCode());
 
             // List mapping and verify that there is one
             tzHosts = dtoResource.getAndVerifyOk(
@@ -254,13 +256,11 @@ public class TestTunnelZoneHost {
         @Test
         public void testBadInputCreate() {
             DtoTunnelZone tz = topology.getGreTunnelZone("tz1");
-
-            DtoError error = dtoResource.postAndVerifyBadRequest(
+            dtoResource.postAndVerifyError(
                 tz.getHosts(),
                 VendorMediaType.APPLICATION_TUNNEL_ZONE_HOST_JSON,
-                tunnelZoneHost);
-            Assert.assertEquals(getMessage(HOST_ID_IS_INVALID),
-                                error.getMessage());
+                tunnelZoneHost,
+                Response.Status.NOT_FOUND);
         }
     }
 

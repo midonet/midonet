@@ -22,11 +22,17 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.UriInfo
 
+import scala.concurrent.{Future, Await}
+
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.models.Topology
+import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.TunnelZone
+import org.midonet.cluster.rest_api.models.{UriResource, TunnelZone}
+import org.midonet.cluster.rest_api.validation.MessageProperty
+import org.midonet.cluster.rest_api.validation.MessageProperty.{getMessage, UNIQUE_TUNNEL_ZONE_NAME_TYPE}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -49,8 +55,27 @@ class TunnelZoneResource @Inject()(resContext: ResourceContext)
         new TunnelZoneHostResource(id, resContext)
     }
 
+    protected override def getFilter = (tz: TunnelZone) => tz
+
+    protected override def createFilter = (tz: TunnelZone) => {
+        throwIfTunnelZoneNameUsed(tz)
+        tz.create()
+    }
+
     protected override def updateFilter = (to: TunnelZone, from: TunnelZone) => {
+        throwIfTunnelZoneNameUsed(to)
         to.update(from)
+    }
+
+    private def throwIfTunnelZoneNameUsed(tz: TunnelZone): Unit = {
+        val nameCollision = Await.result(
+            resContext.backend.store.getAll(classOf[Topology.TunnelZone]) map {
+                l => l.find( _.getName == tz.name)
+            }, MidonetResource.Timeout)
+        if (nameCollision.nonEmpty) {
+            throw new BadRequestHttpException(
+                getMessage(UNIQUE_TUNNEL_ZONE_NAME_TYPE))
+        }
     }
 
 }
