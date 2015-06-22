@@ -349,6 +349,73 @@ object DhcpValueParser {
         yield mandatory ++ value(1).trim.getBytes
     }
 
+    private
+    def encodeDomain(domain: String,
+                     domainMap: Map[String, Short]): (Array[String],
+                                                      String, Short) = {
+        var i = 0
+        do {
+            val partial: String = domain.substring(i)
+            domainMap.get(partial).foreach { pos =>
+                val unmatched = domain.substring(0, (i - 1).max(0))
+                return (unmatched.split("\\."), partial, pos)
+            }
+            i = domain.indexOf(".", i) + 1
+        } while ((i > 0) && (i <= domain.length))
+        (domain.split("\\."), "", -1)
+    }
+
+    /*
+     * Encoded domain name in bytes which format is defined in RFC 3397.
+     *
+     *   https://tools.ietf.org/search/rfc3397
+     */
+    private [midolman]
+    def parseDomainSearchList(dhcpValue: String): Option[Array[Byte]] = {
+        val domainMap = mutable.Map.empty[String, Short]
+        val domainList: Array[String] = dhcpValue.split(",").map(_.trim)
+        val encodedBytes = mutable.ArrayBuffer[Byte]()
+        domainList.foreach { domain: String =>
+            val (unmatched: Array[String], partialMatched: String, pos: Short) =
+                encodeDomain(domain, domainMap.toMap)
+            domainMap += (domain -> encodedBytes.length.toShort)
+            if (pos >= 0) {
+                for (i: Int <- 0 until unmatched.length) {
+                    val unmatchedSubset =
+                        unmatched.slice(i, unmatched.length).mkString(".")
+                    domainMap += ((unmatchedSubset + "." + partialMatched) ->
+                        encodedBytes.length.toShort)
+                    encodedBytes += unmatched(i).length.toByte
+                    encodedBytes ++= unmatched(i).getBytes
+                }
+                // $ python -c "print hex(0b1100000000000000)"
+                // 0xc000
+                encodedBytes += ((pos >> 8) | 0xc0).toByte
+                encodedBytes += pos.toByte
+                encodedBytes += 0.toByte
+            } else {
+                val domainPieces: Array[String] = unmatched
+                for (i: Int <- 0 until domainPieces.length) {
+                    val domainSubset = domain.split("\\.", i + 1)
+                    val partial = domainSubset.last
+                    val piece = domainPieces(i)
+                    // Ignore TLD.
+                    if (i < domainPieces.length - 1) {
+                        domainMap += (partial -> encodedBytes.length.toShort)
+                    }
+                    encodedBytes += piece.length.toByte
+                    encodedBytes ++= piece.getBytes
+                }
+                encodedBytes += 0.toByte
+            }
+        }
+        if (encodedBytes.isEmpty) {
+            None
+        } else {
+            Some(encodedBytes.toArray)
+        }
+    }
+
     def parseDhcpOptionValue(code: Byte, value: String): Option[Array[Byte]] = {
         CodeToOption.get(code) match {
             case Some(ipsRequiredCode)
@@ -394,6 +461,8 @@ object DhcpValueParser {
                 parseByte(value)
             case Some(c) if c == Code.CLASSLESS_ROUTES =>
                 parseClasslessRoutes(value)
+            case Some(c) if c == Code.DOMAIN_SEARCH =>
+                parseDomainSearchList(value)
             case Some(_) =>
                 Some(value.getBytes)
             case _ =>
