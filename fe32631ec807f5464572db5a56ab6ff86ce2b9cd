@@ -22,6 +22,30 @@
       "revId": "fe32631ec807f5464572db5a56ab6ff86ce2b9cd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6a5ed677",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-22T09:09:07Z",
+      "side": 1,
+      "message": "You might be right, but I basically followed the convention I have been seeing in the translators.  Perhaps Brandon and Tomohiko could weigh in on this.",
+      "parentUuid": "facab960_cac28233",
+      "range": {
+        "startLine": 154,
+        "startChar": 65,
+        "endLine": 154,
+        "endChar": 72
+      },
+      "revId": "fe32631ec807f5464572db5a56ab6ff86ce2b9cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
