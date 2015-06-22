@@ -17,8 +17,8 @@
 package org.midonet.midolman.simulation
 
 import org.junit.runner.RunWith
-import org.midonet.packets.DHCPOption
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.prop.TableDrivenPropertyChecks._
 
 import org.midonet.midolman.util.MidolmanSpec
 
@@ -569,6 +569,43 @@ class DhcpValueParserTest extends MidolmanSpec {
             Then("parse it and get the parsed result")
             parseByteFollowedByString(
                 anotherInvalidInput, parse0to4) should be (None)
+        }
+    }
+
+    feature("Domain search parser") {
+        val inputToExpected = Table(
+            ("input", "expected"),
+            ("foo.com", Array(
+                3, 'f', 'o', 'o', 3, 'c', 'o', 'm', 0).map(_.toByte)),
+            ("foo.com, bar.com", Array(
+                3, 'f', 'o', 'o', 3, 'c', 'o', 'm', 0,
+                3, 'b', 'a', 'r', 3, 'c', 'o', 'm', 0).map(_.toByte)),
+            ("foo.com, bar.foo.com", Array(
+                3, 'f', 'o', 'o', 3, 'c', 'o', 'm', 0,
+                3, 'b', 'a', 'r', 0xc0, 0, 0).map(_.toByte)),
+            ("bar.foo.com, qux.bar.foo.com, quux.bar.foo.com", Array(
+                3, 'b', 'a', 'r', 3, 'f', 'o', 'o', 3, 'c', 'o', 'm', 0,
+                3, 'q', 'u', 'x', 0xc0, 0x0, 0,
+                4, 'q', 'u', 'u', 'x', 0xc0, 0x0, 0).map(_.toByte)),
+            ("qux.bar.foo.com, quux.baz.foo.com", Array(
+                3, 'q', 'u', 'x', 3, 'b', 'a', 'r', 3, 'f', 'o', 'o',
+                3, 'c', 'o', 'm', 0,
+                4, 'q', 'u', 'u', 'x', 3, 'b', 'a', 'z', 0xc0, 0x8,
+                0).map(_.toByte)),
+            ("eng.apple.com, marketing.apple.com", Array(
+                3, 'e', 'n', 'g', 5, 'a', 'p', 'p', 'l', 'e', 3, 'c', 'o', 'm',
+                0,
+                9, 'm', 'a', 'r', 'k', 'e', 't', 'i', 'n', 'g', 0xc0, 0x4,
+                0).map(_.toByte)),
+            ("www.eng.apple.com, ftp.eng.apple.com", Array(
+                3, 'w', 'w', 'w', 3, 'e', 'n', 'g', 5, 'a', 'p', 'p', 'l', 'e',
+                3, 'c', 'o', 'm', 0,
+                3, 'f', 't', 'p', 0xc0, 0x4, 0).map(_.toByte)))
+
+        forAll (inputToExpected) { (input: String, expected: Array[Byte]) =>
+            scenario(s"Domain search string '$input'should be parsed") {
+                parseDomainSearchList(input).get should equal (expected)
+            }
         }
     }
 }
