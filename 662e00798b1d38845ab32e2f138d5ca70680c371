@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_fd2d52ff",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T11:48:23Z",
+      "side": 1,
+      "message": "You\u0027d want to check this before calling the equals method. Also, with protobuf models, you should use the has* methods. If hasRouterId() returns true, getRouterId() won\u0027t return null.\n\n  if (oldFip.hasPortId \u0026\u0026 oldFip.hastRouterId \u0026\u0026 oldFip.getRouterId !\u003d routerId)\n\nAlso, in Scala \u003d\u003d and !\u003d will check for null and invoke the equals() method when the left-hand side is an object. No need to invoke equals() explicitly.",
+      "range": {
+        "startLine": 90,
+        "startChar": 16,
+        "endLine": 90,
+        "endChar": 42
+      },
+      "revId": "662e00798b1d38845ab32e2f138d5ca70680c371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
