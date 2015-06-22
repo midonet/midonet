@@ -45,11 +45,8 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         // is bound to a host interface.
         val isUplink = isOnUplinkNetwork(nPort)
 
-        // The router ID is given as nPort's device ID. The deviceId property is
-        // a String because it's not always just a UUID (e.g. for DHCP ports
-        // it's a composite of host and network IDs. But for router interface
-        // ports it should always be a well-formed UUID.
-        val routerId = UUIDUtil.toProto(nPort.getDeviceId)
+        // The router id is given as the router interface id
+        val routerId = ri.getId
 
         // ID of the router port.
         val routerPortId = routerInterfacePortPeerId(nPort.getId)
