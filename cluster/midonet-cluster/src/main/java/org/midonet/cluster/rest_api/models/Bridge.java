@@ -41,7 +41,6 @@ public class Bridge extends UriResource {
     public String tenantId;
 
     @ZoomField(name = "name")
-    @NotNull
     public String name;
 
     @ZoomField(name = "admin_state_up")

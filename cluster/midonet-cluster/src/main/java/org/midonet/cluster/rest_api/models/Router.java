@@ -40,7 +40,6 @@ public class Router extends UriResource {
     @ZoomField(name = "tenant_id")
     public String tenantId;
 
-    @NotNull
     @ZoomField(name = "name")
     public String name;
 
