@@ -22,11 +22,18 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
+import com.google.protobuf.TextFormat
 
 import org.midonet.cluster.rest_api.models.{Host, Interface}
+import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.data.storage.SingleValueKey
+import org.midonet.cluster.models.State
+import org.midonet.cluster.rest_api.models.{HostState, Host, Interface}
+import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -40,9 +47,8 @@ class InterfaceResource @Inject()(hostId: UUID, resContext: ResourceContext)
                     APPLICATION_JSON))
     override def get(@PathParam("name") name: String,
                      @HeaderParam("Accept") accept: String): Interface = {
-        getResource(classOf[Host], hostId)
-            .map(_.hostInterfaces.asScala.find(_.name == name)
-                                         .map(setInterface))
+        getInterfaces(hostId.toString)
+            .map(_.find(_.name == name).map(setInterface))
             .getOrThrow
             .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
     }
@@ -52,8 +58,8 @@ class InterfaceResource @Inject()(hostId: UUID, resContext: ResourceContext)
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
     : JList[Interface] = {
-        getResource(classOf[Host], hostId)
-            .map(_.hostInterfaces.asScala.map(setInterface).asJava)
+        getInterfaces(hostId.toString)
+            .map(_.map(setInterface).asJava)
             .getOrThrow
     }
 
@@ -62,4 +68,17 @@ class InterfaceResource @Inject()(hostId: UUID, resContext: ResourceContext)
         interface.setBaseUri(resContext.uriInfo.getBaseUri)
         interface
     }
+
+    private def getInterfaces(hostId: String): Future[Seq[Interface]] = {
+        getResourceState(classOf[Host], hostId, MidonetBackend.HostKey).map {
+            case SingleValueKey(_, Some(value), _) =>
+                val builder = State.HostState.newBuilder()
+                TextFormat.merge(value, builder)
+                val hostState = ZoomConvert.fromProto(builder.build(),
+                                                      classOf[HostState])
+                hostState.interfaces.asScala
+            case _ => List.empty
+        }
+    }
+
 }
