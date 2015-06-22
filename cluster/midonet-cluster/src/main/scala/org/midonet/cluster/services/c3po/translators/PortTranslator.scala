@@ -23,7 +23,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
-import org.midonet.cluster.models.Commons.{Int32Range, IPAddress, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
@@ -148,7 +148,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         // be changed.
         val portId = nPort.getId
         val mPort = storage.get(classOf[Port], portId).await()
-        if (portChanged(nPort, mPort)) {
+        val nCurPort = storage.get(classOf[NeutronPort], portId).await()
+        if (portChanged(nPort, nCurPort)) {
             // TODO: Is it okay not to check the port type? I assume Neutron
             // won't tell us to do something we shouldn't.
             val bldr = mPort.toBuilder.setAdminStateUp(nPort.getAdminStateUp)
@@ -215,19 +216,19 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     // There's no binding unless both hostId and interfaceName are set.
     private def hasBinding(np: NeutronPort): Boolean =
         np.hasHostId && np.hasProfile && np.getProfile.hasInterfaceName
-    private def hasBinding(p: Port): Boolean = p.hasHostId && p.hasInterfaceName
 
     /**
      * Returns true if a port has changed in a way relevant to a port update,
      * i.e. whether the admin state or host binding has changed.
      */
-    private def portChanged(newPort: NeutronPort, curPort: Port): Boolean = {
+    private def portChanged(newPort: NeutronPort, curPort: NeutronPort): Boolean = {
         if (newPort.getAdminStateUp != curPort.getAdminStateUp ||
             hasBinding(newPort) != hasBinding(curPort)) return true
 
         hasBinding(newPort) &&
             (newPort.getHostId != curPort.getHostId ||
-             newPort.getProfile.getInterfaceName != curPort.getInterfaceName)
+             newPort.getProfile.getInterfaceName !=
+             curPort.getProfile.getInterfaceName)
     }
 
     /* Update DHCP configuration by applying the given updateFun. */
