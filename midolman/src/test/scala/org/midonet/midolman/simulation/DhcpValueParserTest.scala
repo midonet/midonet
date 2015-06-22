@@ -571,4 +571,61 @@ class DhcpValueParserTest extends MidolmanSpec {
                 anotherInvalidInput, parse0to4) should be (None)
         }
     }
+
+    feature("Domain search parser") {
+        scenario("Single domain should be parsed appropriately") {
+            Given("A domain")
+            val input = "foo.com"
+
+            Then("parse it and get the parsed result")
+            val expected: Array[Byte] = Array(
+                3, 102, 111, 111, 3, 99, 111, 109, 0).map(_.toByte)
+            parseDomainSearchList(input).get should equal (expected)
+        }
+
+        scenario("Multiple exclusive domains should be parsed appropriately") {
+            Given("Multiple exclusive domains")
+            val input = "foo.com, bar.com"
+
+            Then("parse it and get the parsed result")
+            val expected: Array[Byte] = Array(
+                3, 102, 111, 111, 3, 99, 111, 109, 0,
+                3, 98, 97, 114, 3, 99, 111, 109, 0).map(_.toByte)
+            parseDomainSearchList(input).get should equal (expected)
+        }
+
+        scenario("Multiple domains share the part of domain should be parsed") {
+            Given("Multiple domains share the part of domain")
+            val input = "foo.com, bar.foo.com"
+
+            Then("parse it and get the parsed result")
+            val expected: Array[Byte] = Array(
+                3, 102, 111, 111, 3, 99, 111, 109, 0,
+                3, 98, 97, 114, 0xc0, 0, 0).map(_.toByte)
+            parseDomainSearchList(input).get should equal (expected)
+
+            Given("Other multiple domains")
+            val anotherInput = "foo.com, bar.foo.com, quxx.bar.foo.com"
+
+            Then("parse it and get the parsed result")
+            val anotherExpected: Array[Byte] = Array(
+                3, 102, 111, 111, 3, 99, 111, 109, 0,
+                3, 98, 97, 114, 0xc0, 0, 0,
+                4, 113, 117, 120, 120, 0xc0, 0x9, 0).map(_.toByte)
+            parseDomainSearchList(anotherInput).get should equal (
+                anotherExpected)
+        }
+
+        scenario("An example in RFC 3397 should be parsed appropriately") {
+            Given("An example in RFC 3397")
+            val input = "eng.apple.com, marketing.apple.com"
+
+            Then("parse it and get the parsed result")
+            val expected: Array[Byte] = Array(
+                3, 101, 110, 103, 5, 97, 112, 112, 108, 101, 3, 99, 111, 109, 0,
+                9, 109, 97, 114, 107, 101, 116, 105, 110, 103,
+                0xc0, 0x4, 0).map(_.toByte)
+            parseDomainSearchList(input).get should equal (expected)
+        }
+    }
 }
