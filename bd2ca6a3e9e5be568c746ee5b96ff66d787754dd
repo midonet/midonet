@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_cafa8242",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-22T09:31:25Z",
+      "side": 1,
+      "message": "Sorry for my ignorance but why /28?\nI\u0027m guessing this comes from a rebase in any case...",
+      "range": {
+        "startLine": 312,
+        "startChar": 66,
+        "endLine": 312,
+        "endChar": 73
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_8accfa6b",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 12
@@ -18,6 +41,76 @@
         "startChar": 15,
         "endLine": 285,
         "endChar": 50
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6aba566f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-22T09:31:25Z",
+      "side": 1,
+      "message": "Same question.",
+      "parentUuid": "facab960_8accfa6b",
+      "range": {
+        "startLine": 281,
+        "startChar": 15,
+        "endLine": 285,
+        "endChar": 50
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_caa8c222",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-22T09:31:25Z",
+      "side": 1,
+      "message": "Can you please break this sentence into multiple? It\u0027s hard to parse as is.",
+      "range": {
+        "startLine": 353,
+        "startChar": 73,
+        "endLine": 358,
+        "endChar": 47
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_aaaffe28",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-22T09:31:25Z",
+      "side": 1,
+      "message": "notification",
+      "range": {
+        "startLine": 375,
+        "startChar": 8,
+        "endLine": 375,
+        "endChar": 19
       },
       "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
