@@ -23,8 +23,10 @@ import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Bridge
+import org.midonet.cluster.rest_api.validation.MessageProperty.{VXLAN_PORT_ID_NOT_SETTABLE, getMessage}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -66,8 +68,20 @@ class BridgeResource @Inject()(resContext: ResourceContext)
         else (r: Bridge) => r.tenantId == tenantId
     }
 
-    protected override def updateFilter = (to: Bridge, from: Bridge) => {
-        to.update(from)
+    protected override def createFilter = (to: Bridge) => {
+        if (to.getVxLanPort != null || to.getVxLanPorts != null) {
+            throw new BadRequestHttpException(
+                getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
+        }
+        super.createFilter(to)
     }
 
+    protected override def updateFilter = (to: Bridge, from: Bridge) => {
+        if ((to.getVxLanPorts != from.getVxLanPorts) ||
+            (to.getVxLanPort != from.getVxLanPort)) {
+            throw new BadRequestHttpException(
+                getMessage(VXLAN_PORT_ID_NOT_SETTABLE))
+        }
+        super.updateFilter(to, from)
+    }
 }
