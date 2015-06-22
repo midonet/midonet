@@ -72,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_aa761ed5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-22T09:34:19Z",
+      "side": 1,
+      "message": "The onError behavior for multi (which uses the PathDirectoryObservable as underlying ZK observable) was maintained for compatibility with the ownership implementation, while they are both used. It can be changed to onCompleted once it is removed,",
+      "parentUuid": "facab960_8accfa6b",
+      "range": {
+        "startLine": 281,
+        "startChar": 15,
+        "endLine": 285,
+        "endChar": 50
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_caa8c222",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 12
