@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_ea7ca6b7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-22T09:35:35Z",
+      "side": 1,
+      "message": "thx!",
+      "parentUuid": "facab960_aa761ed5",
+      "range": {
+        "startLine": 281,
+        "startChar": 15,
+        "endLine": 285,
+        "endChar": 50
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_caa8c222",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 12
