@@ -51,6 +51,7 @@ import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
 import org.midonet.cluster.rest_api.serialization.SerializationModule;
 import org.midonet.cluster.rest_api.validation.ValidationModule;
+import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomApiModule;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.conf.HostIdGenerator;
@@ -135,18 +136,21 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         ZookeeperConfig zkCfg = cfgProvider.getConfig(ZookeeperConfig.class);
         bind(ZookeeperConfig.class).toInstance(zkCfg);
 
+        UUID clusterNodeId;
         try {
-            UUID clusterNodeId = HostIdGenerator.getHostId();
-            bind(ClusterNode.Context.class).toInstance(
-                    new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
-            Config zkConf = zkConfToConfig(zkCfg);
-            ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
-                MidoNodeConfigurator.apply(zkConf).runtimeConfig(clusterNodeId)));
-            bind(ClusterConfig.class).toInstance(clusterConf);
+            clusterNodeId = HostIdGenerator.getHostId();
         } catch (Exception e) {
             log.error("Could not register cluster node host id", e);
             throw new RuntimeException(e);
         }
+
+        Config zkConf = zkConfToConfig(zkCfg);
+        ClusterConfig clusterConf = new ClusterConfig(zkConf.withFallback(
+            MidoNodeConfigurator.apply(zkConf).runtimeConfig(clusterNodeId)));
+
+        bind(ClusterConfig.class).toInstance(clusterConf);
+        bind(ClusterNode.Context.class).toInstance(
+            new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
 
         bind(ConfigProvider.class).toInstance(cfgProvider);
         install(new SerializationModule());
