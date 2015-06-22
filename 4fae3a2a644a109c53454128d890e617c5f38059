@@ -2,6 +2,40 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_c7a8bb22",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "If you add this line, you don\u0027t have to nest the rest of the function in an if block:\n\n  if (!nVip.hasPoolId) return List(Create(mVip.build()))",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e753ff36",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Here, too:\n\n  if (!network.getExternal) return List(Create(mVip.build())\n\nThis saves two levels of nesting for the bulk of the code, avoiding the arrow antipattern.",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c7919bf2",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
         "patchSetId": 2
@@ -48,6 +82,316 @@
       "writtenOn": "2015-06-22T04:23:30Z",
       "side": 1,
       "message": "pool.getLoadBalancerId -\u003e pool.getRouterId",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4a6d92cb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Load balancer and router share the same ID, so pool doesn\u0027t have a router_id field.",
+      "parentUuid": "facab960_878b13c2",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8a6a3ab1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Is this enough? Do we need to add a route, as well?",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c72d1baa",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Yes, we should probably do this, unless there\u0027s a good reason not to.\n\nThe router has a reference to its load balancer, which has a list of VIPs. On router update, we can use that to add the appropriate ARP entries and set the VIP\u0027s gateway port ID. You\u0027ll probably want to move the logic above (under if (router.hasGwPortId)) to a helper in one of the manager traits.",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_272087ab",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "You\u0027ll also want to do this when deleting a router\u0027s gateway port. Not sure if whether it needs to be done on router deletion, or the Neutron workflow ensures that a router will never be deleted while it still has VIPs associated.",
+      "range": {
+        "startLine": 96,
+        "startChar": 0,
+        "endLine": 101,
+        "endChar": 42
+      },
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_67160f57",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Should we fail the translation here? This seems like it would put things in a bad state.",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_870eb339",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 618,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "The fact that I missed this is worrying, because it means that I don\u0027t actually have a test where this distinction is important, which is a pretty big hole.\n\nI\u0027ll look into it. Anyway, thanks.",
+      "range": {
+        "startLine": 618,
+        "startChar": 31,
+        "endLine": 618,
+        "endChar": 50
+      },
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a70bb728",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 143,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Got tired of updating the numbers twice?",
+      "range": {
+        "startLine": 143,
+        "startChar": 8,
+        "endLine": 143,
+        "endChar": 10
+      },
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c7043b1a",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "I think this has a race condition due to observable caching in Zoom, and should be placed in an eventually block.",
+      "range": {
+        "startLine": 234,
+        "startChar": 0,
+        "endLine": 235,
+        "endChar": 63
+      },
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4a083228",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "It\u0027s annoying having to update these numbers, isn\u0027t it?\n\nIt would be nice if we could have a var taskIdCounter in C3POMinionTestBase that gets used and incremented in each call to insert*Task() and reset after each test. The only drawback I see is that the code wouldn\u0027t be self-documenting with respect to the task ID. But I\u0027m not sure how important that is.\n\nWhat do you think?",
+      "range": {
+        "startLine": 242,
+        "startChar": 25,
+        "endLine": 242,
+        "endChar": 27
+      },
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_aa39bed8",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 483,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Did you copy the code above from one of my tests? That looks a lot like a naming scheme I would use.\n\nWe do this a lot, don\u0027t we? Maybe we should have a helper function that does that and returns a case class containing the UUIDs for the objects it created.",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ea2f4686",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 493,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Should this be \"should contain only\"?",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4a567207",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 504,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Is this necessary? It doesn\u0027t hurt, but router gateway port creation is tested elsewhere, so this seems redundant.",
+      "range": {
+        "startLine": 495,
+        "startChar": 0,
+        "endLine": 504,
+        "endChar": 48
+      },
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8a431a41",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 516,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Bonus e.",
+      "range": {
+        "startLine": 516,
+        "startChar": 49,
+        "endLine": 516,
+        "endChar": 58
+      },
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_aa40de34",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 518,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "No need to change this, but FYI \"arpTable should not be null\" works as well, without the parentheses.",
+      "range": {
+        "startLine": 518,
+        "startChar": 8,
+        "endLine": 518,
+        "endChar": 35
+      },
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2a7cce82",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T05:49:28Z",
+      "side": 1,
+      "message": "Should this be a list? A load balancer has multiple VIPs, right? But a router has only one gateway port. If a load balancer has two VIPs and its router has a gateway port, what happens here?\n\nActually, you should probably have the test create two VIPs, to test this scenario. I suspect that it fails with an ObjectReferencedException.\n\nAlso, as a general comment, we should probably document these backreferences better, and maybe proto fields in general. If I hadn\u0027t read the code, it would not at all be obvious to me what this field is for.",
+      "range": {
+        "startLine": 252,
+        "startChar": 3,
+        "endLine": 252,
+        "endChar": 31
+      },
       "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
