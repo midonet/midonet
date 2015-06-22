@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_8accfa6b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-22T08:28:05Z",
+      "side": 1,
+      "message": "why is it an error in the multiple, but not in the single?",
+      "range": {
+        "startLine": 281,
+        "startChar": 15,
+        "endLine": 285,
+        "endChar": 50
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
