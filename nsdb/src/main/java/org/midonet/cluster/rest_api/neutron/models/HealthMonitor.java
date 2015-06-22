@@ -34,6 +34,21 @@ import org.midonet.cluster.util.UUIDUtil.Converter;
 @ZoomClass(clazz = Neutron.NeutronHealthMonitor.class)
 public class HealthMonitor extends ZoomObject {
 
+    public HealthMonitor() {}
+
+    public HealthMonitor(UUID id, String tenantId, int delay, int maxRetries,
+                         int timeout, String type, boolean adminStateUp,
+                         UUID poolId) {
+        this.id = id;
+        this.tenantId = tenantId;
+        this.delay = delay;
+        this.maxRetries = maxRetries;
+        this.timeout = timeout;
+        this.type = type;
+        this.adminStateUp = adminStateUp;
+        this.addPool(poolId);
+    }
+
     @JsonProperty("admin_state_up")
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;

@@ -36,6 +36,21 @@ import org.midonet.util.collection.ListUtil;
 @ZoomClass(clazz = Neutron.NeutronLoadBalancerPool.class)
 public class Pool extends ZoomObject {
 
+    public Pool() {}
+
+    public Pool(UUID id, String tenantId, UUID subnetId, String name,
+                String protocol, String lbMethod, boolean adminStateUp,
+                UUID routerId) {
+        this.id = id;
+        this.tenantId = tenantId;
+        this.routerId = routerId;
+        this.subnetId = subnetId;
+        this.name = name;
+        this.protocol = protocol;
+        this.lbMethod = lbMethod;
+        this.adminStateUp = adminStateUp;
+    }
+
     @JsonProperty("admin_state_up")
     @ZoomField(name = "admin_state_up")
     public boolean adminStateUp;
