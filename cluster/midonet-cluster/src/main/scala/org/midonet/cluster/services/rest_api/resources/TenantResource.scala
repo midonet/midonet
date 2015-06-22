@@ -17,21 +17,15 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
-import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.{GET, Path, Produces}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.auth.{AuthService, Tenant}
-import org.midonet.cluster.rest_api.annotation.{AllowGet, AllowList}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 
 @RequestScoped
-@AllowGet(Array(APPLICATION_TENANT_JSON,
-                APPLICATION_JSON))
-@AllowList(Array(APPLICATION_TENANT_COLLECTION_JSON,
-                 APPLICATION_JSON))
 class TenantResource @Inject()(authService: AuthService) {
 
     @GET

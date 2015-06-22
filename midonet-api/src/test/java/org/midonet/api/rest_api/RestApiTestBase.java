@@ -87,7 +87,9 @@ public abstract class RestApiTestBase extends JerseyTest {
         String actualMsg = (actual.getViolations().isEmpty()) ?
                 actual.getMessage() :
                 actual.getViolations().get(0).get("message");
-        assertEquals(expectedMsg, actualMsg);
+        if (!FuncTest.isCompatApiEnabled()) {
+            assertEquals(expectedMsg, actualMsg);
+        }
     }
 
     protected void assertErrorMatchesPropMsg(

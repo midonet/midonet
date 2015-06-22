@@ -28,10 +28,9 @@ import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.models.State;
+import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
-import org.midonet.cluster.util.UUIDUtil;
 
 @ZoomClass(clazz = State.HostState.Interface.class)
 public class Interface extends UriResource {

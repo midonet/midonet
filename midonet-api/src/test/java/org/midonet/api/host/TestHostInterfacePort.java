@@ -61,6 +61,7 @@ import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTE
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_HOST_INTERFACE_PORT_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_ROUTER_JSON_V2;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
 
 @RunWith(Enclosed.class)
 public class TestHostInterfacePort {
@@ -198,8 +199,7 @@ public class TestHostInterfacePort {
                     APPLICATION_HOST_INTERFACE_PORT_JSON,
                     mapping);
             assertErrorMatchesLiteral(error,
-                    MessageProperty.getMessage(
-                            MessageProperty.HOST_IS_NOT_IN_ANY_TUNNEL_ZONE));
+                    getMessage(HOST_IS_NOT_IN_ANY_TUNNEL_ZONE));
         }
 
         @Test
