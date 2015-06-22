@@ -36,20 +36,22 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.TunnelZone.HostConfig
-import org.midonet.cluster.data.storage.StorageWithOwnership
+import org.midonet.cluster.data.storage.{Storage, StateStorage}
 import org.midonet.cluster.data.{TunnelZone => OldTunnel, ZoomConvert}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
-import org.midonet.cluster.models.Topology.{Host => ProtoHost, TunnelZone => ProtoTunnelZone}
+import org.midonet.cluster.models.Topology.{Host => TopologyHost, TunnelZone => TopologyTunnelZone}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.MidonetBackend.AliveKey
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
-import org.midonet.midolman.topology.devices.{Host => SimHost}
+import org.midonet.midolman.topology.devices.{Host => SimulationHost}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPAddr, IPv4Addr}
+import org.midonet.util.reactivex._
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -59,8 +61,10 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
                          with TopologyBuilder {
 
     private var vtpm: TestableVTPM = _
-    private var store: StorageWithOwnership = _
+    private var store: Storage = _
+    private var stateStore: StateStorage = _
     private var vt: VirtualTopology = _
+    private val timeout = 3 seconds
 
     private class TestableVTPM extends VirtualToPhysicalMapper with MessageAccumulator
 
@@ -76,22 +80,26 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
     override def beforeTest() {
         vt = injector.getInstance(classOf[VirtualTopology])
         vtpm = VirtualToPhysicalMapper.as[TestableVTPM]
-        store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
+        store = injector.getInstance(classOf[MidonetBackend]).store
+        stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
     }
 
     private def buildAndStoreTunnelZone(hostId: UUID, hostIp: IPAddr)
-        : ProtoTunnelZone = {
+        : TopologyTunnelZone = {
 
-        val newTz = createTunnelZone(UUID.randomUUID(), ProtoTunnelZone.Type.VTEP,
-                                     Some("tunnel"), Map(hostId -> hostIp))
-        store.create(newTz)
-        newTz
+        val tunnelZone = createTunnelZone(
+            UUID.randomUUID(), TopologyTunnelZone.Type.VTEP,
+            Some("tunnel"), Map(hostId -> hostIp))
+        store.create(tunnelZone)
+        tunnelZone
     }
 
-    private def buildAndStoreHost: ProtoHost = {
-        val protoHost = createHost(UUID.randomUUID())
-        store.create(protoHost, protoHost.getId.asJava.toString)
-        protoHost
+    private def buildAndStoreHost: TopologyHost = {
+        val host = createHost(UUID.randomUUID())
+        store.create(host)
+        stateStore.addValue(classOf[TopologyHost], host.getId, AliveKey,
+                            AliveKey).await(timeout)
+        host
     }
 
     private def fromHostToIpList(hosts: List[HostToIp]): mutable.Buffer[(UUID, IPAddr)] =
@@ -99,8 +107,8 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             (hostToIp.getHostId.asJava, IPAddressUtil.toIPAddr(hostToIp.getIp))
         ).toBuffer
 
-    private def addHostToTunnel(tunnel: ProtoTunnelZone, hostId: UUID,
-                                hostIp: IPAddr): ProtoTunnelZone = {
+    private def addHostToTunnel(tunnel: TopologyTunnelZone, hostId: UUID,
+                                hostIp: IPAddr): TopologyTunnelZone = {
 
         val hosts = fromHostToIpList(tunnel.getHostsList.toList)
         hosts.add((hostId, hostIp))
@@ -110,21 +118,22 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
         updatedTunnel
     }
 
-    private def addTunnelToHost(host: ProtoHost, tzId: UUID): ProtoHost = {
+    private def addTunnelToHost(host: TopologyHost, tzId: UUID)
+    : TopologyHost = {
         val portIds = host.getPortIdsList.toSet.map(
             (id: Commons.UUID) => id.asJava)
         val updatedHost = createHost(host.getId, portIds, Set(tzId))
-        store.update(updatedHost, updatedHost.getId.asJava.toString,
-                     validator = null)
+        store.update(updatedHost)
         updatedHost
     }
 
-    private def removeHostFromTz(tunnelZone: ProtoTunnelZone, hostId: UUID) = {
+    private def removeHostFromTz(tunnelZone: TopologyTunnelZone, hostId: UUID)
+    : Unit = {
         val filteredHosts = tunnelZone.getHostsList
             .filterNot(_.getHostId == hostId.asProto)
         val hosts = fromHostToIpList(filteredHosts.toList)
-        val updatedTunnel = createTunnelZone(tunnelZone.getId, tunnelZone.getType,
-                                             Some("tunnel"), hosts.toMap)
+        val updatedTunnel = createTunnelZone(
+            tunnelZone.getId, tunnelZone.getType, Some("tunnel"), hosts.toMap)
         store.update(updatedTunnel)
     }
 
@@ -181,13 +190,14 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             expectMsg(ZoneMembers(tunnelId, OldTunnel.Type.vtep, hosts))
 
             When("We create an observer to the VT observable")
-            val observer = new TestObserver[SimHost] with AwaitableObserver[SimHost]
+            val observer = new TestObserver[SimulationHost]
+                               with AwaitableObserver[SimulationHost]
             vt.observables(tunnelId.asJava)
-                .asInstanceOf[Observable[SimHost]]
+                .asInstanceOf[Observable[SimulationHost]]
                 .subscribe(observer)
 
             And("When we update the tunnel zone")
-            store.delete(classOf[ProtoTunnelZone], tunnelId)
+            store.delete(classOf[TopologyTunnelZone], tunnelId)
 
             And("We wait for the deletion to be notified")
             observer.awaitCompletion(5 seconds)
@@ -258,7 +268,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             }
 
             Then("We receive the tunnel zone")
-            val zoneMembers = Await.result(nye.waitFor, 1.seconds)
+            val zoneMembers = Await.result(nye.waitFor, timeout)
                 .asInstanceOf[ZoneMembers]
             val hosts = Set(new HostConfig(hostId)
                                 .setIp(hostIp.asInstanceOf[IPv4Addr]))
@@ -281,7 +291,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
 
             Then("A timeout exception is raised")
             intercept[TimeoutException] {
-                Await.result(nye.waitFor, 1.seconds)
+                Await.result(nye.waitFor, timeout)
             }
         }
     }
@@ -295,7 +305,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             vtpm.self.tell(HostRequest(protoHost.getId), testActor)
 
             Then("We receive the corresponding host")
-            val simHost = ZoomConvert.fromProto(protoHost, classOf[SimHost])
+            val simHost = ZoomConvert.fromProto(protoHost, classOf[SimulationHost])
             simHost.alive = true
             expectMsg(simHost)
 
@@ -306,15 +316,14 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
 
             Then("We obtain the updated host")
             val updatedSimHost = ZoomConvert.fromProto(updatedHost,
-                                                       classOf[SimHost])
+                                                       classOf[SimulationHost])
             updatedSimHost.tunnelZones =
                 Map(protoTz.getId.asJava -> IPAddr.fromString("192.168.0.1"))
             updatedSimHost.alive = true
             expectMsg(updatedSimHost)
 
             And("When we remove the host form the tunnel zone")
-            store.update(protoHost, protoHost.getId.asJava.toString,
-                         validator = null)
+            store.update(protoHost)
 
             Then("We receive the host without any tunnel zones")
             expectMsg(simHost)
@@ -328,19 +337,19 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             vtpm.self.tell(HostRequest(protoHost.getId), testActor)
 
             Then("We receive the corresponding host")
-            val simHost = ZoomConvert.fromProto(protoHost, classOf[SimHost])
+            val simHost = ZoomConvert.fromProto(protoHost, classOf[SimulationHost])
             simHost.alive = true
             expectMsg(simHost)
 
             When("We create an observer to the VT observable")
-            val observer = new TestObserver[SimHost] with AwaitableObserver[SimHost]
+            val observer = new TestObserver[SimulationHost]
+                               with AwaitableObserver[SimulationHost]
             vt.observables(protoHost.getId.asJava)
-                .asInstanceOf[Observable[SimHost]]
+                .asInstanceOf[Observable[SimulationHost]]
                 .subscribe(observer)
 
             And("When we delete the host")
-            store.delete(classOf[ProtoHost], protoHost.getId,
-                         protoHost.getId.asJava.toString)
+            store.delete(classOf[TopologyHost], protoHost.getId)
 
             And("We wait for the deletion to be notified")
             observer.awaitCompletion(5 seconds)
@@ -352,7 +361,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
                  + " have been cleared")
             intercept[NotYetException] {
                 val hostRequest = HostRequest(protoHost.getId, update=false)
-                VirtualToPhysicalMapper.tryAsk[SimHost](hostRequest)(actorSystem)
+                VirtualToPhysicalMapper.tryAsk[SimulationHost](hostRequest)(actorSystem)
             }
         }
 
@@ -365,7 +374,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             vtpm.self.tell(hostRequest, testActor)
 
             Then("We receive the corresponding host")
-            val simHost = ZoomConvert.fromProto(protoHost, classOf[SimHost])
+            val simHost = ZoomConvert.fromProto(protoHost, classOf[SimulationHost])
             simHost.alive = true
             expectMsg(simHost)
 
@@ -381,7 +390,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             Then("tryAsk should result in a NotYetException as the VTPM DeviceCaches"
                  + "should have been cleared")
             intercept[NotYetException] {
-                VirtualToPhysicalMapper.tryAsk[SimHost](hostRequest)(actorSystem)
+                VirtualToPhysicalMapper.tryAsk[SimulationHost](hostRequest)(actorSystem)
             }
 
             And("When we add a tunnel zone to the host")
@@ -391,7 +400,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
 
             Then("The subscriber does not receive the update")
             val updatedSimHost = ZoomConvert.fromProto(updatedHost,
-                                                       classOf[SimHost])
+                                                       classOf[SimulationHost])
             intercept[AssertionError] {
                expectMsg(updatedSimHost)
             }
@@ -404,18 +413,19 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             When("We request the tunnel zone with tryAsk")
             val hostRequest = HostRequest(protoHost.getId, update=false)
             val nye = intercept[NotYetException] {
-                VirtualToPhysicalMapper.tryAsk[SimHost](hostRequest)(actorSystem)
+                VirtualToPhysicalMapper.tryAsk[SimulationHost](hostRequest)(actorSystem)
             }
 
             Then("We received the requested host")
-            val receivedHost = Await.result(nye.waitFor, 1.seconds)
-                .asInstanceOf[SimHost]
-            val expectedHost = ZoomConvert.fromProto(protoHost, classOf[SimHost])
+            val receivedHost = Await.result(nye.waitFor, timeout)
+                .asInstanceOf[SimulationHost]
+            val expectedHost = ZoomConvert.fromProto(protoHost,
+                                                     classOf[SimulationHost])
             expectedHost.alive = true
             receivedHost shouldBe expectedHost
 
             And("When we request the host again no exceptions are raised")
-            VirtualToPhysicalMapper.tryAsk[SimHost](hostRequest)(actorSystem)
+            VirtualToPhysicalMapper.tryAsk[SimulationHost](hostRequest)(actorSystem)
         }
 
         scenario("Requesting a host that does not exist") {
@@ -424,12 +434,12 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             When("When we request the host with tryAsk")
             val hostRequest = HostRequest(UUID.randomUUID(), update=false)
             val nye = intercept[NotYetException] {
-                VirtualToPhysicalMapper.tryAsk[SimHost](hostRequest)(actorSystem)
+                VirtualToPhysicalMapper.tryAsk[SimulationHost](hostRequest)(actorSystem)
             }
 
             Then("A NotFoundException is raised")
             intercept[TimeoutException] {
-                Await.result(nye.waitFor, 1.seconds)
+                Await.result(nye.waitFor, timeout)
             }
         }
     }

@@ -27,14 +27,16 @@ import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.data.storage.StateKey
 import org.midonet.cluster.models.Topology.{Host => TopologyHost}
+import org.midonet.cluster.services.MidonetBackend.AliveKey
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.midolman.topology.devices.{Host => SimulationHost, Port, TunnelZone}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /**
- * A class that implements the [[DeviceMapper]] for a [[SimulationHost]]
+ * A class that implements the [[DeviceMapper]] for a [[SimulationHost]].
  */
 final class HostMapper(hostId: UUID, vt: VirtualTopology)
     extends DeviceMapper[SimulationHost](hostId, vt) {
@@ -99,7 +101,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
 
                 currentHost = host
             case a: Boolean =>
-                log.debug("Host {} liveness changed: {}", hostId, Boolean.box(a))
+                log.debug("Host {} alive changed: {}", hostId, Boolean.box(a))
                 alive = Some(a)
             case tunnelZone: TunnelZone if tunnelZones.contains(tunnelZone.id) =>
                 log.debug("Update for tunnel zone {}", tunnelZone.id)
@@ -159,9 +161,9 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
      * This function determines if the host is alive based on the set of host
      * owners.
      */
-    private def aliveUpdated(owners: Set[String]): Boolean = {
+    private def aliveUpdated(key: StateKey): Boolean = {
         assertThread()
-        owners.nonEmpty
+        key.nonEmpty
     }
 
     // Ownership changes modify the version of the host and will thus
@@ -173,7 +175,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
             .doOnCompleted(makeAction0(hostDeleted()))
 
     private lazy val aliveObservable =
-        vt.store.ownersObservable(classOf[TopologyHost], hostId)
+        vt.stateStore.keyObservable(classOf[TopologyHost], hostId, AliveKey)
             .observeOn(vt.vtScheduler)
             .map[Boolean](makeFunc1(aliveUpdated))
             .distinctUntilChanged

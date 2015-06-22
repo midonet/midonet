@@ -30,6 +30,7 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.{Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.simulation.{Router => SimulationRouter}
@@ -38,6 +39,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{tagForDestinationIp, tagForDevice, tagForRoute}
+import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class RouterMapperTest extends MidolmanSpec with TopologyBuilder
@@ -45,7 +47,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
     import org.midonet.midolman.topology.TopologyBuilder._
 
-    private var store: StorageWithOwnership = _
+    private var store: Storage = _
+    private var stateStore: StateStorage = _
     private var vt: VirtualTopology = _
     private var threadId: Long = _
 
@@ -53,7 +56,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
+        store = injector.getInstance(classOf[MidonetBackend]).store
+        stateStore = injector.getInstance(classOf[MidonetBackend]).stateStore
         threadId = Thread.currentThread.getId
     }
 
@@ -228,13 +232,17 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val route = createRoute(srcNetwork = "1.0.0.0/24",
                                     dstNetwork = "2.0.0.0/24",
                                     nextHop = NextHop.PORT)
-            store.multi(Seq(CreateWithOwnerOp(port, UUID.randomUUID.toString),
-                            CreateOp(route),
+            store.multi(Seq(CreateOp(port), CreateOp(route),
                             UpdateOp(route.setNextHopPortId(port.getId))))
+            obs.awaitOnNext(2, timeout) shouldBe true
+
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val device = obs.getOnNextEvents.get(1)
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(2)
             device shouldBeDeviceOf router
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
                 route.setNextHopPortId(port.getId).asJava
@@ -339,19 +347,24 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val route = createRoute(srcNetwork = "1.0.0.0/24",
                                     dstNetwork = "2.0.0.0/24",
                                     nextHop = NextHop.PORT)
-            store.multi(Seq(CreateWithOwnerOp(port, ownerId),
-                            CreateOp(route),
+            store.multi(Seq(CreateOp(port), CreateOp(route),
                             UpdateOp(route.setNextHopPortId(port.getId))))
-
-            Then("The observer should receive a router update")
             obs.awaitOnNext(2, timeout) shouldBe true
 
-            When("The port becomes inactive")
-            store.deleteOwner(classOf[TopologyPort], port.getId, ownerId)
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                ownerId).await(timeout)
 
             Then("The observer should receive a router update")
             obs.awaitOnNext(3, timeout) shouldBe true
-            val device = obs.getOnNextEvents.get(2)
+
+            When("The port becomes inactive")
+            stateStore.removeValue(classOf[TopologyPort], port.getId, HostsKey,
+                                   ownerId).await(timeout)
+
+            Then("The observer should receive a router update")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(3)
             device shouldBeDeviceOf router
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
         }
@@ -427,18 +440,23 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val route = createRoute(srcNetwork = "1.0.0.0/24",
                                     dstNetwork = "2.0.0.0/24",
                                     nextHop = NextHop.PORT)
-            store.multi(Seq(CreateWithOwnerOp(port, ownerId), CreateOp(route),
+            store.multi(Seq(CreateOp(port), CreateOp(route),
                             UpdateOp(route.setNextHopPortId(port.getId))))
+            obs.awaitOnNext(2, timeout) shouldBe true
+
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                ownerId).await(timeout)
 
             Then("The observer should receive a router update")
-            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
 
             When("The port becomes up")
             store.update(port.addRouteId(route.getId).setAdminStateUp(true))
 
             Then("The observer should receive a router update")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            val device = obs.getOnNextEvents.get(2)
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(3)
             device shouldBeDeviceOf router
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
                 route.setNextHopPortId(port.getId).asJava
@@ -461,8 +479,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             When("The port becomes active")
-            store.updateOwner(classOf[TopologyPort], port.getId, ownerId,
-                              throwIfExists = true)
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                ownerId).await(timeout)
 
             Then("The observer should receive a router update")
             obs.awaitOnNext(3, timeout) shouldBe true
@@ -513,11 +531,16 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             When("Creating an exterior port")
             val port = createExteriorPort(router.getId)
-            store.multi(Seq(CreateWithOwnerOp(port, UUID.randomUUID.toString)))
+            store.create(port)
+            obs.awaitOnNext(2, timeout) shouldBe true
+
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update and no routes")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            val device1 = obs.getOnNextEvents.get(1)
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device1 = obs.getOnNextEvents.get(2)
             device1 shouldBeDeviceOf router
             device1.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
 
@@ -529,8 +552,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(route)
 
             Then("The observer should receive a router update with the route")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            val device2 = obs.getOnNextEvents.get(2)
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device2 = obs.getOnNextEvents.get(3)
             device2 shouldBeDeviceOf router
             device2.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only
                 route.setNextHopPortId(port.getId).asJava
@@ -545,12 +568,16 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val route1 = createRoute(srcNetwork = "1.0.0.0/24",
                                      dstNetwork = "2.0.0.0/24",
                                      nextHop = NextHop.PORT)
-            store.multi(Seq(CreateWithOwnerOp(port, UUID.randomUUID.toString),
-                            CreateOp(route1),
+            store.multi(Seq(CreateOp(port), CreateOp(route1),
                             UpdateOp(route1.setNextHopPortId(port.getId))))
+            obs.awaitOnNext(2, timeout) shouldBe true
+
+            And("The port becomes active")
+            stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
+                                UUID.randomUUID.toString).await(timeout)
 
             Then("The observer should receive a router update")
-            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
 
             When("The route is updated")
             val route2 = route1.setDstNetwork("3.0.0.0/24")
@@ -558,8 +585,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(route2)
 
             Then("The observer should receive a router update with new route")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            val device = obs.getOnNextEvents.get(2)
+            obs.awaitOnNext(4, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(3)
             device shouldBeDeviceOf router
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
             device.rTable.lookup(flowOf("1.0.0.0", "3.0.0.0")) should contain only

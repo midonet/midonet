@@ -53,17 +53,17 @@ object NodeObservable {
      * The argument specifies whether the observable should
      * terminate with a [[NoNodeException]] if the node does not exist.
      *
-     * When `completeOnDelete` is `false`, the observable completes when the
+     * When `completeOnDelete` is `true`, the observable completes when the
      * node is deleted. If the node does not exist, then the observable emits a
      * [[NoNodeException]] error.
      *
-     * When set to `true`, the observable will install an exists watcher on the
+     * When set to `false`, the observable will install an exists watcher on the
      * underlying node such that it triggers a notification when the node is
      * created. If the node does not exist, the observable will emit a `null`
      * element.
      */
     def create(curator: CuratorFramework, path: String,
-               completeOnDelete: Boolean = false): NodeObservable = {
+               completeOnDelete: Boolean = true): NodeObservable = {
         new NodeObservable(new OnSubscribeToNode(curator, path,
                                                  completeOnDelete))
     }
@@ -195,10 +195,6 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
             subject.onNext(childData)
         } else if (event.getResultCode == Code.NONODE.intValue) {
             if (completeOnDelete) {
-                currentData.set(none)
-                subject.onNext(none)
-                monitor()
-            } else {
                 if (currentData.get eq null) {
                     log.debug("Node does not exist")
                     close(new NoNodeException(path))
@@ -206,6 +202,10 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
                     log.debug("Node deleted: closing the observable")
                     close(null)
                 }
+            } else {
+                currentData.set(none)
+                subject.onNext(none)
+                monitor()
             }
         } else if (event.getResultCode == Code.CONNECTIONLOSS.intValue) {
             log.debug("Connection lost")
