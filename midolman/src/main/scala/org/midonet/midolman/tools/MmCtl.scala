@@ -21,6 +21,7 @@ import java.util.UUID
 import com.google.inject.{Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
 import org.apache.commons.cli._
+import org.apache.curator.framework.CuratorFramework
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Topology
@@ -132,14 +133,20 @@ class MmCtl(injector: Injector) {
     }
 
     private def getPortBinder(injector: Injector): PortBinder = {
-        val dataClient = injector.getInstance(classOf[DataClient])
-        val backend = injector.getInstance(classOf[MidonetBackend])
         val config = injector.getInstance(classOf[MidonetBackendConfig])
 
-        if (config.useNewStack)
+        if (config.useNewStack) {
+            val curator = injector.getInstance(classOf[CuratorFramework])
+            curator.start()
+
+            val backend = injector.getInstance(classOf[MidonetBackend])
+            backend.setupBindings()
+
             new ZoomPortBinder(backend.store)
-        else
+        } else {
+            val dataClient = injector.getInstance(classOf[DataClient])
             new DataClientPortBinder(dataClient)
+        }
     }
 
     def bindPort(portId: UUID, deviceName: String): MmCtlRetCode = {
