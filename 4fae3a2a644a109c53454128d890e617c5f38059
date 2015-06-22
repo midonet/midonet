@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_c7919bf2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-22T04:23:30Z",
+      "side": 1,
+      "message": "VIP could not on an internal network too, though might not be as common.  ARP entry should be added on a non-external network also as long as there is a router associated (which is always the case in our integration).  To get the router port, what you need to do is to find the router interface port whose IP address matches the \u0027gateway_ip\u0027 of the subnet.  Below you take care of the north -\u003e south traffic on the external network, but you also need to handle south -\u003e north traffic on the tenant networks.\n\nBut we can address that in a separate patch if you like.",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_878b13c2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-22T04:23:30Z",
+      "side": 1,
+      "message": "pool.getLoadBalancerId -\u003e pool.getRouterId",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
