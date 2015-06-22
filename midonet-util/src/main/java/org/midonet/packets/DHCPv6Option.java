@@ -81,6 +81,12 @@ public class DHCPv6Option implements DHCPv6OptPacket {
     public IPacket getPayload() {
         return payload;
     }
+
+    @Override
+    public int getPayloadLength() {
+        return 0;
+    }
+
     public IPacket setPayload(IPacket payload) {
         this.payload = payload;
         return this;

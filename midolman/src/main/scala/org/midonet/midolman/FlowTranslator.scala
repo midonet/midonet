@@ -94,6 +94,7 @@ trait FlowTranslator {
                 ipv4.getPayload match {
                     case icmp: ICMP =>
                         icmp.setData(data)
+                        icmp.clearChecksum()
                     case _ =>
                 }
             case _ =>

@@ -30,6 +30,8 @@ public interface IPacket {
      */
     public IPacket getPayload();
 
+    public int getPayloadLength();
+
     /**
      *
      * @param packet

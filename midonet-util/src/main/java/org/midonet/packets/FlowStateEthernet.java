@@ -108,10 +108,15 @@ public final class FlowStateEthernet extends Ethernet {
     }
 
     @Override
+    public int getPayloadLength() {
+        return data.limit();
+    }
+
+    @Override
     public int serialize(ByteBuffer bb) {
         int start = bb.position();
         bb.put(cachedFlowStateEthernetHeader);
-        int elasticDataLength = data.limit();
+        int elasticDataLength = getPayloadLength();
         putElasticData(bb, start, elasticDataLength);
         return FLOW_STATE_ETHERNET_OVERHEAD + elasticDataLength;
     }
@@ -119,6 +124,7 @@ public final class FlowStateEthernet extends Ethernet {
     @Override
     public byte[] serialize() {
         ((IPv4)payload).setChecksum((short)0);
+        ((IPv4)payload).setTotalLength(0);
         return super.serialize();
     }
 
