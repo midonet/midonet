@@ -612,6 +612,44 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
 }
 
 /**
+ * Tests the Neutron port specifi to the port binding fields
+ */
+@RunWith(classOf[JUnitRunner])
+class PortBindingTranslationTest extends PortTranslatorTest {
+
+    protected val hostId = randomUuidProto
+    protected val hostName = "hostname"
+    protected val interfaceName = "tap0"
+
+    protected val vifPortWithBinding = nPortFromTxt(s"""
+        $portBaseUp
+        host_id: '$hostName'
+        profile {
+            interface_name: '$interfaceName'
+        }
+        """)
+
+    protected val mPortWithBinding = mPortFromTxt(s"""
+        $midoPortBaseUp
+        host_id { $hostId }
+        interface_name: '$interfaceName'
+        """)
+
+    before {
+        initMockStorage()
+        translator = new PortTranslator(storage, pathBldr)
+
+        bind(portId, mPortWithBinding)
+        bind(portId, vifPortWithBinding)
+    }
+
+    "VIF port UPDATE with no change " should "NOT update binding" in {
+        val midoOps = translator.translate(neutron.Update(vifPortWithBinding))
+        midoOps shouldBe empty
+    }
+}
+
+/**
  * Tests the Neutron VIF Port model Update / Delete.
  */
 @RunWith(classOf[JUnitRunner])
