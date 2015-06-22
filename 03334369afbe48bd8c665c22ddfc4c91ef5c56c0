@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_87ddd3e2",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_e7edbfb8",
+      "range": {
+        "startLine": 42,
+        "startChar": 4,
+        "endLine": 42,
+        "endChar": 6
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_072e23fb",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 5
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-22T02:41:40Z",
       "side": 1,
       "message": "I think it would make this test a bit more readable if you explicitly specify \"direction \u003d RuleDirection.INGRESS\" even though arguably that\u0027s a default value.",
+      "range": {
+        "startLine": 46,
+        "startChar": 24,
+        "endLine": 46,
+        "endChar": 51
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a7dad7e5",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_072e23fb",
       "range": {
         "startLine": 46,
         "startChar": 24,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_e7e05f98",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_4734ab49",
+      "range": {
+        "startLine": 56,
+        "startChar": 23,
+        "endLine": 56,
+        "endChar": 36
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_27332764",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 5
@@ -82,6 +154,24 @@
       "writtenOn": "2015-06-22T02:41:40Z",
       "side": 1,
       "message": "You should also check that the rules do exist.",
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0798e31a",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_27332764",
       "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -128,6 +218,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_a78817c6",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "used insertDeleteTask",
+      "parentUuid": "facab960_874153ab",
+      "range": {
+        "startLine": 85,
+        "startChar": 24,
+        "endLine": 85,
+        "endChar": 37
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_a73e5726",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 5
@@ -145,6 +259,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_27c407f4",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_a73e5726",
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c747dbba",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 5
@@ -156,6 +288,30 @@
       "writtenOn": "2015-06-22T02:41:40Z",
       "side": 1,
       "message": "I don\u0027t think it\u0027s really needed.",
+      "range": {
+        "startLine": 99,
+        "startChar": 12,
+        "endLine": 100,
+        "endChar": 58
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_07bf0362",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_c747dbba",
       "range": {
         "startLine": 99,
         "startChar": 12,
@@ -191,6 +347,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_47b58b7c",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_0715439b",
+      "range": {
+        "startLine": 111,
+        "startChar": 12,
+        "endLine": 112,
+        "endChar": 60
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_271a47cc",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 5
@@ -202,6 +382,30 @@
       "writtenOn": "2015-06-22T02:41:40Z",
       "side": 1,
       "message": "Should be aligned with rule2Id.",
+      "range": {
+        "startLine": 117,
+        "startChar": 12,
+        "endLine": 117,
+        "endChar": 31
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_67ba8f6f",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_271a47cc",
       "range": {
         "startLine": 117,
         "startChar": 12,
@@ -237,6 +441,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_87b23392",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 121,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_e744dfb8",
+      "range": {
+        "startLine": 120,
+        "startChar": 12,
+        "endLine": 121,
+        "endChar": 47
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_470bcb7c",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 5
@@ -248,6 +476,30 @@
       "writtenOn": "2015-06-22T02:41:40Z",
       "side": 1,
       "message": "Ditto.",
+      "range": {
+        "startLine": 123,
+        "startChar": 12,
+        "endLine": 123,
+        "endChar": 48
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a7af3729",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_470bcb7c",
       "range": {
         "startLine": 123,
         "startChar": 12,
@@ -283,6 +535,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_476cab08",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_6710cfa8",
+      "range": {
+        "startLine": 147,
+        "startChar": 12,
+        "endLine": 148,
+        "endChar": 36
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_c71efbba",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 5
@@ -294,6 +570,30 @@
       "writtenOn": "2015-06-22T02:41:40Z",
       "side": 1,
       "message": "insertUpdateTask.",
+      "range": {
+        "startLine": 154,
+        "startChar": 24,
+        "endLine": 154,
+        "endChar": 37
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0766232a",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_c71efbba",
       "range": {
         "startLine": 154,
         "startChar": 24,
@@ -329,6 +629,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_276b27f3",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_a725770a",
+      "range": {
+        "startLine": 156,
+        "startChar": 8,
+        "endLine": 156,
+        "endChar": 21
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4782ebc8",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 5
@@ -352,6 +676,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_6771afdf",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_4782ebc8",
+      "range": {
+        "startLine": 161,
+        "startChar": 12,
+        "endLine": 161,
+        "endChar": 53
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_6787efd7",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
         "patchSetId": 5
@@ -363,6 +711,30 @@
       "writtenOn": "2015-06-22T02:41:40Z",
       "side": 1,
       "message": "Unnecessary.",
+      "range": {
+        "startLine": 165,
+        "startChar": 12,
+        "endLine": 165,
+        "endChar": 55
+      },
+      "revId": "03334369afbe48bd8c665c22ddfc4c91ef5c56c0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_877953ca",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-06-22T04:27:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_6787efd7",
       "range": {
         "startLine": 165,
         "startChar": 12,
