@@ -42,7 +42,7 @@ final class ManagedFlow(override val pool: ObjectPool[ManagedFlow])
     def reset(flowMatch: FlowMatch, flowTags: Collection[FlowTag],
               flowRemovedCallbacks: ArrayList[Callback0], sequence: Long,
               expiration: Expiration, now: Long): Unit = {
-        this.flowMatch.reset(flowMatch)
+        this.flowMatch.resetWithoutUserspaceFields(flowMatch)
         expirationType = expiration.typeId
         absoluteExpirationNanos = now + expiration.value
         tags.addAll(flowTags)
