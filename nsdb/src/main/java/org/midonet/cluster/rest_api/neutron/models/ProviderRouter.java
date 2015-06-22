@@ -28,8 +28,6 @@ public class ProviderRouter {
             "169.254.255.0", 30);
     public static final IPv4Addr LL_GW_IP_1 = IPv4Addr.fromString(
             "169.254.255.1");
-    public static final IPv4Addr LL_GW_IP_2 = IPv4Addr.fromString(
-            "169.254.255.2");
 
     public ProviderRouter() {}
 
