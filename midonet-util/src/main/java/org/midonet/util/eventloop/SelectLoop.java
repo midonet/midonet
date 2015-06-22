@@ -46,10 +46,13 @@ public interface SelectLoop {
      * @param ch  the channel
      * @param ops interest ops
      * @param arg argument that will be returned with the SelectListener
+     * @param priority priority which which the ops for the channel will
+     *                 be processed if they are selected
      * @return SelectionKey
      * @throws ClosedChannelException if channel was already closed
      */
-    public void register(SelectableChannel ch, int ops, SelectListener arg)
+    public void register(SelectableChannel ch, int ops,
+                         SelectListener arg, Priority priority)
         throws ClosedChannelException;
 
     /**
@@ -71,9 +74,13 @@ public interface SelectLoop {
      * @param ch    the channel
      * @param ops   interest ops
      * @param arg   argument that will be returned with the SelectListener
+     * @param priority priority which which the ops for the channel will
+     *                 be processed if they are selected
      */
-    public void registerForInputQueue(SelectorInputQueue<?> queue, SelectableChannel ch,
-                                      int ops, SelectListener arg);
+    public void registerForInputQueue(SelectorInputQueue<?> queue,
+                                      SelectableChannel ch,
+                                      int ops, SelectListener arg,
+                                      Priority priority);
 
     public void unregisterForInputQueue(SelectorInputQueue<?> queue);
 
@@ -94,4 +101,13 @@ public interface SelectLoop {
      * Shuts down this select loop, may return before it has fully shutdown
      */
     public void shutdown();
+
+    /**
+     * Order in which selectable channels will have their events processed if
+     * they are selected. The order is defined by the order in which the enum
+     * constants are declared.
+     */
+    public static enum Priority {
+        HIGH, NORMAL
+    }
 }
