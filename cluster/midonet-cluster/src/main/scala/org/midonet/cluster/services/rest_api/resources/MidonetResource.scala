@@ -165,6 +165,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
             throw new BadRequestHttpException(violations)
         }
 
+        t.setBaseUri(uriInfo.getBaseUri)
+
         createFilter(t)
         createResource(t)
     }
@@ -238,7 +240,6 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
     protected def createResource[U >: Null <: UriResource](resource: U)
     : Response = {
-        resource.setBaseUri(uriInfo.getBaseUri)
         val message = toProto(resource)
         log.debug("CREATE: {}\n{}", message.getClass, message)
         tryWrite {

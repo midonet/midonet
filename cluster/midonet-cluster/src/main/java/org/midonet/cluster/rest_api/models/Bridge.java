@@ -29,6 +29,7 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.version.Since;
+import org.midonet.util.version.Until;
 
 @ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
@@ -96,12 +97,15 @@ public class Bridge extends UriResource {
 
     @Since("3")
     public List<URI> getVxLanPorts() {
-        return absoluteUris(ResourceUris.VXLAN_PORTS, vxLanPortIds);
+        return (vxLanPortId == null)
+               ? null :  absoluteUris(ResourceUris.VXLAN_PORTS, vxLanPortIds);
     }
 
     @Since("2")
+    @Until("3")
     public URI getVxLanPort() {
-        return absoluteUri(ResourceUris.PORTS, vxLanPortId);
+        return (vxLanPortId == null)
+               ? null : absoluteUri(ResourceUris.PORTS, vxLanPortId);
     }
 
     public URI getMacTable() {
