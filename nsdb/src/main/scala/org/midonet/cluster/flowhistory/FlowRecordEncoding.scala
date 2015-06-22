@@ -15,8 +15,8 @@
  */
 package org.midonet.cluster.flowhistory
 
-import java.util.{ArrayList, Arrays, Collections, HashSet}
-import java.util.{List, Objects, Random, Set, UUID}
+import java.util.{ArrayList, Arrays, Collections}
+import java.util.{List, Objects, Random, UUID}
 
 object RuleResult extends Enumeration {
     type RuleResult = Value
@@ -129,7 +129,7 @@ case class FlowRecord(host: UUID, inPort: UUID,
                       rules: List[TraversedRule],
                       simResult: SimulationResult.SimulationResult,
                       outPorts: List[UUID],
-                      actions: Set[Actions.FlowAction]) {
+                      actions: List[Actions.FlowAction]) {
 }
 
 
@@ -175,7 +175,7 @@ object FlowRecord {
                         vlans)
     }
 
-    private def randomActions(r: Random): Set[FlowAction] = {
+    private def randomActions(r: Random): List[FlowAction] = {
         val ipBytes = new Array[Byte](4)
         val macBytes = new Array[Byte](6)
         r.nextBytes(ipBytes)
@@ -204,7 +204,7 @@ object FlowRecord {
             VLan(r.nextInt().toShort))
         Collections.shuffle(randActions)
         val count = r.nextInt(randActions.size)
-        val actions = new HashSet[FlowAction]
+        val actions = new ArrayList[FlowAction]
         for (i <- 0 until count) {
             actions.add(randActions.get(i))
         }

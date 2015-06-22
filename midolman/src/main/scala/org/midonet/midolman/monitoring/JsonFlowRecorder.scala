@@ -65,8 +65,8 @@ class JsonFlowRecorder(hostId: UUID, config: FlowHistoryConfig)
                         fmatch.getVlanIds)
     }
 
-    private def buildActions(actions: List[FlowAction]): Set[Actions.FlowAction] = {
-        val recActions = new HashSet[Actions.FlowAction]
+    private def buildActions(actions: List[FlowAction]): List[Actions.FlowAction] = {
+        val recActions = new ArrayList[Actions.FlowAction]
 
         def setKeyAction(action: FlowActionSetKey): Unit = {
             action.getFlowKey match {

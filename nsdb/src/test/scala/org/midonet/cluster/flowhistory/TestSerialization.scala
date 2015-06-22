@@ -32,6 +32,8 @@ class TestSerialization extends FeatureSpec with Matchers {
                 val serializer = new JsonSerialization
                 val buf = serializer.flowRecordToBuffer(flowRecord)
 
+                println(new String(buf))
+
                 val flowRecord2 = serializer.bufferToFlowRecord(buf)
 
                 flowRecord2 should be (flowRecord)
