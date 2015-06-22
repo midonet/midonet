@@ -476,8 +476,9 @@ class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
                     try {
                         var status: String = "bgpd daemon is not ready"
                         if (bgpd.isAlive) {
-                            status = bgpd.vty.showGeneric("nei").
+                            status = bgpd.vty.showGeneric("show ip bgp nei").
                                 filterNot(_.startsWith("bgpd#")).
+                                filterNot(_.startsWith("bgpd>")).
                                 filterNot(_.startsWith("show ip bgp nei")).
                                 foldRight("")((a, b) => s"$a\n$b")
                         }
