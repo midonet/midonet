@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_aa245ec5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-22T09:50:52Z",
+      "side": 1,
+      "message": "Ref. agent team. Flow tagging for destination IP addresses uses a /28 mask. See TagManagerImpl and FlowTagger.tagForDestinationIp.",
+      "parentUuid": "facab960_cafa8242",
+      "range": {
+        "startLine": 312,
+        "startChar": 66,
+        "endLine": 312,
+        "endChar": 73
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_8accfa6b",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/InMemoryStorage.scala",
         "patchSetId": 12
@@ -143,6 +167,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_ea2ae68e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-22T09:50:52Z",
+      "side": 1,
+      "message": "This is pending to do as well.",
+      "parentUuid": "facab960_caa8c222",
+      "range": {
+        "startLine": 353,
+        "startChar": 73,
+        "endLine": 358,
+        "endChar": 47
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_aaaffe28",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 12
@@ -154,6 +202,30 @@
       "writtenOn": "2015-06-22T09:31:25Z",
       "side": 1,
       "message": "notification",
+      "range": {
+        "startLine": 375,
+        "startChar": 8,
+        "endLine": 375,
+        "endChar": 19
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ca2d22aa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 375,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-22T09:50:52Z",
+      "side": 1,
+      "message": "Will address.",
+      "parentUuid": "facab960_aaaffe28",
       "range": {
         "startLine": 375,
         "startChar": 8,
