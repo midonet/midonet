@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_5da9dedd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-22T10:47:57Z",
+      "side": 1,
+      "message": "I don\u0027t think it\u0027s necessary to describe the function\u0027s signature in the comment. Instead of saying it takes a function that takes a BackgroundCallback as an argument and does X, just say \"f does X.\"",
+      "parentUuid": "facab960_ea2ae68e",
+      "range": {
+        "startLine": 353,
+        "startChar": 73,
+        "endLine": 358,
+        "endChar": 47
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_aaaffe28",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 12
