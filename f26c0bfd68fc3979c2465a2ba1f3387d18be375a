@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_0a2e2afb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-22T09:12:09Z",
+      "side": 1,
+      "message": "If the error is caused by having too many bridges, don\u0027t we risk falling into an endless error loop here?",
+      "range": {
+        "startLine": 117,
+        "startChar": 12,
+        "endLine": 117,
+        "endChar": 40
+      },
+      "revId": "f26c0bfd68fc3979c2465a2ba1f3387d18be375a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0a638a42",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-22T09:12:09Z",
+      "side": 1,
+      "message": "isn\u0027t there a potential race condition between this \u0027shutdown\u0027 here and the \u0027onError\u0027 in bridgesWatcher which tries to submit a new monitorReset?",
+      "range": {
+        "startLine": 140,
+        "startChar": 8,
+        "endLine": 140,
+        "endChar": 16
+      },
+      "revId": "f26c0bfd68fc3979c2465a2ba1f3387d18be375a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_aa3e1e26",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 285,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-22T09:12:09Z",
+      "side": 1,
+      "message": "this is also checked in becomePassive... is it necessary here?",
+      "range": {
+        "startLine": 283,
+        "startChar": 8,
+        "endLine": 285,
+        "endChar": 9
+      },
+      "revId": "f26c0bfd68fc3979c2465a2ba1f3387d18be375a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ca4c42cb",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VxlanGatewayServiceTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-22T09:12:09Z",
+      "side": 1,
+      "message": "unused?\n(and if used: scala.concurrent.duration.Duration?)",
+      "range": {
+        "startLine": 19,
+        "startChar": 7,
+        "endLine": 19,
+        "endChar": 25
+      },
+      "revId": "f26c0bfd68fc3979c2465a2ba1f3387d18be375a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
