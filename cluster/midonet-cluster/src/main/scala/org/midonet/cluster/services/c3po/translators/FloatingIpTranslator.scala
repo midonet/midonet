@@ -74,7 +74,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
             List()
         } else if (oldFip.hasPortId && !fip.hasPortId) {
             // FIP is un-associated from the port.
-            cleanUpGatewayRoutesAndNatRules(fip)
+            cleanUpGatewayRoutesAndNatRules(oldFip)
         } else {
             // FIP is newly associated or moved to a new router.
             val midoOps = new MidoOpListBuffer
@@ -86,7 +86,8 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
                         "No gateway port was found to configure Floating IP.")
             }
 
-            if (oldFip.hasPortId && !oldFip.getRouterId.equals(routerId))
+            if (oldFip.hasPortId && !oldFip.getRouterId.equals(routerId) &&
+                oldFip.getRouterId != null)
                 // Delete old NAT rules as FIP's been moved to a new router.
                 midoOps ++= cleanUpNatRules(oldFip)
             else if (!oldFip.hasPortId) // FIP is newly associated.
@@ -107,6 +108,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
 
     /* Generate Create Ops for SNAT and DNAT for the floating IP address. */
     private def generateNatRuleCreateOps(fip: FloatingIp, gwPortId: UUID) = {
+
         val iChainId = inChainId(fip.getRouterId)
         val oChainId = outChainId(fip.getRouterId)
         val snatRule = Rule.newBuilder
