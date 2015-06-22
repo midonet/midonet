@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_2ae5aedc",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/simulation/DhcpValueParserTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-22T08:30:19Z",
+      "side": 1,
+      "message": "feels like this test could just be a data map of expected inputs to expected outputs, since all cases contain the exact same code.",
+      "revId": "9e0d207595314ad22c883bf3231be39d888d7d6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4ae672e9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/simulation/DhcpValueParserTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 582,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-22T08:30:19Z",
+      "side": 1,
+      "message": "anyway to make this data readable? It\u0027s impossible to see that the test is correct as it is.",
+      "revId": "9e0d207595314ad22c883bf3231be39d888d7d6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
