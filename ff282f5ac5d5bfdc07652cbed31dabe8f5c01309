@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_ea8bc665",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-22T06:59:07Z",
+      "side": 1,
+      "message": "An external white space.",
+      "range": {
+        "startLine": 41,
+        "startChar": 34,
+        "endLine": 41,
+        "endChar": 35
+      },
+      "revId": "ff282f5ac5d5bfdc07652cbed31dabe8f5c01309",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0aec6a29",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-22T06:59:07Z",
+      "side": 1,
+      "message": "Can also use \"exists\" instead.",
+      "range": {
+        "startLine": 67,
+        "startChar": 33,
+        "endLine": 67,
+        "endChar": 36
+      },
+      "revId": "ff282f5ac5d5bfdc07652cbed31dabe8f5c01309",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6af7b6f5",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-22T06:59:07Z",
+      "side": 1,
+      "message": "These are already tested above, so you can skip it here.",
+      "range": {
+        "startLine": 92,
+        "startChar": 8,
+        "endLine": 102,
+        "endChar": 9
+      },
+      "revId": "ff282f5ac5d5bfdc07652cbed31dabe8f5c01309",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4af2f206",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 111,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-22T06:59:07Z",
+      "side": 1,
+      "message": "A white space before \"The\"",
+      "range": {
+        "startLine": 111,
+        "startChar": 14,
+        "endLine": 111,
+        "endChar": 17
+      },
+      "revId": "ff282f5ac5d5bfdc07652cbed31dabe8f5c01309",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8adf9a68",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupIT.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 112,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-22T06:59:07Z",
+      "side": 1,
+      "message": "storage.exists(classOf[Rule], existRuleId) shouldBe false",
+      "range": {
+        "startLine": 112,
+        "startChar": 12,
+        "endLine": 112,
+        "endChar": 54
+      },
+      "revId": "ff282f5ac5d5bfdc07652cbed31dabe8f5c01309",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
