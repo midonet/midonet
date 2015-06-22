@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_073463fa",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 63,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-22T04:35:06Z",
+      "side": 1,
+      "message": "Actually, thinking about this more, since we don\u0027t need to support the case where VIP and the client belong in the same subnet currently, we don\u0027t need to put explicit ARP entries in the tenant network for LB to work.",
+      "parentUuid": "facab960_c7919bf2",
+      "revId": "4fae3a2a644a109c53454128d890e617c5f38059",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_878b13c2",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/VipTranslator.scala",
         "patchSetId": 2
