@@ -46,6 +46,53 @@
       "revId": "fe32631ec807f5464572db5a56ab6ff86ce2b9cd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c01ee1ba",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-22T15:39:45Z",
+      "side": 1,
+      "message": "It does have 1-second timeout, which is defined with FutureOps here:\n\nhttps://github.com/midonet/midonet/blob/master/midonet-util/src/main/scala/org/midonet/util/concurrent/FutureOps.scala#L72",
+      "parentUuid": "facab960_6a5ed677",
+      "range": {
+        "startLine": 154,
+        "startChar": 65,
+        "endLine": 154,
+        "endChar": 72
+      },
+      "revId": "fe32631ec807f5464572db5a56ab6ff86ce2b9cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a06c7d36",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-22T15:39:45Z",
+      "side": 1,
+      "message": "Is this change really necessary or you made this just to make things more obvious? Port\u0027s interfaceName should contain the correct current interface name.",
+      "range": {
+        "startLine": 227,
+        "startChar": 37,
+        "endLine": 227,
+        "endChar": 48
+      },
+      "revId": "fe32631ec807f5464572db5a56ab6ff86ce2b9cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
