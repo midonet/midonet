@@ -20,14 +20,14 @@ import java.util.{List, Objects, Random, Set, UUID}
 
 object RuleResult extends Enumeration {
     type RuleResult = Value
-    val ACCEPT, CONTINUE, DROP, JUMP, REJECT, RETURN = Value
+    val ACCEPT, CONTINUE, DROP, JUMP, REJECT, RETURN, UNKNOWN = Value
 }
 
 object SimulationResult extends Enumeration {
     type SimulationResult = Value
     val NOOP, DROP, TEMP_DROP, SEND_PACKET, ADD_VIRTUAL_WILDCARD_FLOW,
         STATE_MESSAGE, USERSPACE_FLOW, FLOW_CREATED, DUPE_FLOW,
-        GENERATED_PACKET = Value
+        GENERATED_PACKET, UNKNOWN = Value
 }
 
 object Actions {

@@ -143,6 +143,7 @@ class JsonFlowRecorder(hostId: UUID, config: FlowHistoryConfig)
                 case MMRuleResult.Action.JUMP => RuleResult.JUMP
                 case MMRuleResult.Action.REJECT => RuleResult.REJECT
                 case MMRuleResult.Action.RETURN => RuleResult.RETURN
+                case _ => RuleResult.UNKNOWN
             }
         while (i < pktContext.traversedRules.size) {
             rules.add(TraversedRule(
@@ -167,6 +168,8 @@ class JsonFlowRecorder(hostId: UUID, config: FlowHistoryConfig)
             case PacketWorkflow.DuplicatedFlow => SimulationResult.DUPE_FLOW
             case PacketWorkflow.GeneratedPacket =>
                 SimulationResult.GENERATED_PACKET
+            case _ =>
+                SimulationResult.UNKNOWN
         }
     }
 
