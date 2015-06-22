@@ -17,7 +17,7 @@ package org.midonet.cluster.flowhistory
 
 import com.google.common.base.Joiner
 import com.google.common.io.BaseEncoding
-import java.util.{HashSet, List => JList, Map => JMap, Set, UUID}
+import java.util.{ArrayList, List => JList, Map => JMap, UUID}
 import org.codehaus.jackson._
 import org.codehaus.jackson.map._
 import org.codehaus.jackson.map.module.SimpleModule
@@ -41,11 +41,11 @@ class JsonSerialization {
 
     def bufferToFlowRecord(buffer: Array[Byte]): FlowRecord = {
         implicit val map = mapper.readValue(buffer,
-                                            classOf[JMap[String,String]])
+                                            classOf[JMap[String,Object]])
         mapToFlowRecord
     }
 
-    private def mapToFlowRecord()(implicit map: JMap[String, String])
+    private def mapToFlowRecord()(implicit map: JMap[String, Object])
             : FlowRecord = {
         FlowRecord(readUUID("hostId"),
                    readUUID("inPort"),
@@ -63,12 +63,11 @@ class JsonSerialization {
         jgen.writeStringField(key, String.valueOf(value))
     }
 
-    def readNumber(key: String)(implicit map: JMap[String, String])
+    def readNumber(key: String)(implicit map: JMap[String, Object])
             : Long = {
-        if (map.containsKey(key)) {
-            java.lang.Long.parseLong(map.get(key))
-        } else {
-            0L
+        map.get(key) match {
+            case s: String => java.lang.Long.parseLong(s)
+            case _ => 0L
         }
     }
 
@@ -82,12 +81,11 @@ class JsonSerialization {
         }
     }
 
-    def readBytes(key: String)(implicit map: JMap[String, String])
+    def readBytes(key: String)(implicit map: JMap[String, Object])
             : Array[Byte] = {
-        if (map.containsKey(key)) {
-            BaseEncoding.base16.decode(map.get(key))
-        } else {
-            null
+        map.get(key) match {
+            case s: String => BaseEncoding.base16.decode(s)
+            case _ => null
         }
     }
 
@@ -98,12 +96,11 @@ class JsonSerialization {
         }
     }
 
-    def readString(key: String)(implicit map: JMap[String, String])
+    def readString(key: String)(implicit map: JMap[String, Object])
             : String = {
-        if (map.containsKey(key)) {
-            map.get(key)
-        } else {
-            null
+        map.get(key) match {
+            case s: String => s
+            case _ => null
         }
     }
 
@@ -115,11 +112,10 @@ class JsonSerialization {
     }
 
     def readUUID(key: String)
-                (implicit map: JMap[String, String]): UUID = {
-        if (map.containsKey(key)) {
-            UUID.fromString(map.get(key))
-        } else {
-            null
+                (implicit map: JMap[String, Object]): UUID = {
+        map.get(key) match {
+            case s: String => UUID.fromString(s)
+            case _ => null
         }
     }
 
@@ -132,13 +128,12 @@ class JsonSerialization {
     }
 
     def readShortList(key: String)
-                     (implicit map: JMap[String, String]): JList[java.lang.Short] = {
-        if (map.containsKey(key)) {
-            map.get(key).split("\n").toList
-                .filter(_.length() > 0)
-                .map(x => java.lang.Short.valueOf(x)).asJava
-        } else {
-            null
+                     (implicit map: JMap[String, Object]): JList[java.lang.Short] = {
+        map.get(key) match {
+            case s: String => s.split("\n").toList
+                    .filter(_.length() > 0)
+                    .map(x => java.lang.Short.valueOf(x)).asJava
+            case _ => null
         }
     }
 
@@ -151,13 +146,12 @@ class JsonSerialization {
     }
 
     def readUUIDList(key: String)
-                    (implicit map: JMap[String, String]): JList[UUID] = {
-        if (map.containsKey(key)) {
-            map.get(key).split("\n").toList
-                .filter(_.length > 0)
-                .map(x => UUID.fromString(x)).asJava
-        } else {
-            null
+                    (implicit map: JMap[String, Object]): JList[UUID] = {
+        map.get(key) match {
+            case s: String => s.split("\n").toList
+                    .filter(_.length > 0)
+                    .map(x => UUID.fromString(x)).asJava
+            case _ => null
         }
     }
 
@@ -183,7 +177,7 @@ class JsonSerialization {
         writeShortList("flowMatch.vlanIds", fmatch.vlanIds)
     }
 
-    private def readMatch()(implicit map: JMap[String, String]): FlowRecordMatch = {
+    private def readMatch()(implicit map: JMap[String, Object]): FlowRecordMatch = {
         FlowRecordMatch(readNumber("flowMatch.inputPort").toInt,
                         readNumber("flowMatch.tunnelKey").toLong,
                         readNumber("flowMatch.tunnelSrc").toInt,
@@ -204,75 +198,147 @@ class JsonSerialization {
                         readShortList("flowMatch.vlanIds"))
     }
 
-    def writeActionList(actions: Set[FlowAction])
+    def writeActionList(actions: JList[FlowAction])
                        (implicit jgen: JsonGenerator): Unit = {
+        jgen.writeFieldName("actions")
+        jgen.writeStartArray()
         if (actions != null) {
             val iter = actions.iterator
             while (iter.hasNext()) {
+                jgen.writeStartObject()
                 iter.next() match {
                     case a: Output =>
-                        writeNumber("action.output.portno", a.portNo)
+                        writeString("type", "output")
+                        writeNumber("portno", a.portNo)
                     case a: PopVlan =>
-                        jgen.writeStringField("action.popVlan", "true")
+                        writeString("type", "popVlan")
                     case a: PushVlan =>
-                        writeNumber("action.pushVlan.tpid", a.tpid)
-                        writeNumber("action.pushVlan.tci", a.tci)
+                        writeString("type", "pushVlan")
+                        writeNumber("tpid", a.tpid)
+                        writeNumber("tci", a.tci)
                     case a: Userspace =>
-                        writeNumber("action.userspace.uplinkId", a.uplinkId)
-                        writeNumber("action.userspace.userdata", a.userData)
+                        writeString("type", "userspace")
+                        writeNumber("uplinkId", a.uplinkId)
+                        writeNumber("userdata", a.userData)
                     case a: Arp =>
-                        writeNumber("action.arp.sip", a.sip)
-                        writeNumber("action.arp.tip", a.tip)
-                        writeNumber("action.arp.op", a.op)
-                        writeBytes("action.arp.sha", a.sha)
-                        writeBytes("action.arp.tha", a.tha)
+                        writeString("type", "arp")
+                        writeNumber("sip", a.sip)
+                        writeNumber("tip", a.tip)
+                        writeNumber("op", a.op)
+                        writeBytes("sha", a.sha)
+                        writeBytes("tha", a.tha)
                     case a: Ethernet =>
-                        writeBytes("action.eth.src", a.src)
-                        writeBytes("action.eth.dst", a.dst)
+                        writeString("type", "ethernet")
+                        writeBytes("src", a.src)
+                        writeBytes("dst", a.dst)
                     case a: EtherType =>
-                        writeNumber("action.ethertype.type", a.`type`)
+                        writeString("type", "ethertype")
+                        writeNumber("ethertype", a.`type`)
                     case a: IcmpEcho =>
-                        writeNumber("action.icmp.echo.type", a.`type`)
-                        writeNumber("action.icmp.echo.code", a.`code`)
-                        writeNumber("action.icmp.echo.id", a.id)
+                        writeString("type", "icmpecho")
+                        writeNumber("icmptype", a.`type`)
+                        writeNumber("code", a.`code`)
+                        writeNumber("id", a.id)
                     case a: IcmpError =>
-                        writeNumber("action.icmp.error.type", a.`type`)
-                        writeNumber("action.icmp.error.code", a.code)
-                        writeBytes("action.icmp.error.id", a.data)
+                        writeString("type", "icmperror")
+                        writeNumber("icmptype", a.`type`)
+                        writeNumber("code", a.code)
+                        writeBytes("id", a.data)
                     case a: Icmp =>
-                        writeNumber("action.icmp.type", a.`type`)
-                        writeNumber("action.icmp.code", a.code)
+                        writeString("type", "icmp")
+                        writeNumber("icmptype", a.`type`)
+                        writeNumber("code", a.code)
                     case a: IPv4 =>
-                        writeNumber("action.ipv4.src", a.src)
-                        writeNumber("action.ipv4.dst", a.dst)
-                        writeNumber("action.ipv4.proto", a.proto)
-                        writeNumber("action.ipv4.tos", a.tos)
-                        writeNumber("action.ipv4.ttl", a.ttl)
-                        writeNumber("action.ipv4.frag", a.frag)
+                        writeString("type", "ipv4")
+                        writeNumber("src", a.src)
+                        writeNumber("dst", a.dst)
+                        writeNumber("proto", a.proto)
+                        writeNumber("tos", a.tos)
+                        writeNumber("ttl", a.ttl)
+                        writeNumber("frag", a.frag)
                     case a: TCP =>
-                        writeNumber("action.tcp.src", a.src)
-                        writeNumber("action.tcp.dst", a.dst)
+                        writeString("type", "tcp")
+                        writeNumber("src", a.src)
+                        writeNumber("dst", a.dst)
                     case a: Tunnel =>
-                        writeNumber("action.tunnel.id", a.id)
-                        writeNumber("action.tunnel.ipv4_src", a.ipv4_src)
-                        writeNumber("action.tunnel.ipv4_dst", a.ipv4_dst)
-                        writeNumber("action.tunnel.flags", a.flags)
-                        writeNumber("action.tunnel.ipv4_tos", a.ipv4_tos)
-                        writeNumber("action.tunnel.ipv4_ttl", a.ipv4_ttl)
+                        writeString("type", "tunnel")
+                        writeNumber("id", a.id)
+                        writeNumber("ipv4_src", a.ipv4_src)
+                        writeNumber("ipv4_dst", a.ipv4_dst)
+                        writeNumber("flags", a.flags)
+                        writeNumber("ipv4_tos", a.ipv4_tos)
+                        writeNumber("ipv4_ttl", a.ipv4_ttl)
                     case a: UDP =>
-                        writeNumber("action.udp.src", a.src)
-                        writeNumber("action.udp.dst", a.dst)
+                        writeString("type", "udp")
+                        writeNumber("src", a.src)
+                        writeNumber("dst", a.dst)
                     case a: VLan =>
-                        writeNumber("action.vlan.id", a.id)
+                        writeString("type", "vlan")
+                        writeNumber("id", a.id)
                     case _ =>
                 }
+                jgen.writeEndObject()
             }
+            jgen.writeEndArray()
+        }
+    }
+
+    private def readAction(map: JMap[String, Object]): FlowAction = {
+        implicit val imap = map
+        map.get("type") match {
+            case "output" => Output(readNumber("portno").toInt)
+            case "popVlan" => PopVlan()
+            case "pushVlan" => PushVlan(readNumber("tpid").toShort,
+                                        readNumber("tci").toShort)
+            case "userspace" => Userspace(readNumber("uplinkId").toInt,
+                                          readNumber("userdata"))
+            case "arp" => Arp(readNumber("sip").toInt,
+                              readNumber("tip").toInt,
+                              readNumber("op").toShort,
+                              readBytes("sha"),
+                              readBytes("tha"))
+            case "ethernet" => Ethernet(readBytes("src"),
+                                        readBytes("dst"))
+            case "ethertype" => EtherType(readNumber("ethertype").toShort)
+            case "icmpecho" => IcmpEcho(readNumber("icmptype").toByte,
+                                        readNumber("code").toByte,
+                                        readNumber("id").toShort)
+            case "icmperror" => IcmpError(readNumber("icmptype").toByte,
+                                          readNumber("code").toByte,
+                                          readBytes("id"))
+            case "icmp" => Icmp(readNumber("icmptype").toByte,
+                                readNumber("code").toByte)
+            case "ipv4" => IPv4(readNumber("src").toInt,
+                                readNumber("dst").toInt,
+                                readNumber("proto").toByte,
+                                readNumber("tos").toByte,
+                                readNumber("ttl").toByte,
+                                readNumber("frag").toByte)
+            case "tcp" => TCP(readNumber("src").toShort,
+                              readNumber("dst").toShort)
+            case "tunnel" => Tunnel(readNumber("id").toInt,
+                                    readNumber("ipv4_src").toInt,
+                                    readNumber("ipv4_dst").toInt,
+                                    readNumber("flags").toShort,
+                                    readNumber("ipv4_tos").toByte,
+                                    readNumber("ipv4_ttl").toByte)
+            case "udp" => UDP(readNumber("src").toShort,
+                              readNumber("dst").toShort)
+            case "vlan" => VLan(readNumber("id").toShort)
+            case t => throw new IllegalArgumentException(
+                s"Unknown action type ${t}")
         }
     }
 
     private def readActionList()
-                              (implicit map: JMap[String, String]): Set[FlowAction] = {
-        val actions = new HashSet[FlowAction]
+                              (implicit map: JMap[String, Object]): JList[FlowAction] = {
+        val actionArray = map.get("actions").asInstanceOf[JList[JMap[String,Object]]]
+        val actions = new ArrayList[FlowAction]
+        val iter = actionArray.iterator()
+        while (iter.hasNext()) {
+            actions.add(readAction(iter.next()))
+        }
+
         if (map.containsKey("action.output.portno")) {
             actions.add(Output(readNumber("action.output.portno").toInt))
         }
@@ -353,12 +419,11 @@ class JsonSerialization {
     }
 
     def readSimResult()
-                     (implicit map: JMap[String, String])
+                     (implicit map: JMap[String, Object])
             : SimulationResult.SimulationResult = {
-        if (map.containsKey("simResult")) {
-            SimulationResult.withName(map.get("simResult"))
-        } else {
-            null
+        map.get("simResult") match {
+            case s: String => SimulationResult.withName(s)
+            case _ => null
         }
     }
 
@@ -373,19 +438,18 @@ class JsonSerialization {
     }
 
     def readRuleList()
-                    (implicit map: JMap[String, String]): JList[TraversedRule] = {
-        if (map.containsKey("rules")) {
-            map.get("rules").split("\n").toList
-                .filter(_.length > 0)
-                .map(x => {
-                    val parts = x.split(" ")
-                    TraversedRule(UUID.fromString(parts(0)),
-                                  RuleResult.withName(parts(1).replace(")", "")
-                                                          .replace("(", "")))
-                }
-            ).asJava
-        } else {
-            null
+                    (implicit map: JMap[String, Object]): JList[TraversedRule] = {
+        map.get("rules") match {
+            case s: String => s.split("\n").toList
+                    .filter(_.length > 0)
+                    .map(x => {
+                             val parts = x.split(" ")
+                             TraversedRule(UUID.fromString(parts(0)),
+                                           RuleResult.withName(
+                                               parts(1).replace(")", "")
+                                                   .replace("(", "")))
+                         }).asJava
+            case _ => null
         }
     }
 
