@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_00636942",
+        "filename": "midolman/src/main/scala/org/midonet/cluster/state/RoutingTableStorage.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-22T15:53:28Z",
+      "side": 1,
+      "message": "The midonet agent also needs to have jute.maxbuffer set to the proper value.",
+      "range": {
+        "startLine": 101,
+        "startChar": 18,
+        "endLine": 101,
+        "endChar": 40
+      },
+      "revId": "f95be92abc9a468df9a76f3dc312ddbadb9f9b6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_20cf8d2b",
+        "filename": "midolman/src/perf/scala/org/midonet/midolman/cluster/RoutingTableStorageBenchmark.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-22T15:53:28Z",
+      "side": 1,
+      "message": "Replace this and the ones below with a constant? benchmarkTimeout?",
+      "range": {
+        "startLine": 142,
+        "startChar": 39,
+        "endLine": 142,
+        "endChar": 51
+      },
+      "revId": "f95be92abc9a468df9a76f3dc312ddbadb9f9b6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a0dabde5",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/DataCheckPointTest.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-22T15:53:28Z",
+      "side": 1,
+      "message": "Why commenting this out and not simply deleting these lines?",
+      "range": {
+        "startLine": 130,
+        "startChar": 12,
+        "endLine": 132,
+        "endChar": 49
+      },
+      "revId": "f95be92abc9a468df9a76f3dc312ddbadb9f9b6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
