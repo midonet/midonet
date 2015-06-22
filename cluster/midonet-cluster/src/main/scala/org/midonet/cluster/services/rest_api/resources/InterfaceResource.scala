@@ -28,6 +28,7 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 import com.google.protobuf.TextFormat
 
+import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.models.{Host, Interface}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.SingleValueKey
@@ -50,7 +51,7 @@ class InterfaceResource @Inject()(hostId: UUID, resContext: ResourceContext)
         getInterfaces(hostId.toString)
             .map(_.find(_.name == name).map(setInterface))
             .getOrThrow
-            .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
+            .getOrElse(throw new NotFoundHttpException("Interface not found"))
     }
 
     @GET

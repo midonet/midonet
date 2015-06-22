@@ -105,7 +105,7 @@ public class WebResource {
     }
 
     public <T> T get(String path, Class<T> clazz, String mediaType) {
-        return makeResource(path).type(mediaType).get(clazz);
+        return makeResource(path).type(mediaType).accept(mediaType).get(clazz);
     }
 
 
