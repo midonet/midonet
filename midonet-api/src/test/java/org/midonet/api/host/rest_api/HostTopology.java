@@ -157,6 +157,7 @@ public class HostTopology {
         public HostTopology build()
                 throws StateAccessException, SerializationException {
             this.app = resource.getWebResource().path("/")
+                    .accept(APPLICATION_JSON_V5)
                     .type(APPLICATION_JSON_V5).get(DtoApplication.class);
 
             for (Map.Entry<String, DtoTunnelZone> entry

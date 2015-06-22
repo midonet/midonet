@@ -41,6 +41,7 @@ import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
@@ -86,7 +87,7 @@ public class TunnelZoneHostResource extends AbstractResource {
         validate(tzHost);
 
         if (!dataClient.hostsExists(tzHost.hostId)) {
-            throw new BadRequestHttpException(getMessage(HOST_ID_IS_INVALID));
+            throw new NotFoundHttpException(getMessage(HOST_ID_IS_INVALID));
         }
         if (!dataClient.tunnelZonesExists(tunnelZoneId)) {
             throw new BadRequestHttpException(
@@ -94,7 +95,7 @@ public class TunnelZoneHostResource extends AbstractResource {
         }
         if (dataClient.tunnelZonesGetMembership(tunnelZoneId,
                                                 tzHost.hostId) != null) {
-            throw new BadRequestHttpException(
+            throw new ConflictHttpException(
                 getMessage(TUNNEL_ZONE_MEMBER_EXISTS));
         }
 

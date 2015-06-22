@@ -58,9 +58,9 @@ public class TunnelZone extends UriResource {
     @ZoomField(name = "type")
     public TunnelZoneType type;
 
-    @XmlTransient
+    @JsonIgnore
     @ZoomField(name = "hosts")
-    public List<TunnelZoneHost> hosts;
+    public List<TunnelZoneHost> tzHosts;
     @JsonIgnore
     @ZoomField(name = "host_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> hostIds;
@@ -84,7 +84,7 @@ public class TunnelZone extends UriResource {
     @JsonIgnore
     public void update(TunnelZone from) {
         this.id = from.id;
-        hosts = from.hosts;
+        tzHosts = from.tzHosts;
         hostIds = from.hostIds;
     }
 }

@@ -16,19 +16,22 @@
 
 package org.midonet.cluster.services.rest_api.resources
 
-import java.util.{List => JList, UUID}
+import java.util.{List => JList, Set => JSet, UUID}
+import javax.validation.ConstraintViolation
 import javax.ws.rs._
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.{NotFoundHttpException, BadRequestHttpException}
 import org.midonet.cluster.rest_api.models.{TunnelZone, TunnelZoneHost}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
 
 @RequestScoped
 class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
@@ -42,10 +45,13 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     override def get(@PathParam("id") id: String,
                      @HeaderParam("Accept") accept: String): TunnelZoneHost = {
         val hostId = UUID.fromString(id)
-        getResource(classOf[TunnelZone], tunnelZoneId)
-            .map(_.hosts.asScala.find(_.hostId == hostId))
+        val tzh = getResource(classOf[TunnelZone], tunnelZoneId)
+            .map(_.tzHosts.asScala.find(_.hostId == hostId))
             .getOrThrow
-            .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
+            .getOrElse(throw new NotFoundHttpException("Resource not found"))
+        tzh.tunnelZoneId = tunnelZoneId
+        tzh.setBaseUri(resContext.uriInfo.getBaseUri)
+        tzh
     }
 
     @GET
@@ -54,7 +60,7 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     override def list(@HeaderParam("Accept") accept: String)
     : JList[TunnelZoneHost] = {
         getResource(classOf[TunnelZone], tunnelZoneId)
-            .map(_.hosts)
+            .map(_.tzHosts)
             .getOrThrow
     }
 
@@ -64,14 +70,22 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     override def create(tunnelZoneHost: TunnelZoneHost,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
+
+        val validator = resContext.validator
+        val violations: JSet[ConstraintViolation[TunnelZoneHost]] =
+            validator.validate(tunnelZoneHost)
+        if (!violations.isEmpty) {
+            throw new BadRequestHttpException(violations)
+        }
+
         getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
-            if (tunnelZone.hosts.asScala.find(_.hostId ==
+            if (tunnelZone.tzHosts.asScala.find(_.hostId ==
                                               tunnelZoneHost.hostId).nonEmpty) {
                 Response.status(Status.CONFLICT).build()
             } else {
                 tunnelZoneHost.create(tunnelZone.id)
                 tunnelZoneHost.setBaseUri(resContext.uriInfo.getBaseUri)
-                tunnelZone.hosts.add(tunnelZoneHost)
+                tunnelZone.tzHosts.add(tunnelZoneHost)
                 tunnelZone.hostIds.add(tunnelZoneHost.hostId)
                 updateResource(tunnelZone,
                                Response.created(tunnelZoneHost.getUri).build())
@@ -84,11 +98,11 @@ class TunnelZoneHostResource @Inject()(tunnelZoneId: UUID,
     override def delete(@PathParam("id") id: String): Response = {
         val hostId = UUID.fromString(id)
         getResource(classOf[TunnelZone], tunnelZoneId).map(tunnelZone => {
-            tunnelZone.hosts.asScala.find(_.hostId == hostId)
+            tunnelZone.tzHosts.asScala.find(_.hostId == hostId)
                 .map(tunnelZoneHost => {
-                    tunnelZone.hosts.remove(tunnelZoneHost)
+                    tunnelZone.tzHosts.remove(tunnelZoneHost)
                     tunnelZone.hostIds.remove(tunnelZoneHost.hostId)
-                    updateResource(tunnelZone)
+                    updateResource(tunnelZone, OkNoContentResponse)
                 })
                 .getOrElse(Response.status(Status.NOT_FOUND).build())
         }).getOrThrow
