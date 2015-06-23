@@ -70,6 +70,30 @@
       "revId": "1da6e65b2756341fd7dda58548ab47aff010908e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8c941244",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 658,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-23T10:17:07Z",
+      "side": 1,
+      "message": "If you just want to know whether find returns Some or None, you can use exists.\n\nThat said, rather than asserting that it doesn\u0027t contain some particular operation, I would assert on what it does contain, i.e. midoOps should contain only(...).\n\nI\u0027m not sure what\u0027s actually returned, so maybe that\u0027s too much of a pain, but I think it\u0027s best if you can do that.",
+      "parentUuid": "facab960_0c7c8282",
+      "range": {
+        "startLine": 658,
+        "startChar": 8,
+        "endLine": 658,
+        "endChar": 79
+      },
+      "revId": "1da6e65b2756341fd7dda58548ab47aff010908e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
