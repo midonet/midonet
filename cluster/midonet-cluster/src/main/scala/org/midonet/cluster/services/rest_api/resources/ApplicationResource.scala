@@ -55,7 +55,7 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
     @Produces(Array(MediaType.APPLICATION_JSON, APPLICATION_JSON_V5))
     def application: Application = {
         log.debug(s"${getClass.getName} entered on " +
-                  "${resContext.uriInfo.getAbsolutePath}")
+                  s"${resContext.uriInfo.getAbsolutePath}")
         new Application(resContext.uriInfo.getAbsolutePathBuilder.build())
     }
 

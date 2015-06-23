@@ -18,6 +18,8 @@ package org.midonet.cluster.util
 import java.lang.reflect.Type
 import java.net.{Inet6Address, Inet4Address, InetAddress}
 
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.Commons
@@ -84,6 +86,9 @@ object IPAddressUtil {
     def toInetAddress(addr: Commons.IPAddress): InetAddress =
         InetAddress.getByName(addr.getAddress)
 
+    final def toIpAdresses(addresses: Array[InetAddress])
+    : java.lang.Iterable[Commons.IPAddress] = addresses.map(toProto).toList
+
     implicit def richAddressString(str: String): RichAddresString =
         new RichAddresString(str)
 
@@ -140,5 +145,6 @@ object IPAddressUtil {
         def asIPv6Address: IPv6Addr = IPAddressUtil.toIPv6Addr(addr)
         def asInetAddress: InetAddress = IPAddressUtil.toInetAddress(addr)
     }
+
 
 }

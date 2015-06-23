@@ -124,7 +124,7 @@ message Host {
     optional UUID id = 1;
     optional string name = 2;
 
-    optional int32 flooding_proxy_weight = 3;
+    optional int32 flooding_proxy_weight = 3 [default = 1];
 
     // Backreference. Expected to be set from the Tunnel Zone side.
     repeated UUID tunnel_zone_ids = 101;

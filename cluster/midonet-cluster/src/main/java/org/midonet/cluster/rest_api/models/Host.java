@@ -22,6 +22,8 @@ import java.util.UUID;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 
+import com.google.protobuf.Message;
+
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
@@ -75,5 +77,4 @@ public class Host extends UriResource {
     public URI getInterfaces() { return relativeUri(ResourceUris.INTERFACES); }
 
     public URI getPorts() { return relativeUri(ResourceUris.PORTS); }
-
 }
