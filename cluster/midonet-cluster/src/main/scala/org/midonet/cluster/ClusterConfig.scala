@@ -105,6 +105,7 @@ class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiServic
     def wsPath = conf.getString(s"$PREFIX.ws_path")
     def sessionGracePeriod = conf.getDuration(s"$PREFIX.session_grace_period", TimeUnit.MILLISECONDS)
     def sessionBufferSize = conf.getInt(s"$PREFIX.session_buffer_size")
+    def sessionBackpressureSize = conf.getInt(s"$PREFIX.session_backpressure_size")
 }
 
 class TopologySnoopyConfig(val conf: Config) {

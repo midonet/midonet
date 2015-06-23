@@ -161,10 +161,13 @@ object SessionInventory {
         new NamedThreadFactory("topology-session-data"))
 
     /* Pre-set session buffer size */
-    val SESSION_BUFFER_SIZE: Int = 1 << 12
+    val SESSION_BUFFER_SIZE: Int = 4096
 
     /* Expiration time for non connected sessions, in milliseconds */
     val SESSION_GRACE_PERIOD: Long = 120000
+
+    /* Default topology backpressure buffer size */
+    val SESSION_BACKPRESSURE: Int = 16384
 
     /* Grace time for executors shutdown, in milliseconds */
     val EXECUTOR_GRACE_PERIOD: Long = 5000
@@ -341,7 +344,8 @@ protected class Buffer(minCapacity: Int, reader: ExecutorService)
 /** A collection of Sessions indexed by a session id. */
 class SessionInventory(private val store: Storage,
     private val gracePeriod: Long = SessionInventory.SESSION_GRACE_PERIOD,
-    private val bufferSize: Int = SessionInventory.SESSION_BUFFER_SIZE) {
+    private val bufferSize: Int = SessionInventory.SESSION_BUFFER_SIZE,
+    private val backpressureSize: Int = SessionInventory.SESSION_BACKPRESSURE) {
     private val log = LoggerFactory.getLogger(this.getClass)
 
     /** A class that encapsulates the funnel of a bunch of individual low
@@ -349,6 +353,11 @@ class SessionInventory(private val store: Storage,
       * that can at most be subscribed by a single Observer at a given
       * point in time. */
     private val inventory = new ConcurrentHashMap[Any, Session]()
+
+    /** Action for backpressure overflows */
+    private val logOverflow = makeAction0 {
+        log.warn("excessive backpressure from topology updates")
+    }
 
     def claim(sessionId: UUID): Session = {
         inventory.getOrElseUpdate(sessionId, {
@@ -368,7 +377,10 @@ class SessionInventory(private val store: Storage,
         private val funnel = new Aggregator[ObservableId, Response.Builder]()
         private val buffer = new Buffer(bufferSize, senderExecutor)
         private val bufferSubscription =
-            funnel.observable().observeOn(scheduler).subscribe(buffer)
+            funnel.observable()
+                .onBackpressureBuffer(backpressureSize, logOverflow)
+                .observeOn(scheduler)
+                .subscribe(buffer)
 
         private val session = this
 
