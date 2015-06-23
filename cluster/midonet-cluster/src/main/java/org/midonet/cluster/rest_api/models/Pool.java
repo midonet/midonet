@@ -103,6 +103,8 @@ public class Pool extends UriResource {
     public void update(Pool from) {
         id = from.id;
         poolMemberIds = from.poolMemberIds;
+        // Disallow changing status from the API, but don't fail
+        status = from.status;
     }
 
 }

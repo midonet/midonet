@@ -25,8 +25,10 @@ import javax.ws.rs.core.UriInfo
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.LoadBalancer
+import org.midonet.cluster.rest_api.validation.MessageProperty
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -55,6 +57,9 @@ class LoadBalancerResource @Inject()(resContext: ResourceContext)
     }
 
     protected override def updateFilter = (to: LoadBalancer, from: LoadBalancer) => {
+        if (to.routerId != from.routerId) {
+            throw new BadRequestHttpException("Router cannot be modified")
+        }
         to.update(from)
     }
 

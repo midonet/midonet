@@ -18,15 +18,19 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
 import javax.ws.rs.{Path, PathParam}
+
+import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.Pool
+import org.midonet.cluster.rest_api.models.{Pool, UriResource}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{OkNoContentResponse, ResourceContext}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_POOL_JSON,
@@ -48,6 +52,20 @@ class PoolResource @Inject()(resContext: ResourceContext)
 
     protected override def updateFilter = (to: Pool, from: Pool) => {
         to.update(from)
+    }
+
+    override protected def deleteResource(clazz: Class[_ <: UriResource],
+                    id: Any, defaultRes: Response = OkNoContentResponse) = {
+        try {
+            super.deleteResource(clazz, id)
+        } catch {
+            case e: NotFoundHttpException => OkNoContentResponse
+            case NonFatal(t) =>
+                log.error("Failed to delete Pool: ", t)
+                Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                        .entity(t.getMessage)
+                        .build()
+        }
     }
 
 }

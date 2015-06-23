@@ -45,5 +45,4 @@ class HealthMonitorResource @Inject()(resContext: ResourceContext)
                                            from: HealthMonitor) => {
         to.update(from)
     }
-
 }
