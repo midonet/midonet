@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.datapath
 
+import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException, ClosedChannelException}
 import java.nio.{BufferOverflowException, ByteBuffer}
 import java.util.ArrayList
 
@@ -200,8 +201,13 @@ class FlowProcessor(dpState: DatapathState,
             while (channel.isOpen) {
                 try {
                     broker.readReply(defaultObserver)
-                } catch { case t: Throwable =>
-                    log.debug("Error while reading replies", t)
+                } catch {
+                    case ignored @ (_: InterruptedException |
+                                    _: ClosedChannelException |
+                                    _: ClosedByInterruptException|
+                                    _: AsynchronousCloseException) =>
+                    case t: Throwable =>
+                        log.debug("Error while reading replies", t)
                 }
             }
     }
