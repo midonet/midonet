@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_f133b911",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-23T08:34:09Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_b1a85121",
+      "range": {
+        "startLine": 100,
+        "startChar": 15,
+        "endLine": 101,
+        "endChar": 25
+      },
+      "revId": "fa3f5f7c48f5d62902b7dd4cadba2d829c69c343",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_d17cf5b7",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-23T08:28:03Z",
       "side": 1,
       "message": "I don\u0027t think calling super is needed here (the MidonetResource implementation does nothing), but you have to call:\n\n  to.update(from)",
+      "range": {
+        "startLine": 85,
+        "startChar": 8,
+        "endLine": 85,
+        "endChar": 36
+      },
+      "revId": "fa3f5f7c48f5d62902b7dd4cadba2d829c69c343",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1139fdf2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-23T08:34:09Z",
+      "side": 1,
+      "message": "also in the create above",
+      "parentUuid": "facab960_d17cf5b7",
       "range": {
         "startLine": 85,
         "startChar": 8,
