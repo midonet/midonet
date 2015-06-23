@@ -250,15 +250,6 @@ task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine += mainClassName
 }
 
-task ifscannerTest(type: Exec, dependsOn: testClasses) {
-    commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
-    commandLine += "-Xbootclasspath/p:${project.jdkBootstrap}"
-    commandLine += '-cp'
-    commandLine += (sourceSets.main.runtimeClasspath +
-                    configurations.runtime).collect { it.toString() }.join(':')
-    commandLine += 'org.midonet.midolman.host.scanner.test.DefaultInterfaceScannerIntegrationTest'
-}
-
 task manpages() {
     File outputDir = new File("${buildDir}/man")
     FileTree inputFiles = fileTree(dir: "src/man", include: "*.ronn")
