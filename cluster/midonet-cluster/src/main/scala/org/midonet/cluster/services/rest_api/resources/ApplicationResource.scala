@@ -34,22 +34,23 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
                                     bgpResource: BgpResource,
                                     bridgeResource: BridgeResource,
                                     chainResource: ChainResource,
-                                    hostResource: HostResource,
-                                    loadBalancerResource: LoadBalancerResource,
                                     healthMonitorResource: HealthMonitorResource,
+                                    hostResource: HostResource,
+                                    ipAddrGroupsResource: IpAddrGroupResource,
+                                    loadBalancerResource: LoadBalancerResource,
                                     loginResource: LoginResource,
                                     neutronResource: NeutronResource,
-                                    poolResource: PoolResource,
                                     poolMemberResource: PoolMemberResource,
-                                    portResource: PortResource,
+                                    poolResource: PoolResource,
                                     portGroupResource: PortGroupResource,
+                                    portResource: PortResource,
                                     routeResource: RouteResource,
                                     routerResource: RouterResource,
                                     ruleResource: RuleResource,
                                     systemStateResource: SystemStateResource,
+                                    tenantResource: TenantResource,
                                     tunnelZoneResource: TunnelZoneResource,
-                                    vipResource: VipResource,
-                                    tenantResource: TenantResource)
+                                    vipResource: VipResource)
     extends MidonetResource(resContext) {
 
     @GET
@@ -119,5 +120,8 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
 
     @Path("tenants")
     def tenants = tenantResource
+
+    @Path("ip_addr_groups")
+    def ipAddrGroups = ipAddrGroupsResource
 
 }
