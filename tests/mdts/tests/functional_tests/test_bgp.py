@@ -230,19 +230,13 @@ route_direct = [{'nwPrefix': '172.16.0.0', 'prefixLength': 16}]
 route_snat = [{'nwPrefix': '100.0.0.0', 'prefixLength': 16}]
 
 # 1.1.1.1 is assigned to lo in ns000 emulating a public IP address
-def ping_inet(count=3, interval=1, retry=True, retry_count=2, port=2):
+def ping_inet(count=3, interval=1, port=2):
     sender = BM.get_iface_for_port('bridge-000-001', port)
     try:
         f1 = sender.ping_ipv4_addr('1.1.1.1', interval=interval, count=count)
         wait_on_futures([f1])
     except subprocess.CalledProcessError as e:
-        # FIXME: Further Investigation Needed
-        # The first several ping attempts occasionally fail, so try it again.
-        # What does it really mean? Some timing issue or even bug in midolman?
-        if retry and retry_count > 0:
-            ping_inet(count, interval, retry, retry_count - 1, port)
-        else:
-            raise AssertionError(e.cmd, e.returncode)
+        raise AssertionError(e.cmd, e.returncode)
 
 @attr(version="v1.2.0", slow=False)
 @bindings(binding_uplink_1, binding_uplink_2, binding_indirect)
@@ -405,7 +399,7 @@ def test_snat():
         # failover possibly takes about 5-6 seconds at most
         for i in range(0, 10):
             # BGP #1 is working
-            ping_inet(count=1, retry_count=5)
+            ping_inet(count=1)
     finally:
         unset_filters('router-000-001')
         clear_bgp(p1)
