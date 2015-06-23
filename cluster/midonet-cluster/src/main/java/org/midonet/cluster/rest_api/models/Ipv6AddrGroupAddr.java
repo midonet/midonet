@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.filter;
+package org.midonet.cluster.rest_api.models;
 
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.util.version.Since;
-
-import javax.validation.GroupSequence;
-import javax.validation.constraints.AssertTrue;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 import java.net.URI;
 import java.util.UUID;
+
+import org.midonet.packets.IPv6Addr;
 
 public class Ipv6AddrGroupAddr extends IpAddrGroupAddr {
 
@@ -36,6 +28,11 @@ public class Ipv6AddrGroupAddr extends IpAddrGroupAddr {
 
     public Ipv6AddrGroupAddr(UUID groupId, String addr) {
         super(groupId, addr);
+    }
+
+    public Ipv6AddrGroupAddr(URI baseUri, UUID groupId, IPv6Addr addr) {
+        super(groupId, addr.toString());
+        this.setBaseUri(baseUri);
     }
 
     @Override
