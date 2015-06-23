@@ -20,7 +20,7 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.rest_api.Status;
+import org.midonet.cluster.rest_api.Status;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoRouter;
