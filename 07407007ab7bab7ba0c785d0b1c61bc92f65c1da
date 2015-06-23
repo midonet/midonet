@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_6e426369",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T14:05:12Z",
+      "side": 1,
+      "message": "For v2,it would be nice if the model translator would take an rx observer as argument (rather than a function), or ideally be an rx operator. The way we designed v2 so far is that all updates from zk arrive on a single stream. Currently the BGP mapper notifies port, BGP and adevrtised route updates, as well as error notifications (e.g. for zk connection loss) and completion notifications (e.g. for port deletion). The cleanup - e.g. removing the routes when a port becomes inactive or is deleted is also included on the same stream.",
+      "range": {
+        "startLine": 174,
+        "startChar": 16,
+        "endLine": 176,
+        "endChar": 88
+      },
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6e10a359",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T14:05:12Z",
+      "side": 1,
+      "message": "Note: in V2 we don\u0027t use UUIDs to identify the learned routes but rather the routes themselves. In my patch of the RoutingHandler here I used a Map[Route, Route} and added the ID to the route.",
+      "range": {
+        "startLine": 229,
+        "startChar": 48,
+        "endLine": 229,
+        "endChar": 52
+      },
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0e2ab78f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 320,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T14:05:12Z",
+      "side": 1,
+      "message": "Nice: in the v2 state ops are asynchronous, this would work really well.",
+      "range": {
+        "startLine": 320,
+        "startChar": 12,
+        "endLine": 320,
+        "endChar": 35
+      },
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
