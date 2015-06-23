@@ -22,6 +22,30 @@
       "revId": "1da6e65b2756341fd7dda58548ab47aff010908e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_8c409235",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 658,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-23T09:09:34Z",
+      "side": 1,
+      "message": "That is much better.  I\u0027ll update.  Thanks",
+      "parentUuid": "facab960_2c56a606",
+      "range": {
+        "startLine": 658,
+        "startChar": 8,
+        "endLine": 658,
+        "endChar": 79
+      },
+      "revId": "1da6e65b2756341fd7dda58548ab47aff010908e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
