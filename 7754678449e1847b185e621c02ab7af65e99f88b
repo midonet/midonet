@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_4e0cbfed",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-23T12:41:44Z",
+      "side": 1,
+      "message": "this commit message summary is unintelligible.",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0e50f7d2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 253,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-23T12:41:44Z",
+      "side": 1,
+      "message": "this should probably be DEBUG level anyway.",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6e0d03e8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-23T12:41:44Z",
+      "side": 1,
+      "message": "there\u0027s no actual change here except the removal of options, right?",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4e33dfaa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-23T12:41:44Z",
+      "side": 1,
+      "message": "shouldn\u0027t these packets come out without the 0-tag on the other side of the router? after all, it\u0027s a l3 device.",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
