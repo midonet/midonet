@@ -13,9 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.filter;
+package org.midonet.cluster.rest_api.models;
 
+import java.net.URI;
 import java.util.UUID;
+
+import org.midonet.packets.IPv4Addr;
 
 public class Ipv4AddrGroupAddr extends IpAddrGroupAddr {
 
@@ -25,6 +28,11 @@ public class Ipv4AddrGroupAddr extends IpAddrGroupAddr {
 
     public Ipv4AddrGroupAddr(UUID groupId, String addr) {
         super(groupId, addr);
+    }
+
+    public Ipv4AddrGroupAddr(URI baseUri, UUID groupId, IPv4Addr addr) {
+        super(groupId, addr.toString());
+        this.setBaseUri(baseUri);
     }
 
     @Override
