@@ -29,18 +29,18 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoVip;
 import org.midonet.client.dto.l4lb.LBStatus;
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.*;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
@@ -236,10 +236,12 @@ public class TestPool {
         public void testUpdateWithBadHealthMonitorId() {
             DtoPool pool = createStockPool(loadBalancer.getId());
             pool.setHealthMonitorId(UUID.randomUUID());
-            DtoError error = dtoResource.putAndVerifyBadRequest(
-                    pool.getUri(), APPLICATION_POOL_JSON, pool);
-            assertErrorMatches(error, RESOURCE_NOT_FOUND,
-                    "health monitor", pool.getHealthMonitorId());
+            ClientResponse res = dtoResource.putAndVerifyStatus(
+                pool.getUri(), APPLICATION_POOL_JSON, pool,
+                NOT_FOUND.getStatusCode());
+            assertErrorMatches(res.getEntity(DtoError.class),
+                               RESOURCE_NOT_FOUND,
+                               "health monitor", pool.getHealthMonitorId());
         }
 
         @Test
@@ -371,7 +373,7 @@ public class TestPool {
             ClientResponse response = dtoResource.putAndVerifyStatus(
                     pool.getUri(),
                     APPLICATION_POOL_JSON, pool,
-                    Response.Status.SERVICE_UNAVAILABLE.getStatusCode());
+                    SERVICE_UNAVAILABLE.getStatusCode());
             MultivaluedMap<String, String> headers = response.getHeaders();
             String expectedRetryAfterHeaderValue = ServiceUnavailableHttpException
                     .RETRY_AFTER_HEADER_DEFAULT_VALUE.toString();
