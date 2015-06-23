@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_717969c7",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Host.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 25,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-23T08:28:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_9688a3c6",
+      "range": {
+        "startLine": 25,
+        "startChar": 0,
+        "endLine": 25,
+        "endChar": 35
+      },
+      "revId": "65ce1b675010f841df0f4a9b8e253ea722bbf67a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_b69127f3",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Interface.java",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-23T07:46:01Z",
       "side": 1,
       "message": "Same?",
+      "range": {
+        "startLine": 34,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 41
+      },
+      "revId": "65ce1b675010f841df0f4a9b8e253ea722bbf67a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9176edd5",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Interface.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-23T08:28:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_b69127f3",
       "range": {
         "startLine": 34,
         "startChar": 0,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_b17f71aa",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-23T08:28:02Z",
+      "side": 1,
+      "message": "this is because some tests expect a not found to be returned for a non existing host, even if the fpw is null in the request. I preferred to accomodate the tests, rather than mess up with the old api and tests.",
+      "parentUuid": "facab960_76b23f95",
+      "range": {
+        "startLine": 78,
+        "startChar": 14,
+        "endLine": 81,
+        "endChar": 13
+      },
+      "revId": "65ce1b675010f841df0f4a9b8e253ea722bbf67a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_96afc329",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/TenantResource.scala",
         "patchSetId": 2
@@ -82,6 +154,30 @@
       "writtenOn": "2015-06-23T07:46:01Z",
       "side": 1,
       "message": "These are only used by a MidonetResource",
+      "range": {
+        "startLine": 31,
+        "startChar": 0,
+        "endLine": 34,
+        "endChar": 35
+      },
+      "revId": "65ce1b675010f841df0f4a9b8e253ea722bbf67a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_1152dd3a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/TenantResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-23T08:28:02Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_96afc329",
       "range": {
         "startLine": 31,
         "startChar": 0,
