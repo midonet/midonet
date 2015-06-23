@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_543370aa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/BgpModelTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-23T17:12:56Z",
+      "side": 1,
+      "message": "! ...exists(cidr.equals) is more poetic",
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_6e426369",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 3
