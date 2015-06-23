@@ -36,6 +36,7 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
                                     chainResource: ChainResource,
                                     hostResource: HostResource,
                                     loadBalancerResource: LoadBalancerResource,
+                                    healthMonitorResource: HealthMonitorResource,
                                     loginResource: LoginResource,
                                     neutronResource: NeutronResource,
                                     poolResource: PoolResource,
@@ -97,6 +98,9 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
 
     @Path("routers")
     def routers = routerResource
+
+    @Path("health_monitors")
+    def healthMonitors = healthMonitorResource
 
     @Path("routes")
     def routes = routeResource

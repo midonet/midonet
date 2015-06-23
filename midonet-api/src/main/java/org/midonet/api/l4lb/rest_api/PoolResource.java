@@ -65,7 +65,6 @@ import static org.midonet.cluster.rest_api.conversion.PoolDataConverter.toData;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_DISASSOCIATION_IS_REQUIRED;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.MAPPING_STATUS_IS_PENDING;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_EXISTS;
-import static org.midonet.cluster.rest_api.validation.MessageProperty.RESOURCE_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @RequestScoped
@@ -192,9 +191,7 @@ public class PoolResource extends AbstractResource {
             dataClient.poolUpdate(toData(pool));
             poolEvent.update(id, dataClient.poolGet(id));
         } catch (NoStatePathException ex) {
-            throw new BadRequestHttpException(
-                getMessage(RESOURCE_NOT_FOUND, "health monitor",
-                           pool.healthMonitorId));
+            throw notFoundException(pool.healthMonitorId, "health monitor");
         } catch (MappingViolationException ex) {
             throw new BadRequestHttpException(ex, MAPPING_DISASSOCIATION_IS_REQUIRED);
         } catch (MappingStatusException ex) {
