@@ -26,5 +26,7 @@ public interface Transport {
     void setSourcePort(int port);
     void setDestinationPort(int port);
 
+    void clearChecksum();
+
     IPacket getPayload();
 }

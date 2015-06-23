@@ -176,7 +176,7 @@ public class TestFlowStateEthernet {
             ipv4.setVersion(FlowStateEthernet.FLOW_STATE_IP_VERSION);
             ipv4.setHeaderLength(FlowStateEthernet.FLOW_STATE_IP_HEADER_LENGTH);
             ipv4.setDiffServ(FlowStateEthernet.FLOW_STATE_IP_DIFF_SERV);
-            ipv4.setTotalLength(IPv4.MIN_HEADER_LEN + payloadSize);
+            ipv4.setTotalLength(IPv4.MIN_HEADER_LEN + UDP.HEADER_LEN + payloadSize);
             ipv4.setIdentification(FlowStateEthernet.FLOW_STATE_IP_IDENTIFICATION);
             ipv4.setFlags(FlowStateEthernet.FLOW_STATE_IP_FLAGS);
             ipv4.setFragmentOffset(FlowStateEthernet.FLOW_STATE_IP_FRAGMENT_OFFSET);
@@ -250,9 +250,9 @@ public class TestFlowStateEthernet {
                     sampleChecksum);
 
             return Arrays.asList(new Object[][]{
-                    {empty, emptyFlowStateEthernet},
-                    {sample, sampleFlowStateEthernet},
-                    {sample, paddedFlowStateEthernet}
+                   {empty, emptyFlowStateEthernet},
+                   {sample, sampleFlowStateEthernet},
+                   {sample, paddedFlowStateEthernet}
             });
         }
 

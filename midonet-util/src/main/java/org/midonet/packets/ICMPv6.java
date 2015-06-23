@@ -95,9 +95,15 @@ public class ICMPv6 extends BasePacket {
         return data;
     }
 
+    @Override
+    public int getPayloadLength() {
+        return data != null ? data.length : 0;
+    }
+
     private void setIPv6Packet(IPv6 ipPkt) {
+        int payloadLength = ipPkt.getPayloadLength();
         byte[] data = ipPkt.serialize();
-        int length = 40 + HEADER_LEN;
+        int length = data.length - payloadLength;
         if (length >= data.length)
             this.data = data;
         else
