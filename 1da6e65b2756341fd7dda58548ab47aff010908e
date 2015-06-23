@@ -46,6 +46,30 @@
       "revId": "1da6e65b2756341fd7dda58548ab47aff010908e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0c7c8282",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 658,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-23T09:11:46Z",
+      "side": 1,
+      "message": "Sorry it should be \"should be empty\", instead.",
+      "parentUuid": "facab960_8c409235",
+      "range": {
+        "startLine": 658,
+        "startChar": 8,
+        "endLine": 658,
+        "endChar": 79
+      },
+      "revId": "1da6e65b2756341fd7dda58548ab47aff010908e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
