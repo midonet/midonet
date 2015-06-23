@@ -15,10 +15,9 @@
  */
 package org.midonet.api;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.util.UUID;
+
 import javax.ws.rs.core.UriBuilder;
 
 import org.midonet.api.network.IP4MacPair;
@@ -112,12 +111,12 @@ public class ResourceUriBuilder {
 
     public static URI getTenantChains(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getChains(baseUri)).queryParam(
-                TENANT_ID_PARAM, tenantId).build();
+            TENANT_ID_PARAM, tenantId).build();
     }
 
     public static URI getTenantPortGroups(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getPortGroups(baseUri)).queryParam(
-                TENANT_ID_PARAM, tenantId).build();
+            TENANT_ID_PARAM, tenantId).build();
     }
 
 
@@ -439,23 +438,9 @@ public class ResourceUriBuilder {
                 .build();
     }
 
-    public static URI getIpAddrGroupVersionAddr(URI baseUri, UUID id,
-                                                int version, String addr)
-            throws UnsupportedEncodingException {
-        return UriBuilder.fromUri(getIpAddrGroup(baseUri, id)).path(
-                VERSIONS).path("/").path(String.valueOf(version)).path(
-                IP_ADDRS).path("/").path(URLEncoder.encode(
-                addr, "UTF-8")).build();
-    }
-
     public static URI getPortGroupPorts(URI baseUri, UUID id) {
         return UriBuilder.fromUri(getPortGroup(baseUri, id))
                 .path(PORTS).build();
-    }
-
-    public static URI getIpAddrGroupAddrs(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(getIpAddrGroup(baseUri, id))
-                .path(IP_ADDRS).build();
     }
 
     public static URI getPortGroupPort(URI baseUri, UUID id, UUID portId) {

@@ -78,7 +78,7 @@ object IPAddr {
                     var currentAddr = from
                     var isDone = false
 
-                    override def hasNext() = !isDone
+                    override def hasNext = !isDone
 
                     override def next() = {
                         val ip = currentAddr

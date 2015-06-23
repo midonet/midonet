@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.lang.annotation.Annotation
+import java.net.URI
 import java.util.concurrent.Executors
 import java.util.{ConcurrentModificationException, List => JList, Set => JSet}
 import javax.validation.{ConstraintViolation, Validator}
@@ -53,6 +54,7 @@ object MidonetResource {
     final val Timeout = 5 seconds
     final val OkResponse = Response.ok().build()
     final val OkNoContentResponse = Response.noContent().build()
+    final def OkCreated(uri: URI) = Response.created(uri).build()
 
     sealed trait Multi
     case class Create[T <: UriResource](resource: T) extends Multi
@@ -244,7 +246,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
         log.debug("CREATE: {}\n{}", message.getClass, message)
         tryWrite {
             backend.store.create(message)
-            Response.created(resource.getUri).build()
+            OkCreated(resource.getUri)
         }
     }
 
