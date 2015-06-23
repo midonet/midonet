@@ -273,6 +273,24 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         zk.newNamespaceAwareEnsurePath(s"/config/schemas").ensure(zkClient)
     }
 
+    def dropSchema(cfg: Config): Config = {
+        def drop(conf: Config, key: String, suffix: String): Config = {
+            if (conf.hasPath(s"$key$suffix"))
+                conf.withoutPath(s"$key$suffix")
+            else
+                conf
+        }
+
+        var ret = cfg
+        for (entry <- cfg.entrySet()) {
+            if (ret.hasPath(s"${entry.getKey}_type"))
+                ret = ret.withoutPath(s"${entry.getKey}_type")
+            if (entry.getKey.endsWith("_description"))
+                ret = ret.withoutPath(entry.getKey)
+        }
+        ret
+    }
+
     def legacyConfigFile: Config = {
         agentLegacyIniFile map (new LegacyConf(_).get)
     }.getOrElse(ConfigFactory.empty)
@@ -343,9 +361,18 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         _templateMappings.set(node.toString, template)
     }
 
+    /**
+     * Clears a configuration template assignment
+     */
+    def clearTemplate(node: UUID): Unit = {
+        _templateMappings.unset(node.toString)
+    }
+
     def listTemplates: Seq[String] = zk.getChildren.forPath(s"/config/templates")
 
     def listSchemas: Seq[String] = zk.getChildren.forPath(s"/config/schemas")
+
+    def listPerNodeConfigs: Seq[String] = zk.getChildren.forPath(s"/config/nodes")
 
     def mergedSchemas(): Config = {
         (listSchemas map (schema(_).closeAfter(_.get))).
