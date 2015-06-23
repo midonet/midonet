@@ -31,6 +31,7 @@ import org.midonet.conf.HostIdGenerator.PropertiesFileNotWritableException
 object ConfCommand {
     val SUCCESS = 0
     val FAILURE = 1
+    val NO_SUCH_KEY = 11
 
     implicit def scallopShortToBoxed(opt: ScallopOption[Short]): JShort =
         opt.get.map( new JShort(_) ).orNull
@@ -54,6 +55,76 @@ object ConfCommand {
 
 trait ConfCommand {
     def run(configurator: MidoNodeConfigurator): Int
+}
+
+object ListHosts extends Subcommand("hosts") with ConfCommand {
+    descr("List hosts information")
+
+    import ConfCommand._
+
+    override def run(configurator: MidoNodeConfigurator) = {
+        val mappings = configurator.templateMappings
+        val mappingsMap = mappings.entrySet() map { e => e.getKey -> e.getValue.unwrapped().asInstanceOf[String] } toMap
+        val perHost = configurator.listPerNodeConfigs.toSet
+
+        val defaults = "template(default) : schema"
+        for (host <- perHost) {
+            if (mappingsMap.contains(host) && (mappingsMap(host) != "default")) {
+                val template = mappingsMap(host)
+                println(s"$host -> custom : template($template) : $defaults")
+            } else {
+                println(s"$host -> custom : $defaults")
+            }
+        }
+
+        for ((host, template) <- mappingsMap) {
+            if (!perHost.contains(host)) {
+                println(s"$host -> template($template) : $defaults")
+            }
+        }
+
+        ConfCommand.SUCCESS
+    }
+}
+
+object ListTemplate extends Subcommand("template-list") with ConfCommand {
+    descr("List configuration templates")
+
+    import ConfCommand._
+
+    override def run(configurator: MidoNodeConfigurator) = {
+        val mappings = configurator.templateMappings
+        val templates = configurator.listTemplates
+
+        val mappingsMap = mappings.entrySet() map { e => e.getKey -> e.getValue.unwrapped().asInstanceOf[String] } toMap
+        val inverseMappings = mappingsMap.groupBy(_._2).mapValues(_.map(_._1))
+
+        for (template <- templates) {
+            println(template)
+            for (host <- inverseMappings.getOrElse(template, Seq.empty)) {
+                println(s"    $host")
+            }
+        }
+        ConfCommand.SUCCESS
+    }
+}
+
+object ClearTemplate extends TemplateCommand("template-clear") with ConfCommand {
+    descr("Clears configuration template mappings")
+
+    import ConfCommand._
+
+    override def run(configurator: MidoNodeConfigurator) = {
+        getHost map UUID.fromString  match  {
+            case Some(h) =>
+                configurator.clearTemplate(h)
+                ConfCommand.SUCCESS
+            case None =>
+                throw new Exception("Could not parse or select host id to clear "+
+                    "config template from")
+        }
+
+    }
 }
 
 object SetTemplate extends TemplateCommand("template-set") with ConfCommand {
@@ -204,7 +275,10 @@ object ImportConf extends ConfigWriter("import") with ConfCommand {
 }
 
 object SetConf extends ConfigWriter("set") with ConfCommand {
-    descr("Accepts configuration from stdin and writes it to the selected configuration store.")
+    descr("Accepts configuration from stdin or trailing arguments and writes it to the selected configuration store.")
+
+    val trailing = trailArg[String](descr = "Configuration to be written, if not given, read from STDIN",
+                                    required = false)
 
     val clear = opt[Boolean]("clear", short = 'c', default = Some(false), descr =
         "Clear existing configuration from the selected source before writing "+
@@ -213,7 +287,14 @@ object SetConf extends ConfigWriter("set") with ConfCommand {
 
     override def run(configurator: MidoNodeConfigurator) = {
         val parseOpts = ConfigParseOptions.defaults().setOriginDescription("STDIN")
-        val newConf = ConfigFactory.parseReader(new InputStreamReader(System.in), parseOpts)
+        val newConf: Config =
+            if (trailing.isDefined && trailing.get.isDefined) {
+                val args = trailing.get.get
+                val confText = args.mkString(" ")
+                ConfigFactory.parseString(confText)
+            } else {
+                ConfigFactory.parseReader(new InputStreamReader(System.in), parseOpts)
+            }
 
         configurator.validate(newConf) foreach { k =>
             println(s"Installing config key that was not found in the schema: $k")
@@ -281,8 +362,40 @@ object DumpConf extends ConfigQuery("dump") with ConfCommand {
     descr("Prints out a dump of the configuration")
 
     override def run(configurator: MidoNodeConfigurator) = {
-        print(makeConfig(configurator).root().render(renderOpts))
+        print(configurator.dropSchema(makeConfig(configurator).resolve()).root().render(renderOpts))
         println()
+        ConfCommand.SUCCESS
+    }
+}
+
+object Doc extends Subcommand("doc") with ConfCommand {
+    descr("Query the schema information for a specific configuration key")
+
+    val key = trailArg[String](required = true, descr = "Configuration key")
+
+    override def run(configurator: MidoNodeConfigurator) = {
+        val conf = configurator.mergedSchemas().resolve()
+
+        try {
+            println(s"Key: ${key.get.get}")
+
+            if (conf.hasPath(s"${key.get.get}_type")) {
+                val t = conf.getString(s"${key.get.get}_type")
+                println(s"Type: $t")
+            }
+
+            val v = conf.getValue(key.get.get).unwrapped()
+            println(s"Default value: $v")
+
+            if (conf.hasPath(s"${key.get.get}_description")) {
+                val desc = conf.getString(s"${key.get.get}_description")
+                println(s"Documentation: $desc")
+            }
+
+        } catch {
+            case e: ConfigException.Missing => // ignored
+        }
+
         ConfCommand.SUCCESS
     }
 }
@@ -296,34 +409,29 @@ object GetConf extends ConfigQuery("get") with ConfCommand {
         val conf = makeConfig(configurator).resolve()
 
         try {
-            if (schema.get.get) {
-                try {
-                    val s = conf.getString(s"${key.get.get}_description")
-                    println(s"$s\n")
-                } catch {
-                    case e: ConfigException.Missing => // ignored.
-                }
-            }
-
             val v = conf.getValue(key.get.get).render(renderOpts)
             println(s"${key.get.get} = $v")
+            ConfCommand.SUCCESS
         } catch {
-            case e: ConfigException.Missing =>
-                if (schema.get.get)
-                    throw new Exception(s"Schema not found for ${key.get.get}")
+            case e: ConfigException.Missing => ConfCommand.NO_SUCH_KEY
         }
 
-        ConfCommand.SUCCESS
     }
 }
 
 abstract class ConfigQuery(name: String) extends Subcommand(name) {
     import ConfCommand._
 
-    val renderOpts = ConfigRenderOptions.defaults().setOriginComments(true).
+    val _renderOpts = ConfigRenderOptions.defaults().setOriginComments(true).
                                                     setComments(true).
                                                     setJson(false).
                                                     setFormatted(true)
+    val _schemaRenderOpts = ConfigRenderOptions.defaults().setOriginComments(false).
+                                                    setComments(true).
+                                                    setJson(false).
+                                                    setFormatted(true)
+
+    def renderOpts = if (schema.get.get) _schemaRenderOpts else _renderOpts
 
     val hostId = opt[String]("host", short = 'h', default = Some("local"), descr =
         "Queries configuration for a particular MidoNet node, defaults to the " +
@@ -406,7 +514,11 @@ object MidoConfTool extends App {
         val unset = UnsetConf
         val templateGet = GetTemplate
         val templateSet = SetTemplate
+        val listTemplate = ListTemplate
+        val clearTemplate = ClearTemplate
+        val listHosts = ListHosts
         val importConf = ImportConf
+        val doc = Doc
 
         printedName = "mn-conf"
         footer("Copyright (c) 2015 Midokura SARL, All Rights Reserved.")
