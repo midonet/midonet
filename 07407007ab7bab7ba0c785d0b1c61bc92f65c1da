@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_3160bea4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T14:40:05Z",
+      "side": 1,
+      "message": "The route weight was not available on remove: so I used\n\n  peerRoutes.remove(route) match {\n    case Some(rt) \u003d\u003e ...\n  }\n\nwould give the actual route that was added. But a set can be used too.",
+      "parentUuid": "facab960_91718aaa",
+      "range": {
+        "startLine": 229,
+        "startChar": 48,
+        "endLine": 229,
+        "endChar": 52
+      },
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_0e2ab78f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 3
