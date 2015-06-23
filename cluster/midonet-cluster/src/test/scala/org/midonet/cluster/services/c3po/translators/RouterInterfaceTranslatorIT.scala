@@ -26,6 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType}
 import org.midonet.cluster.models.Neutron.NeutronPort
+import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
 import org.midonet.cluster.services.c3po.translators.RouteManager.{gatewayRouteId, metadataServiceRouteId, routerInterfaceRouteId}
@@ -235,5 +236,36 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         checkRtNextHopIps(null)
     }
 
+    it should "get the router correctly even if not set on the port" in {
+        createTenantNetwork(2, tenantNetworkId)
+        createSubnet(3, subnetId, tenantNetworkId, "10.0.0.0/24")
+        createDhcpPort(4, dhcpPortId, tenantNetworkId, subnetId, "10.0.0.2")
+        createRouter(5, routerId)
 
+        val json = portJson(rifPortId, tenantNetworkId, null,
+                            deviceOwner = DeviceOwner.ROUTER_INTERFACE,
+                            macAddr = "ab:cd:ef:01:02:03",
+                            fixedIps = List(IPAlloc("10.0.0.3", subnetId.toString)),
+                            hostId = hostId, ifName = null)
+        insertCreateTask(6, PortType, json.toString, rifPortId)
+
+        // Creating a RouterInterface should result on a port being created on
+        // the router and linked to the network port.
+        createRouterInterface(7, routerId, rifPortId, subnetId)
+        val rPeerPortId = routerInterfacePortPeerId(rifPortId.asProto)
+        val rPort = eventually {
+            val Seq(nwPort, rPeerPort) = storage.getAll(
+                classOf[Port], Seq(rifPortId, rPeerPortId)).await()
+            nwPort.getPeerId shouldBe rPeerPort.getId
+            rPeerPort.getPeerId shouldBe nwPort.getId
+            rPeerPort.getPortAddress.getAddress shouldBe "10.0.0.3"
+            rPeerPort.getPortMac shouldBe "ab:cd:ef:01:02:03"
+            rPeerPort
+        }
+
+        rPort.getAdminStateUp shouldBe true
+        rPort.getPortAddress.getAddress shouldBe "10.0.0.3"
+        rPort.hasHostId shouldBe false
+        rPort.getRouterId shouldBe routerId.asProto
+    }
 }
