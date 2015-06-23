@@ -120,7 +120,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         replicator.accumulateNewKeys(conntrackTx, natTx, traceTx,
                                      leftPort.getId,
                                      List(rightPort.getId).asJava,
-                                     new HashSet(),
+                                     new ArrayList(),
                                      new ArrayList())
         conntrackTx.commit()
         conntrackTx.flush()

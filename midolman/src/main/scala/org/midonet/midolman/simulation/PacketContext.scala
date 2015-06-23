@@ -25,9 +25,12 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman._
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.{ArpRequestBroker, FlowStatePackets}
+import org.midonet.midolman.rules.RuleResult
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
+import org.midonet.sdn.flows.FlowTagger.DeviceTag
+
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
 import org.midonet.util.Clearable
@@ -53,7 +56,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
     val packetActions = new ArrayList[FlowAction]()
     // This Set stores the tags by which the flow may be indexed.
     // The index can be used to remove flows associated with the given tag.
-    val flowTags = new HashSet[FlowTag]()
+    val flowTags = new ArrayList[FlowTag]()
 
     def isDrop: Boolean = flowActions.isEmpty
 
@@ -65,8 +68,9 @@ trait FlowContext extends Clearable { this: PacketContext =>
         super.clear()
     }
 
-    def addFlowTag(tag: FlowTag): Unit =
+    def addFlowTag(tag: FlowTag): Unit = {
         flowTags.add(tag)
+    }
 
     def clearFlowTags(): Unit = {
         val it = flowTags.iterator
@@ -187,6 +191,22 @@ trait FlowContext extends Clearable { this: PacketContext =>
         }
 }
 
+trait RecordedContext extends Clearable {
+    val traversedRules = new ArrayList[UUID]
+    val traversedRuleResults = new ArrayList[RuleResult]
+
+    def recordTraversedRule(rule: UUID, result: RuleResult): Unit = {
+        traversedRules.add(rule)
+        traversedRuleResults.add(result)
+    }
+
+    override def clear(): Unit = {
+        traversedRules.clear()
+        traversedRuleResults.clear()
+        super.clear()
+    }
+}
+
 /**
  * The PacketContext represents the simulation of a packet traversing the
  * virtual topology. Since a simulation runs-to-completion, always in the
@@ -199,6 +219,7 @@ class PacketContext(val cookie: Int,
                     val origMatch: FlowMatch,
                     val egressPort: UUID = null) extends Clearable
                                                  with FlowContext
+                                                 with RecordedContext
                                                  with StateContext {
     var log = PacketContext.defaultLog
 

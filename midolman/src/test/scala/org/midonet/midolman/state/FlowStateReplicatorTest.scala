@@ -17,7 +17,8 @@
 package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
-import java.util.{ArrayList, HashSet => JHashSet, List => JList, Set => JSet, UUID}
+import java.util.{ArrayList, Collection, HashSet => JHashSet}
+import java.util.{List => JList, Set => JSet, UUID}
 import java.util.Random
 
 import scala.collection.JavaConverters._
@@ -172,7 +173,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
                                  ingressPort.id,
                                  List(egressPort1.id).asJava,
-                                 new JHashSet[FlowTag](),
+                                 new ArrayList[FlowTag](),
                                  new ArrayList[Callback0])
         sender.pushState(dpChannel)
         natTx.commit()
@@ -288,7 +289,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
                                      ingressPortNoGroup.id,
                                      List(egressPortNoGroup.id).asJava,
-                                     new JHashSet[FlowTag](),
+                                     new ArrayList[FlowTag](),
                                      new ArrayList[Callback0])
             sender.pushState(dpChannel)
             natTx.commit()
@@ -337,7 +338,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
                                      ingressPort.id,
                                      List(egressPort1.id).asJava,
-                                     new JHashSet[FlowTag](), callbacks)
+                                     new ArrayList[FlowTag](), callbacks)
 
             Then("The unref callbacks should have been correctly added")
 
@@ -365,7 +366,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             natTx.commit()
             sender.accumulateNewKeys(connTrackTx, natTx, traceTx,
                 ingressPort.id, List(egressPort1.id).asJava,
-                new JHashSet[FlowTag](), callbacks)
+                new ArrayList[FlowTag](), callbacks)
 
             Then("The unref callbacks should have been correctly added")
 
@@ -393,7 +394,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             traceTx.commit()
             sender.accumulateNewKeys(connTrackTx, natTx, traceTx, ingressPort.id,
                                      List(egressPort1.id).asJava,
-                                     new JHashSet[FlowTag](), callbacks)
+                                     new ArrayList[FlowTag](), callbacks)
 
             Then("The unref callbacks should have been correctly added")
 
@@ -418,7 +419,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
 
     feature("L4 flow state resolves hosts and ports correctly") {
         scenario("All relevant ingress and egress hosts and ports get detected") {
-            val tags = new JHashSet[FlowTag]()
+            val tags = new ArrayList[FlowTag]()
 
             When("The flow replicator resolves peers for a flow's state")
             val hosts = new JHashSet[UUID]()
@@ -514,7 +515,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
                                   egressPorts: JList[UUID],
                                   peers: JSet[UUID],
                                   ports: JSet[UUID],
-                                  tags: JSet[FlowTag]) {
+                                  tags: Collection[FlowTag]) {
             super.resolvePeers(ingressPort, egressPorts, peers, ports, tags)
         }
     }
