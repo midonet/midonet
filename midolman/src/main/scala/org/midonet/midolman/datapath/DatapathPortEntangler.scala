@@ -111,30 +111,21 @@ trait DatapathPortEntangler {
         })
 
     /**
-     * Register new interfaces, update their status or delete them.
+     * Register new interfaces or update their status.
      */
-    def updateInterfaces(itfs: JSet[InterfaceDescription]): Unit = {
-        val interfacesToDelete = new HashSet(interfaceToTriad.keySet())
-        val it = itfs.iterator()
-        while (it.hasNext) {
-            val itf = it.next()
-            interfacesToDelete.remove(itf.getName)
-            conveyor.handle(itf.getName, () => processInterface(itf, itf.getName))
-        }
+    def updateInterface(itf: InterfaceDescription): Unit =
+        conveyor.handle(itf.getName, () => processInterface(itf, itf.getName))
 
-        val toDelete = interfacesToDelete.iterator()
-        while (toDelete.hasNext) {
-            val ifname = toDelete.next()
-            if (!itfs.contains(ifname)) {
-                conveyor.handle(ifname, () =>
-                    if (interfaceToTriad.containsKey(ifname)) {
-                        deleteInterface(interfaceToTriad.get(ifname))
-                    } else {
-                        Future.successful(null)
-                    })
-            }
-        }
-    }
+    /**
+     * Deletes existing interfaces.
+     */
+    def deleteInterface(itf: InterfaceDescription): Unit =
+        conveyor.handle(itf.getName, () =>
+            if (interfaceToTriad.containsKey(itf.getName)) {
+                deleteInterface(interfaceToTriad.get(itf.getName))
+            } else {
+                Future.successful(null)
+            })
 
     /**
      * We do not support remapping a vport to a different interface or vice-versa.

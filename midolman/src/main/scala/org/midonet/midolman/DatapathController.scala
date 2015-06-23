@@ -17,10 +17,9 @@ package org.midonet.midolman
 
 import java.util.concurrent.ConcurrentHashMap
 import java.lang.{Integer => JInteger}
-import java.util.{Set => JSet, UUID}
+import java.util.UUID
 
 import scala.collection.JavaConverters._
-import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.Future
 import scala.reflect._
@@ -30,13 +29,14 @@ import akka.pattern.{after, pipe}
 import com.google.inject.Inject
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
-import rx.{Observer, Subscription}
+import rx.Subscription
 
 import org.midonet.cluster.data.TunnelZone.{HostConfig => TZHostConfig, Type => TunnelType}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathPortEntangler
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
+import org.midonet.midolman.host.scanner.InterfaceScanner._
 import org.midonet.midolman.io._
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.services.HostIdProviderService
@@ -44,7 +44,6 @@ import org.midonet.midolman.state.FlowStateStorageFactory
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{TunnelZoneRequest, ZoneChanged, ZoneMembers}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.rcu.ResolvedHost
-import org.midonet.netlink._
 import org.midonet.odp.flows.FlowActionOutput
 import org.midonet.odp.ports._
 import org.midonet.odp.{Datapath, DpPort, OvsConnectionOps}
@@ -52,6 +51,7 @@ import org.midonet.packets.{IPAddr, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.concurrent._
+import org.midonet.util.concurrent.ReactiveActor.{OnError, OnNext}
 
 object UnderlayResolver {
     case class Route(srcIp: Int, dstIp: Int, output: FlowActionOutput)
@@ -103,12 +103,6 @@ object DatapathController extends Referenceable {
     // because we can't inject midolmanConfig into Scala's companion object.
     var defaultMtu: Short = MidolmanConfig.DEFAULT_MTU
 
-    /**
-     * This message is sent when the separate thread has successfully
-     * retrieved all information about the interfaces.
-     */
-    case class InterfacesUpdate_(interfaces: Set[InterfaceDescription])
-
     // Signals that the tunnel ports have been created
     case object TunnelPortsCreated_
 
@@ -144,13 +138,13 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                                     upcallConnManager: UpcallDatapathConnectionManager,
                                     flowInvalidator: SimulationBackChannel,
                                     clock: NanoClock,
-                                    storageFactory: FlowStateStorageFactory,
-                                    val netlinkChannelFactory: NetlinkChannelFactory)
+                                    storageFactory: FlowStateStorageFactory)
         extends Actor
         with ActorLogWithoutPath
         with SingleThreadExecutionContextProvider
         with DatapathPortEntangler
-        with MtuIncreaser {
+        with MtuIncreaser
+        with ReactiveActor[InterfaceOp] {
 
     import org.midonet.midolman.DatapathController._
     import org.midonet.midolman.topology.VirtualToPhysicalMapper.TunnelZoneUnsubscribe
@@ -160,6 +154,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
     override def logSource = "org.midonet.datapath-control"
 
     var zones = Map[UUID, IPAddr]()
+    var interfaces = Map[String, InterfaceDescription]()
 
     var portWatcher: Subscription = null
 
@@ -175,6 +170,8 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
 
     override def postStop(): Unit = {
         super.postStop()
+        if (portWatcher ne null)
+            portWatcher.unsubscribe()
     }
 
     private def subscribeToHost(id: UUID): Unit = {
@@ -209,17 +206,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             subscribeToHost(hostService.hostId)
             log.info("Initialization complete. Starting to act as a controller.")
             context become receive
-            portWatcher = interfaceScanner.subscribe(
-                new Observer[Set[InterfaceDescription]] {
-                    def onCompleted(): Unit =
-                        log.debug("Interface scanner is completed.")
-
-                    def onError(t: Throwable): Unit =
-                        log.error(s"Interface scanner got an error: $t")
-
-                    def onNext(data: Set[InterfaceDescription]): Unit =
-                        self ! InterfacesUpdate_(data)
-                })
+            portWatcher = interfaceScanner subscribe this
     }
 
     def deleteExistingPort(port: DpPort, conn: OvsConnectionOps) = port match {
@@ -303,9 +290,19 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
             if (zones contains zone)
                 handleZoneChange(zone, zoneType, hostConfig, op)
 
-        case InterfacesUpdate_(interfaces) =>
-            updateInterfaces(interfaces)
-            setTunnelMtu(interfaces)
+        case OnNext(InterfaceUpdated(itf)) =>
+            updateInterface(itf)
+            interfaces += itf.getName -> itf
+            setTunnelMtu()
+
+        case OnNext(InterfaceDeleted(itf)) =>
+            deleteInterface(itf)
+            interfaces -= itf.getName
+            setTunnelMtu()
+
+        case OnError(t: Throwable) =>
+            log.error("Fatal error: stopped receiving interface updates", t)
+            throw t
     }
 
     def handleZoneChange(zone: UUID, t: TunnelType, config: TZHostConfig,
@@ -371,12 +368,13 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
         flowInvalidator.tell(FlowTagger.tagForDpPort(port.getPortNo))
     }
 
-    private def setTunnelMtu(interfaces: JSet[InterfaceDescription]) = {
+    private def setTunnelMtu() = {
         var minMtu = Short.MaxValue
         val overhead = VxLanTunnelPort.TunnelOverhead
 
-        for { intf <- interfaces.asScala
-              inetAddress <- intf.getInetAddresses.asScala
+        for { itf <- interfaces.values
+              if itf.isUp
+              inetAddress <- itf.getInetAddresses.asScala
               zone <- zones
               if zone._2.equalsInetAddress(inetAddress)
         } {

@@ -111,11 +111,11 @@ class ChainManager(val id: UUID, val clusterClient: Client)
                                      reqFactory: UUID => DeviceRequest): Unit = {
         idToRefCount.get(id) match {
             case Some(refCount) =>
-                log.debug(s"Increment refcount for $resourceType ${id} to ${refCount+1}")
+                log.debug(s"Increment refcount for $resourceType $id to ${refCount+1}")
                 idToRefCount.put(id, refCount + 1)
             case None =>
                 waitingForResources += 1
-                log.debug(s"now tracking ip address group $id, waiting "+
+                log.debug(s"now tracking $resourceType $id, waiting "+
                           s"for $waitingForResources resources.")
                 VirtualTopologyActor ! reqFactory(id)
                 idToRefCount.put(id, 1)

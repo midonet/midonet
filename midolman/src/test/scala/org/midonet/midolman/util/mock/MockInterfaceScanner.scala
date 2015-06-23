@@ -15,115 +15,36 @@
  */
 package org.midonet.midolman.util.mock
 
-import java.nio.ByteBuffer
-
 import scala.collection.mutable
 
-import rx.subjects.BehaviorSubject
-import rx.{Observable, Observer, Subscription}
+import rx.subjects.PublishSubject
+import rx._
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.netlink.rtnetlink.{Addr, Link, Neigh, Route}
-import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.util.functors._
+import org.midonet.midolman.host.scanner.InterfaceScanner._
 
 class MockInterfaceScanner extends InterfaceScanner {
 
-    private val interfaceDescriptions =
-        mutable.Map.empty[String, InterfaceDescription]
-
-    private val dummyNotification = ByteBuffer.allocate(1)
+    private val interfaceDescriptions = mutable.Map.empty[String, InterfaceDescription]
 
     def addInterface(itf: InterfaceDescription): Unit = {
         interfaceDescriptions.put(itf.getName , itf)
-        notificationSubject.onNext(dummyNotification)
+        notificationsSubject.onNext(InterfaceUpdated(itf))
     }
 
     def removeInterface(name: String): Unit = {
-        interfaceDescriptions.remove(name)
-        notificationSubject.onNext(dummyNotification)
+        val itf = interfaceDescriptions.remove(name)
+        if (itf.isDefined)
+            notificationsSubject.onNext(InterfaceDeleted(itf.get))
     }
 
-    private val notificationSubject = BehaviorSubject.create[ByteBuffer]()
+    private val notificationsSubject = PublishSubject.create[InterfaceOp]()
 
-    private val notifications: Observable[Set[InterfaceDescription]] =
-        notificationSubject.map(makeFunc1(
-            _ => interfaceDescriptions.values.toSet))
-
-    override
-    def subscribe(obs: Observer[Set[InterfaceDescription]]): Subscription = {
-        val subscription: Subscription = notifications.subscribe(obs)
-        obs.onNext(interfaceDescriptions.values.toSet)
-        subscription
+    override def subscribe(obs: Observer[InterfaceOp]): Subscription = {
+        interfaceDescriptions.values map InterfaceUpdated foreach obs.onNext
+        notificationsSubject.subscribe(obs)
     }
 
-    private def noop[T](observer: Observer[T], content: T): Unit = {
-        observer.onNext(content)
-        observer.onCompleted()
-    }
-
-    override
-    def routesCreate(dst: IPv4Addr, prefix: Int, gw: IPv4Addr,
-                     link: Link, observer: Observer[Boolean]): Unit =
-        noop(observer, true)
-
-    override
-    def linksSet(link: Link, observer: Observer[Boolean]): Unit =
-        noop(observer, true)
-
-    override
-    def linksList(observer: Observer[Set[Link]]): Unit =
-        noop(observer, Set.empty[Link])
-
-    /*    def routesDel(route: Route, observer: Observer[Boolean]): Unit */
-
-    override
-    def neighsList(observer: Observer[Set[Neigh]]): Unit =
-        noop(observer, Set.empty[Neigh])
-
-    override
-    def linksGet(ifindex: Int, observer: Observer[Link]): Unit =
-        noop(observer, new Link)
-
-    override
-    def routesGet(dst: IPv4Addr, observer: Observer[Route]): Unit =
-        noop(observer, new Route)
-
-    // def addrsGet(ifIndex: Int, observer: Observer[Addr]): Unit =
-
-    override
-    def addrsGet(ifIndex: Int, observer: Observer[Set[Addr]]): Unit =
-        noop(observer, Set.empty[Addr])
-
-    override
-    def addrsGet(ifIndex: Int, family: Byte,
-                          observer: Observer[Set[Addr]]): Unit =
-        noop(observer, Set.empty[Addr])
-
-    override
-    def linksSetAddr(link: Link, mac: MAC,
-                     observer: Observer[Boolean]): Unit =
-        noop(observer, true)
-
-    /*    def addrsCreate(addr: Addr, observer: Observer[Boolean]): Unit */
-
-    override
-    def routesList(observer: Observer[Set[Route]]): Unit =
-        noop(observer, Set.empty[Route])
-
-    /*    def linksDel(link: Link, observer: Observer[Boolean]): Unit */
-
-    override
-    def addrsList(observer: Observer[Set[Addr]]): Unit =
-        noop(observer, Set.empty[Addr])
-
-    override
-    def linksCreate(link: Link, observer: Observer[Link]): Unit =
-        noop(observer, link)
-
-    override def start(): Unit = {}
-
-    override def stop(): Unit = {}
+    override def close(): Unit = {}
 }
-

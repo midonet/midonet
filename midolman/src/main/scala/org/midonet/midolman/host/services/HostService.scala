@@ -17,10 +17,9 @@
 package org.midonet.midolman.host.services
 
 import java.net.{InetAddress, UnknownHostException}
+import java.util.{ConcurrentModificationException, HashSet, UUID}
+import java.util.concurrent.{ConcurrentHashMap, TimeoutException}
 import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.{CountDownLatch, TimeUnit, TimeoutException}
-import java.util.{ConcurrentModificationException, UUID}
-
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
@@ -32,6 +31,7 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 import com.google.inject.name.Named
+import org.midonet.midolman.host.scanner.InterfaceScanner.{InterfaceDeleted, InterfaceUpdated, InterfaceOp}
 
 import rx.{Observer, Subscription}
 
@@ -112,9 +112,7 @@ class HostService @Inject()(config: MidolmanConfig,
     @volatile private var hostName: String = "UNKNOWN"
     private val epoch: Long = System.currentTimeMillis
 
-    private val interfacesLatch = new CountDownLatch(1)
-    @volatile private var currentInterfaces: Set[InterfaceDescription] = null
-    @volatile private var oldInterfaces: Set[InterfaceDescription] = null
+    private val currentInterfaces = new ConcurrentHashMap[String, InterfaceDescription]()
     @volatile private var scannerSubscription: Subscription = null
 
     private val aliveState = new AtomicReference(OwnershipState.Released)
@@ -156,22 +154,29 @@ class HostService @Inject()(config: MidolmanConfig,
     override def doStart(): Unit = {
         log.info("Starting MidoNet agent host service")
         try {
-            scanner.start()
-            scanner.subscribe(new Observer[Set[InterfaceDescription]] {
-                override def onCompleted(): Unit = {
-                    log.debug("Interface updating is completed.")
-                }
+            scanner.subscribe(obs = new Observer[InterfaceOp] {
+                override def onCompleted(): Unit = {}
+
                 override def onError(t: Throwable): Unit = {
-                    log.error("Got the error: {}", t)
+                    log.error("Got unexpected error", t)
+                    System.exit(Midolman.MIDOLMAN_ERROR_CODE_UNABLE_TO_SCAN_INTERFACES)
                 }
-                override def onNext(data: Set[InterfaceDescription]): Unit = {
-                    oldInterfaces = currentInterfaces
-                    currentInterfaces = data
-                    interfacesLatch.countDown()
+
+                override def onNext(data: InterfaceOp): Unit = {
+                    val curIf = currentInterfaces.get(data.desc.getName)
+                    var updated = false
+                    data match {
+                        case InterfaceUpdated(desc) if desc ne curIf =>
+                            currentInterfaces.put(desc.getName, desc)
+                            updated = true
+                        case InterfaceDeleted(desc) if desc ne null =>
+                            currentInterfaces.remove(desc.getName)
+                            updated = true
+                        case _ =>
+                    }
                     // Do not update if the interfaces have not changed or if the
                     // service has not yet acquired the host ownership.
-                    if ((oldInterfaces == currentInterfaces) ||
-                        (aliveState.get != OwnershipState.Acquired)) {
+                    if (!updated || aliveState.get != OwnershipState.Acquired) {
                         return
                     }
                     if (backendConfig.useNewStack) {
@@ -201,7 +206,7 @@ class HostService @Inject()(config: MidolmanConfig,
     override def doStop(): Unit = {
         log.info("Stopping MidoNet agent host service")
         aliveState.set(OwnershipState.Released)
-        scanner.stop()
+        scanner.close()
 
         if (scannerSubscription ne null) {
             scannerSubscription.unsubscribe()
@@ -249,10 +254,6 @@ class HostService @Inject()(config: MidolmanConfig,
     @throws[PropertiesFileNotWritableException]
     private def identifyHost(): Unit = {
         log.debug("Identifying host")
-        if (!interfacesLatch.await(InterfacesTimeoutInSecs, TimeUnit.SECONDS)) {
-            throw new IllegalStateException(
-                "Timeout while waiting for interfaces")
-        }
         hostIdInternal = HostIdGenerator.getHostId
         try {
             hostName = InetAddress.getLocalHost.getHostName
@@ -402,7 +403,7 @@ class HostService @Inject()(config: MidolmanConfig,
                 log.error("Unrecoverable error when acquiring ownership for" +
                           "host {}: calling shutdown method", hostId, e)
                 aliveState.set(OwnershipState.Released)
-                try { scanner.stop() } catch { case NonFatal(_) => }
+                try { scanner.close() } catch { case NonFatal(_) => }
                 if (scannerSubscription ne null) {
                     scannerSubscription.unsubscribe()
                     scannerSubscription = null
@@ -438,8 +439,8 @@ class HostService @Inject()(config: MidolmanConfig,
      */
     private def updateInterfacesInV1(): Unit = {
         log.debug("Updating host interfaces {}: {}", hostId, currentInterfaces)
-        interfaceDataUpdater.updateInterfacesData(hostId, null,
-            currentInterfaces.asJava)
+        interfaceDataUpdater.updateInterfacesData(
+            hostId, null, new HashSet(currentInterfaces.values()))
     }
 
     /**
@@ -474,7 +475,7 @@ class HostService @Inject()(config: MidolmanConfig,
         State.HostState.newBuilder()
             .setHostId(UUIDUtil.toProto(hostId))
             .addAllInterfaces(
-                currentInterfaces.map(
+                currentInterfaces.values().asScala.map(
                     ZoomConvert.toProto(_, classOf[State.HostState.Interface]))
                     .asJava)
             .build()
@@ -483,7 +484,6 @@ class HostService @Inject()(config: MidolmanConfig,
 
     /** Returns the current set of IP addresses for this host. */
     private def getInterfaceAddresses: Seq[InetAddress] = {
-        currentInterfaces.toList.flatMap(_.getInetAddresses.asScala).toSeq
+        currentInterfaces.values().asScala.flatMap(_.getInetAddresses.asScala).toSeq
     }
-
 }

@@ -32,8 +32,7 @@ import org.midonet.midolman.state.{FlowStateStorageFactory, MockStateStorage}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.mock.{MessageAccumulator, MockInterfaceScanner}
-import org.midonet.midolman.util.{MidolmanSpec, MockNetlinkChannelFactory}
-import org.midonet.netlink.NetlinkProtocol
+import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.ports._
 import org.midonet.odp.{Datapath, DpPort}
 import org.midonet.packets.IPv4Addr
@@ -92,8 +91,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
             clock,
             new FlowStateStorageFactory() {
                 override def create() = Future.successful(new MockStateStorage())
-            },
-        new MockNetlinkChannelFactory) {
+            }) {
     }
 
     var dpc: TestableDpC = _

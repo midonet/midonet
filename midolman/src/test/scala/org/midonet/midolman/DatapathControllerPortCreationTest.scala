@@ -60,8 +60,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             injector.getInstance(classOf[UpcallDatapathConnectionManager]),
             flowInvalidator,
             clock,
-            injector.getInstance(classOf[FlowStateStorageFactory]),
-            new MockNetlinkChannelFactory)))
+            injector.getInstance(classOf[FlowStateStorageFactory]))))
 
     override def beforeTest() {
         testableDpc = DatapathController.as[DatapathController]

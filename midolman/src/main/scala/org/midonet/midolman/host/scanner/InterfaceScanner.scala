@@ -16,34 +16,26 @@
 
 package org.midonet.midolman.host.scanner
 
+import org.midonet.midolman.host.scanner.InterfaceScanner.InterfaceOp
 import rx.{Observer, Subscription}
 
 import org.midonet.midolman.host.interfaces.InterfaceDescription
-import org.midonet.netlink.rtnetlink.AbstractRtnetlinkConnection
 
+object InterfaceScanner {
+    sealed trait InterfaceOp {
+        val desc: InterfaceDescription
+    }
+    case object NoOp extends InterfaceOp {
+        val desc = null
+    }
+    case class InterfaceUpdated(desc: InterfaceDescription) extends InterfaceOp
+    case class InterfaceDeleted(desc: InterfaceDescription) extends InterfaceOp
+}
 /**
- * Interface data scanning API. It's job is scan and find out the
- * current list of interface data from the local system and notify
- * observers whenever there are changes.
+ * This class listens for interface changes and propagates them
+ * to the subscribers.
  */
-trait InterfaceScanner extends AbstractRtnetlinkConnection {
-    /**
-     * Let an Observer subscribe notifications from InterfaceScanner.
-     *
-     * @param obs an Observer to subscribe a published set of all L2 Ethernet
-     *            interfaces on the host notified when a interface is
-     *            added/remove to/from the host.
-     * @return Subscription object through which users can unsubscribe events
-     *         from InterfaceScanner.
-     */
-    def subscribe(obs: Observer[Set[InterfaceDescription]]): Subscription
-    /**
-     * Start scanning and notifying the interfaces on the host.
-     */
-    def start(): Unit
-
-    /**
-     * Stop scanning and notifying the interfaces on the host.
-     */
-    def stop(): Unit
+trait InterfaceScanner {
+    def subscribe(obs: Observer[InterfaceOp]): Subscription
+    def close(): Unit
 }

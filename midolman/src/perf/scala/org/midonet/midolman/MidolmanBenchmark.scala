@@ -41,7 +41,7 @@ import org.midonet.midolman.services.{DatapathConnectionService, HostIdProviderS
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.midolman.util.{MidolmanServices, VirtualConfigurationBuilders, VirtualTopologyHelper}
-import org.midonet.util.concurrent.{MockClock, NanoClock}
+import org.midonet.util.concurrent.NanoClock
 
 trait MidolmanBenchmark extends MockMidolmanActors
                         with MidolmanServices

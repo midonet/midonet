@@ -16,261 +16,239 @@
 
 package org.midonet.midolman.host.scanner
 
-import java.util.concurrent.CountDownLatch
-
 import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Promise
 import scala.sys.process._
 
 import com.typesafe.scalalogging.Logger
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.{BeforeAndAfterAll, FeatureSpec, Matchers}
-import org.scalatest.time._
-import org.slf4j.LoggerFactory
-import rx.{Subscription, Observer}
+import org.midonet.netlink.NetlinkChannelFactory
 
-import org.midonet.midolman.host.interfaces.InterfaceDescription
+import org.slf4j.LoggerFactory
+import rx.Observer
+
+import org.midonet.midolman.host.scanner.InterfaceScanner._
 import org.midonet.odp.util.TapWrapper
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.IntegrationTests._
 
 object InterfaceScannerTest {
-    val TEST_IF_NAME = "if-scanner-test"
-    val TEST_IP_ADDR = "192.168.142.42"
-    val TEST_TIMEOUT_SPAN = Span(2, Seconds)
+    val TestIfName = "if-scanner-test"
+    val TestIpAddr = "192.168.142.42"
 }
 
-@RunWith(classOf[JUnitRunner])
-class InterfaceScannerTest extends FeatureSpec
-                           with BeforeAndAfterAll
-                           with Matchers
-                           with ScalaFutures {
+trait InterfaceScannerTest {
     import InterfaceScannerTest._
 
-    val scanner: InterfaceScanner = DefaultInterfaceScanner()
-    val logger = Logger(LoggerFactory.getLogger(classOf[InterfaceScannerTest]))
-    private var interfaceDescriptions: Set[InterfaceDescription] = Set.empty
+    val scanner: InterfaceScanner
+    val logger: Logger
 
-    override def beforeAll(): Unit = {
-        val initialScanSignal = new CountDownLatch(1)
-        scanner.start()
-        scanner.subscribe(new Observer[Set[InterfaceDescription]] {
+    def stop(): Unit = {
+        scanner.close()
+    }
+
+    def newLinkTest: Test = {
+        val desc = """Creating a new link triggers the notification
+                   """.stripMargin.replaceAll("\n", " ")
+        val promise = Promise()
+
+        val subscription = scanner.subscribe(new Observer[InterfaceOp] {
             override def onCompleted(): Unit =
-                logger.debug("notification observer is completed.")
+                promise.tryFailure(new Exception("Did not get notified about new link"))
             override def onError(t: Throwable): Unit =
-                logger.error(s"notification observer got the error $t")
-            override def onNext(descs: Set[InterfaceDescription]): Unit = {
-                logger.debug(s"notification observer got the ifDescs: ", descs)
-                interfaceDescriptions = descs
-                initialScanSignal.countDown()
-            }
+                promise.tryFailure(t)
+            override def onNext(itfOp: InterfaceOp): Unit =
+                itfOp match {
+                    case InterfaceUpdated(itf) if itf.getName == TestIfName =>
+                        promise.tryComplete(null)
+                    case _ =>
+                }
         })
-        initialScanSignal.await()
-    }
 
-    override def afterAll(): Unit = {
-        scanner.stop()
-    }
+        val tap = new TapWrapper(TestIfName, true)
+        tap.up()
 
-    feature("Interface scanner") {
-        scenario("Creating a new link triggers the notification") {
-            implicit val promise = Promise[String]()
-
-            val originalIfDescSize: Int = interfaceDescriptions.size
-
-            scanner.subscribe(new Observer[Set[InterfaceDescription]] {
-                private var initialScanned = false
-                val obs = TestObserver { descs: Set[InterfaceDescription] =>
-                    descs.exists(desc => desc.getName == TEST_IF_NAME)
-                }
-                override def onCompleted(): Unit = obs.onCompleted()
-                override def onError(t: Throwable): Unit = obs.onError(t)
-                override def onNext(descs: Set[InterfaceDescription]): Unit = {
-                    if (initialScanned &&
-                        (descs.size == (originalIfDescSize + 1))) {
-                        obs.onNext(descs)
-                        obs.onCompleted()
-                    } else {
-                        initialScanned = true  // Ignore the initial scan.
-                    }
-                }
-            })
-
-            val tap = new TapWrapper(TEST_IF_NAME, true)
-            tap.up()
-
-            try {
-                whenReady(promise.future, timeout(TEST_TIMEOUT_SPAN)) {
-                    result: String  => result should be (OK)
-                }
-            } finally {
-                tap.down()
-                tap.remove()
-            }
-        }
-
-        scenario("Deleting a new link triggers the notification") {
-            implicit val promise = Promise[String]()
-            val tap = new TapWrapper(TEST_IF_NAME, true)
-            tap.up()
-
-            val originalIfDescSize: Int = interfaceDescriptions.size
-
+        promise.future.onComplete { case _ =>
             tap.down()
-
-            scanner.subscribe(new Observer[Set[InterfaceDescription]] {
-                private var initialScanned = false
-                val obs = TestObserver { descs: Set[InterfaceDescription] =>
-                    !descs.exists(desc => desc.getName == TEST_IF_NAME)
-                }
-                override def onCompleted(): Unit = obs.onCompleted()
-                override def onError(t: Throwable): Unit = obs.onError(t)
-                override def onNext(descs: Set[InterfaceDescription]): Unit = {
-                    if (initialScanned &&
-                        (descs.size == (originalIfDescSize - 1))) {
-                        obs.onNext(descs)
-                        obs.onCompleted()
-                    } else {
-                        initialScanned = true  // Ignore the initial scan.
-                    }
-                }
-            })
-
             tap.remove()
-
-            whenReady(promise.future, timeout(TEST_TIMEOUT_SPAN)) {
-                result: String => result should be (OK)
-            }
+            subscription.unsubscribe()
         }
 
-        scenario("Creating a new addr triggers the notification") {
-            implicit val promise = Promise[String]()
-            val tap = new TapWrapper(TEST_IF_NAME, true)
-            tap.up()
-
-            val originalIfDescSize: Int = interfaceDescriptions.size
-
-            scanner.subscribe(new Observer[Set[InterfaceDescription]] {
-                private var initialScanned = false
-                val obs = TestObserver { descs: Set[InterfaceDescription] =>
-                    descs.exists(desc =>
-                        desc.getInetAddresses.exists(inetAddr =>
-                            inetAddr.getAddress.length == 4 &&
-                                IPv4Addr.fromBytes(inetAddr.getAddress) ==
-                                    IPv4Addr.fromString(TEST_IP_ADDR)))
-                }
-                override def onCompleted(): Unit = obs.onCompleted()
-                override def onError(t: Throwable): Unit = obs.onError(t)
-                override def onNext(descs: Set[InterfaceDescription]): Unit = {
-                    if (initialScanned && (descs.size == originalIfDescSize)) {
-                        obs.onNext(descs)
-                        obs.onCompleted()
-                    } else {
-                        initialScanned = true  // Ignore the initial scan.
-                    }
-                }
-            })
-
-            if (s"ip a add $TEST_IP_ADDR dev $TEST_IF_NAME".! != 0) {
-                promise.failure(TestPrepareException)
-            }
-
-            try {
-                whenReady(promise.future, timeout(TEST_TIMEOUT_SPAN)) {
-                    result: String => result should be (OK)
-                }
-            } finally {
-                s"ip address flush dev $TEST_IF_NAME".!
-                tap.down()
-                tap.remove()
-            }
-        }
-
-        scenario("Deleting a new addr triggers the notification") {
-            implicit val promise = Promise[String]()
-            val tap = new TapWrapper(TEST_IF_NAME, true)
-            tap.up()
-
-            val originalIfDescSize: Int = interfaceDescriptions.size
-
-            if (s"ip a add $TEST_IP_ADDR dev $TEST_IF_NAME".! != 0) {
-                promise.failure(TestPrepareException)
-            }
-
-            scanner.subscribe(new Observer[Set[InterfaceDescription]] {
-                private var initialScanned = false
-                val obs = TestObserver { descs: Set[InterfaceDescription] =>
-                    !descs.exists(desc =>
-                        desc.getInetAddresses.exists(inetAddr =>
-                            inetAddr.getAddress.length == 4 &&
-                                IPv4Addr.fromBytes(inetAddr.getAddress) ==
-                                    IPv4Addr.fromString(TEST_IP_ADDR)))
-                }
-                override def onCompleted(): Unit = obs.onCompleted()
-                override def onError(t: Throwable): Unit = obs.onError(t)
-                override def onNext(descs: Set[InterfaceDescription]): Unit = {
-                    if (initialScanned && (descs.size == originalIfDescSize)) {
-                        obs.onNext(descs)
-                        obs.onCompleted()
-                    } else {
-                        initialScanned = true  // Ignore the initial scan.
-                    }
-                }
-            })
-
-            if (s"ip address del $TEST_IP_ADDR dev $TEST_IF_NAME".! != 0) {
-                promise.tryFailure(TestPrepareException)
-            }
-
-
-            try {
-                whenReady(promise.future, timeout(TEST_TIMEOUT_SPAN)) {
-                    result: String => result should be (OK)
-                }
-            } finally {
-                tap.down()
-                tap.remove()
-            }
-        }
-
-        scenario("""Subscribing the interface scanner should notify the
-                   |current interface descriptions.
-                 """.stripMargin.replaceAll("\n", " ")) {
-            implicit val promise = Promise[String]()
-            val tap = new TapWrapper(TEST_IF_NAME, true)
-            tap.up()
-
-            val subscription: Subscription =
-                scanner.subscribe(new Observer[Set[InterfaceDescription]] {
-                    private var initialScanned = false
-                    val obs = TestObserver { descs: Set[InterfaceDescription] =>
-                        descs == interfaceDescriptions
-                    }
-
-                    override def onCompleted(): Unit = obs.onCompleted()
-
-                    override def onError(t: Throwable): Unit = obs.onError(t)
-
-                    override
-                    def onNext(descs: Set[InterfaceDescription]): Unit =
-                        if (!initialScanned) {
-                            obs.onNext(descs)
-                            obs.onCompleted()
-                            initialScanned = true
-                        }
-                })
-
-            try {
-                whenReady(promise.future, timeout(TEST_TIMEOUT_SPAN)) {
-                    result: String => result should be (OK)
-                }
-            } finally {
-                subscription.unsubscribe()
-                tap.down()
-                tap.remove()
-            }
-        }
+        (desc, promise.future)
     }
+
+    val NewLinkTest: LazyTest = () => newLinkTest
+
+    def delLinkTest: Test = {
+        val desc = """Deleting a new link triggers the notification
+                   """.stripMargin.replaceAll("\n", " ")
+        val promise = Promise()
+        val tap = new TapWrapper(TestIfName, true)
+        tap.up()
+        tap.down()
+
+        val subscription = scanner.subscribe(new Observer[InterfaceOp] {
+            override def onCompleted(): Unit =
+                promise.tryFailure(new Exception("Did not get notified about link removal"))
+            override def onError(t: Throwable): Unit =
+                promise.tryFailure(t)
+            override def onNext(itfOp: InterfaceOp): Unit =
+                itfOp match {
+                    case InterfaceDeleted(itf) if itf.getName == TestIfName =>
+                        promise.tryComplete(null)
+                    case _ =>
+                }
+        })
+
+        tap.remove()
+
+        promise.future.onComplete { case _ =>
+            subscription.unsubscribe()
+        }
+
+        (desc, promise.future)
+    }
+
+    val DelLinkTest: LazyTest = () => delLinkTest
+
+    def newAddrTest: Test = {
+        val desc = """Creating a new addr triggers the notification
+                   """.stripMargin.replaceAll("\n", " ")
+        val promise = Promise()
+        val tap = new TapWrapper(TestIfName, true)
+        tap.up()
+
+        val subscription = scanner.subscribe(new Observer[InterfaceOp] {
+            override def onCompleted(): Unit =
+                promise.tryFailure(new Exception("Did not get notified about new address"))
+            override def onError(t: Throwable): Unit =
+                promise.tryFailure(t)
+            override def onNext(itfOp: InterfaceOp): Unit =
+                itfOp match {
+                    case InterfaceUpdated(itf) if itf.getName == TestIfName =>
+                        if (itf.getInetAddresses.exists(
+                                IPv4Addr.fromString(TestIpAddr).equalsInetAddress))
+                            promise.tryComplete(null)
+                    case _ =>
+                }
+        })
+
+        if (s"ip a add $TestIpAddr dev $TestIfName".! != 0) {
+            promise.failure(TestPrepareException)
+        }
+
+        promise.future.onComplete { case _ =>
+            s"ip address flush dev $TestIfName".!
+            tap.down()
+            tap.remove()
+            subscription.unsubscribe()
+        }
+
+        (desc, promise.future)
+    }
+    val NewAddrTest: LazyTest = () => newAddrTest
+
+    def delAddrTest: Test = {
+        val desc = """Deleting a new addr triggers the notification
+                   """.stripMargin.replaceAll("\n", " ")
+        val promise = Promise()
+        val tap = new TapWrapper(TestIfName, true)
+        tap.up()
+
+        if (s"ip a add $TestIpAddr dev $TestIfName".! != 0) {
+            promise.failure(TestPrepareException)
+        }
+
+        var sawAddress = false
+        val subscription = scanner.subscribe(new Observer[InterfaceOp] {
+            override def onCompleted(): Unit =
+                promise.tryFailure(new Exception("Did not get notified about new address"))
+            override def onError(t: Throwable): Unit =
+                promise.tryFailure(t)
+            override def onNext(itfOp: InterfaceOp): Unit =
+                itfOp match {
+                    case InterfaceUpdated(itf) if itf.getName == TestIfName =>
+                        if (itf.getInetAddresses.exists(
+                                IPv4Addr.fromString(TestIpAddr).equalsInetAddress))
+                            sawAddress = true
+                        else if (sawAddress)
+                            promise.tryComplete(null)
+                    case _ =>
+                }
+        })
+
+        if (s"ip address del $TestIpAddr dev $TestIfName".! != 0) {
+            promise.tryFailure(TestPrepareException)
+        }
+
+        promise.future.andThen { case _ =>
+            tap.down()
+            tap.remove()
+            subscription.unsubscribe()
+        }
+
+        (desc, promise.future)
+    }
+    val DelAddrTest: LazyTest = () => delAddrTest
+
+    def initialSubscriptionTest: Test = {
+        val desc = """Subscribing the interface scanner should notify the
+                   |current interface descriptions.
+                   """.stripMargin.replaceAll("\n", " ")
+        val promise = Promise()
+        val tap = new TapWrapper(TestIfName, true)
+        tap.up()
+
+        val subscription = scanner.subscribe(new Observer[InterfaceOp] {
+            override def onCompleted(): Unit =
+                promise.tryFailure(new Exception("Did not get notified about new link"))
+            override def onError(t: Throwable): Unit =
+                promise.tryFailure(t)
+            override def onNext(itfOp: InterfaceOp): Unit =
+                itfOp match {
+                    case InterfaceUpdated(itf) if itf.getName == TestIfName =>
+                        promise.tryComplete(null)
+                    case _ =>
+                }
+        })
+
+        promise.future.andThen { case _ =>
+            tap.down()
+            tap.remove()
+            subscription.unsubscribe()
+        }
+
+        (desc, promise.future)
+    }
+
+    val InitialSubscriptionTest: LazyTest = () => initialSubscriptionTest
+    val SubscriptionTests: LazyTestSuite = Seq(InitialSubscriptionTest)
+
+    val LinkTests: LazyTestSuite = Seq(NewLinkTest, DelLinkTest)
+    val AddrTests: LazyTestSuite = Seq(NewAddrTest, DelAddrTest)
 }
+
+class DefaultInterfaceScannerIntegrationTestBase
+        extends InterfaceScannerIntegrationTest {
+    override val scanner = new RtnetlinkInterfaceScanner(new NetlinkChannelFactory)
+    override val logger: Logger = Logger(LoggerFactory.getLogger(
+        classOf[DefaultInterfaceScannerIntegrationTestBase]))
+
+    def run(): Boolean = {
+        var passed = true
+        try {
+            passed &= printReport(runLazySuite(LinkTests))
+            passed &= printReport(runLazySuite(AddrTests))
+            passed &= printReport(runLazySuite(SubscriptionTests))
+        } finally {
+            stop()
+        }
+        passed
+    }
+
+    def main(args: Array[String]): Unit =
+        System.exit(if (run()) 0 else 1)
+}
+
+object DefaultInterfaceScannerIntegrationTest
+        extends DefaultInterfaceScannerIntegrationTestBase

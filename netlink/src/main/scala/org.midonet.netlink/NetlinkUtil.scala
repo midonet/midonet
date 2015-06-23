@@ -17,9 +17,6 @@
 package org.midonet.netlink
 
 import java.nio.ByteBuffer
-import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException}
-
-import rx.Observer
 
 import org.midonet.netlink.rtnetlink.Rtnetlink
 
@@ -43,49 +40,11 @@ object NetlinkUtil {
         Rtnetlink.Group.IPV6_ROUTE.bitmask |
         Rtnetlink.Group.IPV6_PREFIX.bitmask |
         Rtnetlink.Group.IPV6_RULE.bitmask
-    // $ python -c "print hex(0b00000000000000000000000000010000)"
-    // 0x10
+
     val DEFAULT_OVS_GROUPS: Int = 0x10
-    val INITIAL_SEQ: Int = -1
     val NETLINK_READ_BUF_SIZE: Int = 0x01000  // Defaults to the page size, 4k
 
     val AlwaysTrueReader: Reader[Boolean] = new Reader[Boolean] {
         override def deserializeFrom(source: ByteBuffer) = true
     }
-
-    /**
-     * Repeatedly reads the netlink notifications from the kernel.
-     *
-     * @param notificationChannel the Netlink channel to read
-     * @param notificationReader the reader of the netlink channel
-     * @param notificationReadBuf the buffer for reading notifications
-     * @param headerSize the size of the Netlink header
-     * @param notificationObserver the Observer which onNext is callled with the
-     *                             populated notificatonReadBuf
-     * @throws java.nio.channels.ClosedByInterruptException
-     * @throws java.nio.channels.AsynchronousCloseException
-     */
-    @throws(classOf[ClosedByInterruptException])
-    @throws(classOf[AsynchronousCloseException])
-    def readNetlinkNotifications(notificationChannel: NetlinkChannel,
-                                 notificationReader: NetlinkReader,
-                                 notificationReadBuf: ByteBuffer,
-                                 headerSize: Int,
-                                 notificationObserver: Observer[ByteBuffer]) =
-        while (notificationChannel.isOpen) {
-            val nbytes = notificationReader.read(notificationReadBuf)
-            if (nbytes > 0) {
-                notificationReadBuf.flip()
-                val nlType = notificationReadBuf.getShort(
-                    NetlinkMessage.NLMSG_TYPE_OFFSET)
-                val size = notificationReadBuf.getInt(
-                    NetlinkMessage.NLMSG_LEN_OFFSET)
-                if (nlType >= NLMessageType.NLMSG_MIN_TYPE &&
-                    size >= headerSize) {
-                    notificationReadBuf.limit(size)
-                    notificationObserver.onNext(notificationReadBuf)
-                }
-            }
-            notificationReadBuf.clear()
-        }
 }

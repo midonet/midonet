@@ -70,6 +70,7 @@ public class Midolman {
 
     public static final int MIDOLMAN_ERROR_CODE_MISSING_CONFIG_FILE = 1;
     public static final int MIDOLMAN_ERROR_CODE_LOST_HOST_OWNERSHIP = 2;
+    public static final int MIDOLMAN_ERROR_CODE_UNABLE_TO_SCAN_INTERFACES = 3;
 
     private Injector injector;
 

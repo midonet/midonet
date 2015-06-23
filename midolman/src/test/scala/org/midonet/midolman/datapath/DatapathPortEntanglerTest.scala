@@ -84,11 +84,9 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     case class Interface(port: String, isUp: Boolean, internal: Boolean = false) extends DatapathOperation {
 
         override def act(): Unit = {
-            val ifts = new HashSet[InterfaceDescription]()
             val ift = new InterfaceDescription(port)
             ift.setUp(isUp)
-            ifts.add(ift)
-            entangler.updateInterfaces(ifts)
+            entangler.updateInterface(ift)
         }
 
         override def validate(prevInterfaceToTriad: Map[String, DpTriad]): Unit = {
@@ -174,7 +172,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
     case class InterfaceDeleted(port: String, internal: Boolean = false) extends DatapathOperation {
 
         override def act(): Unit = {
-            entangler.updateInterfaces(new HashSet[InterfaceDescription]())
+            entangler.deleteInterface(new InterfaceDescription(port))
         }
 
         override def validate(prevInterfaceToTriad: Map[String, DpTriad]): Unit = {
@@ -433,7 +431,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         val desc = new InterfaceDescription("eth1")
         desc.setUp(true)
         entangler.updateVPortInterfaceBindings(Map(id -> binding))
-        entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
+        entangler.updateInterface(desc)
 
         entangler.portActive should be (false)
         entangler.interfaceToTriad containsKey "eth1" should be (true)
@@ -441,7 +439,7 @@ class DatapathPortEntanglerTest extends FlatSpec with ShouldMatchers with OneIns
         entangler.dpPortNumToTriad containsKey 1 should be (false)
         entangler.keyToTriad containsKey 1 should be (false)
 
-        entangler.updateInterfaces(new HashSet[InterfaceDescription] { add(desc) })
+        entangler.updateInterface(desc)
 
         (entangler.interfaceToTriad get "eth1" dpPort) should be (
             DpPort.fakeFrom(new NetDevPort("eth1"), 1))

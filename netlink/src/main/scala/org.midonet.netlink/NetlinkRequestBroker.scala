@@ -95,18 +95,13 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
                                  maxRequestSize: Int,
                                  readBuf: ByteBuffer,
                                  clock: NanoClock,
-                                 timeout: Duration = 10 seconds) {
+                                 timeout: Duration = 10 seconds,
+                                 headerSize: Int = NetlinkMessage.GENL_HEADER_SIZE) {
     import NetlinkRequestBroker._
 
     val capacity = Util.findNextPositivePowerOfTwo(maxPendingRequests)
     private val mask = capacity - 1
     private val indexShift = Util.highestBit(capacity)
-    private val headerSize: Int =
-        if (reader.channel.getProtocol == NetlinkProtocol.NETLINK_GENERIC) {
-            NetlinkMessage.GENL_HEADER_SIZE
-        } else {
-            NetlinkMessage.HEADER_SIZE
-        }
 
     /**
      * The pre-allocated buffer. Each request is assigned a slice from this buffer.

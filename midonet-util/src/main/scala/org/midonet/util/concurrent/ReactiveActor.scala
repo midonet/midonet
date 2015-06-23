@@ -25,7 +25,7 @@ object ReactiveActor {
     case class OnNext[+D <: AnyRef](value: D)
         extends ReactiveAction
     case class OnError(e: Throwable) extends ReactiveAction
-    case class OnCompleted() extends ReactiveAction
+    case object OnCompleted extends ReactiveAction
 
 }
 

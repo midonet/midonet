@@ -39,7 +39,7 @@ object NetlinkReader {
 /**
  * Utility class to read Netlink messages off a channel.
  */
-class NetlinkReader(val channel: NetlinkChannel) {
+class NetlinkReader(channel: NetlinkChannel) {
 
     import NetlinkReader._
 

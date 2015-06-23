@@ -16,13 +16,12 @@
 package org.midonet.midolman.host.guice;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 import org.midonet.midolman.config.MidolmanConfig;
-import org.midonet.midolman.host.scanner.DefaultInterfaceScanner;
+import org.midonet.midolman.host.scanner.RtnetlinkInterfaceScanner;
 import org.midonet.midolman.host.scanner.InterfaceScanner;
 import org.midonet.midolman.host.services.HostService;
 import org.midonet.midolman.host.state.HostZkManager;
@@ -30,8 +29,6 @@ import org.midonet.midolman.host.updater.DefaultInterfaceDataUpdater;
 import org.midonet.midolman.host.updater.InterfaceDataUpdater;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.netlink.NetlinkChannelFactory;
-import org.midonet.netlink.NetlinkUtil;
-import org.midonet.util.concurrent.NanoClock$;
 
 /**
  * Module to configure dependencies for the host.
@@ -41,16 +38,11 @@ public class HostModule extends PrivateModule {
         bind(InterfaceScanner.class)
                 .toProvider(new Provider<InterfaceScanner>() {
                     @Inject
-                    Injector injector;
+                    NetlinkChannelFactory factory;
 
                     @Override
                     public InterfaceScanner get() {
-                        return new DefaultInterfaceScanner(
-                                injector.getInstance(
-                                        NetlinkChannelFactory.class),
-                                NetlinkUtil.DEFAULT_MAX_REQUESTS(),
-                                NetlinkUtil.DEFAULT_MAX_REQUEST_SIZE(),
-                                NanoClock$.MODULE$.DEFAULT());
+                        return new RtnetlinkInterfaceScanner(factory);
                     }
                 })
                 .in(Singleton.class);
