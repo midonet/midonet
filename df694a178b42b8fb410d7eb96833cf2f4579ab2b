@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_31b3610b",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerIT.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 535,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-23T04:19:53Z",
+      "side": 1,
+      "message": "Remember, validation of updates needs eventually.\n\nAlso, the check can be expressed more concisely as:\n\n  This can be expressed more concisely as:\n\n  rtrGwPortWithVips.getVipIdList should contain only(toProto(vip1Id), toProto(vip2Id))",
+      "range": {
+        "startLine": 532,
+        "startChar": 0,
+        "endLine": 535,
+        "endChar": 63
+      },
+      "revId": "df694a178b42b8fb410d7eb96833cf2f4579ab2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_51e1c5fc",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 4
+      },
+      "lineNbr": 257,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-23T04:19:53Z",
+      "side": 1,
+      "message": "vip_ids",
+      "range": {
+        "startLine": 257,
+        "startChar": 18,
+        "endLine": 257,
+        "endChar": 24
+      },
+      "revId": "df694a178b42b8fb410d7eb96833cf2f4579ab2b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
