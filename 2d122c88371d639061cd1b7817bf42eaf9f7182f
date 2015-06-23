@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_6ce98ee5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-23T10:17:07Z",
+      "side": 1,
+      "message": "Should we fail translation or log an error? Or do you mean that we expect Neutron to give us other port types but there\u0027s nothing to do?",
+      "range": {
+        "startLine": 145,
+        "startChar": 8,
+        "endLine": 145,
+        "endChar": 49
+      },
+      "revId": "2d122c88371d639061cd1b7817bf42eaf9f7182f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
