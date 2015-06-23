@@ -334,8 +334,10 @@ class PacketWorkflow(
         try {
             MDC.put("cookie", context.cookieStr)
             if (context.ingressed) {
+                context.log.debug("Dropping packet")
                 context.prepareForDrop()
                 addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
+                handoff(context)
             }
         } catch { case NonFatal(e) =>
             context.log.error("Failed to install drop flow", e)
@@ -349,10 +351,7 @@ class PacketWorkflow(
         if (pktCtx.runs > 1)
             waitingRoom leave pktCtx
 
-        val seq = dpChannel.handoff(pktCtx)
-        if (pktCtx.flow ne null) {
-            pktCtx.flow.sequence = seq
-        }
+        handoff(pktCtx)
 
         if (pktCtx.ingressed) {
             val latency = NanoClock.DEFAULT.tick - pktCtx.packet.startTimeNanos
@@ -364,6 +363,13 @@ class PacketWorkflow(
         }
 
         flowRecorder.record(pktCtx, simRes)
+    }
+
+    private def handoff(context: PacketContext): Unit = {
+        val seq = dpChannel.handoff(context)
+        if (context.flow ne null) {
+            context.flow.sequence = seq
+        }
     }
 
     /**
