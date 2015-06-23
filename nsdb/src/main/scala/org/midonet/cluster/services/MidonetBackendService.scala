@@ -82,6 +82,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Router],
              classOf[Rule],
              classOf[SecurityGroup],
+             classOf[SecurityGroupRule],
              classOf[TunnelZone],
              classOf[Vip],
              classOf[Vtep],
