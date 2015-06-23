@@ -117,6 +117,30 @@
       "revId": "fe32631ec807f5464572db5a56ab6ff86ce2b9cd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_11349d91",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 227,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-23T02:45:39Z",
+      "side": 1,
+      "message": "So Neutron sends plain string in Host ID, right? I guess we can test that in the unit tests and / or integration test. Unfortunately both are currently missing scenarios where you can add these :P",
+      "parentUuid": "facab960_f19d79bd",
+      "range": {
+        "startLine": 227,
+        "startChar": 37,
+        "endLine": 227,
+        "endChar": 48
+      },
+      "revId": "fe32631ec807f5464572db5a56ab6ff86ce2b9cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
