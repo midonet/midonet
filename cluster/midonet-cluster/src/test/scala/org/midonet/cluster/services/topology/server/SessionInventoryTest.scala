@@ -19,6 +19,7 @@ package org.midonet.cluster.services.topology.server
 import java.util.UUID
 
 import scala.collection.JavaConversions._
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import com.google.protobuf.Message
@@ -33,6 +34,7 @@ import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rpc.Commands.{ResponseType, Response}
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.util.MidonetEventually
 import org.midonet.util.reactivex.AwaitableObserver
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 
@@ -40,11 +42,13 @@ import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 @RunWith(classOf[JUnitRunner])
 class SessionInventoryTest extends FeatureSpec
                                    with Matchers
-                                   with BeforeAndAfter {
+                                   with BeforeAndAfter
+                                   with MidonetEventually {
     var store: Storage = _
     var inv: SessionInventory = _
 
     val WAIT_TIME = 5 seconds
+    val LONG_WAIT_TIME = 60 seconds
 
     def ack(id: UUID): Response = ServerState.makeAck(UUIDUtil.toProto(id))
 
@@ -498,6 +502,77 @@ class SessionInventoryTest extends FeatureSpec
             events.exists(rsp => isBridge(rsp, b2, "bridge2")) shouldBe true
             events.exists(rsp => isBridge(rsp, b3, "bridge3")) shouldBe true
             events.exists(rsp => isDeletion(rsp, b2)) shouldBe true
+        }
+
+        scenario("watch-all large set of objects")
+        {
+            inv = new SessionInventory(store, bufferSize = 4096)
+            val sId = UUID.randomUUID()
+            val session = inv.claim(sId)
+            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val subs = session.observable().subscribe(collector)
+
+            val req = UUID.randomUUID()
+
+            val amount = 4096
+            val bridges = for (i <- 1 to amount)
+                yield bridge(UUID.randomUUID(), "bridge" + i)
+            bridges.foreach(store.create)
+
+            eventually {
+                Await.result(store.getAll(
+                    classOf[Network]), LONG_WAIT_TIME).length shouldBe amount
+            }
+
+            session.watchAll(classOf[Network], req)
+
+            collector.awaitOnNext(amount + 1, LONG_WAIT_TIME) shouldBe true
+            subs.unsubscribe()
+
+            collector.getOnCompletedEvents.size() shouldBe 0
+            collector.getOnErrorEvents.size() shouldBe 0
+            val events = collectionAsScalaIterable(collector.getOnNextEvents)
+            events.size shouldBe amount + 1
+            events.exists(rsp => isAck(rsp, req)) shouldBe true
+            events
+                .filterNot(rsp => isAck(rsp, req))
+                .map(rsp => rsp.getUpdate.getNetwork.getName).toSet shouldBe
+                bridges.map(b => b.getName).toSet
+        }
+
+        scenario("watch-all overflow")
+        {
+            // buffer size is set to the internal observeOn buffer
+            inv = new SessionInventory(store, bufferSize = 128)
+            val sId = UUID.randomUUID()
+            val session = inv.claim(sId)
+            val collector = new TestObserver[Response] with AwaitableObserver[Response]
+            val subs = session.observable().subscribe(collector)
+
+            val req = UUID.randomUUID()
+
+            val amount = 4096
+            val bridges = for (i <- 1 to amount)
+                yield bridge(UUID.randomUUID(), "bridge" + i)
+            bridges.foreach(store.create)
+
+            eventually {
+                Await.result(store.getAll(
+                    classOf[Network]), LONG_WAIT_TIME).length shouldBe amount
+            }
+
+            session.watchAll(classOf[Network], req)
+
+            collector.awaitOnNext(amount + 1, LONG_WAIT_TIME)
+            subs.unsubscribe()
+
+            val events = collectionAsScalaIterable(collector.getOnNextEvents)
+            events.exists(rsp => isAck(rsp, req)) shouldBe true
+            if (collector.getOnErrorEvents.size() > 0) {
+                collector.getOnErrorEvents should have size 1
+            } else {
+                events.size shouldBe amount + 1
+            }
         }
 
         scenario("unwatch-all empty")

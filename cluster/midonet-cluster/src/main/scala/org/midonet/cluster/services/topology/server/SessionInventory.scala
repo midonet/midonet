@@ -156,7 +156,7 @@ object SessionInventory {
         new NamedThreadFactory("topology-session-data"))
 
     /* Pre-set session buffer size */
-    val SESSION_BUFFER_SIZE: Int = 1 << 12
+    val SESSION_BUFFER_SIZE: Int = 16384
 
     /* Expiration time for non connected sessions, in milliseconds */
     val SESSION_GRACE_PERIOD: Long = 120000
@@ -345,6 +345,11 @@ class SessionInventory(private val store: Storage,
       * point in time. */
     private val inventory = new ConcurrentHashMap[Any, Session]()
 
+    /** Action for backpressure overflows */
+    private val logOverflow = makeAction0 {
+        log.error("excessive backpressure from topology updates")
+    }
+
     def claim(sessionId: UUID): Session = {
         inventory.getOrElseUpdate(sessionId, {
             log.debug("New subscription Aggregator for session: {}", sessionId)
@@ -363,7 +368,10 @@ class SessionInventory(private val store: Storage,
         private val funnel = new Aggregator[ObservableId, Response.Builder]()
         private val buffer = new Buffer(bufferSize, senderExecutor)
         private val bufferSubscription =
-            funnel.observable().observeOn(scheduler).subscribe(buffer)
+            funnel.observable()
+                .onBackpressureBuffer(bufferSize, logOverflow)
+                .observeOn(scheduler)
+                .subscribe(buffer)
 
         private val session = this
 
@@ -404,7 +412,6 @@ class SessionInventory(private val store: Storage,
                 old.cancel()
         }
 
-        private final val obsDestroyAction = makeAction0 {terminate()}
         private final val obsUnsubscribeAction = makeAction0 {
             log.debug("Session unsubscribed: {}",  sessionId)
             session.setExpiration(gracePeriod)
@@ -423,7 +430,6 @@ class SessionInventory(private val store: Storage,
                 }
             }
             Observable.create(subscribeAction)
-                      .doOnTerminate(obsDestroyAction)
                       .doOnUnsubscribe(obsUnsubscribeAction)
         }
 
@@ -544,7 +550,5 @@ class SessionInventory(private val store: Storage,
             funnel.drop(ObservableId(null, ofType))
             funnel.inject(ackBuilder(accept = true, reqId))
         }
-
     }
-
 }

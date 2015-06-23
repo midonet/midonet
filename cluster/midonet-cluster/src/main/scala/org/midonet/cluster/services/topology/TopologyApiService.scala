@@ -47,7 +47,8 @@ class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
 
         // Common handlers for protobuf-based requests
         val sessionManager = new SessionInventory(backend.store,
-            cfg.topologyApi.sessionGracePeriod, cfg.topologyApi.sessionBufferSize)
+            cfg.topologyApi.sessionGracePeriod,
+            cfg.topologyApi.sessionBufferSize)
         val protocol = new ServerProtocolFactory(sessionManager)
         val connMgr = new ConnectionManager(protocol)
         val reqHandler = new RequestHandler(connMgr)
