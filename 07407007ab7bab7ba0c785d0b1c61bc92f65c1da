@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_517b828b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-23T14:19:14Z",
+      "side": 1,
+      "message": "Sure, for v2 we can do it that way. The translator has two purposes: a) make v1 model look like a v2 model to the RoutingHandler (the BgpConfig classes are v2 model-like). And b) isolate the interface between the RoutingHandler and the cluster layer. So we can change b) at the translator as needed.",
+      "parentUuid": "facab960_6e426369",
+      "range": {
+        "startLine": 174,
+        "startChar": 16,
+        "endLine": 176,
+        "endChar": 88
+      },
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_6e10a359",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-23T14:05:12Z",
       "side": 1,
       "message": "Note: in V2 we don\u0027t use UUIDs to identify the learned routes but rather the routes themselves. In my patch of the RoutingHandler here I used a Map[Route, Route} and added the ID to the route.",
+      "range": {
+        "startLine": 229,
+        "startChar": 48,
+        "endLine": 229,
+        "endChar": 52
+      },
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_91718aaa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-23T14:19:14Z",
+      "side": 1,
+      "message": "Map[Route, Route]? why not a Set?",
+      "parentUuid": "facab960_6e10a359",
       "range": {
         "startLine": 229,
         "startChar": 48,
