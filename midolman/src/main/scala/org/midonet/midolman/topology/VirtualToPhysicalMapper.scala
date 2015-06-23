@@ -31,7 +31,7 @@ import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.TunnelZone
-import org.midonet.cluster.state.StateStorage
+import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman._
 import org.midonet.midolman.services.HostIdProviderService
@@ -295,7 +295,7 @@ trait DataClientLink {
     @Inject
     val cluster: DataClient = null
     @Inject
-    val stateStorage: StateStorage = null
+    val stateStorage: LegacyStorage = null
 
     @Inject
     val hostIdProvider : HostIdProviderService = null

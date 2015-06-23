@@ -45,6 +45,8 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalClientImpl;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.services.LegacyStorageService;
+import org.midonet.cluster.state.LegacyStorage;
+import org.midonet.cluster.state.ZookeeperLegacyStorage;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
@@ -111,6 +113,10 @@ public class LegacyClusterModule extends PrivateModule {
         bind(DataClient.class).to(LocalDataClientImpl.class)
                               .asEagerSingleton();
         expose(DataClient.class);
+
+        bind(LegacyStorage.class).to(ZookeeperLegacyStorage.class)
+                                 .asEagerSingleton();
+        expose(LegacyStorage.class);
 
         // TODO: Move these out of LocalDataClientImpl so that they can be
         // installed in DataClusterClientModule instead.

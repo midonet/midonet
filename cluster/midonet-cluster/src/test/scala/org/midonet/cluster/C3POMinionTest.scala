@@ -51,7 +51,7 @@ import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.MidonetBackendService
+import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.c3po.translators.BridgeStateTableManager
 import org.midonet.cluster.storage.MidonetBackendConfig
@@ -269,14 +269,17 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                 new SerializationModule(),
                 new ZookeeperConnectionModule(
                         classOf[ZookeeperConnectionWatcher]),
-                new LegacyClusterModule(),
                 new PrivateModule() {
                     override def configure() {
                         bind(classOf[MidonetBackendConfig])
-                        .toInstance(backendCfg)
+                            .toInstance(backendCfg)
                         expose(classOf[MidonetBackendConfig])
+                        bind(classOf[MidonetBackend])
+                            .toInstance(backend)
+                        expose(classOf[MidonetBackend])
                     }
-                }
+                },
+                new LegacyClusterModule()
         )
         injector.injectMembers(this)
     }

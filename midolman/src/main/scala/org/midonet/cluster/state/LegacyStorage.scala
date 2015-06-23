@@ -36,7 +36,7 @@ case class LocalPortActive(portId: UUID, active: Boolean)
  * A trait defining the cluster state API. Currently, this trait represents a
  * transitional interface from the legacy [[org.midonet.cluster.DataClient]].
  */
-trait StateStorage {
+trait LegacyStorage {
 
     /**
      * Gets the MAC-port table for the specified bridge.
