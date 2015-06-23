@@ -13,34 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.filter;
+package org.midonet.cluster.rest_api.models;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
+import java.net.URI;
+import java.util.UUID;
 
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import javax.validation.groups.Default;
+import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.net.URI;
-import java.util.UUID;
+
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.util.UUIDUtil;
 
 
 /**
  * Class representing a IP address group.
  */
 @XmlRootElement
+@ZoomClass(clazz = Topology.IPAddrGroup.class)
 public class IpAddrGroup extends UriResource {
 
     public static final int MIN_IP_ADDR_GROUP_NAME_LEN = 1;
     public static final int MAX_IP_ADDR_GROUP_NAME_LEN = 255;
 
-    private UUID id;
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    public UUID id;
 
     @NotNull
     @Size(min = MIN_IP_ADDR_GROUP_NAME_LEN, max = MAX_IP_ADDR_GROUP_NAME_LEN)
-    private String name;
+    @ZoomField(name = "name")
+    public String name;
 
     public IpAddrGroup() {
     }
@@ -54,37 +62,15 @@ public class IpAddrGroup extends UriResource {
         this.name = name;
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     @Override
     public URI getUri() {
-        if (getBaseUri() != null && id != null) {
-            return ResourceUriBuilder.getIpAddrGroup(getBaseUri(), id);
-        } else {
-            return null;
-        }
+        return absoluteUri(ResourceUris.IP_ADDR_GROUPS, id);
     }
 
+    @SuppressWarnings("unused") // used by serializers
     public URI getAddrs() {
-        if (getBaseUri() != null && id != null) {
-            return ResourceUriBuilder.getIpAddrGroupAddrs(getBaseUri(), id);
-        } else {
-            return null;
-        }
+        return UriBuilder.fromUri(relativeUri(ResourceUris.IP_ADDRS))
+                         .build();
     }
 
     public org.midonet.cluster.data.IpAddrGroup toData() {
@@ -117,8 +103,15 @@ public class IpAddrGroup extends UriResource {
      * group create.
      */
     @GroupSequence({ Default.class, IpAddrGroupCreateGroup.class,
-            IpAddrGroupExtended.class })
+                     IpAddrGroupExtended.class })
     public interface IpAddrGroupCreateGroupSequence {
+    }
+
+    @Override
+    public void create() {
+        if (this.id == null) {
+            this.id = UUID.randomUUID();
+        }
     }
 }
 
