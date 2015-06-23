@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_4e6affee",
+        "filename": "midolman/src/perf/scala/org/midonet/midolman/cluster/RoutingTableStorageBenchmark.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-23T13:48:17Z",
+      "side": 1,
+      "message": "Well it doesn\u0027t bother me that much but you marked this as done although its still a literal :-)",
+      "range": {
+        "startLine": 142,
+        "startChar": 39,
+        "endLine": 142,
+        "endChar": 51
+      },
+      "revId": "96aa6686dcd931ad3af988555cf0bcad2cf0e70f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6e6b43f1",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/DataCheckPointTest.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-23T13:48:17Z",
+      "side": 1,
+      "message": "Should this be commented out?",
+      "range": {
+        "startLine": 130,
+        "startChar": 12,
+        "endLine": 132,
+        "endChar": 49
+      },
+      "revId": "96aa6686dcd931ad3af988555cf0bcad2cf0e70f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
