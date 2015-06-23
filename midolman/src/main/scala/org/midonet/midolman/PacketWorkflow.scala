@@ -40,6 +40,7 @@ import org.midonet.midolman.logging.{ActorLogWithoutPath, FlowTracingContext}
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.topology.{VxLanPortMapper, VirtualTopologyActor}
 import org.midonet.midolman.topology.devices.Port
+import org.midonet.midolman.monitoring.FlowRecorder
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
@@ -153,6 +154,7 @@ class PacketWorkflow(
             val storage: Future[FlowStateStorage],
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
+            val flowRecorder: FlowRecorder,
             val packetOut: Int => Unit)
         extends Actor with ActorLogWithoutPath with Stash with Backchannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
@@ -338,6 +340,8 @@ class PacketWorkflow(
                 case _ => metrics.packetSimulated(latency.toInt)
             }
         }
+
+        flowRecorder.record(pktCtx, simRes)
     }
 
     /**
