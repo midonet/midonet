@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_ee4bd3ae",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 9
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-23T13:40:34Z",
+      "side": 1,
+      "message": "bug",
+      "range": {
+        "startLine": 9,
+        "startChar": 27,
+        "endLine": 9,
+        "endChar": 30
+      },
+      "revId": "b5dd38c5154a4c04e27bad5fa1abe94606d2b08d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
