@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_51b465d0",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-23T06:21:55Z",
+      "side": 1,
+      "message": "s/it\u0027s/its/",
+      "range": {
+        "startLine": 12,
+        "startChar": 36,
+        "endLine": 12,
+        "endChar": 40
+      },
+      "revId": "4c1431cd093fa8f82a01825e897fc9850983f3f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_71cc096b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-23T06:21:55Z",
+      "side": 1,
+      "message": "Actually, I wanted to see why this can happen, but that\u0027s OK.",
+      "range": {
+        "startLine": 10,
+        "startChar": 39,
+        "endLine": 12,
+        "endChar": 32
+      },
+      "revId": "4c1431cd093fa8f82a01825e897fc9850983f3f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
