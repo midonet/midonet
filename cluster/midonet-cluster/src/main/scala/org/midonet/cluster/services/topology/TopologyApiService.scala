@@ -19,7 +19,7 @@ package org.midonet.cluster.services.topology
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import org.midonet.cluster.services.topology.server._
-import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.cluster.{TopologyApiConfig, ClusterConfig, ClusterNode}
 import org.midonet.cluster.rpc.Commands
 import org.midonet.cluster.services.{ClusterService, Minion, MidonetBackend}
 import org.midonet.cluster.services.topology.common.{ApiServerHandler, ConnectionManager}
@@ -44,10 +44,12 @@ class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
 
     override def doStart(): Unit = {
         log.info("Starting the Topology API Service")
+        dumpConfig(cfg.topologyApi)
 
         // Common handlers for protobuf-based requests
         val sessionManager = new SessionInventory(backend.store,
-            cfg.topologyApi.sessionGracePeriod, cfg.topologyApi.sessionBufferSize)
+            cfg.topologyApi.sessionGracePeriod,
+            cfg.topologyApi.sessionBufferSize)
         val protocol = new ServerProtocolFactory(sessionManager)
         val connMgr = new ConnectionManager(protocol)
         val reqHandler = new RequestHandler(connMgr)
@@ -85,6 +87,17 @@ class TopologyApiService @Inject()(val nodeContext: ClusterNode.Context,
         if (plainSrv != null) plainSrv.stopAsync().awaitTerminated()
         log.info("Service stopped")
         notifyStopped()
+    }
+
+    private def dumpConfig(cfg: TopologyApiConfig): Unit = {
+        log.info("enabled: {}", cfg.isEnabled)
+        log.info("plain socket enabled: {}", cfg.socketEnabled)
+        log.info("plain socket port: {}", cfg.port)
+        log.info("web socket enabled: {}", cfg.wsEnabled)
+        log.info("web socket port: {}", cfg.wsPort)
+        log.info("web socket path: {}", cfg.wsPath)
+        log.info("session grace period: {}", cfg.sessionGracePeriod)
+        log.info("session buffer size: {}", cfg.sessionBufferSize)
     }
 }
 
