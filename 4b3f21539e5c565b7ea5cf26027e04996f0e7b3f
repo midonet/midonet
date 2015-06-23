@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_f1ef36af",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T15:15:25Z",
+      "side": 1,
+      "message": "Use getOrThrow instead of Await, this would catch any zoom exception and convert it to the equivalent http exception.\n\nAlternatively, we could use:\n\n  val host \u003d getResource(classOf[Host], hostId).getOrThrow\n\nbut we\u0027d have to add the tunnelZoneIds field to the Host dto.",
+      "range": {
+        "startLine": 74,
+        "startChar": 8,
+        "endLine": 76,
+        "endChar": 53
+      },
+      "revId": "4b3f21539e5c565b7ea5cf26027e04996f0e7b3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_71332662",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T15:15:25Z",
+      "side": 1,
+      "message": "Same comment here.",
+      "range": {
+        "startLine": 84,
+        "startChar": 8,
+        "endLine": 85,
+        "endChar": 45
+      },
+      "revId": "4b3f21539e5c565b7ea5cf26027e04996f0e7b3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b1404ea6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/HostInterfacePortResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T15:15:25Z",
+      "side": 1,
+      "message": "return response?",
+      "range": {
+        "startLine": 89,
+        "startChar": 16,
+        "endLine": 89,
+        "endChar": 25
+      },
+      "revId": "4b3f21539e5c565b7ea5cf26027e04996f0e7b3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d13dd22c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/MidonetResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T15:15:25Z",
+      "side": 1,
+      "message": "NonFatal(e)",
+      "range": {
+        "startLine": 103,
+        "startChar": 21,
+        "endLine": 103,
+        "endChar": 34
+      },
+      "revId": "4b3f21539e5c565b7ea5cf26027e04996f0e7b3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_5119c2d5",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/TunnelZoneHostResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T15:15:25Z",
+      "side": 1,
+      "message": "return response?",
+      "range": {
+        "startLine": 78,
+        "startChar": 12,
+        "endLine": 78,
+        "endChar": 21
+      },
+      "revId": "4b3f21539e5c565b7ea5cf26027e04996f0e7b3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_710a467a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/TunnelZoneResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T15:15:25Z",
+      "side": 1,
+      "message": "getOrThrow",
+      "range": {
+        "startLine": 71,
+        "startChar": 27,
+        "endLine": 71,
+        "endChar": 41
+      },
+      "revId": "4b3f21539e5c565b7ea5cf26027e04996f0e7b3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d16b121c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-23T15:15:25Z",
+      "side": 1,
+      "message": "NonFatal(e)",
+      "range": {
+        "startLine": 263,
+        "startChar": 21,
+        "endLine": 263,
+        "endChar": 34
+      },
+      "revId": "4b3f21539e5c565b7ea5cf26027e04996f0e7b3f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
