@@ -13,23 +13,23 @@ assumes that OpenStack is using KVM to launch its VMs.
 - OpenStack: An operating system for a cloud that manages various resources
 such compute, storage, and networking.  It is made up of sub-projects each
 of which provides unique services.  This document focuses on the integration
-with Folsom, the latest OpenStack version.
+with Folsom, the 6th OpenStack version.
 
 - Nova: An OpenStack project that focuses on providing the compute service.
 It manages the lifecycle of VMs.  It also manages the interface devices
-(vNICs) of the VMs.  Nova relies on Quantum service to manage the networking
+(vNICs) of the VMs.  Nova relies on Neutron service to manage the networking
 connectivity of the VMs.
 
-- Quantum: An OpenStack project that focuses on providing the networking
+- Neutron: An OpenStack project that focuses on providing the networking
 connectivity service.  Even though it is designed to handle both L2 and
 L3 services for the VMs, we focus mainly on L2 in this document.  
 
-## Quantum Network
+## Neutron Network
 
-Through Quantum service, a virtual network is created.  And on this network, 
+Through Neutron service, a virtual network is created.  And on this network, 
 virtual ports can be created.  All VMs attached to the ports on this network 
-have L2 connectivity.  In the integration of MidoNet with Quantum, each
-Quantum network is represented by a MidoNet bridge, and each Quantum network
+have L2 connectivity.  In the integration of MidoNet with Neutron, each
+Neutron network is represented by a MidoNet bridge, and each Neutron network
 port is a virtual external bridge port in MidoNet.  The purpose of this
 document is to explain the process of attaching a VM's vNIC to a port, and
 what Midolman must do to provide network connetivity to this VM.
@@ -39,7 +39,7 @@ what Midolman must do to provide network connetivity to this VM.
 When a request to launch a VM is sent to Nova, the network(s) to connect the
 VM to is specified, and the Nova API server sends a request to one of
 the Nova compute hosts to carry out the order.  Nova also creates a virtual
-port in a MidoNet bridge that corresponds to the Quantum network that the VM
+port in a MidoNet bridge that corresponds to the Neutron network that the VM
 is requested to be plugged into.  Nova compute service then continues on to 
 launch the VM, but right before the VM is launched, Nova provides a hook in
 the code path that gives vendors a place to insert their plugin code to 
