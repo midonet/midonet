@@ -15,18 +15,20 @@
  */
 package org.midonet.midolman.monitoring
 
-import java.net.{InetAddress,InetSocketAddress}
+import java.net.{InetAddress, InetSocketAddress}
 import java.nio.ByteBuffer
 import java.nio.channels.DatagramChannel
+import java.util.UUID
 
 import com.google.common.net.HostAndPort
 import com.google.inject.Inject
-import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
+import org.slf4j.LoggerFactory
 
+import org.midonet.conf.HostIdGenerator
+import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.midolman.PacketWorkflow.SimulationResult
 
 trait FlowRecorder {
     def record(pktContext: PacketContext, simRes: SimulationResult): Unit
@@ -36,7 +38,30 @@ class FlowRecorderFactory @Inject() (config : MidolmanConfig) {
     val log = Logger(LoggerFactory.getLogger(classOf[FlowRecorderFactory]))
 
     def newFlowRecorder(): FlowRecorder = {
-        new NullFlowRecorder
+        val hostUuid = try {
+            HostIdGenerator.getHostId
+        } catch {
+            case t: HostIdGenerator.PropertiesFileNotWritableException => {
+                log.warn("Couldn't get host id for flow recorded," +
+                             " using random uuid")
+                UUID.randomUUID()
+            }
+        }
+        log.info("Creating flow recorder with " +
+                     s"(${config.flowHistory.encoding}) encoding")
+        if (config.flowHistory.enabled) {
+            config.flowHistory.encoding match {
+                case "json" => new JsonFlowRecorder(
+                    hostUuid, config.flowHistory)
+                case "none" => new NullFlowRecorder
+                case other => {
+                    log.error(s"Invalid encoding (${other}) specified")
+                    new NullFlowRecorder
+                }
+            }
+        } else {
+            new NullFlowRecorder
+        }
     }
 }
 

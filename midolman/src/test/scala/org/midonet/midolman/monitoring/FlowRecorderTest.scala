@@ -17,11 +17,16 @@ package org.midonet.midolman.monitoring
 
 import scala.collection.JavaConverters._
 
+import java.net.{DatagramPacket, DatagramSocket}
 import java.nio.ByteBuffer
-import java.util.UUID
+import java.util.{Map => JMap, UUID}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
+import org.codehaus.jackson.map.ObjectMapper
+import com.google.common.io.BaseEncoding
+import com.google.common.net.HostAndPort
 
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
@@ -84,6 +89,53 @@ class FlowRecorderTest extends MidolmanSpec {
         }
     }
 
+    feature("JSON flow recoder") {
+        scenario("correct values are shipped, nulls are not") {
+            val confStr =
+                """
+                |agent.flow_history.enabled=true
+                |agent.flow_history.encoding=json
+                |agent.flow_history.udp_endpoint="localhost:50022"
+                """.stripMargin
+            val conf = MidolmanConfig.forTests(confStr)
+
+            val factory = new FlowRecorderFactory(conf)
+            val recorder = factory.newFlowRecorder()
+
+            val data = new Array[Byte](4096)
+            val datagram = new DatagramPacket(data, data.length)
+
+            val sock = getListeningSocket(conf)
+
+            val ctx = newContext
+            recorder.record(ctx, PacketWorkflow.NoOp)
+            try {
+                sock.receive(datagram)
+                val mapper = new ObjectMapper()
+
+                val result: JMap[String, Object] =
+                    mapper.readValue(new String(data),
+                                     classOf[JMap[String,Object]])
+
+                val origMatch = ctx.origMatch
+                result.get("flowMatch.networkSrc") should be (
+                    BaseEncoding.base16.encode(origMatch.getNetworkSrcIP.toBytes))
+                result.get("flowMatch.networkDst") should be (
+                    BaseEncoding.base16.encode(origMatch.getNetworkDstIP.toBytes))
+                result.get("flowMatch.ethSrc") should be (
+                    BaseEncoding.base16.encode(origMatch.getEthSrc.getAddress()))
+                result.get("flowMatch.ethDst") should be (
+                    BaseEncoding.base16.encode(origMatch.getEthDst.getAddress()))
+
+                for (e <- result.entrySet.asScala) {
+                    log.info(s"${e.getKey} => ${e.getValue}")
+                    e.getValue should not be (null)
+                }
+            } finally {
+                sock.close()
+            }
+        }
+    }
 
     private def newContext(): PacketContext = {
         val ethernet = { eth addr MAC.random -> MAC.random } <<
@@ -107,6 +159,15 @@ class FlowRecorderTest extends MidolmanSpec {
             ctx.flowActions.add(FlowActions.randomAction)
         }
         ctx
+    }
+
+    private def getListeningSocket(config: MidolmanConfig): DatagramSocket = {
+        val hostAndPort = HostAndPort.fromString(
+            config.flowHistory.udpEndpoint)
+
+        val sock = new DatagramSocket(hostAndPort.getPort)
+        sock.setSoTimeout(5000)
+        sock
     }
 
     class TestFlowRecorder(conf: FlowHistoryConfig)
