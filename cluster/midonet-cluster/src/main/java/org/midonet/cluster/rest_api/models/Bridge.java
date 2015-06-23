@@ -53,11 +53,9 @@ public class Bridge extends UriResource {
     @ZoomField(name = "outbound_filter_id", converter = Converter.class)
     public UUID outboundFilterId;
 
-    // TODO: validation, this field must not be updated by the user
     @Since("2")
     public UUID vxLanPortId;
 
-    // TODO: validation, this field must not be updated by the user
     @ZoomField(name = "vxlan_port_ids", converter = Converter.class)
     @Since("3") // after adding support to multiple vtep bindings
     public List<UUID> vxLanPortIds;

@@ -15,40 +15,53 @@
  */
 package org.midonet.api.filter.rest_api;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.validation.Validator;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.SecurityContext;
+import javax.ws.rs.core.UriInfo;
+
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.auth.AuthRole;
+import org.midonet.api.rest_api.AbstractResource;
+import org.midonet.api.rest_api.ResourceFactory;
+import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.filter.IpAddrGroup;
-import org.midonet.api.filter.IpAddrGroupAddr;
-import org.midonet.api.filter.Ipv4AddrGroupAddr;
-import org.midonet.api.filter.Ipv6AddrGroupAddr;
-import org.midonet.api.rest_api.*;
+import org.midonet.cluster.rest_api.models.IpAddrGroup;
+import org.midonet.cluster.rest_api.models.IpAddrGroupAddr;
+import org.midonet.cluster.rest_api.models.Ipv4AddrGroupAddr;
+import org.midonet.cluster.rest_api.models.Ipv6AddrGroupAddr;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.cluster.DataClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPAddr$;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.validation.Validator;
-import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
 
 /**
  * Root resource class for IP addr groups.
@@ -112,7 +125,7 @@ public class IpAddrGroupResource extends AbstractResource {
     public IpAddrGroup get(@PathParam("id") UUID id)
             throws StateAccessException, SerializationException {
 
-        org.midonet.cluster.data.IpAddrGroup data = null;
+        org.midonet.cluster.data.IpAddrGroup data;
 
         try {
             data = dataClient.ipAddrGroupsGet(id);
@@ -130,10 +143,8 @@ public class IpAddrGroupResource extends AbstractResource {
     /**
      * Handler for creating an IP addr group.
      *
-     * @param group
-     *            IpAddrGroup object.
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @param group IpAddrGroup object.
+     * @throws StateAccessException Data access error.
      * @return Response object with 201 status code set if successful.
      */
     @POST
@@ -151,15 +162,14 @@ public class IpAddrGroupResource extends AbstractResource {
                     .build();
         } catch (StatePathExistsException ex) {
             throw new BadRequestHttpException(ex,
-                MessageProperty.getMessage(MessageProperty.IP_ADDR_GROUP_ID_EXISTS, group.getId()));
+                getMessage(IP_ADDR_GROUP_ID_EXISTS, group.id));
         }
     }
 
     /**
      * Handler to getting a collection of IpAddrGroup.
      *
-     * @throws org.midonet.midolman.state.StateAccessException
-     *             Data access error.
+     * @throws StateAccessException Data access error.
      * @return A list of IpAddrGroup objects.
      */
     @GET
@@ -171,7 +181,7 @@ public class IpAddrGroupResource extends AbstractResource {
         List<org.midonet.cluster.data.IpAddrGroup> list =
                 dataClient.ipAddrGroupsGetAll();
 
-        List<IpAddrGroup> groups = new ArrayList<IpAddrGroup>();
+        List<IpAddrGroup> groups = new ArrayList<>();
         for (org.midonet.cluster.data.IpAddrGroup data : list) {
             IpAddrGroup group = new IpAddrGroup(data);
             group.setBaseUri(getBaseUri());
@@ -196,10 +206,8 @@ public class IpAddrGroupResource extends AbstractResource {
     /**
      * IP addr group addr resource locator that includes version
      *
-     * @param id
-     *            IP addr group ID from the request.
-     * @param version
-     *            Version of the IP address
+     * @param id IP addr group ID from the request.
+     * @param version Version of the IP address
      * @return IpAddrGroupAddrVersionResource object to handle sub-resource
      *          requests.
      */
@@ -238,7 +246,7 @@ public class IpAddrGroupResource extends AbstractResource {
         public List<IpAddrGroupAddr> list()
                 throws SerializationException, StateAccessException {
 
-            List<IpAddrGroupAddr> addrs = new ArrayList<IpAddrGroupAddr>();
+            List<IpAddrGroupAddr> addrs = new ArrayList<>();
             Set<String> addrSet;
             try {
                 addrSet = dataClient.getAddrsByIpAddrGroup(id);
@@ -267,11 +275,11 @@ public class IpAddrGroupResource extends AbstractResource {
                         "Invalid IP version: " + addr.getVersion());
             }
 
-            addr.setIpAddrGroupId(id);
+            addr.ipAddrGroupId = id;
             try {
                 dataClient.ipAddrGroupAddAddr(id, addr.getAddr());
             } catch (NoStatePathException ex) {
-                throw new NotFoundHttpException(ex, "IP address group does not exist: " + id);
+                throw new NotFoundHttpException(ex, "IP address group" + id);
             } catch (IllegalArgumentException ex) {
                 throw new BadRequestHttpException(ex, ex.getMessage());
             }
@@ -288,17 +296,13 @@ public class IpAddrGroupResource extends AbstractResource {
     public static class IpAddrGroupAddrVersionResource
             extends IpAddrGroupAddrResource {
 
-        private final int version;
-
         @Inject
         public IpAddrGroupAddrVersionResource(RestApiConfig config,
                                               UriInfo uriInfo,
                                               SecurityContext context,
                                               DataClient dataClient,
-                                              @Assisted UUID ipAddrGroupId,
-                                              @Assisted int version) {
+                                              @Assisted UUID ipAddrGroupId) {
             super(config, uriInfo, context, dataClient, ipAddrGroupId);
-            this.version = version;
         }
 
         @GET
