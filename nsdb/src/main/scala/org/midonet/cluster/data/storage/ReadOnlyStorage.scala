@@ -29,7 +29,6 @@ trait ReadOnlyStorage {
      * class from storage. If the value is available in the internal cache,
      * the returned future is completed synchronously.
      */
-    @throws[NotFoundException]
     def get[T](clazz: Class[T], id: ObjId): Future[T]
 
     /**

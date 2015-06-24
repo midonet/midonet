@@ -26,17 +26,17 @@ import scala.collection.mutable.ListBuffer
 import scala.util.control.NonFatal
 
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent}
+import org.apache.curator.framework.api.CuratorEvent
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException.{Code, NoNodeException}
 import org.apache.zookeeper.{CreateMode, KeeperException}
 
-import rx.Observable.OnSubscribe
-import rx.{Notification, Observable, Subscriber}
 import rx.functions.Func1
+import rx.{Notification, Observable}
 
 import org.midonet.cluster.data._
+import org.midonet.cluster.data.storage.CuratorUtil.asObservable
 import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.StateStorage.{NoOwnerId, StringEncoding}
 import org.midonet.cluster.data.storage.TransactionManager._
@@ -350,26 +350,6 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         getKeyPath(clazz, id, key, version) + "/" + value
     }
 
-    /** Wraps a call to a Curator background operation as an observable. The
-      * method takes as argument a function receiving a [[BackgroundCallback]]
-      * as argument, and creates an observable which, when subscribed to calls
-      * this function with a new [[BackgroundCallback]], such that when the
-      * callback's `processResult` is called, the observable will emit a
-      * notification with the [[CuratorEvent]]. */
-    protected def asObservable(f: (BackgroundCallback) => Unit)
-    : Observable[CuratorEvent] = {
-        Observable.create(new OnSubscribe[CuratorEvent] {
-            override def call(s: Subscriber[_ >: CuratorEvent]): Unit = {
-                f(new BackgroundCallback {
-                    override def processResult(client: CuratorFramework,
-                                               event: CuratorEvent): Unit = {
-                        s.onNext(event)
-                        s.onCompleted()
-                    }
-                })
-            }
-        })
-    }
 
     /** Returns a function that converts a [[CuratorEvent]] into a
       * notificaton. */
