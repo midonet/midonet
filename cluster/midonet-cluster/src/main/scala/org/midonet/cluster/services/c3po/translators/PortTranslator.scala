@@ -29,6 +29,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
+import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{RangeUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
@@ -45,7 +46,8 @@ object PortTranslator {
 class PortTranslator(protected val storage: ReadOnlyStorage,
                      protected val pathBldr: PathBuilder)
         extends NeutronTranslator[NeutronPort]
-        with ChainManager with PortManager with RouteManager with RuleManager {
+        with ChainManager with PortManager with RouteManager with RuleManager
+        with BridgeStateTableManager {
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
@@ -100,6 +102,14 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         if (isRouterGatewayPort(nPort)) {
             midoOps += Delete(classOf[Port],
                               RouterTranslator.tenantGwPortId(id))
+            // Delete the ARP entry in the external network if it exist.
+            if (nPort.getFixedIpsCount > 0 && nPort.hasMacAddress) {
+                val arpPath = arpEntryPath(
+                        nPort.getNetworkId,
+                        nPort.getFixedIps(0).getIpAddress.getAddress,
+                        nPort.getMacAddress)
+                midoOps += DeleteNode(arpPath)
+            }
         } else if (isRouterInterfacePort(nPort)) {
             if (!isOnUplinkNw) {
                 // Update any routes using this port as a gateway.
