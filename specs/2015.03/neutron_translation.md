@@ -196,6 +196,11 @@ If the port is a DHCP port (device_owner == 'network:dhcp'):
  * Remove the metadata route to the DHCP port IP address from the tenant
    router.
 
+If the port is a Router Gateway port (device_owner == 'network:router_gateway'):
+
+ * Delete its peer tenant router port.
+ * Delete its IP/MAC address pair from the external network's ARP table.
+
 For all port types:
 
  * Remove the MidoNet network MAC table entry referencing the port
@@ -275,6 +280,12 @@ If the 'gw_port_id' is unset, that means that either this port was deleted or
 it never existed.  Either way, nothing needs to be done (SNAT is guaranteed to
 be disabled).
 
+ASSUMPTION 1: an UPDATE operation does NOT re-assign a new gateway port from the
+              old one. Router gateway port's explicitly deleted first and reset.
+ASSUMPTION 2: Router gateway port is always deleted by a DELETE operation on the
+              port, and the router UPDATE operation never implicitly deletes it
+              or unlinks the router from the external network.
+
 The following fields are updated in the MidoNet router:
 
  * admin_state_up => adminStateUp
@@ -285,6 +296,10 @@ For each extra route provided, add a new route entry in the routing table of
 the router.
 
 ### DELETE
+
+ASSUMPTION: Router gateway port is always explicitly deleted before the router
+            is deleted. Otherwise the port on the external network may not be
+            deleted.
 
 The following translations are required:
 

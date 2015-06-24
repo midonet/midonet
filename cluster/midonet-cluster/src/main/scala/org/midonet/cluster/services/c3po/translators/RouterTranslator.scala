@@ -21,15 +21,19 @@ import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, Update}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
+import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ICMP
 import org.midonet.util.concurrent.toFutureOps
 
-class RouterTranslator(protected val storage: ReadOnlyStorage)
+class RouterTranslator(protected val storage: ReadOnlyStorage,
+                       protected val pathBldr: PathBuilder)
     extends NeutronTranslator[NeutronRouter]
-    with ChainManager with PortManager with RouteManager with RuleManager {
+    with ChainManager with PortManager with RouteManager with RuleManager
+    with BridgeStateTableManager {
     import RouterTranslator._
     import org.midonet.cluster.services.c3po.translators.RouteManager._
 
@@ -141,6 +145,14 @@ class RouterTranslator(protected val storage: ReadOnlyStorage)
         ops ++= linkOps
         ops += Create(defaultRoute)
         ops ++= snatOps
+
+        // Add gateway port IP/MAC address to the extenal network's ARP table.
+        gwMac foreach { mac =>
+            val arpPath = arpEntryPath(
+                    nGwPort.getNetworkId, gwIpAddr.getAddress, mac)
+            ops += CreateNode(arpPath, null)
+        }
+
         ops.toList
     }
 

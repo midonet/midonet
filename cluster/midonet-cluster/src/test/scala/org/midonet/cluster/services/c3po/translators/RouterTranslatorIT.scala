@@ -30,10 +30,16 @@ import org.midonet.cluster.models.Topology.{Network, Port, Route, Router}
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
+import org.midonet.packets.MAC
+import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class RouterTranslatorIT extends C3POMinionTestBase {
+    /* Set up legacy Data Client for testing Replicated Map. */
+    override protected val useLegacyDataClient = true
+
     it should "handle router CRUD" in {
         val r1Id = UUID.randomUUID()
         val r1Json = routerJson(r1Id, name = "router1")
@@ -124,6 +130,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                   extNwSubnetId)
         createRouterInterface(12, edgeRtrId,
                               edgeRtrExtNwIfPortId, extNwSubnetId)
+        val extNwArpTable = dataClient.getIp4MacMap(extNwId)
 
         // Sanity check for external network's connection to edge router. This
         // is just a normal router interface, so RouterInterfaceTranslatorIT
@@ -139,6 +146,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             rPort.getPortMac shouldBe "03:03:03:03:03:03"
             rtr.getPortIdsCount shouldBe 2
             rtr.getPortIdsList.asScala should contain(rPort.getId)
+            // Start the replicated map here.
+            extNwArpTable.start()
         }
 
         // Create tenant router and check gateway setup.
@@ -146,7 +155,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                 "10.0.1.3", "ab:cd:ef:00:00:03", extNwSubnetId)
         createRouter(14, tntRtrId, gwPortId = extNwGwPortId)
         validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3",
-                        "ab:cd:ef:00:00:03", "10.0.1.2")
+                        "ab:cd:ef:00:00:03", "10.0.1.2", extNwArpTable)
+
         // Rename router to make sure update doesn't break anything.
         val trRenamedJson = routerJson(tntRtrId, name = "tr-renamed",
                                        gwPortId = extNwGwPortId).toString
@@ -156,7 +166,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             tr.getName shouldBe "tr-renamed"
             tr.getPortIdsCount shouldBe 1
             validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3",
-                            "ab:cd:ef:00:00:03", "10.0.1.2")
+                            "ab:cd:ef:00:00:03", "10.0.1.2", extNwArpTable)
         }
 
         // Delete gateway.
@@ -169,6 +179,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             extNw.getPortIdsList.asScala should contain only (
                 UUIDUtil.toProto(edgeRtrExtNwIfPortId),
                 UUIDUtil.toProto(extNwDhcpPortId))
+            extNwArpTable.containsKey("10.0.1.3") shouldBe false
         }
 
         // Re-add gateway.
@@ -178,7 +189,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                      gwPortId = extNwGwPortId).toString
         insertUpdateTask(18, RouterType, trAddGwJson, tntRtrId)
         validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
-                        "ab:cd:ef:00:00:04", "10.0.1.2")
+                        "ab:cd:ef:00:00:04", "10.0.1.2", extNwArpTable)
         // Delete gateway and router.
         insertDeleteTask(19, PortType, extNwGwPortId)
         insertDeleteTask(20, RouterType, tntRtrId)
@@ -192,18 +203,24 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             extNw.getPortIdsList.asScala should contain only (
                 UUIDUtil.toProto(edgeRtrExtNwIfPortId),
                 UUIDUtil.toProto(extNwDhcpPortId))
+            extNwArpTable.containsKey("10.0.1.4") shouldBe false
         }
+        extNwArpTable.stop()
     }
 
     private def validateGateway(rtrId: UUID, nwGwPortId: UUID,
                                 trPortIpAddr: String, trPortMac: String,
-                                gwIpAddr: String): Unit = {
+                                gwIpAddr: String,
+                                extNwArpTable: Ip4ToMacReplicatedMap): Unit = {
         // Tenant router should have gateway port and no routes.
         val trGwPortId = tenantGwPortId(nwGwPortId)
         eventually {
             val tr = storage.get(classOf[Router], rtrId).await()
             tr.getPortIdsList.asScala should contain only trGwPortId
             tr.getRouteIdsCount shouldBe 0
+
+            // The ARP entry should be added to the external network ARP table.
+            extNwArpTable.get(trPortIpAddr) shouldBe MAC.fromString(trPortMac)
         }
 
         // Get the router gateway port and its peer on the network.
