@@ -28,10 +28,11 @@ import rx.Observable
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
-import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort}
+import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Network => TopologyBridge, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge}
+import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, MAC}
@@ -1547,6 +1548,137 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForDevice(peerPortId),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac),
                 tagForVlanPort(bridgeId, otherMac, vlanId, portId))
+        }
+    }
+
+    feature("Test chain updates") {
+        scenario("The bridge chains do not exist") {
+            val obs = createObserver()
+
+            Given("A bridge mapper")
+            val bridgeId = UUID.randomUUID
+            val mapper = new BridgeMapper(bridgeId, vt)
+
+            And("A bridge with a chain that does not exist")
+            val chainId = UUID.randomUUID
+            val bridge = createBridge(id = bridgeId,
+                                      inboundFilterId = Some(chainId))
+
+            When("The bridge is created")
+            store.create(bridge)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive an error")
+            obs.awaitCompletion(timeout)
+            val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
+            e.clazz shouldBe classOf[TopologyChain]
+            e.id shouldBe chainId
+        }
+
+        scenario("The bridge receives existing chain") {
+            val obs = createObserver()
+
+            Given("A chain mapper")
+            val bridgeId = UUID.randomUUID
+            val mapper = new BridgeMapper(bridgeId, vt)
+
+            And("A chain")
+            val chain = createChain()
+            store.create(chain)
+
+            And("A bridge with the chain")
+            val bridge = createBridge(id = bridgeId,
+                                      inboundFilterId = Some(chain.getId))
+
+            When("The bridge is created")
+            store.create(bridge)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the bridge")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device shouldBeDeviceOf bridge
+
+            And("The virtual topology should have prefetched the chain")
+            VirtualTopology.tryGet[Chain](chain.getId) shouldBeDeviceOf chain
+        }
+
+        scenario("The bridge updates when updating chain") {
+            val obs = createObserver()
+
+            Given("A bridge mapper")
+            val bridgeId = UUID.randomUUID
+            val mapper = new BridgeMapper(bridgeId, vt)
+
+            And("A chain")
+            val chain1 = createChain()
+            store.create(chain1)
+
+            And("A bridge with the chain")
+            val bridge = createBridge(id = bridgeId,
+                                      inboundFilterId = Some(chain1.getId))
+
+            When("The bridge is created")
+            store.create(bridge)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the bridge")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The chain is updated")
+            val chain2 = chain1.setName("updated-name")
+            store.update(chain2)
+
+            Then("The observer should receive a second update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf bridge
+
+            And("The virtual topology should have prefetched the chain")
+            VirtualTopology.tryGet[Chain](chain2.getId) shouldBeDeviceOf chain2
+        }
+
+        scenario("The bridge updates when removing chain") {
+            val obs = createObserver()
+
+            Given("A bridge mapper")
+            val bridgeId = UUID.randomUUID
+            val mapper = new BridgeMapper(bridgeId, vt)
+
+            And("A chain")
+            val chain = createChain()
+            store.create(chain)
+
+            And("A bridge with the chain")
+            val bridge1 = createBridge(id = bridgeId,
+                                       inboundFilterId = Some(chain.getId))
+
+            When("The bridge is created")
+            store.create(bridge1)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the router")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The chain is removed")
+            val bridge2 = bridge1.clearInboundFilterId()
+            store.update(bridge2)
+
+            Then("The observer should receive a second update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf bridge2
+
+            And("The virtual topology should not have the chain")
+            VirtualTopology.tryGet[Chain](chain.getId)
         }
     }
 }

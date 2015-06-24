@@ -685,6 +685,18 @@ object TopologyBuilder {
             bridge.toBuilder.setOutboundFilterId(filterId.asProto).build()
         def setVni(vni: Int): Network =
             bridge.toBuilder.setVni(vni).build()
+        def clearName(): Network =
+            bridge.toBuilder.clearName().build()
+        def clearTenantId(): Network =
+            bridge.toBuilder.clearTenantId().build()
+        def clearTunnelKey(): Network =
+            bridge.toBuilder.clearTunnelKey().build()
+        def clearInboundFilterId(): Network =
+            bridge.toBuilder.clearInboundFilterId().build()
+        def clearOutboundFilterId(): Network =
+            bridge.toBuilder.clearOutboundFilterId().build()
+        def clearVni(): Network =
+            bridge.toBuilder.clearVni().build()
     }
 
     class RichRouter(router: Router) {
@@ -704,6 +716,16 @@ object TopologyBuilder {
             router.toBuilder.addPortIds(portId.asProto).build()
         def addRouteId(routeId: UUID): Router =
             router.toBuilder.addRouteIds(routeId.asProto).build()
+        def clearName(): Router =
+            router.toBuilder.clearName().build()
+        def clearTenantId(): Router =
+            router.toBuilder.clearTenantId().build()
+        def clearInboundFilterId(): Router =
+            router.toBuilder.clearInboundFilterId().build()
+        def clearOutboundFilterId(): Router =
+            router.toBuilder.clearOutboundFilterId().build()
+        def clearLoadBalancerId(): Router =
+            router.toBuilder.clearLoadBalancerId().build()
     }
 
     class RichRoute(route: Route) {
