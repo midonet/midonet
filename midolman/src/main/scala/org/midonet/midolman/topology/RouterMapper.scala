@@ -19,14 +19,14 @@ package org.midonet.midolman.topology
 import java.lang.{Boolean => JBoolean}
 import java.util.UUID
 
-import org.midonet.util.collection.IPv4InvalidationArray
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.ExecutionContext
 
 import akka.actor.ActorSystem
+
 import com.typesafe.scalalogging.Logger
+
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -36,13 +36,13 @@ import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.{IPv4RoutingTable, Route}
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
-import org.midonet.midolman.simulation.{LoadBalancer, Router => SimulationRouter}
+import org.midonet.midolman.simulation.{Chain, LoadBalancer, Router => SimulationRouter}
 import org.midonet.midolman.state.ArpCache
 import org.midonet.midolman.topology.RouterMapper._
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.FlowMatch
-import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
-import org.midonet.sdn.flows.FlowTagger.{tagForDestinationIp, tagForRoute}
+import org.midonet.packets.IPv4Addr
+import org.midonet.util.collection.IPv4InvalidationArray
 import org.midonet.util.functors._
 
 object RouterMapper {
@@ -342,7 +342,7 @@ object RouterMapper {
  */
 final class RouterMapper(routerId: UUID, vt: VirtualTopology)
                         (implicit actorSystem: ActorSystem)
-    extends VirtualDeviceMapper[SimulationRouter](routerId, vt) {
+    extends DeviceWithChainsMapper[SimulationRouter](routerId, vt) {
 
     override def logSource = s"org.midonet.devices.router.router-$routerId"
 
@@ -449,6 +449,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
                          arpTableObservable,
                          portRoutesObservable,
                          routesObservable,
+                         chainsObservable.map[Config](makeFunc1(chainUpdated)),
                          loadBalancerObservable,
                          routerObservable)
             .takeUntil(mark)
@@ -463,7 +464,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
     private def isRouterReady(cfg: Config): JBoolean = {
         ready = (config ne null) && (arpCache ne null) &&
                 (if (loadBalancer ne null) loadBalancer.isReady else true) &&
-                ports.forall(_._2.isReady) && localRoutes.forall(_._2.isReady)
+                ports.forall(_._2.isReady) && localRoutes.forall(_._2.isReady) &&
+                areChainsReady
         log.debug("Router ready: {} ", Boolean.box(ready))
         ready
     }
@@ -478,6 +480,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
         assertThread()
 
         // Complete the mapper observables.
+        completeChains()
         mark.onCompleted()
     }
 
@@ -520,6 +523,11 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
             portRoutesSubject onNext portState.observable
         }
 
+        // Request the chains for this router.
+        requestChains(
+            if (router.hasInboundFilterId) router.getInboundFilterId else null,
+            if (router.hasOutboundFilterId) router.getOutboundFilterId else null)
+
         // Complete the previous load-balancer state, if any and different from
         // the current one.
         if ((loadBalancer ne null) &&
@@ -550,6 +558,13 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
 
         // Update the router configuration.
         config = cfg
+        config
+    }
+
+    /** Handles updates for the chains. */
+    private def chainUpdated(chain: Chain): Config = {
+        assertThread()
+        log.debug("Router chain updated {}", chain)
         config
     }
 

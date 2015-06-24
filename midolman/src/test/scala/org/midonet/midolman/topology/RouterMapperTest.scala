@@ -28,25 +28,25 @@ import rx.Observable
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.{Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter}
+import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Port => TopologyPort, Route => TopologyRoute, Router => TopologyRouter}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.simulation.{Router => SimulationRouter}
+import org.midonet.midolman.simulation.{Router => SimulationRouter, Chain}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.{tagForDestinationIp, tagForDevice, tagForRoute}
+import org.midonet.sdn.flows.FlowTagger.tagForDevice
 import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
 class RouterMapperTest extends MidolmanSpec with TopologyBuilder
                                with TopologyMatchers with Eventually {
 
-    import org.midonet.midolman.topology.TopologyBuilder._
+    import TopologyBuilder._
 
     private var store: Storage = _
     private var stateStore: StateStorage = _
@@ -948,6 +948,137 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("The flow controller should receive a route invalidation")
             flowInvalidator should invalidateForDeletedRoutes(IPv4Subnet.fromCidr("2.0.0.0/24"))
+        }
+    }
+
+    feature("Test chain updates") {
+        scenario("The router chains do not exist") {
+            val obs = createObserver()
+
+            Given("A router mapper")
+            val routerId = UUID.randomUUID
+            val mapper = new RouterMapper(routerId, vt)
+
+            And("A router with a chain that does not exist")
+            val chainId = UUID.randomUUID
+            val router = createRouter(id = routerId,
+                                      inboundFilterId = Some(chainId))
+
+            When("The router is created")
+            store.create(router)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive an error")
+            obs.awaitCompletion(timeout)
+            val e = obs.getOnErrorEvents.get(0).asInstanceOf[NotFoundException]
+            e.clazz shouldBe classOf[TopologyChain]
+            e.id shouldBe chainId
+        }
+
+        scenario("The router receives existing chain") {
+            val obs = createObserver()
+
+            Given("A router mapper")
+            val routerId = UUID.randomUUID
+            val mapper = new RouterMapper(routerId, vt)
+
+            And("A chain")
+            val chain = createChain()
+            store.create(chain)
+
+            And("A router with the chain")
+            val router = createRouter(id = routerId,
+                                      inboundFilterId = Some(chain.getId))
+
+            When("The router is created")
+            store.create(router)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the router")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device shouldBeDeviceOf router
+
+            And("The virtual topology should have prefetched the chain")
+            VirtualTopology.tryGet[Chain](chain.getId) shouldBeDeviceOf chain
+        }
+
+        scenario("The router updates when updating chain") {
+            val obs = createObserver()
+
+            Given("A router mapper")
+            val routerId = UUID.randomUUID
+            val mapper = new RouterMapper(routerId, vt)
+
+            And("A chain")
+            val chain1 = createChain()
+            store.create(chain1)
+
+            And("A router with the chain")
+            val router = createRouter(id = routerId,
+                                      inboundFilterId = Some(chain1.getId))
+
+            When("The router is created")
+            store.create(router)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the router")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The chain is updated")
+            val chain2 = chain1.setName("updated-name")
+            store.update(chain2)
+
+            Then("The observer should receive a second update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf router
+
+            And("The virtual topology should have prefetched the chain")
+            VirtualTopology.tryGet[Chain](chain2.getId) shouldBeDeviceOf chain2
+        }
+
+        scenario("The router updates when removing chain") {
+            val obs = createObserver()
+
+            Given("A router mapper")
+            val routerId = UUID.randomUUID
+            val mapper = new RouterMapper(routerId, vt)
+
+            And("A chain")
+            val chain = createChain()
+            store.create(chain)
+
+            And("A router with the chain")
+            val router1 = createRouter(id = routerId,
+                                      inboundFilterId = Some(chain.getId))
+
+            When("The router is created")
+            store.create(router1)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the router")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The chain is removed")
+            val router2 = router1.clearInboundFilterId()
+            store.update(router2)
+
+            Then("The observer should receive a second update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(1)
+            device shouldBeDeviceOf router2
+
+            And("The virtual topology should not have the chain")
+            VirtualTopology.tryGet[Chain](chain.getId)
         }
     }
 }
