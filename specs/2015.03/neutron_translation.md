@@ -376,28 +376,42 @@ data, add the NAT translation rules between 'fixed_ip_address' and
  * Static DNAT rule on the outbound chain
  * Static SNAT rule on the inbound chain
 
+On the external network, to which the tenant router is linked, add an ARP entry
+for floating IP and the tenant router gateway port MAC to the network ARP table.
+
+ASSUMPTION 1: The floating IP's IP address does not change.
+ASSUMPTION 2: The floating IP is always set on the external network. That is,
+its router_id is always set and the router always has a gateway port set,
+linking to the external network.
+
 ### UPDATE
 
 Inspect the floating IP and:
 
- * If port_id did not change, do nothing
- * If port_id was null and is non-null, create new NAT rules
- * If port_id was non-null and is null, delete NAT rules
- * If port_id was / is non-null and modified:
+ * If port_id was / is null, do nothing
+ * If port_id was null but is non-null, create an ARP entry and new NAT rules
+ * If port_id was non-null but is null, delete the ARP entry and NAT rules
+ * If port_id was / is non-null
+     * If port_id is the same and floating IP is on the same router, do nothing.
+     * If port_id is the same but floating IP is on a different router,
+       delete the old ARP entry and NAT rules on the old router and create new
+       ARP entry and NAT rules on the new router.
+     * If port_id is different but floating IP is on the same router,
+       delete the old NAT rules on the old router and create new ones on the new
+       router.
+     * If port_id is different and floating IP is on a different router,
+       delete the old ARP entry and NAT rules on the old router and create new
+       ARP entry and NAT rules on the new router.
 
-     * If on the same router, remote the old NAT rules and add the new ones
-     * If router_id is different, delete the old NAT rules on the old router
-       and create new NAT rules on the new router.
-
-Update the Floating IP Neutron data by setting 'port_id' to the new value
-(which could be null).
+The ARP entry also needs to be updated / deleted upon router gateway port UPDATE
+/ DELETE, which is triggered by router gateway port CRUD.
 
 ### DELETE
 
-Remove all the DNAT and SNAT rules on the tenant router referencing the
-floating IP address getting deleted.
-
-Update the Floating IP Neutron data by setting 'port_id' to null.
+Remove
+ * all the DNAT and SNAT rules on the tenant router referencing the floating IP
+   address getting deleted, and
+ * the ARP table entry for the floating IP address getting deleted.
 
 
 ## SECURITYGROUP

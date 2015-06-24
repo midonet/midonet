@@ -35,10 +35,15 @@ import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 import org.midonet.packets.IPv4Subnet
+import org.midonet.packets.MAC
+import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
+    /* Set up legacy Data Client for testing Replicated Map. */
+    override protected val useLegacyDataClient = true
+
     private def floatingIpJson(id: UUID,
                                floatingNetworkId: UUID,
                                floatingIpAddress: String,
@@ -191,6 +196,12 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             storage.exists(classOf[Port], rifPortUuid).await() shouldBe true
         }
 
+        // Create a legacy ReplicatedMap for the external Network ARP table.
+        val arpTable = dataClient.getIp4MacMap(extNetworkId)
+        eventually {
+            arpTable.start()
+        }
+
         // #11 & 12 Create a Floating IP Port and a FloatingIP in a same
         // transaction where the floating IP port is created first.
         val fipId = UUID.randomUUID()
@@ -217,6 +228,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
 
         val fip = eventually(storage.get(classOf[FloatingIp], fipId).await())
         fip.getFloatingIpAddress shouldBe IPAddressUtil.toProto(fipIp)
+        // The ARP table should NOT YET contain the ARP entry.
+        arpTable.containsKey(fipIp) shouldBe false
 
         // #13 Update the Floating IP with a port to assign to.
         val assignedFipJson = floatingIpJson(id = fipId,
@@ -227,64 +240,50 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                              fixedIpAddress = fixedIp).toString
         insertUpdateTask(13, FloatingIpType, assignedFipJson, fipId)
 
-        // Tests that a route for the floating IP port is set on the Provider
-        // Router.
-        val fipRouteId = RouteManager.fipGatewayRouteId(toProto(fipId))
-        val fipRoute = eventually(storage.get(classOf[Route],
-                                              fipRouteId).await())
-        fipRoute.getSrcSubnet shouldBe univSubnet4
-        fipRoute.getDstSubnet shouldBe IPSubnetUtil.fromAddr(
-                IPAddressUtil.toProto(fipIp))
-        fipRoute.getNextHopPortId shouldBe toProto(rgwPortId)
-
-        // Provider Router should have routes for the Floating IP set up now.
-        eventually {
-            rgwPort = storage.get(classOf[Port], rgwPortId).await()
-            rgwPort.getRouteIdsList contains fipRouteId  shouldBe true
-        }
-
-        // Tests that SNAT / DNAT rules for the floating IP have been set.
-        val tRouter = storage.get(classOf[Router], tRouterId).await()
-        val inboundChainId = inChainId(tRouterId)
-        val outboundChainId = outChainId(tRouterId)
-        tRouter.getInboundFilterId shouldBe inboundChainId
-        tRouter.getOutboundFilterId shouldBe outboundChainId
-        val inChain = storage.get(classOf[Chain], inboundChainId).await()
-        val outChain = storage.get(classOf[Chain], outboundChainId).await()
         val snatRuleId = RouteManager.fipSnatRuleId(fipId)
         val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
-        inChain.getRuleIdsList.asScala should contain(dnatRuleId)
-        outChain.getRuleIdsList.asScala should contain(snatRuleId)
-        // SNAT
-        val snat = storage.get(classOf[Rule], snatRuleId).await()
-        snat.getChainId shouldBe outboundChainId
-        snat.getAction shouldBe Rule.Action.ACCEPT
-        snat.getOutPortIdsCount shouldBe 1
-        snat.getOutPortIds(0) shouldBe toProto(rgwPortId)
-        snat.getNwSrcIp.getAddress shouldBe fixedIp
-        val snatRule = snat.getNatRuleData
-        snatRule.getDnat shouldBe false
-        snatRule.getNatTargetsCount shouldBe 1
-        val snatTarget = snatRule.getNatTargets(0)
-        snatTarget.getNwStart.getAddress shouldBe fipIp
-        snatTarget.getNwEnd.getAddress shouldBe fipIp
-        snatTarget.getTpStart shouldBe 1
-        snatTarget.getTpEnd shouldBe 65535
-        // DNAT
-        val dnat = storage.get(classOf[Rule], dnatRuleId).await()
-        dnat.getChainId shouldBe inboundChainId
-        dnat.getAction shouldBe Rule.Action.ACCEPT
-        dnat.getInPortIdsCount shouldBe 1
-        dnat.getInPortIds(0) shouldBe toProto(rgwPortId)
-        dnat.getNwDstIp.getAddress shouldBe fipIp
-        val dnatRule = dnat.getNatRuleData
-        dnatRule.getDnat shouldBe true
-        dnatRule.getNatTargetsCount shouldBe 1
-        val dnatTarget = dnatRule.getNatTargets(0)
-        dnatTarget.getNwStart.getAddress shouldBe fixedIp
-        dnatTarget.getNwEnd.getAddress shouldBe fixedIp
-        dnatTarget.getTpStart shouldBe 1
-        dnatTarget.getTpEnd shouldBe 65535
+        val inboundChainId = inChainId(tRouterId)
+        val outboundChainId = outChainId(tRouterId)
+        eventually {
+            // External network's ARP table should contain an ARP entry
+            arpTable.get(fipIp) shouldBe MAC.fromString(rgwMac)
+
+            // Tests that SNAT / DNAT rules for the floating IP have been set.
+            val inChain = storage.get(classOf[Chain], inboundChainId).await()
+            val outChain = storage.get(classOf[Chain], outboundChainId).await()
+            inChain.getRuleIdsList.asScala should contain(dnatRuleId)
+            outChain.getRuleIdsList.asScala should contain(snatRuleId)
+            // SNAT
+            val snat = storage.get(classOf[Rule], snatRuleId).await()
+            snat.getChainId shouldBe outboundChainId
+            snat.getAction shouldBe Rule.Action.ACCEPT
+            snat.getOutPortIdsCount shouldBe 1
+            snat.getOutPortIds(0) shouldBe toProto(rgwPortId)
+            snat.getNwSrcIp.getAddress shouldBe fixedIp
+            val snatRule = snat.getNatRuleData
+            snatRule.getDnat shouldBe false
+            snatRule.getNatTargetsCount shouldBe 1
+            val snatTarget = snatRule.getNatTargets(0)
+            snatTarget.getNwStart.getAddress shouldBe fipIp
+            snatTarget.getNwEnd.getAddress shouldBe fipIp
+            snatTarget.getTpStart shouldBe 1
+            snatTarget.getTpEnd shouldBe 65535
+            // DNAT
+            val dnat = storage.get(classOf[Rule], dnatRuleId).await()
+            dnat.getChainId shouldBe inboundChainId
+            dnat.getAction shouldBe Rule.Action.ACCEPT
+            dnat.getInPortIdsCount shouldBe 1
+            dnat.getInPortIds(0) shouldBe toProto(rgwPortId)
+            dnat.getNwDstIp.getAddress shouldBe fipIp
+            val dnatRule = dnat.getNatRuleData
+            dnatRule.getDnat shouldBe true
+            dnatRule.getNatTargetsCount shouldBe 1
+            val dnatTarget = dnatRule.getNatTargets(0)
+            dnatTarget.getNwStart.getAddress shouldBe fixedIp
+            dnatTarget.getNwEnd.getAddress shouldBe fixedIp
+            dnatTarget.getTpStart shouldBe 1
+            dnatTarget.getTpEnd shouldBe 65535
+        }
 
         // #14 Deleting a Floating IP should clear the GW route.
         executeSqlStmts(insertTaskSql(
@@ -292,15 +291,19 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Provider Router should have routes cleared.
         eventually {
             storage.exists(classOf[FloatingIp], fipId).await() shouldBe false
+            storage.exists(classOf[Rule], snatRuleId).await() shouldBe false
+            storage.exists(classOf[Rule], dnatRuleId).await() shouldBe false
+            val inChainNoNat = storage.get(classOf[Chain], inboundChainId)
+                                      .await()
+            val outChainNoNat = storage.get(classOf[Chain], outboundChainId)
+                                       .await()
+            inChainNoNat.getRuleIdsList should not contain dnatRuleId
+            outChainNoNat.getRuleIdsList should not contain snatRuleId
+
+            // The ARP entry must be removed.
+            arpTable.containsKey(fipIp) shouldBe false
         }
-        storage.exists(classOf[Route], fipRouteId).await() shouldBe false
-        rgwPort = storage.get(classOf[Port], rgwPortId).await()
-        rgwPort.getRouteIdsList contains fipRouteId  shouldBe false
-        storage.exists(classOf[Rule], snatRuleId).await() shouldBe false
-        storage.exists(classOf[Rule], dnatRuleId).await() shouldBe false
-        val inChainNoNat = storage.get(classOf[Chain], inboundChainId).await()
-        val outChainNoNat = storage.get(classOf[Chain], outboundChainId).await()
-        inChainNoNat.getRuleIdsList.contains(dnatRuleId) shouldBe false
-        outChainNoNat.getRuleIdsList.contains(snatRuleId) shouldBe false
+
+        arpTable.stop()
     }
 }
