@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_0801c7ae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-24T09:02:36Z",
+      "side": 1,
+      "message": "My comment was whether this should be within a namespace, such that we can apply a custom logging setting to the merged map. Take a look at the agent.conf, the loggers section.",
+      "range": {
+        "startLine": 89,
+        "startChar": 41,
+        "endLine": 89,
+        "endChar": 50
+      },
+      "revId": "5ee4ba1a402cabf8c6fa2699e706aafccb15b509",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0818e71c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 129,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-24T09:02:36Z",
+      "side": 1,
+      "message": "Minor comment: Do we have to notify back to the opinion bus, a terminal event that arrives from the opinion bus? shouldn\u0027t it already detect the terminal event?",
+      "range": {
+        "startLine": 129,
+        "startChar": 8,
+        "endLine": 129,
+        "endChar": 48
+      },
+      "revId": "5ee4ba1a402cabf8c6fa2699e706aafccb15b509",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_28fe8bae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-24T09:02:36Z",
+      "side": 1,
+      "message": "Should this be warn? Maybe info or if not necessary, debug.",
+      "range": {
+        "startLine": 133,
+        "startChar": 8,
+        "endLine": 133,
+        "endChar": 16
+      },
+      "revId": "5ee4ba1a402cabf8c6fa2699e706aafccb15b509",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
