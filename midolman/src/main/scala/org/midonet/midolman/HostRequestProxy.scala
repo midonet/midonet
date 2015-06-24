@@ -17,6 +17,7 @@ package org.midonet.midolman
 
 import java.util.{HashMap => JHashMap, HashSet => JHashSet, Map => JMap, Set => JSet, UUID}
 
+import scala.collection.mutable
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
@@ -111,24 +112,28 @@ class HostRequestProxy(val hostId: UUID,
      * up to date version of the Host object.
      */
     private def resolvePorts(host: DevicesHost): ResolvedHost = {
+        val futures = mutable.ArrayBuffer[Future[Any]]()
         val bindings = host.portBindings.map {
-                case (id, iface) =>
-                    try {
-                        val port = VTA.tryAsk[Port](id)
-                        if (iface ne null)
-                            Some(PortBinding(id, port.tunnelKey, iface))
-                        else
-                            None
-                    } catch {
-                        case NotYetException(f, _) =>
-                            f.onComplete{
-                                case _ =>
-                                    log.debug("Port resolved, re-syncing")
-                                    self ! ReSync
-                            }
-                            None
-                    }
-            }.toSeq.filter(_.isDefined).map(opt => (opt.get.portId, opt.get))
+            case (id, iface) =>
+                try {
+                    val port = VTA.tryAsk[Port](id)
+                    if (iface ne null)
+                        Some(PortBinding(id, port.tunnelKey, iface))
+                    else
+                        None
+                } catch {
+                    case NotYetException(f, _) =>
+                        futures += f
+                        None
+                }
+            }.collect { case Some(binding) => (binding.portId, binding) }
+
+        if (futures.nonEmpty) {
+            Future.sequence(futures).onComplete { case _ =>
+                log.debug("Ports resolved, re-syncing")
+                self ! ReSync
+            }
+        }
 
         ResolvedHost(host.id, host.alive, bindings.toMap, host.tunnelZones)
     }
@@ -146,10 +151,10 @@ class HostRequestProxy(val hostId: UUID,
             subscriber ! resolved
             belt.handle(() => {
                 val ps = h.portBindings.keySet -- lastPorts
+                lastPorts = ps
                 storageFuture.flatMap(stateForPorts(_, ps)).andThen {
                     case Success(stateBatch) =>
                         log.debug(s"Fetched ${stateBatch.size()} pieces of flow state for ports $ps")
-                        lastPorts = ps
                         PacketsEntryPoint ! stateBatch
                     case Failure(e) =>
                         log.warn("Failed to fetch state", e)
