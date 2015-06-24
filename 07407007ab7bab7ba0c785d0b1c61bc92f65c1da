@@ -324,6 +324,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_9842863c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 418,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T16:46:08Z",
+      "side": 1,
+      "message": "Actually, there is no implicit in the scope, compilation fails without this.",
+      "parentUuid": "facab960_f8171243",
+      "range": {
+        "startLine": 418,
+        "startChar": 10,
+        "endLine": 418,
+        "endChar": 38
+      },
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_e3c20484",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 3
