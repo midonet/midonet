@@ -26,7 +26,7 @@ import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, GivenWhenThen, Matchers}
 
-import org.midonet.cluster.BrainTestUtils._
+import org.midonet.cluster.ClusterTestUtils._
 import org.midonet.cluster.southbound.vtep.VtepConstants
 import org.midonet.cluster.util.TestZkTools
 import org.midonet.cluster.DataClient

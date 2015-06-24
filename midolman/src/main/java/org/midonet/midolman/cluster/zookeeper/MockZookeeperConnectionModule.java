@@ -28,8 +28,6 @@ import org.midonet.util.eventloop.CallingThreadReactor;
 
 public class MockZookeeperConnectionModule extends ZookeeperConnectionModule {
 
-    Directory directory;
-
     public MockZookeeperConnectionModule() {
         super(ZookeeperConnectionWatcher.class);
     }
