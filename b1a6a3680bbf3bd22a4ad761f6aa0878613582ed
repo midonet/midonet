@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_1d2f4b89",
+        "filename": "tools/devmido/create_fake_uplink_l2.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-24T02:33:43Z",
+      "side": 1,
+      "message": "L22-24 should be updated or removed",
+      "revId": "b1a6a3680bbf3bd22a4ad761f6aa0878613582ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_9d5a7b28",
+        "filename": "tools/devmido/create_fake_uplink_l2.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 75,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-24T02:33:43Z",
+      "side": 1,
+      "message": "c3po seems to create \"DEFAULT\" tunnel zone.\ndo you want to use another one?",
+      "revId": "b1a6a3680bbf3bd22a4ad761f6aa0878613582ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_7d55b7f8",
+        "filename": "tools/devmido/create_fake_uplink_l2.sh",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-24T02:33:43Z",
+      "side": 1,
+      "message": "my impression is that this is not a part of mission of this script.",
+      "revId": "b1a6a3680bbf3bd22a4ad761f6aa0878613582ed",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
