@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "facab960_e3ae842d",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T13:37:06Z",
+      "side": 1,
+      "message": "...and _while_ the load...",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_35e92581",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
@@ -53,6 +70,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_23a5cc46",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T13:37:06Z",
+      "side": 1,
+      "message": "is it possible to have single jetty server or just parse the HTTP requests using http libraries directly? Otherwise this sounds like a lot of threads / jetty servers.",
+      "parentUuid": "7a1969be_75027d3f",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_55ff8134",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
@@ -70,6 +105,40 @@
     },
     {
       "key": {
+        "uuid": "facab960_636a74ef",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 79,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T13:37:06Z",
+      "side": 1,
+      "message": "does \u0027ports\u0027 here mean \u0027tcp ports\u0027, if so, why the need to pre-allocate them statically?",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_434c909e",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T13:37:06Z",
+      "side": 1,
+      "message": "would it make sense to hook this service to the bridges more naturally?",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b5fcf53f",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
@@ -81,6 +150,23 @@
       "writtenOn": "2015-02-15T09:24:55Z",
       "side": 1,
       "message": "typo: because",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_63519435",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T13:37:06Z",
+      "side": 1,
+      "message": "Same here, why not make this service a proper virtual device?",
       "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -275,6 +361,23 @@
       "writtenOn": "2015-06-10T04:29:08Z",
       "side": 1,
       "message": "some platform notes:\n\nUbuntu 14.04 by default seems to do nothing special to handle link-local addresses.\nit just tries to use the default route. (seems violating RFC 3927 2.6.2)\n\nOS X 10.10.3 has link-local route for 169.254/16.  i don\u0027t know how it choose the interface to bound.\ni\u0027ve heard CentOS5 does the similar but needs confirmation.",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c326e0cd",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 134,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T13:37:06Z",
+      "side": 1,
+      "message": "...same here, I feel if this was a proper virtual device hooked to bridges at the topology level all this ad-hoc code would not be necessary.",
       "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
