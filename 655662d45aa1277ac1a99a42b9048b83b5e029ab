@@ -52,6 +52,24 @@
       "revId": "655662d45aa1277ac1a99a42b9048b83b5e029ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e8cca38b",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-24T09:09:04Z",
+      "side": 1,
+      "message": "Gotcha. Will update.",
+      "parentUuid": "facab960_a829bb38",
+      "revId": "655662d45aa1277ac1a99a42b9048b83b5e029ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
