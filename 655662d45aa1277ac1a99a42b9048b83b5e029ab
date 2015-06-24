@@ -16,6 +16,24 @@
       "revId": "655662d45aa1277ac1a99a42b9048b83b5e029ab",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_a8129b06",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-24T08:53:30Z",
+      "side": 1,
+      "message": "Well, with previous behaviour we didn\u0027t install a flow. It\u0027s the same reasoning for the flows we install when there\u0027s a failure.",
+      "parentUuid": "facab960_88c877a9",
+      "revId": "655662d45aa1277ac1a99a42b9048b83b5e029ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
