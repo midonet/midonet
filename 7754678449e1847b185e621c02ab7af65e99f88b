@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_287ccbb4",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-24T10:32:29Z",
+      "side": 1,
+      "message": "I changed it in the latest patch.",
+      "parentUuid": "facab960_e852e365",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_0e50f7d2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
         "patchSetId": 5
@@ -137,6 +155,24 @@
       "side": 1,
       "message": "I\u0027m fine with this but found the previous version more readable.",
       "parentUuid": "facab960_ae40eba5",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e87583cb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-24T10:32:29Z",
+      "side": 1,
+      "message": "I can change it back, but really? with function-local functions, branches tucked away in getOrElse? if\u0027s in case statements? using options just to branch? all mixed together? I found it pretty hard to follow and had to untangle it.",
+      "parentUuid": "facab960_084c67c7",
       "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
