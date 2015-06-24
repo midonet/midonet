@@ -64,7 +64,9 @@ object ListHosts extends Subcommand("hosts") with ConfCommand {
 
     override def run(configurator: MidoNodeConfigurator) = {
         val mappings = configurator.templateMappings
-        val mappingsMap = mappings.entrySet() map { e => e.getKey -> e.getValue.unwrapped().asInstanceOf[String] } toMap
+        val mappingsMap = mappings.entrySet() map { e =>
+            ConfigUtil.splitPath(e.getKey)(0) -> e.getValue.unwrapped().asInstanceOf[String]
+        } toMap
         val perHost = configurator.listPerNodeConfigs.toSet
 
         val defaults = "template(default) : schema"
@@ -369,27 +371,44 @@ object DumpConf extends ConfigQuery("dump") with ConfCommand {
 }
 
 object Doc extends Subcommand("doc") with ConfCommand {
-    descr("Query the schema information for a specific configuration key")
+    descr("Query the documentation for one or all configuration keys")
 
-    val key = trailArg[String](required = true, descr = "Configuration key")
+    val key = trailArg[String](required = false, descr = "Configuration key")
 
     override def run(configurator: MidoNodeConfigurator) = {
         val conf = configurator.mergedSchemas().resolve()
 
-        try {
-            println(s"Key: ${key.get.get}")
+        def doc(key: String): Unit = {
+            println(s"Key: $key")
+            val typeKey = configurator.keyWithSuffix(key, "_type")
+            val descrKey = configurator.keyWithSuffix(key, "_description")
 
-            if (conf.hasPath(s"${key.get.get}_type")) {
-                val t = conf.getString(s"${key.get.get}_type")
+            if (conf.hasPath(typeKey)) {
+                val t = conf.getString(typeKey)
                 println(s"Type: $t")
             }
 
-            val v = conf.getValue(key.get.get).unwrapped()
+            val v = conf.getValue(key).unwrapped()
             println(s"Default value: $v")
 
-            if (conf.hasPath(s"${key.get.get}_description")) {
-                val desc = conf.getString(s"${key.get.get}_description")
+            if (conf.hasPath(descrKey)) {
+                val desc = conf.getString(descrKey)
                 println(s"Documentation: $desc")
+            }
+
+        }
+
+        try {
+            if (key.get.isDefined) {
+                doc(key.get.get)
+            } else {
+                val noSchema = configurator.dropSchema(conf)
+                for (entry <- noSchema.entrySet if !entry.getKey.endsWith(".schemaVersion")) {
+                    doc(entry.getKey)
+                    println("")
+                    println("----------------------")
+                    println("")
+                }
             }
 
         } catch {
@@ -524,14 +543,14 @@ object MidoConfTool extends App {
         footer("Copyright (c) 2015 Midokura SARL, All Rights Reserved.")
     }
 
-    def invalidEx = new Exception("must specify a valid command")
+    def invalidEx = new Exception("invalid arguments, run with --help for usage information")
 
     val ret = opts.subcommand map {
         case subcommand: ConfCommand =>
             Try(subcommand.run(MidoNodeConfigurator(bootstrapConfig)))
-        case s =>
-            println(s)
+        case e => // cannot not happen
             Failure(invalidEx)
+
     } getOrElse Failure(invalidEx) match {
         case Success(retcode) =>
             retcode
@@ -546,9 +565,12 @@ object MidoConfTool extends App {
                 System.err.println(s"[mn-conf] Could not connect to zookeeper at '$zkServer'")
                 System.err.println(s"[mn-conf] Check the FILES and ENVIRONMENT sections of the the mn-conf(1) manual page for details.")
                 3
+            case other if args.length == 0 =>
+                opts.printHelp()
+                1
             case other =>
                 System.err.println("[mn-conf] Failed: " + e.getMessage)
-                1
+                4
         }
     }
 
