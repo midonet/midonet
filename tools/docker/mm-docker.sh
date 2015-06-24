@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2014 Midokura SARL
+# Copyright 2015 Midokura SARL
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 # limitations under the License.
 
 check_command_availability() {
-    if !(("$1" "${2:-\"--version\"}") > /dev/null 2>&1); then
+    if !(("$1" "${2:---version}") > /dev/null 2>&1); then
         echo >&2 "$COMMAND: $1 is required to run this script"
         exit 1
     fi
@@ -49,10 +49,10 @@ add_if() {
         exit 1
     fi
 
-    if [ "$#" -eq 3 ]; then
+    if [ "$#" -eq 2 -o "$#" -eq 3 ]; then
         DATAPATH="midonet"
     fi
-    if [ "$#" -eq 4 ]; then
+    if [ "$#" -gt 3 ]; then
         DATAPATH="$1"
         shift
     fi
@@ -60,6 +60,7 @@ add_if() {
     INTERFACE="$1"
     CONTAINER="$2"
     ADDRESS="$3"
+    DEFAULT_GATEWAY="$4"
 
     if !((mm_dpctl --list-dps | grep "$DATAPATH" > /dev/nul 2>&1) ||
             (mm_dpctl --add-dp "$DATAPATH")); then
@@ -77,7 +78,7 @@ add_if() {
 
     # Create a veth pair.
     ID=`uuidgen | sed 's/-//g'`
-    IFNAME="${CONTAINER:0:8}${INTERFACE:0:5}"
+    IFNAME="${CONTAINER:0:8}-${INTERFACE:0:5}"
     sudo ip link add "${IFNAME}" type veth peer name "${IFNAME}_c"
 
     # Add one end of veth to the datapath.
@@ -92,11 +93,15 @@ add_if() {
 
     # Move "{IFNAME}_c" inside the container and changes its name.
     ip link set "${IFNAME}_c" netns "$PID"
-    ip netns exec "$PID" ip link set dev "${IFNAME}_c" name "${INTERFACE}"
+    ip netns exec "$PID" ip link set dev "${IFNAME}_c" name "$INTERFACE"
     ip netns exec "$PID" ip link set "$INTERFACE" up
 
     if [ -n "$ADDRESS" ]; then
-        ip netns exec $PID ip addr add "$ADDRESS" dev "${INTERFACE}"
+        ip netns exec "$PID" ip addr add "$ADDRESS" dev "$INTERFACE"
+    fi
+
+    if [ -n "$DEFAULT_GATEWAY" ]; then
+        ip netns exec "$PID" ip route add default via "$DEFAULT_GATEWAY" dev "$INTERFACE"
     fi
 
     delete_netns_symlink
@@ -108,10 +113,10 @@ del_if() {
         exit 1
     fi
 
-    if [ "$#" -eq 3]; then
+    if [ "$#" -eq 2 ]; then
         DATAPATH="midonet"
     fi
-    if [ "$#" -eq 4 ]; then
+    if [ "$#" -eq 3 ]; then
         DATAPATH="$1"
         shift
     fi
@@ -140,7 +145,7 @@ del_ifs() {
         exit 1
     fi
 
-    if [ "$#" -eq 3 ]; then
+    if [ "$#" -eq 1 ]; then
         DATAPATH="midonet"
     fi
     if [ "$#" -eq 2 ]; then
@@ -167,16 +172,19 @@ ${COMMAND}: Integrates the network interfaces into MidoNet.
 usage: ${COMMAND} COMMAND
 
 Commands:
-  add-if [DATAPATH] INTERFACE CONTAINER [IPv4_ADDRESS/NET_MASK]
+  add-if [DATAPATH] INTERFACE CONTAINER [IPv4_ADDRESS/NET_MASK] [DEFAULT_GATEWAY]
           Adds INTERFACE inside CONTAINER and connects it as a port in the given
           DATAPATH or "midonet" datapath if it's not provided. It also adds the
           IPv4 address to the interface if it's given with "ip addr add"
-          command.
+          command. If DEFAULT_GATEWAY is given, it sets the default gateway with
+          the given IP address and [DATAPATH] MUST BE given along with it in the
+          first argument for this subcommand.
 
           Examples:
             ${COMMAND} add-if dp0 veth8a72ecc1-5a 5506de2b643b 192.168.100.1
             ${COMMAND} add-if veth8a72ecc1-5a 5506de2b643b 192.168.100.1/32
             ${COMMAND} add-if veth8a72ecc1-5a 5506de2b643b
+            ${COMMAND} add-if dp0 veth8a72ecc1-5a 5506de2b643b 192.168.1.42/24 192.168.1.1
 
   del-if [DATAPATH] INTERFACE CONTAINER
           Deletes INTERFACE inside CONTAINER and removes its connection to the
