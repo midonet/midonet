@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_88c877a9",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 1
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-06-24T08:42:37Z",
+      "side": 1,
+      "message": "Why? What is wrong with previous behaviour?",
+      "revId": "655662d45aa1277ac1a99a42b9048b83b5e029ab",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
