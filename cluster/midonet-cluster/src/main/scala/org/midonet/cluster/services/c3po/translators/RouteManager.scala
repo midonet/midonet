@@ -169,12 +169,6 @@ object RouteManager {
         dhcpPortId.xorWith(0xa0132e5a1583461cL, 0xa752d8609a517a6cL)
 
     /**
-     * Deterministically derives an ID for a next-hop route for a Floating IP
-     * address using the Floating IP ID. */
-    def fipGatewayRouteId(fipId: UUID): UUID =
-        fipId.xorWith(0xa5257b5f7d8e49bbL, 0xa3d08db68f649715L)
-
-    /**
      * Deterministically derives an ID for the SNAT rule for a Floating IP
      * address. */
     def fipSnatRuleId(fipId: UUID): UUID =
