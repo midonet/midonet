@@ -88,16 +88,15 @@ To set up the scenario above:
 
     ./create_fake_uplink.sh 200.200.200.0/24
 
-
-To clean up the fake uplink:
-
-    ./delete_fake_uplink.sh 200.200.200.0/24
-
 You can also set the CIDR environment variable instead of passing it in as an
 argument.
 
 If no argument is passed in, and CIDR is not set, then it defaults to
 '200.200.200.0/24'.
+
+To clean up the fake uplink:
+
+    ./delete_fake_uplink.sh
 
 
 Devstack Integration

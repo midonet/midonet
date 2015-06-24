@@ -15,18 +15,9 @@
 # limitations under the License.
 
 # This script cleans up the fake uplink created from the
-# 'create_fake_uplink.sh' script.  CIDR is defaulted to 200.200.200.0/24
-# but you can override it by:
+# 'create_fake_uplink.sh' script:
 #
-#      ./delete_fake_uplink.sh 200.0.0.0/24
-# or
-#      CIDR=200.0.0.0/24 ./delete_fake_uplink.sh
-
-if [[ -n "$1" ]]; then
-    CIDR=$1
-else
-    CIDR=${CIDR:-200.200.200.0/24}
-fi
+#      ./delete_fake_uplink.sh
 
 # Save the top directory and source the functions and midorc
 TOP_DIR=$(cd $(dirname "$0") && pwd)
@@ -35,7 +26,6 @@ source $TOP_DIR/functions
 
 set -x
 
-sudo ip route del $CIDR via 172.19.0.2 2> /dev/null
 sudo ip link set dev uplinkbridge down 2> /dev/null
 sudo brctl delbr uplinkbridge 2> /dev/null
 sudo ip link set veth0 down 2> /dev/null
