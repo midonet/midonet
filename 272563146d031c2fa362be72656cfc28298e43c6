@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_68d7b34b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-24T09:01:15Z",
+      "side": 1,
+      "message": "Log number of added and removed routes?",
+      "range": {
+        "startLine": 203,
+        "startChar": 12,
+        "endLine": 204,
+        "endChar": 43
+      },
+      "revId": "272563146d031c2fa362be72656cfc28298e43c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_6865f3b3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-24T09:01:15Z",
+      "side": 1,
+      "message": "true /* learned */ ?",
+      "range": {
+        "startLine": 104,
+        "startChar": 26,
+        "endLine": 104,
+        "endChar": 30
+      },
+      "revId": "272563146d031c2fa362be72656cfc28298e43c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_880dd7ea",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 619,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-24T09:01:15Z",
+      "side": 1,
+      "message": "Should we check that?",
+      "range": {
+        "startLine": 619,
+        "startChar": 62,
+        "endLine": 619,
+        "endChar": 75
+      },
+      "revId": "272563146d031c2fa362be72656cfc28298e43c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_680c13ee",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/RouterMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 629,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-24T09:01:15Z",
+      "side": 1,
+      "message": "Should we test that the route has been received by the router?",
+      "range": {
+        "startLine": 629,
+        "startChar": 62,
+        "endLine": 629,
+        "endChar": 76
+      },
+      "revId": "272563146d031c2fa362be72656cfc28298e43c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
