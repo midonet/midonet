@@ -18,6 +18,8 @@ package org.midonet.cluster.storage
 import com.google.inject.Inject
 import com.typesafe.config.Config
 
+import org.apache.curator.framework.CuratorFramework
+
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.MidoTestConfigurator
@@ -38,7 +40,7 @@ class MidonetTestBackend extends MidonetBackend {
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
     override def isEnabled = cfg.useNewStack
-
+    override def curator: CuratorFramework = null
 
     override def doStart(): Unit = {
         setupBindings()
