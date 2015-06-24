@@ -350,7 +350,7 @@ trait NatState extends FlowState { this: PacketContext =>
                         if (isSnat)
                             transport.setSourcePort(binding.transportPort)
                         else
-                            transport.setDestinationPort(binding.transportPort.toShort)
+                            transport.setDestinationPort(binding.transportPort)
                         transport.clearChecksum()
                     case _ =>
                 }
