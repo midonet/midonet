@@ -179,6 +179,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_282a0b90",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-24T10:39:56Z",
+      "side": 1,
+      "message": "val inPortVlan \u003d Option(vlanToPort.getVlan(context.inPortId))\n\n  def getVlanFromFlowMatch \u003d context.wcmatch.getVlanIds match {\n    case l: java.util.List[_] if !l.isEmpty \u003d\u003e \n         Some(l.get(0))\n     case _ \u003d\u003e \n        None\n  }\n\n  inPortVlan orElse getVlanFromFlowMatch\n\nwe create an option that will be either None or Some depending on whether the value is null or not. then we define a function, that is basically an if that creates another option. but we don\u0027t execute this function now, only if the option we created was a Some, so we branch again, through a library call, on the same condition we branched at the beginning of the function.\n\nalternatively:\n\n   if (vlanToPort.getVlan(context.inPortId) ne null)\n      vlanToPort.getVlan(context.inPortId)\n   else if (!context.wcmatch.getVlanIds.isEmpty)\n      context.wcmatch.getVlanIds.get(0)\n   else \n      UntaggedVlan",
+      "parentUuid": "facab960_e87583cb",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4e33dfaa",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
         "patchSetId": 5
