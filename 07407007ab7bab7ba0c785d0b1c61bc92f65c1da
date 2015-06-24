@@ -174,6 +174,24 @@
       "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_e394c48c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingWorkflow.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 23,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T11:17:30Z",
+      "side": 1,
+      "message": "ooooh, this was intellij, hadn\u0027t noticed.\n\nwill fix.",
+      "parentUuid": "facab960_88db174e",
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
