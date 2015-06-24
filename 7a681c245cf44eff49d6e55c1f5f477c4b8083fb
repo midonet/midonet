@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_8355b8fb",
+        "filename": "midolman/src/man/mn-conf.1.ronn",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T10:56:00Z",
+      "side": 1,
+      "message": "I think STDIN is more precise.\n\nAnyway, this command has been extended so it can accept a config string as a trailing arg or read from STDIN otherwise, I\u0027ll update the manual page to reflect that.",
+      "revId": "7a681c245cf44eff49d6e55c1f5f477c4b8083fb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
