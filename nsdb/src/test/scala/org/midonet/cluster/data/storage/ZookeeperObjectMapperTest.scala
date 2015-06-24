@@ -15,18 +15,25 @@
  */
 package org.midonet.cluster.data.storage
 
+import scala.concurrent.duration._
+
 import org.junit.runner.RunWith
+import org.scalatest.GivenWhenThen
 import org.scalatest.junit.JUnitRunner
 
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.StorageTestClasses._
 import org.midonet.cluster.util.{ClassAwaitableObserver, CuratorTestFramework, PathCacheDisconnectedException}
+import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework {
+class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
+                                with GivenWhenThen {
 
     import StorageTest._
+
+    private val timeout = 5 seconds
 
     protected override def setup(): Unit = {
         storage = createStorage
@@ -39,19 +46,85 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework {
     }
 
     feature("Test subscribe") {
-        scenario("Test subscribe with GC") {
+        scenario("Test object observable recovers after close") {
+            Given("A bridge")
             val bridge = createPojoBridge()
-            await(storage.exists(classOf[PojoBridge], bridge.id)) shouldBe false
             storage.create(bridge)
-            await(storage.exists(classOf[PojoBridge], bridge.id)) shouldBe true
-            val obs = new TestObserver[PojoBridge]
-            val sub = storage.observable(classOf[PojoBridge], bridge.id)
-                .subscribe(obs)
 
-            val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
-            zoom.subscriptionCount(classOf[PojoBridge], bridge.id) shouldBe Option(1)
+            And("An observer")
+            val observer = new TestObserver[PojoBridge]
+                               with AwaitableObserver[PojoBridge]
+
+            And("A storage observable")
+            val obs = storage.observable(classOf[PojoBridge], bridge.id)
+
+            When("The observer subscribes to the observable")
+            val sub = obs.subscribe(observer)
+
+            Then("The observer receives the current bridge")
+            observer.awaitOnNext(1, timeout)
+            observer.getOnNextEvents should have size 1
+
+            When("The observer unsubscribes")
             sub.unsubscribe()
-            zoom.subscriptionCount(classOf[PojoBridge], bridge.id) shouldBe None
+
+            Then("The storage returns the same observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
+
+            When("The observer resubscribes")
+            storage.observable(classOf[PojoBridge], bridge.id)
+                   .subscribe(observer)
+
+            Then("The observer receives the current bridge")
+            observer.awaitOnNext(2, timeout)
+            observer.getOnNextEvents should have size 2
+
+            And("The storage returns a different observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) ne obs shouldBe true
+        }
+
+        scenario("Test object observable is reused by concurrent subscribers") {
+            Given("A bridge")
+            val bridge = createPojoBridge()
+            storage.create(bridge)
+
+            And("An observer")
+            val observer = new TestObserver[PojoBridge]
+                               with AwaitableObserver[PojoBridge]
+
+            And("A storage observable")
+            val obs = storage.observable(classOf[PojoBridge], bridge.id)
+
+            When("The observer subscribes to the observable")
+            val sub1 = obs.subscribe(observer)
+
+            Then("The observer receives the current bridge")
+            observer.awaitOnNext(1, timeout)
+            observer.getOnNextEvents should have size 1
+
+            When("The observer subscribes a second time to the observable")
+            val sub2 = obs.subscribe(observer)
+
+            Then("The observer receives the current bridge")
+            observer.awaitOnNext(2, timeout)
+            observer.getOnNextEvents should have size 2
+
+            When("The first subscription unsubscribes")
+            sub1.unsubscribe()
+
+            Then("The storage returns the same observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
+
+            When("The observer resubscribes")
+            storage.observable(classOf[PojoBridge], bridge.id)
+                .subscribe(observer)
+
+            Then("The observer receives the current bridge")
+            observer.awaitOnNext(3, timeout)
+            observer.getOnNextEvents should have size 3
+
+            And("The storage returns the same observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
         }
 
         scenario("Test subscribe all with GC") {

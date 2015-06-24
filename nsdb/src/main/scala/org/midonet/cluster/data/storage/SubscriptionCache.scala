@@ -153,15 +153,15 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
  * Caches deserializer objects on a per-class basis.
  */
 private object DeserializerCache {
-    import org.midonet.cluster.data.storage.ZookeeperObjectMapper.deserialize
+    import ZookeeperObjectMapper.deserialize
 
     private val deserializers = new TrieMap[Class[_], Func1[ChildData, _]]
 
     def deserializer[T](clazz: Class[T]): Func1[ChildData, T] = {
         deserializers.getOrElse(clazz, {
-            val nw = makeDeserializer(clazz)
-            val cur = deserializers.putIfAbsent(clazz, nw)
-            cur.getOrElse(nw)
+            val deserializer = makeDeserializer(clazz)
+            val cur = deserializers.putIfAbsent(clazz, deserializer)
+            cur.getOrElse(deserializer)
         }).asInstanceOf[Func1[ChildData, T]]
     }
 
