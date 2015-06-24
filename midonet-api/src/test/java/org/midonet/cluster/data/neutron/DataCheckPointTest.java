@@ -127,9 +127,6 @@ public class DataCheckPointTest {
         @Override
         protected void configure() {
             super.configure();
-            //MidonetBackendConfig mbc = new MidonetBackendConfig(config);
-            //bind(MidonetBackendConfig.class).toInstance(mbc);
-            //expose(MidonetBackendConfig.class);
             ZookeeperLockFactory lockFactory = mock(ZookeeperLockFactory.class);
             InterProcessSemaphoreMutex lock = mock(
                 InterProcessSemaphoreMutex.class);

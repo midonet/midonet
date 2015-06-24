@@ -352,10 +352,11 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
     /** Wraps a call to a Curator background operation as an observable. The
       * method takes as argument a function receiving a [[BackgroundCallback]]
-      * as argument, and creates an observable which, when subscribed to calls
-      * this function with a new [[BackgroundCallback]], such that when the
-      * callback's `processResult` is called, the observable will emit a
-      * notification with the [[CuratorEvent]]. */
+      * as argument. It creates an observable which, when subscribed to, calls
+      * this function with a new [[BackgroundCallback]] instance. When the
+      * callback's `processResult` is called with a [[CuratorEvent]] as
+      * argument, the observable will emit a notification with that
+      * [[CuratorEvent]]. */
     protected def asObservable(f: (BackgroundCallback) => Unit)
     : Observable[CuratorEvent] = {
         Observable.create(new OnSubscribe[CuratorEvent] {
@@ -372,7 +373,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     }
 
     /** Returns a function that converts a [[CuratorEvent]] into a
-      * notificaton. */
+      * notification. */
     protected def asResult(clazz: Class[_], id: ObjId, key: String,
                            value: String, ownerId: Long)
     : Func1[CuratorEvent, Notification[StateResult]] = makeFunc1(event => {
