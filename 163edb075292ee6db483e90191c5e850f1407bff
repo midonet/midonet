@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_2bd7624c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/guice/InMemoryStorageModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-24T22:30:20Z",
+      "side": 1,
+      "message": "note to self: this is obviously not a PrivateModule (no need to change here but we should clean it later).",
+      "range": {
+        "startLine": 22,
+        "startChar": 36,
+        "endLine": 22,
+        "endChar": 49
+      },
+      "revId": "163edb075292ee6db483e90191c5e850f1407bff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
