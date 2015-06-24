@@ -75,9 +75,9 @@ Dumps the entire selected configuration.
 Print the value assigned to a particular configuration key. See the above, in `dump`, the options for selecting the configuration source(s) to read from.
 
 
-`set [-h` <HOST_ID> `| -t` <TEMPLATE_NAME>`] [-c] <` <CONFIG_FILE>
+`set [-h` <HOST_ID> `| -t` <TEMPLATE_NAME>`] [-c] ` **&lt;** <CONFIG_FILE>
 
-Reads configuration from STDIN and stores it in the selected configuration source. The input will be merged on top of the existing configuration, unless `--clear` is given, in that case the input will replace the existing configuration. See above, in `dump`, the options for selecting the configuration source to write to.
+Reads values from a configuration file and stores them in the selected configuration source. The input will be merged on top of the existing configuration, unless `--clear` is given, in that case the input will replace the existing configuration. See above, in `dump`, the options for selecting the configuration source to write to.
 
   * `-c`, `--clear`:
   Clear the configuration before storing the values read from standard input.
@@ -107,7 +107,7 @@ Imports values from a legacy configuration file into the centralized configurati
    * `-a`, `--all`:
    Import all values, instead of just those that differ from the configuration schema.
    * `-f` <CONFIG_FILE>, `--file` <CONFIG_FILE>:
-   Path to the file were `mn-conf` will find the legacy configuration.
+   Path to the file where `mn-conf` will find the legacy configuration.
 
 ## MISCELLANEOUS OPTIONS
 
