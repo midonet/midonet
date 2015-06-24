@@ -47,7 +47,6 @@ import org.slf4j.LoggerFactory
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.util.reactivex._
@@ -113,7 +112,7 @@ import org.midonet.util.reactivex._
  */
 class ZookeeperObjectMapper(protected override val rootPath: String,
                             protected override val curator: CuratorFramework)
-    extends ZookeeperObjectState with StorageWithOwnership {
+    extends ZookeeperObjectState with Storage {
 
     import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 
@@ -139,8 +138,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     private val instanceCaches = new mutable.HashMap[
         Class[_], TrieMap[String, InstanceSubscriptionCache[_]]]
     private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
-    private val ownerCaches = new mutable.HashMap[
-        Class[_], TrieMap[String, DirectorySubscriptionCache]]
 
     /**
      * Manages objects referenced by the primary target of a create, update,
@@ -181,10 +178,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             ZookeeperObjectMapper.this.getObjectPath(clazz, id, version)
         }
 
-        private def getOwnerPath(clazz: Class[_], id: ObjId, owner: ObjId) = {
-            ZookeeperObjectMapper.this.getOwnerPath(clazz, id, owner, version)
-        }
-
         override def isRegistered(clazz: Class[_]): Boolean = {
             ZookeeperObjectMapper.this.isRegistered(clazz)
         }
@@ -201,16 +194,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                     throw new InternalObjectMapperException(ex)
             }
 
-            val children = if (stat.getNumChildren > 0) try {
-                curator.getChildren.storingStatIn(stat).forPath(path)
-                    .asScala.toSet
-            } catch {
-                case nne: NoNodeException =>
-                    throw new NotFoundException(clazz, id)
-                case ex: Exception =>
-                    throw new InternalObjectMapperException(ex)
-            } else Set.empty[String]
-
             if (stat.getMzxid > zxid) {
                 throw new ConcurrentModificationException(
                     s"${clazz.getSimpleName} with ID $id was modified " +
@@ -218,7 +201,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             }
 
             ObjSnapshot(deserialize(data, clazz).asInstanceOf[Obj],
-                        stat.getVersion, children)
+                        stat.getVersion)
         }
 
         override def commit(): Unit = {
@@ -227,18 +210,13 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 curator.inTransaction().asInstanceOf[CuratorTransactionFinal]
 
             for ((Key(clazz, id), txOp) <- ops) txn = txOp match {
-                case TxCreate(obj, _) =>
+                case TxCreate(obj) =>
                     txn.create.forPath(getPath(clazz, id), serialize(obj)).and
-                case TxUpdate(obj, ver, ownerOps) =>
+                case TxUpdate(obj, ver) =>
                     txn.setData().withVersion(ver)
                         .forPath(getPath(clazz, id), serialize(obj)).and
-                case TxDelete(ver, ownerOps) =>
+                case TxDelete(ver) =>
                     txn.delete.withVersion(ver).forPath(getPath(clazz, id)).and
-                case TxCreateOwner(owner) =>
-                    txn.create.withMode(CreateMode.EPHEMERAL)
-                        .forPath(getOwnerPath(clazz, id, owner)).and
-                case TxDeleteOwner(owner) =>
-                    txn.delete.forPath(getOwnerPath(clazz, id, owner)).and
                 case TxCreateNode(value) =>
                     txn.create.forPath(id, asBytes(value)).and
                 case TxUpdateNode(value) =>
@@ -307,20 +285,14 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
          * exception.
          *
          * @throws ObjectExistsException if object creation failed.
-         * @throws OwnershipConflictException if object owner assignment failed.
          * @throws StorageNodeExistsException if node creation failed.
          * @throws InternalObjectMapperException for all other cases.
          */
         @throws[ObjectExistsException]
-        @throws[OwnershipConflictException]
         @throws[StorageNodeExistsException]
         private def rethrowException(ops: Seq[(Key, TxOp)],
                                      e: NodeExistsException): Unit = {
             opForException(ops, e) match {
-                case (key: Key, oop: TxOwnerOp) =>
-                    throw new OwnershipConflictException(
-                        key.clazz.getSimpleName, key.id.toString,
-                        Set.empty[String], oop.owner)
                 case (Key(_, path), cm: TxCreateNode) =>
                     throw new StorageNodeExistsException(path)
                 case (key: Key, _) =>
@@ -355,16 +327,12 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
          * appropriate exception, depending on the operation that caused the
          * exception.
          *
-         * @throws OwnershipConflictException if owner operation failed.
          * @throws ConcurrentModificationException if map deletion failed.
          * @throws InternalObjectMapperException for all other cases.
          */
         private def rethrowException(ops: Seq[(Key, TxOp)],
                                      e: NotEmptyException): Unit = {
             opForException(ops, e) match {
-                case (Key(clazz, id), _: TxOwnerOp) =>
-                    throw new OwnershipConflictException(clazz.toString,
-                                                         id.toString)
                 case (_, TxDeleteNode) =>
                     // We added operations to delete all descendants, so this
                     // should only happen if there was a concurrent
@@ -386,20 +354,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
      */
     override def registerClass(clazz: Class[_]): Unit = {
         assert(!isBuilt)
-        registerClassInternal(clazz, OwnershipType.Shared)
-    }
-
-    /**
-     * Registers the state for use.
-     */
-    override def registerClass(clazz: Class[_], ownershipType: OwnershipType)
-    : Unit = {
-        assert(!isBuilt)
-        registerClassInternal(clazz, ownershipType)
-    }
-
-    private def registerClassInternal(clazz: Class[_],
-                                      ownershipType: OwnershipType): Unit = {
         val name = clazz.getSimpleName
         simpleNameToClass.get(name) match {
             case Some(_) =>
@@ -411,10 +365,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 simpleNameToClass.put(name, clazz)
         }
 
-        classInfo(clazz) = makeInfo(clazz, ownershipType)
+        classInfo(clazz) = makeInfo(clazz)
         stateInfo(clazz) = new StateInfo
         instanceCaches(clazz) = new TrieMap[String, InstanceSubscriptionCache[_]]
-        ownerCaches(clazz) = new TrieMap[String, DirectorySubscriptionCache]
     }
 
     override def isRegistered(clazz: Class[_]) = {
@@ -571,31 +524,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         all.future
     }
 
-    @throws[NotFoundException]
-    override def getOwners(clazz: Class[_], id: ObjId): Future[Set[String]] = {
-        assertBuilt()
-        assert(isRegistered(clazz))
-
-        ownerCaches(clazz).get(id.toString) match {
-            case Some(cache) => cache.observable.asFuture
-            case None =>
-                val p = Promise[Set[String]]()
-                val cb = new BackgroundCallback {
-                    override def processResult(client: CuratorFramework,
-                                               event: CuratorEvent): Unit = {
-                        if (event.getResultCode == Code.OK.intValue) {
-                            p.success(event.getChildren.asScala.toSet)
-                        } else {
-                            p.failure(new NotFoundException(clazz, id))
-                        }
-                    }
-                }
-                curator.getChildren.inBackground(cb)
-                       .forPath(getObjectPath(clazz, id))
-                p.future
-        }
-    }
-
     /**
      * Returns true if the specified object exists in Zookeeper.
      */
@@ -632,22 +560,18 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
         val manager = new ZoomTransactionManager(version.longValue())
         ops.foreach {
-            case CreateOp(obj) => manager.create(obj)
-            case CreateWithOwnerOp(obj, owner) => manager.create(obj, owner)
-            case UpdateOp(obj, validator) => manager.update(obj, validator)
-            case UpdateWithOwnerOp(obj, owner, validator) =>
-                manager.update(obj, owner, validator)
-            case UpdateOwnerOp(clazz, id, owner, throwIfExists) =>
-                manager.updateOwner(clazz, id, owner, throwIfExists)
+            case CreateOp(obj) =>
+                manager.create(obj)
+            case UpdateOp(obj, validator) =>
+                manager.update(obj, validator)
             case DeleteOp(clazz, id, ignoresNeo) =>
-                manager.delete(clazz, id, ignoresNeo, None)
-            case DeleteWithOwnerOp(clazz, id, owner) =>
-                manager.delete(clazz, id, ignoresNeo = false, Some(owner))
-            case DeleteOwnerOp(clazz, id, owner) =>
-                manager.deleteOwner(clazz, id, owner)
-            case CreateNodeOp(path, value) => manager.createNode(path, value)
-            case UpdateNodeOp(path, value) => manager.updateNode(path, value)
-            case DeleteNodeOp(path) => manager.deleteNode(path)
+                manager.delete(clazz, id, ignoresNeo)
+            case CreateNodeOp(path, value) =>
+                manager.createNode(path, value)
+            case UpdateNodeOp(path, value) =>
+                manager.updateNode(path, value)
+            case DeleteNodeOp(path) =>
+                manager.deleteNode(path)
         }
 
         try manager.commit() finally { manager.releaseLock() }
@@ -665,13 +589,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                                        version: Long = version.longValue())
     : String = {
         getClassPath(clazz, version) + "/" + getIdString(clazz, id)
-    }
-
-    @inline
-    private[storage] def getOwnerPath(clazz: Class[_], id: ObjId, owner: ObjId,
-                                      version: Long = version.longValue())
-    : String = {
-        getObjectPath(clazz, id, version) + "/" + owner.toString
     }
 
     /**
@@ -723,21 +640,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         }).asInstanceOf[ClassSubscriptionCache[T]].observable
     }
 
-    override def ownersObservable(clazz: Class[_], id: ObjId)
-    : Observable[Set[String]] = {
-        assertBuilt()
-        assert(isRegistered(clazz))
-
-        ownerCaches(clazz).getOrElse(id.toString, {
-            val onLastUnsubscribe: DirectorySubscriptionCache => Unit = c => {
-                ownerCaches.get(clazz).foreach( _ remove id.toString )
-            }
-            val oc = new DirectorySubscriptionCache(getObjectPath(clazz, id),
-                                                    curator, onLastUnsubscribe)
-            ownerCaches(clazz).putIfAbsent(id.toString, oc).getOrElse(oc)
-        }).observable
-    }
-
     // We should have public subscription methods, but we don't currently
     // need them, and this is easier to implement for testing.
     @VisibleForTesting
@@ -767,9 +669,8 @@ object ZookeeperObjectMapper {
     private val VersionNode = "dataset_version"
     private val InitialZoomDataSetVersion = 1
 
-    private[storage] final class MessageClassInfo(clazz: Class[_],
-                                                  ownershipType: OwnershipType)
-        extends ClassInfo(clazz, ownershipType) {
+    private[storage] final class MessageClassInfo(clazz: Class[_])
+        extends ClassInfo(clazz) {
 
         val idFieldDesc =
             ProtoFieldBinding.getMessageField(clazz, FieldBinding.ID_FIELD)
@@ -777,9 +678,8 @@ object ZookeeperObjectMapper {
         def idOf(obj: Obj) = obj.asInstanceOf[Message].getField(idFieldDesc)
     }
 
-    private [storage] final class JavaClassInfo(clazz: Class[_],
-                                                ownershipType: OwnershipType)
-        extends ClassInfo(clazz, ownershipType) {
+    private [storage] final class JavaClassInfo(clazz: Class[_])
+        extends ClassInfo(clazz) {
 
         val idField = clazz.getDeclaredField(FieldBinding.ID_FIELD)
 
@@ -788,23 +688,17 @@ object ZookeeperObjectMapper {
         def idOf(obj: Obj) = idField.get(obj)
     }
 
-    private final class OwnerMapMethods(owners: Map[String, Int]) {
-        def containsIfOwner(owner: Option[String], default: Boolean): Boolean = {
-            owner.map(owners.contains).getOrElse(default)
-        }
-    }
-
     protected val log = LoggerFactory.getLogger(ZookeeperObjectMapper.getClass)
 
     private val jsonFactory = new JsonFactory(new ObjectMapper())
 
-    private[storage] def makeInfo(clazz: Class[_], ownershipType: OwnershipType)
+    private[storage] def makeInfo(clazz: Class[_])
     : ClassInfo = {
         try {
             if (classOf[Message].isAssignableFrom(clazz)) {
-                new MessageClassInfo(clazz, ownershipType)
+                new MessageClassInfo(clazz)
             } else {
-                new JavaClassInfo(clazz, ownershipType)
+                new JavaClassInfo(clazz)
             }
         } catch {
             case ex: Exception =>

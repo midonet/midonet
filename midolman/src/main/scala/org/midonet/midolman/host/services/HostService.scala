@@ -82,7 +82,7 @@ object HostService {
  * using the same host identifier, the [[HostService]] leverages an ownership
  * mechanism to indicate whether the host is in use. In both MidoNet 1.x and 2.x
  * this uses a ZooKeeper ephemeral node, to indicate the presence of a host.
- * In 2.x this is done via the [[StorageWithOwnership]] interface.
+ * In 2.x this is done via the [[Storage]] interface.
  *
  * The host ownership also indicates whether the host is active.
  *
@@ -365,7 +365,6 @@ class HostService @Inject()(config: MidolmanConfig,
         } catch {
             case e @ (_: ObjectExistsException |
                       _: ReferenceConflictException |
-                      _: OwnershipConflictException |
                       _: ConcurrentModificationException) =>
                 log.error("Failed to create host in backend storage", e)
                 aliveState.set(OwnershipState.Released)

@@ -105,7 +105,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         protected def createStateOps: Seq[(Key, TxOp)] = {
             val list = new ListBuffer[(Key, TxOp)]
             for ((Key(clazz, id), txOp) <- ops) txOp match {
-                case TxCreate(_,_) =>
+                case TxCreate(_) =>
                     list += Key(null, getStateObjectPath(clazz, id, version)) ->
                             TxCreateNode()
                     for ((key, wp) <- stateInfo(clazz).keys if !wp.isSingle) {
@@ -123,7 +123,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         protected def deleteState(): Unit = {
             executorService.submit(makeRunnable {
                 for ((Key(clazz, id), txOp) <- ops) txOp match {
-                    case TxDelete(_,_) =>
+                    case TxDelete(_) =>
                         val path = getStateObjectPath(clazz, id, version)
                         try {
                             ZKPaths.deleteChildren(

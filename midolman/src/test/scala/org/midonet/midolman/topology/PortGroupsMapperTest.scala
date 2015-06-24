@@ -45,7 +45,7 @@ class PortGroupsMapperTest extends MidolmanSpec with TopologyBuilder
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
+        store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
     feature("The port groups mapper emits port group devices") {
