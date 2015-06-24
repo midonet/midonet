@@ -197,6 +197,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_08046716",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T10:44:28Z",
+      "side": 1,
+      "message": "It\u0027s fine really, don\u0027t worry :)",
+      "parentUuid": "facab960_282a0b90",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4e33dfaa",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
         "patchSetId": 5
