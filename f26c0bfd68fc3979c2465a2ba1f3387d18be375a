@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_a870dbdc",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-06-24T10:38:05Z",
+      "side": 1,
+      "message": "Ok",
+      "parentUuid": "facab960_fd28f287",
+      "range": {
+        "startLine": 117,
+        "startChar": 12,
+        "endLine": 117,
+        "endChar": 40
+      },
+      "revId": "f26c0bfd68fc3979c2465a2ba1f3387d18be375a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_0a638a42",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
         "patchSetId": 2
