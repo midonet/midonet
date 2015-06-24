@@ -196,7 +196,7 @@ object C3POMinion {
              new LoadBalancerPoolMemberTranslator(storage),
              classOf[NeutronNetwork] ->
              new NetworkTranslator(storage, pathBldr),
-             classOf[NeutronRouter] -> new RouterTranslator(storage),
+             classOf[NeutronRouter] -> new RouterTranslator(storage, pathBldr),
              classOf[NeutronRouterInterface] ->
              new RouterInterfaceTranslator(storage),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
