@@ -177,10 +177,7 @@ is_package_installed git || install_package git
 is_package_installed libreadline-dev || install_package libreadline-dev
 is_package_installed ncurses-dev || install_package ncurses-dev
 is_package_installed openjdk-7-jdk || install_package openjdk-7-jdk
-# Specify the version of pip because of a bug in Ubuntu:
-# https://bugs.launchpad.net/ubuntu/+source/python-pip/+bug/1468155
-# TODO (Joe): Remove the specified version once the above bug is resolved
-is_package_installed python-pip || install_package python-pip=1.5.4-1
+is_package_installed python-pip || install_package python-pip
 is_package_installed wget || install_package wget
 is_package_installed ruby-ronn || install_package ruby-ronn
 
