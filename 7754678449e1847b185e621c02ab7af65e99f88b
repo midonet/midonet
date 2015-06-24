@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_e852e365",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 7,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T10:17:45Z",
+      "side": 1,
+      "message": "I think you are referring to having a no-vlan tag (0) as \"using 802.1Q\", whereas a 802.1Q is the actual VLANs standard, so when one says \"802.1Q packet\" most people undertand that packet is vlan-tagged. And your title (besides not describing the change) is saying the opposite, which sounds awkward.",
+      "parentUuid": "facab960_0eed57b7",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_0e50f7d2",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
         "patchSetId": 5
@@ -107,6 +125,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_084c67c7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Bridge.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 534,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T10:17:45Z",
+      "side": 1,
+      "message": "I\u0027m fine with this but found the previous version more readable.",
+      "parentUuid": "facab960_ae40eba5",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4e33dfaa",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
         "patchSetId": 5
@@ -136,6 +172,24 @@
       "side": 1,
       "message": "i\u0027m not so sure. for example, vrf\u0027s, i think, send vlan tagged packets between each other (between different routers). so this is something you might want to keep?",
       "parentUuid": "facab960_4e33dfaa",
+      "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_68ced32f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-24T10:17:45Z",
+      "side": 1,
+      "message": "My 1st guess would be L2 information doesn\u0027t cross L3 forwarding eleements. If we are keeping it I\u0027d look for an authoritative source of wisdom.",
+      "parentUuid": "facab960_8e86c7d9",
       "revId": "7754678449e1847b185e621c02ab7af65e99f88b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
