@@ -48,6 +48,54 @@
     },
     {
       "key": {
+        "uuid": "facab960_a8b9bb7a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-24T10:30:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_68e6ec16",
+      "range": {
+        "startLine": 345,
+        "startChar": 21,
+        "endLine": 345,
+        "endChar": 24
+      },
+      "revId": "f1fa8a1d4d88e2decf27c09d5970dfcbadbeec1a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_88b4f782",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-24T10:30:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_48e928e5",
+      "range": {
+        "startLine": 345,
+        "startChar": 19,
+        "endLine": 345,
+        "endChar": 20
+      },
+      "revId": "f1fa8a1d4d88e2decf27c09d5970dfcbadbeec1a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_88efb0e8",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 11
@@ -59,6 +107,30 @@
       "writtenOn": "2015-06-18T15:59:51Z",
       "side": 1,
       "message": "Please simplify this sentence.",
+      "range": {
+        "startLine": 346,
+        "startChar": 8,
+        "endLine": 348,
+        "endChar": 47
+      },
+      "revId": "f1fa8a1d4d88e2decf27c09d5970dfcbadbeec1a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_08a8e71e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 348,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-24T10:30:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_88efb0e8",
       "range": {
         "startLine": 346,
         "startChar": 8,
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_28a5ab46",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 365,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-24T10:30:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_a8ec74f4",
+      "range": {
+        "startLine": 365,
+        "startChar": 8,
+        "endLine": 365,
+        "endChar": 19
+      },
+      "revId": "f1fa8a1d4d88e2decf27c09d5970dfcbadbeec1a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_68c98c58",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
         "patchSetId": 11
@@ -105,6 +201,30 @@
       "writtenOn": "2015-06-18T15:59:51Z",
       "side": 1,
       "message": "Isn\u0027t there a test class for the In-mem state storage? Could we merge some of the common functionality?",
+      "range": {
+        "startLine": 41,
+        "startChar": 6,
+        "endLine": 41,
+        "endChar": 30
+      },
+      "revId": "f1fa8a1d4d88e2decf27c09d5970dfcbadbeec1a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_686a53ef",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectStateTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-24T10:30:34Z",
+      "side": 1,
+      "message": "The first tests for the state storage were introduced here. The in-mem version was added in a subsequent patch.",
+      "parentUuid": "facab960_68c98c58",
       "range": {
         "startLine": 41,
         "startChar": 6,
