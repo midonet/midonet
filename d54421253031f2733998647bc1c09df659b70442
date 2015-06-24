@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_2bc12254",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-24T22:55:25Z",
+      "side": 1,
+      "message": "Failure to acquire the lock is not handled, it\u0027ll throw a RuntimeException in ZkOpLock.acquire and not be handled in the tryStorageOp catch.\n\nThis case should be reported to the user returning a 503 (if possible with a request to \"retry\" in the error msg).\n\nWe should add a custom exception to ZkOpLock (e.g., LockAcquisitionTimeoutException) catch it in tryStorageOp, and wrap it in a 503.",
+      "range": {
+        "startLine": 69,
+        "startChar": 12,
+        "endLine": 69,
+        "endChar": 24
+      },
+      "revId": "d54421253031f2733998647bc1c09df659b70442",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_cbeef6ec",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-24T22:55:25Z",
+      "side": 1,
+      "message": "If I remember correctly the value passed in lockCounter to ZkOpLock is just a number to identify the operation, but not really a sequence number that will play any real role in acquiring the lock, right?\n\nJust saying because the name of the variable seems misleading, it reads as if this was used to actually arbitrate in lock aquisition (which wouldn\u0027t work when multiple JVMs serve the neutron API). Maybe \"operationNo\" would be better.",
+      "revId": "d54421253031f2733998647bc1c09df659b70442",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
