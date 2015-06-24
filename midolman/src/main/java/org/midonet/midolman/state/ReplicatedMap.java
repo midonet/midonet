@@ -33,12 +33,9 @@ import org.slf4j.LoggerFactory;
 
 public abstract class ReplicatedMap<K, V> {
     private final static Logger log =
-         LoggerFactory.getLogger(ReplicatedMap.class);
+        LoggerFactory.getLogger(ReplicatedMap.class);
 
     protected ZkConnectionAwareWatcher connectionWatcher;
-
-    /* The number of times we attempt to delete a node before giving up. */
-    private static final int DELETION_RETRIES = 10;
 
     /*
      * TODO(pino): don't allow deletes to be lost.
@@ -74,7 +71,6 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     private class DirectoryWatcher implements Runnable {
-
         /**
          * Retrieve all the children of the watched directory, handling
          * failures.
@@ -122,7 +118,7 @@ public abstract class ReplicatedMap<K, V> {
                         cleanupPaths.add(p);
                     }
                 } else if (mv.version > p.version &&
-                    ownedVersions.contains(p.version)) {
+                           ownedVersions.contains(p.version)) {
                     // The one currently in newMap is newer and the other
                     // one belongs to this ZK client. Clean it up.
                     cleanupPaths.add(p);
@@ -141,7 +137,6 @@ public abstract class ReplicatedMap<K, V> {
             for (Path path : paths) {
                 try {
                     dir.delete(encodePath(path.key, path.value, path.version));
-                    ownedVersions.remove(path.version);
                 } catch (KeeperException e) {
                     log.error("DirectoryWatcher.run", e);
                     // TODO (guillermo) connectionWatcher.handleError()?
@@ -149,6 +144,11 @@ public abstract class ReplicatedMap<K, V> {
                 } catch (InterruptedException e) {
                     log.error("DirectoryWatcher.run", e);
                     Thread.currentThread().interrupt();
+                }
+            }
+            synchronized(ReplicatedMap.this) {
+                for (Path path : paths) {
+                    ownedVersions.remove(path.version);
                 }
             }
         }
@@ -311,8 +311,8 @@ public abstract class ReplicatedMap<K, V> {
     }
 
     private class PutCallback implements DirectoryCallback<String> {
-        private K key;
-        private V value;
+        private final K key;
+        private final V value;
 
         PutCallback(K k, V v) {
             key = k;
@@ -328,58 +328,53 @@ public abstract class ReplicatedMap<K, V> {
         }
 
         public void onError(KeeperException ex) {
-            log.error("ReplicatedMap Put {} => {} failed: {}",
-                      new Object[] { key, value, ex });
+            log.error("Put {} => {} failed: {}", key, value, ex);
         }
 
         public void onTimeout() {
-            log.error("ReplicatedMap Put {} => {} timed out.", key, value);
+            log.error("Put {} => {} timed out.", key, value);
         }
     }
 
     private class DeleteCallBack implements DirectoryCallback<Void> {
-        private K key;
-        private V value;
-        private int version;
-        private int attemptNo;
+        private final K key;
+        private final V value;
+        private final int version;
 
         DeleteCallBack(K k, V v, int ver) {
             key = k;
             value = v;
             version = ver;
-            attemptNo = 1;
         }
 
         public void onSuccess(Void result) {
             synchronized(ReplicatedMap.this) {
-                localMap.remove(key);
+                /* The map entry that was just removed from Zookeeper was or
+                   will be deleted from the local map in method run(). This is
+                   true if no value is inserted for the same key in the
+                   meantime. Watchers will be notified of this deletion in
+                   method run as well. */
                 ownedVersions.remove(version);
             }
-            notifyWatchers(key, value, null);
+        }
+
+        private Runnable deleteRunnable() {
+            final DeleteCallBack thisCb = this;
+            return new Runnable() {
+                public void run() {
+                    dir.asyncDelete(encodePath(key, value, version), thisCb);
+                }
+            };
         }
 
         public void onError(KeeperException ex) {
-            log.error("ReplicatedMap deletion of key {} failed: {}, " +
-                      "attempt {} out of {}.",
-                      new Object[]{key, ex, attemptNo, DELETION_RETRIES});
-            attemptNo++;
-
-            // We do not resubmit a delete if the node does not exist anymore.
-            if (ex.code() != KeeperException.Code.NONODE &&
-                attemptNo <= DELETION_RETRIES) {
-                dir.asyncDelete(encodePath(key, value, version), this);
-            }
+            String opDesc = "Replicated map deletion of key: " + key;
+            connectionWatcher.handleError(opDesc, deleteRunnable(), ex);
         }
 
         public void onTimeout() {
-            log.error("ReplicatedMap deletion of key {} timed out, " +
-                      "attempt {} out of {}.",
-                      new Object[]{key, attemptNo, DELETION_RETRIES});
-            attemptNo++;
-
-            if (attemptNo <= DELETION_RETRIES) {
-                dir.asyncDelete(encodePath(key, value, version), this);
-            }
+            log.info("Deletion of key: {} timed out, retrying.", key);
+            connectionWatcher.handleTimeout(deleteRunnable());
         }
     }
 
