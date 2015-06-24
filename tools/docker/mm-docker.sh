@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2014 Midokura SARL
+# Copyright 2015 Midokura SARL
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 # limitations under the License.
 
 check_command_availability() {
-    if !(("$1" "${2:-\"--version\"}") > /dev/null 2>&1); then
+    if !(("$1" "${2:---version}") > /dev/null 2>&1); then
         echo >&2 "$COMMAND: $1 is required to run this script"
         exit 1
     fi
@@ -49,10 +49,10 @@ add_if() {
         exit 1
     fi
 
-    if [ "$#" -eq 3 ]; then
+    if [ "$#" -eq 2 ]; then
         DATAPATH="midonet"
     fi
-    if [ "$#" -eq 4 ]; then
+    if [ "$#" -eq 3 ]; then
         DATAPATH="$1"
         shift
     fi
@@ -108,10 +108,10 @@ del_if() {
         exit 1
     fi
 
-    if [ "$#" -eq 3]; then
+    if [ "$#" -eq 2 ]; then
         DATAPATH="midonet"
     fi
-    if [ "$#" -eq 4 ]; then
+    if [ "$#" -eq 3 ]; then
         DATAPATH="$1"
         shift
     fi
@@ -140,7 +140,7 @@ del_ifs() {
         exit 1
     fi
 
-    if [ "$#" -eq 3 ]; then
+    if [ "$#" -eq 1 ]; then
         DATAPATH="midonet"
     fi
     if [ "$#" -eq 2 ]; then
