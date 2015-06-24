@@ -18,6 +18,7 @@ package org.midonet.cluster.services.rest_api.neutron.plugin
 
 import java.util
 import java.util.UUID
+import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.fromExecutor
@@ -29,8 +30,10 @@ import com.google.inject.Inject
 import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.ZoomConvert.{fromProto, toProto}
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, PersistenceOp, _}
+import org.midonet.cluster.data.util.ZkOpLock
 import org.midonet.cluster.data.{ZoomClass, ZoomObject}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rest_api.neutron.models._
@@ -42,8 +45,9 @@ import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.concurrent.toFutureOps
 
 class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
-                                  cfg: MidonetBackendConfig) extends L3Api
-                with LoadBalancerApi with NetworkApi with SecurityGroupApi {
+                                  cfg: MidonetBackendConfig,
+                                  lockFactory: ZookeeperLockFactory)
+    extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi {
 
     private val log = LoggerFactory.getLogger("org.midonet.rest_api.neutron")
 
@@ -53,8 +57,22 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
     private val store = backend.store
     private val c3po = C3POMinion.initDataManager(store, cfg)
 
+    private val lockCounter = new AtomicInteger(0)
+    private val lockName = "neutron-zoom"
+
+    private def tryRead[T](f: => T): T = tryStorageOp(f)
+
+    private def tryWrite(f: => Unit): Unit = {
+        val lock = new ZkOpLock(lockFactory, lockCounter.getAndIncrement,
+                                lockName)
+        lock.acquire()
+        try tryStorageOp(f) finally {
+            lock.release()
+        }
+    }
+
     /** Transform StorageExceptions to appropriate HTTP exceptions. */
-    private def tryAccess[T](f: => T): T = {
+    private def tryStorageOp[T](f: => T): T = {
         try f catch {
             case e: NotFoundException =>
                 throw new NotFoundHttpException(e.getMessage)
@@ -75,7 +93,7 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         val neutronOp = neutron.Create(toProto(dto, protoClass))
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
-        tryAccess(store.multi(persistenceOps))
+        tryWrite(store.multi(persistenceOps))
         log.debug(s"Create ${dto.getClass.getSimpleName} $id succeeded.")
         dto
     }
@@ -95,7 +113,7 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
             c3po.toPersistenceOps(c)
         )
 
-        tryAccess(store.multi(ops))
+        tryWrite(store.multi(ops))
         val ids = list[T](creates.map(c => idOf(c.model)))
         log.debug(s"Bulk create ${dtoClass.getSimpleName} succeeded: $ids")
         ids
@@ -104,7 +122,7 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
     def get[T >: Null <: ZoomObject](id: UUID)(implicit ct: ClassTag[T]): T = {
         val dtoClass = ct.runtimeClass.asInstanceOf[Class[T]]
         log.info(s"Get ${dtoClass.getSimpleName}: $id")
-        val proto = tryAccess(
+        val proto = tryRead(
             store.get(protoClassOf(dtoClass), id).await(timeout))
         val dto = fromProto(proto, dtoClass)
         log.debug("Get succeeded: " + dto)
@@ -118,7 +136,7 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         val neutronOp = neutron.Update(toProto(dto, protoClass))
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
-        tryAccess(store.multi(persistenceOps))
+        tryWrite(store.multi(persistenceOps))
         log.debug(s"Update ${dto.getClass.getSimpleName} $id succeeded")
         dto
     }
@@ -128,7 +146,7 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         log.info(s"Delete ${dtoClass.getSimpleName}: $id")
         val neutronOp = neutron.Delete(protoClass, UUIDUtil.toProto(id))
         val persistenceOps = c3po.toPersistenceOps(neutronOp)
-        tryAccess(store.multi(persistenceOps))
+        tryWrite(store.multi(persistenceOps))
         log.debug(s"Delete ${dtoClass.getSimpleName} $id succeeded")
     }
 
@@ -139,7 +157,7 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
 
         log.info(s"List ${dtoClass.getSimpleName}: $ids")
 
-        val dtos = tryAccess {
+        val dtos = tryRead {
             store.getAll(protoClass, ids).await(timeout)
                  .map(fromProto(_, dtoClass)).toList
         }
@@ -152,7 +170,7 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
         val protoClass = protoClassOf(dtoClass)
         log.info(s"List all ${dtoClass.getSimpleName}")
 
-        val dtos = tryAccess {
+        val dtos = tryRead {
             store.getAll(protoClass).await(timeout)
                  .map(fromProto(_, dtoClass))
                  .toList
