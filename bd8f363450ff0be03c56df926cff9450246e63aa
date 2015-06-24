@@ -16,6 +16,24 @@
       "revId": "bd8f363450ff0be03c56df926cff9450246e63aa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_bd03bf40",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-24T07:06:26Z",
+      "side": 1,
+      "message": "I know it\u0027s confusing to non-Scalar person, but it\u0027s a Monad thing. If you look at the definition of gwMac, its type is Option[NeutronPort]. the function inside {} will be applied to X in \"gwMac \u003d Some(X)\" and no others.",
+      "parentUuid": "facab960_bde81fe3",
+      "revId": "bd8f363450ff0be03c56df926cff9450246e63aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
