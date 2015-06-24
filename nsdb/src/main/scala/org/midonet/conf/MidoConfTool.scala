@@ -524,13 +524,12 @@ object MidoConfTool extends App {
         footer("Copyright (c) 2015 Midokura SARL, All Rights Reserved.")
     }
 
-    def invalidEx = new Exception("must specify a valid command")
+    def invalidEx = new Exception("invalid arguments, run with --help for usage information")
 
     val ret = opts.subcommand map {
         case subcommand: ConfCommand =>
             Try(subcommand.run(MidoNodeConfigurator(bootstrapConfig)))
-        case s =>
-            println(s)
+        case e =>
             Failure(invalidEx)
     } getOrElse Failure(invalidEx) match {
         case Success(retcode) =>
@@ -546,9 +545,12 @@ object MidoConfTool extends App {
                 System.err.println(s"[mn-conf] Could not connect to zookeeper at '$zkServer'")
                 System.err.println(s"[mn-conf] Check the FILES and ENVIRONMENT sections of the the mn-conf(1) manual page for details.")
                 3
+            case other if args.length == 0 =>
+                opts.printHelp()
+                1
             case other =>
                 System.err.println("[mn-conf] Failed: " + e.getMessage)
-                1
+                4
         }
     }
 
