@@ -21,14 +21,13 @@ import java.util.ConcurrentModificationException
 import java.util.concurrent.Executors
 import java.util.concurrent.atomic.AtomicLong
 
-import scala.async.Async.async
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.{Message, TextFormat}
@@ -36,6 +35,7 @@ import com.google.protobuf.{Message, TextFormat}
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
+import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.utils.ZKPaths
 import org.apache.zookeeper.KeeperException._
 import org.apache.zookeeper.OpResult.ErrorResult
@@ -46,10 +46,14 @@ import org.codehaus.jackson.JsonFactory
 import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
 
-import rx.Observable
+import rx.functions.Func1
+import rx.{Notification, Observable}
 
+import org.midonet.cluster.data.storage.CuratorUtil.asObservable
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.{Obj, ObjId}
+import org.midonet.cluster.util.{NodeObservable, NodeObservableClosedException}
+import org.midonet.util.functors.makeFunc1
 import org.midonet.util.reactivex._
 
 /**
@@ -115,7 +119,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                             protected override val curator: CuratorFramework)
     extends ZookeeperObjectState with Storage {
 
-    import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
+    import ZookeeperObjectMapper._
 
     /* Monotonically increasing version number for the data set path under
      * which all the Storage contents are stored. When we "flush" the storage,
@@ -130,14 +134,13 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
     private def locksPath(version: Long) = s"$rootPath/$version/zoomlocks/lock"
 
-    private val executor = Executors.newCachedThreadPool()
+    private val executor = Executors.newSingleThreadExecutor()
     private implicit val executionContext =
         ExecutionContext.fromExecutorService(executor)
 
     private val simpleNameToClass = new mutable.HashMap[String, Class[_]]()
 
-    private val instanceCaches = new mutable.HashMap[
-        Class[_], TrieMap[String, InstanceSubscriptionCache[_]]]
+    private val objectObservables = new TrieMap[Key, Observable[_]]
     private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
 
     /**
@@ -367,7 +370,6 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
         classInfo(clazz) = makeInfo(clazz)
         stateInfo(clazz) = new StateInfo
-        instanceCaches(clazz) = new TrieMap[String, InstanceSubscriptionCache[_]]
     }
 
     override def isRegistered(clazz: Class[_]) = {
@@ -460,32 +462,30 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         }
     }
 
-    @throws[NotFoundException]
+    @throws[ServiceUnavailableException]
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
 
-        instanceCaches(clazz).get(id.toString) match {
-            case Some(cache) => cache.asInstanceOf[InstanceSubscriptionCache[T]]
-                                     .observable.asFuture
-            case None =>
-                val p = Promise[T]()
-                val cb = new BackgroundCallback {
-                    override def processResult(client: CuratorFramework,
-                                               e: CuratorEvent): Unit = {
-                        if (e.getStat == null) {
-                            p.failure(new NotFoundException(clazz, id))
-                        } else {
-                            p.complete(Try(deserialize(e.getData, clazz)))
-                        }
-                    }
+        val key = Key(clazz, getIdString(clazz, id))
+        val path = getObjectPath(clazz, id)
+
+        objectObservables.get(key) match {
+                case Some(observable) =>
+                    observable.asInstanceOf[Observable[T]].asFuture
+                case None => asObservable {
+                    curator.getData.inBackground(_).forPath(path)
+            }.map[Notification[T]](makeFunc1 { event =>
+                if (event.getResultCode == Code.OK.intValue()) {
+                    Notification.createOnNext(deserialize(event.getData, clazz))
+                } else {
+                    Notification.createOnError(new NotFoundException(clazz, id))
                 }
-                curator.getData.inBackground(cb)
-                       .forPath(getObjectPath(clazz, id))
-                p.future
+            }).dematerialize() asFuture
         }
     }
 
+    @throws[ServiceUnavailableException]
     override def getAll[T](clazz: Class[T], ids: Seq[_ <: ObjId])
     : Future[Seq[T]] = {
         assertBuilt()
@@ -496,6 +496,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     /**
      * Gets all instances of the specified class from Zookeeper.
      */
+    @throws[ServiceUnavailableException]
     override def getAll[T](clazz: Class[T]): Future[Seq[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
@@ -527,6 +528,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     /**
      * Returns true if the specified object exists in Zookeeper.
      */
+    @throws[ServiceUnavailableException]
     override def exists(clazz: Class[_], id: ObjId): Future[Boolean] = {
         assertBuilt()
         assert(isRegistered(clazz))
@@ -554,6 +556,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     @throws[ObjectExistsException]
     @throws[ObjectReferencedException]
     @throws[ReferenceConflictException]
+    @throws[ServiceUnavailableException]
     override def multi(ops: Seq[PersistenceOp]): Unit = {
         assertBuilt()
         if (ops.isEmpty) return
@@ -577,55 +580,39 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         try manager.commit() finally { manager.releaseLock() }
     }
 
-    @inline
-    private[storage] def getClassPath(clazz: Class[_],
-                                      version: Long = version.longValue())
-    : String = {
-        basePath(version) + "/" + clazz.getSimpleName
-    }
-
-    @inline
-    private[storage] def getObjectPath(clazz: Class[_], id: ObjId,
-                                       version: Long = version.longValue())
-    : String = {
-        getClassPath(clazz, version) + "/" + getIdString(clazz, id)
-    }
-
-    /**
-     * @return The number of subscriptions to the given class and id. If the
-     *         corresponding entry does not exist, None is returned.
-     */
-    @VisibleForTesting
-    protected[storage] def subscriptionCount[T](clazz: Class[T], id: ObjId)
-    : Option[Int] = {
-        instanceCaches(clazz).get(id.toString).map(_.subscriptionCount)
-    }
-
+    @throws[ServiceUnavailableException]
     override def observable[T](clazz: Class[T], id: ObjId): Observable[T] = {
         assertBuilt()
         assert(isRegistered(clazz))
 
-        instanceCaches(clazz).getOrElse(id.toString, {
-            val onLastUnsubscribe = (c: InstanceSubscriptionCache[_]) => {
-                instanceCaches.get(clazz).foreach( _ remove id.toString )
-            }
-            val ic = new InstanceSubscriptionCache(clazz,
-                                                   getObjectPath(clazz, id),
-                                                   id.toString, curator,
-                                                   onLastUnsubscribe)
-            instanceCaches(clazz).putIfAbsent(id.toString, ic) getOrElse {
-                async { ic.connect() }
-                ic
-            }
-        }).observable.asInstanceOf[Observable[T]]
+        val key = Key(clazz, getIdString(clazz, id))
+        val path = getObjectPath(clazz, id)
+
+        objectObservables.getOrElse(key, {
+            val obs = NodeObservable.create(curator, path,
+                                            completeOnDelete = true)
+                .map[Notification[T]](deserializerOf(clazz))
+                .dematerialize().asInstanceOf[Observable[T]]
+                .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                    case e: NodeObservableClosedException =>
+                        objectObservables.remove(key)
+                        observable(clazz, id)
+                    case e: NoNodeException =>
+                        Observable.error(new NotFoundException(clazz, id))
+                    case e: Throwable =>
+                        Observable.error(e)
+            }))
+            objectObservables.putIfAbsent(key, obs).getOrElse(obs)
+        }).asInstanceOf[Observable[T]]
     }
 
     /**
      * Refer to the interface documentation for functionality.
      *
      * This implementation involves a BLOCKING call when the observable is first
-     * created, as we initialize the the connection to ZK.
+     * created, as we initialize the connection to ZK.
      */
+    @throws[ServiceUnavailableException]
     override def observable[T](clazz: Class[T]): Observable[Observable[T]] = {
         assertBuilt()
         assert(isRegistered(clazz))
@@ -662,6 +649,20 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         classCaches.get(clazz).map(_.subscriptionCount)
     }
 
+    @inline
+    private[storage] def getClassPath(clazz: Class[_],
+                                      version: Long = version.longValue())
+    : String = {
+        basePath(version) + "/" + clazz.getSimpleName
+    }
+
+    @inline
+    private[storage] def getObjectPath(clazz: Class[_], id: ObjId,
+                                       version: Long = version.longValue())
+    : String = {
+        getClassPath(clazz, version) + "/" + getIdString(clazz, id)
+    }
+
 }
 
 object ZookeeperObjectMapper {
@@ -691,6 +692,8 @@ object ZookeeperObjectMapper {
     protected val log = LoggerFactory.getLogger(ZookeeperObjectMapper.getClass)
 
     private val jsonFactory = new JsonFactory(new ObjectMapper())
+    private val deserializers =
+        new TrieMap[Class[_], Func1[ChildData, Notification[_]]]
 
     private[storage] def makeInfo(clazz: Class[_])
     : ClassInfo = {
@@ -762,6 +765,19 @@ object ZookeeperObjectMapper {
         val t = parser.readValueAs(clazz)
         parser.close()
         t
+    }
+
+    private def deserializerOf[T](clazz: Class[T])
+    : Func1[ChildData, Notification[T]] = {
+        deserializers.getOrElseUpdate(
+            clazz,
+            makeFunc1((data: ChildData) => data match {
+                case null =>
+                    Notification.createOnError[T](new NotFoundException(clazz,
+                                                                        None))
+                case cd =>
+                    Notification.createOnNext[T](deserialize(cd.getData, clazz))
+            })).asInstanceOf[Func1[ChildData, Notification[T]]]
     }
 
 }

@@ -18,8 +18,9 @@ package org.midonet.cluster.data.storage
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 
-import com.google.common.collect.{Multimaps, ArrayListMultimap}
+import com.google.common.collect.{ArrayListMultimap, Multimaps}
 import com.google.protobuf.Message
+
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
