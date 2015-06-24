@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_cbbb560d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CuratorUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-24T22:37:41Z",
+      "side": 1,
+      "message": "Nit: Observable.just(event).subscribe(s) would do the same and might be more idiomatic.",
+      "range": {
+        "startLine": 40,
+        "startChar": 24,
+        "endLine": 41,
+        "endChar": 39
+      },
+      "revId": "a1c159b59c287527b59beff18ef31e8e1b0254cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4b3f4687",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 598,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-24T22:37:41Z",
+      "side": 1,
+      "message": "We will need to protect ourselves against cases where we lose connection to ZK and we suffer an avalanche of reconnections. This is obviously for a later patch, but adding it so we chat about possible options tomorrow.",
+      "range": {
+        "startLine": 598,
+        "startChar": 20,
+        "endLine": 598,
+        "endChar": 49
+      },
+      "revId": "a1c159b59c287527b59beff18ef31e8e1b0254cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
