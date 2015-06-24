@@ -47,7 +47,7 @@ abstract class TranslatorTestBase  extends FlatSpec
     }
 
     /* Mock exists and get on an instance of M with an ID, "id". */
-    protected def bind[M](id: UUID, msg: M, clazz: Class[M] = null) = {
+    protected def bind[M](id: UUID, msg: M, clazz: Class[M] = null) {
         val exists = msg != null
         val classOfM = if (clazz != null) clazz
                        else msg.getClass.asInstanceOf[Class[M]]
@@ -59,6 +59,27 @@ abstract class TranslatorTestBase  extends FlatSpec
         else
             when(storage.get(classOfM, id))
                 .thenThrow(new NotFoundException(classOfM, id))
+    }
+
+    /* Mock exists and getAll on instances of M with its ID in "ids".
+     * msgs should NOT be null. */
+    protected def bindAll[M](
+            ids: Seq[UUID], msgs: Seq[M], clazz: Class[M] = null) {
+        val classOfM = if (clazz != null) clazz
+                       else msgs(0).getClass.asInstanceOf[Class[M]]
+        for ((id, msg) <- ids.zipAll(msgs, null, null)) {
+            val exists = msg != null
+            when(storage.exists(classOfM, id))
+                .thenReturn(Promise.successful(exists).future)
+            if (exists)
+                when(storage.get(classOfM, id))
+                    .thenReturn(Promise.successful(msg.asInstanceOf[M]).future)
+            else
+                when(storage.get(classOfM, id))
+                    .thenThrow(new NotFoundException(classOfM, id))
+        }
+        when(storage.getAll(classOfM, ids))
+                    .thenReturn(Promise.successful(msgs).future)
     }
 
     /* Finds an operation on Chain with the specified chain ID, and returns a

@@ -16,19 +16,23 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
+import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronRouter}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.{Chain, Route, Router, Rule}
 import org.midonet.cluster.util.IPSubnetUtil
+import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
 /** Provides a Neutron model translator for FloatingIp. */
-class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
+class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
+                           protected val pathBldr: PathBuilder)
         extends NeutronTranslator[FloatingIp] with ChainManager
                                               with RouteManager
-                                              with RuleManager {
+                                              with RuleManager
+                                              with BridgeStateTableManager {
     import org.midonet.cluster.services.c3po.translators.RouteManager._
     implicit val storage: ReadOnlyStorage = readOnlyStorage
 
@@ -46,7 +50,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
 
         val midoOps = new MidoOpListBuffer
 
-        midoOps += generateGwRouteCreateOp(fip, router.getGwPortId)
+        midoOps += generateArpEntryCreateOp(fip, router.getGwPortId)
         midoOps ++= generateNatRuleCreateOps(fip, router.getGwPortId)
 
         midoOps.toList
@@ -57,8 +61,11 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
 
         val fip = storage.get(classOf[FloatingIp], id).await()
         if (fip.hasPortId) {
+            val router = storage.get(classOf[NeutronRouter], fip.getRouterId)
+                                .await()
             // Delete is idempotent
-            midoOps ++= cleanUpGatewayRoutesAndNatRules(fip)
+            midoOps += cleanUpArpEntry(fip, router.getGwPortId)
+            midoOps ++= cleanUpNatRules(fip, fip.getRouterId)
         }
 
         midoOps.toList
@@ -68,42 +75,68 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
         val oldFip = storage.get(classOf[FloatingIp], fip.getId).await()
         if ((!oldFip.hasPortId && !fip.hasPortId) ||
             (oldFip.hasPortId && fip.hasPortId &&
+                    oldFip.getPortId == fip.getPortId &&
                     oldFip.getRouterId.equals(fip.getRouterId))) {
             // FIP was/is not assigned, or kept associated on the same router.
             // Do nothing.
             List()
         } else if (oldFip.hasPortId && !fip.hasPortId) {
             // FIP is un-associated from the port.
-            cleanUpGatewayRoutesAndNatRules(fip)
-        } else {
-            // FIP is newly associated or moved to a new router.
-            val midoOps = new MidoOpListBuffer
+            val router = storage.get(classOf[NeutronRouter], oldFip.getRouterId)
+                                .await()
 
-            val routerId = fip.getRouterId
-            val router = storage.get(classOf[NeutronRouter], routerId).await()
+            val midoOps = new MidoOpListBuffer
+            midoOps += cleanUpArpEntry(oldFip, router.getGwPortId)
+            midoOps ++= cleanUpNatRules(fip, oldFip.getRouterId)
+            midoOps.toList
+        } else if (!oldFip.hasPortId && fip.hasPortId) {
+            // FIP is newly associated.
+            val router = storage.get(classOf[NeutronRouter], fip.getRouterId)
+                                .await()
             if (!router.hasGwPortId) {
                 throw new IllegalStateException(
                         "No gateway port was found to configure Floating IP.")
             }
 
-            if (oldFip.hasPortId && !oldFip.getRouterId.equals(routerId))
-                // Delete old NAT rules as FIP's been moved to a new router.
-                midoOps ++= cleanUpNatRules(oldFip)
-            else if (!oldFip.hasPortId) // FIP is newly associated.
-                // Generate a gateway route.
-                midoOps += generateGwRouteCreateOp(fip, router.getGwPortId)
-
+            val midoOps = new MidoOpListBuffer
+            midoOps += generateArpEntryCreateOp(fip, router.getGwPortId)
             midoOps ++= generateNatRuleCreateOps(fip, router.getGwPortId)
+            midoOps.toList
+        } else {
+            // FIP is moved to a new port and/or a router.
+            val oldRouterId = oldFip.getRouterId
+            val newRouterId = fip.getRouterId
+            // It shouldn't hurt if oldRouterId == newRouterId.
+            val routers = storage.getAll(classOf[NeutronRouter],
+                                         Seq(oldRouterId, newRouterId))
+                                 .await()
+            val oldRouter = routers(0)
+            val newRouter = routers(1)
+
+            val midoOps = new MidoOpListBuffer
+            if (oldRouterId != newRouterId) {
+                if (!newRouter.hasGwPortId)
+                    throw new IllegalStateException(
+                            "No gateway port was found with the Router.")
+
+                midoOps += cleanUpArpEntry(fip, oldRouter.getGwPortId)
+                midoOps += generateArpEntryCreateOp(fip, newRouter.getGwPortId)
+            }
+
+            // Clean up the old NAT rules and create new ones.
+            midoOps ++= cleanUpNatRules(oldFip, oldRouterId)
+            midoOps ++= generateNatRuleCreateOps(fip, newRouter.getGwPortId)
             midoOps.toList
         }
     }
 
-    /* Generates a Create Op for the GW route. */
-    private def generateGwRouteCreateOp(fip: FloatingIp, gwPortId: UUID) =
-        Create(newNextHopPortRoute(gwPortId,
-                                   id = fipGatewayRouteId(fip.getId),
-                                   dstSubnet = IPSubnetUtil.fromAddr(
-                                           fip.getFloatingIpAddress)))
+    /* Generates a CreateNode Op for FIP IP and Router GW port. */
+    private def generateArpEntryCreateOp(fip: FloatingIp, gwPortId: UUID) = {
+        val gwPort = storage.get(classOf[NeutronPort], gwPortId).await()
+        CreateNode(arpEntryPath(gwPort.getNetworkId,
+                                fip.getFloatingIpAddress.getAddress,
+                                gwPort.getMacAddress))
+    }
 
     /* Generate Create Ops for SNAT and DNAT for the floating IP address. */
     private def generateNatRuleCreateOps(fip: FloatingIp, gwPortId: UUID) = {
@@ -135,19 +168,17 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage)
              Update(updatedInChain), Update(updatedOutChain))
     }
 
-    /* Delete the gateway routes and SNAT / DNAT rules associated with FIP. */
-    private def cleanUpGatewayRoutesAndNatRules(fip: FloatingIp): MidoOpList = {
-        cleanUpGatewayRoutes(fip) ++ cleanUpNatRules(fip)
+    /* Since DeleteNode is idempotent, it is fine if the path does not exist. */
+    private def cleanUpArpEntry(fip: FloatingIp, gwPortId: UUID) = {
+        val gwPort = storage.get(classOf[NeutronPort], gwPortId).await()
+        DeleteNode(arpEntryPath(gwPort.getNetworkId,
+                                fip.getFloatingIpAddress.getAddress,
+                                gwPort.getMacAddress))
     }
 
-    /* Since Delete is idempotent, it is fine if the route doesn't exist. */
-    private def cleanUpGatewayRoutes(fip: FloatingIp): MidoOpList =
-        List(Delete(classOf[Route], fipGatewayRouteId(fip.getId)))
-
     /* Since Delete is idempotent, it is fine if those rules don't exist. */
-    private def cleanUpNatRules(fip: FloatingIp): MidoOpList = {
+    private def cleanUpNatRules(fip: FloatingIp, routerId: UUID): MidoOpList = {
         val fipId = fip.getId
-        val routerId = fip.getRouterId
         val inChain = storage.get(classOf[Chain], inChainId(routerId)).await()
         val outChain = storage.get(classOf[Chain], outChainId(routerId)).await()
 
