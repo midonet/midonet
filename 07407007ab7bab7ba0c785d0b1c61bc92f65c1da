@@ -200,6 +200,23 @@
     },
     {
       "key": {
+        "uuid": "facab960_e3c20484",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 557,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-24T11:28:55Z",
+      "side": 1,
+      "message": "this will call syncPeerRoutes in case of an error, which i think will populate peerRoutes, which we clear below. is this correct? (i\u0027ll review with more detail tomorrow, because i need to check out the code and navigate).",
+      "revId": "07407007ab7bab7ba0c785d0b1c61bc92f65c1da",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_88db174e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingWorkflow.scala",
         "patchSetId": 3
