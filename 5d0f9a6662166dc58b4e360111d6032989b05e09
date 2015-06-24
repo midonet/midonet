@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_68c17353",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/topology/server/SessionInventory.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-24T09:19:24Z",
+      "side": 1,
+      "message": "My first thought when I see something like this is \"bit mask.\" But it\u0027s not. I think it would be clearer as 16384. Or at least add a comment.",
+      "range": {
+        "startLine": 170,
+        "startChar": 36,
+        "endLine": 170,
+        "endChar": 43
+      },
+      "revId": "5d0f9a6662166dc58b4e360111d6032989b05e09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_48a3cfb1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/topology/server/SessionInventory.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 377,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-24T09:19:24Z",
+      "side": 1,
+      "message": "Can this be lifted out to an instance member of SessionInventory, so we don\u0027t create a new Action0 for every Session?",
+      "range": {
+        "startLine": 376,
+        "startChar": 56,
+        "endLine": 377,
+        "endChar": 76
+      },
+      "revId": "5d0f9a6662166dc58b4e360111d6032989b05e09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_68a8938d",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-24T09:19:24Z",
+      "side": 1,
+      "message": "Does this do anything?",
+      "range": {
+        "startLine": 96,
+        "startChar": 8,
+        "endLine": 96,
+        "endChar": 11
+      },
+      "revId": "5d0f9a6662166dc58b4e360111d6032989b05e09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_c896ff4b",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/topology/server/SessionInventoryTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 527,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-24T09:19:24Z",
+      "side": 1,
+      "message": "Is this expected to be at any particular position in the events array, like first or last?",
+      "range": {
+        "startLine": 527,
+        "startChar": 12,
+        "endLine": 527,
+        "endChar": 63
+      },
+      "revId": "5d0f9a6662166dc58b4e360111d6032989b05e09",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
