@@ -9,6 +9,10 @@ mn-conf(1) -- MidoNet configuration tool
     $ mn-conf unset [-h HOST_ID | -t TEMPLATE_NAME] CONFIG_KEY
     $ mn-conf template-get [-a | -h HOST_ID]
     $ mn-conf template-set -h HOST_ID -t TEMPLATE_NAME
+    $ mn-conf template-clear -h HOST_ID
+    $ mn-conf template-list
+    $ mn-conf hosts
+    $ mn-conf doc CONFIG_KEY
     $ mn-conf import [-h HOST_ID | -t TEMPLATE_NAME] [--all] -f CONFIG_FILE
 
 ## DESCRIPTION
@@ -99,6 +103,18 @@ Queries the assignments of configuration templates to MidoNet node IDs.
 `template-set -h` <HOST_ID> `-t` <TEMPLATE_NAME>
 
 Assigns a configuration template to a host id.
+
+`template-clear -h` <HOST_ID>
+
+Clears the template assignment for a host id
+
+`template-list`
+
+Lists existing templates and the hosts that use them.
+
+`hosts`
+
+Displays information about hosts that have custom configurations or non-default templates assigned to them.
 
 `import [-h` <HOST_ID> `| -t` <TEMPLATE_NAME>`] [-a] -f` <CONFIG_FILE>
 
