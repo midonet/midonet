@@ -17,17 +17,13 @@ package org.midonet.midolman.guice
 
 import com.google.inject.PrivateModule
 
-import org.midonet.cluster.data.storage.{InMemoryStorage, Storage, StorageWithOwnership}
+import org.midonet.cluster.data.storage.{InMemoryStorage, Storage}
 
 class InMemoryStorageModule extends PrivateModule {
 
     protected override def configure(): Unit = {
-        bind(classOf[StorageWithOwnership])
-            .to(classOf[InMemoryStorage])
-            .asEagerSingleton()
-        expose(classOf[StorageWithOwnership])
         bind(classOf[Storage])
-            .to(classOf[StorageWithOwnership])
+            .to(classOf[InMemoryStorage])
             .asEagerSingleton()
         expose(classOf[Storage])
     }

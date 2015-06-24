@@ -47,7 +47,7 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
+        store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
     feature("The pool mapper emits pool devices") {

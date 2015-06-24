@@ -37,7 +37,6 @@ import rx.schedulers.Schedulers
 import rx.subjects.{BehaviorSubject, PublishSubject}
 
 import org.midonet.cluster.data.storage.InMemoryStorage.{asObservable, copyObj, DefaultOwnerId}
-import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.KeyType.KeyType
@@ -52,7 +51,7 @@ import org.midonet.util.functors._
  * A simple in-memory implementation of the [[Storage]] trait, equivalent to
  * the [[ZookeeperObjectMapper]] to use within unit tests.
  */
-class InMemoryStorage extends StorageWithOwnership with StateStorage {
+class InMemoryStorage extends Storage with StateStorage {
 
     private class ClassNode[T](val clazz: Class[T]) {
 
@@ -65,10 +64,9 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
 
         /* Write synchronized by the transaction, call on IO thread */
         @throws[ObjectExistsException]
-        @throws[OwnershipConflictException]
-        def create(id: ObjId, obj: Obj, ownerOps: Seq[TxOwnerOp]): Unit = {
+        def create(id: ObjId, obj: Obj): Unit = {
             assertIoThread()
-            val node = new InstanceNode(clazz, id, obj.asInstanceOf[T], ownerOps)
+            val node = new InstanceNode(clazz, id, obj.asInstanceOf[T])
             instances.putIfAbsent(getIdString(clazz, id), node) match {
                 case Some(n) => throw new ObjectExistsException(clazz, id)
                 case None => streamUpdates += node
@@ -77,29 +75,22 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
 
         /* Read synchronized by the transaction, call on IO thread */
         @throws[ObjectExistsException]
-        @throws[OwnershipConflictException]
-        def validateCreate(id: ObjId, ownerOps: Seq[TxOwnerOp]): Unit = {
+        def validateCreate(id: ObjId): Unit = {
             assertIoThread()
             if (instances.contains(id.toString))
                 throw new ObjectExistsException(clazz, id)
-            ownerOps.collectFirst {
-                case TxDeleteOwner(owner) =>
-                    throw new OwnershipConflictException(
-                        clazz.getSimpleName, id.toString, owner)
-            }
         }
 
         /* Write synchronized by the transaction, call on IO thread */
         @throws[NotFoundException]
         @throws[BadVersionException]
-        @throws[OwnershipConflictException]
-        def update(id: ObjId, obj: Obj, version: Int, ownerOps: Seq[TxOwnerOp])
+        def update(id: ObjId, obj: Obj, version: Int)
         : Unit = {
             assertIoThread()
             instances.get(getIdString(clazz, id)) match {
                 case Some(node) =>
                     instanceUpdates += node
-                    node.update(obj.asInstanceOf[T], version, ownerOps)
+                    node.update(obj.asInstanceOf[T], version)
                 case None => throw new NotFoundException(clazz, id)
             }
         }
@@ -107,12 +98,11 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
         /* Read synchronized by the transaction, call on IO thread */
         @throws[NotFoundException]
         @throws[BadVersionException]
-        @throws[OwnershipConflictException]
-        def validateUpdate(id: ObjId, version: Int, ownerOps: Seq[TxOwnerOp])
+        def validateUpdate(id: ObjId, version: Int)
         : Unit = {
             assertIoThread()
             instances.get(getIdString(clazz, id)) match {
-                case Some(node) => node.validateUpdate(version, ownerOps)
+                case Some(node) => node.validateUpdate(version)
                 case None => throw new NotFoundException(clazz, id)
             }
         }
@@ -120,13 +110,12 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
         /* Write synchronized by the transaction, call on IO thread */
         @throws[NotFoundException]
         @throws[BadVersionException]
-        @throws[OwnershipConflictException]
-        def delete(id: ObjId, version: Int, ownerOps: Seq[TxOwnerOp]): T = {
+        def delete(id: ObjId, version: Int): T = {
             assertIoThread()
             instances.remove(getIdString(clazz, id)) match {
                 case Some(node) =>
                     instanceUpdates += node
-                    node.delete(version, ownerOps)
+                    node.delete(version)
                 case None => throw new NotFoundException(clazz, id)
             }
         }
@@ -134,12 +123,11 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
         /* Read synchronized by the transaction, call on IO thread */
         @throws[NotFoundException]
         @throws[BadVersionException]
-        @throws[OwnershipConflictException]
-        def validateDelete(id: ObjId, version: Int, ownerOps: Seq[TxOwnerOp])
+        def validateDelete(id: ObjId, version: Int)
         : Unit = {
             assertIoThread()
             instances.get(getIdString(clazz, id)) match {
-                case Some(node) => node.validateDelete(version, ownerOps)
+                case Some(node) => node.validateDelete(version)
                 case None => throw new NotFoundException(clazz, id)
             }
         }
@@ -166,16 +154,6 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
         /* Lock free read, completion on the implicit exec. ctx.: IO thread */
         def getAll: Future[Seq[T]] = {
             Future.sequence(instances.values.map(_.get).to[Seq])
-        }
-        /* Lock free read, completion on the implicit exec. ctx.: IO thread */
-        def getOwners(id: ObjId): Future[Set[String]] = {
-            instances.get(getIdString(clazz, id)) match {
-                case Some(node) => node.getOwners
-                case None => async {
-                    assertIoThread()
-                    throw new NotFoundException(clazz, id)
-                }
-            }
         }
 
         /* Uses read lock, synchronous completion */
@@ -210,16 +188,6 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
                     })(eventExecutionContext)
             }
         )
-
-        /* Lock free read, synchronous completion */
-        def ownersObservable(id: ObjId): Observable[Set[String]] = {
-            instances.get(getIdString(clazz, id)) match {
-                case Some(node) => node.ownersObservable
-                case None => Observable.error(new ParentDeletedException(
-                    s"${clazz.getSimpleName}/${id.toString}"))
-                                       .observeOn(eventScheduler)
-            }
-        }
 
         /* Emits the updates generated during the last transaction */
         def emitUpdates(): Unit = {
@@ -288,24 +256,17 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
 
     }
 
-    private class InstanceNode[T](clazz: Class[T], id: ObjId, obj: T,
-                                  initOwnerOps: Seq[TxOwnerOp]) {
+    private class InstanceNode[T](clazz: Class[T], id: ObjId, obj: T) {
 
         private val ref = new AtomicReference[T](copyObj(obj))
         private val ver = new AtomicInteger
-        private val owners = new TrieMap[String, Unit]
         private val keys = new TrieMap[String, KeyNode]
 
         private val streamInstance = BehaviorSubject.create[T](value)
-        private val streamOwners =
-            BehaviorSubject.create[Set[String]](Set.empty[String])
         private val obsInstance = streamInstance.observeOn(eventScheduler)
-        private val obsOwners = streamOwners.observeOn(eventScheduler)
 
         private var instanceUpdate: Notification[T] = null
-        private var ownersUpdate: Notification[Set[String]] = null
 
-        updateOwners(initOwnerOps)
         emitUpdates()
 
         def value = ref.get
@@ -313,40 +274,25 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
 
         /* Write synchronized by transaction */
         @throws[BadVersionException]
-        def update(value: T, version: Int, ownerOps: Seq[TxOwnerOp]): Unit = {
+        def update(value: T, version: Int): Unit = {
             assertIoThread()
             if (!ver.compareAndSet(version, version + 1))
                 throw new BadVersionException
             val newValue = copyObj(value)
             ref.set(newValue)
             instanceUpdate = Notification.createOnNext(newValue)
-            updateOwners(ownerOps)
         }
 
         /* Read synchronized by transaction */
         @throws[BadVersionException]
-        @throws[OwnershipConflictException]
-        def validateUpdate(version: Int, ownerOps: Seq[TxOwnerOp]): Unit = {
+        def validateUpdate(version: Int): Unit = {
             assertIoThread()
-            if (ver.get != version)
-                throw new BadVersionException
-
-            val set = mutable.Set[String](owners.keySet.toSeq:_*)
-            for (op <- ownerOps) op match {
-                case TxCreateOwner(o) if set.contains(o) =>
-                    throw new OwnershipConflictException(clazz.toString,
-                                                         id.toString, o)
-                case TxCreateOwner(o) => set += o
-                case TxDeleteOwner(o) if !set.contains(o) =>
-                    throw new OwnershipConflictException(clazz.toString,
-                                                         id.toString, o)
-                case TxDeleteOwner(o) => set -= o
-            }
+            if (ver.get != version) throw new BadVersionException
         }
 
         /* Write synchronized by transaction */
         @throws[BadVersionException]
-        def delete(version: Int, ownerOps: Seq[TxOwnerOp]): T = {
+        def delete(version: Int): T = {
             assertIoThread()
             if (!ver.compareAndSet(version, version + 1))
                 throw new BadVersionException
@@ -355,45 +301,25 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
                 keyNode.complete()
             }
 
-            updateOwners(ownerOps)
             instanceUpdate = Notification.createOnCompleted()
-            ownersUpdate = Notification.createOnError(new ParentDeletedException(
-                s"${clazz.getSimpleName}/${id.toString}"))
             value
         }
 
         /* Read synchronized by transaction */
         @throws[BadVersionException]
-        @throws[OwnershipConflictException]
-        def validateDelete(version: Int, ownerOps: Seq[TxOwnerOp]): Unit = {
+        def validateDelete(version: Int): Unit = {
             assertIoThread()
-            if (ver.get != version)
-                throw new BadVersionException
-            val delOwners = ownerOps
-                .collect{ case op: TxDeleteOwner => op.owner }.toSet
-            val delDiff = delOwners.diff(owners.keySet)
-            if (delDiff.nonEmpty) {
-                throw new OwnershipConflictException(
-                    clazz.toString, id.toString, delDiff.head)
-            }
+            if (ver.get != version) throw new BadVersionException
         }
 
         def observable = obsInstance
 
-        def ownersObservable = obsOwners
-
         /* Lock free read, completion on the IO thread */
         def get: Future[T] = async { assertIoThread(); value }
 
-        /* Lock free read, completion on the IO thread */
-        def getOwners: Future[Set[String]] = async {
-            assertIoThread()
-            owners.keySet.toSet
-        }
-
         /* Requires read lock, synchronous completion */
         def getSnapshot = readLock {
-            ObjSnapshot(value.asInstanceOf[Obj], version, owners.keySet.toSet)
+            ObjSnapshot(value.asInstanceOf[Obj], version)
         }
 
         /* Emits the updates generated during the last transaction */
@@ -401,10 +327,6 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
             if (instanceUpdate ne null) {
                 instanceUpdate.accept(streamInstance)
                 instanceUpdate = null
-            }
-            if (ownersUpdate ne null) {
-                ownersUpdate.accept(streamOwners)
-                ownersUpdate = null
             }
         }
 
@@ -426,24 +348,6 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
         def keyObservable(key: String, keyType: KeyType)
         : Observable[StateKey] = {
             getOrCreateKeyNode(key, keyType).observable
-        }
-
-        /* Write synchronized by transaction */
-        private def updateOwners(ops: Seq[TxOwnerOp]): Unit = {
-            assertIoThread()
-            if (ops.nonEmpty) {
-                for (op <- ops) op match {
-                    case TxCreateOwner(o) if owners.contains(o) =>
-                        throw new OwnershipConflictException(
-                            clazz.toString, id.toString, o)
-                    case TxCreateOwner(o) => owners += o -> {}
-                    case TxDeleteOwner(o) if !owners.contains(o) =>
-                        throw new OwnershipConflictException(
-                            clazz.toString, id.toString, o)
-                    case TxDeleteOwner(o) => owners -= o
-                }
-                ownersUpdate = Notification.createOnNext(owners.keySet.toSet)
-            }
         }
 
         private def getOrCreateKeyNode(key: String, keyType: KeyType)
@@ -546,12 +450,12 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
             for ((key, op) <- ops) {
                 val clazz = classes(key.clazz)
                 op match {
-                    case TxCreate(obj, ownerOps) =>
-                        clazz.validateCreate(key.id, ownerOps)
-                    case TxUpdate(obj, ver, ownerOps) =>
-                        clazz.validateUpdate(key.id, ver, ownerOps)
-                    case TxDelete(ver, ownerOps) =>
-                        clazz.validateDelete(key.id, ver, ownerOps)
+                    case TxCreate(obj) =>
+                        clazz.validateCreate(key.id)
+                    case TxUpdate(obj, ver) =>
+                        clazz.validateUpdate(key.id, ver)
+                    case TxDelete(ver) =>
+                        clazz.validateDelete(key.id, ver)
                     case _ => throw new NotImplementedError(op.toString)
                 }
             }
@@ -560,12 +464,12 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
             for ((key, op) <- ops) {
                 val clazz = classes(key.clazz)
                 op match {
-                    case TxCreate(obj, ownerOps) =>
-                        clazz.create(key.id, obj, ownerOps)
-                    case TxUpdate(obj, ver, ownerOps) =>
-                        clazz.update(key.id, obj, ver, ownerOps)
-                    case TxDelete(ver, ownerOps) =>
-                        clazz.delete(key.id, ver, ownerOps)
+                    case TxCreate(obj) =>
+                        clazz.create(key.id, obj)
+                    case TxUpdate(obj, ver) =>
+                        clazz.update(key.id, obj, ver)
+                    case TxDelete(ver) =>
+                        clazz.delete(key.id, ver)
                     case _ => throw new NotImplementedError(op.toString)
                 }
             }
@@ -634,13 +538,6 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
         classes.get(clazz).asInstanceOf[ClassNode[T]].getAll
     }
 
-    override def getOwners(clazz: Class[_], id: ObjId): Future[Set[String]] = {
-        assertBuilt()
-        assert(isRegistered(clazz))
-
-        classes.get(clazz).getOwners(id)
-    }
-
     override def exists(clazz: Class[_], id: ObjId): Future[Boolean] = {
         assertBuilt()
         assert(isRegistered(clazz))
@@ -655,19 +552,12 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
         val manager = new InMemoryTransactionManager
 
         ops.foreach {
-            case CreateOp(obj) => manager.create(obj)
-            case CreateWithOwnerOp(obj, owner) => manager.create(obj, owner)
-            case UpdateOp(obj, validator) => manager.update(obj, validator)
-            case UpdateWithOwnerOp(obj, owner, validator) =>
-                manager.update(obj, owner, validator)
-            case UpdateOwnerOp(clazz, id, owner, throwIfExists) =>
-                manager.updateOwner(clazz, id, owner, throwIfExists)
+            case CreateOp(obj) =>
+                manager.create(obj)
+            case UpdateOp(obj, validator) =>
+                manager.update(obj, validator)
             case DeleteOp(clazz, id, ignoresNeo) =>
-                manager.delete(clazz, id, ignoresNeo, None)
-            case DeleteWithOwnerOp(clazz, id, owner) =>
-                manager.delete(clazz, id, ignoresNeo = false, Some(owner))
-            case DeleteOwnerOp(clazz, id, owner) =>
-                manager.deleteOwner(clazz, id, owner)
+                manager.delete(clazz, id, ignoresNeo)
             case op => throw new NotImplementedError(op.toString)
         }
 
@@ -686,22 +576,14 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
         classes.get(clazz).asInstanceOf[ClassNode[T]].observable
     }
 
-    override def ownersObservable(clazz: Class[_], id: ObjId)
-    : Observable[Set[String]] = {
-        assertBuilt()
-        assert(isRegistered(clazz))
-        classes.get(clazz).ownersObservable(id)
-    }
-
     override def registerClass(clazz: Class[_]): Unit = {
-        registerClassInternal(clazz.asInstanceOf[Class[_ <: Obj]],
-                              OwnershipType.Shared)
-    }
+        classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
+            case c: ClassNode[_] => throw new IllegalStateException(
+                s"Class $clazz is already registered.")
+            case _ =>
+        }
 
-    override def registerClass(clazz: Class[_], ownershipType: OwnershipType)
-    : Unit = {
-        registerClassInternal(clazz.asInstanceOf[Class[_ <: Obj]],
-                              ownershipType)
+        classInfo += clazz -> makeInfo(clazz)
     }
 
     override def isRegistered(clazz: Class[_]): Boolean = {
@@ -758,17 +640,6 @@ class InMemoryStorage extends StorageWithOwnership with StateStorage {
     }
 
     override def ownerId = DefaultOwnerId
-
-    private def registerClassInternal(clazz: Class[_ <: Obj],
-                                      ownershipType: OwnershipType): Unit = {
-        classes.putIfAbsent(clazz, new ClassNode(clazz)) match {
-            case c: ClassNode[_] => throw new IllegalStateException(
-                s"Class $clazz is already registered.")
-            case _ =>
-        }
-
-        classInfo += clazz -> makeInfo(clazz, ownershipType)
-    }
 
     @inline
     private[storage] def assertIoThread(): Unit = {

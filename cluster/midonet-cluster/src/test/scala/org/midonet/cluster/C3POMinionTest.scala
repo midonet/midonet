@@ -41,7 +41,6 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
-import org.midonet.cluster.{DataClient => LegacyDataClient}
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
@@ -49,20 +48,20 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
-import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.c3po.translators.BridgeStateTableManager
+import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
+import org.midonet.cluster.{DataClient => LegacyDataClient}
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
 import org.midonet.midolman.state.{PathBuilder, ZkConnection, ZookeeperConnectionWatcher}
-import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC, UDP}
+import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -606,12 +605,12 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def createHost(hostId: UUID = null): Host = {
         val id = if (hostId != null) hostId else UUID.randomUUID()
         val host = Host.newBuilder.setId(id).setName(id.toString).build()
-        backend.ownershipStore.create(host, id)
+        backend.store.create(host)
         host
     }
 
     protected def deleteHost(hostId: UUID): Unit = {
-        backend.ownershipStore.delete(classOf[Host], hostId, hostId)
+        backend.store.delete(classOf[Host], hostId)
     }
 
     protected def createTenantNetwork(taskId: Int, nwId: UUID,
@@ -849,7 +848,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Set up the host.
         val hostId = UUID.randomUUID()
         val host = Host.newBuilder.setId(hostId).build()
-        backend.ownershipStore.create(host, hostId)
+        backend.store.create(host)
 
         val ipAddress = "192.168.0.1"
         val amJson = agentMembershipJson(hostId, ipAddress)

@@ -49,7 +49,7 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
-        store = injector.getInstance(classOf[MidonetBackend]).ownershipStore
+        store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
     private def assertThread(): Unit = {

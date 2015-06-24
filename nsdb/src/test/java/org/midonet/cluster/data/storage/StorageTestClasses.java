@@ -133,22 +133,4 @@ public class StorageTestClasses {
         public UUID id = UUID.randomUUID();
     }
 
-    protected static class ExclusiveState {
-        public UUID id = UUID.randomUUID();
-    }
-
-    protected static class SharedState {
-        public UUID id;
-        public Integer value;
-
-        public SharedState() {
-            id = UUID.randomUUID();
-            value = 0;
-        }
-        public SharedState(UUID id, Integer value) {
-            this.id = id;
-            this.value = value;
-        }
-    }
-
 }

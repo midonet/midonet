@@ -23,7 +23,6 @@ import com.google.protobuf.Message
 import rx.Observable
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
-import org.midonet.cluster.data.storage.OwnershipType.OwnershipType
 import org.midonet.cluster.data.{Obj, ObjId}
 
 /* Op classes for ZookeeperObjectMapper.multi */
@@ -31,17 +30,8 @@ sealed trait PersistenceOp
 
 case class CreateOp(obj: Obj) extends PersistenceOp
 
-case class CreateWithOwnerOp(obj: Obj, owner: String) extends PersistenceOp
-
 case class UpdateOp[T <: Obj](obj: T, validator: UpdateValidator[T])
     extends PersistenceOp
-
-case class UpdateWithOwnerOp[T <: Obj](obj: T, owner: String,
-                                       validator: UpdateValidator[T])
-    extends PersistenceOp
-
-case class UpdateOwnerOp(clazz: Class[_], id: ObjId, owner: String,
-                         throwIfExists: Boolean) extends PersistenceOp
 
 object UpdateOp {
     def apply[T <: Obj](obj: T): UpdateOp[T] = UpdateOp(obj, null)
@@ -49,13 +39,6 @@ object UpdateOp {
 
 case class DeleteOp(clazz: Class[_], id: ObjId,
                     ignoreIfNotExists: Boolean = false) extends PersistenceOp
-
-case class DeleteWithOwnerOp(clazz: Class[_], id: ObjId, owner: String)
-    extends PersistenceOp
-
-case class DeleteOwnerOp(clazz: Class[_], id: ObjId, owner: String)
-    extends PersistenceOp
-
 
 /**
  * Operation to create a node with the specified value at the specified path.
@@ -82,16 +65,7 @@ case class UpdateNodeOp(path: String, value: String) extends PersistenceOp
  */
 case class DeleteNodeOp(path: String) extends PersistenceOp
 
-/* Object ownership types */
-object OwnershipType extends Enumeration {
-    class OwnershipType(val isExclusive: Boolean) extends Val
-    val Exclusive = new OwnershipType(true)
-    val Shared = new OwnershipType(false)
-}
-
-case class ObjWithOwner(obj: Obj, owners: Seq[ObjId])
-
-abstract class ClassInfo(val clazz: Class[_], val ownershipType: OwnershipType) {
+abstract class ClassInfo(val clazz: Class[_]) {
     def idOf(obj: Obj): ObjId
 }
 

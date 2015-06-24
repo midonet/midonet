@@ -47,7 +47,6 @@ abstract class MidonetBackend extends AbstractService {
     def isEnabled = false
     /** Provides access to the Topology storage API */
     def store: Storage
-    def ownershipStore: StorageWithOwnership
     def stateStore: StateStorage
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
@@ -61,6 +60,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Dhcp],
              classOf[FloatingIp],
              classOf[HealthMonitor],
+             classOf[Host],
              classOf[IPAddrGroup],
              classOf[LoadBalancer],
              classOf[Network],
@@ -89,8 +89,6 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Vtep],
              classOf[VtepBinding]
         ).foreach(store.registerClass)
-
-        ownershipStore.registerClass(classOf[Host], OwnershipType.Exclusive)
 
         store.declareBinding(classOf[Network], "port_ids", CASCADE,
                              classOf[Port], "network_id", CLEAR)
@@ -161,7 +159,6 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
         new ZookeeperObjectMapper(cfg.rootKey + "/zoom", curator)
 
     override def store: Storage = zoom
-    override def ownershipStore: StorageWithOwnership = zoom
     override def stateStore: StateStorage = zoom
     override def isEnabled = cfg.useNewStack
 

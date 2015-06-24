@@ -78,14 +78,6 @@ trait ZoomStorageTester extends StorageTester
         zoom.create(o)
     }
 
-    @throws[NotFoundException]
-    @throws[ObjectExistsException]
-    @throws[ReferenceConflictException]
-    @throws[OwnershipConflictException]
-    def create(obj: Obj, owner: ObjId): Unit = {
-        zoom.create(obj, owner)
-    }
-
     @throws(classOf[NotFoundException])
     @throws(classOf[ReferenceConflictException])
     override def update(o: Obj) {
@@ -98,25 +90,10 @@ trait ZoomStorageTester extends StorageTester
         zoom.update(o, validator)
     }
 
-    @throws[NotFoundException]
-    @throws[ReferenceConflictException]
-    @throws[OwnershipConflictException]
-    def update[T <: Obj](obj: T, owner: ObjId, overwriteOwner: Boolean,
-                         validator: UpdateValidator[T]): Unit = {
-        zoom.update(obj, owner, overwriteOwner, validator)
-    }
-
     @throws(classOf[NotFoundException])
     @throws(classOf[ObjectReferencedException])
     override def delete(clazz: Class[_], id: ObjId) {
         zoom.delete(clazz, id)
-    }
-
-    @throws[NotFoundException]
-    @throws[ReferenceConflictException]
-    @throws[OwnershipConflictException]
-    def delete(clazz: Class[_], id: ObjId, owner: ObjId): Unit = {
-        zoom.delete(clazz, id, owner)
     }
 
     @throws(classOf[ObjectReferencedException])
