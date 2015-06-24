@@ -94,8 +94,10 @@ class HeartbeatConfig(val conf: Config) extends ScheduledMinionConfig[Heartbeat]
 }
 
 class VxGwConfig(val conf: Config) extends MinionConfig[VxlanGatewayService] {
-    override def isEnabled = conf.getBoolean("cluster.vxgw.enabled")
-    override def minionClass = conf.getString("cluster.vxgw.with")
+    val PREFIX = "cluster.vxgw"
+    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
+    override def minionClass = conf.getString(s"$PREFIX.with")
+    def networkBufferSize = conf.getInt(s"$PREFIX.network_buffer_size")
 }
 
 class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiService] {

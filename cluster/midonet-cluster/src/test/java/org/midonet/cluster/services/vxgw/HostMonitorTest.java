@@ -26,7 +26,7 @@ import org.junit.Test;
 import rx.Observable;
 import rx.Subscription;
 
-import org.midonet.cluster.BrainTestUtils;
+import org.midonet.cluster.ClusterTestUtils;
 import org.midonet.cluster.test.RxTestUtils;
 import org.midonet.cluster.services.vxgw.monitor.HostMonitor;
 import org.midonet.cluster.DataClient;
@@ -78,10 +78,10 @@ public class HostMonitorTest extends DeviceMonitorTestBase<UUID, Host> {
     @Before
     public void before() throws Exception {
         Injector injector = Guice.createInjector(
-            BrainTestUtils.modules());
+            ClusterTestUtils.modules());
 
         Directory directory = injector.getInstance(Directory.class);
-        BrainTestUtils.setupZkTestDirectory(directory);
+        ClusterTestUtils.setupZkTestDirectory(directory);
 
         dataClient = injector.getInstance(DataClient.class);
         zkConnWatcher = new ZookeeperConnectionWatcher();
