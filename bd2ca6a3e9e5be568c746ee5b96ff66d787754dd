@@ -215,6 +215,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_c85fdf3f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 12
+      },
+      "lineNbr": 358,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-24T10:33:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_5da9dedd",
+      "range": {
+        "startLine": 353,
+        "startChar": 73,
+        "endLine": 358,
+        "endChar": 47
+      },
+      "revId": "bd2ca6a3e9e5be568c746ee5b96ff66d787754dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_aaaffe28",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
         "patchSetId": 12
