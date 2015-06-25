@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services.conf
+package org.midonet.cluster.services.rest_api.conf
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit

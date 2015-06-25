@@ -30,16 +30,18 @@ import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider
 import org.codehaus.jackson.map.DeserializationConfig.Feature._
 import org.codehaus.jackson.map.ObjectMapper
 import org.eclipse.jetty.server.{DispatcherType, Server}
-import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
+import org.eclipse.jetty.servlet.{ServletHolder, DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
+import org.midonet.cluster.services.rest_api.conf._
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.conf.MidoNodeConfigurator
 
 object Vladimir {
 
@@ -121,6 +123,22 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
         context.addFilter(classOf[GuiceFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
         context.addFilter(classOf[CorsFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
         context.addServlet(classOf[DefaultServlet], "/*")
+
+        def addServlet(endpoint: ConfigApiEndpoint, path: String): Unit = {
+            log.info(s"Registering config service servlet at /$path")
+            context.addServlet(new ServletHolder(endpoint), s"/$path")
+        }
+
+        // CONF API
+        val c = MidoNodeConfigurator(config.conf)
+        addServlet(new SchemaEndpoint(c), "schema")
+        addServlet(new PerNodeEndpoint(c), "node/*")
+        addServlet(new RuntimeEndpoint(c), "runtime-config/*")
+        addServlet(new TemplateEndpoint(c), "template/*")
+        addServlet(new TemplateListEndpoint(c), "template-list")
+        addServlet(new TemplateMappingsEndpoint(c), "template-mappings/*")
+        addServlet(new TemplateMappingsEndpoint(c), "template-mappings")
+
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
 
         try {

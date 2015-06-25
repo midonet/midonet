@@ -17,14 +17,14 @@ package org.midonet.cluster
 
 import java.util.concurrent.TimeUnit
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
 
-import org.midonet.cluster.services.{ScheduledMinionConfig, MinionConfig}
 import org.midonet.cluster.services.c3po.C3POMinion
-import org.midonet.cluster.services.conf.ConfMinion
 import org.midonet.cluster.services.heartbeat.Heartbeat
+import org.midonet.cluster.services.rest_api.Vladimir
 import org.midonet.cluster.services.topology.TopologyApiService
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
+import org.midonet.cluster.services.{MinionConfig, ScheduledMinionConfig}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 
@@ -60,7 +60,6 @@ class ClusterConfig(_conf: Config) {
     val vxgw = new VxGwConfig(conf)
     val topologyApi = new TopologyApiConfig(conf)
     val snoopy = new TopologySnoopyConfig(conf)
-    val confApi = new ConfApiConfig(conf)
     val restApi = new RestApiConfig(conf)
 }
 
@@ -116,13 +115,7 @@ class TopologySnoopyConfig(val conf: Config) {
     def wsPath = conf.getString("cluster.snoopy.ws_path")
 }
 
-class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
-    override def isEnabled = conf.getBoolean("cluster.conf_api.enabled")
-
-    def httpPort = conf.getInt("cluster.conf_api.http_port")
-}
-
-class RestApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
+class RestApiConfig(val conf: Config) extends MinionConfig[Vladimir] {
     val PREFIX = "cluster.rest_api"
 
     override def isEnabled = conf.getBoolean("cluster.rest_api.enabled")

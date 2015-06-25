@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.services.MidonetBackend;
-import org.midonet.cluster.services.conf.ConfMinion;
+import org.midonet.cluster.services.rest_api.conf.ConfMinion;
 import org.midonet.cluster.services.vxgw.VxlanGatewayService;
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 import org.midonet.config.ConfigProvider;

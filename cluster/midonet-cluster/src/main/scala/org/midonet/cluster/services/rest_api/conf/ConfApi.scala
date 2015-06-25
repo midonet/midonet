@@ -14,87 +14,15 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.services.conf
+package org.midonet.cluster.services.rest_api.conf
 
-import java.util
 import java.util.UUID
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
-import java.util.EnumSet
 
-import com.google.inject.Inject
 import com.typesafe.config._
-import org.apache.curator.framework.CuratorFramework
-import org.eclipse.jetty.server.{DispatcherType, Server}
-import org.eclipse.jetty.server.nio.BlockingChannelConnector
-import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
 import org.slf4j.LoggerFactory
-import org.midonet.cluster.services.{ClusterService, Minion}
-import org.midonet.cluster.{ClusterConfig, ClusterNode}
-import org.midonet.cluster.services.rest_api.CorsFilter
+
 import org.midonet.conf.MidoNodeConfigurator
-
-@ClusterService(name = "conf")
-class ConfMinion @Inject()(nodeContext: ClusterNode.Context,
-                           config: ClusterConfig)
-    extends Minion(nodeContext) {
-
-    private val log = LoggerFactory.getLogger("org.midonet.conf-service")
-
-    var server: Server = _
-    var zk: CuratorFramework = _
-
-    override def isEnabled = config.confApi.isEnabled
-
-    override def doStart(): Unit = {
-        val configurator = MidoNodeConfigurator(config.conf)
-        if (configurator.deployBundledConfig())
-            log.info("Deployed new configuration schemas for cluster MidoNet nodes")
-
-        log.info(s"Starting configuration API service at ${config.confApi.httpPort}")
-
-        server = new Server()
-        val http = new BlockingChannelConnector()
-        http.setPort(config.confApi.httpPort)
-        server.addConnector(http)
-
-        val context = new ServletContextHandler()
-        context.setContextPath("/conf")
-        context.setClassLoader(Thread.currentThread().getContextClassLoader)
-        context.addFilter(classOf[CorsFilter], "/*",
-                          util.EnumSet.allOf(classOf[DispatcherType]))
-        server.setHandler(context)
-        addServletsFor(configurator, context)
-        server.start()
-        notifyStarted()
-    }
-
-    private def addServletsFor(c: MidoNodeConfigurator,
-                               ctx: ServletContextHandler): Unit = {
-        def addServlet(endpoint: ConfigApiEndpoint, path: String): Unit = {
-            log.info(s"Registering config service servlet at /$path")
-            ctx.addServlet(new ServletHolder(endpoint), s"/$path")
-        }
-
-        addServlet(new SchemaEndpoint(c), "schema")
-        addServlet(new PerNodeEndpoint(c), "node/*")
-        addServlet(new RuntimeEndpoint(c), "runtime-config/*")
-        addServlet(new TemplateEndpoint(c), "template/*")
-        addServlet(new TemplateListEndpoint(c), "template-list")
-        addServlet(new TemplateMappingsEndpoint(c), "template-mappings/*")
-        addServlet(new TemplateMappingsEndpoint(c), "template-mappings")
-    }
-
-    override def doStop(): Unit = {
-        if (server ne null) {
-            server.stop()
-            server.join()
-        }
-        if (zk ne null) {
-            zk.close()
-        }
-        notifyStopped()
-    }
-}
 
 abstract class ConfigApiEndpoint extends HttpServlet {
 

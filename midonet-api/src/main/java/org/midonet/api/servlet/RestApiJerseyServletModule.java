@@ -51,7 +51,7 @@ import org.midonet.cluster.config.ZookeeperConfig;
 import org.midonet.cluster.data.neutron.NeutronClusterApiModule;
 import org.midonet.cluster.rest_api.serialization.SerializationModule;
 import org.midonet.cluster.rest_api.validation.ValidationModule;
-import org.midonet.cluster.services.conf.ConfMinion;
+import org.midonet.cluster.services.rest_api.conf.ConfMinion;
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomApiModule;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.conf.HostIdGenerator;
