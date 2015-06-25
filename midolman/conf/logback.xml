@@ -80,9 +80,15 @@
          <appender-ref ref="EVENT-FILE"/>
     </logger>
 
-    <!-- BEWARE: DEBUG level is meant for developement and/or troubleshooting
-                 it greatly impacts system performance.
-         levels: OFF, ERROR, WARN, INFO, DEBUG, TRACE -->
+    <!--+                                   ***NOTE***
+        |
+        |  Use this file to configure log appenders, but not log levels. Log
+        |  levels are configured in mn-conf(1), in the 'agent.loggers' section.
+        |
+        |  Example, make all agents log at DEBUG level with this command:
+        |
+        |      $ mn-conf set -t default "agent.loggers.root : DEBUG"
+        +-->
     <root level="INFO">
         <appender-ref ref="LOG-FILE" />
         <!-- <appender-ref ref="LOG-STASH" /> //-->
