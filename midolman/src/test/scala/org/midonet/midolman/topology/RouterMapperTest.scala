@@ -100,8 +100,8 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
                   srcNetwork.getPrefixLen,
                   dstNetwork.asInstanceOf[IPv4Subnet].getIntAddress,
                   dstNetwork.getPrefixLen,
-                  Route.NextHop.PORT, portId, /*gateway*/0, /*weight*/ 100, "",
-                  portId, true)
+                  Route.NextHop.PORT, portId, /*gateway*/0, /*weight*/100, "",
+                  portId, /*learned*/true)
     }
 
     private def testRouterCreated(obs: DeviceObserver[SimulationRouter])
@@ -616,7 +616,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             stateStore.addValue(classOf[TopologyPort], port.getId, HostsKey,
                                 UUID.randomUUID.toString).await(timeout)
 
-            Then("The observer should receive a router update and no routes")
+            Then("The observer should receive a router update")
             obs.awaitOnNext(3, timeout) shouldBe true
 
             When("Adding a route to the port")
@@ -626,7 +626,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
                                     nextHopPortId = Some(port.getId))
             store.create(route)
 
-            Then("The observer should receive a router update with the route")
+            Then("The observer should receive a router update")
             obs.awaitOnNext(4, timeout) shouldBe true
 
             When("The route is deleted")

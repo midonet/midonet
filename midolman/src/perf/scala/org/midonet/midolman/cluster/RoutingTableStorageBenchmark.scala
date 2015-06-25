@@ -66,6 +66,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
     private val cnxnTimeoutMs = 2000
     private val sessionTimeoutMs = 10000
     private final val timeout = 5 seconds
+    private final val benchmarkTimeout = 1800 seconds
     private final val count = 10000
 
     private val executor = Executors.newSingleThreadExecutor()
@@ -139,7 +140,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
             catch { case NonFatal(_) => }
         }
 
-        Future.sequence(futures).await(1800 seconds)
+        Future.sequence(futures).await(benchmarkTimeout)
 
         storage.delete(classOf[Port], port.getId)
     }
@@ -185,14 +186,14 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
             } catch { case NonFatal(_) => }
         }
 
-        Future.sequence(futuresAdd).await(1800 seconds)
+        Future.sequence(futuresAdd).await(benchmarkTimeout)
 
         for (route <- routes) {
             try { futuresRem += storage.removeRoute(route).asFuture }
             catch { case NonFatal(_) => }
         }
 
-        Future.sequence(futuresRem).await(1800 seconds)
+        Future.sequence(futuresRem).await(benchmarkTimeout)
 
         storage.delete(classOf[Port], port.getId)
     }
@@ -211,7 +212,7 @@ class RoutingTableStorageBenchmark extends TopologyBuilder {
             catch { case NonFatal(_) => }
         }
 
-        obs.await(1800 seconds)
+        obs.await(benchmarkTimeout)
 
         storage.delete(classOf[Port], port.getId)
     }
