@@ -95,7 +95,7 @@ final class NetlinkRequestBroker(writer: NetlinkBlockingWriter,
                                  maxRequestSize: Int,
                                  readBuf: ByteBuffer,
                                  clock: NanoClock,
-                                 timeout: Duration = 10 seconds) {
+                                 timeout: Duration = 1 minute) {
     import NetlinkRequestBroker._
 
     val capacity = Util.findNextPositivePowerOfTwo(maxPendingRequests)
