@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.api.rest_api;
+package org.midonet.cluster.rest_api;
 
 /**
  * Custom HTTP statuses which are not included in Jersey's status enum.

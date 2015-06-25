@@ -18,10 +18,14 @@ package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
+import javax.ws.rs.core.Response
+import javax.ws.rs.{HeaderParam, POST, WebApplicationException}
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api
+import org.midonet.cluster.rest_api.Status.METHOD_NOT_ALLOWED
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Vip
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -70,6 +74,12 @@ class PoolVipResource @Inject()(poolId: UUID, resContext: ResourceContext)
 class LoadBalancerVipResource @Inject()(loadBalancerId: UUID,
                                         resContext: ResourceContext)
     extends MidonetResource[Vip](resContext) {
+
+    @POST
+    override def create(v: Vip, @HeaderParam("Content-Type") cType: String)
+    : Response = {
+        throw new WebApplicationException(METHOD_NOT_ALLOWED.getStatusCode)
+    }
 
     protected override def listFilter = (vip: Vip) => {
         vip.loadBalancerId == loadBalancerId
