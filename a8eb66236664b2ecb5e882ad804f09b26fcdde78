@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_0b4c5e9d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-25T04:00:16Z",
+      "side": 1,
+      "message": "Looks like you could define this at the top of this method and return at the end of this method instead of doing it within each if-else block.",
+      "revId": "a8eb66236664b2ecb5e882ad804f09b26fcdde78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4b42e668",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-25T04:00:16Z",
+      "side": 1,
+      "message": "Consider keeping these names consistent, and since we are always adding/removing one entry: \u0027removeArpEntry\u0027 and \u0027addArpEntry\u0027, or \u0027generateArpEntryDeleteOp\u0027 and \u0027generateArpEntryCreateOp\u0027.",
+      "revId": "a8eb66236664b2ecb5e882ad804f09b26fcdde78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_eb52da33",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-25T04:00:16Z",
+      "side": 1,
+      "message": "Looks like generateArpEntryCreateOp and cleanUpArpEntry are the same except adding/deleting the same node.  An alternative could be to squashing them into one higher-order function and pass the func to call.",
+      "revId": "a8eb66236664b2ecb5e882ad804f09b26fcdde78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
