@@ -27,6 +27,7 @@ import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
 import scala.concurrent.{ExecutionContext, Future, Promise}
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 import com.google.common.annotations.VisibleForTesting
@@ -238,8 +239,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 case nne: NoNodeException => rethrowException(ops, nne)
                 case nee: NotEmptyException => rethrowException(ops, nee)
                 case rce: ReferenceConflictException => throw rce
-                case ex: Exception =>
-                    throw new InternalObjectMapperException(ex)
+                case NonFatal(ex) => throw new InternalObjectMapperException(ex)
             }
 
             deleteState()

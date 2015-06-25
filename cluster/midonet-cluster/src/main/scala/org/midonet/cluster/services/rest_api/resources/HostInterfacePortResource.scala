@@ -20,14 +20,16 @@ import java.util.{List => JList, UUID}
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
-import javax.ws.rs.core.Response.Status.NOT_FOUND
 
+import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
+import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -46,7 +48,8 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
             .flatMap(_.portIds.asScala
                          .find(_ == portId)
                          .map(getResource(classOf[HostInterfacePort], _))
-                         .getOrElse(throw new WebApplicationException(NOT_FOUND)))
+                         .getOrElse(throw new NotFoundHttpException(
+                            "host interface port not found")))
             .getOrThrow
     }
 
@@ -67,6 +70,24 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
     override def create(binding: HostInterfacePort,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
+
+        val store = resContext.backend.store
+        val h = store.get(classOf[Topology.Host], hostId).getOrThrow
+        if (h.getTunnelZoneIdsList.isEmpty) {
+            throw new BadRequestHttpException(s"Host $hostId does not belong " +
+                                              "to any tunnel zones")
+        }
+
+        store.getAll(classOf[Topology.Port], h.getPortIdsList)
+             .getOrThrow
+             .find ( _.getInterfaceName == binding.interfaceName ) match {
+                case Some(conflictingPort) =>
+                throw new BadRequestHttpException(
+                    s"Interface ${binding.interfaceName} at host $hostId is" +
+                    s"already bound to port ${conflictingPort.getId}")
+            case _ =>
+        }
+
         getResource(classOf[Port], binding.portId).map(port => {
             binding.setBaseUri(resContext.uriInfo.getBaseUri)
             binding.create(hostId)
@@ -82,7 +103,7 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
         getResource(classOf[Port], id).map(port => {
             port.hostId = null
             port.interfaceName = null
-            updateResource(port)
+            updateResource(port, MidonetResource.OkNoContentResponse)
         }).getOrThrow
     }
 
