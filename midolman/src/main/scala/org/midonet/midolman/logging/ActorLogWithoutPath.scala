@@ -21,7 +21,7 @@ import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
 
-trait ActorLogWithoutPath { this: Actor ⇒
+trait ActorLogWithoutPath { this: Actor =>
     def logSource = self.path.name
     val log = Logger(LoggerFactory.getLogger(logSource))
 }
