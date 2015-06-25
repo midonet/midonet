@@ -173,6 +173,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_4e075418",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-25T07:21:08Z",
+      "side": 1,
+      "message": "can you explain how a proper virtual device for this purpose would look like?\n\nan exterior port which can bound on multiple hosts?",
+      "parentUuid": "facab960_63519435",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_a24b0158",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
