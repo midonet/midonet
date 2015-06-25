@@ -49,6 +49,54 @@
     },
     {
       "key": {
+        "uuid": "facab960_ae1e200a",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-25T09:09:51Z",
+      "side": 1,
+      "message": "I haven\u0027t tried null IDs yet. I\u0027m not sure whether it will impact the CLI",
+      "parentUuid": "facab960_ce48c45e",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 70
+      },
+      "revId": "7eae35173b64a804f1a454b30602981c9c80040e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ee2e688b",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-25T09:09:51Z",
+      "side": 1,
+      "message": "No, this is to create a Route dto from a learned route. Since learned routes don\u0027t have ids, a default one is set here. Maybe I should make it  a constant, or use the same one as in the RoutingHandler.",
+      "parentUuid": "facab960_2e2db095",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 70
+      },
+      "revId": "7eae35173b64a804f1a454b30602981c9c80040e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_ee174843",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
         "patchSetId": 8
@@ -60,6 +108,30 @@
       "writtenOn": "2015-06-25T07:36:54Z",
       "side": 1,
       "message": "fro.srcNetwork\"Addr\"?",
+      "range": {
+        "startLine": 180,
+        "startChar": 61,
+        "endLine": 180,
+        "endChar": 67
+      },
+      "revId": "7eae35173b64a804f1a454b30602981c9c80040e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0e4f0c6c",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-25T09:09:51Z",
+      "side": 1,
+      "message": "Done. Thanks.",
+      "parentUuid": "facab960_ee174843",
       "range": {
         "startLine": 180,
         "startChar": 61,
