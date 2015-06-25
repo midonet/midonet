@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_cec5245d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/RouterBase.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-25T09:31:52Z",
+      "side": 1,
+      "message": "I chatted with Pino and Dan about this and we\u0027ll strip the tag off. The rationale is: it\u0027s unclear how keeping it would interact with the l2gw; and if users want to convey priority from one l2 segment to the other they should specify so in the dscp ip header field (and we could add extra per-port configuration to say how a CoS value maps to dscp).",
+      "revId": "a3bb016ec890275a1da5674a3f3d1dcd8a9f3fde",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
