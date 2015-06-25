@@ -191,6 +191,24 @@
     },
     {
       "key": {
+        "uuid": "dacfb570_645864fb",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-25T15:20:32Z",
+      "side": 1,
+      "message": "I think it can be designed several ways, this may be one:\n\nVirtually:\n\n* A metadata service is a virtual device. It has a single interior vport which you plug to a bridge. The vport has an IP address and a MAC address. \n\nAlternatives:\n\n* single device, with one vport per network each hooked to the bridge.\n* single device with \u0027dangling\u0027 vports and bridges teleport traffic to them based on a well defined generic service insertion interface.\n* single device with dangling vports and bridges teleport traffic to them based on rules (as proposed in this blueprint) and a new action.\n\nInside details:\n\nEach agent has a single metadata thread. And a set of metadata namespaces plugged to the datapath. One per locally known virtual metadata service. Ideally, if possible it will use the same link-local address on all of those namespaces, if unfeasible we\u0027d resort for static traffic translation as in this proposal. Each time a virtual metadata device receives TCP:80 traffic, it installs a flow to send it to the datapath port it has internally assigned, so it will emerge in the corresponding namespace. The metadata thread will be listening on port 80 with a socket on each namespace, thus able to demux based on socket alone and the same event based thread can handle all http requests in a single select loop.\n\nOn the return path, packets sent by the HTTP metadata thread would come back to userspace, and hit the virtual metadata device, which would send the traffic back to the corresponding bridge.",
+      "parentUuid": "facab960_4e075418",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_a24b0158",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
