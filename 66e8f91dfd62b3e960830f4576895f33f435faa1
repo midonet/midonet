@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_6eaed899",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-25T09:44:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_8edebc6b",
+      "range": {
+        "startLine": 55,
+        "startChar": 8,
+        "endLine": 55,
+        "endChar": 31
+      },
+      "revId": "66e8f91dfd62b3e960830f4576895f33f435faa1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_aedb807a",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-25T08:24:46Z",
       "side": 1,
       "message": "deleteResource does not throw an exception but returns a response",
+      "range": {
+        "startLine": 61,
+        "startChar": 8,
+        "endLine": 67,
+        "endChar": 9
+      },
+      "revId": "66e8f91dfd62b3e960830f4576895f33f435faa1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_4ea9148f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolResource.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-25T09:44:00Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "facab960_aedb807a",
       "range": {
         "startLine": 61,
         "startChar": 8,
