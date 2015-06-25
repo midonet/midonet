@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_2e2db095",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 177,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-25T07:36:54Z",
+      "side": 1,
+      "message": "Will this ever be stored in ZK via ZOOM? If that\u0027s the case, is this supposed to be a unique instance?",
+      "range": {
+        "startLine": 177,
+        "startChar": 8,
+        "endLine": 177,
+        "endChar": 70
+      },
+      "revId": "7eae35173b64a804f1a454b30602981c9c80040e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_ee174843",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-25T07:36:54Z",
+      "side": 1,
+      "message": "fro.srcNetwork\"Addr\"?",
+      "range": {
+        "startLine": 180,
+        "startChar": 61,
+        "endLine": 180,
+        "endChar": 67
+      },
+      "revId": "7eae35173b64a804f1a454b30602981c9c80040e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
