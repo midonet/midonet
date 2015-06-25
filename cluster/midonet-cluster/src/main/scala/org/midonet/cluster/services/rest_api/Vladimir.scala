@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.rest_api
 
 import java.util
-
 import javax.validation.Validator
 
 import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
@@ -25,19 +24,20 @@ import com.google.inject.{Guice, Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import com.typesafe.scalalogging.Logger
-
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.{DispatcherType, Server}
-import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
+import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler, ServletHolder}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
+import org.midonet.cluster.services.rest_api.conf._
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.conf.MidoNodeConfigurator
 import org.midonet.midolman.state.PathBuilder
 
 object Vladimir {
@@ -113,6 +113,22 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
         context.addFilter(classOf[GuiceFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
         context.addFilter(classOf[CorsFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
         context.addServlet(classOf[DefaultServlet], "/*")
+
+        def addServlet(endpoint: ConfigApiEndpoint, path: String): Unit = {
+            log.info(s"Registering config service servlet at /$path")
+            context.addServlet(new ServletHolder(endpoint), s"/$path")
+        }
+
+        // CONF API
+        val c = MidoNodeConfigurator(config.conf)
+        addServlet(new SchemaEndpoint(c), "schema")
+        addServlet(new PerNodeEndpoint(c), "node/*")
+        addServlet(new RuntimeEndpoint(c), "runtime-config/*")
+        addServlet(new TemplateEndpoint(c), "template/*")
+        addServlet(new TemplateListEndpoint(c), "template-list")
+        addServlet(new TemplateMappingsEndpoint(c), "template-mappings/*")
+        addServlet(new TemplateMappingsEndpoint(c), "template-mappings")
+
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
 
         try {
