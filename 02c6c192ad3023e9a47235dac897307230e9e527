@@ -16,6 +16,24 @@
       "revId": "02c6c192ad3023e9a47235dac897307230e9e527",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_2e33f0ab",
+        "filename": "midonet-util/src/test/java/org/midonet/packets/TestTCP.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-25T09:02:08Z",
+      "side": 1,
+      "message": "i didn\u0027t capture any ipv6 traffic :/ this is taking too long for a minor patch. i can skip ipv6 checksum calculation altogether, since this is for reversion nat in icmp errors and it\u0027s not even clear there\u0027s nat in ipv6.",
+      "parentUuid": "facab960_ce8d247e",
+      "revId": "02c6c192ad3023e9a47235dac897307230e9e527",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
