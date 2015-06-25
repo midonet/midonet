@@ -51,6 +51,7 @@ object Vladimir {
         "com.sun.jersey.api.json.POJOMappingFeature"
 
     def servletModule(backend: MidonetBackend,
+                      curator: CuratorFramework,
                       config: ClusterConfig) = new JerseyServletModule {
         override def configureServlets(): Unit = {
             bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
@@ -58,8 +59,9 @@ object Vladimir {
                 .toInstance(new PathBuilder(config.backend.rootKey))
             bind(classOf[CuratorFramework]).toInstance(backend.curator)
             bind(classOf[MidonetBackend]).toInstance(backend)
+            bind(classOf[CuratorFramework]).toInstance(curator)
             bind(classOf[AuthService]).to(classOf[MockAuthService])
-                .asEagerSingleton()
+                                      .asEagerSingleton()
             bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
             bind(classOf[ApplicationResource])
             bind(classOf[Validator]).toProvider(classOf[ValidatorProvider])
@@ -79,6 +81,7 @@ object Vladimir {
 @ClusterService(name = "rest_api")
 class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                          backend: MidonetBackend,
+                         curator: CuratorFramework,
                          config: ClusterConfig)
     extends Minion(nodeContext) {
 
@@ -100,7 +103,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                                                 ServletContextHandler.SESSIONS)
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
-                Guice.createInjector(servletModule(backend, config))
+                Guice.createInjector(servletModule(backend, curator, config))
             }
         })
         context.addFilter(classOf[GuiceFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))

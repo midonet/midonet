@@ -72,4 +72,8 @@ public final class ResourceUris {
     public static final String LICENSES = "licenses";
     public static final String LICENSE_STATUS = "licenses/status";
 
+    public static String macToUri(String mac) {
+        return mac.replace(':', '-');
+    }
+
 }

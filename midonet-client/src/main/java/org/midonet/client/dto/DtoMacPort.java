@@ -92,6 +92,16 @@ public class DtoMacPort {
     }
 
     @Override
+    public String toString() {
+        return "DtoMacPort{" +
+               "macAddr='" + macAddr + '\'' +
+               ", portId=" + portId +
+               ", vlanId=" + vlanId +
+               ", uri=" + uri +
+               '}';
+    }
+
+    @Override
     public int hashCode() {
         int result = macAddr != null ? macAddr.hashCode() : 0;
         result = 31 * result + (portId != null ? portId.hashCode() : 0);
