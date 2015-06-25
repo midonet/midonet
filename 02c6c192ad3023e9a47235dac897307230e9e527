@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "facab960_ce8d247e",
+        "filename": "midonet-util/src/test/java/org/midonet/packets/TestTCP.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-06-25T08:15:16Z",
+      "side": 1,
+      "message": "ipv6?",
+      "revId": "02c6c192ad3023e9a47235dac897307230e9e527",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
