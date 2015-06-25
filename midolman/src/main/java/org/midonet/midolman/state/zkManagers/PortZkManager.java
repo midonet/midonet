@@ -24,18 +24,22 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
-import java.util.concurrent.TimeoutException;
-
-import rx.Observable;
-import rx.Subscriber;
-import rx.Observable.OnSubscribe;
-import rx.functions.Func1;
+import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import rx.Observable;
+import rx.Observable.OnSubscribe;
+import rx.Subscriber;
+import rx.functions.Func1;
+
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.AbstractZkManager;
@@ -51,12 +55,7 @@ import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.midolman.state.VlanPathExistsException;
 import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.IPAddr;
-import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nullable;
 
 /**
  * Class to manage the port ZooKeeper data.
@@ -265,7 +264,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     public List<Op> prepareCreate(UUID id, PortConfig config)
             throws StateAccessException, SerializationException {
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
         if (config.inboundFilter != null) {
             ops.addAll(chainZkManager.prepareChainBackRefCreate(
                     config.inboundFilter, ResourceType.PORT, id));
@@ -424,7 +423,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     public List<Op> prepareUnlink(UUID id) throws StateAccessException,
             SerializationException {
 
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
         PortConfig port = get(id);
         if (!port.isInterior()) {
             // If not linked, do nothing
@@ -1080,23 +1079,6 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
     }
 
     /**
-     * Gets a list of port IDs for a given vlan-aware bridge.
-     * @param bridgeId
-     * @param watcher
-     * @return
-     * @throws StateAccessException
-     */
-    public List<UUID> getVlanBridgeTrunkPortIDs(UUID bridgeId, Runnable watcher)
-        throws StateAccessException {
-        return listPortIDs(paths.getVlanBridgeTrunkPortsPath(bridgeId), watcher);
-    }
-
-    public List<UUID> getVlanBridgeTrunkPortIDs(UUID bridgeId)
-        throws StateAccessException {
-        return getVlanBridgeTrunkPortIDs(bridgeId, null);
-    }
-
-    /**
      * Get the set of IDs of a Bridge's logical ports.
      *
      * @param bridgeId
@@ -1118,31 +1100,9 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
         return getBridgeLogicalPortIDs(bridgeId, null);
     }
 
-    /**
-     * GEt the set of ids of a vlan-aware bridge's logical ports.
-     *
-     * @param bridgeId
-     * @param watcher
-     * @return
-     * @throws StateAccessException
-     */
-    public List<UUID> getVlanBridgeLogicalPortIDs(UUID bridgeId, Runnable watcher)
-        throws StateAccessException {
-        return listPortIDs(paths.getVlanBridgeLogicalPortsPath(bridgeId),
-                           watcher);
-    }
-
-    public List<UUID> getVlanBridgeLogicalPortIDs(UUID bridgeId)
-        throws StateAccessException {
-        return getVlanBridgeLogicalPortIDs(bridgeId, null);
-    }
-
     /***
      * Deletes a port and its related data from the ZooKeeper directories
      * atomically.
-     *
-     * @param id
-     *            ID of the port to delete.
      */
     public void delete(UUID id) throws StateAccessException,
             SerializationException {
@@ -1151,7 +1111,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
 
     public void link(UUID id, UUID peerId) throws StateAccessException,
             SerializationException {
-        List<Op> ops = new ArrayList<Op>();
+        List<Op> ops = new ArrayList<>();
         prepareLink(ops, id, peerId);
         zk.multi(ops);
     }
@@ -1167,7 +1127,7 @@ public class PortZkManager extends AbstractZkManager<UUID, PortConfig> {
 
         String path = paths.getPortGroupPortsPath(portGroupId);
         Set<String> ids =  zk.getChildren(path);
-        Set<UUID> portIds = new HashSet<UUID>(ids.size());
+        Set<UUID> portIds = new HashSet<>(ids.size());
         for (String id : ids) {
             portIds.add(UUID.fromString(id));
         }

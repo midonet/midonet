@@ -19,6 +19,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.UUID;
+
 import javax.ws.rs.core.UriBuilder;
 
 import org.midonet.api.network.IP4MacPair;
@@ -55,7 +56,6 @@ public class ResourceUriBuilder {
     public static final String AD_ROUTES = "/ad_routes";
     public static final String HOSTS = "/hosts";
     public static final String INTERFACES = "/interfaces";
-    public static final String COMMANDS = "/commands";
     public static final String LINK = "/link";
     public static final String TUNNEL_ZONES = "/tunnel_zones";
     public static final String ID_TOKEN = "/{id}";
@@ -74,11 +74,7 @@ public class ResourceUriBuilder {
     public static final String PORT_NAME = "/{portName}";
     public static final String VXLAN_PORT = "/vxlan_port";
     public static final String VXLAN_PORTS = "/vxlan_ports";
-    public static final String MAC_ADDR = "/{macAddress}";
-    public static final String PORT_ID_NO_SLASH = "{portId}";
     public static final String TENANT_ID_PARAM = "tenant_id";
-    public static final String LICENSES = "/licenses";
-    public static final String LICENSE_STATUS = "/licenses/status";
     public static final String TRACE_REQUESTS = "/traces";
 
     private ResourceUriBuilder() {
@@ -107,23 +103,17 @@ public class ResourceUriBuilder {
 
     public static URI getTenantBridges(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getBridges(baseUri)).queryParam(
-                TENANT_ID_PARAM, tenantId).build();
+            TENANT_ID_PARAM, tenantId).build();
     }
 
     public static URI getTenantChains(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getChains(baseUri)).queryParam(
-                TENANT_ID_PARAM, tenantId).build();
+            TENANT_ID_PARAM, tenantId).build();
     }
 
     public static URI getTenantPortGroups(URI baseUri, String tenantId) {
         return UriBuilder.fromUri(getPortGroups(baseUri)).queryParam(
-                TENANT_ID_PARAM, tenantId).build();
-    }
-
-
-    public static URI getTenantIpAddrGroups(URI baseUri, String tenantId) {
-        return UriBuilder.fromUri(getTenant(baseUri, tenantId))
-                .path(IP_ADDR_GROUPS).build();
+            TENANT_ID_PARAM, tenantId).build();
     }
 
     public static URI getRouters(URI baseUri) {
@@ -158,16 +148,6 @@ public class ResourceUriBuilder {
                 .path(LINK).build();
     }
 
-    public static URI getBridgePorts(URI baseUri, UUID bridgeId) {
-        return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(PORTS)
-                .build();
-    }
-
-    public static URI getBridgePeerPorts(URI baseUri, UUID bridgeId) {
-        return UriBuilder.fromUri(getBridge(baseUri, bridgeId))
-                .path(PEER_PORTS).build();
-    }
-
     public static URI getBridgeDhcps(URI baseUri, UUID bridgeId) {
         return UriBuilder.fromUri(getBridge(baseUri, bridgeId)).path(DHCP)
                 .build();
@@ -195,20 +175,7 @@ public class ResourceUriBuilder {
     }
 
     public static String macPortToUri(MacPort mp) {
-        StringBuilder b = new StringBuilder();
-        b.append(macToUri(mp.getMacAddr().toString()));
-        b.append("_").append(mp.getPortId().toString());
-        return b.toString();
-    }
-
-    public static MAC macPortToMac(String macPortString) {
-        String[] parts = macPortString.split("_");
-        return macFromUri(parts[0]);
-    }
-
-    public static UUID macPortToUUID(String macPortString) {
-        String[] parts = macPortString.split("_");
-        return UUID.fromString(parts[1]);
+        return macToUri(mp.getMacAddr()) + "_" + mp.getPortId().toString();
     }
 
     public static URI getArpTable(URI bridgeUri) {
@@ -216,10 +183,7 @@ public class ResourceUriBuilder {
     }
 
     public static String ip4MacPairToUri(IP4MacPair pair) {
-        StringBuilder b = new StringBuilder();
-        b.append(pair.getIp()).append("_");
-        b.append(macToUri(pair.getMac()));
-        return b.toString();
+        return pair.getIp() + "_" + macToUri(pair.getMac());
     }
 
     public static MAC ip4MacPairToMac(String macPortString) {
@@ -311,16 +275,6 @@ public class ResourceUriBuilder {
                 .path(clientIdToUri(clientId)).build();
     }
 
-    public static URI getRouterPorts(URI baseUri, UUID routerId) {
-        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(PORTS)
-                .build();
-    }
-
-    public static URI getRouterPeerPorts(URI baseUri, UUID routerId) {
-        return UriBuilder.fromUri(getRouter(baseUri, routerId))
-                .path(PEER_PORTS).build();
-    }
-
     public static URI getChains(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(CHAINS).build();
     }
@@ -336,11 +290,6 @@ public class ResourceUriBuilder {
 
     public static URI getRule(URI baseUri, UUID ruleId) {
         return UriBuilder.fromUri(getRules(baseUri)).path(ruleId.toString())
-                .build();
-    }
-
-    public static URI getChainRules(URI baseUri, UUID chainId) {
-        return UriBuilder.fromUri(getChain(baseUri, chainId)).path(RULES)
                 .build();
     }
 
@@ -380,11 +329,6 @@ public class ResourceUriBuilder {
                 .build();
     }
 
-    public static URI getRouterRoutes(URI baseUri, UUID routerId) {
-        return UriBuilder.fromUri(getRouter(baseUri, routerId)).path(ROUTES)
-                .build();
-    }
-
     public static URI getHosts(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri)).path(HOSTS).build();
     }
@@ -392,17 +336,6 @@ public class ResourceUriBuilder {
     public static URI getHost(URI baseUri, UUID hostId) {
         return UriBuilder.fromUri(getHosts(baseUri)).path(hostId.toString())
                 .build();
-    }
-
-    public static URI getHostInterfaces(URI baseUri, UUID hostId) {
-        return UriBuilder.fromUri(getHost(baseUri, hostId)).path(INTERFACES)
-                .build();
-    }
-
-    public static URI getHostInterface(URI baseUri, UUID hostId,
-            String name) {
-        return UriBuilder.fromUri(getHostInterfaces(baseUri, hostId))
-                .path(name).build();
     }
 
     public static URI getHostInterfacePorts(URI baseUri, UUID hostId) {
@@ -645,25 +578,8 @@ public class ResourceUriBuilder {
         return buildIdTemplateUri(getTunnelZones(baseUri));
     }
 
-    public static String getVlanMacTableTemplate(URI bridgeUri) {
-        return bridgeUri + VLANS + VLAN_ID + MAC_TABLE;
-    }
-
-    public static String getMacPortTemplate(URI bridgeUri) {
-        return bridgeUri + MAC_TABLE + MAC_ADDR + "_" + PORT_ID_NO_SLASH;
-    }
-
-    public static String getVlanMacPortTemplate(URI bridgeUri) {
-        return bridgeUri + VLANS + VLAN_ID + MAC_TABLE +
-                MAC_ADDR + "_" + PORT_ID_NO_SLASH;
-    }
-
     public static String getVtepTemplate(URI baseUri) {
         return getVteps(baseUri) + IP_ADDR;
-    }
-
-    public static String getVtepBindingsTemplate(URI baseUri) {
-        return getVtepTemplate(baseUri) + BINDINGS;
     }
 
     public static String getVtepBindingTemplate(URI baseUri, String ipAddr) {
@@ -725,11 +641,6 @@ public class ResourceUriBuilder {
         return buildIdTemplateUri(getHealthMonitors(baseUri));
     }
 
-    public static URI getHealthMonitorPools(URI baseUri, UUID healthMonitorId) {
-        return UriBuilder.fromUri(getHealthMonitors(baseUri))
-                .path(healthMonitorId.toString()).path(POOLS).build();
-    }
-
     public static URI getLoadBalancers(URI baseUri) {
         return UriBuilder.fromUri(getRoot(baseUri))
                 .path(LOAD_BALANCERS).build();
@@ -742,16 +653,6 @@ public class ResourceUriBuilder {
     public static URI getLoadBalancer(URI baseUri, UUID loadBalancerId) {
         return UriBuilder.fromUri(getLoadBalancers(baseUri))
                 .path(loadBalancerId.toString()).build();
-    }
-
-   public static URI getLoadBalancerPools(URI baseUri, UUID id) {
-       return UriBuilder.fromUri(getLoadBalancers(baseUri))
-               .path(id.toString()).path(POOLS).build();
-   }
-
-    public static URI getLoadBalancerVips(URI baseUri, UUID id) {
-        return UriBuilder.fromUri(getLoadBalancers(baseUri))
-                .path(id.toString()).path(VIPS).build();
     }
 
     public static URI getPoolMembers(URI baseUri) {
@@ -778,22 +679,6 @@ public class ResourceUriBuilder {
 
     public static String getPoolTemplate(URI baseUri) {
         return buildIdTemplateUri(getPools(baseUri));
-    }
-
-    public static URI getPoolPoolMembers(URI baseUri, UUID poolId) {
-        return UriBuilder
-                .fromUri(getPools(baseUri))
-                .path(poolId.toString())
-                .path(POOL_MEMBERS)
-                .build();
-    }
-
-    public static URI getPoolVips(URI baseUri, UUID poolId) {
-        return UriBuilder
-                .fromUri(getPools(baseUri))
-                .path(poolId.toString())
-                .path(VIPS)
-                .build();
     }
 
     public static URI getVips(URI baseUri) {

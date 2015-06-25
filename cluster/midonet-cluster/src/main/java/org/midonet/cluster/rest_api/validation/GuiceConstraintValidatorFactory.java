@@ -40,5 +40,4 @@ public class GuiceConstraintValidatorFactory implements
         return injector.getInstance(key);
     }
 
-    public void releaseInstance(ConstraintValidator<?,?> instance) {}
 }

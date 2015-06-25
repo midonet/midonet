@@ -142,16 +142,6 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         return ops;
     }
 
-    private UUID prepareCreateRuleLastPosition(List<Op> ops, Rule rule)
-            throws RuleIndexOutOfBoundsException, SerializationException,
-            StateAccessException {
-        UUID id = UUID.randomUUID();
-        RuleList ruleList = getRuleList(rule.chainId);
-        int position = Math.max(ruleList.getRuleList().size(), 1);
-        ops.addAll(prepareInsertPositionOrdering(id, rule, position));
-        return id;
-    }
-
     private List<Op> prepareDeletePositionOrdering(UUID id, Rule ruleConfig)
             throws StateAccessException, SerializationException {
         List<Op> ops = new ArrayList<>();
@@ -221,45 +211,6 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         int version = list.getValue();
         String path = paths.getChainRulesPath(chainId);
         ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
-                version));
-    }
-
-    public void prepareReplaceRule(List<Op> ops, UUID ruleIdToRemove,
-                                   Rule ruleToRemove, UUID ruleIdToAdd,
-                                   Rule ruleToAdd)
-            throws RuleIndexOutOfBoundsException, StateAccessException,
-            SerializationException {
-
-        if (ruleToRemove.chainId == null || ruleToAdd.chainId == null) {
-            throw new IllegalArgumentException("Chain ID not set on rules");
-        }
-
-        if (!Objects.equals(ruleToRemove.chainId, ruleToAdd.chainId)) {
-            throw new IllegalArgumentException("Chain ID mismatch");
-        }
-
-        UUID chainId = ruleToRemove.chainId;
-
-        // Get the ordered list of rules for this chain
-        Map.Entry<RuleList, Integer> ruleListWithVersion =
-                getRuleListWithVersion(chainId);
-        int version = ruleListWithVersion.getValue();
-        RuleList list = ruleListWithVersion.getKey();
-        List<UUID> ids = list.getRuleList();
-        int idx = ids.indexOf(ruleIdToRemove);
-        if (idx < 0 ) {
-            throw new IllegalArgumentException("Rule does not exist " +
-                    ruleIdToRemove);
-        }
-
-        ids.remove(idx);
-        ids.add(idx, ruleIdToAdd);
-
-        prepareDelete(ops, ruleIdToRemove, ruleToRemove);
-        ops.addAll(prepareRuleCreate(ruleIdToAdd, ruleToAdd));
-
-        String path = paths.getChainRulesPath(chainId);
-        ops.add(Op.setData(path, serializer.serialize(new RuleList(ids)),
                 version));
     }
 
@@ -411,35 +362,6 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         }
 
         return ops;
-    }
-
-    /**
-     * Call this method if you want to update the rule list of a chain that
-     * has not been created.  This is useful if a previous Op created a chain
-     * with the default rule list but doesn't actually exist at the time of
-     * the method invocation.  Chain ID of the Rule object must be set.
-     */
-    public UUID prepareUpdateRuleInNewChain(List<Op> ops, Rule rule)
-            throws StateAccessException, SerializationException {
-
-        if (rule.chainId == null) {
-            throw new IllegalArgumentException("Chain ID is not set");
-        }
-
-        // This method assumes that the chain provided exists because previous
-        // Op created it, but does not exist at the time this method is
-        // executed.
-        UUID id = UUID.randomUUID();
-        ops.addAll(prepareRuleCreate(id, rule));
-
-        List<UUID> ruleIds = new ArrayList<>(1);
-        ruleIds.add(id);
-
-        // Since it's a new chain, no need to check the version
-        ops.add(Op.setData(paths.getChainRulesPath(rule.chainId),
-                serializer.serialize(new RuleList(ruleIds)), -1));
-
-        return id;
     }
 
     /**

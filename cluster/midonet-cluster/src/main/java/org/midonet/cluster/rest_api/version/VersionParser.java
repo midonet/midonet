@@ -33,11 +33,11 @@ public class VersionParser {
      */
     private static Pattern pattern = Pattern.compile("[^-]+-v(\\d+)\\+.+");
 
-    private static enum PatternGroup {
+    private enum PatternGroup {
         ALL(0), VERSION(1);
 
         private final int value;
-        private PatternGroup(int value) {
+        PatternGroup(int value) {
             this.value = value;
         }
 

@@ -16,14 +16,12 @@
 package org.midonet.midolman.state;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.inject.Inject;
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.KeeperException.BadVersionException;
@@ -37,7 +35,6 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.util.functors.CollectionFunctors;
 import org.midonet.util.functors.Functor;
 import org.midonet.util.functors.TreeNode;
@@ -80,17 +77,9 @@ public class ZkManager {
         this.zk.asyncAdd(relativePath, data, mode, cb);
     }
 
-    public void asyncAdd(String relativePath, byte[] data, CreateMode mode) {
-        this.zk.asyncAdd(relativePath, data, mode);
-    }
-
     public void asyncDelete(String relativePath,
                             DirectoryCallback<Void> callback) {
         this.zk.asyncDelete(relativePath, callback);
-    }
-
-    public void asyncDelete(String relativePath) {
-        this.zk.asyncDelete(relativePath);
     }
 
     protected StateAccessException processException(Exception ex, String action) {
@@ -335,21 +324,6 @@ public class ZkManager {
         }
     }
 
-    public List<OpResult> multiDedup(List<Op> ops) throws StateAccessException {
-
-        Set<String> paths = new HashSet<String>(ops.size());
-        List<Op> dedupOps = new ArrayList<Op>(ops.size());
-        for(Op op : ops) {
-            String path = op.getPath();
-            if(!paths.contains(path)) {
-                paths.add(path);
-                dedupOps.add(op);
-            }
-        }
-
-        return multi(dedupOps);
-    }
-
     public List<OpResult> multi(List<Op> ops) throws StateAccessException {
         try {
             return this.zk.multi(ops);
@@ -422,12 +396,6 @@ public class ZkManager {
     public Op getEphemeralCreateOp(String path, byte[] data) {
         log.debug("ZkManager.getEphemeralCreateOp: {}", path);
         return Op.create(path, data, Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL);
-    }
-
-    public Op getPersistentSequentialCreateOp(String path, byte[] data) {
-        log.debug("ZkManager.getPersistentSequentialCreateOp", path);
-        return Op.create(path, data, Ids.OPEN_ACL_UNSAFE,
-                CreateMode.PERSISTENT_SEQUENTIAL);
     }
 
     public Op getDeleteOp(String path) {
