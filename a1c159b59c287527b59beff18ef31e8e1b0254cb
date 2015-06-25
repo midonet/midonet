@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "facab960_0ebc6cdb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CuratorUtil.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-25T09:22:44Z",
+      "side": 1,
+      "message": "Initially I didn\u0027t want to create the additional objects, but I will add it.",
+      "parentUuid": "facab960_cbbb560d",
+      "range": {
+        "startLine": 40,
+        "startChar": 24,
+        "endLine": 41,
+        "endChar": 39
+      },
+      "revId": "a1c159b59c287527b59beff18ef31e8e1b0254cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4b3f4687",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-06-24T22:37:41Z",
       "side": 1,
       "message": "We will need to protect ourselves against cases where we lose connection to ZK and we suffer an avalanche of reconnections. This is obviously for a later patch, but adding it so we chat about possible options tomorrow.",
+      "range": {
+        "startLine": 598,
+        "startChar": 20,
+        "endLine": 598,
+        "endChar": 49
+      },
+      "revId": "a1c159b59c287527b59beff18ef31e8e1b0254cb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_aee5400a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 598,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-25T09:22:44Z",
+      "side": 1,
+      "message": "The disconnections from ZK are handled separately. There exists:\n\n- a NodeObservableClosedException to indicate that the observable has been closed due to an unsubscribe, but otherwise it can be recovered\n\n- a NodeObservableDisconnectionException to indicate that the connection to ZK was lost; on this exception we don\u0027t recover",
+      "parentUuid": "facab960_4b3f4687",
       "range": {
         "startLine": 598,
         "startChar": 20,
