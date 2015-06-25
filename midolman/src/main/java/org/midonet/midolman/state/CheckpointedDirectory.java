@@ -36,17 +36,6 @@ public interface CheckpointedDirectory extends Directory {
     int createCheckPoint(String path);
 
     /**
-     * Checks if the 2 provided checkpoint indexes refer to checkpoints that
-     * are equivalent. This means the paths are the same, and the data at those
-     * paths are the same.
-     *
-     * @param cpIndex1 index of the first checkpoint.
-     * @param cpIndex2 index of the second checkpoint.
-     * @return true if the checkpoints are equivalent, false otherwise.
-     */
-    boolean checkpointsAreEquivalent(int cpIndex1, int cpIndex2);
-
-    /**
      * returns a map of all of the added paths (paths present in checkpoint 2
      * that are not present in checkpoint 1.
      *
@@ -76,5 +65,4 @@ public interface CheckpointedDirectory extends Directory {
      */
     Map<String, String> getModifiedPaths(int cpIndex1, int cpIndex2);
 
-    String genSetOfAddedPaths(int cpIndex1, int cpIndex2);
 }

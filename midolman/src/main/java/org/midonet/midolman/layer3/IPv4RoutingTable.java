@@ -16,11 +16,11 @@
 
 package org.midonet.midolman.layer3;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 
 import org.midonet.packets.IPv4Addr;
-
-import java.util.List;
 
 /**
  * TODO (galo) - transitional, wraps the legacy RoutesTrie implementation
@@ -33,10 +33,6 @@ public class IPv4RoutingTable implements RoutingTableIfc<IPv4Addr> {
 
     public void addRoute(Route rt) {
         legacyTable.addRoute(rt);
-    }
-
-    public void deleteRoute(Route rt) {
-        legacyTable.deleteRoute(rt);
     }
 
     public List<Route> lookup(IPv4Addr src, IPv4Addr dst) {

@@ -25,9 +25,6 @@ public interface TunnelZones {
     }
 
     interface Builder extends org.midonet.cluster.client.Builder<Builder> {
-        public interface ZoneConfig {
-            TunnelZone getTunnelZoneConfig();
-        }
 
         Builder setConfiguration(TunnelZone configuration);
 

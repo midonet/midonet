@@ -23,7 +23,6 @@ import java.util.UUID;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.UUIDUtil;
-import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -135,7 +134,7 @@ public class ZkPathManager {
 
     protected StringBuilder buildTunnelPath(int tunnelKeyId) {
         return buildTunnelPath().append("/").append(
-                String.format("%010d", tunnelKeyId));
+            String.format("%010d", tunnelKeyId));
     }
 
     /**
@@ -599,22 +598,6 @@ public class ZkPathManager {
             .append('/').append(clientId);
     }
 
-    public String getVlanBridgeLogicalPortsPath(UUID bridgeId) {
-        return buildVlanBridgeLogicalPortsPath(bridgeId).toString();
-    }
-
-    public String getVlanBridgeTrunkPortsPath(UUID bridgeId) {
-        return buildVlanBridgeTrunkPortsPath(bridgeId).toString();
-    }
-
-    private StringBuilder buildVlanBridgeLogicalPortsPath(UUID bridgeId) {
-        return buildVlanBridgePath(bridgeId).append("/interior-ports");
-    }
-
-    private StringBuilder buildVlanBridgeTrunkPortsPath(UUID bridgeId) {
-        return buildVlanBridgePath(bridgeId).append("/trunk-ports");
-    }
-
     public String getVlanBridgesPath() {
         return buildVlanBridgesPath().toString();
     }
@@ -625,10 +608,6 @@ public class ZkPathManager {
 
     protected StringBuilder buildVlanBridgesPath() {
         return basePath().append("/vlan-bridges");
-    }
-
-    protected StringBuilder buildVlanBridgePath(UUID id) {
-        return buildVlanBridgesPath().append("/").append(id);
     }
 
     /**
@@ -643,14 +622,6 @@ public class ZkPathManager {
 
     private StringBuilder buildBridgeTagsPath(UUID bridgeId) {
         return buildBridgePath(bridgeId).append("/tags");
-    }
-
-    public String getBridgeTagPath(UUID bridgeId, String tag) {
-        return buildBridgeTagPath(bridgeId, tag).toString();
-    }
-
-    private StringBuilder buildBridgeTagPath(UUID bridgeID, String tag) {
-        return buildBridgeTagsPath(bridgeID).append("/").append(tag);
     }
 
     /**
@@ -824,16 +795,6 @@ public class ZkPathManager {
         return buildPortGroupRulesPath(id).append("/").append(ruleId);
     }
 
-    private StringBuilder buildPortInGroupPath(UUID id, String portId) {
-        return buildPortGroupPath(id).append("/")
-            .append(portId);
-    }
-
-    /**
-     * Get ZK rule chain path.
-     *
-     * @return /chains
-     */
     public String getChainsPath() {
         return buildChainsPath().toString();
     }

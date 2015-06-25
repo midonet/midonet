@@ -19,7 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.zookeeper.*;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.OpResult;
+import org.apache.zookeeper.Watcher;
 
 public interface Directory {
 
@@ -33,8 +37,6 @@ public interface Directory {
 
     void asyncAdd(String relativePath, byte[] data, CreateMode mode,
                   DirectoryCallback<String> cb);
-
-    void asyncAdd(String relativePath, byte[] data, CreateMode mode);
 
     void update(String relativePath, byte[] data) throws KeeperException,
             InterruptedException;
@@ -93,17 +95,15 @@ public interface Directory {
     List<OpResult> multi(List<Op> ops) throws InterruptedException,
             KeeperException;
 
-    public void asyncMultiPathGet(final Set<String> paths,
+    void asyncMultiPathGet(final Set<String> paths,
                                   final DirectoryCallback<Set<byte[]>> cb);
-
-    long getSessionId();
 
     void closeConnection();
 
     // HACK: TypedWatcher is a runnable so that it can be passed to Directory
     // methods that take Runnable 'watchers'. However, the run method should
     // Never be called.
-    public interface TypedWatcher extends Runnable {
+    interface TypedWatcher extends Runnable {
         void pathDeleted(String path);
         void pathCreated(String path);
         void pathChildrenUpdated(String path);
@@ -111,7 +111,7 @@ public interface Directory {
         void connectionStateChanged(Watcher.Event.KeeperState state);
     }
 
-    public static class DefaultTypedWatcher implements TypedWatcher {
+    class DefaultTypedWatcher implements TypedWatcher {
         @Override
         public void pathDeleted(String path) {
             run();
@@ -142,7 +142,7 @@ public interface Directory {
         }
     }
 
-    public abstract static class DefaultPersistentWatcher implements TypedWatcher {
+    abstract class DefaultPersistentWatcher implements TypedWatcher {
         protected ZkConnectionAwareWatcher connectionWatcher;
 
         public DefaultPersistentWatcher(ZkConnectionAwareWatcher watcher) {

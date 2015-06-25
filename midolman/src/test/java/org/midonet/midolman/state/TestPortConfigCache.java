@@ -191,45 +191,6 @@ public class TestPortConfigCache {
         return config;
     }
 
-   /* @Test
-    public void testExpiration() throws StateAccessException {
-        testExistingPortID();
-        assertThat("The cache should contain the portID as key",
-                portCache.hasKey(portID));
-        // Advance the clock to allow expiration to occur.
-        reactor.incrementTime(
-                PortConfigCache.expiryMillis, TimeUnit.MILLISECONDS);
-        // Modify the entry in ZK to trigger removal of the key.
-        portMgr.update(portID, getNewConfig());
-        assertThat("The cache should no longer contain the portID as key",
-                !portCache.hasKey(portID));
-    } */
-
-   /* @Test
-    public void testPinning() throws StateAccessException {
-        testExistingPortID();
-        assertThat("The cache should contain the portID as key",
-                portCache.hasKey(portID));
-        // Pin the value.
-        portCache.pin(portID);
-        // Advance the clock and verify that expiration did not occur.
-        reactor.incrementTime(
-                PortConfigCache.expiryMillis, TimeUnit.MILLISECONDS);
-        // Modify the entry in ZK to trigger removal of the key.
-        portMgr.update(portID, getNewConfig());
-        assertThat("The cache should still contain the portID as key",
-                portCache.hasKey(portID));
-        // Unpin the value
-        portCache.unPin(portID);
-        // Advance the clock to allow expiration to occur.
-        reactor.incrementTime(
-                PortConfigCache.expiryMillis, TimeUnit.MILLISECONDS);
-        // Modify the entry in ZK to trigger removal of the key.
-        portMgr.update(portID, getNewConfig());
-        assertThat("The cache should no longer contain the portID as key",
-                !portCache.hasKey(portID));
-    } */
-
     @Test
     public void testConfigChanges() throws StateAccessException,
             SerializationException {

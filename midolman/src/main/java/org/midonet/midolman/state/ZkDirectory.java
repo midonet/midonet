@@ -16,16 +16,30 @@
 
 package org.midonet.midolman.state;
 
-import org.midonet.util.eventloop.Reactor;
-import org.apache.zookeeper.*;
+import java.util.AbstractMap;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.Nonnull;
+
+import org.apache.zookeeper.AsyncCallback;
+import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.KeeperException;
+import org.apache.zookeeper.Op;
+import org.apache.zookeeper.OpResult;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
-import java.util.*;
+import org.midonet.util.eventloop.Reactor;
 
 public class ZkDirectory implements Directory {
     static final Logger log = LoggerFactory.getLogger(ZkDirectory.class);
@@ -101,20 +115,6 @@ public class ZkDirectory implements Directory {
                 }
             },
             null);
-    }
-
-    @Override
-    public void asyncAdd(String relativePath, final byte[] data,
-                         CreateMode mode) {
-
-        final String absPath = getAbsolutePath(relativePath);
-
-        zk.getZooKeeper().create(absPath, data, acl, mode,
-            new AsyncCallback.StringCallback() {
-                @Override
-                public void processResult(int rc, String path, Object ctx,
-                                          String name) {}
-            }, null);
     }
 
     @Override
@@ -224,12 +224,9 @@ public class ZkDirectory implements Directory {
         int version = -1;
 
         byte[] data = zk.getZooKeeper().getData(absPath, wrapCallback(watcher), returnStat);
+        version = returnStat.getVersion();
 
-        if(returnStat != null){
-            version = returnStat.getVersion();
-        }
-
-        return new AbstractMap.SimpleEntry<byte[], Integer>(data, version);
+        return new AbstractMap.SimpleEntry<>(data, version);
     }
 
     @Override
@@ -262,7 +259,7 @@ public class ZkDirectory implements Directory {
         }
 
         return
-            new HashSet<String>(
+            new HashSet<>(
                 zk.getZooKeeper().getChildren(absPath, wrapCallback(watcher)));
     }
 
@@ -387,7 +384,7 @@ public class ZkDirectory implements Directory {
         // sure that all the updates are seen
         // (http://www.javamex.com/tutorials/synchronization_concurrency_8_hashmap2.shtml)
         final Map<String, byte[]> callbackResults =
-            new HashMap<String, byte[]>();
+            new HashMap<>();
         for(final String path: relativePaths){
             asyncGet(path, new DirectoryCallback<byte[]>(){
 
@@ -423,11 +420,6 @@ public class ZkDirectory implements Directory {
                 }
             }, null);
         }
-    }
-
-    @Override
-    public long getSessionId() {
-        return zk.getZooKeeper().getSessionId();
     }
 
     @Override

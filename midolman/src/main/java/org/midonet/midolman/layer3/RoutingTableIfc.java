@@ -35,12 +35,6 @@ public interface RoutingTableIfc<IP extends IPAddr> {
     void addRoute(Route rt);
 
     /**
-     * Removes a route from the Trie.
-     * @param rt the route to delete
-     */
-    void deleteRoute(Route rt);
-
-    /**
      * Returns a route.
      */
     List<Route> lookup(IP src, IP dst);

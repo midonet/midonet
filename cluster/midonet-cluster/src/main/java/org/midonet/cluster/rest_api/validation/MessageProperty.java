@@ -132,38 +132,6 @@ public class MessageProperty {
             "{midokura.javarx.VtepPortVlanPairAlreadyUsed.message}";
     public static final String VXLAN_PORT_ID_NOT_SETTABLE =
             "{midokura.javarx.VxLanPortIdNotSettable.message}";
-    public static final String LICENSE_INSTALL_NOT_VALID =
-            "{midokura.javarx.LicenseInstallNotValid.message}";
-    public static final String LICENSE_INSTALL_NOT_MIDONET =
-            "{midokura.javarx.LicenseInstallNotMidonet.message}";
-    public static final String LICENSE_INSTALL_ID_EXISTS =
-            "{midokura.javarx.LicenseInstallIdExists.message}";
-    public static final String LICENSE_INSTALL_FAILED =
-            "{midokura.javarx.LicenseInstallFailed.message}";
-    public static final String LICENSE_ACCESS_FAILED =
-            "{midokura.javarx.LicenseAccessFailed.message}";
-    public static final String LICENSE_NOT_FOUND =
-            "{midokura.javarx.LicenseNotFound.message}";
-    public static final String LICENSE_STATUS_VALID =
-            "{midokura.javarx.LicenseStatusValid.message}";
-    public static final String LICENSE_STATUS_NOT_INSTALLED =
-            "{midokura.javarx.LicenseStatusNotInstalled.message}";
-    public static final String LICENSE_STATUS_NOT_VALID =
-            "{midokura.javarx.LicenseStatusNotValid.message}";
-    public static final String LICENSE_INVALID_ID_FORMAT =
-            "{midokura.javarx.LicenseInvalidIdFormat.message}";
-    public static final String ZOOM_OBJECT_NOT_FOUND_EXCEPTION =
-            "{midokura.javarx.ZoomObjectNotFound.message}";
-    public static final String ZOOM_OBJECT_EXISTS_EXCEPTION =
-            "{midokura.javarx.ZoomObjectExists.message}";
-    public static final String ZOOM_OBJECT_REFERENCED_EXCEPTION =
-            "{midokura.javarx.ZoomObjectReferenced.message}";
-    public static final String ZOOM_REFERENCE_CONFLICT_EXCEPTION =
-            "{midokura.javarx.ZoomReferenceCoflict.message}";
-    public static final String ZOOM_CONCURRENT_MODIFICATION =
-            "{midokura.javarx.ZoomConcurrentModification.message}";
-    public static final String ZOOM_SERVER_ERROR =
-            "{midokura.javarx.ZoomServerError.message}";
 
     private static ResourceBundle resourceBundle =
             ResourceBundle.getBundle("ValidationMessages");
