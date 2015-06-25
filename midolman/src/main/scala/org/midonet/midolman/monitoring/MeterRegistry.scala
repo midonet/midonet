@@ -67,7 +67,7 @@ class MeterRegistry(val maxFlows: Int) {
                         log.debug(s"tracking a new flow for meter ${meter.meterName}")
                     } else {
                         meters.put(meter.meterName, new FlowStats())
-                        log.info(s"discovered a new meter: ${meter.meterName}")
+                        log.debug(s"discovered a new meter: ${meter.meterName}")
                     }
                 case _ => // Do nothing
             }
