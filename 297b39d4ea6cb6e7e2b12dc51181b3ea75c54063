@@ -139,6 +139,24 @@
     },
     {
       "key": {
+        "uuid": "bad4c104_40a6eec2",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-06-25T19:06:27Z",
+      "side": 1,
+      "message": "would it not make more sense to put a dnat rule on the bridge port chain? what is the harm of this traffic come to userspace? the metadata actions should be relatively uncommon. And if it comes to userspace, that means midolman can handle the lifecycle of the flow just like any other flow. Return flows can also be handled with flow state.",
+      "parentUuid": "facab960_434c909e",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_b5fcf53f",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
@@ -363,6 +381,23 @@
       "writtenOn": "2015-02-15T09:24:55Z",
       "side": 1,
       "message": "need",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_20d3aa39",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-06-25T19:06:27Z",
+      "side": 1,
+      "message": "assigned",
       "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
