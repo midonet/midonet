@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_2ea210fd",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 101,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-25T08:36:37Z",
+      "side": 1,
+      "message": "Thank you for the suggestion. Done.",
+      "parentUuid": "facab960_0b4c5e9d",
+      "revId": "a8eb66236664b2ecb5e882ad804f09b26fcdde78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_4b42e668",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 2
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_aead40eb",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 123,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-25T08:36:37Z",
+      "side": 1,
+      "message": "Consolidated to [add|remove]ArpEntry and [add|remove]NatRules.",
+      "parentUuid": "facab960_4b42e668",
+      "revId": "a8eb66236664b2ecb5e882ad804f09b26fcdde78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "facab960_eb52da33",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
         "patchSetId": 2
@@ -47,6 +83,24 @@
       "writtenOn": "2015-06-25T04:00:16Z",
       "side": 1,
       "message": "Looks like generateArpEntryCreateOp and cleanUpArpEntry are the same except adding/deleting the same node.  An alternative could be to squashing them into one higher-order function and pass the func to call.",
+      "revId": "a8eb66236664b2ecb5e882ad804f09b26fcdde78",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_0ed2ac5b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-25T08:36:37Z",
+      "side": 1,
+      "message": "Factored out the common part of the two methods. Using a higher-order function seems an overkill here.",
+      "parentUuid": "facab960_eb52da33",
       "revId": "a8eb66236664b2ecb5e882ad804f09b26fcdde78",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
