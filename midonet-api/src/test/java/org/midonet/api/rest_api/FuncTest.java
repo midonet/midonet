@@ -182,7 +182,7 @@ public class FuncTest {
             backend.startAsync().awaitRunning();
 
             FuncTest._injector = Guice.createInjector(
-                Vladimir.servletModule(backend, cfg),
+                Vladimir.servletModule(backend, curator, cfg),
                 new AbstractModule() {
                     @Override
                     protected void configure() {

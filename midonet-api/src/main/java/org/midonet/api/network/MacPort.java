@@ -18,6 +18,7 @@ package org.midonet.api.network;
 
 import java.net.URI;
 import java.util.UUID;
+
 import javax.validation.GroupSequence;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;

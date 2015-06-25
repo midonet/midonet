@@ -82,10 +82,10 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
              .getOrThrow
              .find ( _.getInterfaceName == binding.interfaceName ) match {
                 case Some(conflictingPort) =>
-                throw new BadRequestHttpException(
-                    s"Interface ${binding.interfaceName} at host $hostId is" +
-                    s"already bound to port ${conflictingPort.getId}")
-            case _ =>
+                    throw new BadRequestHttpException(
+                        s"Interface ${binding.interfaceName} at host $hostId " +
+                        s"is already bound to port ${conflictingPort.getId}")
+                case _ =>
         }
 
         getResource(classOf[Port], binding.portId).map(port => {
