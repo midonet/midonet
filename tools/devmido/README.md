@@ -68,12 +68,12 @@ the following topology is created:
                             | veth0
                             |
                             |
-                            |
+                            | veth1
     +------+  +-------+  +-------------+  +-----+  +-----+
                             |
                             |
                             |
-              172.19.0.2/30 | veth1
+              172.19.0.2/30 | uplink port
          +------------------+----------------+        'VIRTUAL' WORLD
          |     MidoNet Provider Router       |
          +------------------+----------------+
