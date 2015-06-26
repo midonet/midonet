@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "bad4c104_c678562e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-26T08:46:18Z",
+      "side": 1,
+      "message": "Checked f2f with alex in cases someone has the same question: this id is not used, it\u0027s just returned so the interface is backwards compatible",
+      "revId": "2366f4f425eae1a425e73554ff09f4aa54b01e12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bad4c104_66ddca42",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 7
