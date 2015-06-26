@@ -27,6 +27,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest._
 
+import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.ZoomConvert.toProto
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons
@@ -39,6 +40,7 @@ import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.MidonetEventually
 import org.midonet.util.concurrent.toFutureOps
 
@@ -62,7 +64,10 @@ class NeutronZoomPluginTest extends FeatureSpec
         )
         backend = new MidonetBackendService(cfg, curator)
         backend.setupBindings()
-        plugin = new NeutronZoomPlugin(backend, cfg)
+
+        val paths = new PathBuilder(ZK_ROOT)
+        val lockFactory = new ZookeeperLockFactory(curator, paths)
+        plugin = new NeutronZoomPlugin(backend, cfg, lockFactory)
     }
 
     feature("The Plugin should be able to CRUD") {
@@ -228,8 +233,8 @@ class NeutronZoomPluginTest extends FeatureSpec
         protoRouter.getTenantId shouldBe pojoRouter.tenantId
         protoRouter.getAdminStateUp shouldBe pojoRouter.adminStateUp
         protoRouter.getGwPortId shouldBe toPuuid(pojoRouter.gwPortId)
-        protoRouter.getExternalGatewayInfo.getNetworkId shouldBe (
-                toPuuid(pojoRouter.externalGatewayInfo.networkId))
+        protoRouter.getExternalGatewayInfo.getNetworkId shouldBe
+                toPuuid(pojoRouter.externalGatewayInfo.networkId)
     }
 
     feature("ZoomConvert correctly converts RouterInterface to protobuf.") {

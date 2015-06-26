@@ -26,6 +26,7 @@ import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
 import com.google.inject.{Guice, Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
+import org.apache.curator.framework.CuratorFramework
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider
 import org.codehaus.jackson.map.DeserializationConfig.Feature._
 import org.codehaus.jackson.map.ObjectMapper
@@ -40,6 +41,7 @@ import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.midolman.state.PathBuilder
 
 object Vladimir {
 
@@ -72,6 +74,9 @@ object Vladimir {
                       config: ClusterConfig) = new JerseyServletModule {
         override def configureServlets(): Unit = {
             bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
+            bind(classOf[PathBuilder])
+                .toInstance(new PathBuilder(config.backend.rootKey))
+            bind(classOf[CuratorFramework]).toInstance(backend.curator)
             bind(classOf[MidonetBackend]).toInstance(backend)
             bind(classOf[AuthService]).to(classOf[MockAuthService])
                 .asEagerSingleton()

@@ -48,6 +48,7 @@ abstract class MidonetBackend extends AbstractService {
     /** Provides access to the Topology storage API */
     def store: Storage
     def stateStore: StateStorage
+    def curator: CuratorFramework
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
@@ -150,7 +151,7 @@ abstract class MidonetBackend extends AbstractService {
 /** Class responsible for providing services to access to the new Storage
   * services. */
 class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
-                                       curator: CuratorFramework)
+                                       override val curator: CuratorFramework)
     extends MidonetBackend {
 
     private val log = getLogger("org.midonet.nsdb")
