@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "bad4c104_268f4225",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-26T08:53:00Z",
+      "side": 1,
+      "message": "We can set this to a NO_ID. I used something similar in the API route for learned routes, which don\u0027t have an ID:\n\nhttps://review.gerrithub.io/#/c/236654/9/cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Route.java\n\nHere, this is to maintain compatibility to the dataClient, which returns an ID for a new route.",
+      "parentUuid": "bad4c104_c678562e",
+      "revId": "2366f4f425eae1a425e73554ff09f4aa54b01e12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bad4c104_66ddca42",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 7
@@ -30,6 +48,30 @@
       "writtenOn": "2015-06-26T08:17:37Z",
       "side": 1,
       "message": "What about a more descriptive name?",
+      "range": {
+        "startLine": 40,
+        "startChar": 27,
+        "endLine": 40,
+        "endChar": 32
+      },
+      "revId": "2366f4f425eae1a425e73554ff09f4aa54b01e12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_c69f764f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-26T08:53:00Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "bad4c104_66ddca42",
       "range": {
         "startLine": 40,
         "startChar": 27,
