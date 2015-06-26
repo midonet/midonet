@@ -6,8 +6,8 @@ import akka.actor.{Actor, ActorRef}
 
 /**
  * An ExecutionContext that schedules runnables on the specified ActorRef.
- * The underlying Actor should implement ActorExecutor or accept Runnable
- * messages.
+ * The underlying Actor should implement SingleThreadExecutionContextProvider
+ * or accept Runnable messages.
  */
 class ActorExecutionContext(actor: ActorRef) extends SingleThreadExecutionContext {
 
