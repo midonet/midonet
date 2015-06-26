@@ -19,6 +19,29 @@
     },
     {
       "key": {
+        "uuid": "bad4c104_c6505661",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-06-26T10:31:35Z",
+      "side": 1,
+      "message": "I don\u0027t think solving this through the Agent is the best approach. I propose instead we have a cluster service running the metadata service, plugged into the virtual topology (at tenant routers or at the provider router/edge router). \n\nWith this solution, the VM packets would be naturally simulated and delivered to the Agent running at the cluster node, which would deliver the packet to the metadata service. Return packets would be naturally delivered back to the VM. \n\nIf we want active/active scalability we can add a load balancer and have multiple such cluster services (although I\u0027m skeptical the metadata service should see so much traffic); in this case the VMs would be configured with the VIP address.\n\nWhat do you think?",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 15
+      },
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_35e92581",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
