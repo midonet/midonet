@@ -46,6 +46,30 @@
       "revId": "f97d95404bd8bd99e47ad01264207f75396c163f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_46ee0624",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-26T07:28:58Z",
+      "side": 1,
+      "message": "Thanks, makes sense.",
+      "parentUuid": "bad4c104_a695128a",
+      "range": {
+        "startLine": 70,
+        "startChar": 7,
+        "endLine": 78,
+        "endChar": 9
+      },
+      "revId": "f97d95404bd8bd99e47ad01264207f75396c163f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
