@@ -30,14 +30,16 @@ import org.apache.curator.framework.CuratorFramework
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider
 import org.codehaus.jackson.map.DeserializationConfig.Feature._
 import org.codehaus.jackson.map.ObjectMapper
-import org.eclipse.jetty.server.{DispatcherType, Server}
-import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
+import org.eclipse.jetty.server.handler.ContextHandlerCollection
+import org.eclipse.jetty.server.{Handler, DispatcherType, Server}
+import org.eclipse.jetty.servlet.{ServletHolder, DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
 import org.midonet.cluster.services.rest_api.resources._
 import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper
+import org.midonet.cluster.services.rest_api.static.StaticServlet
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
@@ -116,6 +118,9 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
 
         server = new Server(config.restApi.httpPort)
 
+        val allDispatchers = util.EnumSet.allOf(classOf[DispatcherType])
+
+        // The main REST API handler
         val context = new ServletContextHandler(server, config.restApi.rootUri,
                                                 ServletContextHandler.SESSIONS)
         context.addEventListener(new GuiceServletContextListener {
@@ -123,13 +128,24 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                 Guice.createInjector(servletModule(backend, config))
             }
         })
-        context.addFilter(classOf[GuiceFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
-        context.addFilter(classOf[CorsFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
+        context.addFilter(classOf[GuiceFilter], "/*", allDispatchers)
+        context.addFilter(classOf[CorsFilter], "/*", allDispatchers)
         context.addServlet(classOf[DefaultServlet], "/*")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
 
+        // The static handler
+        val staticContext = new ServletContextHandler(server, config.restApi
+            .staticUri, ServletContextHandler.SESSIONS)
+        staticContext.addServlet(new ServletHolder(
+            new StaticServlet(config.restApi.staticPath)), "/*")
+
+        val contexts = new ContextHandlerCollection()
+        staticContext.setInitParameter(ContainerRequestFiltersClass,
+                                       LoggingFilterClass)
+        contexts.setHandlers(Array[Handler](context, staticContext))
+
         try {
-            server.setHandler(context)
+            server.setHandler(contexts)
             server.start()
         } finally {
             notifyStarted()

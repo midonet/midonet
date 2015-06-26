@@ -129,4 +129,6 @@ class RestApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
 
     def httpPort = conf.getInt("cluster.rest_api.http_port")
     def rootUri = conf.getString("cluster.rest_api.root_uri")
+    def staticUri = conf.getString("cluster.rest_api.static_uri")
+    def staticPath = conf.getString("cluster.rest_api.static_path")
 }
