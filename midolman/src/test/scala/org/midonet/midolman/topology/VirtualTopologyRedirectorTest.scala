@@ -34,12 +34,13 @@ import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
+import org.midonet.cluster.models.{Topology => Proto}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.devices.{Port => SimulationPort, PoolHealthMonitorMap, BridgePort}
+import org.midonet.midolman.topology.devices.{BridgePort, PoolHealthMonitorMap, Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
 import org.midonet.sdn.flows.FlowTagger
