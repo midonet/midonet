@@ -22,6 +22,30 @@
       "revId": "f97d95404bd8bd99e47ad01264207f75396c163f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_a695128a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-26T07:24:09Z",
+      "side": 1,
+      "message": "I think it\u0027s better as is. Looking at their implementations, it seems that if acquire() throws an exception, then the lock will be left in a state where release() is guaranteed to throw an exception.",
+      "parentUuid": "bad4c104_c3084830",
+      "range": {
+        "startLine": 70,
+        "startChar": 7,
+        "endLine": 78,
+        "endChar": 9
+      },
+      "revId": "f97d95404bd8bd99e47ad01264207f75396c163f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
