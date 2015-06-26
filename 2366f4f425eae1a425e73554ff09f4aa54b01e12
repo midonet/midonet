@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "bad4c104_c6c69649",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-26T08:54:07Z",
+      "side": 1,
+      "message": "Since Guillermo is asking to rebase this on top of his new implementation I\u0027d say let\u0027s make a comment here explaining it for reference.",
+      "parentUuid": "bad4c104_268f4225",
+      "revId": "2366f4f425eae1a425e73554ff09f4aa54b01e12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bad4c104_66ddca42",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 7
