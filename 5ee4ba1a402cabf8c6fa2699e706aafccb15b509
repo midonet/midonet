@@ -68,6 +68,75 @@
       "revId": "5ee4ba1a402cabf8c6fa2699e706aafccb15b509",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_a353446b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-26T04:09:24Z",
+      "side": 1,
+      "message": "Should this and the next use error()? They look like errors.",
+      "range": {
+        "startLine": 142,
+        "startChar": 16,
+        "endLine": 142,
+        "endChar": 20
+      },
+      "revId": "5ee4ba1a402cabf8c6fa2699e706aafccb15b509",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_43cc3836",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-26T04:09:24Z",
+      "side": 1,
+      "message": "If you do it this way, you have to do three cache(key) lookups. How about this?\n\nval opinionMap \u003d cache.getOrElse(key, {\n    val newMap \u003d new mutable.HashMap[String, V]\n    cache.put(key, newMap)\n    newMap\n})",
+      "range": {
+        "startLine": 163,
+        "startChar": 0,
+        "endLine": 165,
+        "endChar": 9
+      },
+      "revId": "5ee4ba1a402cabf8c6fa2699e706aafccb15b509",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "bad4c104_c3d768be",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 24
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-26T04:09:24Z",
+      "side": 1,
+      "message": "Would it make sense to cache the winner?\n\nThat is, instead of making cache a Map[K, HashMap[String, V]], what if it were a Map[K, Debate[V]], where Debate is:\n\n  class Debate[V] {\n    val opinions \u003d new mutable.HashMap[String, V]\n    var winner: V \u003d null\n    def addOpinion(owner: String, value: V): V \u003d {\n      opinions(owner) \u003d value\n      if (winner \u003d\u003d null || value \u003e winner) winner \u003d value\n      winner\n  }\n\nYou\u0027d want to define Debate in a companion object so every instance doesn\u0027t have an unnecessary reference to the containing MergedMap instance.\n\nBut I guess this only makes sense if you expect to have many opinions for a given key.",
+      "range": {
+        "startLine": 171,
+        "startChar": 24,
+        "endLine": 171,
+        "endChar": 42
+      },
+      "revId": "5ee4ba1a402cabf8c6fa2699e706aafccb15b509",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
