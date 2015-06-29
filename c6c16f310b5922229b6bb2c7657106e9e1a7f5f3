@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e878c22d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-29T09:58:57Z",
+      "side": 1,
+      "message": "Other people might have already made similar comments, but why don\u0027t we make this simply winnersSubject? I think that\u0027s both semantically correct and consistent.",
+      "range": {
+        "startLine": 104,
+        "startChar": 16,
+        "endLine": 104,
+        "endChar": 30
+      },
+      "revId": "c6c16f310b5922229b6bb2c7657106e9e1a7f5f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0876c63e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 117,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-29T09:58:57Z",
+      "side": 1,
+      "message": "Similarly, I prefer winnersObservable for semantics and consistency.",
+      "range": {
+        "startLine": 117,
+        "startChar": 16,
+        "endLine": 117,
+        "endChar": 33
+      },
+      "revId": "c6c16f310b5922229b6bb2c7657106e9e1a7f5f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c8a21e9a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-29T09:58:57Z",
+      "side": 1,
+      "message": "Can use getOrElseUpdate?",
+      "range": {
+        "startLine": 160,
+        "startChar": 29,
+        "endLine": 160,
+        "endChar": 38
+      },
+      "revId": "c6c16f310b5922229b6bb2c7657106e9e1a7f5f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c83e9e29",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 167,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-29T09:58:57Z",
+      "side": 1,
+      "message": "I don\u0027t get what you\u0027re referring with this.",
+      "range": {
+        "startLine": 167,
+        "startChar": 11,
+        "endLine": 167,
+        "endChar": 80
+      },
+      "revId": "c6c16f310b5922229b6bb2c7657106e9e1a7f5f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_28d8ea1c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 170,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-29T09:58:57Z",
+      "side": 1,
+      "message": "All we need is a single comparison between \"value\" against \"prevWinner.get\", so that would be faster than calling winner, though arguably calling winner here may make the code more concise. A similar comment applies below.",
+      "revId": "c6c16f310b5922229b6bb2c7657106e9e1a7f5f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_88fe566a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 25
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-06-29T09:58:57Z",
+      "side": 1,
+      "message": "You can replace this with foreach and get rid of the second case clause.",
+      "range": {
+        "startLine": 181,
+        "startChar": 23,
+        "endLine": 181,
+        "endChar": 28
+      },
+      "revId": "c6c16f310b5922229b6bb2c7657106e9e1a7f5f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
