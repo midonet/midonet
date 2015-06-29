@@ -23,10 +23,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.odp.DpPort;
-
 
 /**
  * ZooKeeper state objects definitions for Host and Interface data.

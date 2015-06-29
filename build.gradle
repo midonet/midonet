@@ -24,8 +24,8 @@ project.ext {
     ideaJdkBootstrap = "-Xbootclasspath/p:${rootDir}/idea/out/midonet-jdk-bootstrap"
     scalaLangLevel = 'Scala 2.11.2'
 
-    versions = [akka: "2.3.6", guice: "3.0", hamcrest: "1.3", jackson: "1.9.3",
-                java: "1.7",   jersey: "1.10", jetty: "7.6.14.v20131031",
+    versions = [akka: "2.3.6", guice: "3.0", hamcrest: "1.3", jackson: "2.5.4",
+                java: "1.7", jersey: "1.19", jetty: "7.6.14.v20131031",
                 jsonpath: "0.9.1"]
 
     libraries = [
@@ -77,10 +77,10 @@ project.ext {
                  "io.dropwizard.metrics:metrics-ganglia:3.1.0"],
         mockit: "org.jmockit:jmockit:1.12",
         rx: "io.reactivex:rxjava:1.0.4",
-        jackson_jaxrs: "org.codehaus.jackson:jackson-jaxrs:${versions.jackson}",
-        jackson_xc: "org.codehaus.jackson:jackson-xc:${versions.jackson}",
-        jackson_core: "org.codehaus.jackson:jackson-core-asl:${versions.jackson}",
-        jackson_mapper: "org.codehaus.jackson:jackson-mapper-asl:${versions.jackson}",
+        jackson_annotations: "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}",
+        jackson_core: "com.fasterxml.jackson.core:jackson-core:${versions.jackson}",
+        jackson_databind: "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}",
+        jackson_jaxrs: "com.fasterxml.jackson.jaxrs:jackson-jaxrs-json-provider:${versions.jackson}",
         jsonpath: "com.jayway.jsonpath:json-path:${versions.jsonpath}",
         jsonpath_assert: "com.jayway.jsonpath:json-path-assert:${versions.jsonpath}",
         test_frameworks: ["junit:junit:4.11",
@@ -427,9 +427,9 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
                 "org.apache.httpcomponents:httpcore-nio:4.2.1",
                 "commons-collections:commons-collections:1.0",
                 "commons-lang:commons-lang:2.6",
-                "com.fasterxml.jackson.core:jackson-databind:2.3.2",
-                "com.fasterxml.jackson.core:jackson-core:2.3.2",
-                "com.fasterxml.jackson.core:jackson-annotations:2.3.2",
+                "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}",
+                "com.fasterxml.jackson.core:jackson-core:${versions.jackson}",
+                "com.fasterxml.jackson.core:jackson-annotations:${versions.jackson}",
                 "equinoxSDK381:org.eclipse.osgi:3.8.1.v20120830-144521"
 
         testCompile "junit:junit:4.11"
@@ -490,13 +490,15 @@ def reorderIdeaJdkBootstrapDependency(iml) {
                 def i = 0
                 def pos = 0
                 manager.children().each {
-                    if (it == jdk)
+                    if (it == jdk) {
                         pos = i
+                    }
                     i++;
                 }
                 if (pos != 0) {
-                    if (manager.remove(bootstrap))
+                    if (manager.remove(bootstrap)) {
                         manager.children().add(pos, bootstrap)
+                    }
                 }
             }
         }

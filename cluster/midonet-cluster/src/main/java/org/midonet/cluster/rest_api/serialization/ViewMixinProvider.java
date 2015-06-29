@@ -16,13 +16,12 @@
 package org.midonet.cluster.rest_api.serialization;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.core.MediaType;
 
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Class that allows registration of view mixins to be used for serialization.
@@ -41,11 +40,7 @@ public class ViewMixinProvider {
     }
 
     public synchronized static void setViewMixins(ObjectMapper mapper) {
-
-        for (Map.Entry<Class<?>, Class<?>> entry : mixinMap.entrySet()) {
-            mapper.getSerializationConfig().addMixInAnnotations(
-                    entry.getKey(), entry.getValue());
-        }
+        mapper.setMixInAnnotations(mixinMap);
     }
 
     public static void registerMediaType(String mediaType) {

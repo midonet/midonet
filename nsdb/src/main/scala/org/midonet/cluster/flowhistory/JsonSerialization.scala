@@ -15,22 +15,24 @@
  */
 package org.midonet.cluster.flowhistory
 
-import com.google.common.base.Joiner
-import com.google.common.io.BaseEncoding
-import java.util.{ArrayList, List => JList, Map => JMap, UUID}
-import org.codehaus.jackson._
-import org.codehaus.jackson.map._
-import org.codehaus.jackson.map.module.SimpleModule
+import java.util.{ArrayList => JArrayList, List => JList, Map => JMap, UUID}
+
 import scala.collection.JavaConverters._
 
-import Actions._
+import com.fasterxml.jackson.core.{JsonGenerator, Version}
+import com.fasterxml.jackson.databind.{JsonSerializer, SerializerProvider, ObjectMapper}
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.google.common.base.Joiner
+import com.google.common.io.BaseEncoding
+
+import org.midonet.cluster.flowhistory.Actions._
 
 class JsonSerialization {
 
     val mapper = new ObjectMapper()
 
     val flowHistoryModule = new SimpleModule("FlowHistoryModule",
-                                             new Version(1, 0, 0, null));
+                                             new Version(1, 0, 0, null, null, null))
     flowHistoryModule.addSerializer(classOf[FlowRecord],
                                     new JsonFlowRecordSerializer())
     mapper.registerModule(flowHistoryModule)
@@ -63,8 +65,7 @@ class JsonSerialization {
         jgen.writeStringField(key, String.valueOf(value))
     }
 
-    def readNumber(key: String)(implicit map: JMap[String, Object])
-            : Long = {
+    def readNumber(key: String)(implicit map: JMap[String, Object]): Long = {
         map.get(key) match {
             case s: String => java.lang.Long.parseLong(s)
             case _ => 0L
@@ -179,7 +180,7 @@ class JsonSerialization {
 
     private def readMatch()(implicit map: JMap[String, Object]): FlowRecordMatch = {
         FlowRecordMatch(readNumber("flowMatch.inputPort").toInt,
-                        readNumber("flowMatch.tunnelKey").toLong,
+                        readNumber("flowMatch.tunnelKey"),
                         readNumber("flowMatch.tunnelSrc").toInt,
                         readNumber("flowMatch.tunnelDst").toInt,
                         readBytes("flowMatch.ethSrc"),
@@ -204,7 +205,7 @@ class JsonSerialization {
         jgen.writeStartArray()
         if (actions != null) {
             val iter = actions.iterator
-            while (iter.hasNext()) {
+            while (iter.hasNext) {
                 jgen.writeStartObject()
                 iter.next() match {
                     case a: Output =>
@@ -326,16 +327,16 @@ class JsonSerialization {
                               readNumber("dst").toShort)
             case "vlan" => VLan(readNumber("id").toShort)
             case t => throw new IllegalArgumentException(
-                s"Unknown action type ${t}")
+                s"Unknown action type $t")
         }
     }
 
-    private def readActionList()
-                              (implicit map: JMap[String, Object]): JList[FlowAction] = {
+    private def readActionList()(implicit map: JMap[String, Object])
+    : JList[FlowAction] = {
         val actionArray = map.get("actions").asInstanceOf[JList[JMap[String,Object]]]
-        val actions = new ArrayList[FlowAction]
+        val actions = new JArrayList[FlowAction]
         val iter = actionArray.iterator()
-        while (iter.hasNext()) {
+        while (iter.hasNext) {
             actions.add(readAction(iter.next()))
         }
 

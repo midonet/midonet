@@ -15,17 +15,19 @@
  */
 package org.midonet.api.network;
 
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.midonet.util.version.Since;
+import java.net.URI;
+import java.util.UUID;
 
 import javax.validation.GroupSequence;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import java.net.URI;
-import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
+import org.midonet.util.version.Since;
 
 /**
  * Class representing port.

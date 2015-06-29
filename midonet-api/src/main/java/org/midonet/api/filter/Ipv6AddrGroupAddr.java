@@ -15,17 +15,6 @@
  */
 package org.midonet.api.filter;
 
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.util.version.Since;
-
-import javax.validation.GroupSequence;
-import javax.validation.constraints.AssertTrue;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import java.net.URI;
 import java.util.UUID;
 
 public class Ipv6AddrGroupAddr extends IpAddrGroupAddr {

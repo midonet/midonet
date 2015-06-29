@@ -26,10 +26,10 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.codehaus.jackson.type.JavaType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -161,7 +161,8 @@ public class TestBridge {
             String actualRaw = dtoWebResource.getAndVerifyOk(app.getBridges(),
                     APPLICATION_BRIDGE_COLLECTION_JSON, String.class);
             JavaType type = FuncTest.objectMapper.getTypeFactory()
-                    .constructParametricType(List.class, DtoBridge.class);
+                    .constructParametrizedType(List.class, List.class,
+                                               DtoBridge.class);
             List<DtoBridge> actual = FuncTest.objectMapper.readValue(
                     actualRaw, type);
 
@@ -183,7 +184,8 @@ public class TestBridge {
             String actualRaw = dtoWebResource.getAndVerifyOk(tenant.getBridges(),
                     APPLICATION_BRIDGE_COLLECTION_JSON, String.class);
             JavaType type = FuncTest.objectMapper.getTypeFactory()
-                    .constructParametricType(List.class, DtoBridge.class);
+                    .constructParametrizedType(List.class, List.class,
+                                               DtoBridge.class);
             List<DtoBridge> actual = FuncTest.objectMapper.readValue(
                     actualRaw, type);
 

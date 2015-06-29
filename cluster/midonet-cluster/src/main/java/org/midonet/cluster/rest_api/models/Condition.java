@@ -25,9 +25,8 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.protobuf.Message;
-
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomEnum;

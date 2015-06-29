@@ -20,10 +20,9 @@ import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.common.base.Objects;
-
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonPropertyOrder;
 
 import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomEnum;
@@ -35,7 +34,6 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
-
 
 @JsonPropertyOrder(alphabetic=true)
 public class Route extends ZoomObject implements Serializable {

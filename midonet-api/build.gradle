@@ -43,10 +43,10 @@ dependencies {
     providedCompile libraries.servlet
 
     compile libraries.persistence, libraries.jsr311, libraries.jsr250,
-            libraries.jackson_jaxrs, libraries.jackson_xc, libraries.guice,
+            libraries.jackson_jaxrs, libraries.guice,
             libraries.guice_servlet, libraries.jersey_servlet,
             libraries.jersey_server, libraries.jersey_client,
-            libraries.jersey_json, libraries.jersey_guice,
+            /*libraries.jersey_json,*/ libraries.jersey_guice,
             libraries.jersey_core, libraries.jersey_bundle,
             libraries.commons_lang, libraries.commons_lang3,
             libraries.commons_conf, libraries.typesafeconf,

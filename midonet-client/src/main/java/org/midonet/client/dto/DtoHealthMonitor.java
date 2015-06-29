@@ -16,16 +16,15 @@
 
 package org.midonet.client.dto;
 
+import java.net.URI;
+import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Objects;
-import org.codehaus.jackson.annotate.JsonIgnore;
+
 import org.midonet.client.dto.l4lb.HealthMonitorType;
 import org.midonet.client.dto.l4lb.LBStatus;
 
-import java.net.URI;
-import java.util.UUID;
-import javax.xml.bind.annotation.XmlRootElement;
-
-@XmlRootElement
 public class DtoHealthMonitor {
     private UUID id;
     private HealthMonitorType type;

@@ -20,6 +20,8 @@ import java.util.UUID;
 
 import javax.servlet.ServletContextEvent;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -34,8 +36,6 @@ import com.typesafe.config.ConfigFactory;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.RetryNTimes;
 import org.apache.curator.test.TestingServer;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.auth.AuthConfig;
@@ -45,7 +45,7 @@ import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.services.rest_api.Vladimir;
-import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper;
+import org.midonet.cluster.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.conf.HostIdGenerator;
 
 import static org.apache.curator.framework.CuratorFrameworkFactory.newClient;
@@ -73,7 +73,7 @@ public class FuncTest {
         HostIdGenerator.useTemporaryHostId();
         objectMapper = new MidonetObjectMapper();
         objectMapper.configure(
-            DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+            DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
         // Randomize GrizzlyWebTestContainer's port for parallelism
         System.setProperty("jersey.test.port",
                 String.valueOf((int)(Math.random() * 1000) + 62000));
@@ -198,7 +198,8 @@ public class FuncTest {
 
     private static WebAppDescriptor.Builder getBuilderForVladimir() {
         config.getSingletons()
-              .add(new WildcardJacksonJaxbJsonProvider(new ObjectMapperProvider()));
+              .add(new WildcardJacksonJaxbJsonProvider(
+                  new ObjectMapperProvider()));
         LoggerFactory.getLogger(FuncTest.class)
                      .info("TESTING MIDONET API AGAINST ZOOM IMPLEMENTATION");
         return new WebAppDescriptor.Builder()

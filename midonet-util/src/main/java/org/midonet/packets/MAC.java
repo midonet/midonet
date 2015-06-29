@@ -18,8 +18,8 @@ package org.midonet.packets;
 
 import java.util.Random;
 
-import org.codehaus.jackson.annotate.JsonCreator;
-import org.codehaus.jackson.annotate.JsonValue;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 
 import org.midonet.util.collection.WeakObjectPool;
 

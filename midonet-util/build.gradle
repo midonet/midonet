@@ -23,10 +23,10 @@ dependencies {
             libraries.findbugs, libraries.guava, libraries.hamcrest_core,
             libraries.hamcrest_lib, libraries.hamcrest_integration,
             libraries.infinispan, libraries.jackson_core,
-            libraries.jackson_mapper, libraries.jsch, libraries.netty,
-            libraries.protobuf, libraries.rx, libraries.scala,
-            libraries.servlet, libraries.sun_tools, libraries.scala_logging,
-            libraries.scalatest, libraries.jna
+            libraries.jackson_databind, libraries.jackson_annotations,
+            libraries.jsch, libraries.netty, libraries.protobuf, libraries.rx,
+            libraries.scala, libraries.servlet, libraries.sun_tools,
+            libraries.scala_logging, libraries.scalatest, libraries.jna
 }
 
 jar {
