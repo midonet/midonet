@@ -111,7 +111,7 @@ public class LocalClientImplTest {
             new SerializationModule(),
             new MidolmanConfigModule(conf),
             new MockZookeeperConnectionModule(),
-            new MidonetBackendTestModule(conf),
+            new MidonetBackendTestModule(),
             new LegacyClusterModule()
         );
         injector.injectMembers(this);

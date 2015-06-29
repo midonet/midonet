@@ -227,8 +227,6 @@ run {
     }
     if (project.hasProperty("conf")) {
         args = [conf]
-    } else {
-        args = ["conf/midonet-cluster.conf"]
     }
 }
 
