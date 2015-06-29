@@ -17,27 +17,23 @@
 package org.midonet.cluster.services.rest_api
 
 import java.util
+
 import javax.validation.Validator
-import javax.ws.rs.core.MediaType
-import javax.ws.rs.ext.Provider
-import javax.ws.rs.{Consumes, Produces}
 
 import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
 import com.google.inject.{Guice, Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
+
 import org.apache.curator.framework.CuratorFramework
-import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider
-import org.codehaus.jackson.map.DeserializationConfig.Feature._
-import org.codehaus.jackson.map.ObjectMapper
 import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthService, MockAuthService}
+import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
 import org.midonet.cluster.services.rest_api.resources._
-import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
@@ -53,22 +49,6 @@ object Vladimir {
         "com.sun.jersey.api.container.filter.LoggingFilter"
     final val POJOMappingFeatureClass =
         "com.sun.jersey.api.json.POJOMappingFeature"
-
-    @Provider
-    @Consumes(Array(MediaType.WILDCARD))
-    @Produces(Array(MediaType.WILDCARD))
-    class WildcardJacksonJaxbJsonProvider extends JacksonJaxbJsonProvider {
-
-        val mapper = new MidonetObjectMapper()
-        mapper.configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-        mapper.configure(USE_GETTERS_AS_SETTERS, false)
-        configure(FAIL_ON_UNKNOWN_PROPERTIES, false)
-
-        override def locateMapper(`type`: Class[_], mediaType: MediaType)
-        : ObjectMapper = {
-            mapper
-        }
-    }
 
     def servletModule(backend: MidonetBackend,
                       config: ClusterConfig) = new JerseyServletModule {

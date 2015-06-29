@@ -35,7 +35,7 @@ import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.cluster.rest_api.InternalServerErrorHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.UnauthorizedHttpException;
-import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
+import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 
 public class WebResource {
 
@@ -46,7 +46,7 @@ public class WebResource {
     public WebResource(URI baseUri) {
 
         ClientConfig cc = new DefaultClientConfig();
-        cc.getSingletons().add(new WildCardJacksonJaxbJsonProvider(null));
+        cc.getSingletons().add(new WildcardJacksonJaxbJsonProvider(null));
         client = Client.create(cc);
         this.baseUri = baseUri;
     }

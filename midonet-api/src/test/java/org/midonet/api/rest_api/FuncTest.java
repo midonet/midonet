@@ -41,7 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.auth.AuthConfig;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.cluster.ClusterConfig;
-import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
+import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.services.rest_api.Vladimir;
@@ -79,7 +79,7 @@ public class FuncTest {
                 String.valueOf((int)(Math.random() * 1000) + 62000));
     }
 
-    public static WildCardJacksonJaxbJsonProvider jacksonJaxbJsonProvider;
+    public static WildcardJacksonJaxbJsonProvider jacksonJaxbJsonProvider;
 
     /**
      * Choose the right Builder.  Defaults to the old midonet-api, but will
@@ -105,7 +105,7 @@ public class FuncTest {
 
         ObjectMapperProvider mapperProvider = new ObjectMapperProvider();
         jacksonJaxbJsonProvider =
-            new WildCardJacksonJaxbJsonProvider(mapperProvider);
+            new WildcardJacksonJaxbJsonProvider(mapperProvider);
         config.getSingletons().add(jacksonJaxbJsonProvider);
 
         String zkRoot = ZK_ROOT_MIDOLMAN + "_" + UUID.randomUUID();
@@ -198,7 +198,7 @@ public class FuncTest {
 
     private static WebAppDescriptor.Builder getBuilderForVladimir() {
         config.getSingletons()
-              .add(new Vladimir.WildcardJacksonJaxbJsonProvider());
+              .add(new WildcardJacksonJaxbJsonProvider(new ObjectMapperProvider()));
         LoggerFactory.getLogger(FuncTest.class)
                      .info("TESTING MIDONET API AGAINST ZOOM IMPLEMENTATION");
         return new WebAppDescriptor.Builder()

@@ -40,17 +40,17 @@ import org.midonet.cluster.rest_api.version.VersionParser;
 @Provider
 @Consumes(MediaType.WILDCARD)
 @Produces(MediaType.WILDCARD)
-public class WildCardJacksonJaxbJsonProvider
+public class WildcardJacksonJaxbJsonProvider
         extends ConfiguredJacksonJaxbJsonProvider {
 
     private final static Logger log =
-            LoggerFactory.getLogger(WildCardJacksonJaxbJsonProvider.class);
+            LoggerFactory.getLogger(WildcardJacksonJaxbJsonProvider.class);
 
     private final VersionParser versionParser = new VersionParser();
     private final ObjectMapperProvider objectMapperProvider;
 
     @Inject
-    public WildCardJacksonJaxbJsonProvider(ObjectMapperProvider omProvider) {
+    public WildcardJacksonJaxbJsonProvider(ObjectMapperProvider omProvider) {
         super();
         this.objectMapperProvider = omProvider;
     }

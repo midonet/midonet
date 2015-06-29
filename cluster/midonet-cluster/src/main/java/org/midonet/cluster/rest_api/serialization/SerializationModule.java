@@ -17,7 +17,7 @@ package org.midonet.cluster.rest_api.serialization;
 
 import com.google.inject.AbstractModule;
 
-import org.midonet.cluster.rest_api.jaxrs.WildCardJacksonJaxbJsonProvider;
+import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 
 /**
  * Bindings specific to serialization in api.
@@ -31,7 +31,7 @@ public class SerializationModule extends AbstractModule {
                 .SerializationModule());
 
         bind(ObjectMapperProvider.class).asEagerSingleton();
-        bind(WildCardJacksonJaxbJsonProvider.class).asEagerSingleton();
+        bind(WildcardJacksonJaxbJsonProvider.class).asEagerSingleton();
         bind(JsonMappingExceptionMapper.class).asEagerSingleton();
 
     }
