@@ -60,7 +60,7 @@ public class LocalDataClientImplTestBase {
         Config conf = MidoTestConfigurator.forAgents(fillConfig());
         injector = Guice.createInjector(
                 new SerializationModule(),
-                new MidonetBackendTestModule(conf),
+                new MidonetBackendTestModule(),
                 new MidolmanConfigModule(conf),
                 new MockZookeeperConnectionModule(),
                 new LegacyClusterModule()
