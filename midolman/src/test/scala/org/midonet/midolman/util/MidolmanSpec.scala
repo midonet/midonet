@@ -20,13 +20,11 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import com.google.inject._
-import com.typesafe.config.{ConfigFactory, Config, ConfigValueFactory}
-
+import com.typesafe.config.{Config, ConfigFactory, ConfigValueFactory}
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
-import org.midonet.cluster.{Client,DataClient,ExplodingClient}
-import org.midonet.cluster.{ExplodingDataClient,ExplodingLegacyStorage,ExplodingZkManager}
-import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
-import org.midonet.cluster.state.LegacyStorage
+import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster._
@@ -38,11 +36,9 @@ import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
 import org.midonet.midolman.simulation.CustomMatchers
-import org.midonet.midolman.state.{PathBuilder,ZkManager}
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.util.concurrent.NanoClock
-import org.slf4j.LoggerFactory
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -127,7 +123,7 @@ trait MidolmanSpec extends FeatureSpecLike
             new MetricsModule(),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
-            new MidonetBackendTestModule(conf),
+            new MidonetBackendTestModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {

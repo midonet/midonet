@@ -20,9 +20,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import org.apache.curator.test.TestingServer;
-import org.slf4j.LoggerFactory;
-
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Key;
@@ -30,6 +27,9 @@ import com.google.inject.PrivateModule;
 import com.google.inject.name.Names;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValueFactory;
+
+import org.apache.curator.test.TestingServer;
+import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.services.MidonetBackend;
@@ -42,7 +42,6 @@ import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
 import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.state.Directory;
-import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.SessionUnawareConnectionWatcher;
 import org.midonet.util.eventloop.Reactor;
 
@@ -84,10 +83,6 @@ public abstract class ZookeeperTest {
         return injector.getInstance(Directory.class);
     }
 
-    protected PathBuilder getPathBuilder() {
-        return injector.getInstance(PathBuilder.class);
-    }
-
     protected List<PrivateModule> getExtraModules() {
         return new ArrayList<>();
     }
@@ -105,7 +100,7 @@ public abstract class ZookeeperTest {
             Arrays.asList(
                 new SerializationModule(),
                 new MidolmanConfigModule(config),
-                new MidonetBackendModule(config.zookeeper()),
+                new MidonetBackendModule(),
                 new ZookeeperConnectionModule(
                     SessionUnawareConnectionWatcher.class),
                 new LegacyClusterModule())

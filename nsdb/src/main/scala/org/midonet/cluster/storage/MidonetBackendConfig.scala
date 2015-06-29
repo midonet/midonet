@@ -34,6 +34,9 @@ class MidonetBackendConfig(val conf: Config) {
     @Deprecated
     def useNewStack = true
     def bufferSize = conf.getInt("zookeeper.buffer_size")
+    def dataDir = conf.getString("zookeeper.data_dir")
+    def logDir = conf.getString("zookeeper.log_dir")
+    def allowEmbed = conf.getBoolean("zookeeper.allow_embed")
 }
 
 class CassandraConfig(val conf: Config) {

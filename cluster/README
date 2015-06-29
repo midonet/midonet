@@ -8,7 +8,7 @@ devices.
 
 Simply execute the following command from the root directory of the clone:
 
-    ./gradlew cluster:midonet-cluster:run -Pconf=`pwd`/cluster/midonet-cluster/conf/cluster.conf
+    ./gradlew cluster:midonet-cluster:run
 
 The Cluster will try to write on /etc/midonet_host_id.properties.  If
 this path is not writable you can either make it so, or override adding:
@@ -16,3 +16,18 @@ this path is not writable you can either make it so, or override adding:
     -Dmidonet.host_id_filepath=/tmp/midonet_host_id.properties
 
 to the gradlew command.
+
+Note that with these settings, the cluster will start an embedded 1-node
+ZK ensemble on localhost.  To override this setting and use an existing
+ZooKeeper cluster, provide a bootstrap config file adding the following
+to the previous command:
+
+    -P<path_to_your_midonet.conf_file>
+
+You have a sample of this file at
+
+    cluster/midonet-cluster/conf/midonet-cluster.conf
+
+Which you can use to start the cluster like this:
+
+    ./gradlew cluster:midonet-cluster:run -Pconf=`pwd`/cluster/midonet-cluster/conf/cluster.conf
