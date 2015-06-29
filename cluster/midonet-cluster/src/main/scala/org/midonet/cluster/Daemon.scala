@@ -21,7 +21,6 @@ import java.util.UUID
 import scala.async.Async._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.reflect.ClassTag
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.common.util.concurrent.Service.State
@@ -34,7 +33,7 @@ import org.midonet.cluster.services.Minion
   * Midonet Cluster node.
   */
 final protected class Daemon(val nodeId: UUID,
-                             val minionDefs: List[MinionDef[_ <: Minion]])
+                             val minionDefs: List[MinionDef[Minion]])
     extends AbstractService {
 
     private val log = LoggerFactory.getLogger("org.midonet.cluster")
@@ -45,11 +44,9 @@ final protected class Daemon(val nodeId: UUID,
     override def doStart(): Unit = {
         log.info(s"MidoNet cluster daemon starting on host $nodeId")
 
-        val startups: List[Future[Minion]] = minionDefs map { m =>
-            startMinion(m)
-        }
-        val numFailed = startups.count(Await.ready(_, 15.second)
-                                            .value.get.isFailure)
+        val numFailed = minionDefs.map(startMinion)
+                                  .count(Await.ready(_, 15.second)
+                                              .value.get.isFailure)
 
         if (numFailed == minionDefs.size) {
             log.error("No minions started. Check midonet cluster config file " +
@@ -69,11 +66,13 @@ final protected class Daemon(val nodeId: UUID,
      * Asynchronously starts the Cluster Minion defined in the spec, and return
      * a Future with the instance of the service.
      */
-    private def startMinion[D <: Minion](minionDef: MinionDef[D])
-                                        (implicit ct: ClassTag[D])
-    : Future[D] = async {
+    private def startMinion(minionDef: MinionDef[Minion])
+    : Future[Minion] = async {
         val minion = ClusterNode.injector.getInstance(minionDef.clazz)
-        if (minion.isEnabled) {
+        // The second check is just for the ZkMinion, which is started at
+        // bootstrap.  Handling bootstrap services can be done more elegantly
+        // but not worth it now, being just one.
+        if (minion.isEnabled && !minion.isRunning) {
             log.info(s"Starting cluster minion: ${minionDef.name}")
             minion.startAsync().awaitRunning()
             log.info(s"Started cluster minion: ${minionDef.name}")
