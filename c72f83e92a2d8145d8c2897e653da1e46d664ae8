@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_4b31a80a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CuratorUtil.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-29T15:29:06Z",
+      "side": 1,
+      "message": "This reads familiar :-) Can you please simplify this paragraph, i.e., split it into more sentences?",
+      "range": {
+        "startLine": 27,
+        "startChar": 4,
+        "endLine": 32,
+        "endChar": 50
+      },
+      "revId": "c72f83e92a2d8145d8c2897e653da1e46d664ae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6b366c05",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ReadOnlyStorage.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-29T15:29:06Z",
+      "side": 1,
+      "message": "Any reason why the @throws annotation was removed?",
+      "range": {
+        "startLine": 32,
+        "startChar": 4,
+        "endLine": 32,
+        "endChar": 53
+      },
+      "revId": "c72f83e92a2d8145d8c2897e653da1e46d664ae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fe1cf86c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 603,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-06-29T15:29:06Z",
+      "side": 1,
+      "message": "indent?",
+      "range": {
+        "startLine": 597,
+        "startChar": 16,
+        "endLine": 603,
+        "endChar": 39
+      },
+      "revId": "c72f83e92a2d8145d8c2897e653da1e46d664ae8",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
