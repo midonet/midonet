@@ -17,10 +17,11 @@ package org.midonet.api.system_data;
 
 import java.net.URI;
 import java.util.UUID;
+
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.midonet.api.ResourceUriBuilder;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.midonet.api.UriResource;
 
 /* Class representing system state info */

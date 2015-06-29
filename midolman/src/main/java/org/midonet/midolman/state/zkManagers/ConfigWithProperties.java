@@ -19,9 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Preconditions;
-
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 public abstract class ConfigWithProperties extends BaseConfig {
 

@@ -20,8 +20,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.Provider;
 
-import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
-import org.codehaus.jackson.map.DeserializationConfig;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.jaxrs.json.JacksonJaxbJsonProvider;
 
 @Provider
 @Consumes({MediaType.APPLICATION_JSON})
@@ -34,7 +34,6 @@ public class ConfiguredJacksonJaxbJsonProvider extends JacksonJaxbJsonProvider {
     }
 
     private void configure() {
-        configure(DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES,
-                  false);
+        configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 }

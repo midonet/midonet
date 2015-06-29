@@ -19,15 +19,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.core.MediaType;
 
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.map.AnnotationIntrospector;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.introspect.JacksonAnnotationIntrospector;
-import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.databind.AnnotationIntrospector;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
-import org.midonet.cluster.services.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.util.version.VersionCheckAnnotationIntrospector;
 
 /**
@@ -56,7 +56,7 @@ public class ObjectMapperProvider {
         JacksonAnnotationIntrospector jackIntr =
                 new JacksonAnnotationIntrospector();
         JaxbAnnotationIntrospector jaxbIntro =
-                new JaxbAnnotationIntrospector();
+                new JaxbAnnotationIntrospector(TypeFactory.defaultInstance());
         VersionCheckAnnotationIntrospector introspector =
                 new VersionCheckAnnotationIntrospector(
                         Integer.toString(version));
@@ -72,23 +72,17 @@ public class ObjectMapperProvider {
             // to construct an ObjectMapper with View configuration.  Once all
             // models are separated from Views, this block becomes the only
             // way to configure ObjectMapper.
-            mapper.setSerializationConfig(
-                    mapper.getSerializationConfig().withView(
-                            Views.Public.class));
-            mapper.configure(
-                    DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES,
-                    false)
-                  .configure(
-                    SerializationConfig.Feature.DEFAULT_VIEW_INCLUSION,
-                    false)
+            mapper.writerWithView(Views.Public.class);
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                             false)
+                  .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
                   .setAnnotationIntrospector(versionPair)
                   .setVisibilityChecker(mapper.getVisibilityChecker()
                       .withFieldVisibility(JsonAutoDetect.Visibility.ANY));
             ViewMixinProvider.setViewMixins(mapper);
         } else {
-            mapper.configure(
-                    DeserializationConfig.Feature.FAIL_ON_UNKNOWN_PROPERTIES,
-                    false)
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                             false)
                   .setAnnotationIntrospector(versionPair)
                   .setVisibilityChecker(mapper.getVisibilityChecker()
                       .withFieldVisibility(JsonAutoDetect.Visibility.ANY));

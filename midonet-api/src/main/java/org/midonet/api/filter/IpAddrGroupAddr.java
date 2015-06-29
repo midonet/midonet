@@ -15,18 +15,20 @@
  */
 package org.midonet.api.filter;
 
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.UriResource;
-import org.midonet.packets.IPv4;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.xml.bind.annotation.XmlRootElement;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import org.midonet.api.ResourceUriBuilder;
+import org.midonet.api.UriResource;
+import org.midonet.packets.IPv4;
 
 /**
  * Class representing port.

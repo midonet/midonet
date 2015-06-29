@@ -20,14 +20,11 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
+import com.fasterxml.jackson.databind.JavaType;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
-import org.codehaus.jackson.type.JavaType;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -92,8 +89,9 @@ public class TestHost extends JerseyTest {
             topology.getApplication().getUri());
         String rawHosts = dtoResource.getAndVerifyOk(hostListUri,
                APPLICATION_HOST_COLLECTION_JSON_V3, String.class);
-        JavaType type = FuncTest.objectMapper.getTypeFactory()
-                                             .constructParametricType(List.class, DtoHost.class);
+        JavaType type = FuncTest.objectMapper
+            .getTypeFactory().constructParametrizedType(List.class, List.class,
+                                                        DtoHost.class);
         return FuncTest.objectMapper.readValue(rawHosts, type);
     }
 

@@ -20,8 +20,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 
 import com.google.common.base.Objects;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
 @XmlRootElement
 public class DtoExtraDhcpOpt {
 

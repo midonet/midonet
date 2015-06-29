@@ -15,12 +15,12 @@
  */
 package org.midonet.cluster.auth;
 
-import org.codehaus.jackson.annotate.JsonProperty;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.midonet.util.http.HttpSupport;
 
