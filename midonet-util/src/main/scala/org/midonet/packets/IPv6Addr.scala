@@ -23,7 +23,7 @@ import java.lang.Long.parseLong
 import java.nio.ByteBuffer
 import java.util.Random
 
-import org.codehaus.jackson.annotate.{JsonCreator, JsonValue}
+import com.fasterxml.jackson.annotation.{JsonCreator, JsonValue}
 
 /**
  * An IPv6 address.

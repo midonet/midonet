@@ -27,10 +27,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.ConstraintViolation;
 import javax.ws.rs.core.Response;
 
-import org.codehaus.jackson.JsonEncoding;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.core.JsonEncoding;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.midonet.cluster.rest_api.models.ErrorEntity;
 import org.midonet.cluster.rest_api.models.ValidationErrorEntity;
@@ -86,8 +86,8 @@ public class ResponseUtils {
         err.setCode(code);
         err.setMessage(msg);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        JsonGenerator jsonGenerator = jsonFactory.createJsonGenerator(bos,
-                JsonEncoding.UTF8);
+        JsonGenerator jsonGenerator =
+            jsonFactory.createGenerator(bos, JsonEncoding.UTF8);
         jsonGenerator.writeObject(err);
         bos.close();
         return bos.toString(HttpSupport.UTF8_ENC);
@@ -139,8 +139,8 @@ public class ResponseUtils {
         resp.setCharacterEncoding(HttpSupport.UTF8_ENC);
         resp.setStatus(HttpServletResponse.SC_OK);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        JsonGenerator jsonGenerator = jsonFactory.createJsonGenerator(bos,
-                JsonEncoding.UTF8);
+        JsonGenerator jsonGenerator =
+            jsonFactory.createGenerator(bos, JsonEncoding.UTF8);
         jsonGenerator.writeObject(entity);
         bos.close();
         resp.getWriter().write(bos.toString());

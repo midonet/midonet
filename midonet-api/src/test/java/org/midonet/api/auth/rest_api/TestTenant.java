@@ -15,10 +15,10 @@
  */
 package org.midonet.api.auth.rest_api;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
-import org.codehaus.jackson.type.JavaType;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -116,7 +116,8 @@ public class TestTenant extends JerseyTest {
                 VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON,
                 String.class);
         JavaType type = FuncTest.objectMapper.getTypeFactory()
-                .constructParametricType(List.class, DtoTenant.class);
+                .constructParametrizedType(List.class, List.class,
+                                           DtoTenant.class);
         List<DtoTenant> actual = FuncTest.objectMapper.readValue(
                 actualRaw, type);
 

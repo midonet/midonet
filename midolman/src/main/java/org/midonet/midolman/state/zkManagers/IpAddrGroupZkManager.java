@@ -15,19 +15,31 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
-import org.midonet.midolman.state.*;
-import org.midonet.packets.IPAddr$;
-import org.midonet.util.functors.Functors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.serialization.Serializer;
+import org.midonet.midolman.state.AbstractZkManager;
+import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.DirectoryCallback;
+import org.midonet.midolman.state.DirectoryCallbackFactory;
+import org.midonet.midolman.state.NoStatePathException;
+import org.midonet.midolman.state.PathBuilder;
+import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
+import org.midonet.midolman.state.ZkManager;
+import org.midonet.packets.IPAddr$;
+import org.midonet.util.functors.Functors;
 
 /**
  * Class to manage the router ZooKeeper data.

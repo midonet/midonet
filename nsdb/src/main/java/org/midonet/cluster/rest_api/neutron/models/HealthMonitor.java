@@ -20,10 +20,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
-
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -174,11 +173,10 @@ public class HealthMonitor extends ZoomObject {
             if (obj == this) {
                 return true;
             }
-
-            if (!(obj instanceof HealthMonitor)) {
+            if (!(obj instanceof HealthMonitorPool)) {
                 return false;
             }
-            final HealthMonitorPool other = (HealthMonitorPool) obj;
+            HealthMonitorPool other = (HealthMonitorPool) obj;
 
             return Objects.equal(poolId, other.poolId)
                    && Objects.equal(status, other.status)

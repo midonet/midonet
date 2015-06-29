@@ -21,7 +21,7 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;

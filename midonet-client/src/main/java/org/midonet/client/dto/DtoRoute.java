@@ -16,13 +16,11 @@
 
 package org.midonet.client.dto;
 
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
-
-import javax.xml.bind.annotation.XmlRootElement;
 import java.net.URI;
 import java.util.UUID;
 
-@XmlRootElement
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DtoRoute {
     public static final String Normal = "Normal";

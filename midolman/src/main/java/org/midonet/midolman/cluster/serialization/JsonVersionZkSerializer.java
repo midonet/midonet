@@ -25,14 +25,14 @@ import java.io.StringWriter;
 import java.util.Comparator;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
-import org.codehaus.jackson.JsonFactory;
-import org.codehaus.jackson.JsonGenerator;
-import org.codehaus.jackson.JsonParser;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.map.DeserializationConfig;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.JavaType;
 
 import org.midonet.midolman.SystemDataProvider;
 import org.midonet.midolman.serialization.SerializationException;
@@ -74,15 +74,16 @@ public class JsonVersionZkSerializer implements Serializer {
             VersionCheckAnnotationIntrospector intropector =
                     new VersionCheckAnnotationIntrospector(version,
                             this.versionComparator);
-            mapper.setDeserializationConfig(mapper.getDeserializationConfig()
+            mapper.setConfig(mapper.getDeserializationConfig()
                     .withAppendedAnnotationIntrospector(intropector));
-            mapper.setSerializationConfig(mapper.getSerializationConfig()
-                    .withAppendedAnnotationIntrospector(intropector));
-            mapper.configure(DeserializationConfig.Feature
+            mapper.setConfig(mapper.getSerializationConfig()
+                                 .withAppendedAnnotationIntrospector(
+                                     intropector));
+            mapper.configure(DeserializationFeature
                     .FAIL_ON_UNKNOWN_PROPERTIES, false)
                     .setVisibilityChecker(mapper.getVisibilityChecker()
-                            .withFieldVisibility(
-                                    JsonAutoDetect.Visibility.ANY));
+                                              .withFieldVisibility(
+                                                  JsonAutoDetect.Visibility.ANY));
 
             mapperMap.putIfAbsent(version, mapper);
         }
@@ -91,24 +92,23 @@ public class JsonVersionZkSerializer implements Serializer {
     }
 
     @Override
-    public <T> byte[] serialize(T obj)
-            throws SerializationException {
+    public <T> byte[] serialize(T obj) throws SerializationException {
 
         try {
             String version = systemDataProvider.getWriteVersion();
             ObjectMapper objectMapper = getObjectMapper(version);
-            VersionConfig<T> config = new VersionConfig<T>(obj, version);
+            VersionConfig<T> config = new VersionConfig<>(obj, version);
 
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             OutputStream out = new BufferedOutputStream(bos);
             JsonFactory jsonFactory = new JsonFactory(objectMapper);
             JavaType type = objectMapper.getTypeFactory()
-                    .constructParametricType(VersionConfig.class,
-                            obj.getClass());
+                    .constructParametrizedType(VersionConfig.class,
+                                               VersionConfig.class,
+                                               obj.getClass());
             JsonGenerator jsonGenerator =
-                jsonFactory.createJsonGenerator(new OutputStreamWriter(out));
-            objectMapper.writerWithType(type).writeValue(jsonGenerator,
-                    config);
+                jsonFactory.createGenerator(new OutputStreamWriter(out));
+            objectMapper.writerFor(type).writeValue(jsonGenerator, config);
 
             jsonGenerator.close();
             out.close();
@@ -131,7 +131,8 @@ public class JsonVersionZkSerializer implements Serializer {
             ObjectMapper objectMapper = getObjectMapper(version);
 
             JavaType type = objectMapper.getTypeFactory()
-                    .constructParametricType(VersionConfig.class, clazz);
+                    .constructParametrizedType(VersionConfig.class,
+                                               VersionConfig.class, clazz);
             VersionConfig<T> config = objectMapper.readValue(data, type);
             return config.getData();
         } catch (IOException e) {
@@ -147,7 +148,7 @@ public class JsonVersionZkSerializer implements Serializer {
             throws IOException {
         StringWriter sw = new StringWriter();
         JsonFactory jsonFactory = new JsonFactory(objectMapper);
-        JsonGenerator gen = jsonFactory.createJsonGenerator(sw);
+        JsonGenerator gen = jsonFactory.createGenerator(sw);
         gen.writeObject(obj);
         gen.close();
         // trimming needed if main-level object has leading space
@@ -158,7 +159,7 @@ public class JsonVersionZkSerializer implements Serializer {
             throws IOException {
         StringReader sr = new StringReader(data);
         JsonFactory jsonFactory = new JsonFactory(objectMapper);
-        JsonParser par = jsonFactory.createJsonParser(sr);
+        JsonParser par = jsonFactory.createParser(sr);
         T obj = par.readValueAs(clazz);
         par.close();
         return obj;
