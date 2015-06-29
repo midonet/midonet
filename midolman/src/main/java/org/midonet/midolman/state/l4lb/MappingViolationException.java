@@ -27,7 +27,4 @@ public class MappingViolationException extends L4LBException {
         super();
     }
 
-    public MappingViolationException(Throwable cause) {
-        super(cause);
-    }
 }

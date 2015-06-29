@@ -70,8 +70,6 @@ import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.midolman.state.l4lb.LBStatus;
 import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.l4lb.MappingViolationException;
-import org.midonet.midolman.state.zkManagers.BridgeZkManager;
-import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -130,20 +128,9 @@ public interface DataClient {
             SerializationException;
 
     /**
-     * Provide the ids of all the bridges with a binding to the given VTEP.
-     */
-    Set<UUID> bridgesBoundToVtep(IPv4Addr mgmtIp)
-        throws StateAccessException, SerializationException;
-    /**
-     * Get an entity monitor for individual bridges
-     */
-    EntityMonitor<UUID, BridgeZkManager.BridgeConfig, Bridge> bridgesGetMonitor(
-        ZookeeperConnectionWatcher zkConnection);
-
-    /**
      * Get an entity monitor for the set of bridges
      */
-    public EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
+    EntityIdSetMonitor<UUID> bridgesGetUuidSetMonitor(
         ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     List<Bridge> bridgesFindByTenant(String tenantId)
@@ -208,29 +195,6 @@ public interface DataClient {
      */
     boolean bridgeHasIP4MacPair(@Nonnull UUID bridgeId,
                                 @Nonnull IPv4Addr ip, @Nonnull MAC mac)
-        throws StateAccessException;
-
-    /**
-     * Checks if a learned IP->MAC mapping exists.
-     */
-    boolean bridgeCheckLearnedIP4MacPair(@Nonnull UUID bridgeId,
-                                         @Nonnull IPv4Addr ip,
-                                         @Nonnull MAC mac)
-        throws StateAccessException;
-
-    /**
-     * Checks if a persistent IP->MAC mapping exists.
-     */
-    boolean bridgeCheckPersistentIP4MacPair(@Nonnull UUID bridgeId,
-                                            @Nonnull IPv4Addr ip,
-                                            @Nonnull MAC mac)
-        throws StateAccessException;
-
-    /**
-     * Returns the mac associated to the given ip, or null, if not pairing
-     * for that ip is known.
-     */
-    MAC bridgeGetIp4Mac(@Nonnull UUID bridgeId, @Nonnull IPv4Addr ip)
         throws StateAccessException;
 
     /**
@@ -589,10 +553,6 @@ public interface DataClient {
             @Nonnull String localPortName)
             throws StateAccessException, SerializationException;
 
-    void hostsAddDatapathMapping(
-            @Nonnull UUID hostId, @Nonnull String datapathName)
-            throws StateAccessException, SerializationException;
-
     void hostsDelVrnPortMapping(UUID hostId, UUID portId)
             throws StateAccessException, SerializationException;
 
@@ -863,13 +823,13 @@ public interface DataClient {
      *
      * @return current write version.
      */
-    public WriteVersion writeVersionGet() throws StateAccessException;
+    WriteVersion writeVersionGet() throws StateAccessException;
 
     /**
      * Overwrites the current write version with the string supplied
      * @param newVersion The new version to set the write version to.
      */
-    public void writeVersionUpdate(WriteVersion newVersion)
+    void writeVersionUpdate(WriteVersion newVersion)
             throws StateAccessException;
 
     /**
@@ -878,7 +838,7 @@ public interface DataClient {
      * @return system state info
      * @throws StateAccessException
      */
-    public SystemState systemStateGet() throws StateAccessException;
+    SystemState systemStateGet() throws StateAccessException;
 
     /**
      * Update the system state
@@ -886,7 +846,7 @@ public interface DataClient {
      * @param systemState the new system state
      * @throws StateAccessException
      */
-    public void systemStateUpdate(SystemState systemState)
+    void systemStateUpdate(SystemState systemState)
         throws StateAccessException;
 
     /**
@@ -895,7 +855,7 @@ public interface DataClient {
      * @return A list of items containing the host version info
      * @throws StateAccessException
      */
-    public List<HostVersion> hostVersionsGet()
+    List<HostVersion> hostVersionsGet()
             throws StateAccessException;
 
     /* Trace request methods */
@@ -936,7 +896,7 @@ public interface DataClient {
      * @param myNode the node
      * @throws StateAccessException
      */
-    public Integer getPrecedingHealthMonitorLeader(Integer myNode)
+    Integer getPrecedingHealthMonitorLeader(Integer myNode)
             throws StateAccessException;
 
     /**
@@ -946,7 +906,7 @@ public interface DataClient {
      * @return The id assigned to this node on registering.
      * @throws StateAccessException
      */
-    public Integer registerAsHealthMonitorNode(
+    Integer registerAsHealthMonitorNode(
             ZkLeaderElectionWatcher.ExecuteOnBecomingLeader cb)
             throws StateAccessException;
 
@@ -957,16 +917,16 @@ public interface DataClient {
      * @param node node to remove
      * @throws StateAccessException
      */
-    public void removeHealthMonitorLeaderNode(Integer node)
+    void removeHealthMonitorLeaderNode(Integer node)
             throws StateAccessException;
 
-    public void vtepCreate(VTEP vtep)
+    void vtepCreate(VTEP vtep)
             throws StateAccessException, SerializationException;
 
-    public VTEP vtepGet(IPv4Addr ipAddr)
+    VTEP vtepGet(IPv4Addr ipAddr)
             throws StateAccessException, SerializationException;
 
-    public List<VTEP> vtepsGetAll()
+    List<VTEP> vtepsGetAll()
             throws StateAccessException, SerializationException;
 
     /**
@@ -980,18 +940,18 @@ public interface DataClient {
      * @throws org.midonet.midolman.state.NoStatePathException
      *         If the VTEP does not exist.
      */
-    public void vtepDelete(IPv4Addr ipAddr)
+    void vtepDelete(IPv4Addr ipAddr)
             throws StateAccessException, SerializationException;
 
-    public void vtepUpdate(VTEP vtep)
+    void vtepUpdate(VTEP vtep)
             throws StateAccessException, SerializationException;
 
-    public void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
+    void vtepAddBinding(@Nonnull IPv4Addr ipAddr,
                                @Nonnull String portName, short vlanId,
                                @Nonnull UUID networkId)
             throws StateAccessException;
 
-    public void vtepDeleteBinding(@Nonnull IPv4Addr ipAddr,
+    void vtepDeleteBinding(@Nonnull IPv4Addr ipAddr,
                                   @Nonnull String portName, short vlanId)
             throws StateAccessException;
 
@@ -1003,45 +963,27 @@ public interface DataClient {
      * @return a list that is never null
      * @throws StateAccessException
      */
-    public List<VtepBinding> vtepGetBindings(@Nonnull IPv4Addr ipAddr)
+    List<VtepBinding> vtepGetBindings(@Nonnull IPv4Addr ipAddr)
             throws StateAccessException;
 
-    public VtepBinding vtepGetBinding(@Nonnull IPv4Addr ipAddr,
+    VtepBinding vtepGetBinding(@Nonnull IPv4Addr ipAddr,
                                       @Nonnull String portName, short vlanId)
             throws StateAccessException;
-
-    /**
-     * Get an entity monitor for individual VTEPs
-     */
-    EntityMonitor<IPv4Addr, VtepZkManager.VtepConfig, VTEP> vtepsGetMonitor(
-        ZookeeperConnectionWatcher zkConnection);
-
-    /**
-     * Get an entity monitor for the set of VTEPs
-     */
-    EntityIdSetMonitor<IPv4Addr> vtepsGetAllSetMonitor(
-        ZookeeperConnectionWatcher zkConnection) throws StateAccessException;
 
     /**
      * Generates and returns a new VNI for VTEP logical switch creation.
      * Successive calls will return monotonically increasing values.
      */
-    public int getNewVni() throws StateAccessException;
-
-    /**
-     * Get all the vtep bindings for this bridge and any VTEP.
-     */
-    public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID id)
-        throws StateAccessException, SerializationException;
+    int getNewVni() throws StateAccessException;
 
     /**
      * Get all the vtep bindings for this bridge and vtep.
      */
-    public List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID id,
+    List<VtepBinding> bridgeGetVtepBindings(@Nonnull UUID id,
                                                    IPv4Addr mgmtIp)
         throws StateAccessException, SerializationException;
 
-    public VxLanPort bridgeCreateVxLanPort(
+    VxLanPort bridgeCreateVxLanPort(
             UUID bridgeId, IPv4Addr mgmtIp, int mgmtPort, int vni,
             IPv4Addr tunnelIp, UUID tunnelZoneId)
             throws StateAccessException, SerializationException;
@@ -1051,11 +993,11 @@ public interface DataClient {
      * bindings on the VTEP since the DataClient is not VTEP-aware. This will be
      * done by the VxlanGateway service.
      */
-    public void bridgeDeleteVxLanPort(UUID bridgeId, IPv4Addr vxLanPort)
+    void bridgeDeleteVxLanPort(UUID bridgeId, IPv4Addr vxLanPort)
             throws SerializationException, StateAccessException;
 
 
-    public void bridgeDeleteVxLanPort(VxLanPort port)
+    void bridgeDeleteVxLanPort(VxLanPort port)
         throws SerializationException, StateAccessException;
 
     /**
@@ -1065,31 +1007,7 @@ public interface DataClient {
      * @param ownerId The ID of the node trying to take ownership of the VTEP
      * @return The ID of the node that owns the VTEP, never null
      */
-    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID ownerId)
-        throws SerializationException, StateAccessException;
-
-    /**
-     * Tries to take ownership of the given VTEP.
-     *
-     * @param mgmtIp The management IP of the VTEP
-     * @param ownerId The ID of the node trying to take ownership of the VTEP
-     * @param watcher An watcher to install on the ownership node of the VTEP,
-     *                regardless of whether ownership is taken or not. The
-     *                watcher will notify of the changes to the ownership node.
-     * @return The ID of the node that owns the VTEP, never null.
-     */
-    public UUID tryOwnVtep(IPv4Addr mgmtIp, UUID ownerId, Watcher watcher)
-        throws SerializationException, StateAccessException;
-
-    /**
-     * Deletes the ownership for the given VTEP. The method deletes the
-     * ownership only if the specified identifier currently owns the VTEP.
-     *
-     * @param mgmtIp The management IP of the VTEP
-     * @param ownerId The ID of the node deleting the VTEP ownership.
-     * @return True if the ownership was deleted, false otherwise.
-     */
-    public boolean deleteVtepOwner(IPv4Addr mgmtIp, UUID ownerId)
+    UUID tryOwnVtep(IPv4Addr mgmtIp, UUID ownerId)
         throws SerializationException, StateAccessException;
 
     /**
@@ -1097,24 +1015,16 @@ public interface DataClient {
      * @return null if the bridge port id does not correspond to a bridge
      * currently connected to a vtep.
      */
-    public IPv4Addr vxlanTunnelEndpointFor(UUID bridgePortId)
+    IPv4Addr vxlanTunnelEndpointFor(UUID bridgePortId)
         throws SerializationException, StateAccessException;
 
-    /**
-     * Register a watcher for the given port.
-     * This is mainly intended to track vxLanPort removals.
-     * @return true if the port exists, false otherwise.
-     */
-    public boolean portWatch(UUID portId, Directory.TypedWatcher watcher)
+    Bridge bridgeGetAndWatch(UUID id, Directory.TypedWatcher watcher)
         throws StateAccessException, SerializationException;
 
-    public Bridge bridgeGetAndWatch(UUID id, Directory.TypedWatcher watcher)
-        throws StateAccessException, SerializationException;
-
-    public void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
+    void vxLanPortIdsAsyncGet(DirectoryCallback<Set<UUID>> callback,
                                      Directory.TypedWatcher watcher)
         throws StateAccessException;
 
-    public Ip4ToMacReplicatedMap getIp4MacMap(UUID bridgeId)
+    Ip4ToMacReplicatedMap getIp4MacMap(UUID bridgeId)
         throws StateAccessException;
 }

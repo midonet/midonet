@@ -22,9 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
-import org.apache.zookeeper.OpResult;
 import org.apache.zookeeper.Watcher;
 
 import org.midonet.cluster.WatchableZkManager;
@@ -249,47 +247,6 @@ public class VtepZkManager
         return owner;
     }
 
-    /**
-     * Deletes the ownership for the given VTEP. The method deletes the
-     * ownership only if the specified identifier currently owns the VTEP.
-     *
-     * @param ip The management IP of the VTEP
-     * @param ownerId The ID of the node deleting the VTEP ownership.
-     * @return True if the ownership was deleted, false otherwise.
-     */
-    public boolean deleteVtepOwner(IPv4Addr ip, UUID ownerId)
-        throws StateAccessException, SerializationException {
-
-        log.debug("Deleting ownership of VTEP {} by {}", ip, ownerId);
-
-        UUID owner = null;
-        Integer version = -1;
-
-        // Compute the owner node path.
-        String path = paths.getVtepOwnerPath(ip);
-
-        // Try get the current owner.
-        try {
-            Map.Entry<byte[], Integer> result = zk.getWithVersion(path, null);
-            owner = UUID.fromString(
-                serializer.deserialize(result.getKey(), String.class));
-            version = result.getValue();
-            log.debug("Current owner for VTEP {} is {}", ip, owner);
-        } catch (NoStatePathException e) {
-            log.debug("No owner for VTEP {}.", ip);
-        } catch (IllegalArgumentException e) {
-            throw new SerializationException(
-                "Corrupt owner identifier for VTEP", e);
-        }
-
-        if (ownerId.equals(owner)) {
-            zk.multi(Arrays.asList(Op.delete(path, version)));
-            return true;
-        } else {
-            return false;
-        }
-    }
-
     public int getNewVni() throws StateAccessException {
         for (int i = 0; i < 10; i++) {
             // Get the VNI counter node and its version.
@@ -326,8 +283,8 @@ public class VtepZkManager
                 vtepIps.add(IPv4Addr.fromString(vtepIpStr));
             } catch (IllegalArgumentException ex) {
                 log.error("'{}' at path '{}' is not a valid IPv4 address. "
-                          + "Zookeeper data may be corrupted.",
-                          new Object[]{vtepIpStr, paths.getVtepsPath(), ex});
+                          + "Zookeeper data may be corrupt.",
+                          vtepIpStr, paths.getVtepsPath(), ex);
             }
         }
         return vtepIps;

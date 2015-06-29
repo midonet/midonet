@@ -140,14 +140,12 @@ public class ClusterBridgeManager extends ClusterManager<BridgeBuilder>{
         VlanPortMapImpl vlanIdPortMap = new VlanPortMapImpl();
         UUID vlanBridgePeerPortId = null;
         Collection<UUID> logicalPortIDs;
-        Collection<UUID> unlinkedPortIDs;
         Set<Short> currentVlans = new HashSet<>();
         currentVlans.add(UNTAGGED_VLAN_ID);
 
         LogicalPortWatcher watcher = new LogicalPortWatcher(bridgeId, builder);
         try {
             logicalPortIDs = portMgr.getBridgeLogicalPortIDs(bridgeId, watcher);
-            unlinkedPortIDs = portMgr.getBridgePortIDs(bridgeId, watcher);
         } catch (StateAccessException e) {
             log.error("Failed to retrieve the logical port IDs for bridge {}",
                       bridgeId);

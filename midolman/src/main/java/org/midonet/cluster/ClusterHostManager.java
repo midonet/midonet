@@ -24,22 +24,18 @@ import java.util.Set;
 import java.util.UUID;
 
 import javax.inject.Inject;
-import javax.inject.Named;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.client.HostBuilder;
 import org.midonet.cluster.data.TunnelZone;
-import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.SerializationException;
-import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.Directory;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.TunnelZoneZkManager;
-import org.midonet.util.eventloop.Reactor;
 
 public class ClusterHostManager extends ClusterManager<HostBuilder> {
 
@@ -47,14 +43,7 @@ public class ClusterHostManager extends ClusterManager<HostBuilder> {
     HostZkManager hostMgr;
 
     @Inject
-    @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG)
-    Reactor reactorLoop;
-
-    @Inject
     TunnelZoneZkManager tunnelZoneZkManager;
-
-    @Inject
-    Serializer serializer;
 
     private static final Logger log =
          LoggerFactory.getLogger(ClusterHostManager.class);

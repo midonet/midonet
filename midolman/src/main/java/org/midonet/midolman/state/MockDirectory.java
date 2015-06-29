@@ -16,14 +16,13 @@
 
 package org.midonet.midolman.state;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.AbstractMap;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -48,6 +47,7 @@ import org.apache.zookeeper.proto.DeleteRequest;
 import org.apache.zookeeper.proto.SetDataRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import static org.apache.zookeeper.Watcher.Event.EventType;
 import static org.apache.zookeeper.Watcher.Event.KeeperState;
 
@@ -137,7 +137,7 @@ public class MockDirectory implements Directory {
             if (watcher != null)
                 watchers.add(wrapCallback(watcher));
 
-            return new HashSet<String>(children.keySet());
+            return new HashSet<>(children.keySet());
         }
 
         synchronized boolean exists(Watcher watcher) {
@@ -163,7 +163,7 @@ public class MockDirectory implements Directory {
         synchronized void fireWatchers(boolean isMulti, EventType eventType) {
             // Each Watcher is called back at most once for every time they
             // register.
-            Set<Watcher> watchers = new HashSet<Watcher>(this.watchers);
+            Set<Watcher> watchers = new HashSet<>(this.watchers);
             this.watchers.clear();
 
             for (Watcher watcher : watchers) {
@@ -187,32 +187,6 @@ public class MockDirectory implements Directory {
                 n.children.put(key, this.children.get(key).clone());
             }
             return n;
-        }
-
-        /*
-         * Check for node equality. This is not the same as 'equals' because
-         * we don't want to count checkpoints or watchers to determine if it
-         * is the same node.
-         */
-        public boolean isSameNode(Node other) {
-            if (other == null) {
-                return false;
-            }
-            if (!(Objects.equals(this.mode, other.mode) &&
-                  Objects.equals(this.path, other.path) &&
-                  Objects.deepEquals(this.data, other.data))) {
-                return false;
-            }
-
-            if (other.children.size() != this.children.size())
-                return false;
-
-            for (String k: children.keySet()) {
-                if (!this.children.get(k).isSameNode(other.children.get(k)))
-                    return false;
-            }
-
-            return true;
         }
 
         /*
@@ -244,7 +218,7 @@ public class MockDirectory implements Directory {
 
     public MockDirectory() {
         rootNode = new Node("", null, CreateMode.PERSISTENT);
-        multiDataWatchers = new HashMap<Watcher, WatchedEvent>();
+        multiDataWatchers = new HashMap<>();
     }
 
     protected Node getNode(String path) throws NoNodeException {
@@ -302,15 +276,6 @@ public class MockDirectory implements Directory {
         try {
             add(relativePath, data, CreateMode.PERSISTENT, false);
         } catch (KeeperException.NodeExistsException e) { /* node was there */ }
-    }
-
-    @Override
-    public void asyncAdd(String relativePath, byte[] data, CreateMode mode) {
-        try {
-            add(relativePath, data, mode);
-        } catch (KeeperException e) {
-            log.debug("asyncAdd Exception", e);
-        }
     }
 
     @Override
@@ -459,10 +424,10 @@ public class MockDirectory implements Directory {
     @Override
     public List<OpResult> multi(List<Op> ops) throws InterruptedException,
                                                      KeeperException {
-        List<OpResult> results = new ArrayList<OpResult>();
+        List<OpResult> results = new ArrayList<>();
         // Fire watchers after finishing multi operation.
         // Copy to the local Set to avoid concurrent access.
-        Map<Watcher, WatchedEvent> watchers = new HashMap<Watcher, WatchedEvent>();
+        Map<Watcher, WatchedEvent> watchers = new HashMap<>();
         try {
             for (Op op : ops) {
                 Record record = op.toRequestRecord();
@@ -513,11 +478,6 @@ public class MockDirectory implements Directory {
     }
 
     @Override
-    public long getSessionId() {
-        return 0;
-    }
-
-    @Override
     public void closeConnection() {
         // Do nothing here.
     }
@@ -560,7 +520,7 @@ public class MockDirectory implements Directory {
         }
         // Map to keep track of the callbacks that returned
         final Map<String, byte[]> callbackResults =
-            new HashMap<String, byte[]>();
+            new HashMap<>();
         for(final String path: relativePaths){
             asyncGet(path, new DirectoryCallback<byte[]>(){
 
@@ -585,7 +545,7 @@ public class MockDirectory implements Directory {
                     synchronized (callbackResults) {
                         callbackResults.put(path, data);
                             if(callbackResults.size() == relativePaths.size()) {
-                                Set<byte[]> results = new HashSet<byte[]>();
+                                Set<byte[]> results = new HashSet<>();
                                 for(Map.Entry entry : callbackResults.entrySet()) {
                                     if(entry != null)
                                         results.add((byte[])entry.getValue());

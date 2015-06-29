@@ -71,15 +71,6 @@ public class CheckpointedMockDirectory extends MockDirectory
     }
 
     @Override
-    public boolean checkpointsAreEquivalent(int cpIndex1, int cpIndex2) {
-        Checkpoint cp1 = checkpoints.get(cpIndex1);
-        Checkpoint cp2 = checkpoints.get(cpIndex2);
-        if (cp1 == null)
-            return cp2 == null;
-        return cp2 != null && cp1.root.isSameNode(cp2.root);
-    }
-
-    @Override
     public Map<String, String> getAddedPaths(int cpIndex1, int cpIndex2) {
         Map<String, String> addedNodes = new HashMap<String, String>();
         Checkpoint cp1 = checkpoints.get(cpIndex1);
@@ -145,22 +136,5 @@ public class CheckpointedMockDirectory extends MockDirectory
         }
 
         return modifiedNodes;
-    }
-
-    @Override
-    public String genSetOfAddedPaths(int cpIndex1, int cpIndex2) {
-        Map<String, String> added = getAddedPaths(cpIndex1, cpIndex2);
-        String code = "Set<String> valSet = new HashSet<>();\n";
-        List<String> opList = new ArrayList<>();
-        for (String path : added.keySet()) {
-            String opCode = "valSet.add(\"" + path + "\");\n";
-            opList.add(opCode);
-        }
-        Collections.sort(opList);
-        for (String op: opList) {
-            code += op;
-        }
-        code += "return valSet;";
-        return code;
     }
 }

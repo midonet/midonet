@@ -62,14 +62,6 @@ public class PathBuilder extends ZkPathManager {
         return new StringBuilder(basePath).append("/").append(LICENSES_PATH);
     }
 
-    public String getLicensePath(UUID id) {
-        return buildLicensePath(id).toString();
-    }
-
-    private StringBuilder buildLicensePath(UUID id) {
-        return buildLicensesPath().append("/").append(id.toString());
-    }
-
     public String getNatPath() {
         return buildNatPath().toString();
     }
