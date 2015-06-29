@@ -18,7 +18,7 @@ package org.midonet.midolman.io
 import java.util.concurrent.{TimeUnit, ConcurrentHashMap}
 import java.util.concurrent.locks.ReentrantLock
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{Promise, ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 import akka.actor.ActorSystem
@@ -65,6 +65,8 @@ abstract class UpcallDatapathConnectionManagerBase(
 
     protected val log: Logger
 
+    private val workers = Promise[Workers]()
+
     protected def makeConnection(name: String, bucket: Bucket,
                                  channelType: ChannelType)
     : ManagedDatapathConnection
@@ -81,10 +83,15 @@ abstract class UpcallDatapathConnectionManagerBase(
     protected def makeBufferPool() = new BufferPool(1, 8, 8*1024)
 
     def askForWorkers()
-               (implicit ec: ExecutionContext, as: ActorSystem) = {
-        implicit val tout = Timeout(3, TimeUnit.SECONDS)
-        (PacketsEntryPoint ? GetWorkers).mapTo[Workers]
-    }
+                     (implicit ec: ExecutionContext, as: ActorSystem) =
+        if (workers.isCompleted) {
+           workers.future
+        } else {
+            implicit val tout = Timeout(3, TimeUnit.SECONDS)
+            (PacketsEntryPoint ? GetWorkers).mapTo[Workers].andThen {
+                case Success(ws) => workers.trySuccess(ws)
+            }
+        }
 
     def getDispatcher()(implicit as: ActorSystem) =
         NetlinkCallbackDispatcher.makeBatchCollector()
