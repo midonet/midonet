@@ -62,7 +62,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         fip
     }
 
-    "C3PO" should "set a route to GW for the floating IP." in {
+    "C3PO" should "add NAT rules and ARP entry for the floating IP." in {
         // Create a private Network
         val privateNetworkId = UUID.randomUUID()
         val privateNetworkJson =
@@ -330,6 +330,43 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             val vifPortWithFipRemoved = storage.get(classOf[NeutronPort],
                                                     vifPortId).await()
             vifPortWithFipRemoved.getFloatingIpIdsCount shouldBe 0
+        }
+
+        // Test deletion of a port with which Floating IP is associated.
+        // #16 Creates a VIF port.
+        val vifPort2Id = UUID.randomUUID()
+        val vifPort2FixedIp = "172.24.4.4"
+        val vifPort2Mac = "e0:05:2d:fd:16:0b"
+        val vifPort2Json = portJson(
+                name = "vif_port2", id = vifPort2Id, networkId = extNetworkId,
+                macAddr = vifPort2Mac,
+                fixedIps = List(IPAlloc(vifPort2FixedIp, extSubnetId.toString)),
+                deviceOwner = DeviceOwner.NOVA).toString
+        // #17 Create a Floating IP with the VIF port specified.
+        val fip2Id = UUID.randomUUID()
+        val fip2Address = "118.67.101.185"
+        val fip2Json = floatingIpJson(
+                id = fip2Id,
+                floatingNetworkId = extNetworkId,
+                floatingIpAddress = fip2Address,
+                routerId = tRouterId,
+                portId = vifPort2Id,
+                fixedIpAddress = vifPort2FixedIp).toString
+        executeSqlStmts(insertTaskSql(
+                id = 16, Create, PortType, vifPort2Json, vifPort2Id, "tx15"),
+                        insertTaskSql(
+                id = 17, Create, FloatingIpType, fip2Json, fip2Id, "tx16"))
+
+        eventually {
+            arpTable.containsKey(fip2Address) shouldBe true
+        }
+
+        // #18 Delete the VIF port with which the Floating IP is associated.
+        executeSqlStmts(insertTaskSql(
+                id = 18, Delete, PortType, json = "", vifPort2Id, "tx17"))
+        eventually {
+            // The ARP table entry needs to be removed.
+            arpTable.containsKey(fip2Address) shouldBe false
         }
 
         arpTable.stop()
