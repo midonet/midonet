@@ -53,6 +53,7 @@ import org.midonet.cluster.rest_api.serialization.SerializationModule;
 import org.midonet.cluster.rest_api.validation.ValidationModule;
 import org.midonet.cluster.services.conf.ConfMinion;
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomApiModule;
+import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.cluster.storage.MidonetBackendModule;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.MidoNodeConfigurator;
@@ -154,6 +155,8 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         bind(ClusterNode.Context.class).toInstance(
             new ClusterNode.Context(clusterNodeId, clusterEmbedEnabled()));
 
+        bind(MidonetBackendConfig.class)
+            .toInstance(new MidonetBackendConfig(zkConf));
         bind(ConfigProvider.class).toInstance(cfgProvider);
         install(new SerializationModule());
         install(new AuthModule());
@@ -161,7 +164,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
 
         installRestApiModule(); // allow mocking
 
-        install(new MidonetBackendModule(zkConfToConfig(zkCfg)));
+        install(new MidonetBackendModule());
 
         install(new ValidationModule());
 

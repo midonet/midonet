@@ -191,7 +191,7 @@ public class Midolman {
 
         injector = Guice.createInjector(
             new MidolmanConfigModule(config),
-            new MidonetBackendModule(config.zookeeper()),
+            new MidonetBackendModule(),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new HostModule(),

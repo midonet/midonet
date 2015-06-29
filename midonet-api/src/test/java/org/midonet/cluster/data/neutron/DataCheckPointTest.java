@@ -503,7 +503,7 @@ public class DataCheckPointTest {
         zkRoot = "/test_" + UUID.randomUUID();
         Config config = fillConfig(ConfigFactory.empty());
         injector = Guice.createInjector(
-            new MidonetBackendTestModule(fillConfig(config)),
+            new MidonetBackendTestModule(),
             new TestDataClientModule(fillConfig(config)),
             new SerializationModule(),
             new ConfigProviderModule(fillLegacyConfig()),

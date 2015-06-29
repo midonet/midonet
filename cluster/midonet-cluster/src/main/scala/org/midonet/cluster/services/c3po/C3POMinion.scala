@@ -73,6 +73,7 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
 
     override def doStart(): Unit = {
         leaderLatch.start()
+
         super.doStart()
     }
     override def doStop(): Unit = {
