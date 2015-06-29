@@ -15,14 +15,12 @@
  */
 package org.midonet.util.version;
 
-import org.codehaus.jackson.map.introspect.AnnotatedMember;
-import org.codehaus.jackson.map.introspect.AnnotatedField;
-import org.codehaus.jackson.map.introspect.AnnotatedMethod;
-import org.codehaus.jackson.map.introspect.AnnotatedConstructor;
-import org.codehaus.jackson.map.introspect.NopAnnotationIntrospector;
-
-import java.lang.annotation.Annotation;
 import java.util.Comparator;
+
+import com.fasterxml.jackson.databind.introspect.AnnotatedField;
+import com.fasterxml.jackson.databind.introspect.AnnotatedMember;
+import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
+import com.fasterxml.jackson.databind.introspect.NopAnnotationIntrospector;
 
 /**
  * Filters fields to be serialized/deserialized based on Annotations
@@ -57,9 +55,6 @@ public class VersionCheckAnnotationIntrospector
         if (m instanceof AnnotatedField) {
             return isIgnorableField((AnnotatedField) m);
         }
-        if (m instanceof AnnotatedConstructor) {
-            return isIgnorableConstructor((AnnotatedConstructor) m);
-        }
         return false;
     }
 
@@ -87,7 +82,6 @@ public class VersionCheckAnnotationIntrospector
      * returns false if we want to serialize the field,
      * true if we want to filter it out.
      */
-    @Override
     public boolean isIgnorableField(AnnotatedField field) {
         Since s = field.getAnnotation(Since.class);
         Until u = field.getAnnotation(Until.class);
@@ -95,7 +89,6 @@ public class VersionCheckAnnotationIntrospector
         return isIgnorable(s, u);
     }
 
-    @Override
     public boolean isIgnorableMethod(AnnotatedMethod method) {
 
         Since s = method.getAnnotation(Since.class);
@@ -104,15 +97,5 @@ public class VersionCheckAnnotationIntrospector
         return isIgnorable(s, u);
     }
 
-    /**
-     * returns false if this annotationInspector can't handle the
-     * annotation, true if we can.
-     */
-    @Override
-    public boolean isHandled(Annotation ann) {
-        Class<?> clazz = ann.annotationType();  /* safe to cast to ? since   */
-        return (Since.class.equals(clazz) ||    /* the method checks handled */
-                Until.class.equals(clazz));     /* Annotations types         */
-    }
 }
 

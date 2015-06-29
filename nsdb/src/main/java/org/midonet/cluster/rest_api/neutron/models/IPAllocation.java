@@ -15,9 +15,11 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -25,9 +27,10 @@ import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil.Converter;
-import org.midonet.packets.*;
-
-import java.util.UUID;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.IPv6Addr;
+import org.midonet.packets.IPv6Subnet;
 
 @ZoomClass(clazz = Neutron.NeutronPort.IPAllocation.class)
 public class IPAllocation extends ZoomObject {

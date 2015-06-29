@@ -15,7 +15,7 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
-import org.codehaus.jackson.annotate.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;

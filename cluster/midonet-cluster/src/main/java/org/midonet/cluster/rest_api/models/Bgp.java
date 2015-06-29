@@ -20,7 +20,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;

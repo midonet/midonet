@@ -18,7 +18,7 @@ package org.midonet.cluster.data;
 import java.util.UUID;
 import javax.annotation.Nonnull;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.midonet.packets.IPv4Addr;
 

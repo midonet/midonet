@@ -15,10 +15,15 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
+
 import org.apache.commons.collections4.ListUtils;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -26,10 +31,6 @@ import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.collection.ListUtil;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 
 @ZoomClass(clazz = Neutron.SecurityGroup.class)
 public class SecurityGroup extends ZoomObject {

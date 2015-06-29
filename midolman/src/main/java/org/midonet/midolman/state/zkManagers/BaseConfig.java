@@ -15,9 +15,9 @@
  */
 package org.midonet.midolman.state.zkManagers;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
-
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;

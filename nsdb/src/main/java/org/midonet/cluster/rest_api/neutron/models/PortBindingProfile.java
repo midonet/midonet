@@ -16,9 +16,8 @@
 
 package org.midonet.cluster.rest_api.neutron.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
-
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -27,6 +26,7 @@ import org.midonet.cluster.models.Neutron;
 
 @ZoomClass(clazz = Neutron.NeutronPort.BindingProfile.class)
 public class PortBindingProfile extends ZoomObject {
+
     @JsonProperty("interface_name")
     @ZoomField(name = "interface_name")
     public String interfaceName;

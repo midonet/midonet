@@ -21,10 +21,15 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import org.midonet.cluster.data.BGP;
 import org.midonet.midolman.layer3.Route;
-import org.midonet.packets.*;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPv4Addr;
+import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.IPv6Addr;
+import org.midonet.packets.MAC;
 
 public class PortDirectory {
     public static Random rand = new Random(System.currentTimeMillis());

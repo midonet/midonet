@@ -30,6 +30,8 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
+import com.fasterxml.jackson.core.JsonFactory
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.{Message, TextFormat}
 
@@ -42,8 +44,6 @@ import org.apache.zookeeper.OpResult.ErrorResult
 import org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged
 import org.apache.zookeeper._
 import org.apache.zookeeper.data.Stat
-import org.codehaus.jackson.JsonFactory
-import org.codehaus.jackson.map.ObjectMapper
 import org.slf4j.LoggerFactory
 
 import rx.Observable
@@ -722,7 +722,7 @@ object ZookeeperObjectMapper {
     private def serializePojo(obj: Obj): Array[Byte] = {
         val writer = new StringWriter()
         try {
-            val generator = jsonFactory.createJsonGenerator(writer)
+            val generator = jsonFactory.createGenerator(writer)
             generator.writeObject(obj)
             generator.close()
         } catch {
@@ -758,7 +758,7 @@ object ZookeeperObjectMapper {
     }
 
     private def deserializePojo[T](json: Array[Byte], clazz: Class[T]): T = {
-        val parser = jsonFactory.createJsonParser(json)
+        val parser = jsonFactory.createParser(json)
         val t = parser.readValueAs(clazz)
         parser.close()
         t
