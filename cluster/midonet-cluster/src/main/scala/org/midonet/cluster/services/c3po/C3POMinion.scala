@@ -187,7 +187,7 @@ object C3POMinion {
         val pathBldr = new PathBuilder(backendCfg.rootKey)
 
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
-             classOf[FloatingIp] -> new FloatingIpTranslator(storage),
+             classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
              classOf[NeutronHealthMonitor] -> new HealthMonitorTranslator,
              classOf[NeutronLoadBalancerPool] ->
