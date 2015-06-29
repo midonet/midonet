@@ -31,6 +31,7 @@ import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Topology.{Chain, Port, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
+import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.MacPortMap
@@ -212,6 +213,14 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
 class VifPortTranslationTest extends PortTranslatorTest {
     val sgId1 = randomUuidProto
     val sgId2 = randomUuidProto
+    val fipId1 = randomUuidProto
+    val fipId2 = randomUuidProto
+    val floatingIp1Addr = "118.67.101.185"
+    val floatingIp2Addr = "118.67.201.25"
+    val tntRouterId = randomUuidProto
+    val gwPortId = randomUuidProto
+    val gwPortMac = "e0:05:2d:fd:16:0b"
+    val externalNetworkId = randomUuidProto
 
     val vifPortWithFixedIps = nPortFromTxt(s"""
         $portBaseUp
@@ -235,6 +244,12 @@ class VifPortTranslationTest extends PortTranslatorTest {
         $vifPortWithFixedIps
         security_groups { $sgId1 }
         security_groups { $sgId2 }
+        """)
+
+    val vifPortWithFloatingIpIds = nPortFromTxt(s"""
+        $vifPortWithFixedIps
+        floating_ip_ids { $fipId1 }
+        floating_ip_ids { $fipId2 }
         """)
 
     val ipAddrGroup1InChainId = randomUuidProto
@@ -287,6 +302,46 @@ class VifPortTranslationTest extends PortTranslatorTest {
         id { $spoofChainId }
         rule_ids { $antiSpoofChainRule }
         """)
+
+    val floatingIp1 = nFloatingIpFromTxt(s"""
+        id { $fipId1 }
+        router_id { $tntRouterId }
+        port_id { $portId }
+        floating_ip_address {
+          version: V4
+          address: '$floatingIp1Addr'
+        }
+        fixed_ip_address {
+          version: V4
+          address: '$ipv4Addr1Txt'
+        }
+        """)
+    val floatingIp2 = nFloatingIpFromTxt(s"""
+        id { $fipId2 }
+        router_id { $tntRouterId }
+        port_id { $portId }
+        floating_ip_address {
+          version: V4
+          address: '$floatingIp2Addr'
+        }
+        fixed_ip_address {
+          version: V4
+          address: '$ipv4Addr1Txt'
+        }
+        """)
+    val nTntRouter = nRouterFromTxt(s"""
+        id { $tntRouterId }
+        gw_port_id { $gwPortId }
+        """)
+    val nGwPort = nPortFromTxt(s"""
+        id { $gwPortId }
+        network_id { $externalNetworkId }
+        mac_address: "$gwPortMac"
+        """)
+    val fip1ArpEntryPath =
+            arpEntryPath(externalNetworkId, floatingIp1Addr, gwPortMac)
+    val fip2ArpEntryPath =
+            arpEntryPath(externalNetworkId, floatingIp2Addr, gwPortMac)
 }
 
 /**
@@ -885,6 +940,20 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             """)
         midoOps should contain (midonet.Update(ipAddrGrp1))
         midoOps should contain (midonet.Update(ipAddrGrp2))
+    }
+
+    "DELETE VIF port with floating IPs attached" should "delete the ARP " +
+    "table entries" in {
+        bind(portId, vifPortWithFloatingIpIds)
+        bind(fipId1, floatingIp1)
+        bind(fipId2, floatingIp2)
+        bind(tntRouterId, nTntRouter)
+        bind(gwPortId, nGwPort)
+
+        val midoOps = translator.translate(
+                neutron.Delete(classOf[NeutronPort], portId))
+        midoOps should contain (midonet.DeleteNode(fip1ArpEntryPath))
+        midoOps should contain (midonet.DeleteNode(fip2ArpEntryPath))
     }
 }
 
