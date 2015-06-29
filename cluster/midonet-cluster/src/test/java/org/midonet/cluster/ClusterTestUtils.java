@@ -77,9 +77,8 @@ public class ClusterTestUtils {
     public static List<Module> modules(Config config) {
         Config newConf = fillTestConfig(config).withFallback(MidoTestConfigurator.forAgents());
         List<Module> modules = new ArrayList<>();
-        // For VtepUpdaterTest
         modules.add(new SerializationModule());  // For Serializer
-        modules.add(new MidonetBackendTestModule(newConf));
+        modules.add(new MidonetBackendTestModule());
         modules.add(new MidolmanConfigModule(newConf));
         // Directory and Reactor
         modules.add(new MockZookeeperConnectionModule());

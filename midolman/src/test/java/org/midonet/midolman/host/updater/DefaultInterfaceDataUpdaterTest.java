@@ -96,7 +96,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new MockDatapathModule(),
             new MockZookeeperConnectionModule(),
             new MockHostModule(),
-            new MidonetBackendTestModule(configuration),
+            new MidonetBackendTestModule(),
             new LegacyClusterModule(),
             new MockMidolmanModule(),
             new MidolmanActorsModule() {
