@@ -17,10 +17,11 @@ package org.midonet.midolman.version.serialization;
 
 import java.util.Comparator;
 
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -131,7 +132,7 @@ public class TestJsonVersionZkSerializer {
         String versionConfigStr = String.format(
                 "{\"data\":%s,\"version\":\"%s\"}", innerObjStr, DUMMY_VERSION);
 
-        return versionConfigStr.toString().getBytes();
+        return versionConfigStr.getBytes();
     }
 
     @Before
@@ -142,9 +143,7 @@ public class TestJsonVersionZkSerializer {
                versionComparator));
 
         ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(
-                SerializationConfig.Feature.SORT_PROPERTIES_ALPHABETICALLY,
-                true);
+        mapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
         doReturn(mapper).when(testObject).getObjectMapper(DUMMY_VERSION);
         doReturn(DUMMY_VERSION).when(systemDataProvider).getWriteVersion();
     }

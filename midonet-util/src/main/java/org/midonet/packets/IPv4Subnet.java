@@ -18,7 +18,7 @@ package org.midonet.packets;
 
 import java.util.regex.Pattern;
 
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
 
@@ -116,8 +116,8 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
      */
     public static String IPV4_CIDR_PATTERN =
             "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" +
-                    "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])" +
-                    "(\\/(\\d|[1-2]\\d|3[0-2]))$";
+            "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])" +
+            "(\\/(\\d|[1-2]\\d|3[0-2]))$";
 
     private static Pattern ipv4CidrPattern = Pattern.compile(IPV4_CIDR_PATTERN);
 

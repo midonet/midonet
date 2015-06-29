@@ -15,22 +15,29 @@
  */
 package org.midonet.cluster.rest_api.jaxrs;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Inject;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.rest_api.version.VersionParser;
-
 
 /**
  * Custom JacksonJaxbJsonProvider that can handle vendor media types.  This
@@ -41,18 +48,26 @@ import org.midonet.cluster.rest_api.version.VersionParser;
 @Consumes(MediaType.WILDCARD)
 @Produces(MediaType.WILDCARD)
 public class WildcardJacksonJaxbJsonProvider
-        extends ConfiguredJacksonJaxbJsonProvider {
+    extends ConfiguredJacksonJaxbJsonProvider {
+
+    private @interface Version {
+        int value();
+    }
 
     private final static Logger log =
-            LoggerFactory.getLogger(WildcardJacksonJaxbJsonProvider.class);
+        LoggerFactory.getLogger(WildcardJacksonJaxbJsonProvider.class);
 
     private final VersionParser versionParser = new VersionParser();
     private final ObjectMapperProvider objectMapperProvider;
+    private final Map<Integer, Version> versionAnnotations =
+        new ConcurrentHashMap<>();
 
     @Inject
     public WildcardJacksonJaxbJsonProvider(ObjectMapperProvider omProvider) {
         super();
         this.objectMapperProvider = omProvider;
+        this._cfgCheckCanSerialize = true;
+        this._cfgCheckCanDeserialize = true;
     }
 
     /**
@@ -66,7 +81,7 @@ public class WildcardJacksonJaxbJsonProvider
     @Override
     public ObjectMapper locateMapper(Class<?> type, MediaType mediaType) {
         log.debug("WildCardJacksonJaxbJsonProvider.locateMapper entered: " +
-                "media type=" + mediaType);
+                  "media type=" + mediaType);
 
         if (this.objectMapperProvider == null) {
             log.debug("No object mapper available");
@@ -83,7 +98,83 @@ public class WildcardJacksonJaxbJsonProvider
         }
 
         log.debug("WildCardJacksonJaxbJsonProvider.locateMapper exiting:" +
-                " version=" + version);
+                  " version=" + version);
         return objectMapperProvider.get(version, mediaType);
     }
+
+    /**
+     * Overrides the {@link com.fasterxml.jackson.jaxrs.base.ProviderBase}
+     * read method, in order to add a custom {@link Version} annotation to the
+     * annotations set.
+     *
+     * The provider uses a map to cache JSON endpoint reader configurations,
+     * where the map key is the Java object class and an array of annotations.
+     * Because the provider does not use the media type, but rather this class
+     * based key, to get cached reader, by adding this custom version annotation
+     * we ensure that cached readers are differentiated by version.
+     */
+    @Override
+    public Object readFrom(Class<Object> type, Type genericType,
+                           Annotation[] annotations, MediaType mediaType,
+                           MultivaluedMap<String,String> httpHeaders,
+                           InputStream entityStream) throws IOException {
+        int version = versionParser.getVersion(mediaType);
+        if (version <= 0) {
+            version = 1;
+        }
+
+        Annotation[] annotationsWithVer =
+            Arrays.copyOf(annotations, annotations.length + 1);
+        annotationsWithVer[annotations.length] = getVersionAnnotation(version);
+
+        return super.readFrom(type, genericType, annotationsWithVer, mediaType,
+                              httpHeaders, entityStream);
+    }
+
+    /**
+     * Overrides the {@link com.fasterxml.jackson.jaxrs.base.ProviderBase}
+     * write method, in order to add a custom {@link Version} annotation to the
+     * annotations set.
+     *
+     * The provider uses a map to cache JSON endpoint writer configurations,
+     * where the map key is the Java object class and an array of annotations.
+     * Because the provider does not use the media type, but rather this class
+     * based key, to get cached writer, by adding this custom version annotation
+     * we ensure that cached writers are differentiated by version.
+     */
+    @Override
+    public void writeTo(Object value, Class<?> type, Type genericType,
+                        Annotation[] annotations, MediaType mediaType,
+                        MultivaluedMap<String,Object> httpHeaders,
+                        OutputStream entityStream)
+        throws IOException {
+
+        int version = versionParser.getVersion(mediaType);
+        if (version <= 0) {
+            version = 1;
+        }
+
+        Annotation[] annotationsWithVer =
+            Arrays.copyOf(annotations, annotations.length + 1);
+        annotationsWithVer[annotations.length] = getVersionAnnotation(version);
+
+        super.writeTo(value, type, genericType, annotationsWithVer, mediaType,
+                      httpHeaders, entityStream);
+    }
+
+    private Version getVersionAnnotation(final int version) {
+        Version annotation = versionAnnotations.get(version);
+        if (null == annotation) {
+            annotation = new Version() {
+                @Override
+                public int value() { return version; }
+                public Class<? extends Annotation> annotationType() {
+                    return Version.class;
+                }
+            };
+            versionAnnotations.put(version, annotation);
+        }
+        return annotation;
+    }
+
 }

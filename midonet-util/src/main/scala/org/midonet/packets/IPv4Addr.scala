@@ -20,8 +20,7 @@ import java.net.{Inet4Address, InetAddress}
 import java.nio.ByteBuffer
 import java.util.Random
 
-import org.codehaus.jackson.annotate.JsonValue
-import org.codehaus.jackson.annotate.JsonCreator
+import com.fasterxml.jackson.annotation.{JsonValue, JsonCreator}
 
 /**
  * An IPv4 address.

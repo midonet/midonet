@@ -19,9 +19,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.base.Objects;
-
-import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 
 /**
  * Class representing a single tenant entity in a deserialized format

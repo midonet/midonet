@@ -15,21 +15,23 @@
  */
 package org.midonet.util.version;
 
-import org.codehaus.jackson.map.introspect.AnnotatedField;
-import org.codehaus.jackson.map.introspect.AnnotationMap;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.experimental.runners.Enclosed;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.introspect.AnnotatedClass;
+import com.fasterxml.jackson.databind.introspect.AnnotatedField;
+import com.fasterxml.jackson.databind.introspect.AnnotationMap;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doReturn;
@@ -65,11 +67,12 @@ public class TestVersionCheckAnnotationIntrospector {
             throws NoSuchFieldException {
 
         Field field = TestClass.class.getField(fieldName);
+        AnnotatedClass clazz = AnnotatedClass.construct(TestClass.class, testObject, null);
         AnnotationMap map = new AnnotationMap();
         for (Annotation annotation : field.getAnnotations()) {
             map.add(annotation);
         }
-        return new AnnotatedField(field, map);
+        return new AnnotatedField(clazz, field, map);
     }
 
     private static void setComparator(Comparator<String> comparator,
@@ -91,56 +94,6 @@ public class TestVersionCheckAnnotationIntrospector {
     /**
      * Test annotation.
      */
-    @interface TestAnnotation {}
-
-    @RunWith(Parameterized.class)
-    public static class TestIsHandled {
-
-        private final Annotation input;
-        private final boolean expected;
-
-        public TestIsHandled(Annotation input, boolean expected) {
-            this.input = input;
-            this.expected = expected;
-        }
-
-        @Before
-        public void setup() {
-            testObject = new VersionCheckAnnotationIntrospector(
-                    "dummy_version");
-        }
-
-        @Parameters
-        public static Collection<Object[]> inputs() {
-
-            List<Object[]> params = new ArrayList<Object[]>();
-
-            Annotation mockNull = mock(Annotation.class);
-            doReturn(null).when(mockNull).annotationType();
-            params.add(new Object[]{mockNull, false});
-
-            Annotation mockSince = mock(Annotation.class);
-            doReturn(Since.class).when(mockSince).annotationType();
-            params.add(new Object[] { mockSince, true });
-
-            Annotation mockUntil = mock(Annotation.class);
-            doReturn(Until.class).when(mockUntil).annotationType();
-            params.add(new Object[]{mockUntil, true});
-
-            Annotation mockTest = mock(Annotation.class);
-            doReturn(TestAnnotation.class).when(mockTest).annotationType();
-            params.add(new Object[]{mockTest, false});
-
-            return params;
-        }
-
-        @Test
-        public void testIsHandled() {
-            boolean actual = testObject.isHandled(this.input);
-            assertEquals(this.expected, actual);
-        }
-    }
-
     @RunWith(Parameterized.class)
     public static class TestIsIgnorableFieldWithComparator {
 

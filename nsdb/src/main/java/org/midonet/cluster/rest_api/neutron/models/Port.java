@@ -19,12 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
-
-import static org.apache.commons.collections4.ListUtils.isEqualList;
-import static org.apache.commons.collections4.ListUtils.hashCodeForList;
-import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.annotate.JsonProperty;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
@@ -35,6 +32,9 @@ import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.collection.ListUtil;
+
+import static org.apache.commons.collections4.ListUtils.isEqualList;
+import static org.apache.commons.collections4.ListUtils.hashCodeForList;
 
 @ZoomClass(clazz = Neutron.NeutronPort.class)
 public class Port extends ZoomObject {

@@ -23,11 +23,11 @@ import java.util.Map;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.fasterxml.jackson.databind.JavaType;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
-import org.codehaus.jackson.type.JavaType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -151,7 +151,8 @@ public class TestRouter {
                     VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
                     String.class);
             JavaType type = FuncTest.objectMapper.getTypeFactory()
-                    .constructParametricType(List.class, DtoRouter.class);
+                    .constructParametrizedType(List.class, List.class,
+                                               DtoRouter.class);
             List<DtoRouter> actual = FuncTest.objectMapper.readValue(
                     actualRaw, type);
 
@@ -174,7 +175,8 @@ public class TestRouter {
                     VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
                     String.class);
             JavaType type = FuncTest.objectMapper.getTypeFactory()
-                    .constructParametricType(List.class, DtoRouter.class);
+                    .constructParametrizedType(List.class, List.class,
+                                               DtoRouter.class);
             List<DtoRouter> actual = FuncTest.objectMapper.readValue(
                     actualRaw, type);
 

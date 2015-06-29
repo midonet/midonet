@@ -19,7 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import org.codehaus.jackson.map.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
@@ -28,8 +28,8 @@ import static org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse;
  * ExceptionMapper provider class to handle JsonMappingException.
  */
 @Provider
-public class JsonMappingExceptionMapper implements
-        ExceptionMapper<JsonMappingException> {
+public class JsonMappingExceptionMapper
+    implements ExceptionMapper<JsonMappingException> {
 
     @Override
     public Response toResponse(JsonMappingException e) {
