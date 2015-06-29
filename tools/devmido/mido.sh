@@ -342,4 +342,9 @@ if grep -qw $PYTHON_PACKAGE_DIR $EASY_INSTALL_FILE; then
     grep -v $PYTHON_PACKAGE_DIR $EASY_INSTALL_FILE | sudo tee $EASY_INSTALL_FILE
 fi
 
+# Wait for HostService to register the host
+if ! timeout 60 sh -c 'while test -z $(midonet-cli -e host list); do sleep 1; done'; then
+    die $LINENO "HostService didn't register the host"
+fi
+
 echo "devmido has successfully completed in $SECONDS seconds."
