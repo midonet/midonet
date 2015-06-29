@@ -41,7 +41,19 @@ use it to build the right dependency packages.
 
 Simply execute the following command from the root directory of the clone:
 
-    ./gradlew cluster:midonet-cluster:run -Pcluster/midonet-cluster/conf/cluster.conf
+    ./gradlew cluster:midonet-cluster:run
 
-You want to have a logback.xml file in the classpath. You'll find a sample one
-in cluster/midonet-cluster/conf/logback.xml.
+Note that with these settings, the cluster will start an embedded 1-node
+ZK ensemble on localhost.  To override this setting, provide a bootstrap
+config file adding the following to the previous command:
+
+    -P<path_to_your_midonet.conf_file>
+
+You have a sample of this file at
+
+    cluster/midonet-cluster/conf/midonet-cluster.conf
+
+To override default logging settings tou want to set a logback.xml file
+in the classpath. You'll find a sample one in
+cluster/midonet-cluster/conf/logback.xml.
+

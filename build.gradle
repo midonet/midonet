@@ -259,7 +259,7 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
 
     configurations {
         provided
-        perfCompile.extendsFrom provided
+        perfCompile.extendsFrom compile
         perfRuntime.extendsFrom runtime
     }
 
