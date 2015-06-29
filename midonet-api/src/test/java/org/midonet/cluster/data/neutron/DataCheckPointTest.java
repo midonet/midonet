@@ -63,6 +63,7 @@ import org.midonet.cluster.rest_api.neutron.models.RuleEthertype;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroup;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
 import org.midonet.cluster.rest_api.neutron.models.Subnet;
+import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
@@ -501,10 +502,10 @@ public class DataCheckPointTest {
     @Before
     public void setUp() throws InterruptedException, KeeperException {
         zkRoot = "/test_" + UUID.randomUUID();
-        Config config = fillConfig(ConfigFactory.empty());
+        final Config config = fillConfig(ConfigFactory.empty());
         injector = Guice.createInjector(
-            new MidonetBackendTestModule(fillConfig(config)),
-            new TestDataClientModule(fillConfig(config)),
+            new MidonetBackendTestModule(),
+            new TestDataClientModule(config),
             new SerializationModule(),
             new ConfigProviderModule(fillLegacyConfig()),
             new CheckpointMockZookeeperConnectionModule(),
@@ -513,6 +514,8 @@ public class DataCheckPointTest {
                 @Override
                 protected void configure() {
                     bind(NeutronPlugin.class);
+                    bind(MidonetBackendConfig.class)
+                        .toInstance(new MidonetBackendConfig(config));
                 }
             }
         );

@@ -17,7 +17,7 @@
 package org.midonet.cluster
 
 import java.io.PrintWriter
-import java.sql.{Connection, DriverManager, Statement}
+import java.sql.{DriverManager, Connection, Statement}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -142,23 +142,14 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     // Adapt the DriverManager interface to DataSource interface.
     // SQLite doesn't seem to provide JDBC 2.0 API.
     private val dataSrc = new DataSource() {
-        override def getConnection() =
-            DriverManager.getConnection(DB_CONNECT_STR)
-
+        override def getConnection() = DriverManager.getConnection(DB_CONNECT_STR)
         override def getConnection(username: String, password: String) = null
-
         override def getLoginTimeout = -1
-
         override def getLogWriter = null
-
         override def setLoginTimeout(seconds: Int) {}
-
         override def setLogWriter(out: PrintWriter) {}
-
         override def getParentLogger = null
-
         override def isWrapperFor(clazz: Class[_]) = false
-
         override def unwrap[T](x: Class[T]): T = null.asInstanceOf[T]
     }
 

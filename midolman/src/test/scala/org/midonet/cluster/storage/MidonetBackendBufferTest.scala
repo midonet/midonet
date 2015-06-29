@@ -59,7 +59,7 @@ class MidonetBackendBufferTest extends FlatSpec with BeforeAndAfterAll
     "Reading 1 MB of data" should "fail with a 512 KB buffer" in {
         Given("A ZooKeeper client with a 512 KB buffer")
         val injector = Guice.createInjector(new MidolmanConfigModule(config),
-                                            new MidonetBackendModule(config))
+                                            new MidonetBackendModule())
 
         And("A curator instance connecting to the ZooKeeper server")
         val curator = injector.getInstance(classOf[CuratorFramework])
@@ -100,7 +100,7 @@ class MidonetBackendBufferTest extends FlatSpec with BeforeAndAfterAll
                |zookeeper.root_key : "$rootPath"
             """.stripMargin)
         val injector = Guice.createInjector(new MidolmanConfigModule(config),
-                                            new MidonetBackendModule(config))
+                                            new MidonetBackendModule())
 
         And("A curator instance connecting to the ZooKeeper server")
         val curator = injector.getInstance(classOf[CuratorFramework])
