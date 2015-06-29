@@ -16,8 +16,7 @@
 
 package org.midonet.cluster.storage
 
-import com.google.inject.{Singleton, Inject, PrivateModule, Provider}
-import com.typesafe.config.Config
+import com.google.inject.{Inject, PrivateModule, Provider, Singleton}
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
@@ -28,18 +27,12 @@ import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
   * are exposed to MidoNet components that need to access the various storage
   * backends that exist within a deployment.  It should not include any
   * dependencies linked to any specific service or component. */
-class MidonetBackendModule(val conf: MidonetBackendConfig)
-    extends PrivateModule {
-
-    def this(config: Config) = this(new MidonetBackendConfig(config))
+class MidonetBackendModule extends PrivateModule {
 
     override def configure(): Unit = {
         bindCurator()
         bindStorage()
         bindLockFactory()
-
-        bind(classOf[MidonetBackendConfig]).toInstance(conf)
-        expose(classOf[MidonetBackendConfig])
     }
 
     protected def bindLockFactory(): Unit = {

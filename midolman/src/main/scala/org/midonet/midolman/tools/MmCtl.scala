@@ -18,7 +18,7 @@ package org.midonet.midolman.tools
 
 import java.util.UUID
 
-import com.google.inject.{Guice, Injector}
+import com.google.inject.{AbstractModule, Guice, Injector}
 import com.sun.security.auth.module.UnixSystem
 import org.apache.commons.cli._
 import org.apache.curator.framework.CuratorFramework
@@ -166,7 +166,13 @@ object MmCtl {
         val configurator: MidoNodeConfigurator = MidoNodeConfigurator.apply()
         val config: MidonetBackendConfig = new MidonetBackendConfig(
             configurator.runtimeConfig)
-        Guice.createInjector(new MidonetBackendModule(config),
+        val module = new AbstractModule {
+            override def configure(): Unit = {
+                bind(classOf[MidonetBackendConfig]).toInstance(config)
+            }
+        }
+        Guice.createInjector(module,
+                             new MidonetBackendModule,
                              new ZookeeperConnectionModule(
                                  classOf[ZookeeperConnectionWatcher]),
                              new SerializationModule,

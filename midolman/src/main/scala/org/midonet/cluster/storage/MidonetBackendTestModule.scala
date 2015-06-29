@@ -23,6 +23,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.MidoTestConfigurator
+import org.midonet.conf.MidoTestConfigurator.forAgents
 
 /* In the main source tree to allow usage by other module's tests, without
  * creating a jar. */
@@ -55,10 +56,11 @@ object MidonetBackendTestModule {
 }
 
 /** Provides all dependencies for the new backend, using a FAKE zookeeper. */
-class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
-    extends MidonetBackendModule(new MidonetBackendConfig(cfg)) {
+class MidonetBackendTestModule extends MidonetBackendModule() {
 
     override protected def bindStorage(): Unit = {
+        bind(classOf[MidonetBackendConfig])
+            .toInstance(new MidonetBackendConfig(forAgents()))
         bind(classOf[MidonetBackend])
             .to(classOf[MidonetTestBackend])
             .asEagerSingleton()

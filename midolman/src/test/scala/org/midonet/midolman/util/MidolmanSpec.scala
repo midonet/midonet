@@ -20,10 +20,11 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import com.google.inject._
-import com.typesafe.config.{ConfigFactory, Config}
-
+import com.typesafe.config.{Config, ConfigFactory}
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
-import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
+import org.slf4j.LoggerFactory
+
+import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster._
@@ -37,8 +38,7 @@ import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsServi
 import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
-import org.midonet.util.concurrent.{MockClock, NanoClock}
-import org.slf4j.LoggerFactory
+import org.midonet.util.concurrent.NanoClock
 
 /**
  * A base trait to be used for new style Midolman simulation tests with Midolman
@@ -118,7 +118,7 @@ trait MidolmanSpec extends FeatureSpecLike
             new MidolmanConfigModule(conf),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
-            new MidonetBackendTestModule(conf),
+            new MidonetBackendTestModule(),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {

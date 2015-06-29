@@ -103,7 +103,7 @@ public abstract class ZookeeperTest {
             Arrays.asList(
                 new SerializationModule(),
                 new MidolmanConfigModule(config),
-                new MidonetBackendModule(config.zookeeper()),
+                new MidonetBackendModule(),
                 new ZookeeperConnectionModule(SessionUnawareConnectionWatcher.class),
                 new LegacyClusterModule())
         );

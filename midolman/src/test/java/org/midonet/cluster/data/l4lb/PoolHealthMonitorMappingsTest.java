@@ -21,9 +21,9 @@ import java.util.UUID;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValueFactory;
+
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
@@ -66,7 +66,6 @@ import static org.junit.Assert.assertTrue;
 public class PoolHealthMonitorMappingsTest {
 
     private PoolHealthMonitorZkManager poolHealthMonitorZkManager;
-    private PoolZkManager poolZkManager;
     private UUID loadBalancerId;
     private HealthMonitor healthMonitor;
     private UUID healthMonitorId;
@@ -166,7 +165,7 @@ public class PoolHealthMonitorMappingsTest {
         injector = Guice.createInjector(
                 new SerializationModule(),
                 new MidolmanConfigModule(conf),
-                new MidonetBackendTestModule(conf),
+                new MidonetBackendTestModule(),
                 new MockZookeeperConnectionModule(),
                 new LegacyClusterModule(),
                 new NeutronClusterModule()
@@ -174,7 +173,6 @@ public class PoolHealthMonitorMappingsTest {
 
         injector.injectMembers(this);
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);
-        poolZkManager = getPoolZkManager();
         poolHealthMonitorZkManager = getPoolHealthMonitorZkManager();
         loadBalancerId = createStockLoadBalancer();
         // Add a health monitor
@@ -202,8 +200,7 @@ public class PoolHealthMonitorMappingsTest {
             throws MappingStatusException, SerializationException,
             StateAccessException {
         dataClient.poolSetMapStatus(pool.getId(), mappingStatus);
-        Pool updatedPool = dataClient.poolGet(pool.getId());
-        return updatedPool;
+        return dataClient.poolGet(pool.getId());
     }
 
     private Pool emulateHealthMonitorActivation(Pool pool)

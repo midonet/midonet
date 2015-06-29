@@ -143,7 +143,7 @@ class ConfApiTest extends FeatureSpecLike
         When("When a GET is done on the schema URL for a known node type")
         val schema = get("conf/schema")
 
-        schema.isEmpty should be (false)
+        schema.isEmpty shouldBe false
         Then("the response is a valid schema with its schemaVersion key")
         schema.getInt("cluster.schemaVersion") should be > 0
     }
@@ -212,7 +212,7 @@ class ConfApiTest extends FeatureSpecLike
         And("fetched again")
         val deleted = get(path)
         Then("the result is an empty configuration")
-        deleted.isEmpty should be (true)
+        deleted.isEmpty shouldBe true
     }
 
 }

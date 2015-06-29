@@ -20,6 +20,8 @@ import com.google.inject.PrivateModule;
 import com.typesafe.config.Config;
 
 import com.typesafe.config.ConfigFactory;
+
+import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.midolman.config.MidolmanConfig;
@@ -40,7 +42,9 @@ public class MidolmanConfigModule extends PrivateModule {
     @Override
     protected void configure() {
         bind(MidolmanConfig.class).toInstance(config);
+        bind(MidonetBackendConfig.class).toInstance(config.zookeeper());
         expose(MidolmanConfig.class);
+        expose(MidonetBackendConfig.class);
     }
 
     public static MidolmanConfig createConfig(MidoNodeConfigurator configurator) {

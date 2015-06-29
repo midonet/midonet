@@ -18,14 +18,14 @@ package org.midonet.cluster.services.topology
 
 import java.util.concurrent.CountDownLatch
 
-import com.google.common.util.concurrent.Service.{State, Listener}
+import com.google.common.util.concurrent.Service.{Listener, State}
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.{ClusterConfig, ClusterConfig$, ClusterNode}
-import org.midonet.conf.HostIdGenerator
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.storage.MidonetBackendModule
+import org.midonet.cluster.storage.{MidonetBackendConfig, MidonetBackendModule}
+import org.midonet.cluster.{ClusterConfig, ClusterNode}
+import org.midonet.conf.HostIdGenerator
 import org.midonet.util.concurrent.CallingThreadExecutionContext
 
 /** Stand-alone application to start the TopologyApiService */
@@ -39,12 +39,13 @@ object TopologyApiServiceApp extends App {
     private val topologyApiServiceModule = new AbstractModule {
         override def configure(): Unit = {
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
+            bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
             bind(classOf[TopologyApiService]).in(classOf[Singleton])
         }
     }
 
     protected[cluster] val injector = Guice.createInjector(
-        new MidonetBackendModule(config.backend),
+        new MidonetBackendModule,
         topologyApiServiceModule
     )
 
