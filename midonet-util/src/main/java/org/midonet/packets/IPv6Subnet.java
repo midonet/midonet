@@ -16,8 +16,7 @@
 
 package org.midonet.packets;
 
-
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public final class IPv6Subnet extends IPSubnet<IPv6Addr> {
 

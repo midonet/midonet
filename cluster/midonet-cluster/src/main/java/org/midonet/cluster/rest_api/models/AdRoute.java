@@ -19,9 +19,8 @@ package org.midonet.cluster.rest_api.models;
 import java.net.URI;
 import java.util.UUID;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.protobuf.Message;
-
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;

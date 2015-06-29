@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.version.state;
 
-import org.codehaus.jackson.annotate.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The outer layer of the ZK data that holds its metadata.

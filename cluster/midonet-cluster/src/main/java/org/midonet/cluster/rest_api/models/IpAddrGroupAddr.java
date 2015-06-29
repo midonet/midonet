@@ -25,8 +25,8 @@ import javax.validation.constraints.Pattern;
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.codehaus.jackson.annotate.JsonSubTypes;
-import org.codehaus.jackson.annotate.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.packets.IPv4;
