@@ -24,7 +24,7 @@ import scala.collection.mutable.ListBuffer
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
-import org.midonet.cluster.models.Neutron.NeutronPort
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
 import org.midonet.cluster.services.c3po.neutron
@@ -148,6 +148,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                               delDhcpHost)
             deleteSecurityBindings(nPort, mPort, portContext)
             midoOps += DeleteNode(pathBldr.getBridgeMacPortEntryPath(nPort))
+
+            // Delete the ARP entries for associated Floating IP.
+            midoOps ++= deleteFloatingIpArpEntries(nPort)
         } else if (isDhcpPort(nPort)) {
             updateDhcpEntries(nPort,
                               portContext.midoDhcps,
@@ -569,6 +572,25 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
         ops.toList
     }
+
+    /* Returns a Buffer of DeleteNode ops */
+    private def deleteFloatingIpArpEntries(nPort: NeutronPort) = {
+        for (fipId <- nPort.getFloatingIpIdsList.asScala) yield {
+            // The following could be improved by possibly caching
+            // Neutron Router and Port. But ZOOM internally caches objects,
+            // therefore in practice it's OK?
+            val fip = storage.get(classOf[FloatingIp], fipId).await()
+            val router = storage.get(classOf[NeutronRouter],
+                                     fip.getRouterId).await()
+            val gwPort = storage.get(classOf[NeutronPort],
+                                     router.getGwPortId).await()
+            val arpPath = arpEntryPath(gwPort.getNetworkId,
+                                       fip.getFloatingIpAddress.getAddress,
+                                       gwPort.getMacAddress)
+            DeleteNode(arpPath)
+        }
+    }
+
 }
 
 private[translators] object PortUpdateValidator extends UpdateValidator[Port] {
