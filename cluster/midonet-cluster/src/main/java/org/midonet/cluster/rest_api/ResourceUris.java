@@ -16,6 +16,10 @@
 
 package org.midonet.cluster.rest_api;
 
+import java.util.UUID;
+
+import org.midonet.packets.MAC;
+
 /**
  * This class contains the name of all the resources that are exposed via our
  * REST API.
@@ -71,5 +75,17 @@ public final class ResourceUris {
     // DEPRECATED: the py client needs to remove these before we can
     public static final String LICENSES = "licenses";
     public static final String LICENSE_STATUS = "licenses/status";
+
+    public static String macToUri(String mac) {
+        return mac.replace(':', '-');
+    }
+
+    public static MAC macPortUriToMac(String macPortAsUri) {
+        return MAC.fromString(macPortAsUri.split("_")[0].replace('-', ':'));
+    }
+
+    public static UUID macPortUriToPort(String macPortAsUri) {
+        return UUID.fromString(macPortAsUri.split("_")[1]);
+    }
 
 }

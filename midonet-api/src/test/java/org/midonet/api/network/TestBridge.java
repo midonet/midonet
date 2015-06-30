@@ -616,45 +616,42 @@ public class TestBridge {
             DtoMacPort[] v1MacPorts = new DtoMacPort[4];
             for (int i = 0; i < 4; i++) {
                 DtoMacPort v2MacPort = macPorts[i];
-                v1MacPorts[i] = new DtoMacPort(
-                        v2MacPort.getMacAddr(), v2MacPort.getPortId(), null);
+                v1MacPorts[i] = new DtoMacPort(v2MacPort.getMacAddr(),
+                                               v2MacPort.getPortId(), null);
                 v1MacPorts[i].setUri(v2MacPort.getUri());
             }
 
             // Get the mappings using the V1 API.
             DtoMacPort[] macTable = getMacTable(bridge);
-            assertThat("Should return four entries.",
-                    macTable, arrayWithSize(4));
+            assertEquals("Should return four entries.", macTable.length, 4);
             assertThat("Should return the untagged entries.",
-                    macTable, arrayContainingInAnyOrder(v1MacPorts));
+                       macTable, arrayContainingInAnyOrder(v1MacPorts));
 
             // Now the V2 API, all at once.
             macTable = getMacTable(bridge, null);
-            assertThat("Should return sixteen entries.",
-                    macTable, arrayWithSize(16));
+            assertEquals("Should return sixteen entries.", macTable.length, 16);
+
             assertThat("Should return all entries.",
-                    macTable, arrayContainingInAnyOrder(macPorts));
+                       macTable, arrayContainingInAnyOrder(macPorts));
 
             // V2 API, only untagged entries.
             macTable = getMacTable(bridge, UNTAGGED_VLAN_ID);
-            assertThat("Should return four entries.",
-                    macTable, arrayWithSize(4));
+            assertEquals("Should return four entries.", macTable.length, 4);
             assertThat("Should return the untagged entries.",
                     macTable, arrayContainingInAnyOrder(
                         Arrays.copyOfRange(macPorts, 0, 4)));
 
             // V2 API, entries for VLAN 1.
             macTable = getMacTable(bridge, (short)1);
-            assertThat("Should return four entries.",
-                    macTable, arrayWithSize(4));
+            assertEquals("Should return four entries.", macTable.length, 4);
             assertThat("Should return the untagged entries.",
-                    macTable, arrayContainingInAnyOrder(
+                       macTable, arrayContainingInAnyOrder(
                     Arrays.copyOfRange(macPorts, 4, 8)));
 
             // Try a VLAN that doesn't exist.
-            DtoError error = dtoResource.getAndVerifyNotFound(
-                    ResourceUriBuilder.getMacTable(bridge.getUri(), (short) 4),
-                    APPLICATION_MAC_PORT_COLLECTION_JSON_V2);
+            dtoResource.getAndVerifyNotFound(
+                ResourceUriBuilder.getMacTable(bridge.getUri(), (short) 4),
+                APPLICATION_MAC_PORT_COLLECTION_JSON_V2);
         }
 
         @Test
@@ -683,8 +680,8 @@ public class TestBridge {
             // Try to create MAC-port mapping with bridge-port mismatch.
             DtoBridge bridge2 = postBridge("bridge2");
             DtoBridgePort bridge2Port = addInteriorPort(bridge2, null);
-            DtoError error =
-                    addInvalidMacPort(bridge, null, mac0, bridge2Port.getId());
+            DtoError error = addInvalidMacPort(bridge, null, mac0,
+                                               bridge2Port.getId());
             assertErrorMatches(error, MessageProperty.MAC_PORT_ON_BRIDGE);
 
             // Try to create MAC-port mappings with mismatched VLANs.
@@ -771,6 +768,9 @@ public class TestBridge {
             addMacPort(bridge1, (short) 1, mac1, bridge1ip1.getId());
             addMacPort(bridge1, (short) 1, mac2, bridge1ip1.getId());
 
+            DtoMacPort[] macTable = getMacTable(bridge1, null);
+            assertEquals(4, macTable.length);
+
             DtoBridge bridge2 = postBridge("bridge2");
             DtoPort bridge2ip0 = addInteriorPort(bridge2, null);
             DtoPort bridge2ip2 = addInteriorPort(bridge2, (short)2);
@@ -778,6 +778,10 @@ public class TestBridge {
             addMacPort(bridge2, null, mac2, bridge2ip0.getId());
             addMacPort(bridge2, (short) 2, mac2, bridge2ip2.getId());
             addMacPort(bridge2, (short) 2, mac3, bridge2ip2.getId());
+
+            // Assert things are created as expected
+            macTable = getMacTable(bridge2, null);
+            assertEquals(4, macTable.length);
 
             // Attempt to delete a mapping with a non-existing bridge.
             UUID fakeBridgeId = new UUID(1234L, 5678L);
@@ -793,8 +797,7 @@ public class TestBridge {
             // on this bridge.
             error = deleteMacPortWithNotFoundError(
                     bridge1.getUri(), (short)2, mac1, bridge1ip1.getId());
-            assertErrorMatches(
-                    error, MessageProperty.BRIDGE_HAS_VLAN, 2);
+            assertErrorMatches(error, MessageProperty.BRIDGE_HAS_VLAN, 2);
 
             // Attempt to delete a mapping that only exists for the bridge's
             // other VLAN. This shouldn't error, because delete is idempotent,
@@ -807,7 +810,7 @@ public class TestBridge {
             deleteMacPort(bridge2, null, mac0, bridge1ip0.getId());
 
             // Verify that the previous deletes didn't delete anything..
-            DtoMacPort[] macTable = getMacTable(bridge1, null);
+            macTable = getMacTable(bridge1, null);
             assertEquals(4, macTable.length);
             macTable = getMacTable(bridge2, null);
             assertEquals(4, macTable.length);

@@ -25,6 +25,7 @@ import javax.ws.rs.core.UriBuilder;
 import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -197,7 +198,7 @@ public class ResourceUriBuilder {
     }
 
     public static String macToUri(String mac) {
-        return mac.replace(':', '-');
+        return ResourceUris.macToUri(mac);
     }
 
     /**
