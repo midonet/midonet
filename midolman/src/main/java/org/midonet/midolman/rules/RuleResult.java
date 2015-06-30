@@ -38,7 +38,9 @@ public class RuleResult {
         @ZoomEnumValue(value = "REJECT")
         REJECT(true),
         @ZoomEnumValue(value = "RETURN")
-        RETURN(false);
+        RETURN(false),
+        @ZoomEnumValue(value = "MIRROR")
+        MIRROR(false);
 
         private final boolean decisive;
 
@@ -54,10 +56,16 @@ public class RuleResult {
 
     public Action action;
     public UUID jumpToChain;
+    public UUID dstPortId;
 
     public RuleResult(Action action, UUID jumpToChain) {
+        this(action, jumpToChain, null);
+    }
+
+    public RuleResult(Action action, UUID jumpToChain, UUID dstPortId) {
         this.action = action;
         this.jumpToChain = jumpToChain;
+        this.dstPortId = dstPortId;
     }
 
     @Override

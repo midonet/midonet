@@ -135,6 +135,10 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newJumpRuleOnChain(chain: UUID, pos: Int,
                                     condition: rules.Condition,
                                     jumpToChainID: UUID): UUID = ???
+    override
+    def newMirrorRuleOnChain(chain: UUID, pos: Int, condition: rules.Condition,
+                             dstPortId: UUID): UUID = ???
+
     override def newFragmentRuleOnChain(chain: UUID, pos: Int,
                                         fragmentPolicy: rules.FragmentPolicy,
                                         action: RuleResult.Action): UUID = ???
@@ -313,6 +317,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
             case RuleResult.Action.CONTINUE => Action.CONTINUE
             case RuleResult.Action.DROP => Action.DROP
             case RuleResult.Action.JUMP => Action.JUMP
+            case RuleResult.Action.MIRROR => Action.MIRROR
             case RuleResult.Action.REJECT => Action.REJECT
             case RuleResult.Action.RETURN => Action.RETURN
         }

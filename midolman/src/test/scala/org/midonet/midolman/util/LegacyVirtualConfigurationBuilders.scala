@@ -28,7 +28,7 @@ import org.midonet.cluster.data._
 import org.midonet.cluster.data.dhcp.{ExtraDhcpOpt, Host => DhcpHost, Opt121, Subnet}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.l4lb.{HealthMonitor, LoadBalancer, Pool, PoolMember, VIP}
-import org.midonet.cluster.data.rules.{ForwardNatRule, JumpRule, LiteralRule, ReverseNatRule, TraceRule}
+import org.midonet.cluster.data.rules.{ForwardNatRule, JumpRule, LiteralRule, MirrorRule, ReverseNatRule, TraceRule}
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.RuleResult.Action
@@ -136,6 +136,16 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         val id = clusterDataClient.rulesCreate(rule)
         Thread.sleep(50)
         id
+    }
+
+    override
+    def newMirrorRuleOnChain(chain: UUID, pos: Int, condition: Condition,
+                             dstPortId: UUID): UUID = {
+        val rule = new MirrorRule(condition)
+            .setChainId(chain)
+            .setPosition(pos)
+            .setDstPortId(dstPortId)
+        clusterDataClient.rulesCreate(rule)
     }
 
     override def newTraceRuleOnChain(chain: UUID, pos: Int, condition: Condition,

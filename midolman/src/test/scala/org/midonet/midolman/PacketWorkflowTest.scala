@@ -44,14 +44,13 @@ import org.midonet.odp.flows.FlowKeys.tunnel
 import org.midonet.odp.flows.{FlowActions, FlowAction}
 import org.midonet.odp.{Datapath, FlowMatches, Packet}
 import org.midonet.packets.Ethernet
-import org.midonet.packets.util.EthBuilder
-import org.midonet.packets.util.PacketBuilder.{udp, _}
+import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.functors.Callback0
 
 @RunWith(classOf[JUnitRunner])
-class PacketWorkflowTest extends MidolmanSpec {
+class PacketWorkflowTest extends MidolmanSpec with PacketTestHelper {
     var packetsSeen = List[PacketContext]()
     var ddaRef: TestActorRef[TestableDDA] = _
     def dda = ddaRef.underlyingActor
@@ -86,21 +85,8 @@ class PacketWorkflowTest extends MidolmanSpec {
         dda should not be null
     }
 
-    def makeFrame(variation: Short) =
-        { eth addr "01:02:03:04:05:06" -> "10:20:30:40:50:60" } <<
-        { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
-        { udp ports 10101 ---> variation }
-
     def makeUniqueFrame(variation: Short) =
         makeFrame(variation) << payload(UUID.randomUUID().toString)
-
-    implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
-        val frame: Ethernet = ethBuilder
-        new Packet(frame, FlowMatches.fromEthernetPacket(frame))
-              .setReason(Packet.Reason.FlowTableMiss)
-    }
-
-    def makePacket(variation: Short): Packet = makeFrame(variation)
 
     def makeStatePacket(): Packet = {
         val eth = FlowStatePackets.makeUdpShell(Array())

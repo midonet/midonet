@@ -162,6 +162,9 @@ class Rule(resource_base.ResourceBase):
     def get_fragment_policy(self):
         return self.dto['fragmentPolicy']
 
+    def get_dst_port_id(self):
+        return self.dto['dstPortId']
+
     def id(self, id):
         self.dto['id'] = id
         return self
@@ -340,6 +343,10 @@ class Rule(resource_base.ResourceBase):
 
     def fragment_policy(self, fragment_policy):
         self.dto['fragmentPolicy'] = fragment_policy
+        return self
+
+    def dst_port_id(self, dst_port_id):
+        self.dto['dstPortId'] = dst_port_id
         return self
 
     def trace_request_id(self, request_id):
