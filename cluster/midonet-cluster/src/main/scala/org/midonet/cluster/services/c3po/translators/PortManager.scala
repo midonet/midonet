@@ -119,7 +119,7 @@ trait PortManager extends RouteManager {
 
 object PortManager {
     def isVifPort(nPort: NeutronPortOrBuilder) =
-        !nPort.hasDeviceOwner || nPort.getDeviceOwner == DeviceOwner.NOVA
+        !nPort.hasDeviceOwner || nPort.getDeviceOwner == DeviceOwner.COMPUTE
     def isDhcpPort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.DHCP
     def isFloatingIpPort(nPort: NeutronPortOrBuilder) =

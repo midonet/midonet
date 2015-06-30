@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -150,8 +150,16 @@ object NeutronDeserializer {
 
     private def parseEnum(desc: EnumDescriptor)
                          (node: JsonNode): EnumValueDescriptor = {
-        val textVal = cleanUpProjectPrefix(node.asText)
-        val enumVal = desc.findValueByName(textVal.toUpperCase)
+        // Neutron device_owner for vm ports look like "compute:<az name>".
+        // we map them to "COMPUTE", throwing az away.
+        val textVal =
+            if (desc.getFullName ==
+                "org.midonet.cluster.models.NeutronPort.DeviceOwner"
+                && node.asText.startsWith("compute:"))
+                "COMPUTE"
+            else
+                cleanUpProjectPrefix(node.asText).toUpperCase
+        val enumVal = desc.findValueByName(textVal)
         if (enumVal == null)
             throw new NeutronDeserializationException(
                 s"Value $textVal not found in enum ${desc.getName}.")
