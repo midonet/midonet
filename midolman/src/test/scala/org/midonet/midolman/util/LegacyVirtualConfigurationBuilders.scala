@@ -236,13 +236,13 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient().ipAddrGroupsDelete(id)
     }
 
-    def greTunnelZone(name: String): TunnelZone = {
+    def greTunnelZone(name: String): UUID = {
         val tunnelZone = new TunnelZone().
             setName("default").
             setType(TunnelZone.Type.gre)
         clusterDataClient().tunnelZonesCreate(tunnelZone)
         Thread.sleep(50)
-        tunnelZone
+        tunnelZone.getId
     }
 
     def newBridge(bridge: ClusterBridge): ClusterBridge = {
