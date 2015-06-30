@@ -273,3 +273,9 @@ task manpages() {
     }
 }
 preparePkg.dependsOn manpages
+
+test {
+    if (project.hasProperty('midonet.newStack')) {
+        systemProperty "midonet.newStack", "true"
+    }
+}
