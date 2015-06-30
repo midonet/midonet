@@ -29,11 +29,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.api.auth.keystone.v2_0.KeystoneService;
 import org.midonet.api.auth.vsphere.VSphereConfig;
 import org.midonet.api.auth.vsphere.VSphereSSOService;
-import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.keystone.v2_0.KeystoneService;
 import org.midonet.config.ConfigProvider;
 import org.midonet.config.providers.ServletContextConfigProvider;
 
@@ -112,12 +112,6 @@ public class TestAuthServiceProvider {
                         // for the AuthServiceProvider to not be a Singleton
                         bind(AuthService.class)
                                 .toProvider(AuthServiceProvider.class);
-
-                        // instead of
-//                        bind(AuthService.class)
-//                                .toProvider(AuthServiceProvider.class)
-//                                .asEagerSingleton();
-
                         }
                     }
                 )

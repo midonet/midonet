@@ -40,7 +40,7 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.bgp.rest_api.BgpResource;
 import org.midonet.api.network.BridgePort;
 import org.midonet.api.network.Link;

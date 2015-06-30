@@ -24,13 +24,14 @@ import org.midonet.config.ConfigString;
  * Config interface for Keystone.
  */
 @ConfigGroup(KeystoneConfig.GROUP_NAME)
+@Deprecated
 public interface KeystoneConfig extends AuthConfig {
 
     String GROUP_NAME = "keystone";
 
     String ADMIN_TOKEN = "admin_token";
     String SERVICE_PROTOCOL_KEY = "service_protocol";
-    String SERVICE_HOST_kEY = "service_host";
+    String SERVICE_HOST_KEY = "service_host";
     String SERVICE_PORT_KEY = "service_port";
     String TENANT_NAME = "tenant_name";
 
@@ -40,7 +41,7 @@ public interface KeystoneConfig extends AuthConfig {
     @ConfigString(key = SERVICE_PROTOCOL_KEY, defaultValue = "http")
     String getServiceProtocol();
 
-    @ConfigString(key = SERVICE_HOST_kEY, defaultValue = "localhost")
+    @ConfigString(key = SERVICE_HOST_KEY, defaultValue = "localhost")
     String getServiceHost();
 
     @ConfigInt(key = SERVICE_PORT_KEY, defaultValue = 35357)
