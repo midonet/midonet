@@ -382,7 +382,8 @@ public interface DataClient {
             throws StateAccessException, SerializationException;
 
     void loadBalancerDelete(UUID id)
-            throws StateAccessException, SerializationException;
+            throws MappingStatusException, StateAccessException,
+                   SerializationException;
 
     UUID loadBalancerCreate(@Nonnull LoadBalancer loadBalancer)
             throws StateAccessException, SerializationException,

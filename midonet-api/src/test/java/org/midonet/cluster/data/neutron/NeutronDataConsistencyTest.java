@@ -26,11 +26,18 @@ import org.midonet.cluster.rest_api.neutron.models.Network;
 import org.midonet.cluster.rest_api.neutron.models.Port;
 import org.midonet.cluster.rest_api.neutron.models.Router;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
+
+import java.util.UUID;
 
 public final class NeutronDataConsistencyTest extends NeutronPluginTest {
 
     private DataClient dataClient;
+    private ZkManager zk;
+    private PathBuilder pb;
 
     @Before
     public void setUp() throws Exception {
@@ -38,6 +45,8 @@ public final class NeutronDataConsistencyTest extends NeutronPluginTest {
         super.setUp();
 
         this.dataClient = this.injector.getInstance(DataClient.class);
+        this.zk = this.injector.getInstance(ZkManager.class);
+        this.pb = this.injector.getInstance(PathBuilder.class);
     }
 
     /**
@@ -98,5 +107,32 @@ public final class NeutronDataConsistencyTest extends NeutronPluginTest {
         // Get the port and make sure it's gone
         Port p = this.plugin.getPort(port.id);
         Assert.assertNull(p);
+    }
+
+    /**
+     * Test that deleting the LoadBalancer object will also delete any
+     * corresponding pool-health monitor mappings
+     */
+    @Test
+    public void testDeleteLoadBalancer()
+            throws SerializationException, StateAccessException,
+            MappingStatusException, Rule.RuleIndexOutOfBoundsException {
+
+        String path = pb.getPoolHealthMonitorMappingsPath(pool.id,
+                healthMonitor.id);
+
+        // make sure the path exists
+        Assert.assertTrue(zk.exists(path));
+
+        Assert.assertTrue(dataClient.loadBalancersGetAll().size() == 1);
+        UUID lbId = dataClient.poolGet(pool.id).getLoadBalancerId();
+
+        dataClient.loadBalancerDelete(lbId);
+
+        // Check that the mapping path is cleaned up
+        Assert.assertFalse(zk.exists(path));
+
+        Assert.assertNull(dataClient.poolGet(pool.id));
+        Assert.assertNull(dataClient.healthMonitorGet(healthMonitor.id));
     }
 }
