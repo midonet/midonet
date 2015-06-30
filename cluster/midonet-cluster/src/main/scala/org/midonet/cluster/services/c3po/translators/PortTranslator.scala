@@ -27,6 +27,8 @@ import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, MidoOp, Update}
+import org.midonet.cluster.services.c3po.neutron
+import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -49,6 +51,18 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         with ChainManager with PortManager with RouteManager with RuleManager
         with BridgeStateTableManager {
     import org.midonet.cluster.services.c3po.translators.PortTranslator._
+
+    /* Neutron does not maintain the back reference to the Floating IP, so we
+     * need to do that by ourselves. */
+    override protected def retainNeutronModel(op: NeutronOp[NeutronPort])
+    : List[MidoOp[NeutronPort]] = {
+        op match {
+            case neutron.Create(nm) => List(Create(nm))
+            case neutron.Update(nm) => List(Update(nm,
+                                                   NeutronPortUpdateValidator))
+            case neutron.Delete(clazz, id) => List(Delete(clazz, id))
+        }
+    }
 
     override protected def translateCreate(nPort: NeutronPort): MidoOpList = {
         // Floating IP ports and ports on uplink networks have no corresponding
@@ -563,5 +577,16 @@ private[translators] object PortUpdateValidator extends UpdateValidator[Port] {
             .addAllRouteIds(oldPort.getRouteIdsList)
             .addAllRuleIds(oldPort.getRuleIdsList)
             .build()
+    }
+}
+
+private[translators] object NeutronPortUpdateValidator
+        extends UpdateValidator[NeutronPort] {
+    override def validate(oldNPort: NeutronPort, newNPort: NeutronPort)
+    : NeutronPort = {
+        val validatedUpdateBldr = newNPort.toBuilder
+        if (oldNPort.hasFloatingIpId)
+            validatedUpdateBldr.setFloatingIpId(oldNPort.getFloatingIpId)
+        validatedUpdateBldr.build
     }
 }
