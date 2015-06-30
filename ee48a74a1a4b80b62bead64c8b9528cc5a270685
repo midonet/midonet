@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_121a6d17",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/l4lb/HealthMonitor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T10:09:31Z",
+      "side": 1,
+      "message": "Should ANY exception here be allowed to bubble up to the supervisor?  It seems safer to log the error here and preferably have this particular thread killed.",
+      "revId": "ee48a74a1a4b80b62bead64c8b9528cc5a270685",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
