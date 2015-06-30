@@ -38,7 +38,9 @@ public class RuleResult {
         @ZoomEnumValue(value = "REJECT")
         REJECT(true),
         @ZoomEnumValue(value = "RETURN")
-        RETURN(false);
+        RETURN(false),
+        @ZoomEnumValue(value = "MIRROR")
+        MIRROR(false);
 
         private final boolean decisive;
 
