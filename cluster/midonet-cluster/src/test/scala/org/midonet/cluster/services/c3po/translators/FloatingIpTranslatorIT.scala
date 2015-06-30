@@ -104,7 +104,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    macAddr = vifPortMac,
                                    fixedIps = List(IPAlloc(
                                            fixedIp, privateSubnetId.toString)),
-                                   deviceOwner = DeviceOwner.NOVA).toString
+                                   deviceOwner = DeviceOwner.COMPUTE).toString
         executeSqlStmts(insertTaskSql(
                 id = 4, Create, PortType, vifPortJson, vifPortId, "tx4"))
         eventually {
