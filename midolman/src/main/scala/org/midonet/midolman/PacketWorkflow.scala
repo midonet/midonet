@@ -319,9 +319,7 @@ class PacketWorkflow(
         while (i < pktCtxs.size) {
             val pktCtx = pktCtxs(i)
             if (pktCtx.idle) {
-                MDC.put("cookie", pktCtx.cookieStr)
                 drop(pktCtx)
-                MDC.remove("cookie")
             } else {
                 log.warn(s"Pending ${pktCtx.cookieStr} was scheduled for " +
                          "cleanup but was not idle")
@@ -394,9 +392,6 @@ class PacketWorkflow(
             MDC.put("cookie", context.cookieStr)
             context.log.debug(s"New cookie for new match ${context.origMatch}")
             runWorkflow(context)
-        } catch {
-            case ex: Exception =>
-                log.error("Unable to execute workflow", ex)
         } finally {
             if (context.ingressed)
                 packetOut(1)
@@ -419,7 +414,8 @@ class PacketWorkflow(
             case NotYetException(f, msg) =>
                 pktCtx.log.debug(s"Postponing simulation because: $msg")
                 postponeOn(pktCtx, f)
-            case ex: Throwable => handleErrorOn(pktCtx, ex)
+            case NonFatal(ex) =>
+                handleErrorOn(pktCtx, ex)
         }
 
     private def handlePacket(packet: Packet): Unit =
