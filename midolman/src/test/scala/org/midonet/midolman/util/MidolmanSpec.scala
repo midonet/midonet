@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory
  * Actors.
  */
 trait MidolmanSpec extends FeatureSpecLike
-        with VirtualConfigurationBuilders
+        with ForwardingVirtualConfigurationBuilders
         with Matchers
         with BeforeAndAfter
         with GivenWhenThen
@@ -152,6 +152,7 @@ trait MidolmanSpec extends FeatureSpecLike
                 }
             })
         if (System.getProperty("midonet.newStack") != null) {
+            log.info("Using zoom storage")
             modules :+ new AbstractModule {
                 override def configure() {
                     bind(classOf[Client])
@@ -177,7 +178,15 @@ trait MidolmanSpec extends FeatureSpecLike
                 }
             }
         } else {
-            modules :+ (new LegacyClusterModule())
+            log.info("Using legacy storage")
+            modules ++ List(new LegacyClusterModule(),
+                            new AbstractModule {
+                                override def configure() {
+                                    bind(classOf[VirtualConfigurationBuilders])
+                                        .to(classOf[LegacyVirtualConfigurationBuilders])
+                                        .asEagerSingleton()
+                                }
+                            })
         }
     }
 }

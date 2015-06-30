@@ -45,362 +45,88 @@ import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBS
 
 trait VirtualConfigurationBuilders {
 
-    protected def clusterDataClient(): DataClient
-
-    protected def stateStorage: LegacyStorage
-
-    def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host = {
-        val host = new Host().setName(name).setTunnelZones(tunnelZones)
-        clusterDataClient().hostsCreate(id, host)
-        host.setId(id)
-        host
-    }
-
-    def newHost(name: String, id: UUID): Host = newHost(name, id, Set.empty)
-
-    def newHost(name: String): Host = newHost(name, UUID.randomUUID())
-
-    def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
-        val chain = newChain(name, None)
-        bridge.setInboundFilter(chain.getId)
-        clusterDataClient().bridgesUpdate(bridge)
-        Thread.sleep(50)
-        chain
-    }
-
-    def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
-        val chain = newChain(name, None)
-        bridge.setOutboundFilter(chain.getId)
-        clusterDataClient().bridgesUpdate(bridge)
-        Thread.sleep(50)
-        chain
-    }
-
-    def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
-        val chain = newChain(name, None)
-        router.setInboundFilter(chain.getId)
-        clusterDataClient().routersUpdate(router)
-        Thread.sleep(50)
-        chain
-    }
-
-    def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain = {
-        val chain = newChain(name, None)
-        router.setOutboundFilter(chain.getId)
-        clusterDataClient().routersUpdate(router)
-        Thread.sleep(50)
-        chain
-    }
-
-    def newChain(name: String, id: Option[UUID] = None): Chain = {
-        val chain = new Chain().setName(name)
-        if (id.isDefined)
-            chain.setId(id.get)
-        else
-            chain.setId(UUID.randomUUID)
-        clusterDataClient().chainsCreate(chain)
-        Thread.sleep(50)
-        chain
-    }
-
+    def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host
+    def newHost(name: String, id: UUID): Host
+    def newHost(name: String): Host
+    def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain
+    def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain
+    def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain
+    def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain
+    def newChain(name: String, id: Option[UUID] = None): Chain
     def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
                               (name: String, port: Port[PD, P],
-                               id: UUID): Chain = {
-        val chain = newChain(name, Some(id))
-        port.setOutboundFilter(id)
-        clusterDataClient().portsUpdate(port)
-        Thread.sleep(50)
-        chain
-    }
-
+                               id: UUID): Chain
     def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
                              (name: String, port: Port[PD, P],
-                              id: UUID): Chain = {
-        val chain = new Chain().setName(name).setId(id)
-        clusterDataClient().chainsCreate(chain)
-        port.setInboundFilter(id)
-        clusterDataClient().portsUpdate(port)
-        Thread.sleep(50)
-        chain
-    }
-
+                              id: UUID): Chain
     def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                              (name: String, port: Port[PD, P]): Chain =
-        newOutboundChainOnPort(name, port, UUID.randomUUID)
-
+                              (name: String, port: Port[PD, P]): Chain
     def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                             (name: String, port: Port[PD, P]): Chain =
-        newInboundChainOnPort(name, port, UUID.randomUUID)
-
+                             (name: String, port: Port[PD, P]): Chain
     def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                              action: Action): LiteralRule = {
-        val rule = new LiteralRule(condition)
-                       .setChainId(chain.getId).setPosition(pos)
-                       .setAction(action)
-        val id = clusterDataClient().rulesCreate(rule)
-        Thread.sleep(50)
-        clusterDataClient().rulesGet(id).asInstanceOf[LiteralRule]
-    }
-
-    /**
-     * Convenience method for creating a rule that accepts or drops TCP
-     * packets addressed to a specific port.
-     */
+                              action: Action): LiteralRule
     def newTcpDstRuleOnChain(
             chain: Chain, pos: Int, dstPort: Int, action: Action,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
-    : LiteralRule = {
-        val condition = newCondition(nwProto = Some(TCP.PROTOCOL_NUMBER),
-                                     tpDst = Some(dstPort),
-                                     fragmentPolicy = fragmentPolicy)
-        newLiteralRuleOnChain(chain, pos, condition, action)
-    }
-
+    : LiteralRule
     def newIpAddrGroupRuleOnChain(chain: Chain, pos: Int, action: Action,
                                   ipAddrGroupIdDst: Option[UUID],
-                                  ipAddrGroupIdSrc: Option[UUID]) = {
-        val condition = newCondition(ipAddrGroupIdDst = ipAddrGroupIdDst,
-                                     ipAddrGroupIdSrc = ipAddrGroupIdSrc)
-        newLiteralRuleOnChain(chain, pos, condition, action)
-    }
-
+                                  ipAddrGroupIdSrc: Option[UUID]): LiteralRule
     def newForwardNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
                                  action: Action, targets: Set[NatTarget],
-                                 isDnat: Boolean) : ForwardNatRule = {
-        val jTargets = new JSet[NatTarget]()
-        jTargets.addAll(targets)
-        val rule = new ForwardNatRule(condition, action, jTargets, isDnat).
-                        setChainId(chain.getId).setPosition(pos)
-        val id = clusterDataClient().rulesCreate(rule)
-        Thread.sleep(50)
-        clusterDataClient().rulesGet(id).asInstanceOf[ForwardNatRule]
-    }
-
+                                 isDnat: Boolean) : ForwardNatRule
     def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                         action: Action, isDnat: Boolean) : ReverseNatRule = {
-        val rule = new ReverseNatRule(condition, action, isDnat).
-            setChainId(chain.getId).setPosition(pos)
-        val id = clusterDataClient().rulesCreate(rule)
-        Thread.sleep(50)
-        clusterDataClient().rulesGet(id).asInstanceOf[ReverseNatRule]
-    }
-
-    def removeRuleFromBridge(bridge: ClusterBridge) {
-        bridge.setInboundFilter(null)
-        clusterDataClient().bridgesUpdate(bridge)
-        Thread.sleep(50)
-    }
-
+                         action: Action, isDnat: Boolean) : ReverseNatRule
+    def removeRuleFromBridge(bridge: ClusterBridge): Unit
     def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                              jumpToChainID: UUID): JumpRule = {
-        val rule = new JumpRule(condition).
-            setChainId(chain.getId).setPosition(pos).setJumpToChainId(jumpToChainID)
-        val id = clusterDataClient().rulesCreate(rule)
-        Thread.sleep(50)
-        clusterDataClient().rulesGet(id).asInstanceOf[JumpRule]
-    }
-
+                              jumpToChainID: UUID): JumpRule
     def newFragmentRuleOnChain(chain: Chain, pos: Int,
                                fragmentPolicy: FragmentPolicy,
-                               action: Action) = {
-        val condition = newCondition(fragmentPolicy = fragmentPolicy)
-        newLiteralRuleOnChain(chain, pos, condition, action)
-    }
-
-    def deleteRule(id: UUID) {
-        clusterDataClient().rulesDelete(id)
-    }
-
-    def createIpAddrGroup(): IpAddrGroup = createIpAddrGroup(UUID.randomUUID())
-
-    def createIpAddrGroup(id: UUID): IpAddrGroup = {
-        val ipAddrGroup = new IpAddrGroup(id, new IpAddrGroup.Data())
-        clusterDataClient().ipAddrGroupsCreate(ipAddrGroup)
-        Thread.sleep(50)
-        ipAddrGroup
-    }
-
-    def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = {
-        clusterDataClient().ipAddrGroupAddAddr(id, addr)
-    }
-
-    def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit = {
-        clusterDataClient().ipAddrGroupRemoveAddr(id, addr)
-    }
-
-    def deleteIpAddrGroup(id: UUID) = {
-        clusterDataClient().ipAddrGroupsDelete(id)
-    }
-
-    def greTunnelZone(name: String): TunnelZone = {
-        val tunnelZone = new TunnelZone().
-            setName("default").
-            setType(TunnelZone.Type.gre)
-        clusterDataClient().tunnelZonesCreate(tunnelZone)
-        Thread.sleep(50)
-        tunnelZone
-    }
-
-    def newBridge(bridge: ClusterBridge): ClusterBridge = {
-        val id = clusterDataClient().bridgesCreate(bridge)
-        Thread.sleep(50)
-        clusterDataClient().bridgesGet(id)
-    }
-
-    def newBridge(name: String): ClusterBridge =
-            newBridge(new ClusterBridge().setName(name))
-
-    def newBridgePort(bridge: ClusterBridge): BridgePort =
-        newBridgePort(bridge, Ports.bridgePort(bridge))
-
-    def newBridgePort(bridge: ClusterBridge, port: BridgePort) = {
-        port.setDeviceId(bridge.getId)
-        val uuid = clusterDataClient().portsCreate(port)
-        Thread.sleep(50)
-        // do a portsGet because some fields are set during the creating and are
-        // not copied in the port object we pass, eg. TunnelKey
-        clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
-    }
-
+                               action: Action): LiteralRule
+    def deleteRule(id: UUID): Unit
+    def createIpAddrGroup(): IpAddrGroup
+    def createIpAddrGroup(id: UUID): IpAddrGroup
+    def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit
+    def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit
+    def deleteIpAddrGroup(id: UUID): Unit
+    def greTunnelZone(name: String): TunnelZone
+    def newBridge(bridge: ClusterBridge): ClusterBridge
+    def newBridge(name: String): ClusterBridge
+    def newBridgePort(bridge: ClusterBridge): BridgePort
+    def newBridgePort(bridge: ClusterBridge, port: BridgePort): BridgePort
     def newBridgePort(bridge: ClusterBridge,
-                      vlanId: Option[Short] = None): BridgePort = {
-        val jVlanId: java.lang.Short = if(vlanId.isDefined) vlanId.get else null
-        val uuid = clusterDataClient()
-                   .portsCreate(Ports.bridgePort(bridge, jVlanId))
-        Thread.sleep(50)
-        clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
-    }
-
-    def newVxLanPort(bridge: ClusterBridge, port: VxLanPort): VxLanPort = {
-        port.setDeviceId(bridge.getId)
-        val uuid = clusterDataClient().portsCreate(port)
-        clusterDataClient().portsGet(uuid).asInstanceOf[VxLanPort]
-    }
-
-    def deletePort(port: Port[_, _], hostId: UUID){
-        clusterDataClient().hostsDelVrnPortMapping(hostId, port.getId)
-    }
-
-    def newPortGroup(name: String, stateful: Boolean = false) = {
-        val pg = new ClusterPortGroup().setName(name).setStateful(stateful)
-        val id = clusterDataClient().portGroupsCreate(pg)
-        Thread.sleep(50)
-        clusterDataClient().portGroupsGet(id)
-    }
-
-    def updatePortGroup(pg: ClusterPortGroup) = {
-        clusterDataClient().portGroupsUpdate(pg)
-    }
-
-    def newPortGroupMember(pgId: UUID, portId: UUID) = {
-        clusterDataClient().portGroupsAddPortMembership(pgId, portId)
-    }
-
-    def deletePortGroupMember(pgId: UUID, portId: UUID) = {
-        clusterDataClient().portGroupsRemovePortMembership(pgId, portId)
-    }
-
-    def newRouter(router: ClusterRouter): ClusterRouter = {
-        val id = clusterDataClient().routersCreate(router)
-        Thread.sleep(50)
-        clusterDataClient().routersGet(id)
-    }
-
-    def newRouter(name: String): ClusterRouter =
-            newRouter(new ClusterRouter().setName(name))
-
+                      vlanId: Option[Short] = None): BridgePort
+    def newVxLanPort(bridge: ClusterBridge, port: VxLanPort): VxLanPort
+    def deletePort(port: Port[_, _], hostId: UUID): Unit
+    def newPortGroup(name: String, stateful: Boolean = false): ClusterPortGroup
+    def updatePortGroup(pg: ClusterPortGroup): Unit
+    def newPortGroupMember(pgId: UUID, portId: UUID): Unit
+    def deletePortGroupMember(pgId: UUID, portId: UUID): Unit
+    def newRouter(router: ClusterRouter): ClusterRouter
+    def newRouter(name: String): ClusterRouter
     def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
-                        nwAddr: String, nwLen: Int): RouterPort = {
-        val port = Ports.routerPort(router)
-                        .setPortAddr(portAddr)
-                        .setNwAddr(nwAddr)
-                        .setNwLength(nwLen)
-                        .setHwAddr(mac)
-        val uuid = clusterDataClient().portsCreate(port)
-        Thread.sleep(50)
-        clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
-    }
-
-    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: IPv4Subnet): RouterPort = {
-        newRouterPort(router, mac, portAddr.toUnicastString,
-            portAddr.toNetworkAddress.toString, portAddr.getPrefixLen)
-    }
-
+                        nwAddr: String, nwLen: Int): RouterPort
+    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: IPv4Subnet): RouterPort
     def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
-                              nwAddr: String, nwLen: Int): RouterPort = {
-        val port = Ports.routerPort(router)
-                        .setPortAddr(portAddr)
-                        .setNwAddr(nwAddr)
-                        .setNwLength(nwLen)
-                        .setHwAddr(mac)
-        val uuid = clusterDataClient().portsCreate(port)
-        Thread.sleep(50)
-        clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
-    }
-
+                              nwAddr: String, nwLen: Int): RouterPort
     def newRoute(router: ClusterRouter,
                  srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
                  nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
-                 weight: Int): UUID = {
-        val uuid = clusterDataClient().routesCreate(new Route()
-            .setRouterId(router.getId)
-            .setSrcNetworkAddr(srcNw)
-            .setSrcNetworkLength(srcNwLen)
-            .setDstNetworkAddr(dstNw)
-            .setDstNetworkLength(dstNwLen)
-            .setNextHop(nextHop)
-            .setNextHopPort(nextHopPort)
-            .setNextHopGateway(nextHopGateway)
-            .setWeight(weight))
-        Thread.sleep(50)
-        uuid
-    }
-
-    def deleteRoute(routeId: UUID) {
-        clusterDataClient().routesDelete(routeId)
-    }
-
+                 weight: Int): UUID
+    def deleteRoute(routeId: UUID): Unit
     def addDhcpSubnet(bridge : ClusterBridge,
-                      subnet : Subnet) = {
-        clusterDataClient().dhcpSubnetsCreate(bridge.getId, subnet)
-    }
-
+                      subnet : Subnet): Unit
     def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
-                    host : org.midonet.cluster.data.dhcp.Host) = {
-        clusterDataClient().dhcpHostsCreate(bridge.getId, subnet.getSubnetAddr, host)
-    }
-
+                    host : org.midonet.cluster.data.dhcp.Host): Unit
     def updatedhcpHost(bridge: ClusterBridge,
-                       subnet: Subnet, host: DhcpHost) = {
-        clusterDataClient().dhcpHostsUpdate(
-            bridge.getId, subnet.getSubnetAddr, host)
-    }
-
+                       subnet: Subnet, host: DhcpHost): Unit
     def addDhcpSubnet6(bridge : ClusterBridge,
-                       subnet : Subnet6) = {
-        clusterDataClient().dhcpSubnet6Create(bridge.getId, subnet)
-    }
-
+                       subnet : Subnet6): Unit
     def addDhcpV6Host(bridge : ClusterBridge, subnet : Subnet6,
-                    host : org.midonet.cluster.data.dhcp.V6Host) = {
-        clusterDataClient().dhcpV6HostCreate(bridge.getId,
-                                              subnet.getPrefix, host)
-    }
-
-    def linkPorts(port: Port[_, _], peerPort: Port[_, _]) {
-        clusterDataClient().portsLink(port.getId, peerPort.getId)
-    }
-
-    def materializePort(port: Port[_, _], hostId: UUID, portName: String): Unit =
-        materializePort(port.getId, hostId, portName)
-
-    def materializePort(port: UUID, hostId: UUID, portName: String): Unit = {
-        clusterDataClient().hostsAddVrnPortMappingAndReturnPort(
-            hostId, port, portName)
-
-        stateStorage.setPortLocalAndActive(port, hostId, true)
-    }
-
+                    host : org.midonet.cluster.data.dhcp.V6Host): Unit
+    def linkPorts(port: Port[_, _], peerPort: Port[_, _]): Unit
+    def materializePort(port: Port[_, _], hostId: UUID, portName: String): Unit
+    def materializePort(port: UUID, hostId: UUID, portName: String): Unit
     def newCondition(
             nwProto: Option[Byte] = None,
             tpDst: Option[Int] = None,
@@ -408,240 +134,270 @@ trait VirtualConfigurationBuilders {
             ipAddrGroupIdDst: Option[UUID] = None,
             ipAddrGroupIdSrc: Option[UUID] = None,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
-            : Condition = {
-        val c = new Condition()
-        if (ipAddrGroupIdDst.isDefined)
-            c.ipAddrGroupIdDst = ipAddrGroupIdDst.get
-        if (ipAddrGroupIdSrc.isDefined)
-            c.ipAddrGroupIdSrc = ipAddrGroupIdSrc.get
-        if (nwProto.isDefined)
-            c.nwProto = Byte.box(nwProto.get)
-        if (tpDst.isDefined)
-            c.tpDst = new org.midonet.util.Range(Int.box(tpDst.get))
-        if (tpSrc.isDefined)
-            c.tpSrc = new org.midonet.util.Range(Int.box(tpSrc.get))
-        c.fragmentPolicy = fragmentPolicy
-        c
-    }
-
-    def newIPAddrGroup(id: Option[UUID]): UUID = {
-        val ipAddrGroup = id match {
-            case None => new IpAddrGroup()
-            case Some(id) => new IpAddrGroup(id)
-        }
-        clusterDataClient().ipAddrGroupsCreate(ipAddrGroup)
-    }
-
-    def addAddrToIpAddrGroup(id: UUID, addr: String) {
-        clusterDataClient().ipAddrGroupAddAddr(id, addr)
-    }
-
-    def removeAddrFromIpAddrGroup(id: UUID, addr: String) {
-        clusterDataClient().ipAddrGroupRemoveAddr(id, addr)
-    }
-
-    // L4LB
-    def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer = {
-        val loadBalancer = new LoadBalancer()
-        loadBalancer.setAdminStateUp(true)
-        loadBalancer.setId(id)
-        clusterDataClient().loadBalancerCreate(loadBalancer)
-        Thread.sleep(50)
-        loadBalancer
-    }
-
-    def deleteLoadBalancer(id: UUID) {
-        clusterDataClient().loadBalancerDelete(id)
-    }
-
-    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit = {
-        if (loadBalancer != null) {
-            router.setLoadBalancer(loadBalancer.getId)
-        } else {
-            router.setLoadBalancer(null)
-        }
-        clusterDataClient().routersUpdate(router)
-    }
-
-    def setLoadBalancerDown(loadBalancer: LoadBalancer) {
-        loadBalancer.setAdminStateUp(false)
-        clusterDataClient().loadBalancerUpdate(loadBalancer)
-    }
-
-    def createVip(pool: Pool): VIP = createVip(pool, "10.10.10.10", 10)
-
-    def createVip(pool: Pool, address: String, port: Int): VIP = {
-        val vip = new VIP()
-        vip.setId(UUID.randomUUID)
-        vip.setAddress(address)
-        vip.setPoolId(pool.getId)
-        // Set the load balancer ID manually. This should be done automatically
-        // when we go through the REST API.
-        vip.setLoadBalancerId(pool.getLoadBalancerId)
-        vip.setProtocolPort(port)
-        vip.setAdminStateUp(true)
-        clusterDataClient().vipCreate(vip)
-        Thread.sleep(50)
-        // Getting the created VIP to see the actual model stored in
-        // ZooKeeper because `loadBalancerId` would be populated though
-        // the associated pool.
-        clusterDataClient().vipGet(vip.getId)
-    }
-
-    def deleteVip(vip: VIP): Unit = clusterDataClient().vipDelete(vip.getId)
-
-    def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer) {
-        vip.setLoadBalancerId(null)
-        clusterDataClient().vipUpdate(vip)
-    }
-
-    def createRandomVip(pool: Pool): VIP = {
-        val rand = new Random()
-        val vip = new VIP()
-        vip.setId(UUID.randomUUID)
-        vip.setAddress("10.10.10." + Integer.toString(rand.nextInt(200) +1))
-        vip.setProtocolPort(rand.nextInt(1000) + 1)
-        vip.setAdminStateUp(true)
-        vip.setPoolId(pool.getId)
-        clusterDataClient().vipCreate(vip)
-        Thread.sleep(50)
-        // Getting the created VIP to see the actual model stored in
-        // ZooKeeper because `loadBalancerId` would be populated though
-        // the associated pool.
-        clusterDataClient().vipGet(vip.getId)
-    }
-
-    def setVipPool(vip: VIP, pool: Pool) {
-        vip.setPoolId(pool.getId)
-        clusterDataClient().vipUpdate(vip)
-    }
-
-    def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean) {
-        vip.setAdminStateUp(adminStateUp)
-        clusterDataClient().vipUpdate(vip)
-    }
-
-    def vipEnableStickySourceIP(vip: VIP) {
-        vip.setSessionPersistence(VipSessionPersistence.SOURCE_IP)
-        clusterDataClient().vipUpdate(vip)
-    }
-
-    def vipDisableStickySourceIP(vip: VIP) {
-        vip.setSessionPersistence(null)
-        clusterDataClient().vipUpdate(vip)
-    }
-
+            : Condition
+    def newIPAddrGroup(id: Option[UUID]): UUID 
+    def addAddrToIpAddrGroup(id: UUID, addr: String): Unit
+    def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit
+    def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer
+    def deleteLoadBalancer(id: UUID): Unit
+    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit
+    def setLoadBalancerDown(loadBalancer: LoadBalancer): Unit
+    def createVip(pool: Pool): VIP
+    def createVip(pool: Pool, address: String, port: Int): VIP
+    def deleteVip(vip: VIP): Unit
+    def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer): Unit
+    def createRandomVip(pool: Pool): VIP
+    def setVipPool(vip: VIP, pool: Pool): Unit
+    def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean): Unit
+    def vipEnableStickySourceIP(vip: VIP): Unit
+    def vipDisableStickySourceIP(vip: VIP): Unit
     def newHealthMonitor(id: UUID = UUID.randomUUID(),
                            adminStateUp: Boolean = true,
                            delay: Int = 2,
                            maxRetries: Int = 2,
-                           timeout: Int = 2): HealthMonitor = {
-        val hm = new HealthMonitor()
-        hm.setId(id)
-        hm.setAdminStateUp(adminStateUp)
-        hm.setDelay(delay)
-        hm.setMaxRetries(maxRetries)
-        hm.setTimeout(timeout)
-        clusterDataClient().healthMonitorCreate(hm)
-        Thread.sleep(50)
-        hm
-    }
-
+                           timeout: Int = 2): HealthMonitor
     def newRandomHealthMonitor
-            (id: UUID = UUID.randomUUID()): HealthMonitor = {
-        val rand = new Random()
-        val hm = new HealthMonitor()
-        hm.setId(id)
-        hm.setAdminStateUp(true)
-        hm.setDelay(rand.nextInt(100) + 1)
-        hm.setMaxRetries(rand.nextInt(100) + 1)
-        hm.setTimeout(rand.nextInt(100) + 1)
-        clusterDataClient().healthMonitorCreate(hm)
-        Thread.sleep(50)
-        hm
-    }
-
-    def setHealthMonitorDelay(hm: HealthMonitor, delay: Int) = {
-        hm.setDelay(delay)
-        clusterDataClient().healthMonitorUpdate(hm)
-    }
-
-    def deleteHealthMonitor(hm: HealthMonitor) {
-        clusterDataClient().healthMonitorDelete(hm.getId)
-    }
-
+            (id: UUID = UUID.randomUUID()): HealthMonitor
+    def setHealthMonitorDelay(hm: HealthMonitor, delay: Int): Unit
+    def deleteHealthMonitor(hm: HealthMonitor): Unit
     def newPool(loadBalancer: LoadBalancer,
                 id: UUID = UUID.randomUUID,
                 adminStateUp: Boolean = true,
                 lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
-                hmId: UUID = null): Pool = {
-        val pool = new Pool()
-        pool.setLoadBalancerId(loadBalancer.getId)
-        pool.setHealthMonitorId(hmId)
-        pool.setAdminStateUp(adminStateUp)
-        pool.setLbMethod(lbMethod)
-        pool.setLoadBalancerId(loadBalancer.getId)
-        pool.setId(id)
-        clusterDataClient().poolCreate(pool)
-        Thread.sleep(50)
-        pool
-    }
-
-    def setPoolHealthMonitor(pool: Pool, hmId: UUID) = {
-        pool.setHealthMonitorId(hmId)
-        clusterDataClient().poolUpdate(pool)
-    }
-
-    def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean) {
-        pool.setAdminStateUp(adminStateUp)
-        clusterDataClient().poolUpdate(pool)
-    }
-
-    def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod) {
-        pool.setLbMethod(lbMethod)
-        clusterDataClient().poolUpdate(pool)
-    }
-
-    def newPoolMember(pool: Pool): PoolMember = {
-        newPoolMember(pool, "10.10.10.10", 10)
-    }
-
+                hmId: UUID = null): Pool
+    def setPoolHealthMonitor(pool: Pool, hmId: UUID): Unit
+    def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean): Unit
+    def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod): Unit
+    def newPoolMember(pool: Pool): PoolMember
     def newPoolMember(pool: Pool, address: String, port: Int,
-                         weight: Int = 1)
-    : PoolMember = {
-        val poolMember = new PoolMember()
-        poolMember.setId(UUID.randomUUID)
-        poolMember.setAdminStateUp(true)
-        poolMember.setStatus(LBStatus.ACTIVE)
-        poolMember.setAddress(address)
-        poolMember.setProtocolPort(port)
-        poolMember.setPoolId(pool.getId)
-        poolMember.setWeight(weight)
-        clusterDataClient().poolMemberCreate(poolMember)
-        Thread.sleep(50)
-        poolMember
-    }
-
+                         weight: Int = 1): PoolMember
     def updatePoolMember(poolMember: PoolMember,
                          poolId: Option[UUID] = None,
                          adminStateUp: Option[Boolean] = None,
                          weight: Option[Integer] = None,
-                         status: Option[LBStatus] = None) {
-        poolId.foreach(poolMember.setPoolId)
-        adminStateUp.foreach(poolMember.setAdminStateUp)
-        weight.foreach(poolMember.setWeight(_))
-        status.foreach(poolMember.setStatus)
-        clusterDataClient().poolMemberUpdate(poolMember)
-    }
-
-    def deletePoolMember(poolMember: PoolMember): Unit =
-        clusterDataClient().poolMemberDelete(poolMember.getId)
-
+                         status: Option[LBStatus] = None): Unit
+    def deletePoolMember(poolMember: PoolMember): Unit
     def setPoolMemberAdminStateUp(poolMember: PoolMember,
-                                  adminStateUp: Boolean) =
-        updatePoolMember(poolMember, adminStateUp = Some(adminStateUp))
-
+                                  adminStateUp: Boolean): Unit
     def setPoolMemberHealth(poolMember: PoolMember,
-                            status: LBStatus) =
-        updatePoolMember(poolMember, status = Some(status))
+                            status: LBStatus): Unit
+}
+
+trait ForwardingVirtualConfigurationBuilders
+        extends VirtualConfigurationBuilders {
+
+    def virtConfBuilderImpl: VirtualConfigurationBuilders
+
+    def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host =
+        virtConfBuilderImpl.newHost(name, id, tunnelZones)
+
+    def newHost(name: String, id: UUID): Host =
+        virtConfBuilderImpl.newHost(name, id)
+    def newHost(name: String): Host =
+        virtConfBuilderImpl.newHost(name)
+    def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain =
+        virtConfBuilderImpl.newInboundChainOnBridge(name, bridge)
+    def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain =
+        virtConfBuilderImpl.newOutboundChainOnBridge(name, bridge)
+    def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain =
+        virtConfBuilderImpl.newInboundChainOnRouter(name, router)
+    def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain =
+        virtConfBuilderImpl.newOutboundChainOnRouter(name, router)
+    def newChain(name: String, id: Option[UUID] = None): Chain =
+        virtConfBuilderImpl.newChain(name, id)
+    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+        (name: String, port: Port[PD, P], id: UUID): Chain =
+        virtConfBuilderImpl.newOutboundChainOnPort(name, port, id)
+    def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+        (name: String, port: Port[PD, P], id: UUID): Chain =
+        virtConfBuilderImpl.newInboundChainOnPort(name, port, id)
+    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+        (name: String, port: Port[PD, P]): Chain =
+        virtConfBuilderImpl.newOutboundChainOnPort(name, port)
+    def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+        (name: String, port: Port[PD, P]): Chain =
+        virtConfBuilderImpl.newInboundChainOnPort(name, port)
+    def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                              action: Action): LiteralRule =
+        virtConfBuilderImpl.newLiteralRuleOnChain(chain, pos, condition, action)
+    def newTcpDstRuleOnChain(
+            chain: Chain, pos: Int, dstPort: Int, action: Action,
+            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
+    : LiteralRule = virtConfBuilderImpl.newTcpDstRuleOnChain(chain, pos, dstPort, action, fragmentPolicy)
+    def newIpAddrGroupRuleOnChain(chain: Chain, pos: Int, action: Action,
+                                  ipAddrGroupIdDst: Option[UUID],
+                                  ipAddrGroupIdSrc: Option[UUID]): LiteralRule =
+        virtConfBuilderImpl.newIpAddrGroupRuleOnChain(chain, pos, action, ipAddrGroupIdDst, ipAddrGroupIdSrc)
+    def newForwardNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                                 action: Action, targets: Set[NatTarget],
+                                 isDnat: Boolean) : ForwardNatRule =
+        virtConfBuilderImpl.newForwardNatRuleOnChain(chain, pos, condition, action, targets, isDnat)
+    def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                                 action: Action, isDnat: Boolean) : ReverseNatRule =
+        virtConfBuilderImpl.newReverseNatRuleOnChain(chain, pos, condition, action, isDnat)
+    def removeRuleFromBridge(bridge: ClusterBridge): Unit =
+        virtConfBuilderImpl.removeRuleFromBridge(bridge)
+    def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                           jumpToChainID: UUID): JumpRule =
+        virtConfBuilderImpl.newJumpRuleOnChain(chain, pos, condition, jumpToChainID)
+    def newFragmentRuleOnChain(chain: Chain, pos: Int,
+                               fragmentPolicy: FragmentPolicy,
+                               action: Action): LiteralRule =
+        virtConfBuilderImpl.newFragmentRuleOnChain(chain, pos, fragmentPolicy, action)
+    def deleteRule(id: UUID): Unit = virtConfBuilderImpl.deleteRule(id)
+    def createIpAddrGroup(): IpAddrGroup = virtConfBuilderImpl.createIpAddrGroup()
+    def createIpAddrGroup(id: UUID): IpAddrGroup = virtConfBuilderImpl.createIpAddrGroup(id)
+    def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = virtConfBuilderImpl.addIpAddrToIpAddrGroup(id, addr)
+    def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
+        virtConfBuilderImpl.removeIpAddrFromIpAddrGroup(id, addr)
+    def deleteIpAddrGroup(id: UUID): Unit = virtConfBuilderImpl.deleteIpAddrGroup(id)
+    def greTunnelZone(name: String): TunnelZone = virtConfBuilderImpl.greTunnelZone(name)
+    def newBridge(bridge: ClusterBridge): ClusterBridge = virtConfBuilderImpl.newBridge(bridge)
+    def newBridge(name: String): ClusterBridge = virtConfBuilderImpl.newBridge(name)
+    def newBridgePort(bridge: ClusterBridge): BridgePort = virtConfBuilderImpl.newBridgePort(bridge)
+    def newBridgePort(bridge: ClusterBridge, port: BridgePort): BridgePort =
+        virtConfBuilderImpl.newBridgePort(bridge, port)
+    def newBridgePort(bridge: ClusterBridge,
+                      vlanId: Option[Short] = None): BridgePort =
+        virtConfBuilderImpl.newBridgePort(bridge, vlanId)
+    def newVxLanPort(bridge: ClusterBridge, port: VxLanPort): VxLanPort =
+        virtConfBuilderImpl.newVxLanPort(bridge, port)
+    def deletePort(port: Port[_, _], hostId: UUID): Unit =
+        virtConfBuilderImpl.deletePort(port, hostId)
+    def newPortGroup(name: String, stateful: Boolean = false): ClusterPortGroup =
+        virtConfBuilderImpl.newPortGroup(name, stateful)
+    def updatePortGroup(pg: ClusterPortGroup): Unit =
+        virtConfBuilderImpl.updatePortGroup(pg)
+    def newPortGroupMember(pgId: UUID, portId: UUID): Unit =
+        virtConfBuilderImpl.newPortGroupMember(pgId, portId)
+    def deletePortGroupMember(pgId: UUID, portId: UUID): Unit =
+        virtConfBuilderImpl.deletePortGroupMember(pgId, portId)
+    def newRouter(router: ClusterRouter): ClusterRouter =
+        virtConfBuilderImpl.newRouter(router)
+    def newRouter(name: String): ClusterRouter =
+        virtConfBuilderImpl.newRouter(name)
+    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
+                      nwAddr: String, nwLen: Int): RouterPort =
+        virtConfBuilderImpl.newRouterPort(router, mac, portAddr, nwAddr, nwLen)
+    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: IPv4Subnet): RouterPort =
+        virtConfBuilderImpl.newRouterPort(router, mac, portAddr)
+    def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
+                              nwAddr: String, nwLen: Int): RouterPort =
+        virtConfBuilderImpl.newInteriorRouterPort(router, mac, portAddr, nwAddr, nwLen)
+    def newRoute(router: ClusterRouter,
+                 srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
+                 nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
+                 weight: Int): UUID =
+        virtConfBuilderImpl.newRoute(router, srcNw, srcNwLen, dstNw, dstNwLen,
+                       nextHop, nextHopPort, nextHopGateway, weight)
+    def deleteRoute(routeId: UUID): Unit =
+        virtConfBuilderImpl.deleteRoute(routeId)
+    def addDhcpSubnet(bridge : ClusterBridge,
+                      subnet : Subnet): Unit =
+        virtConfBuilderImpl.addDhcpSubnet(bridge, subnet)
+    def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
+                    host : org.midonet.cluster.data.dhcp.Host): Unit =
+        virtConfBuilderImpl.addDhcpHost(bridge, subnet, host)
+    def updatedhcpHost(bridge: ClusterBridge,
+                       subnet: Subnet, host: DhcpHost): Unit =
+        virtConfBuilderImpl.updatedhcpHost(bridge, subnet, host)
+    def addDhcpSubnet6(bridge : ClusterBridge,
+                       subnet : Subnet6): Unit =
+        virtConfBuilderImpl.addDhcpSubnet6(bridge, subnet)
+    def addDhcpV6Host(bridge : ClusterBridge, subnet : Subnet6,
+                      host : org.midonet.cluster.data.dhcp.V6Host): Unit =
+        virtConfBuilderImpl.addDhcpV6Host(bridge, subnet, host)
+    def linkPorts(port: Port[_, _], peerPort: Port[_, _]): Unit =
+        virtConfBuilderImpl.linkPorts(port, peerPort)
+    def materializePort(port: Port[_, _], hostId: UUID, portName: String): Unit =
+        virtConfBuilderImpl.materializePort(port, hostId, portName)
+    def materializePort(port: UUID, hostId: UUID, portName: String): Unit =
+        virtConfBuilderImpl.materializePort(port, hostId, portName)
+    def newCondition(
+            nwProto: Option[Byte] = None,
+            tpDst: Option[Int] = None,
+            tpSrc: Option[Int] = None,
+            ipAddrGroupIdDst: Option[UUID] = None,
+            ipAddrGroupIdSrc: Option[UUID] = None,
+            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
+            : Condition =
+        virtConfBuilderImpl.newCondition(nwProto, tpDst, tpSrc, ipAddrGroupIdDst,
+                           ipAddrGroupIdSrc, fragmentPolicy)
+    def newIPAddrGroup(id: Option[UUID]): UUID =
+        virtConfBuilderImpl.newIPAddrGroup(id)
+    def addAddrToIpAddrGroup(id: UUID, addr: String): Unit =
+        virtConfBuilderImpl.addAddrToIpAddrGroup(id, addr)
+    def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
+        virtConfBuilderImpl.removeAddrFromIpAddrGroup(id, addr)
+    def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer =
+        virtConfBuilderImpl.newLoadBalancer(id)
+    def deleteLoadBalancer(id: UUID): Unit =
+        virtConfBuilderImpl.deleteLoadBalancer(id)
+    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit =
+        virtConfBuilderImpl.setLoadBalancerOnRouter(loadBalancer, router)
+    def setLoadBalancerDown(loadBalancer: LoadBalancer): Unit =
+        virtConfBuilderImpl.setLoadBalancerDown(loadBalancer)
+    def createVip(pool: Pool): VIP =
+        virtConfBuilderImpl.createVip(pool)
+    def createVip(pool: Pool, address: String, port: Int): VIP =
+        virtConfBuilderImpl.createVip(pool, address, port)
+    def deleteVip(vip: VIP): Unit =
+        virtConfBuilderImpl.deleteVip(vip)
+    def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer): Unit =
+        virtConfBuilderImpl.removeVipFromLoadBalancer(vip, loadBalancer)
+    def createRandomVip(pool: Pool): VIP =
+        virtConfBuilderImpl.createRandomVip(pool)
+    def setVipPool(vip: VIP, pool: Pool): Unit =
+        virtConfBuilderImpl.setVipPool(vip, pool)
+    def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean): Unit =
+        virtConfBuilderImpl.setVipAdminStateUp(vip, adminStateUp)
+    def vipEnableStickySourceIP(vip: VIP): Unit =
+        virtConfBuilderImpl.vipEnableStickySourceIP(vip)
+    def vipDisableStickySourceIP(vip: VIP): Unit =
+        virtConfBuilderImpl.vipDisableStickySourceIP(vip)
+    def newHealthMonitor(id: UUID = UUID.randomUUID(),
+                           adminStateUp: Boolean = true,
+                           delay: Int = 2,
+                           maxRetries: Int = 2,
+                         timeout: Int = 2): HealthMonitor =
+        virtConfBuilderImpl.newHealthMonitor(id, adminStateUp, delay, maxRetries, timeout)
+    def newRandomHealthMonitor
+        (id: UUID = UUID.randomUUID()): HealthMonitor =
+        virtConfBuilderImpl.newRandomHealthMonitor(id)
+    def setHealthMonitorDelay(hm: HealthMonitor, delay: Int): Unit =
+        virtConfBuilderImpl.setHealthMonitorDelay(hm, delay)
+    def deleteHealthMonitor(hm: HealthMonitor): Unit =
+        virtConfBuilderImpl.deleteHealthMonitor(hm)
+    def newPool(loadBalancer: LoadBalancer,
+                id: UUID = UUID.randomUUID,
+                adminStateUp: Boolean = true,
+                lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
+                hmId: UUID = null): Pool =
+        virtConfBuilderImpl.newPool(loadBalancer, id, adminStateUp, lbMethod, hmId)
+    def setPoolHealthMonitor(pool: Pool, hmId: UUID): Unit =
+        virtConfBuilderImpl.setPoolHealthMonitor(pool, hmId)
+    def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean): Unit =
+        virtConfBuilderImpl.setPoolAdminStateUp(pool, adminStateUp)
+    def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod): Unit =
+        virtConfBuilderImpl.setPoolLbMethod(pool, lbMethod)
+    def newPoolMember(pool: Pool): PoolMember =
+        virtConfBuilderImpl.newPoolMember(pool)
+    def newPoolMember(pool: Pool, address: String, port: Int,
+                      weight: Int = 1): PoolMember =
+        virtConfBuilderImpl.newPoolMember(pool, address, port, weight)
+    def updatePoolMember(poolMember: PoolMember,
+                         poolId: Option[UUID] = None,
+                         adminStateUp: Option[Boolean] = None,
+                         weight: Option[Integer] = None,
+                         status: Option[LBStatus] = None): Unit =
+        virtConfBuilderImpl.updatePoolMember(poolMember, poolId, adminStateUp,
+                               weight, status)
+    def deletePoolMember(poolMember: PoolMember): Unit =
+        virtConfBuilderImpl.deletePoolMember(poolMember)
+    def setPoolMemberAdminStateUp(poolMember: PoolMember,
+                                  adminStateUp: Boolean): Unit =
+        virtConfBuilderImpl.setPoolMemberAdminStateUp(poolMember, adminStateUp)
+    def setPoolMemberHealth(poolMember: PoolMember,
+                            status: LBStatus): Unit =
+        virtConfBuilderImpl.setPoolMemberHealth(poolMember, status)
 }
