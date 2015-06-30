@@ -1883,6 +1883,7 @@ class Rule(Condition):
                                            'reject': 'reject',
                                            'return': 'return',
                                            'trace': 'trace',
+                                           'mirror', 'mirror',
                                            'dnat': 'dnat',
                                            'snat': 'snat',
                                            'rev_dnat': 'rev_dnat',
@@ -1913,6 +1914,11 @@ class Rule(Condition):
                                  value_type = StringType(),
                                  getter = 'get_trace_limit',
                                  setter = 'trace_limit',
+                                 optional = True))
+        self.upt_attr(SingleAttr(name = 'dst-port-id',
+                                 value_type = ObjectRef('port'),
+                                 getter = 'get_dst_port_id',
+                                 setter = 'dst_port_id',
                                  optional = True))
 
 

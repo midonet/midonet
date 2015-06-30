@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.network.validation;
+package org.midonet.cluster.rest_api.validation;
 
 
 import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.PortIdValidator;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
