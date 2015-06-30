@@ -22,6 +22,7 @@ import javax.validation.ConstraintValidatorContext;
 
 import com.google.inject.Inject;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.rest_api.validation.IsValidPortId;
 import org.midonet.midolman.state.StateAccessException;
 
 public class RouterIdValidator implements
