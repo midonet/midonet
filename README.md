@@ -1,164 +1,92 @@
 
-## Precis
+## Virtualized networking for public and private clouds
 
-**MidoNet** is a system which implements an abstract, software-defined
-virtual network atop an existing IP fabric.  That means that packets that
-enter a MidoNet deployment will then leave it at the location and with the
-alterations they would have had if they'd actually traversed the networking
-equipment defined in the deployment's virtual topology, or as close to it
-as we can manage.
+**MidoNet** is a network platform that can be used to build arbitrary network
+topologies on top of an existing IP network without having to modify it.
 
-## Overview
+You do not need special hardware for using MidoNet, it is all based on software.
 
-A MidoNet deployment consists a few kinds of nodes, all connected in
-an IP network.  Many nodes run **Midolman**, and are where traffic enters
-and leaves.  Traffic is sent from its entry point (the *ingress node*) to
-its exit point (the *egress node*) via tunnels; see [the tunnel management
-document](docs/tunnel-management.md).  The network's virtual topology
-and associated information is stored in ZooKeeper, and per-connection
-state which is shared between nodes is stored in Cassandra -- all the
-Midolman nodes which compose a virtual network must have connectivity to
-the ZooKeeper and Cassandra clusters, as that's how they coordinate.
-The web-based REST API described [here][rest-api] is provided by nodes running
-MidoNet's API service in a webserver.  These API server nodes will read and
-modify the virtual topology configuration, so they need to have connectivity to
-the ZooKeeper cluster, but not necessarily any other node types.
+![MidoNet in Neutron](http://blog.midonet.org/wp-content/uploads/2014/12/MidoNetNeutronOverlay.png "MidoNet in Neutron")
 
-[rest-api]: http://docs.midonet.org/docs/latest/rest-api/
-    "MidoNet API Specification"
+Network virtualization technology is used at cloud service providers and in
+private clouds to encourage more dynamic and faster network usage and thus
+allowing faster time to market for the applications of your customers running in
+containers and/or virtual machines.
 
-## How to contribute
+![Tenant Router Model](http://blog.midonet.org/wp-content/uploads/2014/12/MNProviderRouter.jpg "Tenant Router Model")
 
-You can report a bug using [MidoNet Issue tracking][jira].
+MidoNet allows you to directly connect to existing physical networks using
+either special switch hardware containing an L2 hardware gateway software
+(VTEP), or an L2 software gateway in MidoNet, which also support VLAN IDs.
 
-All patches to MidoNet are submitted to Gerrit, an open source,
-web-based code review system. It's publicly hosted on
-[GerritHub][gerrithub], and integrated with a CI infrastructure based on
-Jenkins that runs several suites of automated tests.
+![MidoNet L2 Gateway](http://blog.midonet.org/wp-content/uploads/2014/12/Blog-L2-Gateways-2.png "MidoNet L2 Gateway")
 
-To submit a patch, you'll need to sign into GerritHub using your GitHub
-account and set up your ssh-key in `Settings->SSH public keys`. If you
-need information to set up git review, or git-review workflows, please
-check MidoNet Developer's Guide in the [wiki][dev-guide].
+The most interesting side effect of using a scalable, distributed system is the
+economical savings in electricity and air conditioning.
 
-Submitting a review is simple, typically:
+Instead of sending all traffic through large proprietary boxes, the decisions
+about the traffic of virtual machines are computed on the hypervisor
+where the VM is located and traffic that should go to the Internet moves through
+commodity servers acting as L3 gateways and L4 load balancers.
 
-    git clone https://github.com/midonet/midonet
-    git checkout -b your_branch origin/master
-    # .. make some changes ..
-    git commit -as  # commit your changes, and sign off your commit
-    git review master
+This way a cloud operator can scale out compute nodes and gateways while at the
+same time being respectful to nature and the environment, avoiding wasted energy
+and unnecessary cooling of large, often underutilized network appliances.
 
-Your review will now appear on [GerritHub][gerrithub]. After committers
-approve your change and the code is tested, it'll get merged into the
-main repository.
+## About MidoNet
 
-Feel free to join other MidoNet developers on our public
-[Slack chat channel][slack], or our Development
-[mailing list][dev-mail]. We'll be happy to help you get set up.
+MidoNet supports virtual L2 switches, virtual L3 routing, distributed, stateful
+source NAT and distributed stateful L4 TCP load balancing.
 
-[jira]: http://midonet.atlassian.net
-    "MidoNet Issue tracking"
-[gerrithub]: https://review.gerrithub.io/#/q/project:midonet/midonet
-    "GerritHub"
-[dev-guide]: http://wiki.midonet.org/Developer%27s%20Guide
-    "MidoNet developers guide"
-[slack]: http://slack.midonet.org
-    "MidoNet Public Slack"
-[dev-mail]: http://lists.midonet.org/listinfo/midonet-dev
-    "MidoNet developers mailing list"
+The core of the software is a flow simulator agent that gets installed on each
+hypervisor and on gateway nodes responsible for north-south traffic.
 
-## Organization of the project
+While the agent uses the datapath from Open vSwitch, all other Open vSwitch
+userland components are replaced and obsoleted by using MidoNet.
 
-The **MidoNet** project is split into several submodules:
+The traffic between virtual machines is encapsulated in tunnels (GRE or VXLAN)
+which means the existing network does not have to be changed to use our network
+virtualization technology.
 
-### cluster
+## Quick Installation
 
-This contains the various pieces that compose each of the nodes in
-Midonet's distributed controller (`cluster`). Controller nodes take care
-of orchestrating the configuration of all Midonet subcomponents, as well
-as coordinating with other external devices and systems, such as VTEP
-switches, the backend services holding our Network State DataBase (e.g:
-Zookeeper and Cassandra), etc.
+For a quick installation using a simple downloadable script, refer to this
+website:
+http://www.midonet.org/#quickstart
 
-### midonet-util
+If you want to see how everything works together, this website will show you
+how to build a simple dev environment on your machine with MidoNet and
+OpenStack:
+http://wiki.midonet.org/MidoNet-allinone
 
-Contains basic utilities used by the other modules, and is described
-[here](docs/midonet-util.md).
+## Find out more
 
-### midolman
+You can find out more about the MidoNet community at the following websites:
 
-Contains the *MidoNet* edge controller code, as described [here](docs/midolman.md).
+* The main community project website: http://www.midonet.org/
+* A blog of our developers: http://blog.midonet.org/
 
-### midonet-api
+If you are completely new to Neutron and network virtualization, this blog
+article is a good start:
+http://blog.midonet.org/introduction-mns-overlay-network-models-part-1-provider-router/
 
-Contains the implementation of the *MidoNet* REST API.
+It's a series of articles, they are all recommended for reading to learn more
+about the architecture of MidoNet.
 
-### netlink
+* Here you find all the technical documentation about MidoNet and OpenStack: http://docs.midonet.org/
+* Learn more about MidoNet from a developers point of view: https://github.com/midonet/midonet/blob/master/DEVELOPMENT.md
+* If you want to contribute, there is an excellent starter guide: http://wiki.midonet.org/HowToContribute
 
-Code for speaking the netlink protocol over a netlink socket, generally
-for communicating with the OS kernel.
+## Get in touch with us
 
-### odp
+Our developers are always happy to talk to new faces.
 
-Code for interacting (receiving notifications and sending commands) to
-the kernel's Open Datapath module.
+Visit our Slack channel and take part in the mailing list discussions about the
+future of the solution and new features.
 
-## Build dependencies
+Your input is appreciated and welcome, we are very glad to learn about new
+innovations and ideas from our community!
 
-Most dependencies are pulled in by the gradle build scripts, however
-there are some prerequisites:
+* http://slack.midonet.org/
 
-* java 7 jdk
-* protobufs compiler
-    * Install 2.6.1 from [here](https://github.com/google/protobuf/releases)
-* fpm (ruby gem) to build debian/rpm packages
-* rpm
-
-## Testing tools
-
-*MidoNet* is tested at both an integration and a functional level by the
-MDTS (Midonet Distributed Testing System), which can be found in the
-
-http://github.com/midonet/mdts
-
-repository.
-
-## Building the project
-
-The `cluster` directory contains an odl-ovsdb git submodule with code that
-must be compiled in order to generate dependencies needed in various
-midonet components. Before any build tasks, ensure that you have the
-right version of odl-ovsdb by executing:
-
-    ~/midonet$ git submodule update --init --recursive
-
-### Complete build
-
-    ~/midonet$ ./gradlew
-
-This will build all the modules while running all the tests from all the modules.
-To skip the tests, you can run the command:
-
-    ~/midonet$ ./gradlew -x test
-
-### Distro packages
-
-The build script provides targets to build debian and rpm packages. In all cases
-packages will be found in midolman/build/packages/ and midonet-api/build/packages.
-
-Building debian packages:
-
-    ~/midonet$ ./gradlew debian -x test
-
-RHEL 7 packages:
-
-    ~/midonet$ ./gradlew rpm -x test
-
-On ubuntu this requires the rpm tools which you can install with
-
-    # apt-get install rpm
-
-### Build all & Run tests
-
-    ~/midonet$ ./gradlew test
+* http://lists.midonet.org/listinfo/midonet-dev
