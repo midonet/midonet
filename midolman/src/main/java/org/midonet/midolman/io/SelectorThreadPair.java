@@ -83,7 +83,7 @@ public class SelectorThreadPair {
     }
 
     public ManagedDatapathConnection addConnection(final Bucket bucket,
-            final BufferPool sendPool) throws Exception {
+            final BufferPool sendPool, SelectLoop.Priority priority) throws Exception {
 
         final OvsDatapathConnection conn =
             OvsDatapathConnection.create(new Netlink.Address(0), sendPool);
@@ -100,7 +100,7 @@ public class SelectorThreadPair {
                             throws IOException {
                         conn.handleReadEvent(bucket);
                     }
-                });
+                }, priority);
 
         writeLoop.registerForInputQueue(
                 conn.getSendQueue(),
@@ -112,7 +112,7 @@ public class SelectorThreadPair {
                             throws IOException {
                         conn.handleWriteEvent();
                     }
-                });
+                }, priority);
 
         ManagedDatapathConnection managedConn =
                 new TrivialDatapathConnection(conn);

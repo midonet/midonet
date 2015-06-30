@@ -22,6 +22,8 @@ import java.nio.channels.Pipe;
 import java.nio.channels.ScatteringByteChannel;
 import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -144,7 +146,8 @@ public class TestSelectLoop {
                     // Make sure we've entered the select() call.
                     boolean acquired = sem.tryAcquire(10, TimeUnit.SECONDS);
                     assertTrue(acquired);
-                    loop.register(channel2, SelectionKey.OP_READ, listener);
+                    loop.register(channel2, SelectionKey.OP_READ,
+                            listener, SelectLoop.Priority.NORMAL);
                 } catch (Throwable e) {
                     exceptions[0] = e;
                 } finally {
@@ -153,7 +156,8 @@ public class TestSelectLoop {
             }
         });
         registerThread.start();
-        loop.register(channel1, SelectionKey.OP_READ, listener);
+        loop.register(channel1, SelectionKey.OP_READ,
+                      listener, SelectLoop.Priority.NORMAL);
         pipe1.sink().write(message);
         loop.doLoop();
 
@@ -185,8 +189,10 @@ public class TestSelectLoop {
         pipe1.sink().write(message);
         message.rewind();
         pipe2.sink().write(message);
-        loop.register(channel1, SelectionKey.OP_READ, listener1);
-        loop.register(channel2, SelectionKey.OP_READ, listener2);
+        loop.register(channel1, SelectionKey.OP_READ,
+                      listener1, SelectLoop.Priority.NORMAL);
+        loop.register(channel2, SelectionKey.OP_READ,
+                      listener2, SelectLoop.Priority.NORMAL);
 
         Thread reactorThread = startReactorThread();
 
@@ -218,5 +224,58 @@ public class TestSelectLoop {
         waitOnValue(sem, 2);
         assertNull(submission1.failure);
         assertNull(submission2.failure);
+    }
+
+    @Test
+    public void testPriority() throws Exception {
+        final List<Object> eventOrder = new ArrayList<Object>();
+        final SelectListener listener1 = new SelectListener() {
+            @Override
+            public void handleEvent(SelectionKey key) {
+                synchronized (eventOrder) {
+                    log.info("IKDEBUG listener1");
+                    eventOrder.add(this);
+                }
+            }
+        };
+        final SelectListener listener2 = new SelectListener() {
+            @Override
+            public void handleEvent(SelectionKey key) {
+                synchronized (eventOrder) {
+                    log.info("IKDEBUG listener2");
+                    eventOrder.add(this);
+                }
+            }
+        };
+
+        // register normal priority first
+        loop.register(channel1, SelectionKey.OP_READ,
+                      listener1, SelectLoop.Priority.NORMAL);
+        loop.register(channel2, SelectionKey.OP_READ,
+                      listener2, SelectLoop.Priority.HIGH);
+        message.rewind();
+        pipe1.sink().write(message);
+        message.rewind();
+        pipe2.sink().write(message);
+        ((SimpleSelectLoop)loop).doLoopOnce();
+        assertTrue(eventOrder.get(0) == listener2);
+        assertTrue(eventOrder.get(1) == listener1);
+
+        loop.unregister(channel1, SelectionKey.OP_READ);
+        loop.unregister(channel2, SelectionKey.OP_READ);
+        eventOrder.clear();
+
+        // register high priority first
+        loop.register(channel1, SelectionKey.OP_READ,
+                      listener1, SelectLoop.Priority.HIGH);
+        loop.register(channel2, SelectionKey.OP_READ,
+                      listener2, SelectLoop.Priority.NORMAL);
+        message.rewind();
+        pipe1.sink().write(message);
+        message.rewind();
+        pipe2.sink().write(message);
+        ((SimpleSelectLoop)loop).doLoopOnce();
+        assertTrue(eventOrder.get(0) == listener1);
+        assertTrue(eventOrder.get(1) == listener2);
     }
 }

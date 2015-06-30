@@ -37,6 +37,12 @@ import java.nio.channels.SelectableChannel;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.spi.SelectorProvider;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -68,6 +74,20 @@ public class SimpleSelectLoop implements SelectLoop {
 
     private Multimap<SelectableChannel, Registration> registrations =
         HashMultimap.create();
+    private List<SelectionKey> selectedKeys = new ArrayList<>();
+    private final Map<SelectableChannel, Priority> channelPriorities =
+        new HashMap<>();
+    private final Comparator<SelectionKey> selKeyPriorityComparator =
+        new Comparator<SelectionKey>() {
+            @Override
+            public int compare(SelectionKey a, SelectionKey b) {
+                Priority pA = channelPriorities.get(a.channel());
+                Priority pB = channelPriorities.get(b.channel());
+                if (pA == null) { pA = Priority.NORMAL; }
+                if (pB == null) { pB = Priority.NORMAL; }
+                return pA.compareTo(pB);
+            }
+        };
 
     public SimpleSelectLoop() throws IOException {
         dontStop = true;
@@ -109,11 +129,13 @@ public class SimpleSelectLoop implements SelectLoop {
      * @param ch  the channel
      * @param ops interest ops
      * @param arg argument that will be returned with the SelectListener
+     * @param priority priority which which the ops for the channel will
+     *                 be processed if they are selected
      * @return SelectionKey
      * @throws ClosedChannelException if channel was already closed
      */
     public void register(SelectableChannel ch, int ops,
-                                 SelectListener arg)
+                         SelectListener arg, Priority priority)
         throws ClosedChannelException {
         if (ch == null)
             throw new RuntimeException("can't register interest in a null channel");
@@ -129,6 +151,7 @@ public class SimpleSelectLoop implements SelectLoop {
             // because select() returns immediately if a wakeup() was
             // called while the selector didn't have a select in progress.
             registrations.put(ch, new Registration(ch, ops, arg, null));
+            channelPriorities.put(ch, priority);
             registrationAdded(ops);
         }
     }
@@ -157,6 +180,10 @@ public class SimpleSelectLoop implements SelectLoop {
                 if (reg.ops == ops) {
                     registrations.remove(ch, reg);
                     registrationRemoved(ops);
+
+                    if (!registrations.containsKey(ch)) {
+                        channelPriorities.remove(ch);
+                    }
                     break;
                 }
             }
@@ -172,11 +199,14 @@ public class SimpleSelectLoop implements SelectLoop {
      * @param ch    the channel
      * @param ops   interest ops
      * @param arg   argument that will be returned with the SelectListener
+     * @param priority priority which which the ops for the channel will
+     *                 be processed if they are selected
      */
     public void registerForInputQueue(SelectorInputQueue<?> queue,
                                       SelectableChannel ch,
                                       int ops,
-                                      SelectListener arg) {
+                                      SelectListener arg,
+                                      Priority priority) {
         log.debug("Registering channel bound to input queue");
         if (ch == null)
             throw new RuntimeException("can't register interest in a null channel");
@@ -184,6 +214,7 @@ public class SimpleSelectLoop implements SelectLoop {
             selector.wakeup();
             queue.bind(selector);
             registrations.put(ch, new Registration(ch, ops, arg, queue));
+            channelPriorities.put(ch, priority);
             registrationAdded(ops);
         }
     }
@@ -196,6 +227,9 @@ public class SimpleSelectLoop implements SelectLoop {
                 if (reg.queue == queue) {
                     registrations.remove(reg.ch, reg);
                     registrationRemoved(reg.ops);
+                    if (!registrations.containsKey(reg.ch)) {
+                        channelPriorities.remove(reg.ch);
+                    }
                     break;
                 }
             }
@@ -237,83 +271,92 @@ public class SimpleSelectLoop implements SelectLoop {
     public void doLoop() throws IOException {
         log.debug("starting");
 
-        int nEvents;
-
-    outer:
         while (dontStop) {
-            log.trace("looping");
+            doLoopOnce();
+        }
+    }
 
-            synchronized (registerLock) {
-                for (SelectableChannel ch: registrations.keySet()) {
-                    int ops = 0;
-                    for (Registration reg: registrations.get(ch)) {
-                        if (reg.queue != null) {
-                            if (numberOfRegistrations == 1) {
-                                if (spinOnQueue(reg.queue)) {
-                                    readyDedicatedWriterLoopIteration(reg);
-                                    continue outer;
-                                }
+    void doLoopOnce() throws IOException {
+        log.trace("looping");
+
+        synchronized (registerLock) {
+            for (SelectableChannel ch : registrations.keySet()) {
+                int ops = 0;
+                for (Registration reg: registrations.get(ch)) {
+                    if (reg.queue != null) {
+                        if (numberOfRegistrations == 1) {
+                            if (spinOnQueue(reg.queue)) {
+                                readyDedicatedWriterLoopIteration(reg);
+                                return;
                             }
-                            reg.queue.wakeupOn();
-                            if (!reg.queue.isEmpty()) {
-                                reg.queue.wakeupOff();
-                                ops |= reg.ops;
-                            }
-                        } else {
+                        }
+                        reg.queue.wakeupOn();
+                        if (!reg.queue.isEmpty()) {
+                            reg.queue.wakeupOff();
                             ops |= reg.ops;
                         }
+                    } else {
+                        ops |= reg.ops;
                     }
-                    if (ops != 0)
-                        ch.register(selector, ops);
-                    else
-                        ch.register(selector, ch.validOps()).cancel();
+                }
+                if (ops != 0)
+                    ch.register(selector, ops);
+                else
+                    ch.register(selector, ch.validOps()).cancel();
+            }
+        }
+
+        int nEvents = selector.select(timeout);
+        log.trace("got {} events", nEvents);
+
+        synchronized (registerLock) {
+            for (SelectableChannel ch : registrations.keySet()) {
+                for (Registration reg: registrations.get(ch)) {
+                    if (reg.queue != null)
+                        reg.queue.wakeupOff();
                 }
             }
+        }
 
-            nEvents = selector.select(timeout);
-            log.trace("got {} events", nEvents);
-
+        if (nEvents > 0) {
             synchronized (registerLock) {
-                for (SelectableChannel ch: registrations.keySet()) {
-                    for (Registration reg: registrations.get(ch)) {
-                        if (reg.queue != null)
-                            reg.queue.wakeupOff();
+                selectedKeys.clear();
+                for (SelectionKey sk : selector.selectedKeys()) {
+                    if (sk.isValid()) {
+                        selectedKeys.add(sk);
                     }
                 }
+                Collections.sort(selectedKeys, selKeyPriorityComparator);
             }
 
-            if (nEvents > 0) {
-                for (SelectionKey sk : selector.selectedKeys()) {
-                    if (!sk.isValid())
-                        continue;
-                    int ops = sk.readyOps();
-                    SelectableChannel ch = sk.channel();
-                    synchronized (registerLock) {
-                        for (Registration reg: registrations.get(ch)) {
-                            if (ops == 0) {
-                                break;
-                            } else if ((reg.ops & ops) != 0) {
-                                try {
-                                    reg.listener.handleEvent(sk);
-                                } catch (Exception e) {
-                                    log.error("Callback threw an exception", e);
-                                }
-                                // We report each ready-op once, so after
-                                // dispatching the event we clear it from ops.
-                                ops &= ~reg.ops;
+            for (SelectionKey sk : selectedKeys) {
+                int ops = sk.readyOps();
+                SelectableChannel ch = sk.channel();
+                synchronized (registerLock) {
+                    for (Registration reg: registrations.get(ch)) {
+                        if (ops == 0) {
+                            break;
+                        } else if ((reg.ops & ops) != 0) {
+                            try {
+                                reg.listener.handleEvent(sk);
+                            } catch (Exception e) {
+                                log.error("Callback threw an exception", e);
                             }
+                            // We report each ready-op once, so after
+                            // dispatching the event we clear it from ops.
+                            ops &= ~reg.ops;
                         }
                     }
                 }
-                if (endOfLoopCallback != null) {
-                    try {
-                        endOfLoopCallback.run();
-                    } catch (Throwable e) {
-                        log.error("end-of-select-loop callback failed", e);
-                    }
-                }
-                selector.selectedKeys().clear();
             }
+            if (endOfLoopCallback != null) {
+                try {
+                    endOfLoopCallback.run();
+                } catch (Throwable e) {
+                    log.error("end-of-select-loop callback failed", e);
+                }
+            }
+            selector.selectedKeys().clear();
         }
     }
 

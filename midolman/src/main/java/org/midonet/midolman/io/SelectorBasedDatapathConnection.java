@@ -139,7 +139,7 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
                             throws IOException {
                         conn.handleReadEvent(bucket);
                     }
-                });
+                }, SelectLoop.Priority.NORMAL);
 
         writeLoop.registerForInputQueue(
                 conn.getSendQueue(),
@@ -151,7 +151,7 @@ public class SelectorBasedDatapathConnection implements ManagedDatapathConnectio
                             throws IOException {
                         conn.handleWriteEvent();
                     }
-                });
+                }, SelectLoop.Priority.NORMAL);
     }
 
 
