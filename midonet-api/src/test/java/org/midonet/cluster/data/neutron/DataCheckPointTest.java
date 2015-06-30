@@ -32,6 +32,7 @@ import com.google.inject.Injector;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValueFactory;
+
 import org.apache.commons.configuration.HierarchicalConfiguration;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.apache.curator.test.TestingServer;
@@ -46,6 +47,8 @@ import org.midonet.cluster.config.ConfigProviderModule;
 import org.midonet.cluster.data.Chain;
 import org.midonet.cluster.data.IpAddrGroup;
 import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.rules.ForwardNatRule;
+import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner;
 import org.midonet.cluster.rest_api.neutron.models.ExternalGatewayInfo;
 import org.midonet.cluster.rest_api.neutron.models.FloatingIp;
@@ -60,9 +63,6 @@ import org.midonet.cluster.rest_api.neutron.models.RuleEthertype;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroup;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
 import org.midonet.cluster.rest_api.neutron.models.Subnet;
-import org.midonet.cluster.data.rules.ForwardNatRule;
-import org.midonet.cluster.data.rules.JumpRule;
-import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
 import org.midonet.conf.MidoTestConfigurator;
 import org.midonet.midolman.Setup;
@@ -535,7 +535,7 @@ public class DataCheckPointTest {
         int cp4 = zkDir().createCheckPoint();
 
         assert (zkDir().getRemovedPaths(cp3, cp4).size() == 0);
-        assert (zkDir().getModifiedPaths(cp3, cp4).size() == 1);
+        assert (zkDir().getModifiedPaths(cp3, cp4).size() == 2);
         assert (zkDir().getAddedPaths(cp3, cp4).size() == 0);
 
         subnet.enableDhcp = true;
@@ -543,7 +543,7 @@ public class DataCheckPointTest {
         int cp5 = zkDir().createCheckPoint();
 
         assert (zkDir().getRemovedPaths(cp4, cp5).size() == 0);
-        assert (zkDir().getModifiedPaths(cp4, cp5).size() == 1);
+        assert (zkDir().getModifiedPaths(cp4, cp5).size() == 2);
         assert (zkDir().getAddedPaths(cp4, cp5).size() == 0);
 
         plugin.deleteSubnet(subnet.id);
