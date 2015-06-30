@@ -53,5 +53,4 @@ class ChainResource @Inject()(resContext: ResourceContext)
         if (tenantId eq null) (_: Chain) => true
         else (r: Chain) => r.tenantId == tenantId
     }
-
 }
