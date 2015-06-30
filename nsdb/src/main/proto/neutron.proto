@@ -115,6 +115,9 @@ message NeutronPort {
     }
 
     repeated ExtraDhcpOpts extra_dhcp_opts = 16;
+
+    // Backreference to FloatingIps that're attached to this Port
+    repeated UUID floating_ip_ids = 101;
 }
 
 message NeutronRouter {
