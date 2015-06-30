@@ -1739,12 +1739,13 @@ public class LocalDataClientImpl implements DataClient {
 
     @Override
     public void loadBalancerDelete(UUID id)
-        throws StateAccessException, SerializationException {
+        throws MappingStatusException, StateAccessException,
+            SerializationException {
         List<Op> ops = new ArrayList<>();
 
         Set<UUID> poolIds = loadBalancerZkManager.getPoolIds(id);
         for (UUID poolId : poolIds) {
-            ops.addAll(buildPoolDeleteOps(poolId));
+            buildPoolMapDeleteOps(ops, poolId);
         }
 
         LoadBalancerZkManager.LoadBalancerConfig loadBalancerConfig =
@@ -2331,12 +2332,10 @@ public class LocalDataClientImpl implements DataClient {
         return ops;
     }
 
-    @Override
-    public void poolDelete(UUID id)
+    private void buildPoolMapDeleteOps(List<Op> ops, UUID id)
         throws MappingStatusException, StateAccessException,
-               SerializationException {
-        List<Op> ops = buildPoolDeleteOps(id);
-        // Pool-HealthMonitor mappings
+                SerializationException {
+        ops.addAll(buildPoolDeleteOps(id));
         PoolZkManager.PoolConfig poolConfig = poolZkManager.get(id);
         validatePoolConfigMappingStatus(id);
 
@@ -2344,6 +2343,14 @@ public class LocalDataClientImpl implements DataClient {
             ops.add(Op.delete(pathBuilder.getPoolHealthMonitorMappingsPath(
                 id, poolConfig.healthMonitorId), -1));
         }
+    }
+
+    @Override
+    public void poolDelete(UUID id)
+        throws MappingStatusException, StateAccessException,
+               SerializationException {
+        List<Op> ops = new ArrayList<>();
+        buildPoolMapDeleteOps(ops, id);
         zkManager.multi(ops);
     }
 
