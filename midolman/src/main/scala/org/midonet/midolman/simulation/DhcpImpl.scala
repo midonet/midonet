@@ -388,11 +388,13 @@ object DhcpValueParser {
                     encodedBytes += unmatched(i).length.toByte
                     encodedBytes ++= unmatched(i).getBytes
                 }
-                // $ python -c "print hex(0b1100000000000000)"
-                // 0xc000
+                // The first two bits of the two octets represent the offset to
+                // the partial domain should be 1 to indicate it's the offset.
+                // by the definition in RFC 3397. 0b1100000000000000 can be
+                // expressed as 0xc000 and therefore first byte is masked by
+                // 0xc0.
                 encodedBytes += ((pos >> 8) | 0xc0).toByte
                 encodedBytes += pos.toByte
-                encodedBytes += 0.toByte
             } else {
                 val domainPieces: Array[String] = unmatched
                 for (i: Int <- 0 until domainPieces.length) {
