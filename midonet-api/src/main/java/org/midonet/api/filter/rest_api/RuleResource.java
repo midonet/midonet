@@ -38,15 +38,13 @@ import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.servlet.RequestScoped;
 
-import org.slf4j.Logger;
-
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.BadRequestHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.conversion.RuleDataConverter;
 import org.midonet.cluster.rest_api.models.Rule;
@@ -57,7 +55,6 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.MAC;
 
 import static org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException;
-import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Root resource class for rules.

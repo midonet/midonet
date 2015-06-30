@@ -34,7 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class KeystoneTenantList implements TenantList {
 
     private List<KeystoneTenant.KeystoneTenantEntity> tenants =
-            new ArrayList<KeystoneTenant.KeystoneTenantEntity>();
+            new ArrayList<>();
 
     public List<KeystoneTenant.KeystoneTenantEntity> getTenants() {
         return tenants;
