@@ -162,6 +162,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_3273f14e",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T10:22:52Z",
+      "side": 1,
+      "message": "I don\u0027t foresee scalability being an issue for metadata.  But for the similar reason I don\u0027t expect this service to take up much resource on the compute either.  As long as cluster is HA, there is not much value added by going fully distributed (it\u0027s just an extra hop to nova-api).  Losing a compute host would only affect the metadata service for those VMs if distributed.\n\nIf the agent team argues strongly against it, then that\u0027s fine, we can go through the cluster.  There were two objectives originally:\n\n1. Get rid of DHCP agent in neutron\n2. Provide a fully distributed service so that the fault domain is restricted to the relevant compute host.  \n\nI can settle for \u00271\u0027 if \u00272\u0027 is strongly opposed as I want to solve \u00271\u0027 more than \u00272\u0027.  I just want to collectively agree this is ok considering the competition (DVR of Neutron).  I don\u0027t think anyone cares enough about the metadata service so it should be ok.",
+      "parentUuid": "9ad9bd40_d24ac526",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 15
+      },
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_35e92581",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
