@@ -34,6 +34,7 @@ public class DtoRule {
     public static final String SNAT = "snat";
     public static final String RevDNAT = "rev_dnat";
     public static final String RevSNAT = "rev_snat";
+    public static final String Mirror = "mirror";
 
     private URI uri;
     private UUID id;
@@ -79,6 +80,7 @@ public class DtoRule {
     private String type;
     private String jumpChainName;
     private UUID jumpChainId;
+    private UUID dstPortId;
     private String flowAction;
     private DtoNatTarget[] natTargets;
     private int position;
@@ -444,6 +446,14 @@ public class DtoRule {
 
     public void setJumpChainId(UUID jumpChainId) {
         this.jumpChainId = jumpChainId;
+    }
+
+    public UUID getDstPortId() {
+        return dstPortId;
+    }
+
+    public void setDstPortId(UUID dstPortId) {
+        this.dstPortId = dstPortId;
     }
 
     public String getFlowAction() {

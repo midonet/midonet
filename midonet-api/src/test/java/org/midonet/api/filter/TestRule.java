@@ -22,6 +22,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -29,29 +30,33 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Suite;
+import org.midonet.api.rest_api.RestApiTestBase;
+import org.midonet.client.dto.DtoBridge;
+import org.midonet.client.dto.DtoBridgePort;
+import org.midonet.cluster.rest_api.models.Rule;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.packets.Unsigned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.FuncTest;
-import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRule.DtoNatTarget;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.cluster.rest_api.models.Rule;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.packets.ARP;
-import org.midonet.packets.Unsigned;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_RULE_JSON_V2;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_NAT_RULE;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_UNDEFINED;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.PORT_ID_IS_INVALID;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({TestRule.TestRuleCreateBadRequest.class,
@@ -128,6 +133,63 @@ public class TestRule {
                     chain1.getRules(), APPLICATION_RULE_JSON_V2, rule);
             List<Map<String, String>> violations = error.getViolations();
             assertEquals(0, violations.size());
+        }
+    }
+
+    public static class TestRuleCornerCases extends TestRuleBase {
+        private DtoBridge bridge = null;
+        private DtoBridgePort bridgePort1 = null;
+
+        @Before
+        public void setUp() throws Exception {
+            super.setUp();
+            bridge = topology.getBridge("mirror-bridge");
+            bridgePort1 = topology.getBridgePort("mirror-port1");
+        }
+
+        @Override
+        protected void extendTopology(Topology.Builder builder) {
+            super.extendTopology(builder);
+
+            UUID dummyTenantId = UUID.randomUUID();
+
+            DtoBridge bridge = new DtoBridge();
+            bridge.setName("mirror-bridge");
+            bridge.setTenantId(dummyTenantId.toString());
+            builder.create("mirror-bridge", bridge);
+
+            DtoBridgePort bridgePort1 = new DtoBridgePort();
+            bridgePort1.setDeviceId(bridge.getId());
+            builder.create("mirror-bridge", "mirror-port1", bridgePort1);
+        }
+
+        private void testInvalidPortIdInMirrorRule(DtoRule mirrorRule) {
+            DtoError error = dtoResource.postAndVerifyBadRequest(
+                    chain1.getRules(), APPLICATION_RULE_JSON_V2, mirrorRule);
+            assertErrorMatchesPropMsg(error, "dstPortId", PORT_ID_IS_INVALID);
+            List<Map<String, String>> violations = error.getViolations();
+            assertNotEquals(0, violations.size());
+        }
+
+        @Test
+        public void testMirrorRuleWithoutDstPortId() {
+            // Mirror rule without dstPortId
+            DtoRule mirrorRule = new DtoRule();
+            mirrorRule.setType(DtoRule.Mirror);
+            mirrorRule.setFlowAction(DtoRule.Mirror);
+
+            testInvalidPortIdInMirrorRule(mirrorRule);
+        }
+
+        @Test
+        public void testMirrorRuleWithInvalidPortId() {
+            // Mirror rule without dstPortId
+            DtoRule mirrorRule = new DtoRule();
+            mirrorRule.setType(DtoRule.Mirror);
+            mirrorRule.setFlowAction(DtoRule.Mirror);
+            mirrorRule.setDstPortId(UUID.randomUUID());
+
+            testInvalidPortIdInMirrorRule(mirrorRule);
         }
     }
 
@@ -311,6 +373,9 @@ public class TestRule {
 
         private DtoRule rule;
         private String portGroupTag;
+        private DtoBridge bridge;
+        private DtoBridgePort bridgePort1;
+        private DtoBridgePort bridgePort2;
 
         public TestRuleCrudSuccess(DtoRule rule, String portGroupTag) {
             this.rule = rule;
@@ -326,18 +391,37 @@ public class TestRule {
                 DtoPortGroup portGroup = topology.getPortGroup(portGroupTag);
                 rule.setPortGroup(portGroup.getId());
             }
+
+            bridge = topology.getBridge("mirror-bridge");
+            bridgePort1 = topology.getBridgePort("mirror-port1");
+            bridgePort2 = topology.getBridgePort("mirror-port2");
         }
 
         @Override
         protected void extendTopology(Topology.Builder builder) {
             super.extendTopology(builder);
 
+            UUID dummyTenantId = UUID.randomUUID();
+
             // Create a port group
             DtoPortGroup pg1 = new DtoPortGroup();
             pg1.setName("portgroup1-name");
-            pg1.setTenantId("tenant1-id");
+            pg1.setTenantId(dummyTenantId.toString());
 
             builder.create("portgroup1", pg1);
+
+            DtoBridge bridge = new DtoBridge();
+            bridge.setName("mirror-bridge");
+            bridge.setTenantId(dummyTenantId.toString());
+            builder.create("mirror-bridge", bridge);
+
+            DtoBridgePort bridgePort1 = new DtoBridgePort();
+            bridgePort1.setDeviceId(bridge.getId());
+            builder.create("mirror-bridge", "mirror-port1", bridgePort1);
+
+            DtoBridgePort bridgePort2 = new DtoBridgePort();
+            bridgePort2.setDeviceId(bridge.getId());
+            builder.create("mirror-bridge", "mirror-port2", bridgePort2);
         }
 
         @Parameterized.Parameters
@@ -453,15 +537,28 @@ public class TestRule {
             filteringRule.setPosition(1);
             filteringRule.setProperties(properties);
 
+            DtoRule mirrorRule = new DtoRule();
+            mirrorRule.setFlowAction(DtoRule.Mirror);
+            mirrorRule.setPosition(1);
+            mirrorRule.setProperties(properties);
+            mirrorRule.setType(DtoRule.Mirror);
+
             return Arrays.asList(new Object[][] { { dnatRule, null },
                     { revDnatRule, null }, { snatRule, null },
-                    { revSnatRule, null }, { filteringRule, "portgroup1" } });
+                    { revSnatRule, null }, { filteringRule, "portgroup1" },
+                    { mirrorRule, null } });
         }
 
         @Test
         public void testCreateGetListDelete() {
 
             rule.setChainId(chain1.getId());
+
+            // Workaround for the issue that we can't set bridgePort1's ID in
+            // the static method to provide parameters.
+            if (rule.getType().equals(DtoRule.Mirror)) {
+                rule.setDstPortId(bridgePort1.getId());
+            }
 
             // Verify that there is nothing
             URI rulesUri = chain1.getRules();
@@ -477,6 +574,9 @@ public class TestRule {
             assertEquals(rule.getType(), outRule.getType());
             assertEquals(1, outRule.getPosition());
             URI rule1Uri = outRule.getUri();
+            if (rule.getType().equals(DtoRule.Mirror)) {
+                assertEquals(outRule.getDstPortId(), rule.getDstPortId());
+            }
 
             // List the rule
             rules = dtoResource.getAndVerifyOk(rulesUri,

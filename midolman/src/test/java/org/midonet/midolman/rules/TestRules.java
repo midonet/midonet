@@ -264,6 +264,20 @@ public class TestRules {
         Assert.assertEquals(Action.RETURN, res.action);
     }
 
+    @Test
+    public void testMirrorRule() {
+        UUID portId = UUID.randomUUID();
+        Rule rule = new MirrorRule(cond, portId);
+
+        RuleResult res = new RuleResult(null, null);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(null, res.action);
+        pktCtx.inPortId_$eq(inPort);
+        rule.process(pktCtx, res, ownerId, false);
+        Assert.assertEquals(res.action, Action.MIRROR);
+        Assert.assertEquals(res.dstPortId, portId);
+    }
+
     private Ethernet createTracePacket() {
         /* Generate the actual packet as it is used
          * to look up the flow in the trace table
