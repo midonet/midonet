@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b75ff371",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-06-30T08:38:56Z",
+      "side": 1,
+      "message": "Ident",
+      "range": {
+        "startLine": 220,
+        "startChar": 39,
+        "endLine": 220,
+        "endChar": 40
+      },
+      "revId": "930c842d7b2aaa02bf0d44798bb0c427687b90ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
