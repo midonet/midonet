@@ -103,6 +103,7 @@ public class BridgeDhcpZkManager extends BaseZkManager {
             this.subnetAddr = IPv4Subnet.fromCidr(subnet.cidr);
             this.defaultGateway = subnet.gatewayIp == null ? null :
                 IPv4Addr.fromString(subnet.gatewayIp);
+            this.enabled = subnet.enableDhcp;
 
             if (subnet.hostRoutes != null) {
                 this.opt121Routes = new ArrayList<>(subnet.hostRoutes.size());

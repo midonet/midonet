@@ -523,7 +523,7 @@ public class DataCheckPointTest {
         int cp4 = zkDir().createCheckPoint();
 
         assert (zkDir().getRemovedPaths(cp3, cp4).size() == 0);
-        assert (zkDir().getModifiedPaths(cp3, cp4).size() == 1);
+        assert (zkDir().getModifiedPaths(cp3, cp4).size() == 2);
         assert (zkDir().getAddedPaths(cp3, cp4).size() == 0);
 
         subnet.enableDhcp = true;
@@ -531,7 +531,7 @@ public class DataCheckPointTest {
         int cp5 = zkDir().createCheckPoint();
 
         assert (zkDir().getRemovedPaths(cp4, cp5).size() == 0);
-        assert (zkDir().getModifiedPaths(cp4, cp5).size() == 1);
+        assert (zkDir().getModifiedPaths(cp4, cp5).size() == 2);
         assert (zkDir().getAddedPaths(cp4, cp5).size() == 0);
 
         plugin.deleteSubnet(subnet.id);
