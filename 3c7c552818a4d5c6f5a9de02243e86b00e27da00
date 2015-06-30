@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_920f5de1",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T10:01:55Z",
+      "side": 1,
+      "message": "I think this test could be minimized to a few lines by re-using the parent\u0027s router/pool.",
+      "revId": "3c7c552818a4d5c6f5a9de02243e86b00e27da00",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
