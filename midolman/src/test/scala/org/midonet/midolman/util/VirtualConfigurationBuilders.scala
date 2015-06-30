@@ -52,6 +52,8 @@ trait VirtualConfigurationBuilders {
     def newInboundChainOnPort(name: String, port: UUID): UUID
     def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                               action: Action): UUID
+    def newMirrorRuleOnChain(chain: UUID, pos: Int, condition: Condition,
+                             dstPortId: UUID): UUID
     def newTraceRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                             requestId: UUID): UUID
     def newTcpDstRuleOnChain(
@@ -236,6 +238,11 @@ trait ForwardingVirtualConfigurationBuilders
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                        action: Action): UUID =
         virtConfBuilderImpl.newLiteralRuleOnChain(chain, pos, condition, action)
+    override
+    def newMirrorRuleOnChain(chain: UUID, pos: Int, condition: Condition,
+                             dstPortId: UUID): UUID =
+        virtConfBuilderImpl.newMirrorRuleOnChain(
+            chain, pos, condition, dstPortId)
     override def newTraceRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                      requestId: UUID): UUID =
         virtConfBuilderImpl.newTraceRuleOnChain(chain, pos, condition, requestId)

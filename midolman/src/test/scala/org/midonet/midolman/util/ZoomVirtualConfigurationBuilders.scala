@@ -89,6 +89,26 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                        }).toBlocking.first)
         chain
     }
+
+    private def createZoomRule[T](rule: UUID,
+                                  chain: UUID,
+                                  condition: rules.Condition,
+                                  builder: Rule.Builder,
+                                  observer: AwaitableObserver[T]): Unit = {
+        store.create(setConditionFromCondition(builder, condition).build())
+        store.update(store.observable(classOf[Chain], chain)
+            .map[Chain](
+                makeFunc1[Chain, Chain](
+                    Chain.newBuilder()
+                        .mergeFrom(_)
+                        .addRuleIds(rule.asProto)
+                        .build()))
+            .toBlocking()
+            .first)
+
+        observer.awaitOnNext(2, 5.seconds)
+    }
+
     override def newInboundChainOnRouter(name: String, router: UUID): UUID = ???
     override def newOutboundChainOnRouter(name: String, router: UUID): UUID = ???
     override def newChain(name: String, id: Option[UUID] = None): UUID = ???
@@ -103,14 +123,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
         val rule = UUID.randomUUID
         val builder = createLiteralRuleBuilder(rule, Some(chain), Some(action))
-        store.create(setConditionFromCondition(builder, condition).build())
-        store.update(store.observable(classOf[Chain], chain)
-                         .map[Chain](makeFunc1[Chain,Chain]{
-                                         Chain.newBuilder().mergeFrom(_)
-                                             .addRuleIds(rule.asProto)
-                                             .build()
-                                         }).toBlocking.first)
-        devObserver.awaitOnNext(2, 5 seconds)
+        createZoomRule(rule, chain, condition, builder, devObserver)
         rule
     }
 
@@ -135,6 +148,20 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newJumpRuleOnChain(chain: UUID, pos: Int,
                                     condition: rules.Condition,
                                     jumpToChainID: UUID): UUID = ???
+    override
+    def newMirrorRuleOnChain(chain: UUID, pos: Int, condition: rules.Condition,
+                             dstPortId: UUID): UUID = {
+        val devObserver = new TestAwaitableObserver[SimChain]
+        VirtualTopology.observable[SimChain](chain).subscribe(devObserver)
+
+        val rule = UUID.randomUUID
+        val builder =
+            createMirrorRuleBuilder(rule, Some(chain), Some(dstPortId))
+
+        createZoomRule(rule, chain, condition, builder, devObserver)
+        rule
+    }
+
     override def newFragmentRuleOnChain(chain: UUID, pos: Int,
                                         fragmentPolicy: rules.FragmentPolicy,
                                         action: RuleResult.Action): UUID = ???
@@ -313,6 +340,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
             case RuleResult.Action.CONTINUE => Action.CONTINUE
             case RuleResult.Action.DROP => Action.DROP
             case RuleResult.Action.JUMP => Action.JUMP
+            case RuleResult.Action.MIRROR => Action.MIRROR
             case RuleResult.Action.REJECT => Action.REJECT
             case RuleResult.Action.RETURN => Action.RETURN
         }

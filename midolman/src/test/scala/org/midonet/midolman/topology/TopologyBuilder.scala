@@ -26,7 +26,7 @@ import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
+import org.midonet.cluster.models.Topology.Rule._
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
@@ -374,6 +374,20 @@ trait TopologyBuilder {
     : Rule.Builder = {
         createRuleBuilder(id, chainId, action)
             .setType(Rule.Type.LITERAL_RULE)
+    }
+
+    protected
+    def createMirrorRuleBuilder(id: UUID,
+                                chainId: Option[UUID] = None,
+                                portId: Option[UUID] = None): Rule.Builder = {
+        val builder = createRuleBuilder(id, chainId, Some(Action.MIRROR))
+            .setType(Rule.Type.MIRROR_RULE)
+        if (portId.isDefined) {
+            builder.setMirrorRuleData(MirrorRuleData.newBuilder
+                .setDstPortId(portId.get.asProto)
+                .build())
+        }
+        builder
     }
 
     protected def createTraceRuleBuilder(id: UUID,

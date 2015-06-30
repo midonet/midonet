@@ -36,7 +36,7 @@ import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.sdn.state.FlowStateTransaction
 
 @RunWith(classOf[JUnitRunner])
-class FlowTracingTest extends MidolmanSpec {
+class FlowTracingTest extends MidolmanSpec with PacketTestHelper {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var bridge: UUID = _
@@ -61,11 +61,7 @@ class FlowTracingTest extends MidolmanSpec {
         fetchDevice[Bridge](bridge)
     }
 
-    private def makeFrame(tpDst: Short, tpSrc: Short = 10101) =
-        { eth addr "00:02:03:04:05:06" -> "00:20:30:40:50:60" } <<
-        { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
-        { udp ports tpSrc ---> tpDst }
-
+    override
     implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
         val frame: Ethernet = ethBuilder
         val flowMatch = FlowMatches.fromEthernetPacket(frame)
@@ -74,11 +70,8 @@ class FlowTracingTest extends MidolmanSpec {
         pkt
     }
 
-    def makePacket(variation: Short): Packet = makeFrame(variation)
-
     // override to avoid clearing the packet context
-    def simulate(pktCtx: PacketContext)
-            : (SimulationResult, PacketContext) = {
+    def simulate(pktCtx: PacketContext): (SimulationResult, PacketContext) = {
         pktCtx.initialize(NO_CONNTRACK, NO_NAT, HappyGoLuckyLeaser, traceTx)
         val r = force {
             new Coordinator(pktCtx) simulate()

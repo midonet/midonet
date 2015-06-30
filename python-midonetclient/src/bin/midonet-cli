@@ -1883,6 +1883,7 @@ class Rule(Condition):
                                            'reject': 'reject',
                                            'return': 'return',
                                            'trace': 'trace',
+                                           'mirror': 'mirror',
                                            'dnat': 'dnat',
                                            'snat': 'snat',
                                            'rev_dnat': 'rev_dnat',
@@ -1892,7 +1893,8 @@ class Rule(Condition):
         self.put_attr(EnumAttr(name = 'action',
                                mappings = {'accept': 'accept',
                                            'continue': 'continue',
-                                           'return': 'return'},
+                                           'return': 'return',
+                                           'mirror': 'mirror'},
                                getter = 'get_flow_action',
                                setter = 'flow_action'))
         self.put_attr(SingleAttr(name = 'jump-to',
@@ -1913,6 +1915,11 @@ class Rule(Condition):
                                  value_type = StringType(),
                                  getter = 'get_trace_limit',
                                  setter = 'trace_limit',
+                                 optional = True))
+        self.put_attr(SingleAttr(name = 'dst-port-id',
+                                 value_type = ObjectRef('port'),
+                                 getter = 'get_dst_port_id',
+                                 setter = 'dst_port_id',
                                  optional = True))
 
 

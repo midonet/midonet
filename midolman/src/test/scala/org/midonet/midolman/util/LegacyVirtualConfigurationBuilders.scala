@@ -138,6 +138,12 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         id
     }
 
+    override
+    def newMirrorRuleOnChain(chain: UUID, pos: Int, condition: Condition,
+                             dstPortId: UUID): UUID = {
+        throw new NotImplementedError("Mirror rule is implemented since v2.0")
+    }
+
     override def newTraceRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                      requestId: UUID): UUID = {
         val rule = new TraceRule(requestId, condition, Long.MaxValue)

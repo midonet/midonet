@@ -8,6 +8,8 @@ midonet-cli-chain(1) -- Chain objects in midonet-cli
     midonet> chain chain0 add rule type accept flow return-flow
     midonet> chain chain0 add rule type dnat action accept \ 
              target 192.0.2.1-192.0.2.99:80
+    midonet> chain chain0 add rulet type mirror dst-port-id bridge0:port0 \
+             action mirror
 
 ## DESCRIPTION
 
@@ -35,10 +37,13 @@ Attributes:
     The rule <TYPE>; this is mostly used to distinguish between regular
     filtering rules and different types of NAT rules. The recognized <TYPE>
     values are: `accept`, `continue`, `drop`, `jump`, `reject`, `return`,
-    `dnat`, `snat`, `rev_dnat`, `rev_snat`.
+    `dnat`, `snat`, `rev_dnat`, `rev_snat` and `mirror`.
 
-  * `action` `accept`|`continue`|`return`:
+  * `action` `accept`|`continue`|`return`|`mirror`:
     The rule action, meaningful for NAT rules only.
+
+  * `dst-port-id` <PORT>:
+    The port to mirror into if this is a mirror rule.
 
   * `jump-to` <CHAIN>:
     The chain to jump to if this is a jump rule.

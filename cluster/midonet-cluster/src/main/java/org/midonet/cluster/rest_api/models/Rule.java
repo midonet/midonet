@@ -46,6 +46,7 @@ import org.midonet.cluster.util.UUIDUtil;
     @JsonSubTypes.Type(value = RejectRule.class, name = Rule.Reject),
     @JsonSubTypes.Type(value = ReturnRule.class, name = Rule.Return),
     @JsonSubTypes.Type(value = TraceRule.class, name = Rule.Trace),
+    @JsonSubTypes.Type(value = MirrorRule.class, name = Rule.Mirror),
     @JsonSubTypes.Type(value = ReverseDnatRule.class, name = Rule.RevDNAT),
     @JsonSubTypes.Type(value = ReverseSnatRule.class, name = Rule.RevSNAT)})
 @ZoomClass(clazz = Topology.Rule.class, factory = Rule.Factory.class)
@@ -64,6 +65,7 @@ public abstract class Rule extends Condition {
                     }
                 case TRACE_RULE: return TraceRule.class;
                 case NAT_RULE: return NatRule.class;
+                case MIRROR_RULE: return MirrorRule.class;
                 default: throw new ZoomConvert.ConvertException(
                     "Unknown rule type: " + proto.getType());
             }
@@ -77,6 +79,7 @@ public abstract class Rule extends Condition {
     public static final String Reject = "reject";
     public static final String Return = "return";
     public static final String Trace = "trace";
+    public static final String Mirror = "mirror";
     public static final String DNAT = "dnat";
     public static final String SNAT = "snat";
     public static final String RevDNAT = "rev_dnat";
@@ -87,7 +90,8 @@ public abstract class Rule extends Condition {
         @ZoomEnumValue(value = "LITERAL_RULE") LITERAL,
         @ZoomEnumValue(value = "NAT_RULE") NAT,
         @ZoomEnumValue(value = "JUMP_RULE") JUMP,
-        @ZoomEnumValue(value = "TRACE_RULE") TRACE
+        @ZoomEnumValue(value = "TRACE_RULE") TRACE,
+        @ZoomEnumValue(value = "MIRROR_RULE") MIRROR
     }
 
     @ZoomEnum(clazz = Topology.Rule.Action.class)
@@ -97,7 +101,8 @@ public abstract class Rule extends Condition {
         @ZoomEnumValue(value = "DROP") DROP,
         @ZoomEnumValue(value = "JUMP") JUMP,
         @ZoomEnumValue(value = "REJECT") REJECT,
-        @ZoomEnumValue(value = "RETURN") RETURN
+        @ZoomEnumValue(value = "RETURN") RETURN,
+        @ZoomEnumValue(value = "MIRROR") MIRROR
     }
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
