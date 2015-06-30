@@ -1,0 +1,186 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_d712b757",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "i think that should be a -- not a ---",
+      "range": {
+        "startLine": 18,
+        "startChar": 19,
+        "endLine": 18,
+        "endChar": 23
+      },
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_772bab82",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "does /dev/nul really work? i thought it is /dev/null",
+      "range": {
+        "startLine": 65,
+        "startChar": 56,
+        "endLine": 65,
+        "endChar": 59
+      },
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b72533ad",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "also typo DATAPATHE",
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_97202f9d",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "i would rewrite all of this as:\n\nif [[ \"\" \u003d\u003d \"$(mm_dpctl --list-dps | grep -- \"${DATAPATH}\")\" ]]; then\n\n  mm_dpctl --add-dp \"${DATAPATH}\"\n\n  if [[ ! \"0\" \u003d\u003d \"${?}\" ]]; then\n    echo \"Failed to create datapath: ${DATAPATH}\"\n    exit 1\n  fi\n\nfi\n\nit looks more clean and structured.",
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d739d7d9",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "backticks are evil.\n\nuse\n\nPID\u003d\"$(docker inspect -f \u0027{{.State.Pid}}\u0027 \"${CONTAINER}\" | head -n1)\"",
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_17341fdd",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "here you use sudo, down below you do not, why?",
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_373123ed",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "subshell in subshell. i am sad now.",
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f73dfbbc",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "if [[ ! \"\" \u003d\u003d \"${DEFAULT_GATEWAY}\" ]]; then\n\nhttps://google-styleguide.googlecode.com/svn/trunk/shell.xml?showone\u003dTest,_%5B_and_%5B%5B#Test,_%5B_and_%5B%5B\n\n[[ ... ]] is preferred over [, test and /usr/bin/[.\n[[ ... ]] reduces errors as no pathname expansion or word splitting takes place between [[ and ]] and [[ ... ]] allows for regular expression matching where [ ... ] does not.\n\n# This ensures the string on the left is made up of characters in the\n# alnum character class followed by the string name.\n# Note that the RHS should not be quoted here.\n# For the gory details, see\n# E14 at http://tiswww.case.edu/php/chet/bash/FAQ\nif [[ \"filename\" \u003d~ ^[[:alnum:]]+name ]]; then\n  echo \"Match\"\nfi\n\n# This matches the exact pattern \"f*\" (Does not match in this case)\nif [[ \"filename\" \u003d\u003d \"f*\" ]]; then\n  echo \"Match\"\nfi\n\n# This gives a \"too many arguments\" error as f* is expanded to the\n# contents of the current directory\nif [ \"filename\" \u003d\u003d f* ]; then\n  echo \"Match\"\nfi",
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5774e79b",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 128,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "no error handling, use of shady backticks. i do not approve.",
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7779eb92",
+        "filename": "tools/docker/mm-docker.sh",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1004086
+      },
+      "writtenOn": "2015-06-30T06:50:40Z",
+      "side": 1,
+      "message": "if [[ \"\" \u003d\u003d \"${PORTS}\" ]]",
+      "revId": "0643adeae4eaafbc473baef4df6068f9b4b354d0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
