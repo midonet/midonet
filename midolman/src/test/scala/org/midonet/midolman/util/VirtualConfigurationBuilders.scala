@@ -30,7 +30,7 @@ import org.midonet.cluster.data.{Bridge => ClusterBridge,
 import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
-import org.midonet.cluster.data.host.Host
+
 import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
@@ -45,9 +45,11 @@ import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBS
 
 trait VirtualConfigurationBuilders {
 
-    def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host
-    def newHost(name: String, id: UUID): Host
-    def newHost(name: String): Host
+    def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID
+    def newHost(name: String, id: UUID): UUID
+    def newHost(name: String): UUID
+    def isHostAlive(id: UUID): Boolean
+
     def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain
     def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain
     def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain
@@ -188,13 +190,15 @@ trait ForwardingVirtualConfigurationBuilders
 
     def virtConfBuilderImpl: VirtualConfigurationBuilders
 
-    def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host =
+    override def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID =
         virtConfBuilderImpl.newHost(name, id, tunnelZones)
-
-    def newHost(name: String, id: UUID): Host =
+    override def newHost(name: String, id: UUID): UUID =
         virtConfBuilderImpl.newHost(name, id)
-    def newHost(name: String): Host =
+    override def newHost(name: String): UUID =
         virtConfBuilderImpl.newHost(name)
+    override def isHostAlive(id: UUID): Boolean =
+        virtConfBuilderImpl.isHostAlive(id)
+
     def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain =
         virtConfBuilderImpl.newInboundChainOnBridge(name, bridge)
     def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain =

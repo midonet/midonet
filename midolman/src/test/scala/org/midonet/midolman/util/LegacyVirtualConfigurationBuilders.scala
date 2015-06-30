@@ -54,16 +54,15 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
 
     def stateStorage(): LegacyStorage = stateStorage
 
-    def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): Host = {
+    override def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID = {
         val host = new Host().setName(name).setTunnelZones(tunnelZones)
         clusterDataClient().hostsCreate(id, host)
-        host.setId(id)
-        host
+        id
     }
 
-    def newHost(name: String, id: UUID): Host = newHost(name, id, Set.empty)
-
-    def newHost(name: String): Host = newHost(name, UUID.randomUUID())
+    override def newHost(name: String, id: UUID): UUID = newHost(name, id, Set.empty)
+    override def newHost(name: String): UUID = newHost(name, UUID.randomUUID())
+    override def isHostAlive(id: UUID): Boolean = clusterDataClient().hostsGet(id).getIsAlive
 
     def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
         val chain = newChain(name, None)
