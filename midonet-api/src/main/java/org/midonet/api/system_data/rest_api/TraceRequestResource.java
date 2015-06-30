@@ -16,7 +16,6 @@
 
 package org.midonet.api.system_data.rest_api;
 
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -46,16 +45,15 @@ import com.google.inject.servlet.RequestScoped;
 import org.slf4j.Logger;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.auth.AuthRole;
-import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.rest_api.conversion.TraceRequestDataConverter;
-import org.midonet.cluster.rest_api.models.TraceRequest;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.ForbiddenHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.TraceRequest;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 

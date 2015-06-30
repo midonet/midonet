@@ -31,11 +31,11 @@ import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.api.system_data.HostVersion;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.util.collection.ListUtil;

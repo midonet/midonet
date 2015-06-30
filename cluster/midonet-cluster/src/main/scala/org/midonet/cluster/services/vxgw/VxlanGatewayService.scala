@@ -66,8 +66,8 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     private val log = LoggerFactory.getLogger(vxgwLog)
 
     // TODO: take these out to a service metrics container
-    private val networkCount = metrics.counter(s"${conf.vxgw.PREFIX}.networks")
-    private val vxgwCount = metrics.counter(s"${conf.vxgw.PREFIX}.vxgws")
+    private val networkCount = metrics.counter(s"${conf.vxgw.Prefix}.networks")
+    private val vxgwCount = metrics.counter(s"${conf.vxgw.Prefix}.vxgws")
     def numNetworks: Long = networkCount.getCount
     def numVxGWs: Long = vxgwCount.getCount
 

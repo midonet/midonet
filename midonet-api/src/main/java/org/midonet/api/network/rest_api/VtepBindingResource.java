@@ -17,6 +17,7 @@ package org.midonet.api.network.rest_api;
 
 import java.net.URI;
 import java.util.List;
+
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Validator;
 import javax.ws.rs.Consumes;
@@ -33,14 +34,15 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
+
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.southbound.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.data.Bridge;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.VTEPBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
