@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b7cff3af",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-06-30T07:24:23Z",
+      "side": 1,
+      "message": "tap devices might be more appropriate here.",
+      "range": {
+        "startLine": 259,
+        "startChar": 29,
+        "endLine": 259,
+        "endChar": 39
+      },
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
