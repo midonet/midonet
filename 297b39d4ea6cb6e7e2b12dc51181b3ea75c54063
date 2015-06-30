@@ -90,6 +90,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f7f41b89",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T08:16:07Z",
+      "side": 1,
+      "message": "If we run this service in midonet-cluster it is basically the same as the neutron way except we do get rid of the DHCP agent (which is an improvement).  So while I\u0027m ok with this approach, the only thing I wonder about is whether this matters to users.  Neutron will have distributed metadata service running on the compute hosts eventually.  If it\u0027s the case that this is a big deal, we should seriously consider doing it on compute.  \n\nThat said, the idea of having a metadata process thread hooked into the virtual device should be the same whether it\u0027s part of the agent or the cluster.  So it will be easy to migrate from one to the other.",
+      "parentUuid": "9ad9bd40_57a147a8",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 15
+      },
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_35e92581",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
@@ -107,6 +131,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_398547d0",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T08:16:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_35e92581",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_15eea988",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
@@ -118,6 +160,24 @@
       "writtenOn": "2015-02-15T09:24:55Z",
       "side": 1,
       "message": "typo: isolate",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_59884be7",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T08:16:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_15eea988",
       "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -159,6 +219,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_595f6b72",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T08:16:07Z",
+      "side": 1,
+      "message": "I\u0027ll try creating asciiflow images.",
+      "parentUuid": "7a1969be_75027d3f",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_55ff8134",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
@@ -170,6 +248,24 @@
       "writtenOn": "2015-02-15T09:24:55Z",
       "side": 1,
       "message": "There are several configurations that should to be specified for neutron metadata agent:http://docs.openstack.org/trunk/config-reference/content/networking-options-metadata.html. Is it applicable here as well?",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_d92b7b92",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T08:16:07Z",
+      "side": 1,
+      "message": "I would say that we start off with the basic default with no options supported.  Then we can start adding them as needed.  We should design it so that it would still work with a separate DHCP/metadata agent until feature parity is achieved.",
+      "parentUuid": "7a1969be_55ff8134",
       "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -239,6 +335,24 @@
       "writtenOn": "2015-02-15T09:24:55Z",
       "side": 1,
       "message": "typo: because",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_79550f4f",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T08:16:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_b5fcf53f",
       "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -458,6 +572,24 @@
     },
     {
       "key": {
+        "uuid": "facab960_99501360",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T08:16:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_95f9f94f",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "bad4c104_20d3aa39",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
@@ -537,6 +669,24 @@
       "writtenOn": "2015-02-15T09:24:55Z",
       "side": 1,
       "message": "typo: notified",
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "facab960_b94f97bc",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T08:16:07Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "7a1969be_f595cde4",
       "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
