@@ -29,9 +29,10 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
+import org.midonet.midolman.rules._
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, VIP, _}
 import org.midonet.midolman.state.l4lb
+import org.midonet.midolman.topology.TopologyMatchers.RuleMatcher
 import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
 import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort, _}
 import org.midonet.midolman.topology.routing.{BgpRoute, Bgp}
@@ -166,6 +167,13 @@ object TopologyMatchers {
             r.getChainId shouldBe rule.chainId.asProto
 
             rule.getCondition shouldBeDeviceOf r
+        }
+    }
+
+    class MirrorRuleMatcher(rule: MirrorRule) extends RuleMatcher(rule) {
+        override def shouldBeDeviceOf(r: TopologyRule): Unit = {
+            super.shouldBeDeviceOf(r)
+            rule.getDstPortId shouldBe r.getMirrorRuleData.getDstPortId
         }
     }
 
@@ -398,6 +406,9 @@ trait TopologyMatchers {
 
     implicit def asMatcher(rule: Rule): RuleMatcher =
         new RuleMatcher(rule)
+
+    implicit def asMatcher(rule: MirrorRule): RuleMatcher =
+        new MirrorRuleMatcher(rule)
 
     implicit def asMatcher(rule: JumpRule): RuleMatcher =
         new JumpRuleMatcher(rule)

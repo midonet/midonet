@@ -41,6 +41,7 @@ import org.midonet.sdn.flows.FlowTagger;
     property = "type")
 @JsonSubTypes({
     @JsonSubTypes.Type(value = LiteralRule.class, name = "Literal"),
+    @JsonSubTypes.Type(value = MirrorRule.class, name = "Mirror"),
     @JsonSubTypes.Type(value = TraceRule.class, name = "Trace"),
     @JsonSubTypes.Type(value = JumpRule.class, name = "Jump"),
     @JsonSubTypes.Type(value = ForwardNatRule.class, name = "ForwardNat"),
@@ -113,6 +114,13 @@ public abstract class Rule extends BaseConfig {
                     throw new ZoomConvert.ConvertException(
                         "Rule " + id + " is a TRACE rule but its action is not "
                         + " set to CONTINUE (" + rule + ")");
+                break;
+            case MIRROR_RULE:
+                if (rule.getAction() != Topology.Rule.Action.CONTINUE) {
+                    throw new ZoomConvert.ConvertException(
+                            "Rule " + id + "is a MIRROR rule but its action " +
+                                    "is not CONTINUE (" + rule + ")");
+                }
                 break;
         }
 
@@ -250,6 +258,7 @@ public abstract class Rule extends BaseConfig {
                 case LITERAL_RULE: return LiteralRule.class;
                 case TRACE_RULE: return TraceRule.class;
                 case NAT_RULE: return NatRule.class;
+                case MIRROR_RULE: return MirrorRule.class;
                 default:
                     throw new ZoomConvert.ConvertException("Unknown rule " +
                         "type: " + proto.getType());

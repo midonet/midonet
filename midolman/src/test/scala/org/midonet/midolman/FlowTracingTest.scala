@@ -27,7 +27,9 @@ import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.rules.Condition
 import org.midonet.midolman.simulation.{Coordinator, PacketContext}
+import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.HappyGoLuckyLeaser
+import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.util.MidolmanSpec
@@ -38,18 +40,52 @@ import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.sdn.state.FlowStateTransaction
 
-@RunWith(classOf[JUnitRunner])
-class FlowTracingTest extends MidolmanSpec {
+trait RuleTestHelper { this: MidolmanSpec =>
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
+
+    val table = new ShardedFlowStateTable[TraceKey,TraceContext](clock)
+        .addShard()
+    implicit val traceTx = new FlowStateTransaction(table)
+
+    protected def makeFrame(tpDst: Short, tpSrc: Short = 10101) =
+        { eth addr "00:02:03:04:05:06" -> "00:20:30:40:50:60" } <<
+            { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
+            { udp ports tpSrc ---> tpDst }
+
+    implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
+        val frame: Ethernet = ethBuilder
+        val flowMatch = FlowMatches.fromEthernetPacket(frame)
+        val pkt = new Packet(frame, flowMatch)
+        flowMatch.setInputPortNumber(42)
+        pkt
+    }
+
+    def makePacket(variation: Short): Packet = makeFrame(variation)
+
+    // override to avoid clearing the packet context
+    override
+    def simulate(pktCtx: PacketContext)
+                (implicit conntrackTx: FlowStateTransaction[ConnTrackKey,
+                    ConnTrackValue] = NO_CONNTRACK,
+                 natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
+                 traceTx: FlowStateTransaction[TraceKey,
+                     TraceContext] = NO_TRACE): (SimulationResult,
+                                                 PacketContext) = {
+        pktCtx.initialize(NO_CONNTRACK, NO_NAT, HappyGoLuckyLeaser, traceTx)
+        val r = force {
+            new Coordinator(pktCtx) simulate()
+        }
+        (r, pktCtx)
+    }
+}
+
+@RunWith(classOf[JUnitRunner])
+class FlowTracingTest extends MidolmanSpec with RuleTestHelper {
 
     var bridge: ClusterBridge = _
     var port1: BridgePort = _
     var port2: BridgePort = _
     var chain: Chain = _
-
-    val table = new ShardedFlowStateTable[TraceKey,TraceContext](clock)
-        .addShard()
-    implicit val traceTx = new FlowStateTransaction(table)
 
     override def beforeTest(): Unit = {
         bridge = newBridge("bridge0")
@@ -70,30 +106,6 @@ class FlowTracingTest extends MidolmanSpec {
         fetchDevice(chain)
     }
 
-    private def makeFrame(tpDst: Short, tpSrc: Short = 10101) =
-        { eth addr "00:02:03:04:05:06" -> "00:20:30:40:50:60" } <<
-        { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
-        { udp ports tpSrc ---> tpDst }
-
-    implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
-        val frame: Ethernet = ethBuilder
-        val flowMatch = FlowMatches.fromEthernetPacket(frame)
-        val pkt = new Packet(frame, flowMatch)
-        flowMatch.setInputPortNumber(42)
-        pkt
-    }
-
-    def makePacket(variation: Short): Packet = makeFrame(variation)
-
-    // override to avoid clearing the packet context
-    def simulate(pktCtx: PacketContext)
-            : (SimulationResult, PacketContext) = {
-        pktCtx.initialize(NO_CONNTRACK, NO_NAT, HappyGoLuckyLeaser, traceTx)
-        val r = force {
-            new Coordinator(pktCtx) simulate()
-        }
-        (r, pktCtx)
-    }
 
     feature("Tracing enabled by rule in chain") {
         scenario("tracing enabled by catchall rule") {

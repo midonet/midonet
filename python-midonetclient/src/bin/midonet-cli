@@ -1883,6 +1883,7 @@ class Rule(Condition):
                                            'reject': 'reject',
                                            'return': 'return',
                                            'trace': 'trace',
+                                           'mirror', 'mirror',
                                            'dnat': 'dnat',
                                            'snat': 'snat',
                                            'rev_dnat': 'rev_dnat',

@@ -41,6 +41,7 @@ import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.LiteralRule;
+import org.midonet.cluster.data.rules.MirrorRule;
 import org.midonet.cluster.data.rules.TraceRule;
 import org.midonet.cluster.data.rules.ReverseNatRule;
 import org.midonet.midolman.host.state.HostDirectory;
@@ -510,6 +511,12 @@ public class Converter {
             );
         }
 
+        if (rule instanceof MirrorRule) {
+            MirrorRule typedRule = (MirrorRule) rule;
+            ruleConfig = new org.midonet.midolman.rules.MirrorRule(
+                    typedRule.getCondition(), typedRule.getDstPotId());
+        }
+
         if (rule instanceof TraceRule) {
             TraceRule typedRule = (TraceRule) rule;
             ruleConfig = new org.midonet.midolman.rules.TraceRule(
@@ -568,6 +575,13 @@ public class Converter {
         if (ruleConfig instanceof org.midonet.midolman.rules.LiteralRule) {
             rule = new LiteralRule(ruleConfig.getCondition())
                        .setAction(ruleConfig.action);
+        }
+
+        if (ruleConfig instanceof org.midonet.midolman.rules.MirrorRule) {
+            org.midonet.midolman.rules.MirrorRule casted =
+                    (org.midonet.midolman.rules.MirrorRule) ruleConfig;
+            rule = new MirrorRule(casted.getCondition())
+                    .setPortId(casted.getDstPortId());
         }
 
         if (ruleConfig instanceof org.midonet.midolman.rules.TraceRule) {

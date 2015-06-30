@@ -31,6 +31,7 @@ import org.midonet.cluster.rest_api.models.ForwardDnatRule;
 import org.midonet.cluster.rest_api.models.ForwardNatRule;
 import org.midonet.cluster.rest_api.models.ForwardSnatRule;
 import org.midonet.cluster.rest_api.models.JumpRule;
+import org.midonet.cluster.rest_api.models.MirrorRule;
 import org.midonet.cluster.rest_api.models.RejectRule;
 import org.midonet.cluster.rest_api.models.ReturnRule;
 import org.midonet.cluster.rest_api.models.ReverseDnatRule;
@@ -55,6 +56,10 @@ public class RuleDataConverter {
                 case REJECT: dto = new RejectRule(); break;
                 case RETURN: dto = new ReturnRule(); break;
             }
+        } else if (data instanceof org.midonet.cluster.data.rules.MirrorRule) {
+            org.midonet.cluster.data.rules.MirrorRule mirrorData =
+                    (org.midonet.cluster.data.rules.MirrorRule) data;
+            dto = new MirrorRule(mirrorData.getDstPotId());
         } else if (data instanceof org.midonet.cluster.data.rules.JumpRule) {
             org.midonet.cluster.data.rules.JumpRule jumpData =
                 (org.midonet.cluster.data.rules.JumpRule)data;
@@ -163,6 +168,10 @@ public class RuleDataConverter {
         if (Rule.RuleType.LITERAL.equals(dto.type)) {
             data = new LiteralRule(makeCondition(dto));
             data.setAction(toSimAction(dto.action));
+        } else if (Rule.RuleType.MIRROR.equals(dto.type)) {
+            MirrorRule mirrorRule = (MirrorRule) dto;
+            data = toData(mirrorRule);
+            data.setAction(toSimAction(dto.action));
         } else if (Rule.RuleType.JUMP.equals(dto.type)) {
             data = toData((JumpRule)dto);
             data.setAction(toSimAction(dto.action));
@@ -195,6 +204,15 @@ public class RuleDataConverter {
         data.setCondition(makeCondition(dto));
         data.setMeterName(dto.meterName);
         return data;
+    }
+
+    private static org.midonet.cluster.data.Rule<?, ?> toData(MirrorRule rule) {
+        org.midonet.cluster.data.rules.MirrorRule mirrorRule =
+                new org.midonet.cluster.data.rules.MirrorRule(
+                        makeCondition(rule));
+        mirrorRule.setPortId(rule.dstPortId);
+
+        return mirrorRule;
     }
 
     private static org.midonet.cluster.data.Rule<?, ?> toData(JumpRule rule) {

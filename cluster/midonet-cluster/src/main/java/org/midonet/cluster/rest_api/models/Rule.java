@@ -77,6 +77,7 @@ public abstract class Rule extends Condition {
     public static final String Reject = "reject";
     public static final String Return = "return";
     public static final String Trace = "trace";
+    public static final String Mirror = "mirror";
     public static final String DNAT = "dnat";
     public static final String SNAT = "snat";
     public static final String RevDNAT = "rev_dnat";
@@ -87,7 +88,8 @@ public abstract class Rule extends Condition {
         @ZoomEnumValue(value = "LITERAL_RULE") LITERAL,
         @ZoomEnumValue(value = "NAT_RULE") NAT,
         @ZoomEnumValue(value = "JUMP_RULE") JUMP,
-        @ZoomEnumValue(value = "TRACE_RULE") TRACE
+        @ZoomEnumValue(value = "TRACE_RULE") TRACE,
+        @ZoomEnumValue(value = "MIRROR_RULE") MIRROR
     }
 
     @ZoomEnum(clazz = Topology.Rule.Action.class)

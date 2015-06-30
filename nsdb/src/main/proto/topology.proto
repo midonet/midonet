@@ -309,6 +309,7 @@ message Rule {
         NAT_RULE = 2;
         JUMP_RULE = 3;
         TRACE_RULE = 4;
+        MIRROR_RULE = 5;
     }
     optional Type type = 2;
     optional UUID chain_id = 3;
@@ -388,9 +389,14 @@ message Rule {
         // True for reverse NAT rules. Reverse NAT rules have no targets.
         optional bool reverse = 3;
     }
+    message MirrorRuleData {
+        // The port ID to be mirrored.
+        required UUID dst_port_id = 1;
+    }
     oneof rule_data {
         JumpRuleData jump_rule_data = 100;
         NatRuleData nat_rule_data = 101;
+        MirrorRuleData mirror_rule_data = 102;
     }
 }
 
