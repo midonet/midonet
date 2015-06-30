@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fcf40089",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-06-30T04:21:17Z",
+      "side": 1,
+      "message": "You can avoid rebuilding if the old one has no FIP ID:  \n\n  if (!oldNPort.hasFloatingIpId) newNPort\n  else newNPort.toBuilder.setFloatingIpId(oldNPort.getFloatingIpId).build()",
+      "range": {
+        "startLine": 587,
+        "startChar": 0,
+        "endLine": 590,
+        "endChar": 33
+      },
+      "revId": "b1fceadbe3fd1b55a4ea30c23c380a33daadab14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
