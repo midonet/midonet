@@ -17,7 +17,7 @@ package org.midonet.api.network;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.UriResource;
-import org.midonet.api.network.validation.IsValidPortId;
+import org.midonet.cluster.rest_api.validation.IsValidPortId;
 import org.midonet.api.network.validation.PortsLinkable;
 
 import javax.validation.GroupSequence;

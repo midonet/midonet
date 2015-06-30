@@ -268,6 +268,13 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
     }
 
     /**
+     * Gets id of the port into which the flow is mirrored.
+     */
+    public UUID getMirrorDstPortid() {
+        return principalDto.getDstPortId();
+    }
+
+    /**
      * Gets nat target for this rule.
      *
      * @return
@@ -663,6 +670,17 @@ public class Rule extends ResourceBase<Rule, DtoRule> {
      */
     public Rule jumpChainId(UUID jumpChainId) {
         principalDto.setJumpChainId(jumpChainId);
+        return this;
+    }
+
+    /**
+     * Sets mirrorDstPortId.
+     *
+     * @param mirrorDstPortId
+     * @return this
+     */
+    public Rule mirrorDstPortId(UUID mirrorDstPortId) {
+        principalDto.setDstPortId(mirrorDstPortId);
         return this;
     }
 
