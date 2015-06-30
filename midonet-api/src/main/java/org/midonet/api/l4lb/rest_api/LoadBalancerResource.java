@@ -34,6 +34,7 @@ import org.midonet.cluster.auth.AuthRole;
 import org.midonet.event.topology.LoadBalancerEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.InvalidStateOperationException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
@@ -141,7 +142,7 @@ public class LoadBalancerResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Path("{id}")
     public void delete(@PathParam("id") UUID id)
-        throws StateAccessException,
+        throws StateAccessException, MappingStatusException,
             InvalidStateOperationException, SerializationException {
 
         try {
