@@ -79,7 +79,12 @@ object TraceState {
             requests.addAll(other.requests)
         }
 
-        def addRequest(request: UUID): Boolean = requests.add(request)
+        def addRequest(request: UUID): Unit = {
+            if (!requests.contains(request)) {
+                requests.add(request)
+            }
+        }
+
         def containsRequest(request: UUID): Boolean = requests.contains(request)
 
         override def hashCode(): Int = Objects.hashCode(flowTraceId, requests)
