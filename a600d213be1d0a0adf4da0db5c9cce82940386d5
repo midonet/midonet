@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_7763abb1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 82,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-30T07:29:52Z",
+      "side": 1,
+      "message": "Can we add some details about thread safety? (where do things run, what guarantees are you keeping or not? both for external uses and for reference.\n\nAlso some info in /docs would be nice, but that can be in a separate patch.",
+      "revId": "a600d213be1d0a0adf4da0db5c9cce82940386d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_77d56b42",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-30T07:29:52Z",
+      "side": 1,
+      "message": "nit: thinking from the perspective of an operator that is not familiar with rx, this reads a bit cryptic. Maybe just log.warn(\"Can\u0027t receive updates for map $mapName\", e) works just as well.",
+      "range": {
+        "startLine": 126,
+        "startChar": 62,
+        "endLine": 126,
+        "endChar": 69
+      },
+      "revId": "a600d213be1d0a0adf4da0db5c9cce82940386d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_97caef9f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-30T07:29:52Z",
+      "side": 1,
+      "message": "Ditto. Also debug.",
+      "revId": "a600d213be1d0a0adf4da0db5c9cce82940386d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f747bb1b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-06-30T07:29:52Z",
+      "side": 1,
+      "message": "If this is really a failure, throw IllegalState/ArgumentException instead (same below)",
+      "range": {
+        "startLine": 139,
+        "startChar": 16,
+        "endLine": 139,
+        "endChar": 21
+      },
+      "revId": "a600d213be1d0a0adf4da0db5c9cce82940386d5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
