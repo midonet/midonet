@@ -388,11 +388,10 @@ object DhcpValueParser {
                     encodedBytes += unmatched(i).length.toByte
                     encodedBytes ++= unmatched(i).getBytes
                 }
-                // $ python -c "print hex(0b1100000000000000)"
-                // 0xc000
+                // The first two bits should be 1 by the definition.
+                // 0b1100000000000000 == 0xc000
                 encodedBytes += ((pos >> 8) | 0xc0).toByte
                 encodedBytes += pos.toByte
-                encodedBytes += 0.toByte
             } else {
                 val domainPieces: Array[String] = unmatched
                 for (i: Int <- 0 until domainPieces.length) {
