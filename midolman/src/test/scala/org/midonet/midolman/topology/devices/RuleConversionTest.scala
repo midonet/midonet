@@ -62,6 +62,16 @@ class RuleConversionTest extends FeatureSpec with Matchers
             simRule shouldBeDeviceOf rule
         }
 
+        scenario("Test conversion for a mirror rule") {
+            val builder = createMirrorRuleBuilder(id = UUID.randomUUID(),
+                chainId = Some(UUID.randomUUID()),
+                portId = Some(UUID.randomUUID()))
+            setConditionAllFieldsDefault(builder)
+            val rule = builder.build()
+            val simRule = ZoomConvert.fromProto(rule, classOf[SimRule])
+            simRule shouldBeDeviceOf rule
+        }
+
         scenario("Test conversion for a trace rule") {
             val builder = createTraceRuleBuilder(id = UUID.randomUUID(),
                                                  chainId = Some(UUID.randomUUID()))
