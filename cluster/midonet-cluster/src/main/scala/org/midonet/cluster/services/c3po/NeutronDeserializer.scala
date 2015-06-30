@@ -150,8 +150,17 @@ object NeutronDeserializer {
 
     private def parseEnum(desc: EnumDescriptor)
                          (node: JsonNode): EnumValueDescriptor = {
-        val textVal = cleanUpProjectPrefix(node.asText)
-        val enumVal = desc.findValueByName(textVal.toUpperCase)
+        // XXX hack alert:
+        // device_owner looks like "compute:<az name>".
+        // we map them to "NOVA", throwing az away.
+        val textVal =
+            if (desc.getFullName ==
+                "org.midonet.cluster.models.NeutronPort.DeviceOwner"
+                && node.asText.startsWith("compute:"))
+                "NOVA"
+            else
+                cleanUpProjectPrefix(node.asText).toUpperCase
+        val enumVal = desc.findValueByName(textVal)
         if (enumVal == null)
             throw new NeutronDeserializationException(
                 s"Value $textVal not found in enum ${desc.getName}.")
