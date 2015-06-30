@@ -36,17 +36,17 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.AuthRole;
-import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.rest_api.ForbiddenHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.serialization.ViewMixinProvider;
 import org.midonet.cluster.rest_api.serialization.Views;
-import org.midonet.cluster.auth.AuthException;
-import org.midonet.cluster.auth.AuthService;
-import org.midonet.cluster.rest_api.VendorMediaType;
 
 /**
  * Root resource class for tenants

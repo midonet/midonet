@@ -22,17 +22,21 @@ import com.google.inject.Inject;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.MapBinder;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValueFactory;
 
 import org.midonet.api.auth.keystone.KeystoneConfig;
-import org.midonet.api.auth.keystone.v2_0.KeystoneService;
+import org.midonet.cluster.auth.keystone.v2_0.KeystoneService;
 import org.midonet.api.auth.vsphere.VSphereClient;
 import org.midonet.api.auth.vsphere.VSphereConfig;
 import org.midonet.api.auth.vsphere.VSphereConfigurationException;
 import org.midonet.api.auth.vsphere.VSphereSSOService;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
-import org.midonet.cluster.auth.keystone.v2_0.KeystoneClient;
 import org.midonet.config.ConfigProvider;
+
+import static com.typesafe.config.ConfigValueFactory.fromAnyRef;
 
 /**
  * Auth bindings.
@@ -64,32 +68,42 @@ public class AuthModule extends AbstractModule {
                 .to(MockAuthService.class);
     }
 
-    // -- Keystone --
-    @Provides @Singleton
-    @Inject
-    KeystoneConfig provideKeystoneConfig(ConfigProvider provider) {
-        return provider.getConfig(KeystoneConfig.class);
-    }
-
-    @Provides @Singleton
-    @Inject
-    KeystoneClient provideKeystoneClient(KeystoneConfig keystoneConfig) {
-        return new KeystoneClient(
-                keystoneConfig.getServiceHost(),
-                keystoneConfig.getServicePort(),
-                keystoneConfig.getServiceProtocol(),
-                keystoneConfig.getAdminToken());
+    // -- V2 configuration --
+    @Provides @Singleton @Inject
+    @SuppressWarnings("unused")
+    Config provideConfig(ConfigProvider provider) {
+        KeystoneConfig keystoneConfig = provider.getConfig(KeystoneConfig.class);
+        String authProvider = keystoneConfig.getAuthProvider();
+        return ConfigFactory.empty()
+            .withValue("cluster.auth.provider_class",
+                       fromAnyRef(keystoneConfig.getAuthProvider()))
+            .withValue("cluster.auth.admin_role",
+                       fromAnyRef(keystoneConfig.getAdminRole()))
+            .withValue("cluster.auth.tenant_admin_role",
+                       fromAnyRef(keystoneConfig.getTenantAdminRole()))
+            .withValue("cluster.auth.tenant_user_role",
+                       fromAnyRef(keystoneConfig.getTenantUserRole()))
+            .withValue("cluster.auth.keystone.tenant_name",
+                       fromAnyRef(keystoneConfig.getAdminName()))
+            .withValue("cluster.auth.keystone.admin_token",
+                       fromAnyRef(keystoneConfig.getAdminToken()))
+            .withValue("cluster.auth.keystone.protocol",
+                       fromAnyRef(keystoneConfig.getServiceProtocol()))
+            .withValue("cluster.auth.keystone.host",
+                       fromAnyRef(keystoneConfig.getServiceHost()))
+            .withValue("cluster.auth.keystone.port",
+                       fromAnyRef(keystoneConfig.getServicePort()));
     }
 
     // -- vSphere --
-    @Provides @Singleton
-    @Inject
+    @Provides @Singleton @Inject
+    @SuppressWarnings("unused")
     VSphereConfig provideVSphereConfig(ConfigProvider provider) {
         return provider.getConfig(VSphereConfig.class);
     }
 
-    @Provides
-    @Inject
+    @Provides @Inject
+    @SuppressWarnings("unused")
     VSphereClient provideVSphereClient(VSphereConfig vSphereConfig)
             throws MalformedURLException, AuthException {
         String ignoreServerCertificate =
@@ -108,8 +122,7 @@ public class AuthModule extends AbstractModule {
     }
 
     // -- Mock --
-    @Provides @Singleton
-    @Inject
+    @Provides @Singleton @Inject
     MockAuthConfig provideMockAuthConfig(ConfigProvider provider) {
         return provider.getConfig(MockAuthConfig.class);
     }

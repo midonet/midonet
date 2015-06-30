@@ -29,9 +29,8 @@ import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import org.midonet.api.auth.AuthRole;
-import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.data.AdRoute;
 import org.midonet.cluster.data.BGP;
 import org.midonet.cluster.data.Bridge;
@@ -42,6 +41,7 @@ import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.LiteralRule;
+import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.RuleResult;
 

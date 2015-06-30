@@ -42,11 +42,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
@@ -54,14 +54,14 @@ import org.midonet.cluster.rest_api.models.IpAddrGroup;
 import org.midonet.cluster.rest_api.models.IpAddrGroupAddr;
 import org.midonet.cluster.rest_api.models.Ipv4AddrGroupAddr;
 import org.midonet.cluster.rest_api.models.Ipv6AddrGroupAddr;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPAddr$;
 
-import static org.midonet.cluster.rest_api.validation.MessageProperty.*;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.IP_ADDR_GROUP_ID_EXISTS;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 /**
  * Root resource class for IP addr groups.

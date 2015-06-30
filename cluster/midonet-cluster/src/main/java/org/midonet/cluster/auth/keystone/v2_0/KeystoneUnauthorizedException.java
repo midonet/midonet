@@ -17,11 +17,11 @@ package org.midonet.cluster.auth.keystone.v2_0;
 
 import org.midonet.cluster.auth.AuthException;
 
-public class KeystoneBadCredsException extends AuthException {
+public class KeystoneUnauthorizedException extends AuthException {
 
     private static final long serialVersionUID = 1L;
 
-    public KeystoneBadCredsException(String message, Throwable e) {
+    public KeystoneUnauthorizedException(String message, Throwable e) {
         super(message, e);
     }
 }

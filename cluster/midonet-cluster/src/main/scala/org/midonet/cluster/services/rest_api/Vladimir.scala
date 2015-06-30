@@ -24,13 +24,14 @@ import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
 import com.google.inject.{Guice, Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
+import com.typesafe.scalalogging.Logger
 
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.auth.{AuthService, MockAuthService}
+import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
 import org.midonet.cluster.services.rest_api.resources._
@@ -50,29 +51,31 @@ object Vladimir {
     final val POJOMappingFeatureClass =
         "com.sun.jersey.api.json.POJOMappingFeature"
 
-    def servletModule(backend: MidonetBackend,
-                      curator: CuratorFramework,
-                      config: ClusterConfig) = new JerseyServletModule {
-        override def configureServlets(): Unit = {
-            bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
-            bind(classOf[PathBuilder])
-                .toInstance(new PathBuilder(config.backend.rootKey))
-            bind(classOf[CuratorFramework]).toInstance(backend.curator)
-            bind(classOf[MidonetBackend]).toInstance(backend)
-            bind(classOf[CuratorFramework]).toInstance(curator)
-            bind(classOf[AuthService]).to(classOf[MockAuthService])
-                                      .asEagerSingleton()
-            bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
-            bind(classOf[ApplicationResource])
-            bind(classOf[Validator]).toProvider(classOf[ValidatorProvider])
-                                    .asEagerSingleton()
-            val initParams = new java.util.HashMap[String, String]
-            initParams.put(ContainerRequestFiltersClass,
-                           LoggingFilterClass)
-            initParams.put(ContainerResponseFiltersClass,
-                           LoggingFilterClass)
-            initParams.put(POJOMappingFeatureClass, "true")
-            serve("/*").`with`(classOf[GuiceContainer], initParams)
+    def servletModule(backend: MidonetBackend, curator: CuratorFramework,
+                      config: ClusterConfig, log: Logger) = {
+        new JerseyServletModule {
+            override def configureServlets(): Unit = {
+
+                install(new AuthModule(config.auth, log))
+
+                bind(classOf[WildcardJacksonJaxbJsonProvider])
+                    .asEagerSingleton()
+                bind(classOf[PathBuilder])
+                    .toInstance(new PathBuilder(config.backend.rootKey))
+                bind(classOf[CuratorFramework]).toInstance(curator)
+                bind(classOf[MidonetBackend]).toInstance(backend)
+                bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
+                bind(classOf[ApplicationResource])
+                bind(classOf[Validator]).toProvider(classOf[ValidatorProvider])
+                    .asEagerSingleton()
+                val initParams = new java.util.HashMap[String, String]
+                initParams.put(ContainerRequestFiltersClass,
+                               LoggingFilterClass)
+                initParams.put(ContainerResponseFiltersClass,
+                               LoggingFilterClass)
+                initParams.put(POJOMappingFeatureClass, "true")
+                serve("/*").`with`(classOf[GuiceContainer], initParams)
+            }
         }
     }
 
@@ -88,7 +91,7 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
     import Vladimir._
 
     private var server: Server = _
-    private val log = LoggerFactory.getLogger("org.midonet.rest-api")
+    private val log = Logger(LoggerFactory.getLogger("org.midonet.rest-api"))
 
     override def isEnabled = config.restApi.isEnabled
 
@@ -103,7 +106,8 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                                                 ServletContextHandler.SESSIONS)
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
-                Guice.createInjector(servletModule(backend, curator, config))
+                Guice.createInjector(servletModule(backend, curator, config,
+                                                   log))
             }
         })
         context.addFilter(classOf[GuiceFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))

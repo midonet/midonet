@@ -26,7 +26,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.google.inject.Inject;
 
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.neutron.loadbalancer.LBResource;
 import org.midonet.api.neutron.loadbalancer.LBUriBuilder;
 import org.midonet.api.rest_api.AbstractResource;

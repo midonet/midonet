@@ -49,10 +49,9 @@ object ClusterConfig {
 }
 
 class ClusterConfig(_conf: Config) {
-    val PREFIX = "cluster"
-
     val conf = _conf.resolve()
 
+    val auth = new AuthConfig(conf)
     val backend = new MidonetBackendConfig(conf)
     val embedding = new EmbeddedClusterNodeConfig(conf)
     val c3po = new C3POConfig(conf)
@@ -64,69 +63,84 @@ class ClusterConfig(_conf: Config) {
     val restApi = new RestApiConfig(conf)
 }
 
+class AuthConfig(val conf: Config) {
+    val Prefix = "cluster.auth"
+
+    def provider = conf.getString(s"$Prefix.provider_class")
+    def adminRole = conf.getString(s"$Prefix.admin_role")
+    def tenantAdminRole = conf.getString(s"$Prefix.tenant_admin_role")
+    def tenantUserRole = conf.getString(s"$Prefix.tenant_user_role")
+}
+
 class EmbeddedClusterNodeConfig(conf: Config) {
     def enabled = conf.getBoolean("midocluster.vxgw_enabled")
 }
 
 class C3POConfig(val conf: Config) extends ScheduledMinionConfig[C3POMinion] {
-    val PREFIX = "cluster.neutron_importer"
+    final val Prefix = "cluster.neutron_importer"
 
-    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
-    override def numThreads = conf.getInt(s"$PREFIX.threads")
-    override def delayMs = conf.getDuration(s"$PREFIX.delay", TimeUnit.MILLISECONDS)
-    override def periodMs = conf.getDuration(s"$PREFIX.period", TimeUnit.MILLISECONDS)
-    def connectionString = conf.getString(s"$PREFIX.connection_string")
-    def jdbcDriver = conf.getString(s"$PREFIX.jdbc_driver_class")
-    def user = conf.getString(s"$PREFIX.user")
-    def password = conf.getString(s"$PREFIX.password")
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    override def numThreads = conf.getInt(s"$Prefix.threads")
+    override def delayMs = conf.getDuration(s"$Prefix.delay", TimeUnit.MILLISECONDS)
+    override def periodMs = conf.getDuration(s"$Prefix.period", TimeUnit.MILLISECONDS)
+    def connectionString = conf.getString(s"$Prefix.connection_string")
+    def jdbcDriver = conf.getString(s"$Prefix.jdbc_driver_class")
+    def user = conf.getString(s"$Prefix.user")
+    def password = conf.getString(s"$Prefix.password")
 }
 
 class HeartbeatConfig(val conf: Config) extends ScheduledMinionConfig[Heartbeat] {
-    val PREFIX = "cluster.heartbeat"
-    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
-    override def numThreads = conf.getInt(s"$PREFIX.threads")
-    override def delayMs = conf.getDuration(s"$PREFIX.delay", TimeUnit.MILLISECONDS)
-    override def periodMs = conf.getDuration(s"$PREFIX.period", TimeUnit.MILLISECONDS)
+    final val Prefix = "cluster.heartbeat"
+
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+    override def numThreads = conf.getInt(s"$Prefix.threads")
+    override def delayMs = conf.getDuration(s"$Prefix.delay", TimeUnit.MILLISECONDS)
+    override def periodMs = conf.getDuration(s"$Prefix.period", TimeUnit.MILLISECONDS)
 }
 
 class VxGwConfig(val conf: Config) extends MinionConfig[VxlanGatewayService] {
-    val PREFIX = "cluster.vxgw"
-    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
-    def networkBufferSize = conf.getInt(s"$PREFIX.network_buffer_size")
+    final val Prefix = "cluster.vxgw"
 
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
+
+    def networkBufferSize = conf.getInt(s"$Prefix.network_buffer_size")
 }
 
 class TopologyApiConfig(val conf: Config) extends MinionConfig[TopologyApiService] {
-    val PREFIX = "cluster.topology_api"
+    final val Prefix = "cluster.topology_api"
 
-    override def isEnabled = conf.getBoolean(s"$PREFIX.enabled")
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
 
-    def socketEnabled = conf.getBoolean(s"$PREFIX.socket_enabled")
-    def port = conf.getInt(s"$PREFIX.port")
-    def wsEnabled = conf.getBoolean(s"$PREFIX.ws_enabled")
-    def wsPort = conf.getInt(s"$PREFIX.ws_port")
-    def wsPath = conf.getString(s"$PREFIX.ws_path")
-    def sessionGracePeriod = conf.getDuration(s"$PREFIX.session_grace_period", TimeUnit.MILLISECONDS)
-    def sessionBufferSize = conf.getInt(s"$PREFIX.session_buffer_size")
+    def socketEnabled = conf.getBoolean(s"$Prefix.socket_enabled")
+    def port = conf.getInt(s"$Prefix.port")
+    def wsEnabled = conf.getBoolean(s"$Prefix.ws_enabled")
+    def wsPort = conf.getInt(s"$Prefix.ws_port")
+    def wsPath = conf.getString(s"$Prefix.ws_path")
+    def sessionGracePeriod = conf.getDuration(s"$Prefix.session_grace_period", TimeUnit.MILLISECONDS)
+    def sessionBufferSize = conf.getInt(s"$Prefix.session_buffer_size")
 }
 
 class TopologySnoopyConfig(val conf: Config) {
-    def host = conf.getString("cluster.snoopy.host")
-    def port = conf.getInt("cluster.snoopy.port")
-    def wsPath = conf.getString("cluster.snoopy.ws_path")
+    final val Prefix = "cluster.snoopy"
+
+    def host = conf.getString(s"$Prefix.host")
+    def port = conf.getInt(s"$Prefix.port")
+    def wsPath = conf.getString(s"$Prefix.ws_path")
 }
 
 class ConfApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
-    override def isEnabled = conf.getBoolean("cluster.conf_api.enabled")
+    final val Prefix = "cluster.conf_api"
+    
+    override def isEnabled = conf.getBoolean(s"$Prefix.enabled")
 
-    def httpPort = conf.getInt("cluster.conf_api.http_port")
+    def httpPort = conf.getInt(s"$Prefix.http_port")
 }
 
 class RestApiConfig(val conf: Config) extends MinionConfig[ConfMinion] {
-    val PREFIX = "cluster.rest_api"
+    final val Prefix = "cluster.rest_api"
 
     override def isEnabled = conf.getBoolean("cluster.rest_api.enabled")
 
-    def httpPort = conf.getInt("cluster.rest_api.http_port")
-    def rootUri = conf.getString("cluster.rest_api.root_uri")
+    def httpPort = conf.getInt(s"$Prefix.http_port")
+    def rootUri = conf.getString(s"$Prefix.root_uri")
 }

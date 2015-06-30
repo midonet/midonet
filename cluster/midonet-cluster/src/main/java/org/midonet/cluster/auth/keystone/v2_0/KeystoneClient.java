@@ -18,7 +18,6 @@ package org.midonet.cluster.auth.keystone.v2_0;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.google.inject.Inject;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -41,47 +40,35 @@ public class KeystoneClient {
     private final static Logger log = LoggerFactory
             .getLogger(KeystoneClient.class);
 
-    private final int port;
-    private final String protocol;
-    private final String host;
-    private final String adminToken;
+    private final KeystoneConfig config;
 
     public static final String KEYSTONE_TOKEN_HEADER_KEY = "X-Auth-Token";
     public static final String MARKER_QUERY = "marker";
     public static final String LIMIT_QUERY = "limit";
 
-    @Inject
-    public KeystoneClient(String host, int port, String protocol,
-                          String adminToken) {
-        this.host = host;
-        this.port = port;
-        this.protocol = protocol;
-        this.adminToken = adminToken;
+    public KeystoneClient(KeystoneConfig config) {
+        this.config = config;
     }
 
     public String getServiceUrl() {
-        return new StringBuilder(this.protocol).append("://")
-                .append(this.host).append(":").append(
-                        Integer.toString(this.port))
-                .append("/v2.0").toString();
+        return config.protocol() + "://" + config.host() + ":" +
+               Integer.toString(config.port()) + "/v2.0";
     }
 
     private String getTokensUrl() {
-        return new StringBuilder(getServiceUrl()).append("/tokens").toString();
+        return getServiceUrl() + "/tokens";
     }
 
     private String getTokensUrl(String token) {
-        return new StringBuilder(getTokensUrl()).append("/").append(token)
-                .toString();
+        return getTokensUrl() + "/" + token;
     }
 
     private String getTenantsUrl() {
-        return new StringBuilder(getServiceUrl()).append("/tenants").toString();
+        return getServiceUrl() + "/tenants";
     }
 
     private String getTenantUrl(String id) {
-        return new StringBuilder(getTenantsUrl()).append("/").append(
-                id).toString();
+        return getTenantsUrl() + "/" + id;
     }
 
     private <T> T sendGetRequest(WebResource resource, Class<T> clazz)
@@ -89,22 +76,22 @@ public class KeystoneClient {
 
         try {
             return resource.accept(MediaType.APPLICATION_JSON)
-                    .header(KEYSTONE_TOKEN_HEADER_KEY, this.adminToken)
+                    .header(KEYSTONE_TOKEN_HEADER_KEY, config.adminToken())
                     .get(clazz);
         } catch (UniformInterfaceException e) {
             throw new KeystoneServerException("Keystone server error.", e,
                     e.getResponse().getStatus());
         } catch (ClientHandlerException e) {
             throw new KeystoneConnectionException(
-                    "Could not connect to Keystone server. Uri="
-                            + resource.getURI(), e);
+                    "Could not connect to Keystone server " + resource.getURI(),
+                    e);
         }
     }
 
 
     public KeystoneAccess createToken(KeystoneAuthCredentials credentials)
             throws KeystoneServerException, KeystoneConnectionException,
-                   KeystoneBadCredsException {
+                   KeystoneUnauthorizedException {
 
         Client client = Client.create();
         WebResource resource = client.resource(getTokensUrl());
@@ -116,18 +103,18 @@ public class KeystoneClient {
         } catch (UniformInterfaceException e) {
             if (e.getResponse().getStatus()
                 == Response.Status.BAD_REQUEST.getStatusCode()) {
-                String err = "KeystoneClient: keystone login creds invalid "
-                              + credentials.toString();
+                String err = "Keystone v2 login credentials invalid " +
+                             credentials.toString();
                 log.warn(err);
-                throw new KeystoneBadCredsException(err, e);
+                throw new KeystoneUnauthorizedException(err, e);
             } else if (e.getResponse().getStatus()
                 == Response.Status.UNAUTHORIZED.getStatusCode()) {
-                String err = "KeystoneClient: keystone login creds not found "
-                              + credentials.toString();
+                String err = "Keystone v2 login credentials not found " +
+                             credentials.toString();
                 log.warn(err,credentials);
-                throw new KeystoneBadCredsException(err, e);
+                throw new KeystoneUnauthorizedException(err, e);
             } else {
-                throw new KeystoneServerException("Keystone server error.", e,
+                throw new KeystoneServerException("Keystone server error", e,
                     e.getResponse().getStatus());
             }
         } catch (ClientHandlerException e) {
@@ -149,7 +136,7 @@ public class KeystoneClient {
             if (ex.getStatus() == Response.Status.NOT_FOUND
                     .getStatusCode()) {
                 // This indicates that the token was not found
-                log.warn("KeystoneClient: Token not found {}", token);
+                log.warn("Keystone v2 token not found {}", token);
                 return null;
             }
 
@@ -167,7 +154,7 @@ public class KeystoneClient {
      */
     public KeystoneTenant getTenant(String id) throws KeystoneServerException,
             KeystoneConnectionException {
-        log.debug("KeystoneClient.getTenant: entered id=" + id);
+        log.debug("Keystone v2 get tenant {}", id);
 
         Client client = Client.create();
         WebResource resource = client.resource(getTenantUrl(id));
@@ -178,7 +165,7 @@ public class KeystoneClient {
             if (ex.getStatus() == Response.Status.NOT_FOUND.getStatusCode()) {
                 // This indicates that the tenant was not found.  Not an error
                 // from MidoNet.
-                log.info("KeystoneClient: Tenant not found {}", id);
+                log.info("Keystone v2 tenant not found {}", id);
                 return null;
             }
 

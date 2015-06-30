@@ -17,13 +17,15 @@
 package org.midonet.cluster.auth
 
 import java.util
+
 import javax.servlet.http.HttpServletRequest
 
 import scala.collection.JavaConversions._
 
-/** An implementation of the AuthService that always returns the admin tenant
-  * regardless of the credentials.  This is primarily for testing purposes.
-  */
+/**
+ * An implementation of the [[AuthService]] that always returns the admin tenant
+ * regardless of the credentials. This is primarily for testing purposes.
+ */
 class MockAuthService extends AuthService {
 
     val mockAdminTenant = new Tenant {

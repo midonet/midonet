@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth.keystone.v2_0;
+package org.midonet.cluster.auth.keystone.v2_0;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -24,13 +24,13 @@ import java.util.TimeZone;
 import javax.servlet.http.HttpServletRequest;
 
 import com.google.inject.Inject;
+import com.typesafe.config.Config;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.auth.AuthRole;
-import org.midonet.api.auth.keystone.KeystoneConfig;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.InvalidCredentialsException;
@@ -41,16 +41,14 @@ import org.midonet.cluster.auth.KeystoneTenantList;
 import org.midonet.cluster.auth.Tenant;
 import org.midonet.cluster.auth.Token;
 import org.midonet.cluster.auth.UserIdentity;
-import org.midonet.cluster.auth.keystone.v2_0.KeystoneClient;
-import org.midonet.cluster.auth.keystone.v2_0.KeystoneInvalidFormatException;
 
 /**
  * Keystone Service.
  */
 public class KeystoneService implements AuthService {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(KeystoneService.class);
+    private final static Logger log =
+        LoggerFactory.getLogger("org.midonet.cluster.auth.keystone");
 
     public final static String HEADER_X_AUTH_PROJECT = "X-Auth-Project";
     public final static String KEYSTONE_TOKEN_EXPIRED_FORMAT =
@@ -60,18 +58,18 @@ public class KeystoneService implements AuthService {
     private final KeystoneConfig config;
 
     @Inject
-    public KeystoneService(KeystoneClient client, KeystoneConfig config) {
-        this.client = client;
-        this.config = config;
+    public KeystoneService(Config config) {
+        this.config = new KeystoneConfig(config);
+        this.client = new KeystoneClient(this.config);
     }
 
     private String convertToAuthRole(String role) {
         String roleLowerCase = role.toLowerCase();
-        if (roleLowerCase.equals(config.getAdminRole())) {
+        if (roleLowerCase.equals(config.adminRole())) {
             return AuthRole.ADMIN;
-        } else if (roleLowerCase.equals(config.getTenantAdminRole())) {
+        } else if (roleLowerCase.equals(config.tenantAdminRole())) {
             return AuthRole.TENANT_ADMIN;
-        } else if (roleLowerCase.equals(config.getTenantUserRole())) {
+        } else if (roleLowerCase.equals(config.tenantUserRole())) {
             return AuthRole.TENANT_USER;
         } else {
             // Unknown roles are ignored.
@@ -176,7 +174,7 @@ public class KeystoneService implements AuthService {
         if (StringUtils.isEmpty(project)) {
             // the project was not specified in the request, so we need
             // to try and obtain it from the config.
-            project = this.config.getAdminName();
+            project = this.config.tenantName();
             if (StringUtils.isEmpty(project)) {
                 throw new InvalidCredentialsException("Project missing");
             }

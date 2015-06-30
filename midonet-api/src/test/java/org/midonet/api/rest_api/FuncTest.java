@@ -30,6 +30,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.test.framework.AppDescriptor;
 import com.sun.jersey.test.framework.WebAppDescriptor;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.scalalogging.Logger;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.retry.RetryNTimes;
@@ -182,7 +183,9 @@ public class FuncTest {
             backend.startAsync().awaitRunning();
 
             FuncTest._injector = Guice.createInjector(
-                Vladimir.servletModule(backend, curator, cfg),
+                Vladimir.servletModule(
+                    backend, curator, cfg,
+                    Logger.apply(LoggerFactory.getLogger(getClass()))),
                 new AbstractModule() {
                     @Override
                     protected void configure() {

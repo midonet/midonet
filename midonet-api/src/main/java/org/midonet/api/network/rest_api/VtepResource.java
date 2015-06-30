@@ -36,7 +36,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.api.auth.AuthRole;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.api.network.VTEP;
 import org.midonet.api.network.VTEPPort;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
