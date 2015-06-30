@@ -33,7 +33,7 @@ import org.midonet.midolman.l4lb.HaproxyHealthMonitor.{ConfigUpdate, RouterAdded
 import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, ConfigUpdated, RouterChanged}
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
+import org.midonet.midolman.state.{PoolHealthMonitorMappingStatus, StateAccessException}
 import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
 
 object HealthMonitor extends Referenceable {
@@ -228,8 +228,14 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case _ =>
                     log.info("received unconfigurable update for non-existing" +
                              "pool {}", poolId.toString)
-                    client.poolSetMapStatus(poolId,
-                        PoolHealthMonitorMappingStatus.INACTIVE)
+                    try {
+                        client.poolSetMapStatus(poolId,
+                            PoolHealthMonitorMappingStatus.INACTIVE)
+                    } catch {
+                        case sae: StateAccessException =>
+                            log.error("Unable to set the pool mapping: "
+                                      + sae.getMessage)
+                    }
             }
 
         case ConfigAdded(poolId, config, routerId) =>
@@ -240,8 +246,14 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None if !config.isConfigurable || routerId == null =>
                     log.info("received unconfigurable add for pool {}",
                         poolId.toString)
-                    client.poolSetMapStatus(poolId,
-                        PoolHealthMonitorMappingStatus.INACTIVE)
+                    try {
+                        client.poolSetMapStatus(poolId,
+                            PoolHealthMonitorMappingStatus.INACTIVE)
+                    } catch {
+                        case sae: StateAccessException =>
+                            log.error("Unable to set the pool mapping: "
+                                      + sae.getMessage)
+                    }
                     // Wait until this is configurable start this.
 
                 case None =>
@@ -260,8 +272,14 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None =>
                     log.info("received delete for non-existent pool {}",
                              poolId.toString)
-                    client.poolSetMapStatus(poolId,
+                    try {
+                        client.poolSetMapStatus(poolId,
                             PoolHealthMonitorMappingStatus.INACTIVE)
+                    } catch {
+                        case sae: StateAccessException =>
+                            log.error("Unable to set the pool mapping: "
+                            + sae.getMessage)
+                    }
             }
 
         case RouterChanged(poolId, config, routerId) =>
@@ -282,8 +300,14 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case _ =>
                     log.info("router changed for unconfigurable and non-" +
                              "existent pool {}", poolId.toString)
-                    client.poolSetMapStatus(poolId,
+                    try {
+                        client.poolSetMapStatus(poolId,
                             PoolHealthMonitorMappingStatus.INACTIVE)
+                    } catch {
+                        case sae: StateAccessException =>
+                            log.error("Unable to set the pool mapping: "
+                                      + sae.getMessage)
+                    }
             }
 
         case SetupFailure =>  context.stop(sender)
