@@ -134,7 +134,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
         clusterDataClient.tunnelZonesAddMembership(
             tunnelZone.getId, new TunnelZone.HostConfig(hostId).setIp(srcIp))
         clusterDataClient.tunnelZonesAddMembership(
-            tunnelZone.getId, new TunnelZone.HostConfig(host2.getId).setIp(dstIp1))
+            tunnelZone.getId, new TunnelZone.HostConfig(host2).setIp(dstIp1))
 
         DatapathController.messages.collect { case p: ResolvedHost => p } should have size 1
         DatapathController.messages.collect { case p: ZoneMembers => p } should have size 1
@@ -144,16 +144,16 @@ class DatapathControllerActorTest extends MidolmanSpec {
         val output = dpc.driver.asInstanceOf[DatapathStateDriver]
             .tunnelOverlayGre.toOutputAction
         val route1 = UnderlayResolver.Route(srcIp.toInt, dstIp1.toInt, output)
-        dpc.driver.peerTunnelInfo(host2.getId) should be (Some(route1))
+        dpc.driver.peerTunnelInfo(host2) should be (Some(route1))
 
         val tag1 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp1.toInt)
         flowInvalidator should invalidate(tag1)
 
         // update the gre ip of the second host
         val dstIp2 = IPv4Addr("192.168.210.1")
-        val secondGreConfig = new TunnelZone.HostConfig(host2.getId).setIp(dstIp2)
+        val secondGreConfig = new TunnelZone.HostConfig(host2).setIp(dstIp2)
         clusterDataClient.tunnelZonesDeleteMembership(
-            tunnelZone.getId, host2.getId)
+            tunnelZone.getId, host2)
         clusterDataClient.tunnelZonesAddMembership(
             tunnelZone.getId, secondGreConfig)
 
@@ -161,7 +161,7 @@ class DatapathControllerActorTest extends MidolmanSpec {
         DatapathController.getAndClear() should have size 2
 
         val route2 = UnderlayResolver.Route(srcIp.toInt, dstIp2.toInt, output)
-        dpc.driver.peerTunnelInfo(host2.getId) should be (Some(route2))
+        dpc.driver.peerTunnelInfo(host2) should be (Some(route2))
 
         val tag2 = FlowTagger tagForTunnelRoute (srcIp.toInt, dstIp2.toInt)
         flowInvalidator should invalidate(tag1, tag2)
