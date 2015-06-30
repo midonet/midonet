@@ -23,7 +23,10 @@ import com.google.inject._
 import com.typesafe.config.{ConfigFactory, Config}
 
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
+import org.midonet.cluster.{Client,DataClient,ExplodingClient}
+import org.midonet.cluster.{ExplodingDataClient,ExplodingLegacyStorage,ExplodingZkManager}
 import org.midonet.cluster.services.{MidonetBackend, LegacyStorageService}
+import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster._
@@ -35,6 +38,7 @@ import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
 import org.midonet.midolman.simulation.CustomMatchers
+import org.midonet.midolman.state.{PathBuilder,ZkManager}
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
 import org.midonet.util.concurrent.{MockClock, NanoClock}
@@ -113,7 +117,7 @@ trait MidolmanSpec extends FeatureSpecLike
 
     protected def getModules = {
         val conf = MidoTestConfigurator.forAgents(fillConfig())
-        List(
+        val modules = List(
             new SerializationModule(),
             new MidolmanConfigModule(conf),
             new MockDatapathModule(),
@@ -129,7 +133,6 @@ trait MidolmanSpec extends FeatureSpecLike
                     })
                 }
             },
-            new LegacyClusterModule(),
             new MockMidolmanModule(),
             new MidolmanActorsModule {
                 override def configure() {
@@ -147,7 +150,34 @@ trait MidolmanSpec extends FeatureSpecLike
                             .to(classOf[MockInterfaceScanner]).asEagerSingleton()
                     expose(classOf[InterfaceScanner])
                 }
+            })
+        if (System.getProperty("midonet.newStack") != null) {
+            modules :+ new AbstractModule {
+                override def configure() {
+                    bind(classOf[Client])
+                        .to(classOf[ExplodingClient])
+                        .asEagerSingleton()
+                    bind(classOf[DataClient])
+                        .to(classOf[ExplodingDataClient])
+                        .asEagerSingleton()
+                    bind(classOf[LegacyStorage])
+                        .to(classOf[ExplodingLegacyStorage])
+                        .asEagerSingleton()
+                    bind(classOf[ZkManager])
+                        .to(classOf[ExplodingZkManager])
+                        .asEagerSingleton()
+                    bind(classOf[PathBuilder])
+                        .toInstance(new PathBuilder("/ERRORING/PATH"))
+                    bind(classOf[LegacyStorageService])
+                        .toInstance(new LegacyStorageService(null, null, null) {
+                                        protected override def doStart(): Unit = {
+                                            notifyStarted()
+                                        }
+                                    })
+                }
             }
-        )
+        } else {
+            modules :+ (new LegacyClusterModule())
+        }
     }
 }
