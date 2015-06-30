@@ -317,6 +317,7 @@ class Coordinator(context: PacketContext)
             SendPacket
         } else {
             context.trackConnection(deviceId)
+            context.addTraceKeysForEgress()
             AddVirtualWildcardFlow
         }
     }

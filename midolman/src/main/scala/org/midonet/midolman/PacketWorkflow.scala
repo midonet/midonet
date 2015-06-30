@@ -124,6 +124,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
     private def handleFromUnderlay(context: PacketContext): SimulationResult = {
         if (context.hasTraceTunnelBit) {
             context.enableTracingOnEgress()
+            context.markUserspaceOnly()
         }
         context.log.debug(s"Received packet matching ${context.origMatch}" +
                               " from underlay")
@@ -449,31 +450,25 @@ class PacketWorkflow(
         }
 
     private def handleFlow(context: PacketContext,
-                           expiration: Expiration): SimulationResult =
-        if (context.hasTraceTunnelBit) {
-            // don't create a flow for traced contexts on the egress host
-            context.log.warn("Skipping flow creation for traced flow on egress")
+                           expiration: Expiration): SimulationResult = {
+        context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
+        if (context.origMatch.userspaceFieldsSeen) {
+            context.log.debug("Userspace fields seen; skipping flow creation")
             context.flowRemovedCallbacks.runAndClear()
-            NoOp
+            UserspaceFlow
         } else {
-            context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
-            if (context.origMatch.userspaceFieldsSeen) {
-                context.log.debug("Userspace fields seen; skipping flow creation")
-                context.flowRemovedCallbacks.runAndClear()
-                UserspaceFlow
+            val flow = tryAddFlow(context,expiration)
+            if (flow ne null) {
+                val dpFlow = new Flow(context.origMatch, context.flowActions)
+                logResultNewFlow("Will create flow", context)
+                context.log.debug(s"Creating flow $dpFlow")
+                flow.sequence = dpChannel.createFlow(dpFlow)
+                FlowCreated
             } else {
-                val flow = tryAddFlow(context,expiration)
-                if (flow ne null) {
-                    val dpFlow = new Flow(context.origMatch, context.flowActions)
-                    logResultNewFlow("Will create flow", context)
-                    context.log.debug(s"Creating flow $dpFlow")
-                    flow.sequence = dpChannel.createFlow(dpFlow)
-                    FlowCreated
-                } else {
-                    DuplicatedFlow
-                }
+                DuplicatedFlow
             }
         }
+    }
 
     def applyState(context: PacketContext): Unit = {
         context.log.debug("Applying connection state")
@@ -525,8 +520,6 @@ class PacketWorkflow(
 
     def processSimulationResult(context: PacketContext,
                                 result: SimulationResult): SimulationResult = {
-        context.addTraceKeysForEgress()
-
         result match {
             case AddVirtualWildcardFlow =>
                 translateActions(context)
