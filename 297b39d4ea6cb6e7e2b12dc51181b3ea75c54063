@@ -186,6 +186,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_72bbb9c4",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-06-30T10:27:15Z",
+      "side": 1,
+      "message": "Takashi, I believe what Duarte is suggesting (correct me if I\u0027m wrong) is that we go ahead with something like the virtual device idea but have that device port materialize inside the cluster, with agent running on the host.  So the packet would be simulated and egressed onto that cluster node where the metadata proxying happens.  Basically the idea is to run the proposed solution inside the cluster instead of the compute to shift the load.",
+      "parentUuid": "9ad9bd40_3273f14e",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 15
+      },
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_35e92581",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
