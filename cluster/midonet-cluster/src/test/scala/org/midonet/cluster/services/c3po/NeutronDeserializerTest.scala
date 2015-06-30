@@ -199,6 +199,30 @@ class NeutronDeserializerTest extends FunSuite with Matchers {
         port.getAllowedAddressPairsList.get(0).getMacAddress shouldBe "01:02:03:04:05:06"
     }
 
+    test("Neutron Compute Port deserialization") {
+        val json =
+            """
+              |{
+              |    "name": "compute-port",
+              |    "admin_state_up": true,
+              |    "tenant_id": "4fd44f30292945e481c7b8a0c8908869",
+              |    "id": "d32019d3-bc6e-4319-9c1d-6722fc136a22",
+              |    "device_owner": "compute:some_az"
+              |}
+            """.stripMargin
+
+        val port =
+            NeutronDeserializer.toMessage(json, classOf[NeutronPort])
+        port.getName should equal("compute-port")
+        port.getAdminStateUp shouldBe true
+        port.getTenantId should equal("4fd44f30292945e481c7b8a0c8908869")
+        port.getId.getMsb shouldBe 0xd32019d3bc6e4319L
+        port.getId.getLsb shouldBe 0x9c1d6722fc136a22L
+        port.getDeviceOwner shouldBe NeutronPort.DeviceOwner.COMPUTE
+        port.getPortSecurityEnabled shouldBe true
+        port.getAllowedAddressPairsCount shouldBe 0
+    }
+
     test("Neutron Router deserialization") {
         val json =
             """
