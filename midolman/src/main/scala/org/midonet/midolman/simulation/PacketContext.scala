@@ -276,6 +276,9 @@ class PacketContext(val cookie: Int,
 
     def prepareForDrop(): Unit = {
         idle = false
+        flowActions.clear()
+        packetActions.clear()
+        flowTags.clear()
     }
 
     def postpone() {
