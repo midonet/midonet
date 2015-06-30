@@ -24,6 +24,7 @@ import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
+import org.midonet.cluster.services.c3po.midonet
 import org.midonet.cluster.services.c3po.midonet.MidoOp
 import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
@@ -38,10 +39,28 @@ trait NeutronTranslator[NeutronModel <: Message] {
 
     protected val log = LoggerFactory.getLogger(this.getClass)
 
-    /** Translate the operation on NeutronModel to a list of operations applied
-      * to a different model that represent the complete translation of the
-      * first to the latter. */
+    /**
+     * Translate the Neutron operation on NeutronModel to a list of MidoNet
+     * operations that:
+     * - maintain (if necessary) the original model,
+     * - and translate the model into a corresponding representation made up of
+     * various MidoNet models.
+     */
     @throws[TranslationException]
+    def translateNeutronOp(op: NeutronOp[NeutronModel]): List[Operation] =
+        retainNeutronModel(op) ++ translate(op)
+
+    /* Keep the original model as is by default. Override if the model does not
+     * need to be maintained, or need some special handling. */
+    protected def retainNeutronModel(op: NeutronOp[NeutronModel])
+    : List[MidoOp[NeutronModel]] = {
+        op match {
+            case neutron.Create(nm) => List(midonet.Create(nm))
+            case neutron.Update(nm) => List(midonet.Update(nm))
+            case neutron.Delete(clazz, id) => List(midonet.Delete(clazz, id))
+        }
+    }
+
     def translate(op: NeutronOp[NeutronModel]): List[Operation] = try {
         op match {
             case neutron.Create(nm) => translateCreate(nm)
@@ -52,6 +71,7 @@ trait NeutronTranslator[NeutronModel <: Message] {
         case NonFatal(ex) => throw new TranslationException(op, ex)
     }
 
+    /* Implement the following for CREATE/UPDATE/DELETE of the model */
     protected def translateCreate(nm: NeutronModel): MidoOpList
     protected def translateUpdate(nm: NeutronModel): MidoOpList
     protected def translateDelete(id: UUID): MidoOpList

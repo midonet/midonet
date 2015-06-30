@@ -28,7 +28,6 @@ import com.google.protobuf.Message
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.storage._
-import org.midonet.cluster.models.Neutron.NeutronRouterInterface
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.{NeutronTranslator, TranslationException}
 
@@ -77,11 +76,6 @@ final class C3POStorageManager(storage: Storage) {
 
     private val apiTranslators = new JHashMap[Class[_], NeutronTranslator[_]]()
     private var initialized = false
-
-    // NeutronRouterInterface objects are not persisted because they don't have
-    // unique IDs, so persisting would cause errors.
-    private val neutronClassesNotStored: Set[Class[_]] =
-        Set(classOf[NeutronRouterInterface])
 
     def registerTranslator[T <: Message](clazz: Class[T],
                                          translator: NeutronTranslator[T])
@@ -210,13 +204,9 @@ final class C3POStorageManager(storage: Storage) {
             throw new ProcessingException(s"No translator for $modelClass.")
         }
 
-        val neutronModelOp = // Persist the original model if appropriate.
-            if (neutronClassesNotStored.contains(modelClass)) Seq()
-            else Seq(neutronOp.toPersistenceOp)
-
-        neutronModelOp ++ apiTranslators.get(modelClass)
+        apiTranslators.get(modelClass)
             .asInstanceOf[NeutronTranslator[T]]
-            .translate(neutronOp)
+            .translateNeutronOp(neutronOp)
             .map { midoOp => midoOp.toPersistenceOp }
     }
 }

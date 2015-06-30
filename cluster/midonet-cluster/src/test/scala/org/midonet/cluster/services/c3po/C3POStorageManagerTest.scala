@@ -210,10 +210,14 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     // call. See comment in C3POStorageManager.interpretAndExecTxn.
     "Neutron transaction" should " execute each task as a separate " +
                                  " multi call." in {
-        when(mockNetworkTranslator.translate(neutron.Create(neutronNetwork)))
-                                  .thenReturn(List(Create(midoNetwork)))
-        when(mockPortTranslator.translate(neutron.Create(neutronNetworkPort)))
-                               .thenReturn(List(Create(midoPort)))
+        when(mockNetworkTranslator
+                .translateNeutronOp(neutron.Create(neutronNetwork)))
+                .thenReturn(List(Create(neutronNetwork),
+                                 Create(midoNetwork)))
+        when(mockPortTranslator
+                .translateNeutronOp(neutron.Create(neutronNetworkPort)))
+                .thenReturn(List(Create(neutronNetworkPort),
+                                 Create(midoPort)))
 
         val translators: TranslatorMap = new util.HashMap()
         translators.put(classOf[NeutronNetwork], mockNetworkTranslator)
@@ -240,7 +244,7 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
         doThrow(new TranslationException(new neutron.Create(neutronNetwork),
                                          null, "Translation failure test"))
             .when(mockNetworkTranslator)
-            .translate(neutron.Create(neutronNetwork))
+            .translateNeutronOp(neutron.Create(neutronNetwork))
 
         val translators: TranslatorMap = new util.HashMap()
         translators.put(classOf[NeutronNetwork], mockNetworkTranslator)
@@ -253,8 +257,9 @@ class C3POStorageManagerTest extends FlatSpec with BeforeAndAfterEach {
     }
 
     "Storage failure" should "throw C3PODataManagerException" in {
-        when(mockNetworkTranslator.translate(neutron.Create(neutronNetwork)))
-                .thenReturn(List(Create(midoNetwork)))
+        when(mockNetworkTranslator
+                .translateNeutronOp(neutron.Create(neutronNetwork)))
+                .thenReturn(List(Create(neutronNetwork), Create(midoNetwork)))
         doThrow(new StorageException("Storage failure test"))
                 .when(storage).multi(any(classOf[Seq[PersistenceOp]]))
 
