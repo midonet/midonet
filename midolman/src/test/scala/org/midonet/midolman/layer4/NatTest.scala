@@ -84,7 +84,7 @@ class NatTest extends MidolmanSpec {
 
     var bridge: Bridge = null
     var router: Router = null
-    var host: Host = null
+    var host: UUID = null
 
     private val uplinkGatewayAddr = IPv4Addr("180.0.1.1")
     private val uplinkGatewayMac: MAC = "02:0b:09:07:05:03"
@@ -214,7 +214,7 @@ class NatTest extends MidolmanSpec {
         vmPorts zip vmPortNames foreach {
             case (port, name) =>
                 log.debug("Materializing port {}", name)
-                materializePort(port, host.getId, name)
+                materializePort(port, host, name)
                 portMap += portIdCounter -> port.getId
                 portIdCounter += 1
         }
@@ -223,7 +223,7 @@ class NatTest extends MidolmanSpec {
             router, uplinkPortMac, uplinkPortAddr.toString,
             uplinkNwAddr.getAddress.toString, uplinkNwAddr.getPrefixLen)
         uplinkPort should not be null
-        materializePort(uplinkPort, host.getId, "uplinkPort")
+        materializePort(uplinkPort, host, "uplinkPort")
         portMap += portIdCounter -> uplinkPort.getId
         portIdCounter += 1
 
