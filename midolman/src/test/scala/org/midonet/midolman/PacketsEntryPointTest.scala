@@ -29,15 +29,13 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.PacketsEntryPoint.{GetWorkers, Workers}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
-import org.midonet.odp.{Datapath, FlowMatches, Packet}
-import org.midonet.packets.Ethernet
-import org.midonet.packets.util.EthBuilder
-import org.midonet.packets.util.PacketBuilder._
+import org.midonet.odp.{Datapath, Packet}
 import org.midonet.util.MidonetEventually
 
 @RunWith(classOf[JUnitRunner])
 class PacketsEntryPointTestCase extends MidolmanSpec
-                                with MidonetEventually {
+                                with MidonetEventually
+                                with PacketTestHelper {
     var datapath: Datapath = null
     var packetsSeen = List[(Packet, Either[Int, UUID])]()
     var testablePep: TestablePEP = _
@@ -47,17 +45,6 @@ class PacketsEntryPointTestCase extends MidolmanSpec
     override def beforeTest() {
         datapath = mockDpConn().futures.datapathsCreate("midonet").get()
         testablePep = PacketsEntryPoint.as[TestablePEP]
-    }
-
-    def makeFrame(variation: Short) =
-        { eth addr "01:02:03:04:05:06" -> "10:20:30:40:50:60" } <<
-        { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
-        { udp ports 10101 ---> variation }
-
-    implicit def ethBuilder2Packet(ethBuilder: EthBuilder[Ethernet]): Packet = {
-        val frame: Ethernet = ethBuilder
-        new Packet(frame, FlowMatches.fromEthernetPacket(frame))
-              .setReason(Packet.Reason.FlowTableMiss)
     }
 
     feature("PacketsEntryPoint initializes correctly") {

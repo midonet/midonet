@@ -18,6 +18,7 @@ package org.midonet.api.network;
 import com.google.inject.AbstractModule;
 import org.midonet.api.network.validation.*;
 import org.midonet.cluster.DataClient;
+import org.midonet.api.network.validation.PortIdValidator;
 
 /**
  * Network module.
