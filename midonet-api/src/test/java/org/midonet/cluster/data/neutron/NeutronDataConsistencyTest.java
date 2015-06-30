@@ -22,15 +22,25 @@ import org.junit.Test;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.rest_api.neutron.models.HealthMonitor;
 import org.midonet.cluster.rest_api.neutron.models.Network;
+import org.midonet.cluster.rest_api.neutron.models.Pool;
+import org.midonet.cluster.rest_api.neutron.models.PoolHealthMonitor;
 import org.midonet.cluster.rest_api.neutron.models.Port;
 import org.midonet.cluster.rest_api.neutron.models.Router;
 import org.midonet.midolman.serialization.SerializationException;
+import org.midonet.midolman.state.l4lb.MappingStatusException;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
+
+import java.util.UUID;
 
 public final class NeutronDataConsistencyTest extends NeutronPluginTest {
 
     private DataClient dataClient;
+    private ZkManager zk;
+    private PathBuilder pb;
 
     @Before
     public void setUp() throws Exception {
@@ -38,6 +48,8 @@ public final class NeutronDataConsistencyTest extends NeutronPluginTest {
         super.setUp();
 
         this.dataClient = this.injector.getInstance(DataClient.class);
+        this.zk = this.injector.getInstance(ZkManager.class);
+        this.pb = this.injector.getInstance(PathBuilder.class);
     }
 
     /**
@@ -98,5 +110,45 @@ public final class NeutronDataConsistencyTest extends NeutronPluginTest {
         // Get the port and make sure it's gone
         Port p = this.plugin.getPort(port.id);
         Assert.assertNull(p);
+    }
+
+    /**
+     * Test that NeutronPlugin allows deletion of a port that does not have
+     * corresponding MidoNet port
+     */
+    @Test
+    public void testDeleteLoadBalancer()
+        throws SerializationException, StateAccessException,
+            MappingStatusException, Rule.RuleIndexOutOfBoundsException {
+
+        Router r = new Router(UUID.randomUUID(), "TENANT", "NAME", true,
+                              null, null);
+        this.plugin.createRouter(r);
+
+        Pool p = new Pool(UUID.randomUUID(), "TENANT", UUID.randomUUID(),
+                "NAME", "TCP", "ROUND_ROBIN", true, r.id);
+
+        this.plugin.createPool(p);
+
+        HealthMonitor hm = new HealthMonitor();
+        hm.id = UUID.randomUUID();
+        hm.adminStateUp = true;
+        hm.delay = 1;
+        hm.maxRetries = 1;
+        this.plugin.createHealthMonitor(hm);
+
+        PoolHealthMonitor phm = new PoolHealthMonitor();
+        phm.id = hm.id;
+
+        this.plugin.createPoolHealthMonitor(p.id, phm);
+
+        Assert.assertTrue(this.zk.exists(
+                pb.getPoolHealthMonitorMappingsPath(p.id, hm.id)));
+
+        UUID lbId = this.dataClient.loadBalancersGetAll().get(0).getId();
+        this.dataClient.loadBalancerDelete(lbId);
+
+        Assert.assertFalse(this.zk.exists(
+            pb.getPoolHealthMonitorMappingsPath(p.id, hm.id)));
     }
 }
