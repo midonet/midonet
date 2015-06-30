@@ -223,6 +223,27 @@ class PacketWorkflowTest extends MidolmanSpec {
             packetsSeen.head.flowActions should not be empty
             packetsSeen.head.origMatch should not be packetsSeen.head.wcmatch
         }
+
+        scenario("packet context is cleared when dropping") {
+            Given("a simulation that generates a packet")
+            val pkt = makePacket(1)
+            ddaRef ! PacketWorkflow.HandlePackets(Array(pkt))
+
+            When("the simulation completes with an error")
+            dda.completeWithException(new Exception("c'est ne pas une exception"))
+
+            Then("the packet is dropped")
+            packetsSeen.head.flowTags should be (empty)
+            packetsSeen.head.flowRemovedCallbacks should not be (empty)
+            packetsSeen.head.packetActions should be (empty)
+            packetsSeen.head.flowActions should be (empty)
+
+            And("the modified flow match is not reset")
+            packetsSeen.head.wcmatch should not be packetsSeen.head.origMatch
+
+            And("packetsOut should be called")
+            packetsOut should be (1)
+        }
     }
 
     private def isCleared(context: PacketContext): Unit = {
@@ -443,11 +464,17 @@ class PacketWorkflowTest extends MidolmanSpec {
         var p = Promise[Any]()
         var generatedPacket: GeneratedPacket = _
         var nextActions: List[FlowAction] = _
+        var exception: Exception = _
 
         def completeWithGenerated(actions: List[FlowAction],
                                   generatedPacket: GeneratedPacket): Unit = {
             this.generatedPacket = generatedPacket
             complete(actions)
+        }
+
+        def completeWithException(exception: Exception): Unit = {
+            this.exception = exception
+            complete(Nil)
         }
 
         def complete(actions: List[FlowAction]): Unit = {
@@ -482,6 +509,8 @@ class PacketWorkflowTest extends MidolmanSpec {
                 if (generatedPacket ne null) {
                     pktCtx.packetEmitter.schedule(generatedPacket)
                     generatedPacket = null
+                } else if (exception ne null) {
+                    throw exception
                 }
                 FlowCreated
             }
