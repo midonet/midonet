@@ -33,7 +33,11 @@ import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.rest_api.conversion.ConditionDataConverter;
+import org.midonet.cluster.rest_api.conversion.RuleDataConverter;
 import org.midonet.cluster.util.UUIDUtil;
+
+import static org.midonet.cluster.rest_api.conversion.ConditionDataConverter.*;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY,
     property = "type")
@@ -142,5 +146,7 @@ public abstract class Rule extends Condition {
         if (0 == position) {
             position = 1;
         }
+        // Apply the default fragment policy
+        this.fragmentPolicy = toFragPolicyDto(getFragmentPolicy(this));
     }
 }

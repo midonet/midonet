@@ -28,6 +28,7 @@ import scala.collection.JavaConverters._
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation.AllowGet
 import org.midonet.cluster.rest_api.models.{Chain, Rule}
 import org.midonet.cluster.services.MidonetBackend
@@ -81,11 +82,25 @@ class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
     override def create(rule: Rule,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
-        getResource(classOf[Chain], chainId).map(chain => {
+
+        try {
+            // Rule validation is a bit awkward and worth simplifying but in
+            // order to remain compatible with the old stack we're allowing the
+            // validation to happen in ConditionDataConverter. This should
+            // be implemented in a more standard way.
             rule.create(chainId)
+        } catch {
+            case e: IllegalArgumentException =>
+                throw new BadRequestHttpException(e.getMessage)
+        }
+
+        throwIfViolationsOn(rule)
+
+        getResource(classOf[Chain], chainId).map(chain => {
             rule.setBaseUri(resContext.uriInfo.getBaseUri)
             if (rule.position <= 0 || rule.position > chain.ruleIds.size() + 1) {
-                throw new WebApplicationException(Status.BAD_REQUEST)
+                throw new BadRequestHttpException("Position exceeds number of" +
+                                                  "rules in chain")
             }
             chain.ruleIds.add(rule.position - 1, rule.id)
             multiResource(Seq(Create(rule), Update(chain)),

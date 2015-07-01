@@ -37,7 +37,9 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.annotation.JsonError;
 import org.midonet.cluster.rest_api.validation.IsValidFragmentType;
+import org.midonet.cluster.rest_api.validation.ValidMac;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.ValidMacMask;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.RangeUtil;
 import org.midonet.cluster.util.UUIDUtil;
@@ -118,18 +120,28 @@ public class Condition extends UriResource {
     public Integer dlType;
     @ZoomField(name = "inv_dl_type")
     public boolean invDlType;
+
+    @ValidMac
     @ZoomField(name = "dl_src")
     public String dlSrc;
+
     @Since("2")
+    @ValidMacMask
     @ZoomField(name = "dl_src_mask", converter = MACMaskConverter.class)
     public String dlSrcMask;
+
     @ZoomField(name = "inv_dl_src")
     public boolean invDlSrc;
+
     @ZoomField(name = "dl_dst")
+    @ValidMac
     public String dlDst;
+
     @Since("2")
     @ZoomField(name = "dl_dst_mask", converter = MACMaskConverter.class)
+    @ValidMacMask
     public String dlDstMask;
+
     @ZoomField(name = "inv_dl_dst")
     public boolean invDlDst;
     @ZoomField(name = "nw_tos")
