@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c6cf62af",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-01T20:13:40Z",
+      "side": 1,
+      "message": "This would be useful in other modules so I\u0027d suggest to move it to midonet, but it can be done in a later patch",
+      "revId": "059825b4d3443fea7fcf779dd07ec3596d424722",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
