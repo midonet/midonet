@@ -16,6 +16,24 @@
       "revId": "8ece39d179da5950022c44233ba6c59c58da68ac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9ac12fe7",
+        "filename": "midonet-util/src/test/java/org/midonet/util/version/TestVersionCheckAnnotationIntrospector.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-01T09:25:06Z",
+      "side": 1,
+      "message": "This test is for the `isHandled` method of a Jackson AnnotationIntrospector. The methods returns true if an annotation, given as argument, is handled by the annotation introspector. That method was deprecated in 2.1 and removed in 2.2. Since the method does not exist in 2.5, I think the TestIsHandled, which tests this method can be removed.",
+      "parentUuid": "9ad9bd40_5aefa7b0",
+      "revId": "8ece39d179da5950022c44233ba6c59c58da68ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
