@@ -43,7 +43,7 @@ import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList, AllowUpdate}
 import org.midonet.cluster.rest_api.models.UriResource
-import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, BadRequestHttpException, ConflictHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.util.reactivex._
@@ -164,12 +164,9 @@ abstract class MidonetResource[T >: Null <: UriResource]
             throw new WebApplicationException(Status.UNSUPPORTED_MEDIA_TYPE)
         }
 
-        val violations: JSet[ConstraintViolation[T]] = validator.validate(t)
-        if (violations.nonEmpty) {
-            throw new BadRequestHttpException(violations)
-        }
-
         t.setBaseUri(uriInfo.getBaseUri)
+
+        throwIfViolationsOn(t)
 
         createFilter(t)
         createResource(t)
@@ -187,10 +184,7 @@ abstract class MidonetResource[T >: Null <: UriResource]
 
         getResource(tag.runtimeClass.asInstanceOf[Class[T]], id).map(current => {
 
-            val violations: JSet[ConstraintViolation[T]] = validator.validate(t)
-            if (violations.nonEmpty) {
-                throw new BadRequestHttpException(violations)
-            }
+            throwIfViolationsOn(t)
 
             updateFilter(t, current)
             updateResource(t)
@@ -201,6 +195,13 @@ abstract class MidonetResource[T >: Null <: UriResource]
     @Path("{id}")
     def delete(@PathParam("id") id: String): Response = {
         deleteResource(tag.runtimeClass.asInstanceOf[Class[T]], id)
+    }
+
+    protected def throwIfViolationsOn[T](t: T): Unit = {
+        val violations: JSet[ConstraintViolation[T]] = validator.validate(t)
+        if (violations.nonEmpty) {
+            throw new BadRequestHttpException(violations)
+        }
     }
 
     protected implicit def toFutureOps[U](future: Future[U]): FutureOps[U] = {
@@ -318,7 +319,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
             case e: ConvertException =>
                 log.error("Failed to convert resource {} to message {}",
                           resource, resource.getZoomClass, e)
-                throw new WebApplicationException(Status.INTERNAL_SERVER_ERROR)
+                throw new InternalServerErrorHttpException(
+                    "Can't handle resource " +  resource)
         }
     }
 

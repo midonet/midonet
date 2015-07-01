@@ -142,6 +142,9 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
     override def create(port: RouterPort,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
+
+        throwIfViolationsOn(port)
+
         port.create(routerId)
         port.setBaseUri(resContext.uriInfo.getBaseUri)
         val route = new Route("0.0.0.0", 0, port.portAddress, 32, NextHop.Local,
@@ -199,6 +202,9 @@ class PortGroupPortResource @Inject()(portGroupId: UUID,
                         @HeaderParam("Content-Type") contentType: String)
     : Response = {
         portGroupPort.portGroupId = portGroupId
+
+        throwIfViolationsOn(portGroupPort)
+
         getResource(classOf[Port], portGroupPort.portId).flatMap(port => {
             getResource(classOf[PortGroup], portGroupPort.portGroupId).map(pg => {
                 if (port.portGroupIds.contains(portGroupPort.portGroupId)) {
