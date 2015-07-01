@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_371da3be",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 590,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-01T07:11:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_fcf40089",
+      "range": {
+        "startLine": 587,
+        "startChar": 0,
+        "endLine": 590,
+        "endChar": 33
+      },
+      "revId": "b1fceadbe3fd1b55a4ea30c23c380a33daadab14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_32ef71b2",
         "filename": "nsdb/src/main/proto/neutron.proto",
         "patchSetId": 1
@@ -36,6 +60,24 @@
       "writtenOn": "2015-06-30T10:41:27Z",
       "side": 1,
       "message": "can this represent multiple fips on a port?",
+      "revId": "b1fceadbe3fd1b55a4ea30c23c380a33daadab14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_774d6672",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-01T07:11:15Z",
+      "side": 1,
+      "message": "No. I guess multiple Floating IPs can be associated with a single Port, correct? Fixed.",
+      "parentUuid": "9ad9bd40_32ef71b2",
       "revId": "b1fceadbe3fd1b55a4ea30c23c380a33daadab14",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
