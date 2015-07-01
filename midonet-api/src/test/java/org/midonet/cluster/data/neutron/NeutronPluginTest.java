@@ -27,7 +27,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.ZookeeperTest;
+import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner;
 import org.midonet.cluster.rest_api.neutron.models.ExternalGatewayInfo;
@@ -47,6 +47,7 @@ import org.midonet.cluster.rest_api.neutron.models.RuleProtocol;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroup;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
 import org.midonet.cluster.rest_api.neutron.models.Subnet;
+import org.midonet.cluster.ZookeeperTest;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.MAC;
@@ -137,6 +138,12 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         UUID.randomUUID(), TENANT_ID, router.id, "200.0.0.5", port.id,
         "10.0.0.5");
 
+    // Default Security Group Rule
+    protected static final SecurityGroupRule securityGroupRule =
+        new SecurityGroupRule(UUID.randomUUID(), securityGroup.id,
+                              RuleDirection.EGRESS, RuleEthertype.IPv4,
+                              RuleProtocol.TCP);
+
     // Floating IP port
     protected static final Port floatingIpPort = new Port(
         UUID.randomUUID(), extNetwork.id, ADMIN_ID, "fip_port",
@@ -154,6 +161,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
     protected static final HealthMonitor healthMonitor = new HealthMonitor(
         UUID.randomUUID(), ADMIN_ID, 3, 5, 30, "TCP", true, pool.id);
 
+    protected DataClient dataClient;
     protected NeutronPlugin plugin;
 
     @Override
@@ -175,6 +183,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
 
         super.setUp();
 
+        dataClient = injector.getInstance(DataClient.class);
         plugin = injector.getInstance(NeutronPlugin.class);
 
         // Set up a basic scenario for all the tests for now

@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -220,5 +221,90 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
 
         plugin.deleteHealthMonitor(healthMonitor.id);
         dirVerifier.assertPathNotExists(mappingPath);
+    }
+
+    private void verifySecurityGroupRule()
+        throws SerializationException, StateAccessException {
+        Rule mr = dataClient.rulesGet(securityGroupRule.id);
+        if (securityGroupRule.isEgress() &&
+            securityGroupRule.remoteGroupId != null) {
+            Assert.assertTrue(mr.getCondition()
+                                .ipAddrGroupIdDst
+                                .equals(securityGroupRule.remoteGroupId));
+        }
+
+        if (securityGroupRule.isIngress() &&
+            securityGroupRule.remoteGroupId != null) {
+            Assert.assertTrue(mr.getCondition()
+                                .ipAddrGroupIdSrc
+                                .equals(securityGroupRule.remoteGroupId));
+        }
+
+        if (securityGroupRule.ethertype != null) {
+            Assert.assertTrue(mr.getCondition().etherType.equals(
+                    securityGroupRule.ethertype()));
+        }
+
+        if (securityGroupRule.protocol != null) {
+            Assert.assertTrue(securityGroupRule.protocol.number() ==
+                              mr.getCondition().nwProto);
+        }
+
+        if (securityGroupRule.portRangeMax != null &&
+            securityGroupRule.isIngress()) {
+            Assert.assertTrue(
+                securityGroupRule.portRangeMax.equals(
+                        mr.getCondition().tpSrc.end()));
+        }
+    }
+
+    @Test
+    public void testSecurityGroupCreateRemoteGroup()
+        throws SerializationException, StateAccessException {
+        securityGroupRule.remoteGroupId = securityGroup.id;
+        plugin.createSecurityGroupRule(securityGroupRule);
+        verifySecurityGroupRule();
+    }
+
+    @Test
+    public void testSecurityGroupCreateNullEthertype()
+        throws SerializationException, StateAccessException {
+        securityGroupRule.ethertype = null;
+        plugin.createSecurityGroupRule(securityGroupRule);
+        verifySecurityGroupRule();
+    }
+
+    @Test
+    public void testSecurityGroupCreateNullProtocol()
+        throws SerializationException, StateAccessException {
+        securityGroupRule.protocol = null;
+        plugin.createSecurityGroupRule(securityGroupRule);
+        verifySecurityGroupRule();
+    }
+
+    @Test
+    public void testSecurityGroupCreateNullMin()
+        throws SerializationException, StateAccessException {
+        securityGroupRule.portRangeMin = null;
+        securityGroupRule.portRangeMax = 100;
+        plugin.createSecurityGroupRule(securityGroupRule);
+        verifySecurityGroupRule();
+    }
+
+    @Test
+    public void testSecurityGroupCreateNullMax()
+        throws SerializationException, StateAccessException {
+        securityGroupRule.portRangeMax = null;
+        securityGroupRule.portRangeMin = 100;
+        plugin.createSecurityGroupRule(securityGroupRule);
+        verifySecurityGroupRule();
+    }
+
+    @Test
+    public void testSecurityGroupCreateNullDirection()
+        throws SerializationException, StateAccessException {
+        securityGroupRule.direction = null;
+        plugin.createSecurityGroupRule(securityGroupRule);
+        verifySecurityGroupRule();
     }
 }
