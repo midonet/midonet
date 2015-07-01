@@ -282,6 +282,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d788f2e9",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-01T05:08:02Z",
+      "side": 1,
+      "message": "usually the cluster node has midolman running?\ni thought midolman was for compute/network nodes.\n\nmy understanding is the cluster service is a single unix process\nwhich provides rest_api, c3po, etc.  if we make metadata proxy\na part of the service, i\u0027m not sure how we can put only that part\nin VM or namespace.",
+      "parentUuid": "9ad9bd40_ed644ce7",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 15
+      },
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_35e92581",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
