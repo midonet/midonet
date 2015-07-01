@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.midonet.api.network;
+package org.midonet.cluster.rest_api.models;
 
 public class VTEPPort {
-    private String name;
-    private String description;
+    public String name;
+    public String description;
 
     public VTEPPort() {}
 
@@ -27,19 +27,4 @@ public class VTEPPort {
         this.description = description;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 }

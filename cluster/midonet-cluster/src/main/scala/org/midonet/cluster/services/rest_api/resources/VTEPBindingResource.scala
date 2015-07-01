@@ -35,13 +35,13 @@ import org.midonet.cluster.rest_api.models.{Bridge, VTEP, VTEPBinding}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowCreate(Array(APPLICATION_VTEP_BINDING_JSON,
                    APPLICATION_JSON))
-class VTEPBindingResource @Inject()(mgmtIp: String, backend: MidonetBackend,
-                                    uriInfo: UriInfo)
-    extends MidonetResource[VTEPBinding](backend, uriInfo) {
+class VTEPBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
+    extends MidonetResource[VTEPBinding](resContext) {
 
     @GET
     @Path("{portName}/{vlanId}")

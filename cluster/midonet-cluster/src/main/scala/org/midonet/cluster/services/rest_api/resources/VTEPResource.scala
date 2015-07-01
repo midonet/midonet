@@ -19,19 +19,16 @@ package org.midonet.cluster.services.rest_api.resources
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response.Status
-import javax.ws.rs.core.UriInfo
-
-import scala.concurrent.Future
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.ApiException
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowList}
 import org.midonet.cluster.rest_api.models.{TunnelZone, VTEP}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
-import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.rest_api.{ApiException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowList(Array(APPLICATION_VTEP_COLLECTION_JSON,
@@ -39,8 +36,8 @@ import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 @AllowCreate(Array(APPLICATION_VTEP_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class VTEPResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
-    extends MidonetResource[VTEP](backend, uriInfo) {
+class VTEPResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[VTEP](resContext) {
 
     @GET
     @Path("{mgmtIp}")
@@ -51,12 +48,13 @@ class VTEPResource @Inject()(backend: MidonetBackend, uriInfo: UriInfo)
         listResources(classOf[VTEP])
             .map(_.find(_.managementIp == mgmtIp))
             .getOrThrow
-            .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
+            .getOrElse(throw new NotFoundHttpException(
+                                    getMessage(RESOURCE_NOT_FOUND)))
     }
 
     @Path("{mgmtIp}/bindings")
     def bindings(@PathParam("mgmtIp") mgmtIp: String): VTEPBindingResource = {
-        new VTEPBindingResource(mgmtIp, backend, uriInfo)
+        new VTEPBindingResource(mgmtIp, resContext)
     }
 
     protected override def createFilter = (vtep: VTEP) => {

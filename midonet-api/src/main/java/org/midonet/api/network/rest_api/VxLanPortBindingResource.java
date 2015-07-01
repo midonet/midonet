@@ -34,7 +34,7 @@ import com.google.inject.assistedinject.Assisted;
 import org.midonet.api.auth.AuthRole;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.vtep.VtepClusterClient;
+import org.midonet.cluster.southbound.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.ports.VxLanPort;
