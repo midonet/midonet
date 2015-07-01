@@ -20,7 +20,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.rest_api.neutron.models.Network;
 import org.midonet.cluster.rest_api.neutron.models.Port;
@@ -35,7 +34,6 @@ import java.util.UUID;
 
 public final class NeutronDataConsistencyTest extends NeutronPluginTest {
 
-    private DataClient dataClient;
     private ZkManager zk;
     private PathBuilder pb;
 
@@ -44,7 +42,6 @@ public final class NeutronDataConsistencyTest extends NeutronPluginTest {
 
         super.setUp();
 
-        this.dataClient = this.injector.getInstance(DataClient.class);
         this.zk = this.injector.getInstance(ZkManager.class);
         this.pb = this.injector.getInstance(PathBuilder.class);
     }
