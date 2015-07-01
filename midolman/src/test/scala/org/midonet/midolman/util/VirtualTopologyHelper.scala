@@ -37,7 +37,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.simulation.Coordinator.Device
-import org.midonet.midolman.simulation.{Coordinator, DhcpConfigFromDataclient, PacketContext, PacketEmitter, Router => SimRouter}
+import org.midonet.midolman.simulation.{Bridge => SimBridge, Coordinator, DhcpConfigFromDataclient, PacketContext, PacketEmitter, Router => SimRouter}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
@@ -75,6 +75,12 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             ask(VirtualTopologyActor, buildRequest(device)).asInstanceOf[Future[T]],
             timeout.duration)
 
+    def fetchBridge(bridge: UUID): SimBridge =
+        Await.result(
+            ask(VirtualTopologyActor, BridgeRequest(bridge, update = true))
+                .asInstanceOf[Future[SimBridge]],
+            timeout.duration)
+
     def fetchTopology(entities: Entity.Base[_,_,_]*) =
         fetchTopologyList(entities)
 
@@ -91,6 +97,23 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
         ArpCacheHelper.feedArpCache(router, ip, mac)
     }
+
+    def clearMacTable(bridge: SimBridge, vlan: Short, mac: MAC, port: UUID): Unit = {
+        bridge.vlanMacTableMap.get(vlan) map { m => m.remove(mac, port) }
+    }
+
+    def clearMacTable(bridge: SimBridge, mac: MAC, port: UUID): Unit = {
+        clearMacTable(bridge, SimBridge.UntaggedVlanId, mac, port)
+    }
+
+    def feedMacTable(bridge: SimBridge, vlan: Short, mac: MAC, port: UUID): Unit = {
+        bridge.vlanMacTableMap.get(vlan) map { m => m.add(mac, port) }
+    }
+
+    def feedMacTable(bridge: SimBridge, mac: MAC, port: UUID): Unit = {
+        feedMacTable(bridge, SimBridge.UntaggedVlanId, mac, port)
+    }
+
 
     def throwAwayArpBroker(emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList): ArpRequestBroker =
         new ArpRequestBroker(new PacketEmitter(emitter, actorSystem.deadLetters),

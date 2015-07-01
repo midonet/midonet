@@ -16,19 +16,18 @@
 
 package org.midonet.midolman
 
-import java.util.LinkedList
+import java.util.{LinkedList, UUID}
 
 import com.typesafe.config.{ConfigFactory, Config}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp}
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.{MacTableHelper, MidolmanSpec}
 import org.midonet.packets.{ARP, Packets, IPv4Addr, MAC}
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort, FlowActionOutputToVrnBridge}
 
@@ -37,7 +36,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    var bridge: ClusterBridge = _
+    var bridge: UUID = _
     var port1, port2, port3: BridgePort = _
     val mac1 = MAC.fromString("02:11:11:11:11:09")
     val ip1 = IPv4Addr.fromString("10.0.1.1")
@@ -62,11 +61,12 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
         materializePort(port3, hostId, "port3")
 
         // Seed the bridge with mac, ip, vport for port1.
-        clusterDataClient.bridgeAddIp4Mac(bridge.getId, ip1, mac1)
-        clusterDataClient.bridgeAddMacPort(
-            bridge.getId, ClusterBridge.UNTAGGED_VLAN_ID, mac1, port1.getId)
+        feedBridgeIp4Mac(bridge, ip1, mac1)
 
-        fetchTopology(bridge, port1, port2, port3)
+        val simBridge = fetchBridge(bridge)
+        fetchTopology(port1, port2, port3)
+
+        feedMacTable(simBridge, mac1, port1.getId)
     }
 
     feature("The bridge is not flooded") {
@@ -109,7 +109,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
 
             val FlowActionOutputToVrnBridge(bridgeId, outputPorts) = pktCtx.virtualFlowActions.get(0)
 
-            bridgeId should be (bridge.getId)
+            bridgeId should be (bridge)
             outputPorts should contain theSameElementsAs List(port1.getId, port3.getId)
         }
     }

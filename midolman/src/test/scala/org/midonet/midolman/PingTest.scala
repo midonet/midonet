@@ -23,7 +23,6 @@ import scala.collection.JavaConversions._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp}
 import org.midonet.midolman.layer3.Route
@@ -62,7 +61,7 @@ class PingTest extends MidolmanSpec {
     val vm1Ip = new IPv4Subnet("192.168.111.2", 24)
 
     // Bridge (connects VM2 to interior router port)
-    var bridge : Bridge = _
+    var bridge : UUID = _
 
     // VM2: local host to ping
     val vm2Ip = new IPv4Subnet("192.168.222.2", 24)
@@ -107,7 +106,8 @@ class PingTest extends MidolmanSpec {
         vm2Port should not be null
         materializePort(vm2Port, hostId, vm2PortName)
 
-        fetchTopology(router, rtrPort1, rtrPort2, bridge, brPort1, vm2Port)
+        fetchTopology(router, rtrPort1, rtrPort2, brPort1, vm2Port)
+        fetchBridge(bridge)
 
         simRouter = fetchDevice(router)
     }
@@ -193,7 +193,7 @@ class PingTest extends MidolmanSpec {
         pktCtx.virtualFlowActions should have size 3
 
         pktCtx.virtualFlowActions.get(2) should be (
-            FlowActionOutputToVrnBridge(bridge.getId, List(vm2Port.getId)))
+            FlowActionOutputToVrnBridge(bridge, List(vm2Port.getId)))
     }
 
     /*
