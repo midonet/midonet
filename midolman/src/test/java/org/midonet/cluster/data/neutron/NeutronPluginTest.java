@@ -23,6 +23,7 @@ import com.google.inject.PrivateModule;
 
 import org.junit.Before;
 
+import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Rule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -113,6 +114,12 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         UUID.randomUUID(), TENANT_ID, router.id, "200.0.0.5", port.id,
         "10.0.0.5");
 
+    // Default Security Group Rule
+    protected static final SecurityGroupRule securityGroupRule =
+        new SecurityGroupRule(UUID.randomUUID(), securityGroup.id,
+                              RuleDirection.EGRESS, RuleEthertype.IPv4,
+                              RuleProtocol.TCP);
+
     // Floating IP port
     protected static final Port floatingIpPort = new Port(
         UUID.randomUUID(), extNetwork.id, ADMIN_ID, "fip_port",
@@ -121,6 +128,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
         DeviceOwner.FLOATINGIP, floatingIp.id.toString(), null);
 
 
+    protected DataClient dataClient;
     protected NeutronPlugin plugin;
 
     @Override
@@ -142,6 +150,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
 
         super.setUp();
 
+        dataClient = injector.getInstance(DataClient.class);
         plugin = injector.getInstance(NeutronPlugin.class);
 
         // Set up a basic scenario for all the tests for now
