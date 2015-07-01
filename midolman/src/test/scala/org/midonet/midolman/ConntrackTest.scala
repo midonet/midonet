@@ -21,7 +21,6 @@ import org.junit.runner.RunWith
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Bridge
@@ -43,7 +42,7 @@ class ConntrackTest extends MidolmanSpec {
     var leftPort: BridgePort = null
     var rightPort: BridgePort = null
 
-    var clusterBridge: ClusterBridge = null
+    var clusterBridge: UUID = null
 
     private def buildTopology() {
         val host = newHost("myself", hostId)
@@ -73,9 +72,9 @@ class ConntrackTest extends MidolmanSpec {
         newLiteralRuleOnChain(brChain, 2, retCond, RuleResult.Action.ACCEPT)
         newLiteralRuleOnChain(brChain, 3, new Condition(), RuleResult.Action.DROP)
 
-        fetchTopology(brChain, clusterBridge, leftPort, rightPort)
+        fetchTopology(brChain, leftPort, rightPort)
 
-        val bridge: Bridge = fetchDevice(clusterBridge)
+        val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
         val macTable = bridge.vlanMacTableMap(0.toShort)
         macTable.add(MAC.fromString(leftMac), leftPort.getId)
         macTable.add(MAC.fromString(rightMac), rightPort.getId)
@@ -112,7 +111,7 @@ class ConntrackTest extends MidolmanSpec {
 
     feature("TCP, UDP and ICMP flows are conntracked") {
         scenario("return packets are detected as such") {
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
                                             .addShard()
             implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
@@ -134,7 +133,7 @@ class ConntrackTest extends MidolmanSpec {
         }
 
         scenario("return packets are not detected if a conntrack key is not installed") {
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val conntrackTable = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue]()
                     .addShard()
             implicit val conntrackTx = new FlowStateTransaction(conntrackTable)

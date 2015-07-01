@@ -26,7 +26,7 @@ import com.google.common.collect.{BiMap, HashBiMap}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge, Chain, Router}
+import org.midonet.cluster.data.{Chain, Router}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.UnderlayResolver.Route
@@ -59,7 +59,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     var uplinkPort: RouterPort = null
     var rtrIntPort: RouterPort = null
 
-    var bridge: Bridge = null
+    var bridge: UUID = null
     var bridgeChain: Chain = null
     var bridgeRtrPort: BridgePort = null
     var bridgeVm1Port: BridgePort = null
@@ -143,21 +143,21 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         portMapIngress.put(bridgeVm2Port.getTunnelKey, bridgeVm2Port.getId)
 
         val simRouter: SimRouter = fetchDevice(router)
-        val simBridge: SimBridge = fetchDevice(bridge)
+        val simBridge: SimBridge = fetchDevice[SimBridge](bridge)
 
         feedArpTable(simRouter, uplinkGatewayAddr.addr, uplinkGatewayMac)
         feedArpTable(simRouter, uplinkPortAddr.addr, uplinkPortMac)
         feedArpTable(simRouter, rtrIntIp.getAddress.addr, rtrIntMac)
         feedArpTable(simRouter, vm1IpAddr.addr, vm1Mac)
         feedArpTable(simRouter, vm2IpAddr.addr, vm2Mac)
-        simBridge.vlanMacTableMap.getOrElse(Bridge.UNTAGGED_VLAN_ID, null)
-            .add(vm1Mac, bridgeVm1Port.getId)
-        simBridge.vlanMacTableMap.getOrElse(Bridge.UNTAGGED_VLAN_ID, null)
-            .add(vm2Mac, bridgeVm2Port.getId)
+
+        feedMacTable(simBridge, vm1Mac, bridgeVm1Port.getId)
+        feedMacTable(simBridge, vm2Mac, bridgeVm2Port.getId)
 
         fetchTopology(router, uplinkPort, rtrIntPort,
-                      bridge, bridgeRtrPort, bridgeVm1Port,
+                      bridgeRtrPort, bridgeVm1Port,
                       bridgeVm2Port, bridgeChain)
+        fetchDevice[SimBridge](bridge)
 
         val output = FlowActions.output(23)
         pktWkflIngress = packetWorkflow(

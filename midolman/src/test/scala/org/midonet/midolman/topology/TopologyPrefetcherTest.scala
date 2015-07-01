@@ -22,7 +22,6 @@ import scala.collection.mutable
 import akka.actor.Props
 import akka.testkit.TestActorRef
 
-import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, Unsubscribe}
@@ -36,7 +35,8 @@ class TopologyPrefetcherTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
                                                   with MessageAccumulator))
 
-    var bridge: Bridge = _
+    var bridge: UUID = _
+    var simBridge: SimBridge = _
     var port: BridgePort = _
 
     class MyTopologyPrefetcher extends TopologyPrefetcher {
@@ -70,7 +70,8 @@ class TopologyPrefetcherTest extends MidolmanSpec {
 
         bridge = newBridge("bridge0")
         port = newBridgePort(bridge)
-        fetchTopology(bridge, port)
+        fetchTopology(port)
+        simBridge = fetchDevice[SimBridge](bridge)
     }
 
     feature("A hook method is called when the VTA sends the specified devices") {
@@ -78,11 +79,11 @@ class TopologyPrefetcherTest extends MidolmanSpec {
             Given("An empty topology")
 
             When("Pre-fetching a bridge")
-            val bridgeReq = topologyActor.underlyingActor.bridge(bridge.getId)
+            val bridgeReq = topologyActor.underlyingActor.bridge(bridge)
             topologyActor ! bridgeReq
 
             Then("The hook method is called with the pre-fetched bridge")
-            topologyActor.underlyingActor.topology should contain key bridge.getId
+            topologyActor.underlyingActor.topology should contain key bridge
             topologyActor.underlyingActor.topology.size should be (1)
 
             And("The VTA receives a request for the bridge")
@@ -91,7 +92,7 @@ class TopologyPrefetcherTest extends MidolmanSpec {
 
         scenario("The topology changes") {
             Given("A topology with a bridge")
-            val bridgeReq = topologyActor.underlyingActor.bridge(bridge.getId)
+            val bridgeReq = topologyActor.underlyingActor.bridge(bridge)
             topologyActor ! bridgeReq
             VirtualTopologyActor.getAndClear() should contain (bridgeReq)
 
@@ -107,12 +108,12 @@ class TopologyPrefetcherTest extends MidolmanSpec {
             VirtualTopologyActor.messages should contain (portReq)
 
             And("The actor unsubscribes from further updates to the bridge")
-            VirtualTopologyActor.messages should contain (Unsubscribe(bridge.getId))
+            VirtualTopologyActor.messages should contain (Unsubscribe(bridge))
         }
 
         scenario("Pre-fetching a subscribed device doesn't request it again") {
             Given("A topology with a bridge")
-            val bridgeReq = topologyActor.underlyingActor.bridge(bridge.getId)
+            val bridgeReq = topologyActor.underlyingActor.bridge(bridge)
             topologyActor ! bridgeReq
             VirtualTopologyActor.getAndClear() should contain (bridgeReq)
 
@@ -122,7 +123,7 @@ class TopologyPrefetcherTest extends MidolmanSpec {
 
             Then("The hook method is called with the pre-fetched devices")
             topologyActor.underlyingActor.topology should contain key port.getId
-            topologyActor.underlyingActor.topology should contain key bridge.getId
+            topologyActor.underlyingActor.topology should contain key bridge
             topologyActor.underlyingActor.topology.size should be (2)
 
             And("The VTA receives only the request for the port")
@@ -134,7 +135,7 @@ class TopologyPrefetcherTest extends MidolmanSpec {
 
             When("Devices not in the topology are received")
             topologyActor ! new SimBridge(
-                bridge.getId, bridge.isAdminStateUp, bridge.getTunnelKey, null,
+                bridge, simBridge.adminStateUp, simBridge.tunnelKey, null,
                 null, null, null, null, null, null, null, null, null, null,
                 Nil, Nil)
 
@@ -142,27 +143,27 @@ class TopologyPrefetcherTest extends MidolmanSpec {
             topologyActor.underlyingActor.topology should be (empty)
 
             And("The actor unsubscribes from further updates to the device")
-            VirtualTopologyActor.messages should contain (Unsubscribe(bridge.getId))
+            VirtualTopologyActor.messages should contain (Unsubscribe(bridge))
         }
     }
 
     feature("A hook method is called when the specified devices are updated") {
         scenario("Devices in the topology are updated") {
             Given("A topology with a bridge")
-            val bridgeReq = topologyActor.underlyingActor.bridge(bridge.getId)
+            val bridgeReq = topologyActor.underlyingActor.bridge(bridge)
             topologyActor ! bridgeReq
-            topologyActor.underlyingActor.get[SimBridge](bridge.getId).get
+            topologyActor.underlyingActor.get[SimBridge](bridge).get
                                          .adminStateUp should be (true)
 
             When("Updating the bridge")
 
             topologyActor ! new SimBridge(
-                bridge.getId, false, bridge.getTunnelKey, null,
+                bridge, false, simBridge.tunnelKey, null,
                 null, null, null, null, null, null, null, null, null, null,
                 Nil, Nil)
 
             Then("The hook method is called with the updated bridge")
-            topologyActor.underlyingActor.get[SimBridge](bridge.getId).get
+            topologyActor.underlyingActor.get[SimBridge](bridge).get
                                          .adminStateUp should be (false)
         }
     }

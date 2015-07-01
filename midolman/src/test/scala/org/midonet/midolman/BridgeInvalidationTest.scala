@@ -24,7 +24,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter}
+import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.midolman.PacketWorkflow.ErrorDrop
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
@@ -55,12 +55,12 @@ class BridgeInvalidationTest extends MidolmanSpec
     var interiorPort: BridgePort = null
     var routerPort: RouterPort = null
 
-    var clusterBridge: ClusterBridge = null
+    var clusterBridge: UUID = null
     var clusterRouter: ClusterRouter = null
 
     val macPortExpiration = 1000
 
-    private def addAndMaterializeBridgePort(br: ClusterBridge): BridgePort = {
+    private def addAndMaterializeBridgePort(br: UUID): BridgePort = {
         val port = newBridgePort(br)
         port should not be null
         stateStorage.setPortLocalAndActive(port.getId, hostId, true)
@@ -84,8 +84,8 @@ class BridgeInvalidationTest extends MidolmanSpec
         routerPort = newRouterPort(clusterRouter, MAC.fromString(routerMac), routerIp)
 
         fetchTopology(leftPort, rightPort, otherPort, interiorPort,
-                        routerPort, clusterRouter, clusterBridge)
-
+                        routerPort, clusterRouter)
+        fetchDevice[Bridge](clusterBridge)
         flowInvalidator.clear()
     }
 
@@ -128,35 +128,35 @@ class BridgeInvalidationTest extends MidolmanSpec
     }
 
     def leftPortUnicastInvalidation =
-        FlowTagger.tagForVlanPort(clusterBridge.getId,
+        FlowTagger.tagForVlanPort(clusterBridge,
             MAC.fromString(leftMac), 0.toShort, leftPort.getId)
 
     def rightPortUnicastInvalidation =
-        FlowTagger.tagForVlanPort(clusterBridge.getId,
+        FlowTagger.tagForVlanPort(clusterBridge,
             MAC.fromString(rightMac), 0.toShort, rightPort.getId)
 
     def otherPortUnicastInvalidation =
-        FlowTagger.tagForVlanPort(clusterBridge.getId,
+        FlowTagger.tagForVlanPort(clusterBridge,
             MAC.fromString(rightMac), 0.toShort, otherPort.getId)
 
     def leftMacFloodInvalidation =
-        FlowTagger.tagForFloodedFlowsByDstMac(clusterBridge.getId,
-            ClusterBridge.UNTAGGED_VLAN_ID, MAC.fromString(leftMac))
+        FlowTagger.tagForFloodedFlowsByDstMac(clusterBridge,
+            Bridge.UntaggedVlanId, MAC.fromString(leftMac))
 
     def rightMacFloodInvalidation =
-        FlowTagger.tagForFloodedFlowsByDstMac(clusterBridge.getId,
-            ClusterBridge.UNTAGGED_VLAN_ID, MAC.fromString(rightMac))
+        FlowTagger.tagForFloodedFlowsByDstMac(clusterBridge,
+            Bridge.UntaggedVlanId, MAC.fromString(rightMac))
 
-    def floodInvalidation = FlowTagger.tagForBroadcast(clusterBridge.getId)
+    def floodInvalidation = FlowTagger.tagForBroadcast(clusterBridge)
 
     def routerMacFloodInvalidation =
-        FlowTagger.tagForFloodedFlowsByDstMac(clusterBridge.getId,
-            ClusterBridge.UNTAGGED_VLAN_ID, MAC.fromString(routerMac))
+        FlowTagger.tagForFloodedFlowsByDstMac(clusterBridge,
+            Bridge.UntaggedVlanId, MAC.fromString(routerMac))
 
     feature("Bridge invalidates flows when a MAC is learned") {
         scenario("flooded flows are properly tagged") {
             When("a packet is sent across the bridge between two VMs")
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val (pktContext, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
 
             Then("the bridge floods the packet to all exterior ports")
@@ -173,7 +173,7 @@ class BridgeInvalidationTest extends MidolmanSpec
 
         scenario("unicast flows are properly tagged") {
             When("A bridge learns a MAC address")
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val macTable = bridge.vlanMacTableMap(0.toShort)
             macTable.add(MAC.fromString(rightMac), rightPort.getId)
 
@@ -193,7 +193,7 @@ class BridgeInvalidationTest extends MidolmanSpec
 
         scenario("VM migration") {
             When("A bridge learns a MAC address for the first time")
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val macTable = bridge.vlanMacTableMap(0.toShort)
             macTable.add(MAC.fromString(rightMac), rightPort.getId)
 
@@ -219,7 +219,7 @@ class BridgeInvalidationTest extends MidolmanSpec
 
         scenario("Packet whose dst mac resolves to the inPort is dropped") {
             When("A bridge learns a MAC address")
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val macTable = bridge.vlanMacTableMap(0.toShort)
             macTable.add(MAC.fromString(rightMac), leftPort.getId)
 
@@ -235,7 +235,7 @@ class BridgeInvalidationTest extends MidolmanSpec
     feature("MAC-port mapping expiration") {
         scenario("A MAC-port mapping expires when its flows are removed") {
             When("a packet is sent across the bridge between two VMs")
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val (pktContext, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
             flowInvalidator.clear()
 
@@ -261,7 +261,7 @@ class BridgeInvalidationTest extends MidolmanSpec
     feature("Flow invalidations related to interior bridge ports ") {
         scenario("a interior port is linked") {
             When("A VM ARPs for the router's IP address while the router is not connected")
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val (pktContext, action) =
                 simulateDevice(bridge, leftToRouterArpFrame, leftPort.getId)
 
@@ -278,13 +278,13 @@ class BridgeInvalidationTest extends MidolmanSpec
 
         scenario("a interior port is unlinked") {
             When("The router is linked to the bridge")
-            var bridge: Bridge = fetchDevice(clusterBridge)
+            var bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             clusterDataClient.portsLink(routerPort.getId, interiorPort.getId)
             eventually {
-                val newBridge: Bridge = fetchDevice(clusterBridge)
+                val newBridge: Bridge = fetchDevice[Bridge](clusterBridge)
                 newBridge should not be bridge
             }
-            bridge = fetchDevice(clusterBridge)
+            bridge = fetchDevice[Bridge](clusterBridge)
             flowInvalidator.clear()
 
             val interiorPortTag =
