@@ -25,6 +25,52 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_45e42c3b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 381,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-01T10:34:36Z",
+      "side": 1,
+      "message": "Already terminated gateway?",
+      "range": {
+        "startLine": 381,
+        "startChar": 23,
+        "endLine": 381,
+        "endChar": 61
+      },
+      "revId": "66f64e5fa60cae0eaedb297e090d71f8f6e24185",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_653770b1",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-01T10:34:36Z",
+      "side": 1,
+      "message": "pass the exception to warn?",
+      "range": {
+        "startLine": 394,
+        "startChar": 71,
+        "endLine": 394,
+        "endChar": 72
+      },
+      "revId": "66f64e5fa60cae0eaedb297e090d71f8f6e24185",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_3a93c3fb",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VxlanGatewayServiceTest.scala",
         "patchSetId": 10
@@ -41,6 +87,29 @@
         "startChar": 24,
         "endLine": 99,
         "endChar": 25
+      },
+      "revId": "66f64e5fa60cae0eaedb297e090d71f8f6e24185",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_25900895",
+        "filename": "midolman/src/main/java/org/midonet/cluster/LocalDataClientImpl.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 3572,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-01T10:34:36Z",
+      "side": 1,
+      "message": "Give port id?",
+      "range": {
+        "startLine": 3572,
+        "startChar": 32,
+        "endLine": 3572,
+        "endChar": 33
       },
       "revId": "66f64e5fa60cae0eaedb297e090d71f8f6e24185",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
