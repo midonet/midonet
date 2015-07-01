@@ -138,7 +138,7 @@ public class TestRoute {
             route.setWeight(weight);
 
             URI routerRouteUri = URI.create(testRouterUri.toString()
-                    + "/routes");
+                                            + "/routes");
             response = resource().uri(routerRouteUri)
                     .type(APPLICATION_ROUTE_JSON)
                     .post(ClientResponse.class, route);
