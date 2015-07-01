@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f725f60a",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-01T04:33:29Z",
+      "side": 1,
+      "message": "Wrong comment",
+      "revId": "b487605a5483c9ad601bda80b5a74ea77faed3cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_571dc2bc",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-01T04:33:29Z",
+      "side": 1,
+      "message": "Consider verifying that there is only one LB.\n\nAlso, I think this would be better:\n\nPool mPool \u003d this.dataClient.getPool(pool.id)\nLoadBalancer lb \u003d this.dataClient.getLoadBalancer(mPool.loadBalancerId)\n\nthis.dataClient.loadBalancerDelete(lb.id)",
+      "revId": "b487605a5483c9ad601bda80b5a74ea77faed3cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7779e6fb",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-01T04:33:29Z",
+      "side": 1,
+      "message": "Since this is a consistency test, I feel that the test is incomplete without verifying that the plugin is not broken after this.  \n\n// Verify that deletion from neutron still works\nthis.plugin.deletePool(pool.id);\nPool nPool \u003d this.plugin.getPool(pool.id);\nAssert.assertNull(nPool);",
+      "revId": "b487605a5483c9ad601bda80b5a74ea77faed3cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
