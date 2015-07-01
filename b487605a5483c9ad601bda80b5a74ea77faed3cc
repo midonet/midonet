@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_176a5a1a",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-07-01T05:09:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f725f60a",
+      "revId": "b487605a5483c9ad601bda80b5a74ea77faed3cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_571dc2bc",
         "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
         "patchSetId": 2
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_37775e04",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-07-01T05:09:47Z",
+      "side": 1,
+      "message": "Done, kind of.",
+      "parentUuid": "9ad9bd40_571dc2bc",
+      "revId": "b487605a5483c9ad601bda80b5a74ea77faed3cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7779e6fb",
         "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
         "patchSetId": 2
@@ -47,6 +83,24 @@
       "writtenOn": "2015-07-01T04:33:29Z",
       "side": 1,
       "message": "Since this is a consistency test, I feel that the test is incomplete without verifying that the plugin is not broken after this.  \n\n// Verify that deletion from neutron still works\nthis.plugin.deletePool(pool.id);\nPool nPool \u003d this.plugin.getPool(pool.id);\nAssert.assertNull(nPool);",
+      "revId": "b487605a5483c9ad601bda80b5a74ea77faed3cc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5774e2fc",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-07-01T05:09:47Z",
+      "side": 1,
+      "message": "uh oh. Looks like the plugin.deletePool does NOT work in this case. That is an separate fix though.",
+      "parentUuid": "9ad9bd40_7779e6fb",
       "revId": "b487605a5483c9ad601bda80b5a74ea77faed3cc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
