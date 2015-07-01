@@ -103,8 +103,9 @@ class FloatingIpTest extends MidolmanSpec {
         newForwardNatRuleOnChain(postChain, 1, snatCond, RuleResult.Action.ACCEPT,
                                  Set(snatTarget), isDnat = false)
 
-        fetchTopology(router, bridge, rtrPort1, rtrPort2, brPort1, brPort2,
+        fetchTopology(router, rtrPort1, rtrPort2, brPort1, brPort2,
                       preChain, postChain)
+        fetchBridge(bridge)
     }
 
     def simRouter: SimRouter = fetchDevice(router)

@@ -21,7 +21,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Rule, Chain}
+import org.midonet.cluster.data.{Rule, Chain}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.rules.RuleResult
@@ -32,7 +32,7 @@ import org.midonet.packets.util.PacketBuilder._
 
 @RunWith(classOf[JUnitRunner])
 class ChainModificationTest extends MidolmanSpec {
-    var bridge: ClusterBridge = _
+    var bridge: UUID = _
     var inPort: BridgePort = _
     var outPort: BridgePort = _
     var chain: Chain = _
@@ -72,7 +72,8 @@ class ChainModificationTest extends MidolmanSpec {
         r = newTcpDstRuleOnChain(chain, 1, 80, RuleResult.Action.ACCEPT)
         chainRules = r.getId :: chainRules
 
-        fetchTopology(bridge, inPort, outPort, chain)
+        fetchTopology(inPort, outPort, chain)
+        fetchBridge(bridge)
     }
 
     feature ("Rules in a chain can be deleted") {

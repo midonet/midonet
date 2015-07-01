@@ -28,7 +28,7 @@ import akka.testkit.TestActorRef
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge, Chain, Router}
+import org.midonet.cluster.data.{Chain, Router}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman._
@@ -82,7 +82,7 @@ class NatTest extends MidolmanSpec {
         IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:4"),
         IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:5"))
 
-    var bridge: Bridge = null
+    var bridge: UUID = null
     var router: Router = null
     var host: UUID = null
 
@@ -290,7 +290,7 @@ class NatTest extends MidolmanSpec {
         clusterDataClient.routersUpdate(router)
 
         val simRouter: SimRouter = fetchDevice(router)
-        val simBridge: SimBridge = fetchDevice(bridge)
+        val simBridge: SimBridge = fetchBridge(bridge)
 
         // feed the router arp cache with the uplink gateway's mac address
         feedArpTable(simRouter, uplinkGatewayAddr.addr, uplinkGatewayMac)
@@ -302,12 +302,11 @@ class NatTest extends MidolmanSpec {
             (name, mac, ip) => feedArpTable(simRouter, ip.addr, mac)
         }
         (vmMacs, vmPorts).zipped foreach {
-            (mac, port) => simBridge.vlanMacTableMap
-                .getOrElse(Bridge.UNTAGGED_VLAN_ID, null).add(mac, port.getId)
+            (mac, port) => feedMacTable(simBridge, mac, port.getId)
         }
 
-
-        fetchTopology(router, bridge, rtrPort, rtrInChain,
+        fetchBridge(bridge)
+        fetchTopology(router, rtrPort, rtrInChain,
                       rtrOutChain, uplinkPort)
         fetchTopology(vmPorts:_*)
 
@@ -346,8 +345,6 @@ class NatTest extends MidolmanSpec {
         val forwardRule = newLiteralRuleOnChain(
             brChain, 3, forwardCond, RuleResult.Action.ACCEPT)
         forwardRule should not be null
-
-        clusterDataClient.bridgesUpdate(bridge)
 
         testSnat()
     }

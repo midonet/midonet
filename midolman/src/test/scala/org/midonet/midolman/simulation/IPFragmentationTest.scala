@@ -24,7 +24,7 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Entity, Port, Router => ClusterRouter}
+import org.midonet.cluster.data.{Entity, Port, Router => ClusterRouter}
 import org.midonet.midolman.PacketWorkflow.{SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
@@ -51,7 +51,7 @@ class IPFragmentationTest extends MidolmanSpec {
      * value passed to setup().
      */
 
-    var bridge: ClusterBridge = _
+    var bridge: UUID = _
 
     val leftBridgePortMac = MAC.random
     val leftBridgePortSubnet = new IPv4Subnet("10.0.0.64", 24)
@@ -70,7 +70,7 @@ class IPFragmentationTest extends MidolmanSpec {
     // These refer to either bridge or router versions, depending
     // on the value of useRouter passed to setup().
     var useRouter: Boolean = false
-    var device: Entity.Base[UUID, _, _] = _
+    var deviceId: UUID = _
     var srcPort: Port[_, _] = _
     var dstPort: Port[_, _] = _
     var srcMac: MAC = _
@@ -86,7 +86,7 @@ class IPFragmentationTest extends MidolmanSpec {
 
         if (useRouter) {
             router = newRouter("router1")
-            device = router
+            deviceId = router.getId
 
             srcPort = newRouterPort(router, leftRouterPortMac,
                                     leftRouterPortSubnet)
@@ -99,7 +99,7 @@ class IPFragmentationTest extends MidolmanSpec {
             dstSubnet = rightRouterPortSubnet
         } else {
             bridge = newBridge("bridge0")
-            device = bridge
+            deviceId = bridge
 
             srcPort = newBridgePort(bridge)
             srcMac = leftBridgePortMac
@@ -112,11 +112,9 @@ class IPFragmentationTest extends MidolmanSpec {
             materializePort(srcPort, hostId, "bport0")
             materializePort(dstPort, hostId, "bport1")
 
-            val topo = fetchTopology(bridge, srcPort, dstPort)
-
-            topo.collect({ case b: Bridge => b.vlanMacTableMap})
-                    .head(ClusterBridge.UNTAGGED_VLAN_ID)
-                    .add(dstMac, dstPort.getId)
+            val topo = fetchTopology(srcPort, dstPort)
+            val simBridge = fetchBridge(bridge)
+            feedMacTable(simBridge, dstMac, dstPort.getId)
         }
     }
 
@@ -233,7 +231,7 @@ class IPFragmentationTest extends MidolmanSpec {
     private def assertToPortFlowCreated(simRes: (SimulationResult, PacketContext)) {
         simRes should be (toPort(dstPort.getId)
             (FlowTagger.tagForDevice(srcPort.getId),
-             FlowTagger.tagForDevice(device.getId),
+             FlowTagger.tagForDevice(deviceId),
              FlowTagger.tagForDevice(dstPort.getId)))
     }
 
@@ -246,7 +244,7 @@ class IPFragmentationTest extends MidolmanSpec {
 
         simRes shouldBe dropped(
             FlowTagger.tagForDevice(srcPort.getId),
-            FlowTagger.tagForDevice(device.getId))
+            FlowTagger.tagForDevice(deviceId))
     }
 
     private def assertIcmpFragNeededMessageReceived(context: PacketContext) {
