@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_c6ecc2ca",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-01T21:56:16Z",
+      "side": 1,
+      "message": "is there a nightly build of 0.8.3 that we could depend on instead of .2?",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 79
+      },
+      "revId": "cd8446e227d6110875337dafe81cfa51a50092f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_604afe84",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
         "patchSetId": 1
@@ -18,6 +41,46 @@
         "startChar": 39,
         "endLine": 178,
         "endChar": 55
+      },
+      "revId": "cd8446e227d6110875337dafe81cfa51a50092f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_46c1922d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-01T21:56:16Z",
+      "side": 1,
+      "message": "document purpose of each",
+      "revId": "cd8446e227d6110875337dafe81cfa51a50092f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_66ddb614",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-01T21:56:16Z",
+      "side": 1,
+      "message": "KafkaConfig, also I guess you need to update the nsdb.conf schema.",
+      "range": {
+        "startLine": 44,
+        "startChar": 6,
+        "endLine": 44,
+        "endChar": 21
       },
       "revId": "cd8446e227d6110875337dafe81cfa51a50092f3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
