@@ -16,6 +16,24 @@
       "revId": "031d3c871503f114e707e0068f01f69e29cc074a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_002212b9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-01T16:01:45Z",
+      "side": 1,
+      "message": "You need the request type (see BridgeRequest), which won\u0027t be known until runtime, so I don\u0027t think it\u0027s possible.",
+      "parentUuid": "9ad9bd40_00d852ee",
+      "revId": "031d3c871503f114e707e0068f01f69e29cc074a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
