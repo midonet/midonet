@@ -22,6 +22,30 @@
       "revId": "2677d5e4a47c04e9401d55910d823a162d476e41",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c6b922eb",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VtepControllerTest.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 103,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-01T20:55:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_80870261",
+      "range": {
+        "startLine": 103,
+        "startChar": 0,
+        "endLine": 103,
+        "endChar": 8
+      },
+      "revId": "2677d5e4a47c04e9401d55910d823a162d476e41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
