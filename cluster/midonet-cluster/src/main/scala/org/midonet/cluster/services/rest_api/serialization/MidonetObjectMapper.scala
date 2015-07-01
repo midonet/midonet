@@ -28,7 +28,7 @@ import org.codehaus.jackson.map.introspect.BasicBeanDescription
 import org.codehaus.jackson.map.{DeserializationConfig, JsonMappingException, ObjectMapper}
 import org.codehaus.jackson.{JsonParseException, JsonParser}
 
-import org.midonet.cluster.rest_api.ResponseUtils
+import org.midonet.cluster.rest_api.{BadRequestHttpException, ResponseUtils}
 import org.midonet.cluster.rest_api.annotation.JsonError
 import org.midonet.cluster.rest_api.validation.MessageProperty
 
@@ -60,6 +60,8 @@ class MidonetObjectMapper extends ObjectMapper {
                 } else error.value()
                 throw new WebApplicationException(
                     ResponseUtils.buildErrorResponse(error.status(), message))
+            case e: JsonMappingException =>
+                throw new BadRequestHttpException(e.getMessage)
             case NonFatal(e) => throw e
         }
     }
