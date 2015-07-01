@@ -28,11 +28,16 @@ import scala.concurrent.Future
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.models.Topology
+import org.midonet.cluster.rest_api.{NotFoundHttpException, BadRequestHttpException}
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowGet}
-import org.midonet.cluster.rest_api.models.{Route, Router}
+import org.midonet.cluster.rest_api.models.{Port, Route, Router}
+import org.midonet.cluster.rest_api.validation.MessageProperty
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.state.RoutingTableStorage._
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
 
@@ -67,7 +72,33 @@ class RouterRouteResource @Inject()(routerId: UUID, resContext: ResourceContext)
     }
 
     protected override def createFilter = (route: Route) => {
+        throwIfNextPortNotValid(route)
+        throwIfViolationsOn(route)
         route.create(routerId)
+    }
+
+    private def throwIfNextPortNotValid(route: Route): Unit = {
+        if (route.`type` != Route.NextHop.Normal) {
+            // The validation only applies to 'normal' routes.
+            return
+        }
+
+        if (null == route.nextHopPort) {
+            throw new BadRequestHttpException(getMessage(
+                ROUTE_NEXT_HOP_PORT_NOT_NULL))
+        }
+
+        try {
+            val p = getResource(classOf[Port], route.nextHopPort).getOrThrow
+            if (p.getDeviceId != routerId) {
+                throw new BadRequestHttpException(getMessage(
+                    ROUTE_NEXT_HOP_PORT_NOT_NULL))
+            }
+        } catch {
+            case t: NotFoundHttpException =>
+                throw new BadRequestHttpException(getMessage(
+                    ROUTE_NEXT_HOP_PORT_NOT_NULL))
+        }
     }
 
     private def getLearnedRoutes(portId: UUID): Future[Seq[Route]] = {

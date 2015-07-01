@@ -221,10 +221,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
 
     private def putMacTableEntry(macPort: MacPort): Response = {
-        val violations = resContext.validator.validate(macPort)
-        if (violations.nonEmpty) {
-            throw new BadRequestHttpException("Invalid mac port" + macPort)
-        }
+        throwIfViolationsOn(macPort)
         val store = resContext.backend.store
         val bridge = store.get(classOf[Topology.Network], macPort.bridgeId)
                            .getOrThrow
@@ -292,7 +289,12 @@ class BridgeResource @Inject()(resContext: ResourceContext,
 
     private def macPort(id: UUID, s: String, vlan: Option[Short] = None)
     : MacPort = {
-        val mac = macPortUriToMac(s)
+        val mac = try {
+            macPortUriToMac(s)
+        } catch {
+            case t: InvalidMacException =>
+                throw new BadRequestHttpException(getMessage(MAC_URI_FORMAT))
+        }
         val portId = macPortUriToPort(s)
         val vlanId = vlan.getOrElse(UNTAGGED_VLAN_ID)
 
