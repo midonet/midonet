@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b7dd2e45",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/conversion/RuleDataConverter.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-01T02:55:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_772c864b",
+      "range": {
+        "startLine": 62,
+        "startChar": 44,
+        "endLine": 62,
+        "endChar": 55
+      },
+      "revId": "e76b79fc2fa6916f5b883d0dc0d93df9bfc7ba12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_97310aa5",
         "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-01T02:38:17Z",
       "side": 1,
       "message": "getDstPortId?",
+      "range": {
+        "startLine": 517,
+        "startChar": 56,
+        "endLine": 517,
+        "endChar": 67
+      },
+      "revId": "e76b79fc2fa6916f5b883d0dc0d93df9bfc7ba12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d7e2b202",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 517,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-01T02:55:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_97310aa5",
       "range": {
         "startLine": 517,
         "startChar": 56,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f7e6d615",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/rules/MirrorRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-01T02:55:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_b7260e67",
+      "range": {
+        "startLine": 36,
+        "startChar": 16,
+        "endLine": 36,
+        "endChar": 27
+      },
+      "revId": "e76b79fc2fa6916f5b883d0dc0d93df9bfc7ba12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_171dfa0f",
         "filename": "midolman/src/main/java/org/midonet/cluster/data/rules/MirrorRule.java",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-07-01T02:38:17Z",
       "side": 1,
       "message": "setDstPortId would be more consistent",
+      "range": {
+        "startLine": 40,
+        "startChar": 22,
+        "endLine": 40,
+        "endChar": 31
+      },
+      "revId": "e76b79fc2fa6916f5b883d0dc0d93df9bfc7ba12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_17e41a0c",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/rules/MirrorRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-01T02:55:11Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_171dfa0f",
       "range": {
         "startLine": 40,
         "startChar": 22,
@@ -111,6 +207,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_37f11ece",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/rules/PortMirroringTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-01T02:55:11Z",
+      "side": 1,
+      "message": "Yes, I should separate it out from FlowStacingTest and put it in another file for clearer separation.",
+      "parentUuid": "9ad9bd40_f71fb607",
+      "revId": "e76b79fc2fa6916f5b883d0dc0d93df9bfc7ba12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d72b922e",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 1
@@ -122,6 +236,24 @@
       "writtenOn": "2015-07-01T02:38:17Z",
       "side": 1,
       "message": "i thought this proto used optional for everything for reasons.",
+      "revId": "e76b79fc2fa6916f5b883d0dc0d93df9bfc7ba12",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_37c83e74",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 394,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-01T02:55:11Z",
+      "side": 1,
+      "message": "Everything seems optional in our protobuf and the validation would be done in the API layer. I\u0027ll make it optional.",
+      "parentUuid": "9ad9bd40_d72b922e",
       "revId": "e76b79fc2fa6916f5b883d0dc0d93df9bfc7ba12",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
