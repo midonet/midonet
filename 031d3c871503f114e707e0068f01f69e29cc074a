@@ -34,6 +34,47 @@
       "revId": "031d3c871503f114e707e0068f01f69e29cc074a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8b79e395",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-01T16:15:28Z",
+      "side": 1,
+      "message": "https://github.com/midonet/midonet/blob/master/midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala#L188",
+      "parentUuid": "9ad9bd40_002212b9",
+      "revId": "031d3c871503f114e707e0068f01f69e29cc074a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ab6ea7c7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-01T16:15:28Z",
+      "side": 1,
+      "message": "should be false",
+      "range": {
+        "startLine": 80,
+        "startChar": 69,
+        "endLine": 80,
+        "endChar": 73
+      },
+      "revId": "031d3c871503f114e707e0068f01f69e29cc074a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
