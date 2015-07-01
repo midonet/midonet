@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_05adc431",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RouteResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-01T12:56:45Z",
+      "side": 1,
+      "message": "Maybe, I made it like this becaues the old tests do require this :/",
+      "parentUuid": "9ad9bd40_a59fb802",
+      "range": {
+        "startLine": 95,
+        "startChar": 20,
+        "endLine": 95,
+        "endChar": 48
+      },
+      "revId": "b3799fc0c3d20e92de6da96dcc8c664ee6067ad6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c5a4bc59",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/RouteResource.scala",
         "patchSetId": 1
