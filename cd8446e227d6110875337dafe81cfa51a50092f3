@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_604afe84",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-01T15:50:49Z",
+      "side": 1,
+      "message": "MergedMapBus",
+      "range": {
+        "startLine": 178,
+        "startChar": 39,
+        "endLine": 178,
+        "endChar": 55
+      },
+      "revId": "cd8446e227d6110875337dafe81cfa51a50092f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
