@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_97ccaa37",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/NeutronDataConsistencyTest.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-01T05:30:23Z",
+      "side": 1,
+      "message": "You don\u0027t need this if you are doing \u0027get\u0027 below of the Pool.",
+      "revId": "823734274eee70cde96816b4949521add1ea6914",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
