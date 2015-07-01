@@ -20,7 +20,7 @@ import java.util.{LinkedList, List => JList, Queue, UUID}
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.reflect.ClassTag
+import scala.reflect._
 
 import akka.actor.{ActorSystem, Props}
 import akka.pattern.ask
@@ -37,15 +37,22 @@ import org.midonet.midolman._
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.simulation.Coordinator.Device
-import org.midonet.midolman.simulation.{Coordinator, DhcpConfigFromDataclient, PacketContext, PacketEmitter, Router => SimRouter}
+
+import org.midonet.midolman.simulation.{Bridge => SimBridge,
+                                        Chain => SimChain, Coordinator,
+                                        DhcpConfigFromDataclient,
+                                        IPAddrGroup => SimIPAddrGroup,
+                                        PacketContext, PacketEmitter,
+                                        Router => SimRouter}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
+
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.topology.devices.Host
+import org.midonet.midolman.topology.devices.{Host, Port => SimPort}
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
-import org.midonet.midolman.topology.VirtualTopologyActor.{BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.InternalPort
@@ -75,6 +82,23 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             ask(VirtualTopologyActor, buildRequest(device)).asInstanceOf[Future[T]],
             timeout.duration)
 
+    private val requestsFactory = Map[ClassTag[_], UUID => DeviceRequest](
+        classTag[SimPort]              -> (new PortRequest(_)),
+        classTag[SimBridge]            -> (new BridgeRequest(_)),
+        classTag[SimRouter]            -> (new RouterRequest(_)),
+        classTag[SimChain]             -> (new ChainRequest(_))
+    )
+
+    def fetchDevice[T](id: UUID)(implicit tag: ClassTag[T]): T = {
+        requestsFactory.get(tag) match {
+            case Some(factory) =>
+                Await.result(
+                    ask(VirtualTopologyActor, factory(id)).asInstanceOf[Future[T]],
+                    timeout.duration)
+            case None => throw new IllegalArgumentException("factory not found")
+        }
+    }
+
     def fetchTopology(entities: Entity.Base[_,_,_]*) =
         fetchTopologyList(entities)
 
@@ -91,6 +115,23 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
         ArpCacheHelper.feedArpCache(router, ip, mac)
     }
+
+    def clearMacTable(bridge: SimBridge, vlan: Short, mac: MAC, port: UUID): Unit = {
+        bridge.vlanMacTableMap.get(vlan) map { m => m.remove(mac, port) }
+    }
+
+    def clearMacTable(bridge: SimBridge, mac: MAC, port: UUID): Unit = {
+        clearMacTable(bridge, SimBridge.UntaggedVlanId, mac, port)
+    }
+
+    def feedMacTable(bridge: SimBridge, vlan: Short, mac: MAC, port: UUID): Unit = {
+        bridge.vlanMacTableMap.get(vlan) map { m => m.add(mac, port) }
+    }
+
+    def feedMacTable(bridge: SimBridge, mac: MAC, port: UUID): Unit = {
+        feedMacTable(bridge, SimBridge.UntaggedVlanId, mac, port)
+    }
+
 
     def throwAwayArpBroker(emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList): ArpRequestBroker =
         new ArpRequestBroker(new PacketEmitter(emitter, actorSystem.deadLetters),

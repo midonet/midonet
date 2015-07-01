@@ -26,6 +26,7 @@ import org.midonet.midolman.PacketWorkflow.HandlePackets
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
+import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
