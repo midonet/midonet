@@ -16,8 +16,6 @@
 
 package org.midonet.packets
 
-import java.net.{Inet4Address, InetAddress}
-import java.nio.ByteBuffer
 import java.util.Random
 
 import com.fasterxml.jackson.annotation.{JsonValue, JsonCreator}
