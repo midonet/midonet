@@ -27,7 +27,7 @@ import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
-import org.midonet.midolman.simulation.{Router => SimRouter}
+import org.midonet.midolman.simulation.{Bridge => SimBridge, Router => SimRouter}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets._
@@ -103,8 +103,9 @@ class FloatingIpTest extends MidolmanSpec {
         newForwardNatRuleOnChain(postChain, 1, snatCond, RuleResult.Action.ACCEPT,
                                  Set(snatTarget), isDnat = false)
 
-        fetchTopology(router, bridge, rtrPort1, rtrPort2, brPort1, brPort2,
+        fetchTopology(router, rtrPort1, rtrPort2, brPort1, brPort2,
                       preChain, postChain)
+        fetchDevice[SimBridge](bridge)
     }
 
     def simRouter: SimRouter = fetchDevice(router)

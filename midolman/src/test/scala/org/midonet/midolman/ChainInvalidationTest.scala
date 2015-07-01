@@ -21,7 +21,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Router => ClusterRouter, Chain}
+import org.midonet.cluster.data.{Router => ClusterRouter, Chain}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Router, Bridge}
@@ -48,7 +48,7 @@ object BridgeWithOneVm {
 class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
                       val clusterRouter: ClusterRouter, spec: MidolmanSpec) {
 
-    var clusterBridge: ClusterBridge = _
+    var clusterBridge: UUID = _
     var vmPort: BridgePort = _
     var uplinkPort: BridgePort = _
     var routerPort: RouterPort = _
@@ -68,13 +68,13 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
     var routerPortInFilter: Chain = _
     var routerPortOutFilter: Chain = _
 
-    def bridge: Bridge = spec.fetchDevice(clusterBridge)
+    def bridge: Bridge = spec.fetchDevice[Bridge](clusterBridge)
     def router: Router = spec.fetchDevice(clusterRouter)
 
-    def tagFor(port: BridgePort) = FlowTagger.tagForBridgePort(clusterBridge.getId, port.getId)
+    def tagFor(port: BridgePort) = FlowTagger.tagForBridgePort(clusterBridge, port.getId)
     def tagFor(port: RouterPort) = FlowTagger.tagForDevice(routerPort.getId)
 
-    private def addAndMaterializeBridgePort(br: ClusterBridge): BridgePort = {
+    private def addAndMaterializeBridgePort(br: UUID): BridgePort = {
         val port = spec.newBridgePort(br)
         spec.stateStorage.setPortLocalAndActive(port.getId, spec.hostId, true)
         port
@@ -93,8 +93,8 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
                       NextHop.PORT, routerPort.getId,
                       new IPv4Addr(Route.NO_GATEWAY).toString, 100)
 
-        bridgeInFilter = spec.newInboundChainOnBridge(s"b-${clusterBridge.getId}-in", clusterBridge)
-        bridgeOutFilter = spec.newOutboundChainOnBridge(s"b-${clusterBridge.getId}-out", clusterBridge)
+        bridgeInFilter = spec.newInboundChainOnBridge(s"b-${clusterBridge}-in", clusterBridge)
+        bridgeOutFilter = spec.newOutboundChainOnBridge(s"b-${clusterBridge}-out", clusterBridge)
 
         vmPortInFilter = spec.newInboundChainOnPort(s"p-${vmPort.getId}-in", vmPort)
         vmPortOutFilter = spec.newOutboundChainOnPort(s"p-${vmPort.getId}-out", vmPort)
@@ -106,11 +106,11 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
         routerPortOutFilter = spec.newOutboundChainOnPort(s"p-${routerPort.getId}-out", routerPort)
 
         spec.fetchTopology(vmPort, routerPort, uplinkPort,
-            clusterBridge, clusterRouter,
+            clusterRouter,
             bridgeInFilter, bridgeOutFilter, vmPortInFilter, vmPortOutFilter,
             uplinkPortInFilter, uplinkPortOutFilter, routerPortInFilter,
             routerPortOutFilter)
-
+        spec.fetchDevice[Bridge](clusterBridge)
         bridge.vlanMacTableMap(0.toShort).add(vmMac, vmPort.getId)
         feedArpCache(router, vmIp, vmMac)
     }
@@ -171,7 +171,7 @@ class ChainInvalidationTest extends MidolmanSpec {
 
     def tagsUntilLeftBridgeIn: Seq[FlowTag] = tagsUntilIngress ++ Seq(
         FlowTagger.tagForDevice(leftBridge.bridgeInFilter.getId),
-        FlowTagger.tagForDevice(leftBridge.clusterBridge.getId))
+        FlowTagger.tagForDevice(leftBridge.clusterBridge))
 
     def tagsUntilLeftBridgeOut: Seq[FlowTag] = tagsUntilLeftBridgeIn ++ Seq(
         FlowTagger.tagForDevice(leftBridge.bridgeOutFilter.getId))
@@ -198,7 +198,7 @@ class ChainInvalidationTest extends MidolmanSpec {
 
     def tagsUntilEgress: Seq[FlowTag] = tagsUntilRightUplinkIn ++ Seq(
         FlowTagger.tagForDevice(rightBridge.vmPort.getId),
-        FlowTagger.tagForDevice(rightBridge.clusterBridge.getId),
+        FlowTagger.tagForDevice(rightBridge.clusterBridge),
         FlowTagger.tagForDevice(rightBridge.bridgeOutFilter.getId),
         FlowTagger.tagForDevice(rightBridge.vmPortOutFilter.getId))
 
