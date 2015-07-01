@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5aefa7b0",
+        "filename": "midonet-util/src/test/java/org/midonet/util/version/TestVersionCheckAnnotationIntrospector.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-01T09:11:04Z",
+      "side": 1,
+      "message": "are these not relevant?",
+      "revId": "8ece39d179da5950022c44233ba6c59c58da68ac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
