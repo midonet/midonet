@@ -53,7 +53,7 @@ this type is only allowed to exist on a Bridge, and will be used to
 handle traffic from/to hardware VTEPs.
 
 Each bridge will have only one VxLanPort per hardware VTEP, regardless
-of the number of porty/vlan pairs that are bound to the Bridge. This is
+of the number of port/vlan pairs that are bound to the Bridge. This is
 an optimisation that allows a significant reduction of the number of
 ports on the Bridge.  Note that even having one VxLanPort per port/vlan
 pair, ingress traffic from any of them will come from the same VxLAN
