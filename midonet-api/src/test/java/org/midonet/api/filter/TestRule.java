@@ -29,24 +29,24 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.junit.runners.Suite;
-import org.midonet.api.rest_api.RestApiTestBase;
-import org.midonet.cluster.rest_api.models.Rule;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
-import org.midonet.packets.Unsigned;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 import org.midonet.api.rest_api.FuncTest;
+import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRule.DtoNatTarget;
 import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.cluster.rest_api.models.Rule;
+import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.packets.ARP;
+import org.midonet.packets.Unsigned;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_RULE_COLLECTION_JSON_V2;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_RULE_JSON_V2;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
@@ -139,8 +139,7 @@ public class TestRule {
             r.setDlSrc("01:23:45:67:89:0ab");
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     chain1.getRules(), APPLICATION_RULE_JSON_V2, r);
-            assertErrorMatches(error, MessageProperty.MAC_ADDRESS_INVALID,
-                               r.getDlSrc());
+            assertErrorMatches(error, MessageProperty.MAC_ADDRESS_INVALID);
         }
 
         @Test
@@ -149,8 +148,7 @@ public class TestRule {
             r.setDlDst("01:23:45:67:89:0ab");
             DtoError error = dtoResource.postAndVerifyBadRequest(
                     chain1.getRules(), APPLICATION_RULE_JSON_V2, r);
-            assertErrorMatches(error, MessageProperty.MAC_ADDRESS_INVALID,
-                               r.getDlDst());
+            assertErrorMatches(error, MessageProperty.MAC_ADDRESS_INVALID);
         }
 
         @Test

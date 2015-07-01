@@ -36,7 +36,8 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.annotation.JsonError;
 import org.midonet.cluster.rest_api.validation.IsValidFragmentType;
-import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.cluster.rest_api.validation.ValidMac;
+import org.midonet.cluster.rest_api.validation.ValidMacMask;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.RangeUtil;
 import org.midonet.cluster.util.UUIDUtil;
@@ -46,6 +47,10 @@ import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
 import org.midonet.util.Range;
 import org.midonet.util.version.Since;
+
+import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_UNDEFINED;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 @IsValidFragmentType
 public class Condition extends UriResource {
@@ -117,18 +122,28 @@ public class Condition extends UriResource {
     public Integer dlType;
     @ZoomField(name = "inv_dl_type")
     public boolean invDlType;
+
+    @ValidMac
     @ZoomField(name = "dl_src")
     public String dlSrc;
+
     @Since("2")
+    @ValidMacMask
     @ZoomField(name = "dl_src_mask", converter = MACMaskConverter.class)
     public String dlSrcMask;
+
     @ZoomField(name = "inv_dl_src")
     public boolean invDlSrc;
+
     @ZoomField(name = "dl_dst")
+    @ValidMac
     public String dlDst;
+
     @Since("2")
     @ZoomField(name = "dl_dst_mask", converter = MACMaskConverter.class)
+    @ValidMacMask
     public String dlDstMask;
+
     @ZoomField(name = "inv_dl_dst")
     public boolean invDlDst;
     @ZoomField(name = "nw_tos")
@@ -145,7 +160,7 @@ public class Condition extends UriResource {
     public boolean invNwDst;
 
     @Since("2")
-    @JsonError(message = MessageProperty.FRAG_POLICY_UNDEFINED)
+    @JsonError(message = FRAG_POLICY_UNDEFINED)
     @ZoomField(name = "fragment_policy")
     public FragmentPolicy fragmentPolicy;
 
@@ -182,15 +197,23 @@ public class Condition extends UriResource {
         return null != tpDst || null != tpSrc;
     }
 
-    private FragmentPolicy getAndValidateFragmentPolicy() {
-        if (null == fragmentPolicy)
+    /**
+     * Provide the right FragmentPolicy for this type of Condition, allowing
+     * subclasses to override specially for handling the defaults.
+     *
+     * @throws BadRequestHttpException if the policy is not valid.
+     */
+    protected FragmentPolicy getAndValidateFragmentPolicy() {
+
+        if (null == fragmentPolicy) {
             return hasL4Fields() ? FragmentPolicy.header : FragmentPolicy.any;
+        }
 
         if (hasL4Fields() &&
             (fragmentPolicy == FragmentPolicy.any ||
              fragmentPolicy == FragmentPolicy.nonheader)) {
-            throw new BadRequestHttpException(MessageProperty.getMessage(
-                MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE));
+            throw new BadRequestHttpException(
+                getMessage(FRAG_POLICY_INVALID_FOR_L4_RULE));
         }
 
         return fragmentPolicy;
