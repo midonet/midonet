@@ -306,6 +306,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_5ae4073b",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 2
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-01T07:41:24Z",
+      "side": 1,
+      "message": "you can mix and match what services run. we can easily deploy just the metadata proxy service.\n\nwe\u0027ll want midolman-enabled cluster services for a bunch of things. it might not be midolman as is, maybe something as simple as pre-installing a datapath flow is enough.",
+      "parentUuid": "9ad9bd40_d788f2e9",
+      "range": {
+        "startLine": 44,
+        "startChar": 0,
+        "endLine": 44,
+        "endChar": 15
+      },
+      "revId": "297b39d4ea6cb6e7e2b12dc51181b3ea75c54063",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "7a1969be_35e92581",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 2
