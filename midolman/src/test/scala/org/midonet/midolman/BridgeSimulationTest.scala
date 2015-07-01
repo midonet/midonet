@@ -27,7 +27,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge, TunnelZone}
+import org.midonet.cluster.data.{TunnelZone}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
@@ -51,7 +51,7 @@ class BridgeSimulationTest extends MidolmanSpec {
     private var portOnHost2: BridgePort = _
     private var portOnHost3: BridgePort = _
 
-    private var bridge: ClusterBridge = _
+    private var bridge: UUID = _
     private var bridgeDevice: Bridge = _
 
 
@@ -88,10 +88,10 @@ class BridgeSimulationTest extends MidolmanSpec {
                     new TunnelZone.HostConfig(host).setIp(ip))
         }
 
-        fetchTopology(bridge, port1OnHost1, portOnHost2, portOnHost3,
+        fetchTopology(port1OnHost1, portOnHost2, portOnHost3,
                       port2OnHost1, port3OnHost1)
 
-        bridgeDevice = fetchDevice(bridge)
+        bridgeDevice = fetchDevice[Bridge](bridge)
     }
 
     /**
@@ -144,7 +144,7 @@ class BridgeSimulationTest extends MidolmanSpec {
         newLiteralRuleOnChain(preChain, 1,udpCond, RuleResult.Action.DROP)
 
         // refetch device to pick up chain
-        bridgeDevice = fetchDevice(bridge)
+        bridgeDevice = fetchDevice[Bridge](bridge)
         checkTrafficWithDropChains()
     }
 
@@ -157,7 +157,7 @@ class BridgeSimulationTest extends MidolmanSpec {
         newLiteralRuleOnChain(postChain, 1, udpCond, RuleResult.Action.DROP)
 
         // refetch device to pick up chain
-        bridgeDevice = fetchDevice(bridge)
+        bridgeDevice = fetchDevice[Bridge](bridge)
         checkTrafficWithDropChains()
     }
 
@@ -248,7 +248,7 @@ class BridgeSimulationTest extends MidolmanSpec {
             { udp src 10 dst 11 } << payload("My UDP packet")
         ethPkt.setVlanIDs(networkVlans)
 
-        val bridgeDevice: Bridge = fetchDevice(bridge)
+        val bridgeDevice: Bridge = fetchDevice[Bridge](bridge)
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               ethPkt, port1OnHost1.getId)
         verifyFloodAction(action)
@@ -286,7 +286,7 @@ class BridgeSimulationTest extends MidolmanSpec {
             { udp src 10 dst 12 } << payload("Test UDP packet")
         ethPkt.setVlanIDs(networkVlans)
 
-        val bridgeDevice: Bridge = fetchDevice(bridge)
+        val bridgeDevice: Bridge = fetchDevice[Bridge](bridge)
         val (pktCtx, action) = simulateDevice(bridgeDevice,
                                               ethPkt, port2OnHost1.getId)
         action match {
@@ -299,7 +299,7 @@ class BridgeSimulationTest extends MidolmanSpec {
     private def verifyFloodAction(action: SimulationResult) : Unit =
         action match {
             case FloodBridgeAction(brId, ports) =>
-                assert(brId === bridge.getId)
+                assert(brId === bridge)
                 assert(ports.contains(port1OnHost1.getId))
                 assert(ports.contains(port2OnHost1.getId))
                 assert(ports.contains(port3OnHost1.getId))

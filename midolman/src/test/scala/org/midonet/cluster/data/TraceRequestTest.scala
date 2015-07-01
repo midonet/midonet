@@ -305,7 +305,7 @@ class TraceRequestTest extends MidolmanSpec {
             .setProperty(Bridge.Property.tenant_id, tenantId)
         clusterDataClient.bridgesCreate(bridge)
 
-        val chain = newInboundChainOnBridge("bridge-filter", bridge)
+        val chain = newInboundChainOnBridge("bridge-filter", bridge.getId)
         newLiteralRuleOnChain(chain, 1,
                               newCondition(tpDst = Some(4002)), Action.ACCEPT)
 
@@ -360,7 +360,7 @@ class TraceRequestTest extends MidolmanSpec {
             .setProperty(Bridge.Property.tenant_id, tenantId)
         clusterDataClient.bridgesCreate(bridge)
 
-        val chain = newInboundChainOnBridge("bridge-filter", bridge)
+        val chain = newInboundChainOnBridge("bridge-filter", bridge.getId)
         val rule1 = newLiteralRuleOnChain(chain, 1,
                                           newCondition(tpDst = Some(4002)),
                                           Action.ACCEPT)

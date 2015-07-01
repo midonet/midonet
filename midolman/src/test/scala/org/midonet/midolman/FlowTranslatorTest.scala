@@ -29,12 +29,12 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.{BridgePort, VxLanPort}
-import org.midonet.cluster.data.{TunnelZone, Bridge, Chain, Port}
+import org.midonet.cluster.data.{TunnelZone, Chain, Port}
 import org.midonet.cluster.data.TunnelZone.{HostConfig, Data}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
@@ -100,7 +100,7 @@ class FlowTranslatorTest extends MidolmanSpec {
     def makePort(host: UUID)(f: BridgePort => BridgePort): BridgePort =
         makePort(host, newBridge("bridge" + id))(f)
 
-    def makePort(host: UUID, bridge: Bridge)(f: BridgePort => BridgePort)
+    def makePort(host: UUID, bridge: UUID)(f: BridgePort => BridgePort)
     : BridgePort = {
         val port = newBridgePort(bridge, f(new BridgePort().setHostId(host)))
         stateStorage.setPortLocalAndActive(port.getId, host, true)
@@ -109,16 +109,17 @@ class FlowTranslatorTest extends MidolmanSpec {
     }
 
     case class VtepDef(tunIp: IPv4Addr, mgmtIp: IPv4Addr, vni: Int)
-    def makeVxLanPort(host: UUID, bridge: Bridge, vtep: VtepDef, tzId: UUID)
+    def makeVxLanPort(host: UUID, bridge: UUID, vtep: VtepDef, tzId: UUID)
                      (f: VxLanPort => VxLanPort): VxLanPort = {
 
-        val port = clusterDataClient.bridgeCreateVxLanPort(bridge.getId,
+        val port = clusterDataClient.bridgeCreateVxLanPort(bridge,
                                                            vtep.mgmtIp, 4789,
                                                            vtep.vni,
                                                            vtep.tunIp, tzId)
         stateStorage.setPortLocalAndActive(port.getId, host, true)
         port.setHostId(host)
-        fetchTopology(port, bridge)
+        fetchTopology(port)
+        fetchDevice[Bridge](bridge)
         port
     }
 
@@ -223,7 +224,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx local port1.getId -> 3
 
             val brPorts = brPortIds(port0, port1)
-            ctx translate FlowActionOutputToVrnBridge(bridge.getId, brPorts)
+            ctx translate FlowActionOutputToVrnBridge(bridge, brPorts)
             ctx verify (List(output(2), output(3)),
             Set(FlowTagger.tagForDpPort(2),
                 FlowTagger.tagForDpPort(3)))
@@ -244,7 +245,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
             val brPorts = brPortIds(port0, port1)
 
-            ctx translate FlowActionOutputToVrnBridge(bridge.getId, brPorts)
+            ctx translate FlowActionOutputToVrnBridge(bridge, brPorts)
             ctx verify (List(output(2), output(3)),
                         Set(FlowTagger.tagForDpPort(2),
                             FlowTagger.tagForDpPort(3)))
@@ -269,7 +270,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx peer remoteHost1 -> (3, 4)
 
             val brPorts = brPortIds(port0, port1)
-            ctx translate FlowActionOutputToVrnBridge(bridge.getId, brPorts)
+            ctx translate FlowActionOutputToVrnBridge(bridge, brPorts)
             ctx verify (List(setKey(FlowKeys.tunnel(port0.getTunnelKey, 1, 2, 0)),
                              output(1342),
                              setKey(FlowKeys.tunnel(port1.getTunnelKey, 3, 4, 0)),
@@ -297,7 +298,6 @@ class FlowTranslatorTest extends MidolmanSpec {
             val vxlanPort2 = makeVxLanPort(hostId, bridge, vtep2, tzId)(identity)
 
             // refetch bridge, it was updated with the vxlan port
-            bridge = clusterDataClient.bridgesGet(bridge.getId)
             activatePorts(List(inPort, port0, vxlanPort1, vxlanPort2))
 
             makeHost(
@@ -312,7 +312,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx vxlanPort 666
             ctx grePort 1342
 
-            ctx translate FlowActionOutputToVrnBridge(bridge.getId, brPortIds(port0))
+            ctx translate FlowActionOutputToVrnBridge(bridge, brPortIds(port0))
             ctx verify (
                 List(
                     output(8),
@@ -360,7 +360,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx local lport1.getId -> 3
 
             val brPorts = brPortIds(rport0, lport0, lport1, rport1)
-            ctx translate FlowActionOutputToVrnBridge(bridge.getId, brPorts)
+            ctx translate FlowActionOutputToVrnBridge(bridge, brPorts)
 
             ctx verify (List(output(2),
                              output(3),
@@ -436,7 +436,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
             val brPorts = brPortIds(port1)
             ctx translate List(FlowActionOutputToVrnPort(port0),
-                               FlowActionOutputToVrnBridge(bridge.getId, brPorts),
+                               FlowActionOutputToVrnBridge(bridge, brPorts),
                                userspace(1),
                                pushVLAN(3))
             ctx verify (List(output(2), output(3), userspace(1), pushVLAN(3)),
