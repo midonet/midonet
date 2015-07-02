@@ -28,7 +28,6 @@ import akka.testkit.TestActorRef
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Chain}
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -98,8 +97,8 @@ class NatTest extends MidolmanSpec {
     private val natTable = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard()
     private var mappings = Set[NatKey]()
 
-    private var rtrOutChain: Chain = null
-    private var rtrInChain: Chain = null
+    private var rtrOutChain: UUID = null
+    private var rtrInChain: UUID = null
 
     private var pktWkfl: TestActorRef[PacketWorkflow] = null
     private val packetOutQueue: ju.Queue[(Packet, ju.List[FlowAction])] =
@@ -303,7 +302,7 @@ class NatTest extends MidolmanSpec {
 
         fetchDevice[SimBridge](bridge)
         fetchDevice[SimRouter](router)
-        fetchTopology(rtrInChain, rtrOutChain)
+        fetchChains(rtrInChain, rtrOutChain)
         fetchPorts(rtrPort, uplinkPort)
         vmPorts foreach { id => fetchPorts(id) }
 

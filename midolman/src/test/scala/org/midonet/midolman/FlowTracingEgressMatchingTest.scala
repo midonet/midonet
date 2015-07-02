@@ -26,7 +26,6 @@ import com.google.common.collect.{BiMap, HashBiMap}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Chain}
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.layer3.{Route => L3Route}
@@ -60,7 +59,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     var rtrIntPort: UUID = null
 
     var bridge: UUID = null
-    var bridgeChain: Chain = null
+    var bridgeChain: UUID = null
     var bridgeRtrPort: UUID = null
     var bridgeVm1Port: UUID = null
     var bridgeVm2Port: UUID = null
@@ -167,7 +166,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
             }
         }
         fetchPorts(rtrIntPort, bridgeRtrPort)
-        fetchTopology(bridgeChain)
+        fetchChains(bridgeChain)
         fetchDevice[SimRouter](router)
         fetchDevice[SimBridge](bridge)
 
@@ -279,13 +278,13 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         flowQueueEgress.size should be (0)
     }
 
-    private def newTraceRule(requestId: UUID, chain: Chain,
+    private def newTraceRule(requestId: UUID, chain: UUID,
                              condition: Condition, pos: Int): Unit = {
         val traceRule = new TraceRuleData(requestId, condition, Long.MaxValue)
-            .setChainId(chain.getId).setPosition(pos)
+            .setChainId(chain).setPosition(pos)
         clusterDataClient.rulesCreate(traceRule)
 
-        fetchDevice(chain)
+        fetchChains(chain)
     }
 
     private def getTunnelId(actions: ju.List[FlowAction]): Long = {

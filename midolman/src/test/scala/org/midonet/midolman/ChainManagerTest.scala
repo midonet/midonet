@@ -52,11 +52,11 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             newTcpDstRuleOnChain(chain, 1, 80, Action.DROP)
 
             When("the VTA receives a request for it")
-            vta.self ! ChainRequest(chain.getId)
+            vta.self ! ChainRequest(chain)
 
             Then("it should return the requested chain, including the rule")
             val c = expectMsgType[Chain]
-            c.id shouldEqual chain.getId
+            c.id shouldEqual chain
             c.getRules.size shouldBe 1
             checkTcpDstRule(c.getRules.get(0), 80, Action.DROP)
         }
@@ -67,7 +67,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             newTcpDstRuleOnChain(chain, 1, 80, Action.DROP)
 
             When("the VTA receives a subscription request for it")
-            vta.self ! ChainRequest(chain.getId, update = true)
+            vta.self ! ChainRequest(chain, update = true)
 
             And("it returns the first version of the chain")
             expectMsgType[Chain]
@@ -78,7 +78,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             Then("the VTA should send an update")
             val c = expectMsgType[Chain]
-            c.id shouldEqual chain.getId
+            c.id shouldEqual chain
             c.getRules.size shouldBe 2
             checkTcpDstRule(c.getRules.get(1), 81, Action.ACCEPT)
 
@@ -92,28 +92,28 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Given("a chain with a jump to another chain")
             val chain1 = newChain("chain1")
             val chain2 = newChain("chain2")
-            newJumpRuleOnChain(chain1, 1, new Condition(), chain2.getId)
+            newJumpRuleOnChain(chain1, 1, new Condition(), chain2)
 
             When("the VTA receives a request for it")
-            vta.self ! ChainRequest(chain1.getId)
+            vta.self ! ChainRequest(chain1)
 
             Then("the VTA should return the first chain, which " +
                  "should have a reference to the second chain")
             val c = expectMsgType[Chain]
-            c.id shouldEqual chain1.getId
+            c.id shouldEqual chain1
             c.getRules.size shouldBe 1
-            checkJumpRule(c.getRules.get(0), chain2.getId)
-            c.getJumpTarget(chain2.getId) shouldBe a [Chain]
+            checkJumpRule(c.getRules.get(0), chain2)
+            c.getJumpTarget(chain2) shouldBe a [Chain]
         }
 
         scenario("Add a second jump rule to a chain") {
             Given("A chain with a jump to a second chain")
             val chain1 = newChain("chain1")
             val chain2 = newChain("chain2")
-            newJumpRuleOnChain(chain1, 1, new Condition(), chain2.getId)
+            newJumpRuleOnChain(chain1, 1, new Condition(), chain2)
 
             When("the VTA receives a request for it")
-            vta.self ! ChainRequest(chain1.getId, true)
+            vta.self ! ChainRequest(chain1, true)
 
             And("it returns the first version of the first chain")
             expectMsgType[Chain]
@@ -121,16 +121,16 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("a second jump rule to a third chain is added")
             val chain3 = newChain("chain3")
-            newJumpRuleOnChain(chain1, 2, new Condition(), chain3.getId)
+            newJumpRuleOnChain(chain1, 2, new Condition(), chain3)
 
             Then("the VTA should send an update with both jumps")
             val c1 = expectMsgType[Chain]
-            c1.id shouldEqual chain1.getId
+            c1.id shouldEqual chain1
             c1.getRules.size shouldBe 2
-            checkJumpRule(c1.getRules.get(0), chain2.getId)
-            checkJumpRule(c1.getRules.get(1), chain3.getId)
-            c1.getJumpTarget(chain2.getId) should not be null
-            c1.getJumpTarget(chain3.getId) should not be null
+            checkJumpRule(c1.getRules.get(0), chain2)
+            checkJumpRule(c1.getRules.get(1), chain3)
+            c1.getJumpTarget(chain2) should not be null
+            c1.getJumpTarget(chain3) should not be null
 
             And("the VTA should receive a flow invalidation for the first chain")
             vta.getAndClear() should contain (flowInvalidationMsg(c1.id))
@@ -140,10 +140,10 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Given("a chain with a jump to a second chain")
             val chain1 = newChain("chain1")
             val chain2 = newChain("chain2")
-            newJumpRuleOnChain(chain1, 1, new Condition(), chain2.getId)
+            newJumpRuleOnChain(chain1, 1, new Condition(), chain2)
 
             When("the VTA receives a request for it")
-            vta.self ! ChainRequest(chain1.getId, true)
+            vta.self ! ChainRequest(chain1, true)
 
             And("it returns the first version of the chain")
             expectMsgType[Chain]
@@ -151,21 +151,21 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("a jump to a third chain is added to the second chain")
             val chain3 = newChain("chain3")
-            newJumpRuleOnChain(chain2, 1, new Condition(), chain3.getId)
+            newJumpRuleOnChain(chain2, 1, new Condition(), chain3)
 
             Then("the VTA should send an update with " +
                  "all three chains connected by jumps")
             val c1 = expectMsgType[Chain]
-            c1.id shouldEqual chain1.getId
+            c1.id shouldEqual chain1
             c1.getRules.size shouldBe 1
-            checkJumpRule(c1.getRules.get(0), chain2.getId)
+            checkJumpRule(c1.getRules.get(0), chain2)
 
-            val c2 = c1.getJumpTarget(chain2.getId)
+            val c2 = c1.getJumpTarget(chain2)
             c2 should not be null
-            c2.id shouldEqual chain2.getId
+            c2.id shouldEqual chain2
             c2.getRules.size shouldBe 1
-            checkJumpRule(c2.getRules.get(0), chain3.getId)
-            c2.getJumpTarget(chain3.getId) should not be null
+            checkJumpRule(c2.getRules.get(0), chain3)
+            c2.getJumpTarget(chain3) should not be null
 
             And("the VTA should receive flow invalidations " +
                 "for the first two chains")
@@ -180,11 +180,11 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             val chain1 = newChain("chain1")
             val chain2 = newChain("chain2")
             val chain3 = newChain("chain3")
-            newJumpRuleOnChain(chain1, 1, new Condition(), chain2.getId)
-            newJumpRuleOnChain(chain2, 1, new Condition(), chain3.getId)
+            newJumpRuleOnChain(chain1, 1, new Condition(), chain2)
+            newJumpRuleOnChain(chain2, 1, new Condition(), chain3)
 
             When("the VTA receives a request for it")
-            vta.self ! ChainRequest(chain1.getId, true)
+            vta.self ! ChainRequest(chain1, true)
 
             And("it returns the first version of the first chain")
             expectMsgType[Chain]
@@ -195,8 +195,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Then("the VTA should send an update with all three chains " +
                  "connected by jumps and the new rule in the third chain")
             val c1 = expectMsgType[Chain]
-            val c2 = c1.getJumpTarget(chain2.getId)
-            val c3 = c2.getJumpTarget(chain3.getId)
+            val c2 = c1.getJumpTarget(chain2)
+            val c3 = c2.getJumpTarget(chain3)
             c3.getRules.size shouldBe 1
             checkTcpDstRule(c3.getRules.get(0), 80, Action.DROP)
 
@@ -220,7 +220,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                                       Some(ipAddrGroup.getId), None)
 
             When("the VTA receives a request for it")
-            vta.self ! ChainRequest(chain.getId)
+            vta.self ! ChainRequest(chain)
 
             Then("It returns the chain with the IPAddrGroup")
             val c = expectMsgType[Chain]
@@ -240,7 +240,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                 chain, 1, Action.DROP, Some(ipAddrGroup.getId), None)
 
             When("the VTA receives a request for it")
-            vta.self ! ChainRequest(chain.getId, update = true)
+            vta.self ! ChainRequest(chain, update = true)
 
             Then("It returns the chain with the IPAddrGroup")
             var c = expectMsgType[Chain]
@@ -273,7 +273,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                 Some(ipAddrGroup.getId), None)
 
             When("the VTA receives a request for it")
-            vta.self ! ChainRequest(chain.getId, true)
+            vta.self ! ChainRequest(chain, true)
 
             And("it returns the first version of the chain")
             expectMsgType[Chain]
@@ -307,7 +307,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                 None, Some(ipAddrGroup.getId))
 
             When("the VTA receives a request for it")
-            vta.self ! ChainRequest(chain.getId, true)
+            vta.self ! ChainRequest(chain, true)
 
             And("it returns the first version of the chain")
             val c1 = expectMsgType[Chain]
@@ -320,7 +320,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             Then("the VTA should send an update")
             val c2 = expectMsgType[Chain]
-            c2.id shouldEqual chain.getId
+            c2.id shouldEqual chain
             checkIpAddrGroupRule(c2.getRules.get(0), Action.DROP, null, null,
                                  ipAddrGroup.getId, Set(addr2))
 

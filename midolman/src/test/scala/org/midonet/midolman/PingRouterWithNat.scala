@@ -127,7 +127,7 @@ class PingRouterWithNat extends MidolmanSpec {
 
         fetchRouters(nearRouter, farRouter)
         fetchPorts(nearLeftPort, nearRightPort, farPort)
-        fetchTopology(rtrInChain, rtrOutChain)
+        fetchChains(rtrInChain, rtrOutChain)
     }
 
     val pingReq: Ethernet =

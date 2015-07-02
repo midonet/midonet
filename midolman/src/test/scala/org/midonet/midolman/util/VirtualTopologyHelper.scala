@@ -111,6 +111,10 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         ports map { fetchDevice[SimPort](_) }
     }
 
+    def fetchChains(chains: UUID*): Seq[SimChain] = {
+        chains map { fetchDevice[SimChain](_) }
+    }
+
     def fetchTopology(entities: Entity.Base[_,_,_]*) =
         fetchTopologyList(entities)
 
