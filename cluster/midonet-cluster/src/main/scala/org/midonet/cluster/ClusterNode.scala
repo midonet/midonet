@@ -106,7 +106,7 @@ object ClusterNode extends App {
     /** Defines a Minion with a name, config, and implementing class */
     case class MinionDef[D <: Minion](name: String, clazz: Class[D])
 
-    private val minions = annotated.flatMap { m=>
+    private val minions = annotated.flatMap { m =>
         val name = m.getAnnotation(classOf[ClusterService]).name()
         if (classOf[Minion].isAssignableFrom(m)) {
             log.info(s"Minion: $name provided by ${m.getName}.")

@@ -40,7 +40,8 @@ class NodeObservableTest extends FlatSpec with CuratorTestFramework
         val obs1 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
         val obs2 = new TestObserver[ChildData] with AwaitableObserver[ChildData]
 
-        val observable = NodeObservable.create(curator, path)
+        val observable =
+            NodeObservable.create(curator, path)
 
         observable.subscribe(obs1)
         obs1.awaitOnNext(1, timeout) shouldBe true

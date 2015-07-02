@@ -26,12 +26,12 @@ import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListe
 import org.apache.zookeeper.KeeperException.{Code, NoNodeException}
 import org.apache.zookeeper.{WatchedEvent, Watcher}
 import org.slf4j.LoggerFactory.getLogger
-
 import rx.Observable.OnSubscribe
 import rx.subjects.BehaviorSubject
 import rx.subscriptions.Subscriptions
 import rx.{Observable, Subscriber}
 
+import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
 import org.midonet.cluster.util.NodeObservable.State
 import org.midonet.cluster.util.NodeObservable.State.State
 import org.midonet.util.functors.makeAction0
@@ -63,15 +63,17 @@ object NodeObservable {
      * element.
      */
     def create(curator: CuratorFramework, path: String,
-               completeOnDelete: Boolean = true): NodeObservable = {
+               completeOnDelete: Boolean = true,
+               zoomMetrics: ZoomMetrics = BlackHoleZoomMetrics)
+    : NodeObservable = {
         new NodeObservable(new OnSubscribeToNode(curator, path,
-                                                 completeOnDelete))
+                                                 completeOnDelete, zoomMetrics))
     }
 }
 
 private[util]
 class OnSubscribeToNode(curator: CuratorFramework, path: String,
-                        completeOnDelete: Boolean)
+                        completeOnDelete: Boolean, zoomMetrics: ZoomMetrics)
     extends OnSubscribe[ChildData] {
 
     private val log = getLogger(s"org.midonet.cluster.zk-node-[$path]")
@@ -91,8 +93,10 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
 
     @volatile
     private var nodeWatcher = new Watcher {
-        override def process(event: WatchedEvent): Unit =
+        override def process(event: WatchedEvent): Unit = {
+            zoomMetrics.nodeWatcherTriggered()
             processWatcher(event)
+        }
     }
 
     @volatile
@@ -241,6 +245,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
         if (state.compareAndSet(State.Started, State.Closed)) {
             curator.getConnectionStateListenable.removeListener(connectionListener)
             curator.clearWatcherReferences(nodeWatcher)
+            log.info("*** Cleared watchers")
 
             if (e eq null) subject.onCompleted() else subject.onError(e)
 
@@ -264,6 +269,9 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
     /** Indicates that the observable is in the closed state and therefore
       * unusable. */
     def isClosed = state.get() == State.Closed
+
+    /** Indicates that the observable is started. */
+    def isStarted = state.get() == State.Started
 }
 
 /**
@@ -303,6 +311,8 @@ class NodeObservable(onSubscribe: OnSubscribeToNode)
       * called. */
     def isClosed = onSubscribe.isClosed
 
+    /** Returns true iff the observable is started. */
+    def isStarted: Boolean = onSubscribe.isStarted
 }
 
 /** Signals that the [[Observable]] is no longer able to emit notifications from
