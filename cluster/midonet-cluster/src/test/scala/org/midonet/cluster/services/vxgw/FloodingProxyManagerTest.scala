@@ -65,7 +65,8 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
     before {
         backendCfg = new MidonetBackendConfig(config)
         zkClient.create().creatingParentsIfNeeded().forPath(backendCfg.rootKey)
-        backend = new MidonetBackendService(backendCfg, zkClient)
+        backend = new MidonetBackendService(backendCfg, zkClient,
+                                            metricRegistry = null)
         backend.setupBindings()
         fpManager = new FloodingProxyManager(backend)
     }

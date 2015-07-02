@@ -20,7 +20,6 @@ import scala.concurrent.duration._
 import org.junit.runner.RunWith
 import org.scalatest.GivenWhenThen
 import org.scalatest.junit.JUnitRunner
-
 import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.StorageTestClasses._
@@ -68,8 +67,8 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             When("The observer unsubscribes")
             sub.unsubscribe()
 
-            Then("The storage returns the same observable instance")
-            storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
+            Then("The storage does not return the same observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) ne obs shouldBe true
 
             When("The observer resubscribes")
             storage.observable(classOf[PojoBridge], bridge.id)
@@ -112,8 +111,8 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             When("The first subscription unsubscribes")
             sub1.unsubscribe()
 
-            Then("The storage returns the same observable instance")
-            storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
+            Then("The storage does not return the same observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) ne obs shouldBe true
 
             When("The observer resubscribes")
             storage.observable(classOf[PojoBridge], bridge.id)
@@ -123,8 +122,8 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             observer.awaitOnNext(3, timeout)
             observer.getOnNextEvents should have size 3
 
-            And("The storage returns the same observable instance")
-            storage.observable(classOf[PojoBridge], bridge.id) eq obs shouldBe true
+            And("The storage does not return the same observable instance")
+            storage.observable(classOf[PojoBridge], bridge.id) ne obs shouldBe true
         }
 
         scenario("Test subscribe all with GC") {
@@ -132,9 +131,9 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             val sub = storage.observable(classOf[PojoBridge]).subscribe(obs)
 
             val zoom = storage.asInstanceOf[ZookeeperObjectMapper]
-            zoom.subscriptionCount(classOf[PojoBridge]) should equal (Option(1))
+            zoom.subscriptionCount(classOf[PojoBridge]) shouldBe Option(1)
             sub.unsubscribe()
-            zoom.subscriptionCount(classOf[PojoBridge]) should equal (None)
+            zoom.subscriptionCount(classOf[PojoBridge]) shouldBe None
 
             obs.getOnCompletedEvents should have size 0
             obs.getOnErrorEvents should have size 1
@@ -149,5 +148,4 @@ class ZookeeperObjectMapperTest extends StorageTest with CuratorTestFramework
             zoom.getClassPath(classOf[PojoBridge]) shouldBe s"$ZK_ROOT/1/PojoBridge"
         }
     }
-
 }
