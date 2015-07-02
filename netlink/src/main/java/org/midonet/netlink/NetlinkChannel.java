@@ -47,7 +47,7 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
      * room to fall behind and then catch up without losing messages under
      * heavy traffic/load.
      */
-    private final static int RCVBUF_SIZE = 2 * 1024 * 1024;
+    private final static int RCVBUF_SIZE = 16 * 1024 * 1024;
 
     private Selector selector = null;
 
