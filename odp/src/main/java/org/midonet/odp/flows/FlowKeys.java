@@ -303,7 +303,11 @@ public class FlowKeys {
                 break;
         }
 
-        if (!ethPkt.getVlanIDs().isEmpty()) {
+        List<Short> vlans = ethPkt.getVlanIDs();
+        if (vlans.size() == 1 && ethPkt.getVlanIDs().get(0) == 0) {
+            keys.add(vlan((short) 0));
+            keys.addAll(payloadKeys);
+        } else if (vlans.size() > 0) {
             // process VLANS
             Iterator<Short> it = ethPkt.getVlanIDs().iterator();
             while (it.hasNext()) {

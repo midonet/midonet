@@ -775,6 +775,17 @@ public class FlowMatch {
         return vlanIds;
     }
 
+    public boolean isVlanTagged() {
+        for (int i = 0; i < vlanIds.size(); i += 1)
+            if (vlanIds.get(i) != 0)
+                return true;
+        return false;
+    }
+
+    public boolean hasEthernetPcp() {
+        return vlanIds.size() == 1 && vlanIds.get(0) == 0;
+    }
+
     // TODO(duarte): enhance as needed
     public void applyTo(Ethernet eth) {
         eth.setSourceMACAddress(ethSrc);
