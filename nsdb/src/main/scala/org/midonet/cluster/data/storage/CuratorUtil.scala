@@ -17,13 +17,11 @@
 package org.midonet.cluster.data.storage
 
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.api.{CuratorEvent, BackgroundCallback}
-
-import rx.{Subscriber, Observable}
+import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent}
 import rx.Observable.OnSubscribe
+import rx.{Observable, Subscriber}
 
 object CuratorUtil {
-
     /** Wraps a call to a Curator background operation as an observable. The
       * method takes as argument a function receiving a [[BackgroundCallback]]
       * as argument. It creates an observable which, when subscribed to, calls
@@ -32,12 +30,19 @@ object CuratorUtil {
       * argument, the observable will emit a notification with that
       * [[CuratorEvent]]. */
     def asObservable(f: (BackgroundCallback) => Unit)
+                    (implicit zoomMetrics: ZoomMetrics)
     : Observable[CuratorEvent] = {
         Observable.create(new OnSubscribe[CuratorEvent] {
+            val start = System.nanoTime()
+
             override def call(s: Subscriber[_ >: CuratorEvent]): Unit = {
                 f(new BackgroundCallback {
                     override def processResult(client: CuratorFramework,
                                                event: CuratorEvent): Unit = {
+
+                        val end = System.nanoTime()
+                        zoomMetrics.addLatency(event.getType, end-start)
+
                         s.onNext(event)
                         s.onCompleted()
                     }

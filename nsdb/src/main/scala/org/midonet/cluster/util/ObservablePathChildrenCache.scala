@@ -37,6 +37,7 @@ import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
 import rx.{Observable, Subscriber}
 
+import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
 import org.midonet.util.concurrent.Locks._
 
 object ObservablePathChildrenCache {
@@ -67,13 +68,17 @@ object ObservablePathChildrenCache {
       *
       * All data notifications are executed on ZK's watcher thread.
       */
-    def create(zk: CuratorFramework, path: String)
+    def create(zk: CuratorFramework, path: String,
+               zoomMetrics: ZoomMetrics = BlackHoleZoomMetrics)
     : ObservablePathChildrenCache = {
-        new ObservablePathChildrenCache(new OnSubscribeToPathChildren(zk, path))
+        new ObservablePathChildrenCache(
+            new OnSubscribeToPathChildren(zk, path, zoomMetrics)
+        )
     }
 }
 
-class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
+class OnSubscribeToPathChildren(zk: CuratorFramework, path: String,
+                                zoomMetrics: ZoomMetrics)
     extends OnSubscribe[Observable[ChildData]] {
 
     private type ChildMap = mutable.Map[String, Subject[ChildData, ChildData]]
@@ -103,9 +108,17 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                                 event: PathChildrenCacheEvent) {
             event.getType match {
                 // These run on the event thread
-                case CHILD_ADDED => newChild(event.getData)
-                case CHILD_UPDATED => changedChild(event)
-                case CHILD_REMOVED => lostChild(event)
+                case CHILD_ADDED =>
+                    zoomMetrics.incChildrenWatchTriggered()
+                    newChild(event.getData)
+                case CHILD_UPDATED =>
+                    zoomMetrics.incNodeWatcherTriggered()
+                    changedChild(event)
+                case CHILD_REMOVED =>
+                    // Node deletion triggers both children and node watchers.
+                    zoomMetrics.incChildrenWatchTriggered()
+                    zoomMetrics.incNodeWatcherTriggered()
+                    lostChild(event)
                 // These run on the connection event thread
                 case CONNECTION_SUSPENDED =>
                     log.debug(s"connection suspended $path")
@@ -155,6 +168,7 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
                                    e: CuratorEvent): Unit = e.getType match {
             case CuratorEventType.EXISTS if !initialized =>
                 if (e.getResultCode == NONODE.intValue()) {
+                    zoomMetrics.incZkNoNodeExceptionCount()
                     failWith(new NoNodeException(path))
                 } else if (e.getResultCode == OK.intValue()) {
                     cache.start(StartMode.POST_INITIALIZED_EVENT)
@@ -167,7 +181,8 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
     private var deletionCb = new CuratorWatcher {
         override def process(event: WatchedEvent): Unit = {
             event.getType match {
-                case NodeDeleted => failWith(new ParentDeletedException(path))
+                case NodeDeleted =>
+                    failWith(new ParentDeletedException(path))
                 case _ => watchParent()
             }
         }
