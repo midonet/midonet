@@ -23,6 +23,7 @@ import org.midonet.cluster.models.Commons.{IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouterInterface, NeutronSubnet}
 import org.midonet.cluster.models.Topology.{Network, Route}
 import org.midonet.cluster.services.c3po.midonet.{Create, MidoOp}
+import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -31,6 +32,11 @@ import org.midonet.util.concurrent.toFutureOps
 
 class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
     extends NeutronTranslator[NeutronRouterInterface] with PortManager {
+
+    /* NeutronRouterInterface is a binding information and has no unique ID.
+     * We don't persist it in Storage. */
+    override protected def retainNeutronModel(
+            op: NeutronOp[NeutronRouterInterface]) = List()
 
     override protected def translateCreate(ri : NeutronRouterInterface)
     : MidoOpList = {
