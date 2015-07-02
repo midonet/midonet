@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9dd04455",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-02T07:28:01Z",
+      "side": 1,
+      "message": "we don\u0027t keep old years?  eg. 2014,2015",
+      "parentUuid": "9ad9bd40_dd200c9e",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "ec7b8cad0c408fcfaa21df812216b71bcd9a2b6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7d1aa06f",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
         "patchSetId": 2
