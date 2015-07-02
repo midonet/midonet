@@ -1,0 +1,141 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_3af65ed8",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:23:37Z",
+      "side": 1,
+      "message": "I see a lot of repetitions. Perhaps it\u0027s better to create a helper factory method?\n\n\ndef newOvsdbCachedTable[T \u003c: Table, E \u003c: VtepEntry](table: T, clazz: Class[E])\n            : OvsdbCachedTable[T, E] \u003d\n    new OvsdbCachedTable(client, table, clazz, vtepThread)\n\n\nprivate val lsTable \u003d newOvsdbCachedTable(\n        new LogicalSwitchTable(dbSchema), classOf[LogicalSwitch])\nprivate val psTable \u003d ....",
+      "range": {
+        "startLine": 59,
+        "startChar": 8,
+        "endLine": 61,
+        "endChar": 23
+      },
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1a727a7c",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:23:37Z",
+      "side": 1,
+      "message": "Can you do something like the following?\n\n\nval ftrs \u003d List(lsTable, psTable, portTable, locSetTable,\n                     locTable, uLocalTable, uRemoteTable,\n                     mLocalTable, mRemoteTable)\n\nFuture.sequcne(ftrs.map(_.ready)).map(_.forall(_))",
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3a1d7e10",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:23:37Z",
+      "side": 1,
+      "message": "In general, is it a good idea to wait indefinitely?",
+      "range": {
+        "startLine": 124,
+        "startChar": 41,
+        "endLine": 124,
+        "endChar": 53
+      },
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fae23602",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:23:37Z",
+      "side": 1,
+      "message": "I don\u0027t think you need this. If you want to call a member of an instance of MacRemoteUpdater, you can call \"this\" something like \"MacRemoteUpdata.this\"",
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3ddad878",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:23:37Z",
+      "side": 1,
+      "message": "Alternatively you can use flatMap and return Some(pipe) or None, which may be a bit more verbose but maybe also a bit more readable. Just a suggestion and you can keep this part as is if you prefer.",
+      "range": {
+        "startLine": 198,
+        "startChar": 14,
+        "endLine": 198,
+        "endChar": 21
+      },
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5ae7a240",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/VtepTableMonitor.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:23:37Z",
+      "side": 1,
+      "message": "Why there\u0027s not a method for update?",
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1add1a71",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:23:37Z",
+      "side": 1,
+      "message": "Two things.\n- Shouldn\u0027t we catch NonFatal instead of Throwable?\n- Shouldn\u0027t we log at least warn instead of squashing the exception as it\u0027s not really expected to happen, right?",
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
