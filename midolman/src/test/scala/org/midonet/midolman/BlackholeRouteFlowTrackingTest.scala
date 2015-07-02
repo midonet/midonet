@@ -21,7 +21,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.RouterPort
-import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.midolman.PacketWorkflow.ErrorDrop
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -60,7 +59,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
     val netmask = 24
 
     var simRouter: Router = null
-    var clusterRouter: ClusterRouter = null
+    var clusterRouter: UUID = null
 
     private def buildTopology() {
         val host = newHost("myself",
@@ -87,7 +86,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
         newRoute(clusterRouter, "0.0.0.0", 0, rightNet, netmask, NextHop.PORT,
                  rightPort.getId, new IPv4Addr(Route.NO_GATEWAY).toString, 1)
 
-        simRouter = fetchDevice(clusterRouter)
+        simRouter = fetchDevice[Router](clusterRouter)
         simRouter should not be null
         feedArpCache(simRouter, IPv4Addr(leftOtherIp), MAC.fromString(leftOtherMac))
         feedArpCache(simRouter, IPv4Addr(rightOtherIp), MAC.fromString(rightOtherMac))
@@ -150,7 +149,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
             eventually { fetchDevice[Router](clusterRouter) should not be simRouter }
 
             Then("an invalidation by destination IP is scheduled")
-            val tag = FlowTagger.tagForDestinationIp(clusterRouter.getId,
+            val tag = FlowTagger.tagForDestinationIp(clusterRouter,
                                                      IPv4Addr(rightOtherIp))
             flowInvalidator should invalidateForNewRoutes (new IPv4Subnet(rightOtherIp, 32))
         }

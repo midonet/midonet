@@ -28,7 +28,7 @@ import akka.testkit.TestActorRef
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Chain, Router}
+import org.midonet.cluster.data.{Chain}
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman._
@@ -83,7 +83,7 @@ class NatTest extends MidolmanSpec {
         IPv6Addr.fromString("fe80:0:0:0:0:7ed1:c3ff:5"))
 
     var bridge: UUID = null
-    var router: Router = null
+    var router: UUID = null
     var host: UUID = null
 
     private val uplinkGatewayAddr = IPv4Addr("180.0.1.1")
@@ -287,9 +287,7 @@ class NatTest extends MidolmanSpec {
                 RuleResult.Action.CONTINUE, Set(snatTarget), isDnat = false)
         snatRule should not be null
 
-        clusterDataClient.routersUpdate(router)
-
-        val simRouter: SimRouter = fetchDevice(router)
+        val simRouter: SimRouter = fetchDevice[SimRouter](router)
         val simBridge: SimBridge = fetchDevice[SimBridge](bridge)
 
         // feed the router arp cache with the uplink gateway's mac address
@@ -306,8 +304,8 @@ class NatTest extends MidolmanSpec {
         }
 
         fetchDevice[SimBridge](bridge)
-        fetchTopology(router, rtrPort, rtrInChain,
-                      rtrOutChain, uplinkPort)
+        fetchDevice[SimRouter](router)
+        fetchTopology(rtrPort, rtrInChain, rtrOutChain, uplinkPort)
         fetchTopology(vmPorts:_*)
 
         pktWkfl = packetWorkflow(portMap, natTable = natTable)
@@ -402,7 +400,7 @@ class NatTest extends MidolmanSpec {
             applyPacketActions(packet3.getEthernet, actions3))
         mapping.flowCount should be (2)
 
-        simBackChannel.tell(FlowTagger.tagForDevice(router.getId))
+        simBackChannel.tell(FlowTagger.tagForDevice(router))
         pktWkfl.underlyingActor.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
@@ -463,7 +461,7 @@ class NatTest extends MidolmanSpec {
             applyPacketActions(packet3.getEthernet, actions3))
         mapping.flowCount should be (2)
 
-        simBackChannel.tell(FlowTagger.tagForDevice(router.getId))
+        simBackChannel.tell(FlowTagger.tagForDevice(router))
         pktWkfl.underlyingActor.process()
         mapping.flowCount should be (0)
         clock.time = FlowState.DEFAULT_EXPIRATION.toNanos + 1
