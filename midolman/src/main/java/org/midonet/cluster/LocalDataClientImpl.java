@@ -3576,8 +3576,7 @@ public class LocalDataClientImpl implements DataClient {
         }
 
         IPv4Addr vtepMgmtIp = vxlanPort.getMgmtIpAddr();
-        log.debug("Port's bridge {} has a VxLanPort {}", port.getId(),
-                  vxlanPort.getId());
+        log.debug("Port's bridge {} is bound to one or more VTEPs", b.getId());
 
         // We will need the host where the given BridgePort is bound
         UUID hostId = port.getHostId();
