@@ -264,6 +264,9 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
     /** Indicates that the observable is in the closed state and therefore
       * unusable. */
     def isClosed = state.get() == State.Closed
+
+    /** Indicates that the observable has an active Zookeeper watcher. */
+    def isActive = state.get() == State.Started
 }
 
 /**
@@ -303,6 +306,8 @@ class NodeObservable(onSubscribe: OnSubscribeToNode)
       * called. */
     def isClosed = onSubscribe.isClosed
 
+    /** Returns true iff the underlying Zookeeper watcher is active. */
+    def isActive: Boolean = onSubscribe.isActive
 }
 
 /** Signals that the [[Observable]] is no longer able to emit notifications from

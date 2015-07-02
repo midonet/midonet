@@ -17,12 +17,26 @@
 package org.midonet.cluster.data.storage
 
 import org.apache.curator.framework.CuratorFramework
-import org.apache.curator.framework.api.{CuratorEvent, BackgroundCallback}
+import org.apache.curator.framework.api.CuratorEventType.{CREATE, DELETE, SET_DATA, EXISTS, GET_DATA, CHILDREN}
+import org.apache.curator.framework.api.{CuratorEventType, CuratorEvent, BackgroundCallback}
 
 import rx.{Subscriber, Observable}
 import rx.Observable.OnSubscribe
 
 object CuratorUtil {
+
+    private def addLatency(eventType: CuratorEventType,
+                           metrics: ZoomMetrics,
+                           latencyInNanos: Long)
+    : Unit = eventType match {
+        case CREATE | DELETE | SET_DATA =>
+            metrics.addWriteLatency(latencyInNanos)
+        case EXISTS | GET_DATA =>
+            metrics.addReadLatency(latencyInNanos)
+        case CHILDREN =>
+            metrics.addReadChildrenLatency(latencyInNanos)
+        case _ =>
+    }
 
     /** Wraps a call to a Curator background operation as an observable. The
       * method takes as argument a function receiving a [[BackgroundCallback]]
@@ -32,12 +46,19 @@ object CuratorUtil {
       * argument, the observable will emit a notification with that
       * [[CuratorEvent]]. */
     def asObservable(f: (BackgroundCallback) => Unit)
+                    (implicit zoomMetrics: ZoomMetrics)
     : Observable[CuratorEvent] = {
         Observable.create(new OnSubscribe[CuratorEvent] {
+            val start = System.nanoTime()
+
             override def call(s: Subscriber[_ >: CuratorEvent]): Unit = {
                 f(new BackgroundCallback {
                     override def processResult(client: CuratorFramework,
                                                event: CuratorEvent): Unit = {
+
+                        val end = System.nanoTime()
+                        addLatency(event.getType, zoomMetrics, end-start)
+
                         s.onNext(event)
                         s.onCompleted()
                     }
