@@ -25,9 +25,10 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api
+import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.Status.METHOD_NOT_ALLOWED
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.Vip
+import org.midonet.cluster.rest_api.models.{Pool, Vip}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -46,6 +47,24 @@ class VipResource @Inject()(resContext: ResourceContext)
 
     protected override def updateFilter = (to: Vip, from: Vip) => {
         to.update(from)
+        val pool = try {
+            getResource(classOf[Pool], to.poolId).getOrThrow
+        } catch {
+            case t: NotFoundHttpException =>
+                throw new BadRequestHttpException(t.getMessage)
+        }
+        to.loadBalancerId = pool.loadBalancerId
+    }
+
+    protected override def createFilter = (vip: Vip) => {
+        vip.create()
+        val pool = try {
+            getResource(classOf[Pool], vip.poolId).getOrThrow
+        } catch {
+            case t: NotFoundHttpException =>
+                throw new BadRequestHttpException(t.getMessage)
+        }
+        vip.loadBalancerId = pool.loadBalancerId
     }
 
 }
