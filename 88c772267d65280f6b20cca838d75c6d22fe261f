@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_338689ba",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv6Addr.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-02T15:30:57Z",
+      "side": 1,
+      "message": "can we take the chance to make this a bit more readable? \n\nsomething like:\n\n    private def buildQuadWord(addr: Array[Byte], start: Int): Long \u003d {\n        var quadWord \u003d 0L\n        var shift \u003d 56\n        var i \u003d start\n        val end \u003d start + 8\n        do {\n            quadWord |\u003d addr(i).toLong \u003c\u003c shift\n        } while ({ shift -\u003d 8; i +\u003d 1; i } \u003c end)\n        quadWord\n    }\n\n    apply(buildQuadWord(addr, 0), buildQuadWord(addr, 8))",
+      "revId": "88c772267d65280f6b20cca838d75c6d22fe261f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
