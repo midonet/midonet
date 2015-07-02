@@ -156,7 +156,7 @@ public class SecurityGroupRule implements Comparable<SecurityGroupRule> {
     public Range<Integer> portRange() {
         if (portRangeMin == null && portRangeMax == null) return null;
 
-        if(protocol.number() == ICMP.PROTOCOL_NUMBER) {
+        if(protocol != null && protocol.number() == ICMP.PROTOCOL_NUMBER) {
             return new Range<>(portRangeMax, portRangeMax);
         } else {
             return new Range<>(portRangeMin, portRangeMax);
