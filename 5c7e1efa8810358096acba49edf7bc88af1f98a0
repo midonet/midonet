@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_dafe526b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-02T08:21:02Z",
+      "side": 1,
+      "message": "This might be a good place to use yield:\n\n  for (fipId \u003c- nPort.getFloatingIpIdsList.asScala) yield {\n      // ...Calculate arpPath\n      DeleteNode(arpPath)\n  }\n\nThis will produce a list of DeleteNode operations without the MidoOpListBuffer. You may have to massage the type a bit, though.",
+      "range": {
+        "startLine": 577,
+        "startChar": 0,
+        "endLine": 578,
+        "endChar": 59
+      },
+      "revId": "5c7e1efa8810358096acba49edf7bc88af1f98a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fa031671",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 581,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-02T08:21:02Z",
+      "side": 1,
+      "message": "Yeah, should be fine. Also, Neutron doesn\u0027t actually allow you to associate multiple floating IPs with a single port.",
+      "range": {
+        "startLine": 579,
+        "startChar": 0,
+        "endLine": 581,
+        "endChar": 45
+      },
+      "revId": "5c7e1efa8810358096acba49edf7bc88af1f98a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_dae8127f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-02T08:21:02Z",
+      "side": 1,
+      "message": "gwPort",
+      "range": {
+        "startLine": 587,
+        "startChar": 39,
+        "endLine": 587,
+        "endChar": 44
+      },
+      "revId": "5c7e1efa8810358096acba49edf7bc88af1f98a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
