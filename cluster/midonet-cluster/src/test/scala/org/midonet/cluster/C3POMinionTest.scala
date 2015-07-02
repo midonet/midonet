@@ -312,7 +312,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         )
 
         pathBldr = new PathBuilder(backendCfg.rootKey)
-        backend = new MidonetBackendService(backendCfg, curator)
+        backend = new MidonetBackendService(backendCfg, curator,
+                                            metricRegistry = null)
         backend.startAsync().awaitRunning()
         curator.blockUntilConnected()
 

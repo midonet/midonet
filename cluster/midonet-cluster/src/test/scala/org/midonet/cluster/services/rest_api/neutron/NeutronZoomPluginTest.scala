@@ -60,7 +60,7 @@ class NeutronZoomPluginTest extends FeatureSpec
            |zookeeper.root_key : "$ZK_ROOT"
         """.stripMargin)
         )
-        backend = new MidonetBackendService(cfg, curator)
+        backend = new MidonetBackendService(cfg, curator, metricRegistry = null)
         backend.setupBindings()
 
         val paths = new PathBuilder(ZK_ROOT)
