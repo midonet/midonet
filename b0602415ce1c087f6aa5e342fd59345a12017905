@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_da7c9275",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T01:22:01Z",
+      "side": 1,
+      "message": "Perhaps it\u0027s better to return \"COMPUTE\" here and rename the enum value name and other related parts accordingly?",
+      "revId": "b0602415ce1c087f6aa5e342fd59345a12017905",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
