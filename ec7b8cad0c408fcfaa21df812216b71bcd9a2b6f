@@ -72,6 +72,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_bd0a68d0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-02T08:00:19Z",
+      "side": 1,
+      "message": "I\u0027d remove this. It\u0027s fine to add a small special case as long as you\u0027re explaining the purpose. It these cases grow we should think of a cleaner solution.",
+      "range": {
+        "startLine": 153,
+        "startChar": 11,
+        "endLine": 153,
+        "endChar": 25
+      },
+      "revId": "ec7b8cad0c408fcfaa21df812216b71bcd9a2b6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9d2684b9",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
         "patchSetId": 2
@@ -106,6 +129,29 @@
       "writtenOn": "2015-07-02T07:58:35Z",
       "side": 1,
       "message": "I\u0027m not 100% sure, but maybe this should be replaced with classOf[DeviceOwner].getName?",
+      "range": {
+        "startLine": 157,
+        "startChar": 16,
+        "endLine": 157,
+        "endChar": 68
+      },
+      "revId": "ec7b8cad0c408fcfaa21df812216b71bcd9a2b6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5d6cfc9c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-02T08:00:19Z",
+      "side": 1,
+      "message": "it\u0027s safer to use DeviceOwner.getClass().getFullName() as this will fail compilation if a class rename / removal  happens",
       "range": {
         "startLine": 157,
         "startChar": 16,
