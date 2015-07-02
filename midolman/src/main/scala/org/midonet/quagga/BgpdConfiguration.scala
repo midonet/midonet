@@ -16,6 +16,8 @@
 
 package org.midonet.quagga
 
+import org.midonet.packets.{IPv4Subnet, IPv4Addr}
+
 import scala.annotation.tailrec
 
 object BgpdConfiguration {
@@ -48,41 +50,44 @@ object BgpdConfiguration {
         }
     }
 
-    case class Network(cidr: String)
+    case class Network(cidr: IPv4Subnet)
 
-    case class Neighbor(address: String,
+    case class Neighbor(address: IPv4Addr,
                         as: Int,
                         var keepalive: Option[Int] = None,
                         var holdtime: Option[Int] = None,
                         var connect: Option[Int] = None)
 
     case class BgpRouter(as: Int,
-                         var id: String = "0.0.0.0",
-                         var neighbors: Map[String, Neighbor] = Map.empty,
+                         var id: IPv4Addr = IPv4Addr.fromString("0.0.0.0"),
+                         var neighbors: Map[IPv4Addr, Neighbor] = Map.empty,
                          var networks: Set[Network] = Set.empty) extends ConfigPiece {
         override val nested = true
 
         override def add(head: String, tail: List[String]): List[String] = {
             head.split(' ').toList match {
                 case List("bgp", "router-id", _id) =>
-                    id = _id
+                    id = IPv4Addr.fromString(_id)
                     tail
 
                 case List("network", net) =>
-                    networks += Network(net)
+                    networks += Network(IPv4Subnet.fromCidr(net))
                     tail
 
                 case List("neighbor", peer, "remote-as", remoteAs) =>
-                    neighbors += peer -> Neighbor(peer, remoteAs.toInt)
+                    val peerAddr: IPv4Addr = IPv4Addr.fromString(peer)
+                    neighbors += peerAddr -> Neighbor(peerAddr, remoteAs.toInt)
                     tail
 
                 case List("neighbor", peer, "timers", "connect", connect) =>
-                    val neigh = neighbors(peer)
+                    val peerAddr: IPv4Addr = IPv4Addr.fromString(peer)
+                    val neigh = neighbors(peerAddr)
                     neigh.connect = Some(connect.toInt)
                     tail
 
                 case List("neighbor", peer, "timers", keepalive, holdtime) =>
-                    val neigh = neighbors(peer)
+                    val peerAddr: IPv4Addr = IPv4Addr.fromString(peer)
+                    val neigh = neighbors(peerAddr)
                     neigh.keepalive = Some(keepalive.toInt)
                     neigh.holdtime = Some(holdtime.toInt)
                     tail
