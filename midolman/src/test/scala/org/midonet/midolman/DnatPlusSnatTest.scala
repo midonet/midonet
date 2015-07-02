@@ -16,10 +16,11 @@
 
 package org.midonet.midolman
 
+import java.util.UUID
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.layer3.Route._
@@ -40,7 +41,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    var router: ClusterRouter = _
+    var router: UUID = _
     var port1: RouterPort = _
     var port2: RouterPort = _
 
@@ -115,7 +116,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
                                  Set(snat), isDnat = false)
     }
 
-    def simRouter: SimRouter = fetchDevice(router)
+    def simRouter: SimRouter = fetchDevice[SimRouter](router)
 
     scenario("DNAT and SNAT rules coexist") {
         feedArpTable(simRouter, client1, client1Mac)
@@ -150,7 +151,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
         pktCtx.virtualFlowActions.get(3) should be (FlowActionOutputToVrnPort(port2.getId))
 
         val dnatKey = NatKey(FWD_DNAT, client1, 12345, dst, 80,
-                             TCP.PROTOCOL_NUMBER, router.getId)
+                             TCP.PROTOCOL_NUMBER, router)
         val dnatBinding = stateTable.get(dnatKey)
         dnatBinding.networkAddress should (be(server1) or be(server2))
         dnatBinding.transportPort should be (81)
@@ -161,10 +162,10 @@ class DnatPlusSnatTest extends MidolmanSpec {
         revDnatBinding.transportPort should be (80)
 
         var snatKey = NatKey(FWD_SNAT, client1, 12345, server1, 81,
-                             TCP.PROTOCOL_NUMBER, router.getId)
+                             TCP.PROTOCOL_NUMBER, router)
         if (stateTable.get(snatKey) == null) {
             snatKey = NatKey(FWD_SNAT, client1, 12345, server2, 81,
-                             TCP.PROTOCOL_NUMBER, router.getId)
+                             TCP.PROTOCOL_NUMBER, router)
         }
         val snatBinding = stateTable.get(snatKey)
         snatBinding.networkAddress should be (serverGw)

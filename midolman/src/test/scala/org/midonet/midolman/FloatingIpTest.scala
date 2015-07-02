@@ -21,7 +21,6 @@ import java.util.{HashSet, UUID}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route
@@ -50,7 +49,7 @@ class FloatingIpTest extends MidolmanSpec {
 
     val floatingIp = IPv4Addr.fromString("10.0.173.5")
 
-    var router: Router = _
+    var router: UUID = _
     var brPort2 : BridgePort = _ // "Connected" to VM2
     var rtrPort1 : RouterPort = _ // "Connected" to VM1
     var rtrPort2 : RouterPort = _ // Interior port connecting to the brige
@@ -103,12 +102,13 @@ class FloatingIpTest extends MidolmanSpec {
         newForwardNatRuleOnChain(postChain, 1, snatCond, RuleResult.Action.ACCEPT,
                                  Set(snatTarget), isDnat = false)
 
-        fetchTopology(router, rtrPort1, rtrPort2, brPort1, brPort2,
+        fetchTopology(rtrPort1, rtrPort2, brPort1, brPort2,
                       preChain, postChain)
         fetchDevice[SimBridge](bridge)
+        fetchDevice[SimRouter](router)
     }
 
-    def simRouter: SimRouter = fetchDevice(router)
+    def simRouter: SimRouter = fetchDevice[SimRouter](router)
 
     scenario("Floating IP") {
         feedArpTable(simRouter, vm1Ip, vm1Mac)

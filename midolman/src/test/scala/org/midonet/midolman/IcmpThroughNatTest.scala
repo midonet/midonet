@@ -20,7 +20,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
@@ -62,7 +61,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
     var rtLeftPort: RouterPort = null
     var rtRightPort: RouterPort = null
     var clusterBridge: UUID = null
-    var clusterRouter: ClusterRouter = null
+    var clusterRouter: UUID = null
 
     private def setActive(id: UUID) {
         stateStorage.setPortLocalAndActive(id, hostId, true)
@@ -87,8 +86,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
         val ports = List(leftPort, rightPort, rtLeftPort, rtRightPort)
         ports map{ _.getId } foreach setActive
 
-        fetchTopology(leftPort, rightPort, rtLeftPort, rtRightPort,
-                      clusterRouter)
+        fetchTopology(leftPort, rightPort, rtLeftPort, rtRightPort)
         fetchDevice[Bridge](clusterBridge)
 
         val router = fetchDevice[Router](clusterRouter)
