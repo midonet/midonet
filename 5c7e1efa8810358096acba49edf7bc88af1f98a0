@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_dd356c47",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:46:57Z",
+      "side": 1,
+      "message": "Indeed, that\u0027s a good suggestion. I deleted the return type cause it ended up being Something like Buffer[MidoOp[T \u003c: Message]] and I wanted to keep it simple. Hope you don\u0027t mind.",
+      "parentUuid": "9ad9bd40_dafe526b",
+      "range": {
+        "startLine": 577,
+        "startChar": 0,
+        "endLine": 578,
+        "endChar": 59
+      },
+      "revId": "5c7e1efa8810358096acba49edf7bc88af1f98a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_fa031671",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_1d3fd426",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 581,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:46:57Z",
+      "side": 1,
+      "message": "Got it.",
+      "parentUuid": "9ad9bd40_fa031671",
+      "range": {
+        "startLine": 579,
+        "startChar": 0,
+        "endLine": 581,
+        "endChar": 45
+      },
+      "revId": "5c7e1efa8810358096acba49edf7bc88af1f98a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_dae8127f",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
@@ -59,6 +107,30 @@
       "writtenOn": "2015-07-02T08:21:02Z",
       "side": 1,
       "message": "gwPort",
+      "range": {
+        "startLine": 587,
+        "startChar": 39,
+        "endLine": 587,
+        "endChar": 44
+      },
+      "revId": "5c7e1efa8810358096acba49edf7bc88af1f98a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5d495ccf",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 587,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-02T08:46:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_dae8127f",
       "range": {
         "startLine": 587,
         "startChar": 39,
