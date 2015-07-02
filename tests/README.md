@@ -12,34 +12,62 @@ OpenStack network host.  It will then run tests using python testing
 frameworks to inject traffic into the simulated network while
 simultaneously checking state and end-to-end transmission.
 
-#### Minumum Recommended Hardware:
+Minumum recommended environment
+-------------------------------
 
 * 8GB RAM
-* 20GB HDD
+* 20GB storage space
 * 2 CPUs (or VCPUs)
-* Ethernet network device (REQUIRED)
-* Terminal access via SSH (recommended)
 
-### MDTS Package Dependencies
+Prerequisites and MDTS package dependencies
+-------------------------------------------
 
-These can be installed automatically using the:
+They can be installed automatically using the following script.
 
-    ./setup_test_server
+```
+midonet/tests$ ./setup_test_server
+```
 
-script.  But, if manual installation is needed, the following packages
-are required.  Please refer to this script for a comprehensive list of
-all the required packages.
+If manual installation is needed, please refer to this script for a
+comprehensive list of all the required packages.
 
-To run MDTS, first start the MMM (Multiple MidolMan) subsystem.  This
-will spawn a container-based cluster.
+Running MMM
+-----------
 
-    cd mmm
-    ./init
-    ./boot
+To run MDTS, first start the MMM (Multiple MidolMan) subsystem. MMM depends on
+the MidoNet packages. If they're needed to be installed manually, please build
+and install them as follow:
+
+```
+midonet$ git submodule update --init --recursive
+midonet$ ./gradlew clean
+midonet$ ./gradlew -x test debian
+midonet$ find . -name "*.deb"
+./midonet-api/build/packages/midonet-api_2015.05~201506030403.f4646d4_all.deb
+./midolman/build/packages/midolman_2015.05~201506030403.f4646d4_all.deb
+./python-midonetclient/python-midonetclient_2015.05~201506030403.f4646d4_all.deb
+./cluster/midonet-cluster/build/packages/midonet-cluster_2015.05~201506030403.f4646d4_all.deb
+midonet$ find . -name "*.deb" | xargs sudo dpkg -i
+```
+
+Then run the following scripts that will spawn a container-based cluster.
+
+```
+midonet/tests$ cd mmm
+midonet/tests/mmm$ ./init
+midonet/tests/mmm$ ./boot
+```
+
+Running functional tests
+------------------------
 
 You're now set to run MDTS tests:
 
-    cd ../mdts/tests/functional_tests
-    ./run_tests.sh
+```
+midonet/tests/mmm$ cd ../mdts/tests/functional_tests
+midonet/tests/mdts/tests/functional_tests$ ./run_tests.sh -r ../../../
+```
 
-Refer to documentation in the run_tests.sh file for further information.
+Refer to documentation in [`run_tests.sh`][run_tests] for further information.
+
+[run_tests]: tests/mdts/tests/functional_tests/run_tests.sh
