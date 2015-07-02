@@ -90,6 +90,8 @@ object ZookeeperObjectState {
  */
 trait ZookeeperObjectState extends StateStorage with Storage {
 
+    implicit private[storage] val metrics: ZoomMetrics
+
     protected[storage] trait StateTransactionManager {
 
         protected val pathsToDelete = new ConcurrentHashMap[String, Void]
@@ -267,6 +269,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, Some(value), ownerId))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
+                    metrics.zkNoNodeTriggered()
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, None, NoOwnerId))
                 } else {
@@ -285,6 +288,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     Notification.createOnNext[StateKey](MultiValueKey(key,
                                                                       values))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
+                    metrics.zkNoNodeTriggered()
                     Notification.createOnNext[StateKey](MultiValueKey(key,
                                                                       Set()))
                 } else {
@@ -306,11 +310,12 @@ trait ZookeeperObjectState extends StateStorage with Storage {
     override def keyObservable(clazz: Class[_], id: ObjId, key: String)
     : Observable[StateKey] = {
         assertBuilt()
-
+        val index = KeyIndex(clazz, id.toString, key)
+        val ver = version.longValue()
         if (getKeyType(clazz, key).isSingle) {
-            singleObservable(clazz, id, key, version.longValue())
+            singleObservable(index, ver)
         } else {
-            multiObservable(clazz, id, key, version.longValue())
+            multiObservable(index, ver)
         }
     }
 
@@ -535,8 +540,8 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     // key node.
                     asObservable {
                         curator.delete().withVersion(event.getStat.getVersion)
-                            .inBackground(_)
-                            .forPath(path)
+                               .inBackground(_)
+                               .forPath(path)
                     }.map[Notification[StateResult]] {
                         asResult(clazz, id, key, value,ownerId)
                     }.dematerialize[StateResult]
@@ -547,6 +552,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                         event.getStat.getEphemeralOwner))
                 }
             } else if (event.getResultCode == Code.NONODE.intValue()) {
+                metrics.zkNoNodeTriggered()
                 // The node does not exist: complete immediately.
                 Observable.just(StateResult(NoOwnerId))
             } else {
@@ -558,7 +564,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         }
     }
 
-    /** Returns an node observable for the state path of the given object.
+    /** Returns a node observable for the state path of the given object.
       * This observable is used to detect when an object is deleted, in
       * order to complete single-value key observables. */
     private def objectObservable(clazz: Class[_], id: ObjId, version: Long)
@@ -569,12 +575,14 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
         objectObservables.getOrElse(key, {
             val observable = NodeObservable.create(curator, path,
-                                                   completeOnDelete = true)
+                                                   completeOnDelete = true,
+                                                   BlackHoleZoomMetrics)
             objectObservables.putIfAbsent(key, observable).getOrElse(observable)
         }).ignoreElements()
           .map[StateKey](stateKeyMap)
           .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
             case e: NodeObservableClosedException =>
+                // TODO: this one is not counted?
                 objectObservables.remove(key)
                 objectObservable(clazz, id, version)
             case e: Throwable => Observable.error(e)
@@ -585,54 +593,77 @@ trait ZookeeperObjectState extends StateStorage with Storage {
       * for the key path that ignores deletions. Completion of the observable
       * is ensured by filtering elements through the object observable using
       * `takeUntil`. */
-    private def singleObservable(clazz: Class[_], id: ObjId, key: String,
-                                 version: Long): Observable[StateKey] = {
+    private def singleObservable(index: KeyIndex, version: Long)
+    : Observable[StateKey] = {
 
-        val index = KeyIndex(clazz, getIdString(clazz, id), key)
+        val id = index.id
+        val clazz = index.clazz
+        val key = index.key
         val path = getKeyPath(clazz, getIdString(clazz, id), key, version)
 
-        singleObservables.getOrElse(index, {
+        val obs = singleObservables.getOrElse(index, {
             val observable = NodeObservable.create(curator, path,
-                                                   completeOnDelete = false)
+                                                   completeOnDelete = false,
+                                                   metrics)
             singleObservables.putIfAbsent(index, observable)
                              .getOrElse(observable)
-        }).map[StateKey](makeFunc1((data: ChildData) => {
+        })
+        obs.map[StateKey](makeFunc1[ChildData, StateKey] { data =>
             if ((data.getData ne null) && (data.getStat ne null)) {
                 val value = new String(data.getData, StringEncoding)
                 val owner = data.getStat.getEphemeralOwner
-                SingleValueKey(key, Some(value), owner)
+                SingleValueKey(index.key, Some(value), owner)
             } else {
-                SingleValueKey(key, None, NoOwnerId)
+                SingleValueKey(index.key, None, NoOwnerId)
             }
-        })).onErrorResumeNext(makeFunc1((t: Throwable) => t match {
-            case e: NodeObservableClosedException =>
-                singleObservables.remove(index)
-                singleObservable(clazz, id, key, version)
-            case e: Throwable => Observable.error(e)
-        })).takeUntil(objectObservable(clazz, id, version))
+        }).onErrorResumeNext(
+                recover[StateKey, NodeObservable](index, version, obs,
+                                                  singleObservables,
+                                                  singleObservable)
+        ).takeUntil(objectObservable(index.clazz, index.id, version))
     }
 
     /** Returns an observable for a multi-value key, using a
       * [[PathDirectoryObservable]] for the key path.
       */
-    private def multiObservable(clazz: Class[_], id: ObjId, key: String,
+    private def multiObservable(index: KeyIndex,
                                 version: Long): Observable[StateKey] = {
 
-        val index = KeyIndex(clazz, getIdString(clazz, id), key)
+        val id = index.id
+        val clazz = index.clazz
+        val key = index.key
         val path = getKeyPath(clazz, getIdString(clazz, id), key, version)
 
-        multiObservables.getOrElse(index, {
-            val observable = PathDirectoryObservable.create(curator, path)
+        val obs = multiObservables.getOrElse(index, {
+            val observable = PathDirectoryObservable.create(curator, path,
+                                                            metrics)
             multiObservables.putIfAbsent(index, observable)
                             .getOrElse(observable)
-        }).map[StateKey](makeFunc1((values: Set[String]) => {
-            MultiValueKey(key, values)
-        })).onErrorResumeNext(makeFunc1((t: Throwable) => t match {
-            case e: DirectoryObservableClosedException =>
-                multiObservables.remove(index)
-                multiObservable(clazz, id, key, version)
-            case e: Throwable => Observable.error(e)
-        }))
+        })
+        obs.map[StateKey](makeFunc1[Set[String], StateKey] {
+            MultiValueKey(key, _)
+        }).onErrorResumeNext(
+                recover[StateKey, PathDirectoryObservable](index, version, obs,
+                                                           multiObservables,
+                                                           multiObservable)
+        )
+    }
+
+    /* Utility function to unify the code written below. */
+    private def recover[T, OBS](index: KeyIndex, version: Long,
+                                obs: OBS, onMap: TrieMap[KeyIndex, OBS],
+                                reAcquire: (KeyIndex, Long) => Observable[T]) = {
+        makeFunc1[Throwable, Observable[T]] { t: Throwable =>
+            metrics.count(t) match {
+                case e: NodeObservableClosedException=>
+                    onMap.remove(index, obs)
+                    reAcquire(index, version)
+                case e: DirectoryObservableClosedException =>
+                    onMap.remove(index, obs)
+                    reAcquire(index, version)
+                case e: Throwable => Observable.error(e)
+            }
+        }
     }
 
 }

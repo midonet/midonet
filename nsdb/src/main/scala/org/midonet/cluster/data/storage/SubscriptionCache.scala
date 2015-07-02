@@ -121,9 +121,11 @@ class ClassSubscriptionCache[T](val clazz: Class[T],
                                 path: String,
                                 curator: CuratorFramework,
                                 onLastUnsubscribe:
-                                    (ClassSubscriptionCache[_]) => Unit) {
+                                    (ClassSubscriptionCache[_]) => Unit,
+                                zoomMerics: ZoomMetrics) {
 
-    private val pathCache = ObservablePathChildrenCache.create(curator, path)
+    private val pathCache = ObservablePathChildrenCache.create(curator, path,
+                                                               zoomMerics)
     private val refCount = new AtomicInteger()
 
     private val decSubscribers = makeAction0 (
