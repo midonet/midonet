@@ -71,7 +71,7 @@ class ConntrackTest extends MidolmanSpec {
         newLiteralRuleOnChain(brChain, 2, retCond, RuleResult.Action.ACCEPT)
         newLiteralRuleOnChain(brChain, 3, new Condition(), RuleResult.Action.DROP)
 
-        fetchTopology(brChain)
+        fetchChains(brChain)
         fetchPorts(leftPort, rightPort)
 
         val bridge: Bridge = fetchDevice[Bridge](clusterBridge)

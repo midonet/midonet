@@ -21,7 +21,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Rule, Chain}
+import org.midonet.cluster.data.{Rule}
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Bridge
@@ -35,7 +35,7 @@ class ChainModificationTest extends MidolmanSpec {
     var bridge: UUID = _
     var inPort: UUID = _
     var outPort: UUID = _
-    var chain: Chain = _
+    var chain: UUID = _
     var chainRules = List[UUID]()
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
@@ -72,7 +72,7 @@ class ChainModificationTest extends MidolmanSpec {
         r = newTcpDstRuleOnChain(chain, 1, 80, RuleResult.Action.ACCEPT)
         chainRules = r.getId :: chainRules
 
-        fetchTopology(chain)
+        fetchChains(chain)
         fetchPorts(inPort, outPort)
         fetchDevice[Bridge](bridge)
     }

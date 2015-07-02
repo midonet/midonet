@@ -46,33 +46,33 @@ trait VirtualConfigurationBuilders {
     def newHost(name: String, id: UUID): UUID
     def newHost(name: String): UUID
     def isHostAlive(id: UUID): Boolean
-    def newInboundChainOnBridge(name: String, bridge: UUID): Chain
-    def newOutboundChainOnBridge(name: String, bridge: UUID): Chain
-    def newInboundChainOnRouter(name: String, router: UUID): Chain
-    def newOutboundChainOnRouter(name: String, router: UUID): Chain
-    def newChain(name: String, id: Option[UUID] = None): Chain
-    def newOutboundChainOnPort(name: String, port: UUID, id: UUID): Chain
-    def newInboundChainOnPort(name: String, port: UUID, id: UUID): Chain
-    def newOutboundChainOnPort(name: String, port: UUID): Chain
-    def newInboundChainOnPort(name: String, port: UUID): Chain
-    def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    def newInboundChainOnBridge(name: String, bridge: UUID): UUID
+    def newOutboundChainOnBridge(name: String, bridge: UUID): UUID
+    def newInboundChainOnRouter(name: String, router: UUID): UUID
+    def newOutboundChainOnRouter(name: String, router: UUID): UUID
+    def newChain(name: String, id: Option[UUID] = None): UUID
+    def newOutboundChainOnPort(name: String, port: UUID, id: UUID): UUID
+    def newInboundChainOnPort(name: String, port: UUID, id: UUID): UUID
+    def newOutboundChainOnPort(name: String, port: UUID): UUID
+    def newInboundChainOnPort(name: String, port: UUID): UUID
+    def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                               action: Action): LiteralRule
     def newTcpDstRuleOnChain(
-            chain: Chain, pos: Int, dstPort: Int, action: Action,
+            chain: UUID, pos: Int, dstPort: Int, action: Action,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
     : LiteralRule
-    def newIpAddrGroupRuleOnChain(chain: Chain, pos: Int, action: Action,
+    def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
                                   ipAddrGroupIdDst: Option[UUID],
                                   ipAddrGroupIdSrc: Option[UUID]): LiteralRule
-    def newForwardNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    def newForwardNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                  action: Action, targets: Set[NatTarget],
                                  isDnat: Boolean) : ForwardNatRule
-    def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    def newReverseNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                          action: Action, isDnat: Boolean) : ReverseNatRule
     def removeRuleFromBridge(bridge: UUID): Unit
-    def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    def newJumpRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                               jumpToChainID: UUID): JumpRule
-    def newFragmentRuleOnChain(chain: Chain, pos: Int,
+    def newFragmentRuleOnChain(chain: UUID, pos: Int,
                                fragmentPolicy: FragmentPolicy,
                                action: Action): LiteralRule
     def deleteRule(id: UUID): Unit
@@ -192,48 +192,48 @@ trait ForwardingVirtualConfigurationBuilders
     override def isHostAlive(id: UUID): Boolean =
         virtConfBuilderImpl.isHostAlive(id)
 
-    override def newInboundChainOnBridge(name: String, bridge: UUID): Chain =
+    override def newInboundChainOnBridge(name: String, bridge: UUID): UUID =
         virtConfBuilderImpl.newInboundChainOnBridge(name, bridge)
-    override def newOutboundChainOnBridge(name: String, bridge: UUID): Chain =
+    override def newOutboundChainOnBridge(name: String, bridge: UUID): UUID =
         virtConfBuilderImpl.newOutboundChainOnBridge(name, bridge)
-    override def newInboundChainOnRouter(name: String, router: UUID): Chain =
+    override def newInboundChainOnRouter(name: String, router: UUID): UUID =
         virtConfBuilderImpl.newInboundChainOnRouter(name, router)
-    override def newOutboundChainOnRouter(name: String, router: UUID): Chain =
+    override def newOutboundChainOnRouter(name: String, router: UUID): UUID =
         virtConfBuilderImpl.newOutboundChainOnRouter(name, router)
-    override def newChain(name: String, id: Option[UUID] = None): Chain =
+    override def newChain(name: String, id: Option[UUID] = None): UUID =
         virtConfBuilderImpl.newChain(name, id)
-    override def newOutboundChainOnPort(name: String, port: UUID, id: UUID): Chain =
+    override def newOutboundChainOnPort(name: String, port: UUID, id: UUID): UUID =
         virtConfBuilderImpl.newOutboundChainOnPort(name, port, id)
-    override def newInboundChainOnPort(name: String, port: UUID, id: UUID): Chain =
+    override def newInboundChainOnPort(name: String, port: UUID, id: UUID): UUID =
         virtConfBuilderImpl.newInboundChainOnPort(name, port, id)
-    override def newOutboundChainOnPort(name: String, port: UUID): Chain =
+    override def newOutboundChainOnPort(name: String, port: UUID): UUID =
         virtConfBuilderImpl.newOutboundChainOnPort(name, port)
-    override def newInboundChainOnPort(name: String, port: UUID): Chain =
+    override def newInboundChainOnPort(name: String, port: UUID): UUID =
         virtConfBuilderImpl.newInboundChainOnPort(name, port)
-    override def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                        action: Action): LiteralRule =
         virtConfBuilderImpl.newLiteralRuleOnChain(chain, pos, condition, action)
     override def newTcpDstRuleOnChain(
-            chain: Chain, pos: Int, dstPort: Int, action: Action,
+            chain: UUID, pos: Int, dstPort: Int, action: Action,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
     : LiteralRule = virtConfBuilderImpl.newTcpDstRuleOnChain(chain, pos, dstPort, action, fragmentPolicy)
-    override def newIpAddrGroupRuleOnChain(chain: Chain, pos: Int, action: Action,
+    override def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
                                            ipAddrGroupIdDst: Option[UUID],
                                            ipAddrGroupIdSrc: Option[UUID]): LiteralRule =
         virtConfBuilderImpl.newIpAddrGroupRuleOnChain(chain, pos, action, ipAddrGroupIdDst, ipAddrGroupIdSrc)
-    override def newForwardNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    override def newForwardNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                           action: Action, targets: Set[NatTarget],
                                           isDnat: Boolean) : ForwardNatRule =
         virtConfBuilderImpl.newForwardNatRuleOnChain(chain, pos, condition, action, targets, isDnat)
-    override def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    override def newReverseNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                           action: Action, isDnat: Boolean) : ReverseNatRule =
         virtConfBuilderImpl.newReverseNatRuleOnChain(chain, pos, condition, action, isDnat)
     override def removeRuleFromBridge(bridge: UUID): Unit =
         virtConfBuilderImpl.removeRuleFromBridge(bridge)
-    override def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    override def newJumpRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                     jumpToChainID: UUID): JumpRule =
         virtConfBuilderImpl.newJumpRuleOnChain(chain, pos, condition, jumpToChainID)
-    override def newFragmentRuleOnChain(chain: Chain, pos: Int,
+    override def newFragmentRuleOnChain(chain: UUID, pos: Int,
                                         fragmentPolicy: FragmentPolicy,
                                         action: Action): LiteralRule =
         virtConfBuilderImpl.newFragmentRuleOnChain(chain, pos, fragmentPolicy, action)

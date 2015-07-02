@@ -64,43 +64,43 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     override def newHost(name: String): UUID = newHost(name, UUID.randomUUID())
     override def isHostAlive(id: UUID): Boolean = clusterDataClient().hostsGet(id).getIsAlive
 
-    override def newInboundChainOnBridge(name: String, bridgeId: UUID): Chain = {
+    override def newInboundChainOnBridge(name: String, bridgeId: UUID): UUID = {
         val bridge = clusterDataClient().bridgesGet(bridgeId)
         val chain = newChain(name, None)
-        bridge.setInboundFilter(chain.getId)
+        bridge.setInboundFilter(chain)
         clusterDataClient().bridgesUpdate(bridge)
         Thread.sleep(50)
         chain
     }
 
-    override def newOutboundChainOnBridge(name: String, bridgeId: UUID): Chain = {
+    override def newOutboundChainOnBridge(name: String, bridgeId: UUID): UUID = {
         val bridge = clusterDataClient().bridgesGet(bridgeId)
         val chain = newChain(name, None)
-        bridge.setOutboundFilter(chain.getId)
+        bridge.setOutboundFilter(chain)
         clusterDataClient().bridgesUpdate(bridge)
         Thread.sleep(50)
         chain
     }
 
-    override def newInboundChainOnRouter(name: String, routerId: UUID): Chain = {
+    override def newInboundChainOnRouter(name: String, routerId: UUID): UUID = {
         val router = clusterDataClient().routersGet(routerId)
         val chain = newChain(name, None)
-        router.setInboundFilter(chain.getId)
+        router.setInboundFilter(chain)
         clusterDataClient().routersUpdate(router)
         Thread.sleep(50)
         chain
     }
 
-    override def newOutboundChainOnRouter(name: String, routerId: UUID): Chain = {
+    override def newOutboundChainOnRouter(name: String, routerId: UUID): UUID = {
         val router = clusterDataClient().routersGet(routerId)
         val chain = newChain(name, None)
-        router.setOutboundFilter(chain.getId)
+        router.setOutboundFilter(chain)
         clusterDataClient().routersUpdate(router)
         Thread.sleep(50)
         chain
     }
 
-    override def newChain(name: String, id: Option[UUID] = None): Chain = {
+    override def newChain(name: String, id: Option[UUID] = None): UUID = {
         val chain = new Chain().setName(name)
         if (id.isDefined)
             chain.setId(id.get)
@@ -108,11 +108,11 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
             chain.setId(UUID.randomUUID)
         clusterDataClient().chainsCreate(chain)
         Thread.sleep(50)
-        chain
+        chain.getId
     }
 
     override def newOutboundChainOnPort(name: String, portId: UUID,
-                                        id: UUID): Chain = {
+                                        id: UUID): UUID = {
         val chain = newChain(name, Some(id))
         val port = clusterDataClient().portsGet(portId)
         port.setOutboundFilter(id)
@@ -122,26 +122,26 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     override def newInboundChainOnPort(name: String, portId: UUID,
-                                       id: UUID): Chain = {
+                                       id: UUID): UUID = {
         val chain = new Chain().setName(name).setId(id)
         clusterDataClient().chainsCreate(chain)
         val port = clusterDataClient().portsGet(portId)
         port.setInboundFilter(id)
         clusterDataClient().portsUpdate(port)
         Thread.sleep(50)
-        chain
+        chain.getId()
     }
 
-    override def newOutboundChainOnPort(name: String, port: UUID): Chain =
+    override def newOutboundChainOnPort(name: String, port: UUID): UUID =
         newOutboundChainOnPort(name, port, UUID.randomUUID)
 
-    override def newInboundChainOnPort(name: String, port: UUID): Chain =
+    override def newInboundChainOnPort(name: String, port: UUID): UUID =
         newInboundChainOnPort(name, port, UUID.randomUUID)
 
-    override def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                               action: Action): LiteralRule = {
         val rule = new LiteralRule(condition)
-                       .setChainId(chain.getId).setPosition(pos)
+                       .setChainId(chain).setPosition(pos)
                        .setAction(action)
         val id = clusterDataClient().rulesCreate(rule)
         Thread.sleep(50)
@@ -153,7 +153,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
      * packets addressed to a specific port.
      */
     override def newTcpDstRuleOnChain(
-            chain: Chain, pos: Int, dstPort: Int, action: Action,
+            chain: UUID, pos: Int, dstPort: Int, action: Action,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
     : LiteralRule = {
         val condition = newCondition(nwProto = Some(TCP.PROTOCOL_NUMBER),
@@ -162,7 +162,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         newLiteralRuleOnChain(chain, pos, condition, action)
     }
 
-    override def newIpAddrGroupRuleOnChain(chain: Chain, pos: Int, action: Action,
+    override def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
                                   ipAddrGroupIdDst: Option[UUID],
                                   ipAddrGroupIdSrc: Option[UUID]) = {
         val condition = newCondition(ipAddrGroupIdDst = ipAddrGroupIdDst,
@@ -170,22 +170,22 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         newLiteralRuleOnChain(chain, pos, condition, action)
     }
 
-    override def newForwardNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    override def newForwardNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                  action: Action, targets: Set[NatTarget],
                                  isDnat: Boolean) : ForwardNatRule = {
         val jTargets = new JSet[NatTarget]()
         jTargets.addAll(targets)
         val rule = new ForwardNatRule(condition, action, jTargets, isDnat).
-                        setChainId(chain.getId).setPosition(pos)
+                        setChainId(chain).setPosition(pos)
         val id = clusterDataClient().rulesCreate(rule)
         Thread.sleep(50)
         clusterDataClient().rulesGet(id).asInstanceOf[ForwardNatRule]
     }
 
-    override def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    override def newReverseNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                          action: Action, isDnat: Boolean) : ReverseNatRule = {
         val rule = new ReverseNatRule(condition, action, isDnat).
-            setChainId(chain.getId).setPosition(pos)
+            setChainId(chain).setPosition(pos)
         val id = clusterDataClient().rulesCreate(rule)
         Thread.sleep(50)
         clusterDataClient().rulesGet(id).asInstanceOf[ReverseNatRule]
@@ -198,16 +198,16 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         Thread.sleep(50)
     }
 
-    override def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+    override def newJumpRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                               jumpToChainID: UUID): JumpRule = {
         val rule = new JumpRule(condition).
-            setChainId(chain.getId).setPosition(pos).setJumpToChainId(jumpToChainID)
+            setChainId(chain).setPosition(pos).setJumpToChainId(jumpToChainID)
         val id = clusterDataClient().rulesCreate(rule)
         Thread.sleep(50)
         clusterDataClient().rulesGet(id).asInstanceOf[JumpRule]
     }
 
-    override def newFragmentRuleOnChain(chain: Chain, pos: Int,
+    override def newFragmentRuleOnChain(chain: UUID, pos: Int,
                                fragmentPolicy: FragmentPolicy,
                                action: Action) = {
         val condition = newCondition(fragmentPolicy = fragmentPolicy)

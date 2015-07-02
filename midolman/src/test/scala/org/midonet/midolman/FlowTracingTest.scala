@@ -20,7 +20,6 @@ import java.util.{LinkedList, UUID}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Chain}
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
@@ -44,7 +43,7 @@ class FlowTracingTest extends MidolmanSpec {
     var bridge: UUID = _
     var port1: UUID = _
     var port2: UUID = _
-    var chain: Chain = _
+    var chain: UUID = _
 
     val table = new ShardedFlowStateTable[TraceKey,TraceContext](clock)
         .addShard()
@@ -58,17 +57,17 @@ class FlowTracingTest extends MidolmanSpec {
         materializePort(port2, hostId, "port2")
 
         chain = newInboundChainOnBridge("my-chain", bridge)
-        fetchTopology(chain)
+        fetchChains(chain)
         fetchPorts(port1, port2)
         fetchDevice[Bridge](bridge)
     }
 
-    private def newTraceRule(requestId: UUID, chain: Chain,
+    private def newTraceRule(requestId: UUID, chain: UUID,
                              condition: Condition, pos: Int) {
         val traceRule = new TraceRuleData(requestId, condition, Long.MaxValue)
-            .setChainId(chain.getId).setPosition(pos)
+            .setChainId(chain).setPosition(pos)
         clusterDataClient.rulesCreate(traceRule)
-        fetchDevice(chain)
+        fetchChains(chain)
     }
 
     private def makeFrame(tpDst: Short, tpSrc: Short = 10101) =

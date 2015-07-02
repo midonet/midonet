@@ -309,7 +309,7 @@ class TraceRequestTest extends MidolmanSpec {
         newLiteralRuleOnChain(chain, 1,
                               newCondition(tpDst = Some(4002)), Action.ACCEPT)
 
-        clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
+        clusterDataClient.rulesFindByChain(chain).size() should be (1)
 
         val trace1 = new TraceRequest()
             .setName("foobar")
@@ -318,10 +318,10 @@ class TraceRequestTest extends MidolmanSpec {
             .setCondition(newCondition(tpSrc = Some(5000)))
         clusterDataClient.traceRequestCreate(trace1)
 
-        clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
+        clusterDataClient.rulesFindByChain(chain).size() should be (1)
         clusterDataClient.traceRequestEnable(trace1.getId)
 
-        var rules = clusterDataClient.rulesFindByChain(chain.getId)
+        var rules = clusterDataClient.rulesFindByChain(chain)
         rules.size() should be (2)
         rules.get(0) match {
             case t: TraceRuleData => {
@@ -335,7 +335,7 @@ class TraceRequestTest extends MidolmanSpec {
         // add another rule at the start
         newLiteralRuleOnChain(chain, 1,
                               newCondition(tpDst = Some(4003)), Action.ACCEPT)
-        rules = clusterDataClient.rulesFindByChain(chain.getId)
+        rules = clusterDataClient.rulesFindByChain(chain)
         rules.size() should be (3)
         rules.get(0) match {
             case t: TraceRuleData => {
@@ -345,7 +345,7 @@ class TraceRequestTest extends MidolmanSpec {
         }
 
         clusterDataClient.traceRequestDisable(trace1.getId)
-        rules = clusterDataClient.rulesFindByChain(chain.getId)
+        rules = clusterDataClient.rulesFindByChain(chain)
         rules.size() should be (2)
         rules.asScala foreach (x => x match {
                                    case t: TraceRuleData => {
@@ -365,7 +365,7 @@ class TraceRequestTest extends MidolmanSpec {
                                           newCondition(tpDst = Some(4002)),
                                           Action.ACCEPT)
 
-        clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
+        clusterDataClient.rulesFindByChain(chain).size() should be (1)
 
         val trace1 = new TraceRequest()
             .setName("foobar")
@@ -375,18 +375,18 @@ class TraceRequestTest extends MidolmanSpec {
         clusterDataClient.traceRequestCreate(trace1)
         clusterDataClient.traceRequestEnable(trace1.getId)
 
-        clusterDataClient.rulesFindByChain(chain.getId).size() should be (2)
+        clusterDataClient.rulesFindByChain(chain).size() should be (2)
         clusterDataClient.rulesDelete(rule1.getId)
 
-        clusterDataClient.rulesFindByChain(chain.getId).size() should be (1)
+        clusterDataClient.rulesFindByChain(chain).size() should be (1)
 
         clusterDataClient.traceRequestDisable(trace1.getId)
 
         val chains = clusterDataClient.chainsGetAll()
         chains.size() should be (1)
-        chains.get(0).getId should be (chain.getId)
+        chains.get(0).getId should be (chain)
 
-        clusterDataClient.rulesFindByChain(chain.getId).size() should be (0)
+        clusterDataClient.rulesFindByChain(chain).size() should be (0)
     }
 
     scenario("Enable on creation, disabled on delete") {
