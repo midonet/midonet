@@ -20,7 +20,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
 import org.midonet.midolman.services.HostIdProviderService
@@ -56,10 +55,10 @@ class IcmpThroughNatTest extends MidolmanSpec {
     //val rtRightIp = "192.168.2.240"
     val rtRightIp = new IPv4Subnet(rightNet, rightNetmask)
 
-    var leftPort: BridgePort = null
-    var rightPort: BridgePort = null
-    var rtLeftPort: RouterPort = null
-    var rtRightPort: RouterPort = null
+    var leftPort: UUID = null
+    var rightPort: UUID = null
+    var rtLeftPort: UUID = null
+    var rtRightPort: UUID = null
     var clusterBridge: UUID = null
     var clusterRouter: UUID = null
 
@@ -84,9 +83,9 @@ class IcmpThroughNatTest extends MidolmanSpec {
         rtRightPort = newRouterPort(clusterRouter, rtRightMac, rtRightIp)
 
         val ports = List(leftPort, rightPort, rtLeftPort, rtRightPort)
-        ports map{ _.getId } foreach setActive
+        ports foreach setActive
 
-        fetchTopology(leftPort, rightPort, rtLeftPort, rtRightPort)
+        fetchPorts(leftPort, rightPort, rtLeftPort, rtRightPort)
         fetchDevice[Bridge](clusterBridge)
 
         val router = fetchDevice[Router](clusterRouter)
@@ -97,7 +96,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
                  "0.0.0.0", 0,
                  leftNet, leftNetmask,
                  Route.NextHop.PORT,
-                 rtLeftPort.getId,
+                 rtLeftPort,
                  new IPv4Addr(Route.NO_GATEWAY).toString,
                  1)
 
@@ -105,7 +104,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
                  "0.0.0.0", 0,
                  rightNet, rightNetmask,
                  Route.NextHop.PORT,
-                 rtRightPort.getId,
+                 rtRightPort,
                  new IPv4Addr(Route.NO_GATEWAY).toString,
                  1)
 
@@ -156,14 +155,14 @@ class IcmpThroughNatTest extends MidolmanSpec {
         scenario("a VM sends an ICMP echo request to another VM") {
             val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val macTable = bridge.vlanMacTableMap(0.toShort)
-            macTable.add(rightMac, rightPort.getId)
+            macTable.add(rightMac, rightPort)
 
             When("an icmp echo req is sent across the bridge")
             val (pktContext, action) =
-                simulateDevice(bridge, icmpEchoReqL2R, leftPort.getId)
+                simulateDevice(bridge, icmpEchoReqL2R, leftPort)
 
             Then("the bridge send the packet to the target vm")
-            action should be (ToPortAction(rightPort.getId))
+            action should be (ToPortAction(rightPort))
 
             And("The FlowMatch's icmp id field is not tagged")
             pktContext.wcmatch.userspaceFieldsSeen shouldBe false
@@ -172,14 +171,14 @@ class IcmpThroughNatTest extends MidolmanSpec {
         scenario("the other VM sends back an Icmp echo reply") {
             val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val macTable = bridge.vlanMacTableMap(0.toShort)
-            macTable.add(leftMac, leftPort.getId)
+            macTable.add(leftMac, leftPort)
 
             When("an icmp echo reply is sent across the bridge")
             val (pktContext, action) =
-                simulateDevice(bridge, icmpEchoRepR2L, rightPort.getId)
+                simulateDevice(bridge, icmpEchoRepR2L, rightPort)
 
             Then("the bridge send the packet back to the first VM")
-            action should be (ToPortAction(leftPort.getId))
+            action should be (ToPortAction(leftPort))
 
             And("The FlowMatch's icmp id field is not tagged")
             pktContext.wcmatch.userspaceFieldsSeen shouldBe false
@@ -194,10 +193,10 @@ class IcmpThroughNatTest extends MidolmanSpec {
 
             When("an icmp request is sent across the router between two VMs")
             val (pktContext, action) =
-                simulateDevice(router, icmpEchoReqL2RViaRouter, rtLeftPort.getId)
+                simulateDevice(router, icmpEchoReqL2RViaRouter, rtLeftPort)
 
             Then("the router sends the packet to the target port")
-            action should be (ToPortAction(rtRightPort.getId))
+            action should be (ToPortAction(rtRightPort))
 
             And("The FlowMatch's icmp id field is tagged as seen")
             pktContext.wcmatch.userspaceFieldsSeen shouldBe true

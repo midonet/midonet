@@ -29,8 +29,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Chain}
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -62,7 +60,7 @@ class NatTest extends MidolmanSpec {
     val routerMac = MAC.fromString("22:aa:aa:ff:ff:ff")
 
     val vmPortNames = IndexedSeq("port0", "port1", "port2", "port3", "port4")
-    var vmPorts: IndexedSeq[BridgePort] = null
+    var vmPorts: IndexedSeq[UUID] = null
 
     var vmPortNumbers: IndexedSeq[Int] = null
     val vmMacs = IndexedSeq(MAC.fromString("02:aa:bb:cc:dd:d1"),
@@ -91,7 +89,7 @@ class NatTest extends MidolmanSpec {
     private val uplinkNwAddr = new IPv4Subnet("180.0.1.0", 24)
     private val uplinkPortAddr = IPv4Addr("180.0.1.2")
     private val uplinkPortMac: MAC = "02:0a:08:06:04:02"
-    private var uplinkPort: RouterPort = null
+    private var uplinkPort: UUID = null
 
     private val dnatAddress = IPv4Addr("180.0.1.100")
     private val snatAddressStart = IPv4Addr("180.0.1.200")
@@ -200,7 +198,7 @@ class NatTest extends MidolmanSpec {
 
         newRoute(router, "0.0.0.0", 0,
             routerIp.toNetworkAddress.toString, routerIp.getPrefixLen,
-            NextHop.PORT, rtrPort.getId,
+            NextHop.PORT, rtrPort,
             new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         bridge = newBridge("bridge")
@@ -208,14 +206,14 @@ class NatTest extends MidolmanSpec {
 
         val brPort = newBridgePort(bridge)
         brPort should not be null
-        clusterDataClient.portsLink(rtrPort.getId, brPort.getId)
+        clusterDataClient.portsLink(rtrPort, brPort)
 
         vmPorts = vmPortNames map { _ => newBridgePort(bridge) }
         vmPorts zip vmPortNames foreach {
             case (port, name) =>
                 log.debug("Materializing port {}", name)
                 materializePort(port, host, name)
-                portMap += portIdCounter -> port.getId
+                portMap += portIdCounter -> port
                 portIdCounter += 1
         }
 
@@ -224,16 +222,16 @@ class NatTest extends MidolmanSpec {
             uplinkNwAddr.getAddress.toString, uplinkNwAddr.getPrefixLen)
         uplinkPort should not be null
         materializePort(uplinkPort, host, "uplinkPort")
-        portMap += portIdCounter -> uplinkPort.getId
+        portMap += portIdCounter -> uplinkPort
         portIdCounter += 1
 
         var route = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0,
-            NextHop.PORT, uplinkPort.getId, uplinkGatewayAddr.toString, 1)
+            NextHop.PORT, uplinkPort, uplinkGatewayAddr.toString, 1)
         route should not be null
 
         route = newRoute(router, "0.0.0.0", 0,
             uplinkNwAddr.getAddress.toString, uplinkNwAddr.getPrefixLen,
-            NextHop.PORT, uplinkPort.getId, intToIp(Route.NO_GATEWAY), 10)
+            NextHop.PORT, uplinkPort, intToIp(Route.NO_GATEWAY), 10)
         route should not be null
 
         // create NAT rules
@@ -300,13 +298,14 @@ class NatTest extends MidolmanSpec {
             (name, mac, ip) => feedArpTable(simRouter, ip.addr, mac)
         }
         (vmMacs, vmPorts).zipped foreach {
-            (mac, port) => feedMacTable(simBridge, mac, port.getId)
+            (mac, port) => feedMacTable(simBridge, mac, port)
         }
 
         fetchDevice[SimBridge](bridge)
         fetchDevice[SimRouter](router)
-        fetchTopology(rtrPort, rtrInChain, rtrOutChain, uplinkPort)
-        fetchTopology(vmPorts:_*)
+        fetchTopology(rtrInChain, rtrOutChain)
+        fetchPorts(rtrPort, uplinkPort)
+        vmPorts foreach { id => fetchPorts(id) }
 
         pktWkfl = packetWorkflow(portMap, natTable = natTable)
 
@@ -320,7 +319,7 @@ class NatTest extends MidolmanSpec {
         brChain should not be null
 
         val vmPortIds: ju.Set[UUID] = new ju.HashSet[UUID]()
-        vmPortIds ++= vmPorts.map { p => p.getId }.toSet
+        vmPortIds ++= vmPorts
 
         val returnCond = new Condition()
         returnCond.matchReturnFlow = true
@@ -350,7 +349,7 @@ class NatTest extends MidolmanSpec {
     scenario("destination NAT") {
         log.info("Sending a tcp packet that should be DNAT'ed")
 
-        injectTcp(uplinkPort.getId, uplinkGatewayMac, IPv4Addr("62.72.82.1"),
+        injectTcp(uplinkPort, uplinkGatewayMac, IPv4Addr("62.72.82.1"),
                   20301, uplinkPortMac, dnatAddress, 80)
 
         val newMappings = updateAndDiffMappings()
@@ -362,7 +361,7 @@ class NatTest extends MidolmanSpec {
         outPorts.size() should be (1)
 
         val mapping = new Mapping(newMappings.head,
-                                  uplinkPort.getId, portMap(outPorts(0)),
+                                  uplinkPort, portMap(outPorts(0)),
                                   packet.getEthernet,
                                   applyPacketActions(packet.getEthernet,
                                                         actions))
@@ -386,7 +385,7 @@ class NatTest extends MidolmanSpec {
         mapping.flowCount should be (1)
 
         log.debug("sending a second forward packet, from a different router")
-        injectTcp(uplinkPort.getId,
+        injectTcp(uplinkPort,
                   MAC.fromString("02:99:99:77:77:77"),
                   IPv4Addr("62.72.82.1"), 20301,
                   uplinkPortMac, dnatAddress, 80, ack = true)
@@ -414,7 +413,7 @@ class NatTest extends MidolmanSpec {
 
     def testSnat() {
         log.info("Sending a tcp packet that should be SNAT'ed")
-        injectTcp(vmPorts.head.getId, vmMacs.head, vmIps.head, 30501,
+        injectTcp(vmPorts.head, vmMacs.head, vmIps.head, 30501,
             routerMac, IPv4Addr("62.72.82.1"), 22,
             syn = true)
         val newMappings: Set[NatKey] = updateAndDiffMappings()
@@ -424,10 +423,10 @@ class NatTest extends MidolmanSpec {
         val (packet, actions) = packetOutQueue.remove()
         val outPorts = getOutPorts(actions)
         outPorts.size should be (1)
-        portMap(outPorts(0)) should be (uplinkPort.getId)
+        portMap(outPorts(0)) should be (uplinkPort)
 
         val mapping = new Mapping(newMappings.head,
-            vmPorts.head.getId, uplinkPort.getId,
+            vmPorts.head, uplinkPort,
             packet.getEthernet,
             applyPacketActions(packet.getEthernet, actions))
 
@@ -448,7 +447,7 @@ class NatTest extends MidolmanSpec {
 
         log.debug("sending a second forward packet,"
                       + " from a different network card")
-        injectTcp(vmPorts.head.getId, "02:34:34:43:43:20", vmIps.head, 30501,
+        injectTcp(vmPorts.head, "02:34:34:43:43:20", vmIps.head, 30501,
             routerMac, IPv4Addr("62.72.82.1"), 22,
             ack = true)
         updateAndDiffMappings().size should be (0)
@@ -483,9 +482,9 @@ class NatTest extends MidolmanSpec {
      */
     scenario("snat ping") {
 
-        val vm1Port = vmPorts.head.getId
-        val vm5Port = vmPorts.last.getId
-        val upPort = uplinkPort.getId
+        val vm1Port = vmPorts.head
+        val vm5Port = vmPorts.last
+        val upPort = uplinkPort
         val src1Mac = vmMacs.head // VM inside the private network
         val src1Ip = vmIps.last
         val src5Mac = vmMacs.last // VM inside the private network
@@ -533,7 +532,7 @@ class NatTest extends MidolmanSpec {
      */
     scenario("dnat ping") {
         val srcIp = IPv4Addr("62.72.82.1")
-        val mp = pingExpectDnated(uplinkPort.getId, uplinkGatewayMac, srcIp,
+        val mp = pingExpectDnated(uplinkPort, uplinkGatewayMac, srcIp,
                                   uplinkPortMac, dnatAddress, 92, 1)
         pongExpectRevDnated(mp.revInPort, mp.revInFromMac, mp.revInFromIp,
                             mp.revInToMac, mp.revInToIp, srcIp, 92, 1)
@@ -548,7 +547,7 @@ class NatTest extends MidolmanSpec {
     scenario("Snat ICMP error after TCP") {
         val dstIp = IPv4Addr("62.72.82.1")
         log.info("Sending a TCP packet that should be SNAT'ed")
-        injectTcp(vmPorts.head.getId, vmMacs.head, vmIps.head, 5555,
+        injectTcp(vmPorts.head, vmMacs.head, vmIps.head, 5555,
             routerMac, dstIp, 1111, syn = true)
         verifySnatICMPErrorAfterPacket(userspace = false)
     }
@@ -562,7 +561,7 @@ class NatTest extends MidolmanSpec {
     scenario("Dnat ICMP error after TCP") {
         val srcIp = IPv4Addr("62.72.82.1")
         log.info("Sending a TCP packet that should be DNAT'ed")
-        injectTcp(uplinkPort.getId, uplinkGatewayMac, srcIp, 888,
+        injectTcp(uplinkPort, uplinkGatewayMac, srcIp, 888,
             uplinkPortMac, dnatAddress, 333, syn = true)
         verifyDnatICMPErrorAfterPacket(userspace = false)
     }
@@ -576,7 +575,7 @@ class NatTest extends MidolmanSpec {
     scenario("Snat ICMP error after ICMP") {
         val dstIp = IPv4Addr("62.72.82.1")
         log.info("Sending a TCP packet that should be SNAT'ed")
-        injectIcmpEchoReq(vmPorts.head.getId, vmMacs.head,
+        injectIcmpEchoReq(vmPorts.head, vmMacs.head,
                           vmIps.head, routerMac, dstIp, 22, 55)
         verifySnatICMPErrorAfterPacket(userspace = true)
     }
@@ -590,7 +589,7 @@ class NatTest extends MidolmanSpec {
     scenario("Dnat ICMP error after ICMP") {
         val srcIp = IPv4Addr("62.72.82.1")
         log.info("Sending a TCP packet that should be DNAT'ed")
-        injectIcmpEchoReq(uplinkPort.getId, uplinkGatewayMac, srcIp,
+        injectIcmpEchoReq(uplinkPort, uplinkGatewayMac, srcIp,
             uplinkPortMac, dnatAddress, 7, 6)
         verifyDnatICMPErrorAfterPacket(userspace = true)
     }
@@ -742,7 +741,7 @@ class NatTest extends MidolmanSpec {
         val outPorts = getOutPorts(actions)
         outPorts.size should be (1)
 
-        portMap(outPorts(0)) should be (uplinkPort.getId)
+        portMap(outPorts(0)) should be (uplinkPort)
 
         val eth = applyPacketActions(packet.getEthernet, actions)
         val ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -839,7 +838,7 @@ class NatTest extends MidolmanSpec {
         val outPorts = getOutPorts(actions)
         outPorts.size should be (1)
 
-        portMap(outPorts(0)) should be (uplinkPort.getId)
+        portMap(outPorts(0)) should be (uplinkPort)
 
         val eth = applyPacketActions(packet.getEthernet, actions)
         var ipPak = eth.getPayload.asInstanceOf[IPv4]
@@ -916,23 +915,23 @@ class NatTest extends MidolmanSpec {
         newMappings.size should be (1)
         natTable.getRefCount(newMappings.head) should be (
             if (userspace) 0 else 1)
-        portMap(outPorts(0)) should be (uplinkPort.getId)
+        portMap(outPorts(0)) should be (uplinkPort)
 
         val eth = packet.getEthernet
         val ethApplied = applyPacketActions(eth, actions)
         val mp = new Mapping(newMappings.head,
-            vmPorts.head.getId, uplinkPort.getId, eth,
+            vmPorts.head, uplinkPort, eth,
             ethApplied)
 
         log.info("Reply with an ICMP error that should be rev SNAT'ed")
-        injectIcmpUnreachable(uplinkPort.getId, mp.revInFromMac,
+        injectIcmpUnreachable(uplinkPort, mp.revInFromMac,
                               mp.revInToMac, ethApplied)
 
         // We should see the ICMP reply back at the sender VM
         // Note that the second parameter is the packet sent from the origin
         // who is unaware of the NAT, eth has no actions applied so we can
         // use this one
-        expectICMPError(vmPorts.head.getId, eth.getPayload.asInstanceOf[IPv4])
+        expectICMPError(vmPorts.head, eth.getPayload.asInstanceOf[IPv4])
     }
 
     /**
@@ -955,7 +954,7 @@ class NatTest extends MidolmanSpec {
         val eth = packet.getEthernet
         val ethApplied = applyPacketActions(eth, actions)
         val mapping = new Mapping(newMappings.head,
-            uplinkPort.getId, portMap(outPorts(0)),
+            uplinkPort, portMap(outPorts(0)),
             eth, ethApplied)
 
         log.info("TCP reached destination, {}", packet)
@@ -969,6 +968,6 @@ class NatTest extends MidolmanSpec {
         // Note that the second parameter is the packet sent from the origin
         // who is unaware of the NAT, eth has no actions applied so we can
         // use this one
-        expectICMPError(uplinkPort.getId, eth.getPayload.asInstanceOf[IPv4])
+        expectICMPError(uplinkPort, eth.getPayload.asInstanceOf[IPv4])
     }
 }

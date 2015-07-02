@@ -24,7 +24,6 @@ import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{PortGroup => ClusterPortGroup}
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.simulation.{PortGroup => SimPortGroup}
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
 import org.midonet.midolman.util.MidolmanSpec
@@ -41,8 +40,8 @@ class PortGroupTest extends MidolmanSpec
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor
         with MessageAccumulator))
 
-    var port1: RouterPort = _
-    var port2: RouterPort = _
+    var port1: UUID = _
+    var port2: UUID = _
 
     var portGroup: ClusterPortGroup = _
 
@@ -78,19 +77,19 @@ class PortGroupTest extends MidolmanSpec
                 interceptPortGroup() should be ('stateful)
             }
 
-            newPortGroupMember(pg.id, port1.getId)
+            newPortGroupMember(pg.id, port1)
             eventually {
-                interceptPortGroup().members should equal (Set(port1.getId))
+                interceptPortGroup().members should equal (Set(port1))
             }
 
-            newPortGroupMember(pg.id, port2.getId)
+            newPortGroupMember(pg.id, port2)
             eventually {
-                interceptPortGroup().members should equal (Set(port1.getId, port2.getId))
+                interceptPortGroup().members should equal (Set(port1, port2))
             }
 
-            deletePortGroupMember(pg.id, port1.getId)
+            deletePortGroupMember(pg.id, port1)
             eventually {
-                interceptPortGroup().members should equal (Set(port2.getId))
+                interceptPortGroup().members should equal (Set(port2))
             }
         }
     }

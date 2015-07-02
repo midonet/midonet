@@ -29,13 +29,13 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.{Entity}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology._
+import org.midonet.midolman.topology.devices.{BridgePort, RouterPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.odp.{Datapath, DpPort}
@@ -67,11 +67,11 @@ class AdminStateTest extends MidolmanSpec {
     val macRouterSide = MAC.random
 
     var bridge: UUID = _
-    var interiorBridgePort: BridgePort = _
-    var exteriorBridgePort: BridgePort = _
+    var interiorBridgePort: UUID = _
+    var exteriorBridgePort: UUID = _
     var router: UUID = _
-    var interiorRouterPort: RouterPort = _
-    var exteriorRouterPort: RouterPort = _
+    var interiorRouterPort: UUID = _
+    var exteriorRouterPort: UUID = _
 
     var brPortIds: List[UUID] = List.empty
 
@@ -83,7 +83,7 @@ class AdminStateTest extends MidolmanSpec {
         interiorBridgePort = newBridgePort(bridge)
         exteriorBridgePort = newBridgePort(bridge)
 
-        brPortIds = List(exteriorBridgePort.getId)
+        brPortIds = List(exteriorBridgePort)
 
         val routerInteriorPortIp = new IPv4Subnet("10.0.0.254", 24)
         interiorRouterPort = newRouterPort(router,
@@ -104,56 +104,56 @@ class AdminStateTest extends MidolmanSpec {
         materializePort(exteriorBridgePort, hostId, "port0")
         materializePort(exteriorRouterPort, hostId, "port1")
 
-        brPortIds = List(exteriorBridgePort.getId)
+        brPortIds = List(exteriorBridgePort)
 
         newRoute(router,
             "0.0.0.0", 0,
             ipBridgeSide.toUnicastString, ipBridgeSide.getPrefixLen,
-            Route.NextHop.PORT, interiorRouterPort.getId,
+            Route.NextHop.PORT, interiorRouterPort,
             new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         newRoute(router,
             "0.0.0.0", 0,
             ipRouterSide.toUnicastString, ipRouterSide.getPrefixLen,
-            Route.NextHop.PORT, exteriorRouterPort.getId,
+            Route.NextHop.PORT, exteriorRouterPort,
             new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
-        val topo = fetchTopology(interiorBridgePort,
-                                 exteriorRouterPort,
-                                 interiorRouterPort,
-                                 exteriorRouterPort)
+        val topo = fetchPorts(interiorBridgePort,
+                              exteriorRouterPort,
+                              interiorRouterPort,
+                              exteriorRouterPort)
         val r = fetchDevice[Router](router)
         feedArpTable(r, ipBridgeSide.getAddress, macBridgeSide)
         feedArpTable(r, ipRouterSide.getAddress, macRouterSide)
 
         val simBridge = fetchDevice[Bridge](bridge)
-        feedMacTable(simBridge, macBridgeSide, exteriorBridgePort.getId)
+        feedMacTable(simBridge, macBridgeSide, exteriorBridgePort)
 
         sendPacket (fromBridgeSide) should be (flowMatching (emittedRouterSidePkt))
         sendPacket (fromRouterSide) should be (flowMatching (emittedBridgeSidePkt))
 
         VirtualTopologyActor.getAndClear()
 
-        VirtualToPhysicalMapper ! LocalPortActive(exteriorBridgePort.getId,
+        VirtualToPhysicalMapper ! LocalPortActive(exteriorBridgePort,
                                                   active = true)
     }
 
     lazy val fromBridgeSide = (exteriorBridgePort, bridgeSidePkt)
     lazy val bridgeSidePkt: Ethernet =
-        { eth src macBridgeSide dst interiorRouterPort.getHwAddr } <<
+        { eth src macBridgeSide dst fetchDevice[RouterPort](interiorRouterPort).portMac } <<
         { ip4 src ipBridgeSide.toUnicastString dst ipRouterSide.toUnicastString }
 
     lazy val fromRouterSide = (exteriorRouterPort, routerSidePkt)
     lazy val routerSidePkt: Ethernet =
-        { eth src macRouterSide dst exteriorRouterPort.getHwAddr } <<
+        { eth src macRouterSide dst fetchDevice[RouterPort](exteriorRouterPort).portMac } <<
         { ip4 src ipRouterSide.toUnicastString dst ipBridgeSide.toUnicastString }
 
     lazy val emittedBridgeSidePkt: Ethernet =
-        { eth src interiorRouterPort.getHwAddr dst macBridgeSide } <<
+        { eth src fetchDevice[RouterPort](interiorRouterPort).portMac dst macBridgeSide } <<
             { ip4 src ipRouterSide.toUnicastString dst ipBridgeSide.toUnicastString }
 
     lazy val emittedRouterSidePkt: Ethernet =
-        { eth src exteriorRouterPort.getHwAddr dst macRouterSide } <<
+        { eth src fetchDevice[RouterPort](exteriorRouterPort).portMac dst macRouterSide } <<
             { ip4 src ipBridgeSide.toUnicastString dst ipRouterSide.toUnicastString }
 
 
@@ -177,8 +177,7 @@ class AdminStateTest extends MidolmanSpec {
         scenario("a down interior bridge port drops egressing packets") {
             Given("a down bridge port")
 
-            interiorBridgePort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(interiorBridgePort)
+            setPortAdminStateUp(interiorBridgePort, false)
 
             When("a packet is egressing that port")
 
@@ -187,15 +186,14 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(interiorBridgePort.getId)
+                FlowTagger.tagForDevice(interiorBridgePort)
             })
         }
 
         scenario("a down interior bridge port drops ingressing packets") {
             Given("a down bridge port")
 
-            interiorBridgePort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(interiorBridgePort)
+            setPortAdminStateUp(interiorBridgePort, false)
 
             When("a packet is ingressing that port")
 
@@ -204,15 +202,14 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(interiorBridgePort.getId)
+                FlowTagger.tagForDevice(interiorBridgePort)
             })
         }
 
         scenario("a down exterior bridge port drops egressing packets") {
             Given("a down bridge port")
 
-            exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(exteriorBridgePort)
+            setPortAdminStateUp(exteriorBridgePort, false)
 
             When("a packet is egressing that port")
 
@@ -221,15 +218,14 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(exteriorBridgePort.getId)
+                FlowTagger.tagForDevice(exteriorBridgePort)
             })
         }
 
         scenario("a down exterior bridge port drops ingressing packets") {
             Given("a down bridge port")
 
-            exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(exteriorBridgePort)
+            setPortAdminStateUp(exteriorBridgePort, false)
 
             When("a packet is ingressing that port")
 
@@ -238,7 +234,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(exteriorBridgePort.getId)
+                FlowTagger.tagForDevice(exteriorBridgePort)
             })
         }
 
@@ -249,26 +245,25 @@ class AdminStateTest extends MidolmanSpec {
 
             val f = ask(VirtualTopologyActor, BridgeRequest(bridge))
             val simBridge = Await.result(f, Duration.Inf).asInstanceOf[Bridge]
-            clearMacTable(simBridge, macBridgeSide, exteriorBridgePort.getId)
+            clearMacTable(simBridge, macBridgeSide, exteriorBridgePort)
 
-            var pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1.getId)
+            var pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1)
             var simRes = simulate (pktCtx)
             simRes should be (toBridge(bridge, brPortIds))
             ft.translate(simRes) should contain (output(1).asInstanceOf[Any])
 
             When("the port is set to down")
 
-            exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(exteriorBridgePort)
+            setPortAdminStateUp(exteriorBridgePort, false)
 
             Then("the port should not be flooded")
 
-            pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1.getId)
+            pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1)
             simRes = simulate(pktCtx)
 
             simRes should be (dropped())
             pktCtx.flowTags should contain(
-                FlowTagger.tagForDevice(exteriorBridgePort.getId))
+                FlowTagger.tagForDevice(exteriorBridgePort))
         }
 
         scenario("a down router sends an ICMP prohibited error") {
@@ -296,8 +291,7 @@ class AdminStateTest extends MidolmanSpec {
                  " prohibited error from the ingressing port") {
             Given("a down router port")
 
-            interiorRouterPort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(interiorRouterPort)
+            setPortAdminStateUp(interiorRouterPort, false)
 
             When("a packet is egressing that port")
 
@@ -306,7 +300,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(interiorRouterPort.getId)
+                FlowTagger.tagForDevice(interiorRouterPort)
             })
 
             And("an ICMP prohibited error should be emitted from the " +
@@ -319,8 +313,7 @@ class AdminStateTest extends MidolmanSpec {
                  "ICMP prohibited error") {
             Given("a down router port")
 
-            interiorRouterPort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(interiorRouterPort)
+            setPortAdminStateUp(interiorRouterPort, false)
 
             When("a packet is ingressing that port")
 
@@ -329,7 +322,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(interiorRouterPort.getId)
+                FlowTagger.tagForDevice(interiorRouterPort)
             })
 
             And("an ICMP prohibited error should be emitted from the port")
@@ -341,8 +334,7 @@ class AdminStateTest extends MidolmanSpec {
                  "ICMP prohibited error from the ingressing port") {
             Given("a down router port")
 
-            exteriorRouterPort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(exteriorRouterPort)
+            setPortAdminStateUp(exteriorRouterPort, false)
 
             When("a packet is egressing that port")
 
@@ -351,7 +343,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(exteriorRouterPort.getId)
+                FlowTagger.tagForDevice(exteriorRouterPort)
             })
 
             And("an ICMP prohibited error should be emitted from the " +
@@ -364,8 +356,7 @@ class AdminStateTest extends MidolmanSpec {
                  "ICMP prohibited error") {
             Given("a down router port")
 
-            exteriorRouterPort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(exteriorRouterPort)
+            setPortAdminStateUp(exteriorRouterPort, false)
 
             When("a packet is ingressing that port")
 
@@ -374,7 +365,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(exteriorRouterPort.getId)
+                FlowTagger.tagForDevice(exteriorRouterPort)
             })
 
             And("an ICMP prohibited error should be emitted from the port")
@@ -423,11 +414,11 @@ class AdminStateTest extends MidolmanSpec {
 
     }
 
-    private[this] def assertExpectedIcmpProhibitPacket(routerPort: RouterPort,
+    private[this] def assertExpectedIcmpProhibitPacket(routerPort: UUID,
                                                        context: PacketContext): Unit = {
         context.packetEmitter.pendingPackets should be (1)
         val generatedPacket = context.packetEmitter.poll()
-        generatedPacket.egressPort should be(routerPort.getId)
+        generatedPacket.egressPort should be(routerPort)
 
         val ipPkt = generatedPacket.eth.getPayload.asInstanceOf[IPv4]
         ipPkt should not be null
@@ -452,7 +443,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated2(bridge)
+            assertFlowTagsInvalidated(bridge)
         }
 
         scenario("the admin state of a bridge is set to up") {
@@ -466,7 +457,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated2(bridge)
+            assertFlowTagsInvalidated(bridge)
         }
 
         scenario("the admin state of a bridge port is set to down") {
@@ -474,10 +465,8 @@ class AdminStateTest extends MidolmanSpec {
 
             When("setting their state to down")
 
-            interiorBridgePort.setAdminStateUp(false)
-            exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(interiorBridgePort)
-            clusterDataClient.portsUpdate(exteriorBridgePort)
+            setPortAdminStateUp(interiorBridgePort, false)
+            setPortAdminStateUp(exteriorBridgePort, false)
 
             Then("corresponding flows should be invalidated")
 
@@ -486,18 +475,16 @@ class AdminStateTest extends MidolmanSpec {
 
         scenario("the admin state of a bridge port is set to up") {
             Given("interior and exterior bridge ports with their state set to down")
-            interiorBridgePort.setAdminStateUp(false)
-            exteriorBridgePort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(interiorBridgePort)
-            clusterDataClient.portsUpdate(exteriorBridgePort)
+
+            setPortAdminStateUp(interiorBridgePort, false)
+            setPortAdminStateUp(exteriorBridgePort, false)
+
             VirtualTopologyActor.getAndClear()
 
             When("setting their state to up")
 
-            interiorBridgePort.setAdminStateUp(true)
-            exteriorBridgePort.setAdminStateUp(true)
-            clusterDataClient.portsUpdate(interiorBridgePort)
-            clusterDataClient.portsUpdate(exteriorBridgePort)
+            setPortAdminStateUp(interiorBridgePort, true)
+            setPortAdminStateUp(exteriorBridgePort, true)
 
             Then("corresponding flows should be invalidated")
 
@@ -513,7 +500,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated2(router)
+            assertFlowTagsInvalidated(router)
         }
 
         scenario("the admin state of a router is set to up") {
@@ -527,7 +514,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated2(router)
+            assertFlowTagsInvalidated(router)
         }
 
         scenario("the admin state of a router port is set to down") {
@@ -535,10 +522,8 @@ class AdminStateTest extends MidolmanSpec {
 
             When("setting their state to down")
 
-            interiorRouterPort.setAdminStateUp(false)
-            exteriorRouterPort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(interiorRouterPort)
-            clusterDataClient.portsUpdate(exteriorRouterPort)
+            setPortAdminStateUp(interiorRouterPort, false)
+            setPortAdminStateUp(exteriorRouterPort, false)
 
             Then("corresponding flows should be invalidated")
 
@@ -547,18 +532,14 @@ class AdminStateTest extends MidolmanSpec {
 
         scenario("the admin state of a router port is set to up") {
             Given("interior and exterior router ports with their state set to down")
-            interiorRouterPort.setAdminStateUp(false)
-            exteriorRouterPort.setAdminStateUp(false)
-            clusterDataClient.portsUpdate(interiorRouterPort)
-            clusterDataClient.portsUpdate(exteriorRouterPort)
+            setPortAdminStateUp(interiorRouterPort, false)
+            setPortAdminStateUp(exteriorRouterPort, false)
             VirtualTopologyActor.getAndClear()
 
             When("setting their state to up")
 
-            interiorRouterPort.setAdminStateUp(true)
-            exteriorRouterPort.setAdminStateUp(true)
-            clusterDataClient.portsUpdate(interiorRouterPort)
-            clusterDataClient.portsUpdate(exteriorRouterPort)
+            setPortAdminStateUp(interiorRouterPort, true)
+            setPortAdminStateUp(exteriorRouterPort, true)
 
             Then("corresponding flows should be invalidated")
 
@@ -566,20 +547,7 @@ class AdminStateTest extends MidolmanSpec {
         }
     }
 
-    private[this] def assertFlowTagsInvalidated(devices: Entity.Base[UUID,_,_]*) {
-        val tags = devices map (d =>
-            VirtualTopologyActor.InvalidateFlowsByTag(
-                FlowTagger.tagForDevice(d.getId)))
-
-        val invalidations = VirtualTopologyActor.messages
-                .filter(_.isInstanceOf[VirtualTopologyActor.InvalidateFlowsByTag])
-
-        for (tag <- tags) {
-            invalidations should contain (tag)
-        }
-    }
-
-    private[this] def assertFlowTagsInvalidated2(devices: UUID*) {
+    private[this] def assertFlowTagsInvalidated(devices: UUID*) {
         val tags = devices map (d =>
             VirtualTopologyActor.InvalidateFlowsByTag(
                 FlowTagger.tagForDevice(d)))

@@ -50,7 +50,9 @@ import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockSta
 
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.topology.devices.{Host, Port => SimPort}
+import org.midonet.midolman.topology.devices.{Host, Port => SimPort,
+                                              BridgePort => SimBridgePort,
+                                              RouterPort => SimRouterPort}
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
 import org.midonet.odp._
@@ -84,6 +86,8 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
 
     private val requestsFactory = Map[ClassTag[_], UUID => DeviceRequest](
         classTag[SimPort]              -> (new PortRequest(_)),
+        classTag[SimBridgePort]              -> (new PortRequest(_)),
+        classTag[SimRouterPort]              -> (new PortRequest(_)),
         classTag[SimBridge]            -> (new BridgeRequest(_)),
         classTag[SimRouter]            -> (new RouterRequest(_)),
         classTag[SimChain]             -> (new ChainRequest(_))
@@ -101,6 +105,10 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
 
     def fetchRouters(routers: UUID*): Seq[SimRouter] = {
         routers map { fetchDevice[SimRouter](_) }
+    }
+
+    def fetchPorts(ports: UUID*): Seq[SimPort] = {
+        ports map { fetchDevice[SimPort](_) }
     }
 
     def fetchTopology(entities: Entity.Base[_,_,_]*) =
@@ -197,15 +205,15 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         }
     }
 
-    def sendPacket(t: (Port[_,_], Ethernet))
+    def sendPacket(t: (UUID, Ethernet))
                   (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                             natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT)
     : (SimulationResult, PacketContext) =
-        simulate(packetContextFor(t._2, t._1.getId))(conntrackTx, natTx)
+        simulate(packetContextFor(t._2, t._1))(conntrackTx, natTx)
 
-    def sendPacket(port: Port[_,_], pkt: Ethernet)
+    def sendPacket(port: UUID, pkt: Ethernet)
     : (SimulationResult, PacketContext) =
-        simulate(packetContextFor(pkt, port.getId))(NO_CONNTRACK, NO_NAT)
+        simulate(packetContextFor(pkt, port))(NO_CONNTRACK, NO_NAT)
 
     def simulate(pktCtx: PacketContext)
                 (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,

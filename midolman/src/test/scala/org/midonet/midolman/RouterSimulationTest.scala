@@ -24,13 +24,13 @@ import com.typesafe.scalalogging.Logger
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
 import org.midonet.midolman.simulation.{Router => SimRouter, RouteBalancer}
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
@@ -44,11 +44,11 @@ class RouterSimulationTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var router: UUID = _
-    var uplinkPort: RouterPort = _
+    var uplinkPort: UUID = _
     var upLinkRoute: UUID = _
 
-    lazy val port1: RouterPort = makePort(1)
-    lazy val port2: RouterPort = makePort(2)
+    lazy val port1: UUID = makePort(1)
+    lazy val port2: UUID = makePort(2)
 
     val uplinkGatewayAddr = "180.0.1.1"
     val uplinkNwAddr = "180.0.1.0"
@@ -64,7 +64,7 @@ class RouterSimulationTest extends MidolmanSpec {
                                    uplinkNwAddr, uplinkNwLen)
         materializePort(uplinkPort, hostId, "uplinkPort")
         upLinkRoute = newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0,
-            NextHop.PORT, uplinkPort.getId, uplinkGatewayAddr, 1)
+            NextHop.PORT, uplinkPort, uplinkGatewayAddr, 1)
     }
 
     private def makePort(portNum: Int) = {
@@ -80,11 +80,11 @@ class RouterSimulationTest extends MidolmanSpec {
         materializePort(port, hostId, portName)
         // Default route to port based on destination only.  Weight 2.
         newRoute(router, "10.0.0.0", 16, segmentAddr.toString, 30,
-            NextHop.PORT, port.getId, new IPv4Addr(NO_GATEWAY).toString,
+            NextHop.PORT, port, new IPv4Addr(NO_GATEWAY).toString,
             2)
         // Anything from 10.0.0.0/16 is allowed through.  Weight 1.
         newRoute(router, "10.0.0.0", 16, segmentAddr.toString, 30,
-            NextHop.PORT, port.getId, new IPv4Addr(NO_GATEWAY).toString,
+            NextHop.PORT, port, new IPv4Addr(NO_GATEWAY).toString,
             1)
         // Anything from 11.0.0.0/24 is silently dropped.  Weight 1.
         newRoute(router, "11.0.0.0", 24, segmentAddr.toString, 30,
@@ -92,14 +92,15 @@ class RouterSimulationTest extends MidolmanSpec {
         // Anything from 12.0.0.0/24 is rejected (ICMP filter prohibited).
         newRoute(router, "12.0.0.0", 24, segmentAddr.toString, 30,
             NextHop.REJECT, null, null, 1)
-        fetchTopology(port)
+        fetchPorts(port)
         port
     }
 
     def simRouter: SimRouter = fetchDevice[SimRouter](router)
 
-    private def addressInSegment(port: RouterPort) : IPv4Addr =
-        IPv4Addr.fromString(port.getPortAddr).next
+    private def addressInSegment(port: UUID) : IPv4Addr = {
+        fetchDevice[RouterPort](port).portIp.next
+    }
 
     private def setKey[T <: FlowKey](action: FlowAction) =
         action.asInstanceOf[FlowActionSetKey].getFlowKey.asInstanceOf[T]
@@ -109,7 +110,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val gateways = List("180.0.1.40", "180.0.1.41", "180.0.1.42")
         gateways foreach { gw =>
             newRoute(router, "0.0.0.0", 0, routeDst, 32,
-                     NextHop.PORT, uplinkPort.getId, gw, 1)
+                     NextHop.PORT, uplinkPort, gw, 1)
         }
 
         val fmatch = new FlowMatch()
@@ -123,20 +124,20 @@ class RouterSimulationTest extends MidolmanSpec {
     }
 
     scenario("Drops IPv6") {
-        val pkt = { eth ether_type IPv6.ETHERTYPE src "01:02:03:04:05:06" dst port1.getHwAddr }
-        simulate(packetContextFor(pkt, uplinkPort.getId))._1 should be (Drop)
+        val pkt = { eth ether_type IPv6.ETHERTYPE src "01:02:03:04:05:06" dst fetchDevice[RouterPort](port1).portMac }
+        simulate(packetContextFor(pkt, uplinkPort))._1 should be (Drop)
     }
 
     scenario("Forward to uplink") {
         val gwMac = MAC.fromString("aa:bb:aa:cc:dd:cc")
         val ttl = 8.toByte
-        val pkt = { eth src MAC.random() dst port1.getHwAddr } <<
+        val pkt = { eth src MAC.random() dst fetchDevice[RouterPort](port1).portMac } <<
                   { ip4 src addressInSegment(port1) dst "45.44.33.22" ttl ttl } <<
                   { udp src 10 dst 11 }
 
         feedArpTable(simRouter, IPv4Addr.fromString(uplinkGatewayAddr), gwMac)
 
-        val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1.getId))
+        val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
         simRes should not be Drop
 
         pktCtx.virtualFlowActions should have size 3
@@ -147,14 +148,14 @@ class RouterSimulationTest extends MidolmanSpec {
         val ipKey = setKey[FlowKeyIPv4](pktCtx.virtualFlowActions.get(1))
         ipKey.ipv4_ttl should be (ttl-1)
 
-        pktCtx.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(uplinkPort.getId))
+        pktCtx.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(uplinkPort))
     }
 
     scenario("Blackhole route") {
         val pkt = { eth src MAC.random() dst uplinkMacAddr } <<
                   { ip4 src "11.0.0.31" dst addressInSegment(port1) } <<
                   { udp src 10 dst 11 }
-        simulate(packetContextFor(pkt, uplinkPort.getId))._1 should be (ErrorDrop)
+        simulate(packetContextFor(pkt, uplinkPort))._1 should be (ErrorDrop)
     }
 
     scenario("Reject route") {
@@ -165,7 +166,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val pkt = { eth src fromMac dst uplinkMacAddr } <<
                   { ip4 src fromIp dst addressInSegment(port1) } <<
                   { udp src 10 dst 11 }
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort.getId, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
         simRes should be (ShortDrop)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   IPv4Addr.fromString(uplinkPortAddr), fromIp,
@@ -174,8 +175,8 @@ class RouterSimulationTest extends MidolmanSpec {
 
     scenario("Forward between downlinks") {
         val inFromMac = MAC.random
-        val inToMac = port1.getHwAddr
-        val outFromMac = port2.getHwAddr
+        val inToMac = fetchDevice[RouterPort](port1).portMac
+        val outFromMac = fetchDevice[RouterPort](port2).portMac
         val outToMac = MAC.random
         val fromIp = addressInSegment(port1)
         val toIp = addressInSegment(port2)
@@ -185,7 +186,7 @@ class RouterSimulationTest extends MidolmanSpec {
 
         feedArpTable(simRouter, toIp, outToMac)
 
-        val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1.getId))
+        val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
         simRes should not be Drop
 
         pktCtx.virtualFlowActions should have size 3
@@ -193,7 +194,7 @@ class RouterSimulationTest extends MidolmanSpec {
         ethKey.eth_dst should be (outToMac.getAddress)
         ethKey.eth_src should be (outFromMac.getAddress)
 
-        pktCtx.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port2.getId))
+        pktCtx.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port2))
     }
 
     scenario("No route") {
@@ -201,13 +202,14 @@ class RouterSimulationTest extends MidolmanSpec {
 
         val fromMac = MAC.random()
         val fromIp = addressInSegment(port1)
-        val pkt = { eth src fromMac dst port1.getHwAddr } <<
+        val port = fetchDevice[RouterPort](port1)
+        val pkt = { eth src fromMac dst port.portMac } <<
                   { ip4 src fromIp dst IPv4Addr.fromString("45.44.33.22") } <<
                   { udp src 10 dst 11 }
-        val (simRes, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
         simRes should be (ShortDrop)
-        matchIcmp(port1, port1.getHwAddr, fromMac,
-                  IPv4Addr.fromString(port1.getPortAddr), fromIp,
+        matchIcmp(port1, port.portMac, fromMac,
+                  port.portIp, fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
     }
 
@@ -221,7 +223,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst uplinkPortAddr } <<
                   { icmp.echo request }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort.getId, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
         simRes should be (NoOp)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   IPv4Addr.fromString(uplinkPortAddr), fromIp,
@@ -234,20 +236,21 @@ class RouterSimulationTest extends MidolmanSpec {
 
         feedArpTable(simRouter, IPv4Addr.fromString(uplinkGatewayAddr), fromMac)
 
+        val port = fetchDevice[RouterPort](port1)
         val pkt = { eth src fromMac dst uplinkMacAddr } <<
-                  { ip4 src fromIp dst port1.getPortAddr } <<
+                  { ip4 src fromIp dst port.portIp } <<
                   { icmp.echo request }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort.getId, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
         simRes should be (NoOp)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
-                  IPv4Addr.fromString(port1.getPortAddr), fromIp,
+                  port.portIp, fromIp,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
     }
 
     scenario("ICMP echo far port with floating IP") {
         val floatingIp = IPv4Addr.fromString("176.28.127.1")
-        val privIp = IPv4Addr.fromString(port1.getPortAddr)
+        val privIp = fetchDevice[RouterPort](port1).portIp
 
         val dnatCond = new Condition()
         dnatCond.nwDstIp = floatingIp.subnet()
@@ -271,7 +274,7 @@ class RouterSimulationTest extends MidolmanSpec {
                   { ip4 src fromIp dst floatingIp } <<
                   { icmp.echo request }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort.getId, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
         simRes should be (NoOp)
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
                   floatingIp, fromIp, ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
@@ -281,19 +284,19 @@ class RouterSimulationTest extends MidolmanSpec {
         val badGwAddr = "179.0.0.1"
         clusterDataClient.routesDelete(upLinkRoute)
         newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT,
-                 uplinkPort.getId, badGwAddr, 1)
+                 uplinkPort, badGwAddr, 1)
         val fromMac = MAC.random
         val fromIp = addressInSegment(port1)
-
-        val pkt = { eth src fromMac dst port1.getHwAddr } <<
+        val port = fetchDevice[RouterPort](port1)
+        val pkt = { eth src fromMac dst port.portMac } <<
                   { ip4 src fromIp dst "45.44.33.22" } <<
                   { udp src 10 dst 11 }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
         simRes should be (ErrorDrop)
 
-        matchIcmp(port1, port1.getHwAddr, fromMac,
-                  IPv4Addr.fromString(port1.getPortAddr), fromIp,
+        matchIcmp(port1, port.portMac, fromMac,
+                  port.portIp, fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
     }
 
@@ -301,29 +304,29 @@ class RouterSimulationTest extends MidolmanSpec {
         val logicalPort = newRouterPort(router, MAC.random, "13.13.13.1",
                                         "13.0.0.0", 8)
         newRoute(router, "0.0.0.0", 0, "16.0.0.0", 8,
-            NextHop.PORT, logicalPort.getId, "13.13.13.2", 1)
+            NextHop.PORT, logicalPort, "13.13.13.2", 1)
 
         // Delete uplink route so that the traffic won't get forwarded there.
         deleteRoute(upLinkRoute)
 
         val fromMac = MAC.random
         val fromIp = addressInSegment(port1)
-
-        val pkt = { eth src fromMac dst port1.getHwAddr } <<
+        val port = fetchDevice[RouterPort](port1)
+        val pkt = { eth src fromMac dst port.portMac } <<
                   { ip4 src fromIp dst "16.0.0.1" } <<
                   { udp src 10 dst 11 }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
         simRes should be (ShortDrop)
 
-        matchIcmp(port1, port1.getHwAddr, fromMac,
-                  IPv4Addr.fromString(port1.getPortAddr), fromIp,
+        matchIcmp(port1, port.portMac, fromMac,
+                  port.portIp, fromIp,
                   ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
     }
 
     scenario("Drops VLAN traffic") {
-        val pkt = { eth src MAC.random dst port1.getHwAddr vlan 10 }
-        val (simRes, _) = simulate(packetContextFor(pkt, port1.getId))
+        val pkt = { eth src MAC.random dst fetchDevice[RouterPort](port1).portMac vlan 10 }
+        val (simRes, _) = simulate(packetContextFor(pkt, port1))
         simRes should be (Drop)
     }
 
@@ -338,15 +341,16 @@ class RouterSimulationTest extends MidolmanSpec {
 
         feedArpTable(simRouter, IPv4Addr.fromString(uplinkGatewayAddr), fromMac)
 
+        val port = fetchDevice[RouterPort](port1)
         val pkt = { eth src fromMac dst uplinkMacAddr } <<
-                  { ip4 src fromIp dst port1.getPortAddr } <<
+                  { ip4 src fromIp dst port.portIp } <<
                   { icmp.echo request }
 
-        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort.getId, generatedPackets))
+        val (simRes, _) = simulate(packetContextFor(pkt, uplinkPort, generatedPackets))
         simRes should be (NoOp)
 
         matchIcmp(uplinkPort, uplinkMacAddr, fromMac,
-                  IPv4Addr.fromString(port1.getPortAddr), fromIp,
+                  port.portIp, fromIp,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
     }
 
@@ -361,50 +365,52 @@ class RouterSimulationTest extends MidolmanSpec {
         feedArpTable(simRouter, fromIp, fromMac)
         feedArpTable(simRouter, toIp, toMac)
 
+        val port1dev = fetchDevice[RouterPort](port1)
+        val port2dev = fetchDevice[RouterPort](port2)
         // Ping from -> to
-        var pkt = { eth src fromMac dst port1.getHwAddr } <<
+        var pkt = { eth src fromMac dst port1dev.portMac } <<
                   { ip4 src fromIp dst toIp } <<
                   { icmp.echo request }
-        val (simRes1, pktCtx1) = simulate(packetContextFor(pkt, port1.getId))
+        val (simRes1, pktCtx1) = simulate(packetContextFor(pkt, port1))
         simRes1 should be (AddVirtualWildcardFlow)
         pktCtx1.virtualFlowActions should have size 3
-        pktCtx1.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port2.getId))
+        pktCtx1.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port2))
 
         // Ping to -> from
-        pkt = { eth src toMac dst port2.getHwAddr } <<
+        pkt = { eth src toMac dst port2dev.portMac } <<
               { ip4 src toIp  dst fromIp } <<
               { icmp.echo request }
-        val (simRes2, pktCtx2) = simulate(packetContextFor(pkt, port2.getId))
+        val (simRes2, pktCtx2) = simulate(packetContextFor(pkt, port2))
         simRes2 should be (AddVirtualWildcardFlow)
         pktCtx2.virtualFlowActions should have size 3
-        pktCtx2.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port1.getId))
+        pktCtx2.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port1))
 
         // Deactivate port2
-        clusterDataClient.portsDelete(port2.getId)
-        pkt = { eth src fromMac dst port1.getHwAddr } <<
+        clusterDataClient.portsDelete(port2)
+        pkt = { eth src fromMac dst port1dev.portMac } <<
               { ip4 src fromIp dst toIp } <<
               { icmp.echo request }
-        val (simRes3, _) = simulate(packetContextFor(pkt, port1.getId, generatedPackets))
+        val (simRes3, _) = simulate(packetContextFor(pkt, port1, generatedPackets))
         simRes3 should be (ShortDrop)
-        matchIcmp(port1, port1.getHwAddr, fromMac, IPv4Addr(port1.getPortAddr),
+        matchIcmp(port1, port1dev.portMac, fromMac, port1dev.portIp,
                   fromIp, ICMP.TYPE_UNREACH, ICMP.UNREACH_CODE.UNREACH_NET.toByte)
 
         // Reactivate port2
         val ressurected = makePort(2)
-        pkt = { eth src fromMac dst port1.getHwAddr } <<
+        pkt = { eth src fromMac dst port1dev.portMac } <<
               { ip4 src fromIp dst toIp } <<
               { icmp.echo request }
-        val (simRes4, pktCtx4) = simulate(packetContextFor(pkt, port1.getId))
+        val (simRes4, pktCtx4) = simulate(packetContextFor(pkt, port1))
         simRes4 should be (AddVirtualWildcardFlow)
         pktCtx4.virtualFlowActions should have size 3
-        pktCtx4.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(ressurected.getId))
+        pktCtx4.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(ressurected))
     }
 
-    private def matchIcmp(egressPort: RouterPort, fromMac: MAC, toMac: MAC,
+    private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,
                           fromIp: IPv4Addr, toIp: IPv4Addr, `type`: Byte,
                           code: Byte): Unit = {
         generatedPackets should have size 1
-        generatedPackets.get(0).egressPort should be (egressPort.getId)
+        generatedPackets.get(0).egressPort should be (egressPort)
         val genPkt = generatedPackets.get(0).eth
         genPkt.getSourceMACAddress should be (fromMac)
         genPkt.getDestinationMACAddress should be (toMac)
