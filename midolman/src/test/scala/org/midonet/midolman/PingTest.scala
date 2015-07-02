@@ -23,7 +23,6 @@ import scala.collection.JavaConversions._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
@@ -46,13 +45,13 @@ class PingTest extends MidolmanSpec {
     var simRouter : Router = _
 
     // External router port
-    var rtrPort1 : RouterPort = null
+    var rtrPort1 : UUID = null
     val routerIp1 = new IPv4Subnet("192.168.111.1", 24)
     val routerMac1 = MAC.fromString("22:aa:aa:ff:ff:ff")
     val rtrPort1DpNum = 1
 
     // Interior router port connecting to bridge
-    var rtrPort2 : RouterPort = _
+    var rtrPort2 : UUID = _
     val routerIp2 = new IPv4Subnet("192.168.222.1", 24)
     val routerMac2 = MAC.fromString("22:ab:cd:ff:ff:ff")
 
@@ -66,7 +65,7 @@ class PingTest extends MidolmanSpec {
     // VM2: local host to ping
     val vm2Ip = new IPv4Subnet("192.168.222.2", 24)
     val vm2Mac = MAC.fromString("02:DD:AA:DD:AA:03")
-    var vm2Port : BridgePort = null
+    var vm2Port : UUID = null
     val vm2PortDpNum = 2
     val vm2PortName = "VM2"
     var vm2PortNumber = 0
@@ -82,7 +81,7 @@ class PingTest extends MidolmanSpec {
         materializePort(rtrPort1, hostId, "routerPort")
 
         newRoute(router, "0.0.0.0", 0, routerIp1.toUnicastString,
-                 routerIp1.getPrefixLen, NextHop.PORT, rtrPort1.getId,
+                 routerIp1.getPrefixLen, NextHop.PORT, rtrPort1,
                  new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         // set up logical port on router
@@ -90,7 +89,7 @@ class PingTest extends MidolmanSpec {
         rtrPort2 should not be null
 
         newRoute(router, "0.0.0.0", 0, routerIp2.toUnicastString,
-                 routerIp2.getPrefixLen, NextHop.PORT, rtrPort2.getId,
+                 routerIp2.getPrefixLen, NextHop.PORT, rtrPort2,
                  new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         // create bridge link to router's logical port
@@ -99,14 +98,14 @@ class PingTest extends MidolmanSpec {
 
         val brPort1 = newBridgePort(bridge)
         brPort1 should not be null
-        clusterDataClient.portsLink(rtrPort2.getId, brPort1.getId)
+        clusterDataClient.portsLink(rtrPort2, brPort1)
 
         // add a materialized port on bridge, logically connected to VM2
         vm2Port = newBridgePort(bridge)
         vm2Port should not be null
         materializePort(vm2Port, hostId, vm2PortName)
 
-        fetchTopology(rtrPort1, rtrPort2, brPort1, vm2Port)
+        fetchPorts(rtrPort1, rtrPort2, brPort1, vm2Port)
         fetchDevice[Bridge](bridge)
 
         simRouter = fetchDevice[Router](router)
@@ -138,11 +137,11 @@ class PingTest extends MidolmanSpec {
             { ip4 src vm2Ip.getAddress dst routerIp2.getAddress } <<
             { icmp.echo request }
 
-        val (res, _) = simulate(packetContextFor(pkt, vm2Port.getId,
+        val (res, _) = simulate(packetContextFor(pkt, vm2Port,
                                                  generatedPackets))
         res should be (NoOp)
 
-        matchIcmp(generatedPackets, rtrPort2.getId, routerMac2, vm2Mac,
+        matchIcmp(generatedPackets, rtrPort2, routerMac2, vm2Mac,
                   routerIp2.getAddress, vm2Ip.getAddress,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
     }
@@ -156,11 +155,11 @@ class PingTest extends MidolmanSpec {
             { ip4 src vm2Ip.getAddress dst routerIp1.getAddress } <<
             { icmp.echo request }
 
-        val (res, _) = simulate(packetContextFor(pkt, vm2Port.getId,
+        val (res, _) = simulate(packetContextFor(pkt, vm2Port,
                                                  generatedPackets))
         res should be (NoOp)
 
-        matchIcmp(generatedPackets, rtrPort2.getId, routerMac2, vm2Mac,
+        matchIcmp(generatedPackets, rtrPort2, routerMac2, vm2Mac,
                   routerIp1.getAddress, vm2Ip.getAddress,
                   ICMP.TYPE_ECHO_REPLY, ICMP.CODE_NONE)
     }
@@ -172,13 +171,13 @@ class PingTest extends MidolmanSpec {
             { ip4 src vm2Ip.getAddress dst vm1Ip.getAddress } <<
             { icmp.echo request }
 
-        val (res, pktCtx) = simulate(packetContextFor(pkt, vm2Port.getId))
+        val (res, pktCtx) = simulate(packetContextFor(pkt, vm2Port))
         res should be (AddVirtualWildcardFlow)
         pktCtx.virtualFlowActions should have size 3
 
         // should come out the other side
         pktCtx.virtualFlowActions.get(2) should be (
-            FlowActionOutputToVrnPort(rtrPort1.getId))
+            FlowActionOutputToVrnPort(rtrPort1))
     }
 
     scenario("Ping reply from external to internal") {
@@ -188,12 +187,12 @@ class PingTest extends MidolmanSpec {
             { ip4 src vm1Ip.getAddress dst vm2Ip.getAddress } <<
             { icmp.echo reply }
 
-        val (res, pktCtx) = simulate(packetContextFor(pkt, rtrPort1.getId))
+        val (res, pktCtx) = simulate(packetContextFor(pkt, rtrPort1))
         res should be (AddVirtualWildcardFlow)
         pktCtx.virtualFlowActions should have size 3
 
         pktCtx.virtualFlowActions.get(2) should be (
-            FlowActionOutputToVrnBridge(bridge, List(vm2Port.getId)))
+            FlowActionOutputToVrnBridge(bridge, List(vm2Port)))
     }
 
     /*
@@ -217,8 +216,8 @@ class PingTest extends MidolmanSpec {
         val packets = (1 to howMany) map makePacket toArray
 
         packetWorkflow(Map(
-            `rtrPort1DpNum` -> rtrPort1.getId,
-            `vm2PortDpNum` -> vm2Port.getId)) ! PacketWorkflow.HandlePackets(packets)
+            `rtrPort1DpNum` -> rtrPort1,
+            `vm2PortDpNum` -> vm2Port)) ! PacketWorkflow.HandlePackets(packets)
 
         mockDpChannel.packetsSent should have size 20
 

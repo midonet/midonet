@@ -22,7 +22,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Rule, Chain}
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Bridge
@@ -34,8 +33,8 @@ import org.midonet.packets.util.PacketBuilder._
 @RunWith(classOf[JUnitRunner])
 class ChainModificationTest extends MidolmanSpec {
     var bridge: UUID = _
-    var inPort: BridgePort = _
-    var outPort: BridgePort = _
+    var inPort: UUID = _
+    var outPort: UUID = _
     var chain: Chain = _
     var chainRules = List[UUID]()
 
@@ -73,7 +72,8 @@ class ChainModificationTest extends MidolmanSpec {
         r = newTcpDstRuleOnChain(chain, 1, 80, RuleResult.Action.ACCEPT)
         chainRules = r.getId :: chainRules
 
-        fetchTopology(inPort, outPort, chain)
+        fetchTopology(chain)
+        fetchPorts(inPort, outPort)
         fetchDevice[Bridge](bridge)
     }
 
@@ -126,7 +126,7 @@ class ChainModificationTest extends MidolmanSpec {
     }
 
     def simResultFor(srcPort: Short, dstPort: Short) =
-        simulate(packetContextFor(tcpPacket(srcPort, dstPort), inPort.getId))._1
+        simulate(packetContextFor(tcpPacket(srcPort, dstPort), inPort))._1
 
     def tcpPacket(srcPort: Short, dstPort: Short) =
         { eth src MAC.random() dst MAC.random() } <<

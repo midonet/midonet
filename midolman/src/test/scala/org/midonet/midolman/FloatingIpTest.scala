@@ -21,7 +21,6 @@ import java.util.{HashSet, UUID}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
@@ -50,9 +49,9 @@ class FloatingIpTest extends MidolmanSpec {
     val floatingIp = IPv4Addr.fromString("10.0.173.5")
 
     var router: UUID = _
-    var brPort2 : BridgePort = _ // "Connected" to VM2
-    var rtrPort1 : RouterPort = _ // "Connected" to VM1
-    var rtrPort2 : RouterPort = _ // Interior port connecting to the brige
+    var brPort2 : UUID = _ // "Connected" to VM2
+    var rtrPort1 : UUID = _ // "Connected" to VM1
+    var rtrPort2 : UUID = _ // Interior port connecting to the brige
 
     override def beforeTest(): Unit = {
         router = newRouter("router")
@@ -62,19 +61,19 @@ class FloatingIpTest extends MidolmanSpec {
 
         newRoute(router, "0.0.0.0", 0,
                  subnet1.getAddress.toString, subnet1.getPrefixLen,
-                 NextHop.PORT, rtrPort1.getId,
+                 NextHop.PORT, rtrPort1,
                  IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         rtrPort2 = newRouterPort(router, routerMac2, subnet2)
 
         newRoute(router, "0.0.0.0", 0,
                  subnet2.getAddress.toString, subnet2.getPrefixLen,
-                 NextHop.PORT, rtrPort2.getId,
+                 NextHop.PORT, rtrPort2,
                  IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         val bridge = newBridge("bridge")
         val brPort1 = newBridgePort(bridge)
-        clusterDataClient.portsLink(rtrPort2.getId, brPort1.getId)
+        clusterDataClient.portsLink(rtrPort2, brPort1)
 
         brPort2 = newBridgePort(bridge)
         materializePort(brPort2, hostId, "VM2")
@@ -96,14 +95,14 @@ class FloatingIpTest extends MidolmanSpec {
         val snatCond = new Condition()
         snatCond.nwSrcIp = subnet1
         snatCond.outPortIds = new HashSet[UUID]()
-        snatCond.outPortIds.add(rtrPort2.getId)
+        snatCond.outPortIds.add(rtrPort2)
         val snatTarget = new NatTarget(floatingIp.toInt,
                                        floatingIp.toInt, 0, 0)
         newForwardNatRuleOnChain(postChain, 1, snatCond, RuleResult.Action.ACCEPT,
                                  Set(snatTarget), isDnat = false)
 
-        fetchTopology(rtrPort1, rtrPort2, brPort1, brPort2,
-                      preChain, postChain)
+        fetchTopology(preChain, postChain)
+        fetchPorts(rtrPort1, rtrPort2, brPort1, brPort2)
         fetchDevice[SimBridge](bridge)
         fetchDevice[SimRouter](router)
     }
@@ -119,7 +118,7 @@ class FloatingIpTest extends MidolmanSpec {
                   { ip4 src vm2Ip dst floatingIp } <<
                   { udp src 20301 dst 80 }
 
-        val (simRes, pktCtx) = simulate(packetContextFor(pkt, brPort2.getId))
+        val (simRes, pktCtx) = simulate(packetContextFor(pkt, brPort2))
         simRes should be (AddVirtualWildcardFlow)
 
         pktCtx.wcmatch.getNetworkSrcIP should be (vm2Ip)
@@ -130,7 +129,7 @@ class FloatingIpTest extends MidolmanSpec {
               { ip4 src vm1Ip dst vm2Ip } <<
               { udp src 20301 dst 80 }
         
-        val (simRes2, pktCtx2) = simulate(packetContextFor(pkt, rtrPort1.getId))
+        val (simRes2, pktCtx2) = simulate(packetContextFor(pkt, rtrPort1))
         simRes2 should be (AddVirtualWildcardFlow)
 
         pktCtx2.wcmatch.getNetworkSrcIP should be (floatingIp)
@@ -141,7 +140,7 @@ class FloatingIpTest extends MidolmanSpec {
               { ip4 src vm2Ip dst vm1Ip } <<
               { udp src 20301 dst 80 }
 
-        val (simRes3, pktCtx3) = simulate(packetContextFor(pkt, brPort2.getId))
+        val (simRes3, pktCtx3) = simulate(packetContextFor(pkt, brPort2))
         simRes3 should be (AddVirtualWildcardFlow)
 
         pktCtx3.wcmatch.getNetworkSrcIP should be (vm2Ip)
@@ -152,7 +151,7 @@ class FloatingIpTest extends MidolmanSpec {
               { ip4 src vm1Ip dst vm2Ip } <<
               { icmp.echo request }
 
-        val (simRes4, pktCtx4) = simulate(packetContextFor(pkt, rtrPort1.getId))
+        val (simRes4, pktCtx4) = simulate(packetContextFor(pkt, rtrPort1))
         simRes4 should be (AddVirtualWildcardFlow)
 
         pktCtx4.wcmatch.getNetworkSrcIP should be (floatingIp)
@@ -163,7 +162,7 @@ class FloatingIpTest extends MidolmanSpec {
               { ip4 src vm2Ip dst floatingIp } <<
               { icmp.echo request }
 
-        val (simRes5, pktCtx5) = simulate(packetContextFor(pkt, brPort2.getId))
+        val (simRes5, pktCtx5) = simulate(packetContextFor(pkt, brPort2))
         simRes5 should be (AddVirtualWildcardFlow)
 
         pktCtx5.wcmatch.getNetworkSrcIP should be (vm2Ip)
@@ -174,7 +173,7 @@ class FloatingIpTest extends MidolmanSpec {
               { ip4 src vm1Ip dst floatingIp } <<
               { icmp.echo request }
 
-        val (simRes6, pktCtx6) = simulate(packetContextFor(pkt, rtrPort1.getId))
+        val (simRes6, pktCtx6) = simulate(packetContextFor(pkt, rtrPort1))
         simRes6 should be (AddVirtualWildcardFlow)
 
         pktCtx6.wcmatch.getNetworkSrcIP should be (vm1Ip)
