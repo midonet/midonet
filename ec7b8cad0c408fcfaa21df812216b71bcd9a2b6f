@@ -150,6 +150,24 @@
       "revId": "ec7b8cad0c408fcfaa21df812216b71bcd9a2b6f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fd5dd0ea",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/DeviceOwner.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-02T07:55:54Z",
+      "side": 1,
+      "message": "Yes, I believe it\u0027s used for JSON deserialization with the compatibility API. Note the @JsonCreator annotation on forValue, which indicates that it\u0027s used to create an instance from JSON.\n\nI think forValue() should be modified to accept anything beginning with \"compute:\" and interpret it as COMPUTE.",
+      "parentUuid": "9ad9bd40_fdaa30d3",
+      "revId": "ec7b8cad0c408fcfaa21df812216b71bcd9a2b6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
