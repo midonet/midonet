@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_1a0c3a42",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/DeviceOwner.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-02T06:56:16Z",
+      "side": 1,
+      "message": "i haven\u0027t changed this constructor argument\nbecause i\u0027m not sure what forValue is used for.",
+      "revId": "ec7b8cad0c408fcfaa21df812216b71bcd9a2b6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
