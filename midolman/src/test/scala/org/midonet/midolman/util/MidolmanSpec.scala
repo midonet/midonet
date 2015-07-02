@@ -41,7 +41,7 @@ import org.midonet.midolman.simulation.CustomMatchers
 import org.midonet.midolman.state.{PathBuilder,ZkManager}
 import org.midonet.midolman.util.guice.MockMidolmanModule
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
-import org.midonet.util.concurrent.{MockClock, NanoClock}
+import org.midonet.util.concurrent.{NanoClock}
 import org.slf4j.LoggerFactory
 
 /**
