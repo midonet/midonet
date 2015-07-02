@@ -213,11 +213,11 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Given("a chain with a rule with one IPAddrGroup")
             val ipAddrGroup = createIpAddrGroup()
             val addr = "10.0.1.1"
-            addAddrToIpAddrGroup(ipAddrGroup.getId, addr)
+            addAddrToIpAddrGroup(ipAddrGroup, addr)
 
             val chain = newChain("chain1")
             newIpAddrGroupRuleOnChain(chain, 1, Action.DROP,
-                                      Some(ipAddrGroup.getId), None)
+                                      Some(ipAddrGroup), None)
 
             When("the VTA receives a request for it")
             vta.self ! ChainRequest(chain)
@@ -226,18 +226,18 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             val c = expectMsgType[Chain]
             c.getRules.size shouldBe 1
             checkIpAddrGroupRule(c.getRules.get(0), Action.DROP,
-                                 ipAddrGroup.getId, Set(addr), null, null)
+                                 ipAddrGroup, Set(addr), null, null)
         }
 
         scenario("Only track IPAddrGroups used in rules") {
             Given("a chain with a rule with one IPAddrGroup")
             val ipAddrGroup = createIpAddrGroup()
             val addr = "10.0.1.1"
-            addAddrToIpAddrGroup(ipAddrGroup.getId, addr)
+            addAddrToIpAddrGroup(ipAddrGroup, addr)
 
             val chain = newChain("chain1")
             val rule = newIpAddrGroupRuleOnChain(
-                chain, 1, Action.DROP, Some(ipAddrGroup.getId), None)
+                chain, 1, Action.DROP, Some(ipAddrGroup), None)
 
             When("the VTA receives a request for it")
             vta.self ! ChainRequest(chain, update = true)
@@ -246,11 +246,11 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             var c = expectMsgType[Chain]
             c.getRules.size shouldBe 1
             checkIpAddrGroupRule(c.getRules.get(0), Action.DROP,
-                                 ipAddrGroup.getId, Set(addr), null, null)
+                                 ipAddrGroup, Set(addr), null, null)
 
             When("The rule is removed and the IP group is modified")
             deleteRule(rule)
-            removeIpAddrFromIpAddrGroup(ipAddrGroup.getId, addr)
+            removeIpAddrFromIpAddrGroup(ipAddrGroup, addr)
             c = expectMsgType[Chain]
             c.getRules.size() should be (0)
             c = expectMsgType[Chain]
@@ -266,11 +266,11 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Given("A chain with a rule with one IPAddrGroup")
             val ipAddrGroup = createIpAddrGroup()
             val addr1 = "10.0.1.1"
-            addAddrToIpAddrGroup(ipAddrGroup.getId, addr1)
+            addAddrToIpAddrGroup(ipAddrGroup, addr1)
 
             val chain = newChain("chain1")
             newIpAddrGroupRuleOnChain(chain, 1, Action.DROP,
-                Some(ipAddrGroup.getId), None)
+                Some(ipAddrGroup), None)
 
             When("the VTA receives a request for it")
             vta.self ! ChainRequest(chain, true)
@@ -281,13 +281,13 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("a second address is added to the IPAddrGroup")
             val addr2 = "10.0.1.2"
-            addAddrToIpAddrGroup(ipAddrGroup.getId, addr2)
+            addAddrToIpAddrGroup(ipAddrGroup, addr2)
 
             Then("the VTA should send an update")
             val c = expectMsgType[Chain]
             c.getRules.size shouldBe 1
             checkIpAddrGroupRule(c.getRules.get(0), Action.DROP,
-                                 ipAddrGroup.getId, Set(addr1, addr2),
+                                 ipAddrGroup, Set(addr1, addr2),
                                  null, null)
 
             And("the VTA should receive a flow invalidation for the chain")
@@ -299,12 +299,12 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             val ipAddrGroup = createIpAddrGroup()
             val addr1 = "10.0.1.1"
             val addr2 = "10.0.1.2"
-            addAddrToIpAddrGroup(ipAddrGroup.getId, addr1)
-            addAddrToIpAddrGroup(ipAddrGroup.getId, addr2)
+            addAddrToIpAddrGroup(ipAddrGroup, addr1)
+            addAddrToIpAddrGroup(ipAddrGroup, addr2)
 
             val chain = newChain("chain1")
             newIpAddrGroupRuleOnChain(chain, 1, Action.DROP,
-                None, Some(ipAddrGroup.getId))
+                None, Some(ipAddrGroup))
 
             When("the VTA receives a request for it")
             vta.self ! ChainRequest(chain, true)
@@ -312,17 +312,17 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             And("it returns the first version of the chain")
             val c1 = expectMsgType[Chain]
             checkIpAddrGroupRule(c1.getRules.get(0), Action.DROP, null, null,
-                                 ipAddrGroup.getId, Set(addr1, addr2))
+                                 ipAddrGroup, Set(addr1, addr2))
             vta.getAndClear()
 
             And("an address is removed from the IPAddrGroup")
-            removeAddrFromIpAddrGroup(ipAddrGroup.getId, addr1)
+            removeAddrFromIpAddrGroup(ipAddrGroup, addr1)
 
             Then("the VTA should send an update")
             val c2 = expectMsgType[Chain]
             c2.id shouldEqual chain
             checkIpAddrGroupRule(c2.getRules.get(0), Action.DROP, null, null,
-                                 ipAddrGroup.getId, Set(addr2))
+                                 ipAddrGroup, Set(addr2))
 
             And("the VTA should receive a flow invalidation for the chain")
             vta.getAndClear() should contain (flowInvalidationMsg(c2.id))

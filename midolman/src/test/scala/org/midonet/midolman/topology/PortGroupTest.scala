@@ -23,7 +23,6 @@ import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{PortGroup => ClusterPortGroup}
 import org.midonet.midolman.simulation.{PortGroup => SimPortGroup}
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
 import org.midonet.midolman.util.MidolmanSpec
@@ -43,7 +42,7 @@ class PortGroupTest extends MidolmanSpec
     var port1: UUID = _
     var port2: UUID = _
 
-    var portGroup: ClusterPortGroup = _
+    var portGroup: UUID = _
 
     def randomPort(router: UUID) = {
         val subnet = new IPv4Subnet(IPv4Addr.random, 24)
@@ -66,13 +65,13 @@ class PortGroupTest extends MidolmanSpec
 
     feature("midolman tracks port groups in the cluster correctly") {
         scenario("VTA gets a port group and receives updates from its manager") {
-            VTA ! PortGroupRequest(portGroup.getId, update = false)
+            VTA ! PortGroupRequest(portGroup, update = false)
 
             val pg = interceptPortGroup()
             pg.name should equal ("port-group-test")
             pg should not be 'stateful
 
-            updatePortGroup(portGroup.setStateful(true))
+            setPortGroupStateful(portGroup, true)
             eventually {
                 interceptPortGroup() should be ('stateful)
             }
