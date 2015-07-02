@@ -153,22 +153,22 @@ object IPv6Addr {
         if (addr == null || addr.length != 16)
             throw illegalIPv6Bytes
 
-        val upper: Long = ((addr(0) & 0xff) << 56) |
-                          ((addr(1) & 0xff) << 48) |
-                          ((addr(2) & 0xff) << 40) |
-                          ((addr(3) & 0xff) << 32) |
-                          ((addr(4) & 0xff) << 24) |
-                          ((addr(5) & 0xff) << 16) |
-                          ((addr(6) & 0xff) << 8) |
-                           (addr(7) & 0xff)
-        val lower: Long = ((addr(8) & 0xff) << 56) |
-                          ((addr(9) & 0xff) << 48) |
-                          ((addr(10) & 0xff) << 40) |
-                          ((addr(11) & 0xff) << 32) |
-                          ((addr(12) & 0xff) << 24) |
-                          ((addr(13) & 0xff) << 16) |
-                          ((addr(14) & 0xff) << 8) |
-                           (addr(15) & 0xff)
+        val upper: Long = ((addr(0).toLong << 56) & 0xff00000000000000L) |
+            ((addr(1).toLong << 48) & 0x00ff000000000000L) |
+            ((addr(2).toLong << 40) & 0x0000ff0000000000L) |
+            ((addr(3).toLong << 32) & 0x000000ff00000000L) |
+            ((addr(4).toLong << 24) & 0x00000000ff000000L) |
+            ((addr(5).toLong << 16) & 0x0000000000ff0000L) |
+            ((addr(6).toLong << 8) & 0x000000000000ff00L) |
+            (addr(7) & 0xffL)
+        val lower: Long = ((addr(8).toLong << 56) & 0xff00000000000000L) |
+            ((addr(9).toLong << 48) & 0x00ff000000000000L) |
+            ((addr(10).toLong << 40) & 0x0000ff0000000000L) |
+            ((addr(11).toLong << 32) & 0x000000ff00000000L) |
+            ((addr(12).toLong << 24) & 0x00000000ff000000L) |
+            ((addr(13).toLong << 16) & 0x0000000000ff0000L) |
+            ((addr(14).toLong << 8) & 0x000000000000ff00L) |
+            (addr(15).toLong & 0xffL)
         apply(upper, lower)
     }
 
