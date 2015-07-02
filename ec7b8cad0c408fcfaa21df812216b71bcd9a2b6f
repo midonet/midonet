@@ -255,6 +255,24 @@
       "revId": "ec7b8cad0c408fcfaa21df812216b71bcd9a2b6f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5d1a3c18",
+        "filename": "nsdb/src/main/java/org/midonet/cluster/rest_api/neutron/models/DeviceOwner.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-02T08:07:00Z",
+      "side": 1,
+      "message": "+1 It looks like for deserialization, the JSON creator uses equality with the `value` field.",
+      "parentUuid": "9ad9bd40_5d031cb8",
+      "revId": "ec7b8cad0c408fcfaa21df812216b71bcd9a2b6f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
