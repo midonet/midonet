@@ -15,6 +15,8 @@
  */
 package org.midonet.midolman.simulation
 
+import java.util.UUID
+
 import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
@@ -23,7 +25,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.l4lb
-import org.midonet.cluster.data.{Router => ClusterRouter, Entity}
+import org.midonet.cluster.data.{Entity}
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.layer3.Route
@@ -78,7 +80,7 @@ class PoolTest extends MidolmanSpec {
     val routerBackendExteriorPortIps = (0 until numBackends) map {
         n => new IPv4Subnet(s"10.0.$n.254", 24)}
 
-    var router: ClusterRouter = _
+    var router: UUID = _
     var loadBalancer: l4lb.LoadBalancer = _
     var vip: l4lb.VIP = _
     var poolMembers: Seq[l4lb.PoolMember] = _
@@ -169,7 +171,7 @@ class PoolTest extends MidolmanSpec {
         // Create loadbalancer topology
         loadBalancer = newLoadBalancer()
         setLoadBalancerOnRouter(loadBalancer, router)
-        loadBalancer.setRouterId(router.getId)
+        loadBalancer.setRouterId(router)
         val pool = newPool(loadBalancer)
         vip = createVip(pool, vipIp.toUnicastString, vipPort)
         poolMembers = (0 until numBackends) map {
@@ -184,8 +186,9 @@ class PoolTest extends MidolmanSpec {
 
         // Load topology
         val itemsToLoad: List[Entity.Base[_,_,_]] =
-            router :: exteriorClientPort :: exteriorBackendPorts.toList
+            exteriorClientPort :: exteriorBackendPorts.toList
         val topo = fetchTopologyList(itemsToLoad)
+        fetchDevice[Router](router)
 
         // Seed the ARP table
         val arpCache = topo.collect({ case r: Router => r.arpCache}).head
@@ -210,7 +213,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router)})
         }
 
         scenario("Packets to VIP gets dropped when no loadbalancer") {
@@ -224,7 +227,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router)})
         }
     }
 
@@ -240,7 +243,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router)})
         }
 
         scenario("Packets to VIP gets dropped") {
@@ -254,7 +257,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router)})
         }
     }
 
@@ -269,7 +272,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("a drop flow should be installed")
 
-            flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
+            flow should be (dropped {FlowTagger.tagForDevice(router)})
         }
     }
 
@@ -285,7 +288,7 @@ class PoolTest extends MidolmanSpec {
             Then("packet should be sent to out port of the one backend")
 
             flow should be (toPort(exteriorBackendPorts(0).getId) {
-                FlowTagger.tagForDevice(router.getId)})
+                FlowTagger.tagForDevice(router)})
 
             And("Should be NATted correctly")
 
@@ -298,7 +301,7 @@ class PoolTest extends MidolmanSpec {
             Then("packet should be sent to out port of the client")
 
             returnFlow should be (toPort(exteriorClientPort.getId) {
-                FlowTagger.tagForDevice(router.getId)})
+                FlowTagger.tagForDevice(router)})
 
             And("Should be reverse NATted correctly")
 
@@ -317,7 +320,7 @@ class PoolTest extends MidolmanSpec {
             Then("packet should be sent to out port of the one available backend")
 
             flow should be (toPort(exteriorBackendPorts(1).getId) {
-                FlowTagger.tagForDevice(router.getId)})
+                FlowTagger.tagForDevice(router)})
 
             And("Should be NATted correctly")
 
@@ -330,7 +333,7 @@ class PoolTest extends MidolmanSpec {
             Then("packet should be sent to out port of the client")
 
             returnFlow should be (toPort(exteriorClientPort.getId) {
-                FlowTagger.tagForDevice(router.getId)})
+                FlowTagger.tagForDevice(router)})
 
             And("Should be reverse NATted correctly")
 
@@ -513,7 +516,7 @@ class PoolTest extends MidolmanSpec {
              val flow = sendPacket (fromClientToVip)
 
              Then("a drop flow should be installed")
-             flow should be (dropped {FlowTagger.tagForDevice(router.getId)})
+             flow should be (dropped {FlowTagger.tagForDevice(router)})
         }
 
         scenario("Pool balances members with different weights correctly") {
