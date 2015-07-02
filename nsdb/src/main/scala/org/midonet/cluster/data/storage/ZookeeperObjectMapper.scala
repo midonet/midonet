@@ -29,11 +29,11 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
+import com.codahale.metrics.MetricRegistry
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.{Message, TextFormat}
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
@@ -45,7 +45,6 @@ import org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged
 import org.apache.zookeeper._
 import org.apache.zookeeper.data.Stat
 import org.slf4j.LoggerFactory
-
 import rx.functions.Func1
 import rx.{Notification, Observable}
 
@@ -116,7 +115,8 @@ import org.midonet.util.reactivex._
  * number to switch to the new version.
  */
 class ZookeeperObjectMapper(protected override val rootPath: String,
-                            protected override val curator: CuratorFramework)
+                            protected override val curator: CuratorFramework,
+                            metricsRegistry: MetricRegistry = null)
     extends ZookeeperObjectState with Storage {
 
     import ZookeeperObjectMapper._
@@ -130,7 +130,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
     private val versionNodePath = s"$rootPath/$VersionNode"
 
-    private def basePath(version: Long) = s"$rootPath/$version"
+    private[storage] def basePath(ver: Long = version.get) = s"$rootPath/$ver"
 
     private def locksPath(version: Long) = s"$rootPath/$version/zoomlocks/lock"
 
@@ -142,6 +142,56 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
     private val objectObservables = new TrieMap[Key, Observable[_]]
     private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
+
+    /* We add a random number at the end of the metrics id to ensure we
+       can distinguish between Zooms with the same root path. */
+    if (metricsRegistry ne null) {
+        ZoomMetrics.registerMetrics(this, metricsRegistry)
+    }
+
+    /* Functions and variables to expose metrics using JMX in class
+       ZoomMetrics. */
+    private val nodeObservables = new TrieMap[Key, NodeObservable]
+
+    private[storage] def objWatcherCount: Int =
+        nodeObservables.values.count(_.isActive)
+
+    /* Returns a string, containing on each line, the id of the object and
+       tbe number of subscribers. */
+    private[storage] def objSubscribers: String = {
+        val res = new StringBuilder()
+        nodeObservables.filter(_._2.isActive).foreach(entry => {
+            val key = entry._1
+            val obs = entry._2
+            res.append(key.toString + ":" + obs.subscriptionCount + "\n")
+        })
+        res.toString
+    }
+
+    private[storage] def classWatcherCount: Int = classCaches.size
+
+    /* Returns a string, containing on each line, the class and the number of
+       subscribers. */
+    private[storage] def classSubscribers: String = {
+        val res = new StringBuilder()
+        classCaches.foreach(entry => {
+            val clazz = entry._1
+            val count = entry._2.subscriptionCount
+            res.append(clazz.getName + ":" +  count + "\n")
+        })
+        res.toString
+    }
+
+    private[storage] def zkConnectionState: String =
+        curator.getZookeeperClient.getZooKeeper.getState.toString
+
+    private[storage] def createDummyPath(path: String): Unit =
+        curator.create().forPath(path, "".getBytes)
+    private[storage] def readDummyPath(path: String): Unit =
+        curator.getData.forPath(path)
+    private[storage] def deleteDummyPath(path: String): Unit =
+        curator.delete().forPath(path)
+    /* End of functions and variable used for JMX monitoring. */
 
     /**
      * Manages objects referenced by the primary target of a create, update,
@@ -589,13 +639,16 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         val path = getObjectPath(clazz, id)
 
         objectObservables.getOrElse(key, {
-            val obs = NodeObservable.create(curator, path,
-                                            completeOnDelete = true)
+            val nodeObservable = NodeObservable.create(curator, path,
+                                                       completeOnDelete = true)
+                nodeObservables.putIfAbsent(key, nodeObservable)
+            val obs = nodeObservable
                 .map[Notification[T]](deserializerOf(clazz))
                 .dematerialize().asInstanceOf[Observable[T]]
                 .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
                     case e: NodeObservableClosedException =>
                         objectObservables.remove(key)
+                        nodeObservables.remove(key)
                         observable(clazz, id)
                     case e: NoNodeException =>
                         Observable.error(new NotFoundException(clazz, id))
@@ -650,22 +703,24 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     }
 
     @inline
-    private[storage] def getClassPath(clazz: Class[_],
-                                      version: Long = version.longValue())
-    : String = {
-        basePath(version) + "/" + clazz.getSimpleName
+    private[storage] def getClassPath(clazz: Class[_]): String = {
+        basePath() + "/" + clazz.getSimpleName
     }
 
     @inline
     private[storage] def getObjectPath(clazz: Class[_], id: ObjId,
                                        version: Long = version.longValue())
     : String = {
-        getClassPath(clazz, version) + "/" + getIdString(clazz, id)
+        getClassPath(clazz) + "/" + getIdString(clazz, id)
     }
 
 }
 
 object ZookeeperObjectMapper {
+    /* Two counters that respectively keep track of the number of triggered
+       watchers for object and class observables. */
+    val objWatcherTriggerCount = new AtomicLong(0)
+    val classWatcherTriggerCount = new AtomicLong(0)
 
     private val VersionNode = "dataset_version"
     private val InitialZoomDataSetVersion = 1

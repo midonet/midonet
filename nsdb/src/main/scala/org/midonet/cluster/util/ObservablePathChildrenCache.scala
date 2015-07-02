@@ -37,6 +37,7 @@ import rx.Observable.OnSubscribe
 import rx.subjects.{BehaviorSubject, PublishSubject, Subject}
 import rx.{Observable, Subscriber}
 
+import org.midonet.cluster.data.storage.ZookeeperObjectMapper
 import org.midonet.util.concurrent.Locks._
 
 object ObservablePathChildrenCache {
@@ -101,6 +102,9 @@ class OnSubscribeToPathChildren(zk: CuratorFramework, path: String)
     private var cacheListener = new PathChildrenCacheListener {
         override def childEvent(client: CuratorFramework,
                                 event: PathChildrenCacheEvent) {
+
+            ZookeeperObjectMapper.classWatcherTriggerCount.incrementAndGet()
+
             event.getType match {
                 // These run on the event thread
                 case CHILD_ADDED => newChild(event.getData)

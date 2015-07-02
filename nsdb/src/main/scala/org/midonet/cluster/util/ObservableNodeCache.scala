@@ -25,6 +25,8 @@ import org.apache.zookeeper.KeeperException.NoNodeException
 import rx.Observable
 import rx.subjects.BehaviorSubject
 
+import org.midonet.cluster.data.storage.ZookeeperObjectMapper
+
 /** A wrapper around Curator's NodeCache that exposes updates as
   * observables, guaranteeing that every subscriber will receive the
   * latest known state of the node, as well as further updates until
@@ -86,6 +88,8 @@ class ObservableNodeCache(zk: CuratorFramework,
      */
     private var nodeCacheListener = new NodeCacheListener {
         override def nodeChanged(): Unit = {
+            ZookeeperObjectMapper.objWatcherTriggerCount.incrementAndGet()
+
             if (terminated.get()) {
                 return
             }
