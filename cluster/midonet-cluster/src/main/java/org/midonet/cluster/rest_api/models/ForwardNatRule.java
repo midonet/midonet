@@ -27,7 +27,11 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.util.IPAddressUtil;
+
+import static org.midonet.cluster.rest_api.validation.MessageProperty.FRAG_POLICY_INVALID_FOR_L4_RULE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
 public abstract class ForwardNatRule extends NatRule {
 
@@ -60,5 +64,33 @@ public abstract class ForwardNatRule extends NatRule {
                Objects.equals(natTargets[0].addressFrom,
                               natTargets[0].addressTo) &&
                natTargets[0].portFrom == 0 && natTargets[0].portTo == 0;
+    }
+
+    @Override
+    protected FragmentPolicy getAndValidateFragmentPolicy() {
+        boolean unfragmentedOnly = !this.isFloatingIp() || this.hasL4Fields();
+        if (this.fragmentPolicy == null) {
+            return unfragmentedOnly ? FragmentPolicy.unfragmented
+                                    : FragmentPolicy.any;
+        }
+
+        FragmentPolicy fp;
+        try {
+            fp = FragmentPolicy.valueOf(fragmentPolicy.toString());
+        } catch (IllegalArgumentException e) {
+            // TODO: this his here for backwards compatibility, but we should
+            // not be using the MessageProperty.getMessage thing here, nor
+            // throwing an HTTP exception.  Instead, throw a custom exception
+            // that can be handled (and translated into user facing messages)
+            // elsewhere. Same thing below.
+            throw new BadRequestHttpException(
+                getMessage(FRAG_POLICY_INVALID_FOR_L4_RULE));
+        }
+        if (unfragmentedOnly && fp != FragmentPolicy.unfragmented) {
+            throw new BadRequestHttpException(
+                getMessage(FRAG_POLICY_INVALID_FOR_L4_RULE));
+
+        }
+        return fp;
     }
 }

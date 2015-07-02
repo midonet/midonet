@@ -20,6 +20,7 @@ import java.util.UUID;
 
 import org.midonet.cluster.rest_api.models.Condition;
 import org.midonet.cluster.rest_api.models.ForwardNatRule;
+import org.midonet.cluster.rest_api.models.Rule;
 import org.midonet.midolman.rules.FragmentPolicy;
 import org.midonet.packets.IPFragmentType;
 import org.midonet.packets.IPv4Addr;
@@ -119,6 +120,10 @@ public class ConditionDataConverter {
         c.invIpAddrGroupIdSrc = dto.invIpAddrGroupSrc;
 
         return c;
+    }
+
+    public static Rule.FragmentPolicy toFragPolicyDto(FragmentPolicy fp) {
+        return Rule.FragmentPolicy.valueOf(fp.toString().toLowerCase());
     }
 
     public static FragmentPolicy getFragmentPolicy(Condition dto) {
