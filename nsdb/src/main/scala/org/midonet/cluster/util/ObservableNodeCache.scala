@@ -58,9 +58,9 @@ import rx.subjects.BehaviorSubject
   * stat and data fields. These can be identity-compared with the EMPTY_DATA
   * attribute in the ObservableNodeCache.
   */
-class ObservableNodeCache(zk: CuratorFramework,
-                          path: String,
-                          emitNoNodeAsEmpty: Boolean = false) extends Closeable {
+class ObservableNodeCache(zk: CuratorFramework, path: String,
+                          emitNoNodeAsEmpty: Boolean = false)
+    extends Closeable {
 
     /* Signals when the connection is stablished and the cache primed */
     private val connected = new AtomicBoolean(false)
