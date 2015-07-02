@@ -36,7 +36,7 @@ import org.midonet.midolman.l4lb.HealthMonitor.{ConfigAdded, ConfigDeleted, Conf
 import org.midonet.midolman.l4lb.HealthMonitorConfigWatcher.BecomeHaproxyNode
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.IP
-import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
+import org.midonet.midolman.state.{StatePathExistsException, NoStatePathException, StateAccessException, PoolHealthMonitorMappingStatus}
 import org.midonet.midolman.state.ZkLeaderElectionWatcher.ExecuteOnBecomingLeader
 
 object HealthMonitor extends Referenceable {
@@ -189,6 +189,7 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
     private var fileLocation: String = null
     private var namespaceSuffix: String = null
 
+
     private var hostId: UUID = null
 
     private var watcher: ActorRef = null
@@ -238,8 +239,10 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case _ =>
                     log.info("received unconfigurable update for non-existing" +
                              "pool {}", poolId.toString)
-                    client.poolSetMapStatus(poolId,
-                        PoolHealthMonitorMappingStatus.INACTIVE)
+                    interceptZkError {
+                        client.poolSetMapStatus(poolId,
+                            PoolHealthMonitorMappingStatus.INACTIVE)
+                    }
             }
 
         case ConfigAdded(poolId, config, routerId) =>
@@ -250,9 +253,11 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None if !config.isConfigurable || routerId == null =>
                     log.info("received unconfigurable add for pool {}",
                         poolId.toString)
-                    client.poolSetMapStatus(poolId,
-                        PoolHealthMonitorMappingStatus.INACTIVE)
-                    // Wait until this is configurable start this.
+                    interceptZkError {
+                        client.poolSetMapStatus(poolId,
+                            PoolHealthMonitorMappingStatus.INACTIVE)
+                        // Wait until this is configurable start this.
+                    }
 
                 case None =>
                     log.info("received configurable add for pool {}",
@@ -270,8 +275,10 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case None =>
                     log.info("received delete for non-existent pool {}",
                              poolId.toString)
-                    client.poolSetMapStatus(poolId,
-                            PoolHealthMonitorMappingStatus.INACTIVE)
+                    interceptZkError {
+                        client.poolSetMapStatus(poolId,
+                                PoolHealthMonitorMappingStatus.INACTIVE)
+                    }
             }
 
         case RouterChanged(poolId, config, routerId) =>
@@ -292,11 +299,13 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
                 case _ =>
                     log.info("router changed for unconfigurable and non-" +
                              "existent pool {}", poolId.toString)
-                    client.poolSetMapStatus(poolId,
-                            PoolHealthMonitorMappingStatus.INACTIVE)
+                    interceptZkError {
+                        client.poolSetMapStatus(poolId,
+                                PoolHealthMonitorMappingStatus.INACTIVE)
+                    }
             }
 
-        case SetupFailure =>  context.stop(sender)
+        case SetupFailure => context.stop(sender)
 
         case SockReadFailure => context.stop(sender)
 
@@ -349,4 +358,16 @@ class HealthMonitor extends Actor with ActorLogWithoutPath {
 
             }
     }
+
+    private def interceptZkError[T](f: => T): Unit =
+        try {
+            f
+        } catch {
+            case e: NoStatePathException =>
+                log.warn("Missing ZK path", e)
+            case e: StatePathExistsException =>
+                log.warn("Tried to overwrite existing ZK path", e)
+            case e: StateAccessException =>
+                log.error("Unexpected ZK error", e)
+        }
 }
