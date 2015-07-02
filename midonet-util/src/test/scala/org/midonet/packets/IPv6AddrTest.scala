@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.midonet.packets
 
-import java.net.InetAddress
 import java.util.Random
+import java.net.InetAddress
 
 import org.junit.Test
 import org.scalatest.Matchers
@@ -144,7 +144,6 @@ class IPv6AddrTest extends Suite with Matchers {
             "0:0:0:0:0:0:0:0"
     }
 
-
     def testEqualsInetAddress() = {
         val inet6Addr = InetAddress.getByName("0:0:0:0:0:0:0:1")
         val ipv6Addr = IPv6Addr.fromString("0:0:0:0:0:0:0:1")
@@ -155,5 +154,33 @@ class IPv6AddrTest extends Suite with Matchers {
 
         val inet4Addr = InetAddress.getByName("10.0.0.1")
         assert(!ipv6Addr.equalsInetAddress(inet4Addr))
+    }
+
+    @Test
+    def testConvertToFromBytes(): Unit = {
+        val bytes0 = Array[Byte](1, 2, 3, 4, 5, 6, 7, 8,
+                                 9, 10, 11, 12, 13, 14, 15, 16)
+        val bytes1 = Array[Byte](-1, -2, -3, -4, -5, -6, -7, -8,
+                                 -9, -10, -11, -12, -13, -14, -15, -16)
+        val bytes2 = Array[Byte](-1, 2, -3, 4, -5, 6, -7, 8,
+                                 -9, 10, -11, 12, -13, 14, -15, 16)
+        val bytes3 = Array[Byte](1, -2, 3, -4, 5, -6, 7, -8,
+                                 9, -10, 11, -12, 13, -14, 15, -16)
+
+        val ip0 = IPv6Addr.fromBytes(bytes0)
+        ip0.toBytes shouldBe bytes0
+
+        val ip1 = IPv6Addr.fromBytes(bytes1)
+        ip1.toBytes shouldBe bytes1
+
+        val ip2 = IPv6Addr.fromBytes(bytes2)
+        ip2.toBytes shouldBe bytes2
+
+        val ip3 = IPv6Addr.fromBytes(bytes3)
+        ip3.toBytes shouldBe bytes3
+
+        val ip5 = IPv6Addr.random
+        val bytes5 = ip5.toBytes
+        IPv6Addr.fromBytes(bytes5) shouldBe ip5
     }
 }
