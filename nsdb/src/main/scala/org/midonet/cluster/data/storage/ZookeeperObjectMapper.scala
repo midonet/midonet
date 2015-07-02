@@ -29,11 +29,11 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success}
 
+import com.codahale.metrics.MetricRegistry
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.common.annotations.VisibleForTesting
 import com.google.protobuf.{Message, TextFormat}
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.transaction.CuratorTransactionFinal
 import org.apache.curator.framework.api.{BackgroundCallback, CuratorEvent, CuratorEventType}
@@ -45,7 +45,6 @@ import org.apache.zookeeper.Watcher.Event.EventType.NodeDataChanged
 import org.apache.zookeeper._
 import org.apache.zookeeper.data.Stat
 import org.slf4j.LoggerFactory
-
 import rx.functions.Func1
 import rx.{Notification, Observable}
 
@@ -116,7 +115,8 @@ import org.midonet.util.reactivex._
  * number to switch to the new version.
  */
 class ZookeeperObjectMapper(protected override val rootPath: String,
-                            protected override val curator: CuratorFramework)
+                            protected override val curator: CuratorFramework,
+                            metricsRegistry: MetricRegistry = null)
     extends ZookeeperObjectState with Storage {
 
     import ZookeeperObjectMapper._
@@ -130,7 +130,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
     private val versionNodePath = s"$rootPath/$VersionNode"
 
-    private def basePath(version: Long) = s"$rootPath/$version"
+    private[storage] def basePath(ver: Long = version.get) = s"$rootPath/$ver"
 
     private def locksPath(version: Long) = s"$rootPath/$version/zoomlocks/lock"
 
@@ -139,9 +139,41 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         ExecutionContext.fromExecutorService(executor)
 
     private val simpleNameToClass = new mutable.HashMap[String, Class[_]]()
-
-    private val objectObservables = new TrieMap[Key, Observable[_]]
+    private val nodeObservables = new TrieMap[Key, NodeObservable]
     private val classCaches = new TrieMap[Class[_], ClassSubscriptionCache[_]]
+
+    /* Functions and variables to expose metrics using JMX in class
+       ZoomMetrics. */
+    override implicit private[storage] val zoomMetrics = metricsRegistry match {
+        case null => BlackHoleZoomMetrics
+        case registry => new JmxZoomMetrics(this, registry)
+    }
+
+    curator.getConnectionStateListenable
+        .addListener(zoomMetrics.zkConnectionStateListener)
+
+    private[storage] def objectObservableCount: Int =
+        nodeObservables.values.count(_.isStarted)
+    private[storage] def classObservableCount: Int = classCaches.size
+
+    /* Returns a string, containing on each line, the number of observables
+       for a given object class. */
+    private[storage] def objectObservableCountPerClass: Map[Class[_], Int] = {
+        val map = new mutable.HashMap[Class[_], Int]
+        for ((key, obs) <- nodeObservables if obs.isStarted) {
+            val clazz = key.clazz
+            map(clazz) = map.getOrElse(clazz, 0) + 1
+        }
+        map.toMap
+    }
+
+    /* Returns a string that consists of all existing class observables. */
+    private[storage] def classObservableSet: Set[Class[_]] =
+        classCaches.keySet.toSet
+
+    private[storage] def zkConnectionState: String =
+        curator.getZookeeperClient.getZooKeeper.getState.toString
+    /* End of functions and variable used for JMX monitoring. */
 
     /**
      * Manages objects referenced by the primary target of a create, update,
@@ -193,6 +225,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 curator.getData.storingStatIn(stat).forPath(path)
             } catch {
                 case nne: NoNodeException =>
+                    zoomMetrics.incZkNoNodeExceptionCount()
                     throw new NotFoundException(clazz, id)
                 case ex: Exception =>
                     throw new InternalObjectMapperException(ex)
@@ -247,8 +280,12 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                     // operation because we already successfully fetched any
                     // objects that are being updated.
                     throw new ConcurrentModificationException(bve)
-                case nee: NodeExistsException => rethrowException(ops, nee)
-                case nne: NoNodeException => rethrowException(ops, nne)
+                case nee: NodeExistsException =>
+                    zoomMetrics.incZkNodeExistsExceptionCount()
+                    rethrowException(ops, nee)
+                case nne: NoNodeException =>
+                    zoomMetrics.incZkNoNodeExceptionCount()
+                    rethrowException(ops, nne)
                 case nee: NotEmptyException => rethrowException(ops, nee)
                 case rce: ReferenceConflictException => throw rce
                 case NonFatal(ex) => throw new InternalObjectMapperException(ex)
@@ -265,7 +302,9 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             try {
                 curator.getChildren.forPath(path).asScala.map(prefix + _)
             } catch {
-                case nne: NoNodeException => Seq.empty
+                case nne: NoNodeException =>
+                    zoomMetrics.incZkNoNodeExceptionCount()
+                    Seq.empty
             }
         }
 
@@ -419,6 +458,7 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
             getVersionNumberFromZkAndWatch
         } catch {
             case _: NodeExistsException =>
+                zoomMetrics.incZkNodeExistsExceptionCount()
                 try {
                     setVersionNumberAndWatch()
                 } catch {
@@ -479,15 +519,35 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         val key = Key(clazz, getIdString(clazz, id))
         val path = getObjectPath(clazz, id)
 
-        objectObservables.get(key) match {
-                case Some(observable) =>
-                    observable.asInstanceOf[Observable[T]].asFuture
-                case None => asObservable {
-                    curator.getData.inBackground(_).forPath(path)
+        nodeObservables.get(key) match {
+            case Some(obs) if !obs.isClosed =>
+                obs.map[Notification[T]](deserializerOf(clazz))
+                    .dematerialize().asInstanceOf[Observable[T]]
+                    .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                        case e: NodeObservableClosedException =>
+                            zoomMetrics.incObservablePrematureClose()
+                            nodeObservables.remove(key, obs)
+                            observable[T](clazz, id)
+                        case e: NoNodeException =>
+                            zoomMetrics.incZkNoNodeExceptionCount()
+                            Observable.error(new NotFoundException(clazz, id))
+                        case e: Throwable =>
+                            Observable.error(e)
+                    }))
+                    .asInstanceOf[Observable[T]]
+                    .asFuture
+            case Some(obs) if obs.isClosed =>
+                nodeObservables.remove(key, obs)
+                get(clazz, id)
+            case None => asObservable {
+                curator.getData.inBackground(_).forPath(path)
             }.map[Notification[T]](makeFunc1 { event =>
                 if (event.getResultCode == Code.OK.intValue()) {
                     Notification.createOnNext(deserialize(event.getData, clazz))
                 } else {
+                    if (event.getResultCode == Code.NONODE.intValue()) {
+                        zoomMetrics.incZkNoNodeExceptionCount()
+                    }
                     Notification.createOnError(new NotFoundException(clazz, id))
                 }
             }).dematerialize() asFuture
@@ -511,9 +571,12 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         assert(isRegistered(clazz))
 
         val all = Promise[Seq[T]]()
+        val start = System.nanoTime()
         val cb = new BackgroundCallback {
             override def processResult(client: CuratorFramework,
                                        evt: CuratorEvent): Unit = {
+                val end = System.nanoTime()
+                zoomMetrics.addReadChildrenLatency(end-start)
                 assert(CuratorEventType.CHILDREN == evt.getType)
                 getAll(clazz, evt.getChildren).onComplete {
                     case Success(l) => all trySuccess l
@@ -586,7 +649,10 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 manager.deleteNode(path)
         }
 
+        val start = System.nanoTime()
         try manager.commit() finally { manager.releaseLock() }
+        val end = System.nanoTime()
+        zoomMetrics.addMultiLatency(end-start)
     }
 
     @throws[ServiceUnavailableException]
@@ -597,22 +663,27 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
         val key = Key(clazz, getIdString(clazz, id))
         val path = getObjectPath(clazz, id)
 
-        objectObservables.getOrElse(key, {
-            val obs = NodeObservable.create(curator, path,
-                                            completeOnDelete = true)
-                .map[Notification[T]](deserializerOf(clazz))
-                .dematerialize().asInstanceOf[Observable[T]]
-                .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
-                    case e: NodeObservableClosedException =>
-                        objectObservables.remove(key)
-                        observable(clazz, id)
-                    case e: NoNodeException =>
-                        Observable.error(new NotFoundException(clazz, id))
-                    case e: Throwable =>
-                        Observable.error(e)
-            }))
-            objectObservables.putIfAbsent(key, obs).getOrElse(obs)
-        }).asInstanceOf[Observable[T]]
+        val obs = nodeObservables.getOrElse(key, {
+            val nodeObservable = NodeObservable.create(curator, path,
+                                                       completeOnDelete = true,
+                                                       zoomMetrics)
+            nodeObservables.putIfAbsent(key, nodeObservable)
+                           .getOrElse(nodeObservable)
+        })
+        obs.map[Notification[T]](deserializerOf(clazz))
+           .dematerialize().asInstanceOf[Observable[T]]
+           .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+               case e: NodeObservableClosedException =>
+                   zoomMetrics.incObservablePrematureClose()
+                   nodeObservables.remove(key, obs)
+                   observable(clazz, id)
+               case e: NoNodeException =>
+                   zoomMetrics.incZkNoNodeExceptionCount()
+                   Observable.error(new NotFoundException(clazz, id))
+               case e: Throwable =>
+                   Observable.error(e)
+           }))
+           .asInstanceOf[Observable[T]]
     }
 
     /**
@@ -631,9 +702,11 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
                 classCaches.remove(clazz)
             }
             val cc = new ClassSubscriptionCache(clazz, getClassPath(clazz),
-                                                curator, onLastUnsubscribe)
+                                                curator, onLastUnsubscribe,
+                                                zoomMetrics)
             classCaches.putIfAbsent(clazz, cc).getOrElse(cc)
-        }).asInstanceOf[ClassSubscriptionCache[T]].observable
+        }).asInstanceOf[ClassSubscriptionCache[T]]
+          .observable
     }
 
     // We should have public subscription methods, but we don't currently
@@ -659,23 +732,20 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
     }
 
     @inline
-    private[storage] def getClassPath(clazz: Class[_],
-                                      version: Long = version.longValue())
-    : String = {
-        basePath(version) + "/" + clazz.getSimpleName
+    private[storage] def getClassPath(clazz: Class[_]): String = {
+        basePath() + "/" + clazz.getSimpleName
     }
 
     @inline
     private[storage] def getObjectPath(clazz: Class[_], id: ObjId,
                                        version: Long = version.longValue())
     : String = {
-        getClassPath(clazz, version) + "/" + getIdString(clazz, id)
+        getClassPath(clazz) + "/" + getIdString(clazz, id)
     }
 
 }
 
 object ZookeeperObjectMapper {
-
     private val VersionNode = "dataset_version"
     private val InitialZoomDataSetVersion = 1
 

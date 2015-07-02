@@ -16,7 +16,8 @@
 
 package org.midonet.cluster.storage
 
-import com.google.inject.{Singleton, Inject, PrivateModule, Provider}
+import com.codahale.metrics.MetricRegistry
+import com.google.inject.{Inject, PrivateModule, Provider, Singleton}
 import com.typesafe.config.Config
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
@@ -50,6 +51,7 @@ class MidonetBackendModule(val conf: MidonetBackendConfig)
     }
 
     protected def bindStorage(): Unit = {
+        requireBinding(classOf[MetricRegistry])
         bind(classOf[MidonetBackend])
             .to(classOf[MidonetBackendService])
             .in(classOf[Singleton])
