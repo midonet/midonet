@@ -16,7 +16,6 @@
 
 package org.midonet.packets
 
-import java.net.InetAddress
 import java.util.Random
 
 import org.junit.Test
@@ -142,6 +141,13 @@ class IPv6AddrTest extends Suite with Matchers {
 
         IPv6Addr.convertToLongNotation("0:0:0:0:0:0:0:0") shouldEqual
             "0:0:0:0:0:0:0:0"
+    }
+
+    @Test
+    def testConvertToFromBytes(): Unit = {
+        val ip1 = IPv6Addr.random
+        val bytes = ip1.toBytes
+        IPv6Addr.fromBytes(bytes) shouldBe ip1
     }
 
 }
