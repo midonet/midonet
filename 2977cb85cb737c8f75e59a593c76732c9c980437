@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5dfcfc3e",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 5
+      },
+      "lineNbr": 15,
+      "author": {
+        "id": 1003720
+      },
+      "writtenOn": "2015-07-02T08:59:14Z",
+      "side": 1,
+      "message": "Please add a reference to the Midonet-dev relevant discussion which explains the motivation and gives background for the change.",
+      "revId": "2977cb85cb737c8f75e59a593c76732c9c980437",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
