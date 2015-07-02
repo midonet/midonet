@@ -21,7 +21,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Rule}
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Bridge
@@ -48,7 +47,7 @@ class ChainModificationTest extends MidolmanSpec {
         materializePort(outPort, hostId, "outPort")
 
         chain = newInboundChainOnBridge("brInFilter", bridge)
-        var r: Rule[_,_] = null
+        var r: UUID = null
         /*
          * Chain config:
          *   0: tcp dst port 80 => ACCEPT
@@ -57,20 +56,20 @@ class ChainModificationTest extends MidolmanSpec {
          *   3: tcp dst port 81 => DROP
          */
         r = newTcpDstRuleOnChain(chain, 1, 81, RuleResult.Action.DROP)
-        chainRules = r.getId :: chainRules
+        chainRules = r :: chainRules
 
         val tcpCond2 = newCondition(nwProto = Some(TCP.PROTOCOL_NUMBER),
                                     tpSrc = Some(3456))
         r = newLiteralRuleOnChain(chain, 1, tcpCond2, RuleResult.Action.ACCEPT)
-        chainRules = r.getId :: chainRules
+        chainRules = r :: chainRules
 
         val tcpCond3 = newCondition(nwProto = Some(TCP.PROTOCOL_NUMBER),
                                     tpSrc = Some(9009))
         r = newLiteralRuleOnChain(chain, 1, tcpCond3, RuleResult.Action.DROP)
-        chainRules = r.getId :: chainRules
+        chainRules = r :: chainRules
 
         r = newTcpDstRuleOnChain(chain, 1, 80, RuleResult.Action.ACCEPT)
-        chainRules = r.getId :: chainRules
+        chainRules = r :: chainRules
 
         fetchChains(chain)
         fetchPorts(inPort, outPort)
