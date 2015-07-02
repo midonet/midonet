@@ -93,17 +93,39 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
         fd = IOUtil.newFD(socket);
         fdVal = IOUtil.fdVal(fd);
 
-        ByteBuffer sobuf = BytesUtil.instance.allocate(4);
+        ByteBuffer len = BytesUtil.instance.allocateDirect(4);
+        len.putInt(4);
+
+        ByteBuffer sobuf = BytesUtil.instance.allocateDirect(4);
         sobuf.putInt(RCVBUF_SIZE);
+        sobuf.flip();
 
         int sockoptret = cLibrary.lib.setsockopt(
             fdVal, cLibrary.SOL_SOCKET, cLibrary.SO_RCVBUFFORCE, sobuf, 4);
         if (sockoptret != 0) {
             log.error("SETSOCKOPT failed: {}",
-                cLibrary.lib.strerror(Native.getLastError()));
+                      cLibrary.lib.strerror(Native.getLastError()));
         } else {
-            log.debug("Successfully set netlink channel RCVBUFF size to {}",
-                      RCVBUF_SIZE);
+            sobuf.clear();
+            len.clear();
+            sockoptret = cLibrary.lib.getsockopt(
+                fdVal, cLibrary.SOL_SOCKET, cLibrary.SO_RCVBUF, sobuf, len);
+            if (sockoptret != 0) {
+                log.debug("GETSOCKOPT NETLINK_BROADCAST_ERROR failed: {}",
+                          cLibrary.lib.strerror(Native.getLastError()));
+            } else {
+                sobuf.clear();
+                int actualLen = sobuf.getInt();
+                if (RCVBUF_SIZE * 2 == actualLen) {
+                    log.debug("Successfully set netlink channel RCVBUFF size to {}",
+                              RCVBUF_SIZE);
+                } else {
+                    log.error(
+                        "Failed to set netlink channel RCVBUFF: expected {}, but got {}",
+                        RCVBUF_SIZE, actualLen);
+                }
+            }
+
         }
 
         /* Set NETLINK_BROADCAST_ERROR to 1.
@@ -115,15 +137,30 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
          * netlink_broadcast() to send to userspace, so this will make sure it
          * gets the errors (and ignore them at will).
          */
-        ByteBuffer sobuf2 = BytesUtil.instance.allocate(4);
-        sobuf2.putInt(1);
+        sobuf.clear();
+        sobuf.putInt(1);
+        sobuf.flip();
         sockoptret = cLibrary.lib.setsockopt(
-            fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_BROADCAST_ERROR, sobuf2, 4);
+            fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_BROADCAST_ERROR, sobuf, 4);
         if (sockoptret != 0) {
             log.error("SETSOCKOPT NETLINK_BROADCAST_ERROR failed: {}",
                     cLibrary.lib.strerror(Native.getLastError()));
         } else {
-            log.debug("SETSOCKOPT success: NETLINK_BROADCAST_ERROR");
+            sobuf.clear();
+            len.clear();
+            sockoptret = cLibrary.lib.getsockopt(
+                fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_BROADCAST_ERROR, sobuf, len);
+            if (sockoptret != 0) {
+                log.debug("GETSOCKOPT NETLINK_BROADCAST_ERROR failed: {}",
+                          cLibrary.lib.strerror(Native.getLastError()));
+            } else {
+                sobuf.clear();
+                if (sobuf.getInt() == 1) {
+                    log.debug("SETSOCKOPT success: NETLINK_BROADCAST_ERROR");
+                } else {
+                    log.error("SETSOCKOPT failed: NETLINK_BROADCAST_ERROR");
+                }
+            }
         }
 
         /* Set NETLINK_NO_ENOBUFS to 1.
@@ -140,13 +177,30 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
          * will wait for userspace to deplete the read buffer before writing
          * again to it, causing spikes in throughput.
          */
+        sobuf.clear();
+        sobuf.putInt(1);
+        sobuf.flip();
         sockoptret = cLibrary.lib.setsockopt(
-                fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_NO_ENOBUFS, sobuf2, 4);
+                fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_NO_ENOBUFS, sobuf, 4);
         if (sockoptret != 0) {
             log.error("SETSOCKOPT NETLINK_NO_ENOBUFS failed: {}",
                     cLibrary.lib.strerror(Native.getLastError()));
         } else {
-            log.debug("SETSOCKOPT success: NETLINK_NO_ENOBUFS");
+            sobuf.clear();
+            len.clear();
+            sockoptret = cLibrary.lib.getsockopt(
+                fdVal, cLibrary.SOL_NETLINK, cLibrary.NETLINK_NO_ENOBUFS, sobuf, len);
+            if (sockoptret != 0) {
+                log.debug("GETSOCKOPT NETLINK_NO_ENOBUFS failed: {}",
+                          cLibrary.lib.strerror(Native.getLastError()));
+            } else {
+                sobuf.clear();
+                if (sobuf.getInt() == 1) {
+                    log.debug("SETSOCKOPT success: NETLINK_NO_ENOBUFS");
+                } else {
+                    log.error("SETSOCKOPT failed: NETLINK_NO_ENOBUFS");
+                }
+            }
         }
     }
 

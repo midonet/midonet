@@ -130,6 +130,7 @@ public interface cLibrary extends Library {
     int getsockname(int fd, UnixDomainSockAddress addrSockAddress, IntByReference size);
 
     int setsockopt(int fd, int level, int optname, ByteBuffer buf, int buflen);
+    int getsockopt(int fd, int level, int optname, ByteBuffer buf, ByteBuffer buflen);
 
     int send(int fd, ByteBuffer buf, int len, int flags);
 
