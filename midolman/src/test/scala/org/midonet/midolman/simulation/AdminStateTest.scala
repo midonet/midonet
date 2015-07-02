@@ -30,7 +30,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.cluster.data.{Entity, Router => ClusterRouter}
+import org.midonet.cluster.data.{Entity}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
@@ -69,7 +69,7 @@ class AdminStateTest extends MidolmanSpec {
     var bridge: UUID = _
     var interiorBridgePort: BridgePort = _
     var exteriorBridgePort: BridgePort = _
-    var router: ClusterRouter = _
+    var router: UUID = _
     var interiorRouterPort: RouterPort = _
     var exteriorRouterPort: RouterPort = _
 
@@ -120,14 +120,12 @@ class AdminStateTest extends MidolmanSpec {
 
         val topo = fetchTopology(interiorBridgePort,
                                  exteriorRouterPort,
-                                 router,
                                  interiorRouterPort,
                                  exteriorRouterPort)
+        val r = fetchDevice[Router](router)
+        feedArpTable(r, ipBridgeSide.getAddress, macBridgeSide)
+        feedArpTable(r, ipRouterSide.getAddress, macRouterSide)
 
-        topo.collectFirst({ case r: Router => r}) foreach { r =>
-            feedArpTable(r, ipBridgeSide.getAddress, macBridgeSide)
-            feedArpTable(r, ipRouterSide.getAddress, macRouterSide)
-        }
         val simBridge = fetchDevice[Bridge](bridge)
         feedMacTable(simBridge, macBridgeSide, exteriorBridgePort.getId)
 
@@ -276,8 +274,7 @@ class AdminStateTest extends MidolmanSpec {
         scenario("a down router sends an ICMP prohibited error") {
             Given("a down router")
 
-            router.setAdminStateUp(false)
-            clusterDataClient.routersUpdate(router)
+            setRouterAdminStateUp(router, false)
 
             When("a packet is sent to that router")
 
@@ -286,7 +283,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(router.getId)
+                FlowTagger.tagForDevice(router)
             })
 
             And("an ICMP prohibited error should be emitted from the " +
@@ -512,28 +509,25 @@ class AdminStateTest extends MidolmanSpec {
 
             When("setting its state to down")
 
-            router.setAdminStateUp(false)
-            clusterDataClient.routersUpdate(router)
+            setRouterAdminStateUp(router, false)
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(router)
+            assertFlowTagsInvalidated2(router)
         }
 
         scenario("the admin state of a router is set to up") {
             Given("a router with its state set to down")
-            router.setAdminStateUp(false)
-            clusterDataClient.routersUpdate(router)
+            setRouterAdminStateUp(router, false)
             VirtualTopologyActor.getAndClear()
 
             When("setting its state to up")
 
-            router.setAdminStateUp(true)
-            clusterDataClient.routersUpdate(router)
+            setRouterAdminStateUp(router, true)
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(router)
+            assertFlowTagsInvalidated2(router)
         }
 
         scenario("the admin state of a router port is set to down") {
