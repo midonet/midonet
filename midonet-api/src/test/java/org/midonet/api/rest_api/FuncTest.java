@@ -182,7 +182,8 @@ public class FuncTest {
             );
 
             MidonetBackendService backend =
-                new MidonetBackendService(cfg.backend(), curator);
+                new MidonetBackendService(cfg.backend(), curator,
+                                          null /* metricRegistry */);
             backend.startAsync().awaitRunning();
 
             FuncTest._injector = Guice.createInjector(
