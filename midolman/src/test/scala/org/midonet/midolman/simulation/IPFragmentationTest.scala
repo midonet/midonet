@@ -24,7 +24,7 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Entity, Port}
+import org.midonet.cluster.data.{Entity}
 import org.midonet.midolman.PacketWorkflow.{SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
@@ -71,8 +71,8 @@ class IPFragmentationTest extends MidolmanSpec {
     // on the value of useRouter passed to setup().
     var useRouter: Boolean = false
     var deviceId: UUID = _
-    var srcPort: Port[_, _] = _
-    var dstPort: Port[_, _] = _
+    var srcPort: UUID = _
+    var dstPort: UUID = _
     var srcMac: MAC = _
     var dstMac: MAC = _
     var srcSubnet: IPv4Subnet = _
@@ -112,9 +112,9 @@ class IPFragmentationTest extends MidolmanSpec {
             materializePort(srcPort, hostId, "bport0")
             materializePort(dstPort, hostId, "bport1")
 
-            val topo = fetchTopology(srcPort, dstPort)
+            fetchPorts(srcPort, dstPort)
             val simBridge = fetchDevice[Bridge](bridge)
-            feedMacTable(simBridge, dstMac, dstPort.getId)
+            feedMacTable(simBridge, dstMac, dstPort)
         }
     }
 
@@ -210,7 +210,7 @@ class IPFragmentationTest extends MidolmanSpec {
                            etherType: Short = IPv4.ETHERTYPE)
     : (SimulationResult, PacketContext) = {
         val pkt = makePacket(fragType, etherType)
-        val pktCtx = packetContextFor(pkt, srcPort.getId, packetEmitter)
+        val pktCtx = packetContextFor(pkt, srcPort, packetEmitter)
         simulate(pktCtx)
     }
 
@@ -229,10 +229,10 @@ class IPFragmentationTest extends MidolmanSpec {
     }
 
     private def assertToPortFlowCreated(simRes: (SimulationResult, PacketContext)) {
-        simRes should be (toPort(dstPort.getId)
-            (FlowTagger.tagForDevice(srcPort.getId),
+        simRes should be (toPort(dstPort)
+            (FlowTagger.tagForDevice(srcPort),
              FlowTagger.tagForDevice(deviceId),
-             FlowTagger.tagForDevice(dstPort.getId)))
+             FlowTagger.tagForDevice(dstPort)))
     }
 
     private def assertDropFlowCreated(simRes: (SimulationResult, PacketContext),
@@ -243,7 +243,7 @@ class IPFragmentationTest extends MidolmanSpec {
         }
 
         simRes shouldBe dropped(
-            FlowTagger.tagForDevice(srcPort.getId),
+            FlowTagger.tagForDevice(srcPort),
             FlowTagger.tagForDevice(deviceId))
     }
 
@@ -251,7 +251,7 @@ class IPFragmentationTest extends MidolmanSpec {
         context.packetEmitter.pendingPackets should be (1)
         val generatedPacket = context.packetEmitter.poll()
 
-        generatedPacket.egressPort should be(srcPort.getId)
+        generatedPacket.egressPort should be(srcPort)
 
         val ipPkt = generatedPacket.eth.getPayload.asInstanceOf[IPv4]
         ipPkt should not be null
