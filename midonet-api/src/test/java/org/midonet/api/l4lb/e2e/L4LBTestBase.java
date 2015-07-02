@@ -230,7 +230,7 @@ public class L4LBTestBase extends RestApiTestBase {
 
     protected DtoPool getPool(URI poolUri) {
         ClientResponse response = resource().uri(poolUri)
-                .type(APPLICATION_POOL_JSON)
+                .accept(APPLICATION_POOL_JSON)
                 .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         return response.getEntity(DtoPool.class);
