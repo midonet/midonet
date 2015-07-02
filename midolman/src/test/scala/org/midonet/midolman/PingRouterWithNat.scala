@@ -21,7 +21,6 @@ import java.util.{HashSet,UUID}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.PacketWorkflow.HandlePackets
@@ -49,15 +48,15 @@ class PingRouterWithNat extends MidolmanSpec {
     private val nearNwAddr = new IPv4Subnet("172.19.0.0", 24)
     private val farNwAddr = new IPv4Subnet("172.20.0.0", 24)
 
-    private var nearLeftPort: RouterPort = _
+    private var nearLeftPort: UUID = _
     private val nearLeftPortAddr = new IPv4Subnet("172.19.0.2", 24)
     private val nearLeftPortMac: MAC = "02:0a:08:06:04:01"
 
-    private var nearRightPort: RouterPort = _
+    private var nearRightPort: UUID = _
     private val nearRightPortAddr = new IPv4Subnet("172.20.0.2", 32)
     private val nearRightPortMac: MAC = "02:0a:08:06:04:02"
 
-    private var farPort: RouterPort = _
+    private var farPort: UUID = _
     private val farPortAddr = new IPv4Subnet("172.20.0.3", 32)
     private val farPortMac: MAC = "02:0a:08:06:05:01"
 
@@ -83,17 +82,17 @@ class PingRouterWithNat extends MidolmanSpec {
 
         newRoute(nearRouter, "0.0.0.0", 0,
                  farNwAddr.toNetworkAddress, farNwAddr.getPrefixLen,
-                 NextHop.PORT, nearRightPort.getId,
+                 NextHop.PORT, nearRightPort,
                  new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         newRoute(nearRouter, "0.0.0.0", 0,
                  nearNwAddr.toNetworkAddress, nearNwAddr.getPrefixLen,
-                 NextHop.PORT, nearLeftPort.getId,
+                 NextHop.PORT, nearLeftPort,
                  new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         newRoute(farRouter, "0.0.0.0", 0,
                  "0.0.0.0", 0,
-                 NextHop.PORT, farPort.getId,
+                 NextHop.PORT, farPort,
                  new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         val rtrOutChain = newOutboundChainOnRouter("rtrOutChain", nearRouter)
@@ -101,7 +100,7 @@ class PingRouterWithNat extends MidolmanSpec {
 
         val revSnatCond = new Condition()
         revSnatCond.inPortIds = new HashSet()
-        revSnatCond.inPortIds.add(nearRightPort.getId)
+        revSnatCond.inPortIds.add(nearRightPort)
         revSnatCond.nwDstIp = snatIp
 
         newReverseNatRuleOnChain(
@@ -127,12 +126,8 @@ class PingRouterWithNat extends MidolmanSpec {
                      srcIp.toNetworkAddress, srcMac)
 
         fetchRouters(nearRouter, farRouter)
-        fetchTopology(
-            nearLeftPort,
-            nearRightPort,
-            farPort,
-            rtrInChain,
-            rtrOutChain)
+        fetchPorts(nearLeftPort, nearRightPort, farPort)
+        fetchTopology(rtrInChain, rtrOutChain)
     }
 
     val pingReq: Ethernet =
@@ -148,7 +143,7 @@ class PingRouterWithNat extends MidolmanSpec {
         val packet = new Packet(pingReq, fmatch)
 
         val workflow = packetWorkflow(
-            dpPortToVport = Map(1 -> nearLeftPort.getId),
+            dpPortToVport = Map(1 -> nearLeftPort),
             natTable = table)
 
         var passed = false

@@ -23,7 +23,6 @@ import com.typesafe.config.{ConfigFactory, Config}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp}
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
@@ -38,7 +37,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var bridge: UUID = _
-    var port1, port2, port3: BridgePort = _
+    var port1, port2, port3: UUID = _
     val mac1 = MAC.fromString("02:11:11:11:11:09")
     val ip1 = IPv4Addr.fromString("10.0.1.1")
     val mac2 = MAC.fromString("0a:fe:88:90:22:33")
@@ -65,9 +64,9 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
         feedBridgeIp4Mac(bridge, ip1, mac1)
 
         val simBridge = fetchDevice[Bridge](bridge)
-        fetchTopology(port1, port2, port3)
+        fetchPorts(port1, port2, port3)
 
-        feedMacTable(simBridge, mac1, port1.getId)
+        feedMacTable(simBridge, mac1, port1)
     }
 
     feature("The bridge is not flooded") {
@@ -76,7 +75,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
             val ethPkt = Packets.arpRequest(mac2, ip2, ip1)
             val generatedPackets = new LinkedList[GeneratedPacket]()
 
-            val (simRes, _) = simulate(packetContextFor(ethPkt, port2.getId,
+            val (simRes, _) = simulate(packetContextFor(ethPkt, port2,
                                                         generatedPackets))
 
             simRes should be (NoOp)
@@ -84,7 +83,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
 
             val GeneratedPacket(egressPort, genEth) = generatedPackets.poll()
 
-            egressPort should be (port2.getId)
+            egressPort should be (port2)
             genEth should be (ARP.makeArpReply(mac1, mac2,
                                                IPv4Addr.intToBytes(ip1.addr),
                                                IPv4Addr.intToBytes(ip2.addr)))
@@ -92,18 +91,18 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
 
         scenario ("The bridge forwards a packet to a known MAC") {
             val ethPkt = Packets.udp(mac2, mac1, ip2, ip1, 10, 12, "Test".getBytes)
-            val (simRes, pktCtx) = simulate(packetContextFor(ethPkt, port2.getId))
+            val (simRes, pktCtx) = simulate(packetContextFor(ethPkt, port2))
 
             simRes should be (AddVirtualWildcardFlow)
             pktCtx.virtualFlowActions should have size 1
-            pktCtx.virtualFlowActions.get(0) should be (FlowActionOutputToVrnPort(port1.getId))
+            pktCtx.virtualFlowActions.get(0) should be (FlowActionOutputToVrnPort(port1))
         }
     }
 
     feature ("The bridge is flooded") {
         scenario ("When a MAC hasn't been learned") {
             val ethPkt = Packets.udp(mac2, mac3, ip2, ip3, 10, 12, "Test".getBytes)
-            val (simRes, pktCtx) = simulate(packetContextFor(ethPkt, port2.getId))
+            val (simRes, pktCtx) = simulate(packetContextFor(ethPkt, port2))
 
             simRes should be (AddVirtualWildcardFlow)
             pktCtx.virtualFlowActions should have size 1
@@ -111,7 +110,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
             val FlowActionOutputToVrnBridge(bridgeId, outputPorts) = pktCtx.virtualFlowActions.get(0)
 
             bridgeId should be (bridge)
-            outputPorts should contain theSameElementsAs List(port1.getId, port3.getId)
+            outputPorts should contain theSameElementsAs List(port1, port3)
         }
     }
 }

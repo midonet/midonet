@@ -111,33 +111,31 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         chain
     }
 
-    override def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                              (name: String, port: Port[PD, P],
-                               id: UUID): Chain = {
+    override def newOutboundChainOnPort(name: String, portId: UUID,
+                                        id: UUID): Chain = {
         val chain = newChain(name, Some(id))
+        val port = clusterDataClient().portsGet(portId)
         port.setOutboundFilter(id)
         clusterDataClient().portsUpdate(port)
         Thread.sleep(50)
         chain
     }
 
-    override def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                             (name: String, port: Port[PD, P],
-                              id: UUID): Chain = {
+    override def newInboundChainOnPort(name: String, portId: UUID,
+                                       id: UUID): Chain = {
         val chain = new Chain().setName(name).setId(id)
         clusterDataClient().chainsCreate(chain)
+        val port = clusterDataClient().portsGet(portId)
         port.setInboundFilter(id)
         clusterDataClient().portsUpdate(port)
         Thread.sleep(50)
         chain
     }
 
-    override def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                              (name: String, port: Port[PD, P]): Chain =
+    override def newOutboundChainOnPort(name: String, port: UUID): Chain =
         newOutboundChainOnPort(name, port, UUID.randomUUID)
 
-    override def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                             (name: String, port: Port[PD, P]): Chain =
+    override def newInboundChainOnPort(name: String, port: UUID): Chain =
         newInboundChainOnPort(name, port, UUID.randomUUID)
 
     override def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
@@ -269,38 +267,34 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
 
-    override def newBridgePort(bridgeId: UUID): BridgePort = {
+    override def newBridgePort(bridgeId: UUID,
+                               host: Option[UUID] = None,
+                               interface: Option[String] = None): UUID = {
         val bridge = clusterDataClient().bridgesGet(bridgeId)
-        newBridgePort(bridgeId, Ports.bridgePort(bridge))
-    }
-
-    override def newBridgePort(bridge: UUID, port: BridgePort) = {
-        port.setDeviceId(bridge)
+        val port = Ports.bridgePort(bridge)
+        host match {
+            case Some(hostId) => port.setHostId(hostId)
+            case None =>
+        }
+        interface match {
+            case Some(iface) => port.setInterfaceName(iface)
+            case None =>
+        }
         val uuid = clusterDataClient().portsCreate(port)
         Thread.sleep(50)
         // do a portsGet because some fields are set during the creating and are
         // not copied in the port object we pass, eg. TunnelKey
-        clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
+        uuid
     }
 
-    override def newBridgePort(bridgeId: UUID,
-                      vlanId: Option[Short] = None): BridgePort = {
-        val bridge = clusterDataClient().bridgesGet(bridgeId)
-        val jVlanId: java.lang.Short = if(vlanId.isDefined) vlanId.get else null
-        val uuid = clusterDataClient()
-                   .portsCreate(Ports.bridgePort(bridge, jVlanId))
-        Thread.sleep(50)
-        clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
+    override def setPortAdminStateUp(port: UUID, state: Boolean): Unit = {
+        val portdata = clusterDataClient().portsGet(port)
+        portdata.setAdminStateUp(state)
+        clusterDataClient().portsUpdate(portdata)
     }
 
-    override def newVxLanPort(bridge: UUID, port: VxLanPort): VxLanPort = {
-        port.setDeviceId(bridge)
-        val uuid = clusterDataClient().portsCreate(port)
-        clusterDataClient().portsGet(uuid).asInstanceOf[VxLanPort]
-    }
-
-    override def deletePort(port: Port[_, _], hostId: UUID){
-        clusterDataClient().hostsDelVrnPortMapping(hostId, port.getId)
+    override def deletePort(port: UUID, hostId: UUID){
+        clusterDataClient().hostsDelVrnPortMapping(hostId, port)
     }
 
     override def newPortGroup(name: String, stateful: Boolean = false) = {
@@ -336,7 +330,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     override def newRouterPort(routerId: UUID, mac: MAC, portAddr: String,
-                               nwAddr: String, nwLen: Int): RouterPort = {
+                               nwAddr: String, nwLen: Int): UUID = {
         val router = clusterDataClient().routersGet(routerId)
         val port = Ports.routerPort(router)
                         .setPortAddr(portAddr)
@@ -345,26 +339,13 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
                         .setHwAddr(mac)
         val uuid = clusterDataClient().portsCreate(port)
         Thread.sleep(50)
-        clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
+        uuid
     }
 
-    override def newRouterPort(routerId: UUID, mac: MAC, portAddr: IPv4Subnet): RouterPort = {
+    override def newRouterPort(routerId: UUID, mac: MAC,
+                               portAddr: IPv4Subnet): UUID = {
         newRouterPort(routerId, mac, portAddr.toUnicastString,
             portAddr.toNetworkAddress.toString, portAddr.getPrefixLen)
-    }
-
-    override def newInteriorRouterPort(routerId: UUID, mac: MAC, portAddr: String,
-                                       nwAddr: String, nwLen: Int): RouterPort = {
-        val router = clusterDataClient().routersGet(routerId)
-
-        val port = Ports.routerPort(router)
-                        .setPortAddr(portAddr)
-                        .setNwAddr(nwAddr)
-                        .setNwLength(nwLen)
-                        .setHwAddr(mac)
-        val uuid = clusterDataClient().portsCreate(port)
-        Thread.sleep(50)
-        clusterDataClient().portsGet(uuid).asInstanceOf[RouterPort]
     }
 
     override def newRoute(router: UUID,
@@ -416,12 +397,9 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
                                               subnet.getPrefix, host)
     }
 
-    override def linkPorts(port: Port[_, _], peerPort: Port[_, _]) {
-        clusterDataClient().portsLink(port.getId, peerPort.getId)
+    override def linkPorts(port: UUID, peerPort: UUID) {
+        clusterDataClient().portsLink(port, peerPort)
     }
-
-    override def materializePort(port: Port[_, _], hostId: UUID, portName: String): Unit =
-        materializePort(port.getId, hostId, portName)
 
     override def materializePort(port: UUID, hostId: UUID, portName: String): Unit = {
         clusterDataClient().hostsAddVrnPortMappingAndReturnPort(

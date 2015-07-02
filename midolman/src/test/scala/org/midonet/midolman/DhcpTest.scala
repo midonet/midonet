@@ -30,7 +30,6 @@ import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.ExtraDhcpOpt
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Bridge, DhcpValueParser, Router}
@@ -58,9 +57,9 @@ class DhcpTest extends MidolmanSpec {
     val vm2Mac = MAC.fromString("02:53:53:53:53:53")
 
     var bridge: UUID = _
-    var bridgePort1: BridgePort = _
+    var bridgePort1: UUID = _
     val bridgePortNumber1 = 1
-    var bridgePort2: BridgePort = _
+    var bridgePort2: UUID = _
     val bridgePortNumber2 = 2
 
     val vm1IP : IPv4Subnet = new IPv4Subnet("10.0.0.0", 24)
@@ -79,7 +78,7 @@ class DhcpTest extends MidolmanSpec {
         val routerPort1 = newRouterPort(router, routerMac1, routerIp1)
         materializePort(routerPort1, hostId, "routerPort")
         newRoute(router, "0.0.0.0", 0, routerIp1.toUnicastString,
-                 routerIp1.getPrefixLen, NextHop.PORT, routerPort1.getId,
+                 routerIp1.getPrefixLen, NextHop.PORT, routerPort1,
                  IPv4Addr(Route.NO_GATEWAY).toString, 10)
         val routerPort2 = newRouterPort(router, routerMac2, routerIp2)
         val routerPort3 = newRouterPort(router, routerMac3, routerIp3)
@@ -87,10 +86,10 @@ class DhcpTest extends MidolmanSpec {
         bridge = newBridge("bridge")
 
         val bridgeIntPort1 = newBridgePort(bridge)
-        clusterDataClient.portsLink(routerPort2.getId, bridgeIntPort1.getId)
+        clusterDataClient.portsLink(routerPort2, bridgeIntPort1)
 
         val bridgeIntPort2 = newBridgePort(bridge)
-        clusterDataClient.portsLink(routerPort3.getId, bridgeIntPort2.getId)
+        clusterDataClient.portsLink(routerPort3, bridgeIntPort2)
 
         bridgePort1 = newBridgePort(bridge)
         materializePort(bridgePort1, hostId, "bridgePort1")
@@ -138,13 +137,13 @@ class DhcpTest extends MidolmanSpec {
             .setIp(vm2IP.getAddress)
         addDhcpHost(bridge, dhcpSubnet2, dhcpHost2)
 
-        fetchTopology(routerPort1, routerPort2, routerPort3,
-                      bridgeIntPort1, bridgeIntPort2, bridgePort1, bridgePort2)
+        fetchPorts(routerPort1, routerPort2, routerPort3,
+                   bridgeIntPort1, bridgeIntPort2, bridgePort1, bridgePort2)
         fetchDevice[Router](router)
         fetchDevice[Bridge](bridge)
 
-        workflow = packetWorkflow(Map(bridgePortNumber1 -> bridgePort1.getId,
-                                      bridgePortNumber2 -> bridgePort2.getId)).underlyingActor
+        workflow = packetWorkflow(Map(bridgePortNumber1 -> bridgePort1,
+                                      bridgePortNumber2 -> bridgePort2)).underlyingActor
     }
 
     def extraDhcpOptToDhcpOption(opt: ExtraDhcpOpt): Option[DHCPOption] = for {
@@ -152,7 +151,7 @@ class DhcpTest extends MidolmanSpec {
         value <- DhcpValueParser.parseDhcpOptionValue(code, opt.optValue)
     } yield new DHCPOption(code, value.length.toByte, value)
 
-    def injectDhcpDiscover(port: BridgePort, portNumber: Int,
+    def injectDhcpDiscover(port: UUID, portNumber: Int,
                            srcMac : MAC): Ethernet = {
         val pkt = { eth src srcMac dst "ff:ff:ff:ff:ff:ff" } <<
                   { ip4 src 0 dst 0xffffffff } <<
@@ -176,7 +175,7 @@ class DhcpTest extends MidolmanSpec {
         workflow.start(pktCtx)
 
         emitter should have size 1
-        emitter.head.egressPort should be (port.getId)
+        emitter.head.egressPort should be (port)
         emitter.head.eth
     }
 
@@ -190,7 +189,7 @@ class DhcpTest extends MidolmanSpec {
         udpPkt.getPayload.asInstanceOf[DHCP]
     }
 
-    def sendDhcpDiscoveryAndGetDhcpOffer(port: BridgePort = bridgePort1,
+    def sendDhcpDiscoveryAndGetDhcpOffer(port: UUID = bridgePort1,
                                          portNum: Int = bridgePortNumber1,
                                          mac: MAC = vm1Mac): DHCP = {
         val returnPkt = injectDhcpDiscover(port, portNum, mac)

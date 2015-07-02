@@ -21,7 +21,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.rules.{RuleResult, NatTarget, Condition}
@@ -42,8 +41,8 @@ class DnatPlusSnatTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var router: UUID = _
-    var port1: RouterPort = _
-    var port2: RouterPort = _
+    var port1: UUID = _
+    var port2: UUID = _
 
     val clientGw = IPv4Addr("10.0.0.1")
     val clientGwMac = MAC.fromString("02:aa:bb:bb:aa:11")
@@ -64,13 +63,13 @@ class DnatPlusSnatTest extends MidolmanSpec {
         port1 = newRouterPort(router, clientGwMac,
                                   clientGw.toString, "10.0.0.0", 24)
         newRoute(router, "0.0.0.0", 0, "10.0.0.0", 24, NextHop.PORT,
-                 port1.getId, null, 10)
+                 port1, null, 10)
         materializePort(port1, hostId, "port1")
 
         port2 = newRouterPort(router, serverGwMac,
                                   serverGw.toString, "10.0.1.0", 24)
         newRoute(router, "0.0.0.0", 0, "10.0.1.0", 24, NextHop.PORT,
-                 port2.getId, null, 10)
+                 port2, null, 10)
         materializePort(port2, hostId, "port2")
 
         val inChain = newInboundChainOnRouter("InFilter", router)
@@ -131,7 +130,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
                   { ip4 src client1 dst dst} <<
                   { tcp src 12345 dst 80 }
 
-        val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1.getId))
+        val (simRes, pktCtx) = simulate(packetContextFor(pkt, port1))
         simRes should be (AddVirtualWildcardFlow)
 
         pktCtx.virtualFlowActions should have size 4
@@ -148,7 +147,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
         tcpKey.tcp_src should not be 12345
         tcpKey.tcp_dst should be (81)
 
-        pktCtx.virtualFlowActions.get(3) should be (FlowActionOutputToVrnPort(port2.getId))
+        pktCtx.virtualFlowActions.get(3) should be (FlowActionOutputToVrnPort(port2))
 
         val dnatKey = NatKey(FWD_DNAT, client1, 12345, dst, 80,
                              TCP.PROTOCOL_NUMBER, router)
@@ -184,7 +183,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
                         { ip4 src serverIp dst serverGw } <<
                         { tcp src 81 dst tcpKey.tcp_src.toShort }
 
-        val (returnSimRes, returnPktCtx) = simulate(packetContextFor(returnPkt, port2.getId))
+        val (returnSimRes, returnPktCtx) = simulate(packetContextFor(returnPkt, port2))
         returnSimRes should be (AddVirtualWildcardFlow)
 
         returnPktCtx.virtualFlowActions should have size 4
@@ -200,7 +199,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
         tcpKey.tcp_src should be (80)
         tcpKey.tcp_dst should be (12345)
 
-        returnPktCtx.virtualFlowActions.get(3) should be (FlowActionOutputToVrnPort(port1.getId))
+        returnPktCtx.virtualFlowActions.get(3) should be (FlowActionOutputToVrnPort(port1))
     }
 
     private def setKey[T <: FlowKey](action: FlowAction) =

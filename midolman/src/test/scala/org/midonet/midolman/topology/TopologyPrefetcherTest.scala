@@ -22,7 +22,6 @@ import scala.collection.mutable
 import akka.actor.Props
 import akka.testkit.TestActorRef
 
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.simulation.{Bridge => SimBridge}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, Unsubscribe}
 import org.midonet.midolman.util.MidolmanSpec
@@ -37,7 +36,7 @@ class TopologyPrefetcherTest extends MidolmanSpec {
 
     var bridge: UUID = _
     var simBridge: SimBridge = _
-    var port: BridgePort = _
+    var port: UUID = _
 
     class MyTopologyPrefetcher extends TopologyPrefetcher {
         val requested = mutable.Set[UUID]()
@@ -70,7 +69,7 @@ class TopologyPrefetcherTest extends MidolmanSpec {
 
         bridge = newBridge("bridge0")
         port = newBridgePort(bridge)
-        fetchTopology(port)
+        fetchPorts(port)
         simBridge = fetchDevice[SimBridge](bridge)
     }
 
@@ -97,11 +96,11 @@ class TopologyPrefetcherTest extends MidolmanSpec {
             VirtualTopologyActor.getAndClear() should contain (bridgeReq)
 
             When("Pre-fetching a port and forgetting the bridge")
-            val portReq = topologyActor.underlyingActor.port(port.getId)
+            val portReq = topologyActor.underlyingActor.port(port)
             topologyActor ! portReq
 
             Then("The hook method is called with the pre-fetched port")
-            topologyActor.underlyingActor.topology should contain key port.getId
+            topologyActor.underlyingActor.topology should contain key port
             topologyActor.underlyingActor.topology.size should be (1)
 
             And("The VTA receives a request for the port")
@@ -118,11 +117,11 @@ class TopologyPrefetcherTest extends MidolmanSpec {
             VirtualTopologyActor.getAndClear() should contain (bridgeReq)
 
             When("Pre-fetching a port and the same bridge")
-            val portReq = topologyActor.underlyingActor.port(port.getId)
+            val portReq = topologyActor.underlyingActor.port(port)
             topologyActor ! List(portReq, bridgeReq)
 
             Then("The hook method is called with the pre-fetched devices")
-            topologyActor.underlyingActor.topology should contain key port.getId
+            topologyActor.underlyingActor.topology should contain key port
             topologyActor.underlyingActor.topology should contain key bridge
             topologyActor.underlyingActor.topology.size should be (2)
 

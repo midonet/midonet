@@ -28,7 +28,6 @@ import org.scalatest.junit.JUnitRunner
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.{TunnelZone}
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Bridge
@@ -45,11 +44,11 @@ class BridgeSimulationTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    private var port1OnHost1: BridgePort = _
-    private var port2OnHost1: BridgePort = _
-    private var port3OnHost1: BridgePort = _
-    private var portOnHost2: BridgePort = _
-    private var portOnHost3: BridgePort = _
+    private var port1OnHost1: UUID = _
+    private var port2OnHost1: UUID = _
+    private var port3OnHost1: UUID = _
+    private var portOnHost2: UUID = _
+    private var portOnHost3: UUID = _
 
     private var bridge: UUID = _
     private var bridgeDevice: Bridge = _
@@ -88,8 +87,8 @@ class BridgeSimulationTest extends MidolmanSpec {
                     new TunnelZone.HostConfig(host).setIp(ip))
         }
 
-        fetchTopology(port1OnHost1, portOnHost2, portOnHost3,
-                      port2OnHost1, port3OnHost1)
+        fetchPorts(port1OnHost1, portOnHost2, portOnHost3,
+                   port2OnHost1, port3OnHost1)
 
         bridgeDevice = fetchDevice[Bridge](bridge)
     }
@@ -117,7 +116,7 @@ class BridgeSimulationTest extends MidolmanSpec {
         malformed ether_type IPv4.ETHERTYPE vlans networkVlans
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
-                                              malformed, port1OnHost1.getId)
+                                              malformed, port1OnHost1)
         verifyFloodAction(action)
     }
 
@@ -129,10 +128,10 @@ class BridgeSimulationTest extends MidolmanSpec {
         ethPkt.setVlanIDs(networkVlans)
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
-                                              ethPkt, port1OnHost1.getId)
+                                              ethPkt, port1OnHost1)
         verifyFloodAction(action)
 
-        verifyMacLearned(srcMac, port1OnHost1.getId)
+        verifyMacLearned(srcMac, port1OnHost1)
     }
 
     scenario("inbound chains not applied to vlan traffic") {
@@ -176,7 +175,7 @@ class BridgeSimulationTest extends MidolmanSpec {
         log.info("Testing traffic with vlans: {}", networkVlans)
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
-                                              ethPkt, port1OnHost1.getId)
+                                              ethPkt, port1OnHost1)
 
         if (networkVlans.isEmpty) {
             action should be (Drop)
@@ -193,11 +192,11 @@ class BridgeSimulationTest extends MidolmanSpec {
         ethPkt.setVlanIDs(networkVlans)
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
-                                              ethPkt, port1OnHost1.getId)
+                                              ethPkt, port1OnHost1)
         verifyFloodAction(action)
 
         //Our source MAC should also be learned
-        verifyMacLearned(srcMac, port1OnHost1.getId)
+        verifyMacLearned(srcMac, port1OnHost1)
     }
 
     scenario("broadcast arp on bridge") {
@@ -208,11 +207,11 @@ class BridgeSimulationTest extends MidolmanSpec {
         ethPkt.setVlanIDs(networkVlans)
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
-                                              ethPkt, port1OnHost1.getId)
+                                              ethPkt, port1OnHost1)
         verifyFloodAction(action)
 
         //Our source MAC should also be learned
-        verifyMacLearned(srcMac, port1OnHost1.getId)
+        verifyMacLearned(srcMac, port1OnHost1)
     }
 
     scenario("multicast destination ethernet on bridge") {
@@ -223,11 +222,11 @@ class BridgeSimulationTest extends MidolmanSpec {
         ethPkt.setVlanIDs(networkVlans)
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
-                                              ethPkt, port1OnHost1.getId)
+                                              ethPkt, port1OnHost1)
         verifyFloodAction(action)
 
         //Our source MAC should also be learned
-        verifyMacLearned(srcMac, port1OnHost1.getId)
+        verifyMacLearned(srcMac, port1OnHost1)
     }
 
     scenario("multicast src ethernet on bridge") {
@@ -237,7 +236,7 @@ class BridgeSimulationTest extends MidolmanSpec {
         ethPkt.setVlanIDs(networkVlans)
 
         val (pktCtx, action) = simulateDevice(bridgeDevice,
-                                              ethPkt, port1OnHost1.getId)
+                                              ethPkt, port1OnHost1)
         action should be (Drop)
     }
 
@@ -250,10 +249,10 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         val bridgeDevice: Bridge = fetchDevice[Bridge](bridge)
         val (pktCtx, action) = simulateDevice(bridgeDevice,
-                                              ethPkt, port1OnHost1.getId)
+                                              ethPkt, port1OnHost1)
         verifyFloodAction(action)
 
-        verifyMacLearned(srcMac, port1OnHost1.getId)
+        verifyMacLearned(srcMac, port1OnHost1)
 
         /*
          * MAC moved from port1OnHost1 to port3OnHost1
@@ -266,14 +265,14 @@ class BridgeSimulationTest extends MidolmanSpec {
         ethPkt.setVlanIDs(networkVlans)
 
         val (pktCtx2, action2) = simulateDevice(bridgeDevice,
-                                                ethPkt, port3OnHost1.getId)
+                                                ethPkt, port3OnHost1)
         action2 match {
             case ToPortAction(outPortUUID) =>
-                outPortUUID should equal (port2OnHost1.getId)
+                outPortUUID should equal (port2OnHost1)
             case _ => fail("Not ToPortAction, instead: " + action.toString)
         }
 
-        verifyMacLearned(srcMac, port3OnHost1.getId)
+        verifyMacLearned(srcMac, port3OnHost1)
     }
 
     /*
@@ -288,7 +287,7 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         val bridgeDevice: Bridge = fetchDevice[Bridge](bridge)
         val (pktCtx, action) = simulateDevice(bridgeDevice,
-                                              ethPkt, port2OnHost1.getId)
+                                              ethPkt, port2OnHost1)
         action match {
             case ToPortAction(outPortUUID) =>
                 outPortUUID should equal (expectedPort)
@@ -300,11 +299,11 @@ class BridgeSimulationTest extends MidolmanSpec {
         action match {
             case FloodBridgeAction(brId, ports) =>
                 assert(brId === bridge)
-                assert(ports.contains(port1OnHost1.getId))
-                assert(ports.contains(port2OnHost1.getId))
-                assert(ports.contains(port3OnHost1.getId))
-                assert(ports.contains(portOnHost2.getId))
-                assert(ports.contains(portOnHost3.getId))
+                assert(ports.contains(port1OnHost1))
+                assert(ports.contains(port2OnHost1))
+                assert(ports.contains(port3OnHost1))
+                assert(ports.contains(portOnHost2))
+                assert(ports.contains(portOnHost3))
             case _ => fail("Not FloodBridgeAction, instead: " +
                                action.toString)
         }

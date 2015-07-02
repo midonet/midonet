@@ -20,7 +20,6 @@ import java.nio.ByteBuffer
 import java.util.{HashSet,UUID}
 
 import org.junit.runner.RunWith
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.HandlePackets
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -47,15 +46,15 @@ class IcmpErrorNatTest extends MidolmanSpec {
 
     private val nearNwAddr = new IPv4Subnet("172.19.0.0", 24)
 
-    private var nearLeftPort: RouterPort = _
+    private var nearLeftPort: UUID = _
     private val nearLeftPortAddr = new IPv4Subnet("172.19.0.2", 24)
     private val nearLeftPortMac: MAC = "02:0a:08:06:04:01"
 
-    private var nearRightPort: RouterPort = _
+    private var nearRightPort: UUID = _
     private val nearRightPortAddr = new IPv4Subnet("172.20.0.2", 32)
     private val nearRightPortMac: MAC = "02:0a:08:06:04:02"
 
-    private var farPort: RouterPort = _
+    private var farPort: UUID = _
     private val farPortAddr = new IPv4Subnet("172.20.0.3", 32)
     private val farPortMac: MAC = "02:0a:08:06:05:01"
 
@@ -84,12 +83,12 @@ class IcmpErrorNatTest extends MidolmanSpec {
 
         newRoute(nearRouter, "0.0.0.0", 0,
                  privateDstIp.toNetworkAddress, privateDstIp.getPrefixLen,
-                 NextHop.PORT, nearRightPort.getId,
+                 NextHop.PORT, nearRightPort,
                  new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         newRoute(nearRouter, "0.0.0.0", 0,
                  nearNwAddr.toNetworkAddress, nearNwAddr.getPrefixLen,
-                 NextHop.PORT, nearLeftPort.getId,
+                 NextHop.PORT, nearLeftPort,
                  new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         val rtrOutChain = newOutboundChainOnRouter("rtrOutChain", nearRouter)
@@ -97,7 +96,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
 
         val revSnatCond = new Condition()
         revSnatCond.inPortIds = new HashSet()
-        revSnatCond.inPortIds.add(nearRightPort.getId)
+        revSnatCond.inPortIds.add(nearRightPort)
         revSnatCond.nwDstIp = privateSrcIp
 
         newReverseNatRuleOnChain(
@@ -109,7 +108,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
 
         val dnatCond = new Condition()
         dnatCond.inPortIds = new HashSet()
-        dnatCond.inPortIds.add(nearLeftPort.getId)
+        dnatCond.inPortIds.add(nearLeftPort)
         dnatCond.nwDstIp = dstIp
 
         val dnatTarget = new NatTarget(privateDstIp.getAddress, privateDstIp.getAddress, 20, 20)
@@ -147,12 +146,8 @@ class IcmpErrorNatTest extends MidolmanSpec {
                      srcIp.toNetworkAddress, srcMac)
 
         fetchRouters(nearRouter, farRouter)
-        fetchTopology(
-            nearLeftPort,
-            nearRightPort,
-            farPort,
-            rtrInChain,
-            rtrOutChain)
+        fetchPorts(nearLeftPort, nearRightPort, farPort)
+        fetchTopology(rtrInChain, rtrOutChain)
     }
 
     val tcpReq: Ethernet =
@@ -175,7 +170,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
             val packet = new Packet(tcpReq, fmatch)
 
             val workflow = packetWorkflow(
-                dpPortToVport = Map(1 -> nearLeftPort.getId),
+                dpPortToVport = Map(1 -> nearLeftPort),
                 natTable = table)
 
             var passed = false
@@ -224,7 +219,7 @@ class IcmpErrorNatTest extends MidolmanSpec {
             val packet = new Packet(pingReq, fmatch)
 
             val workflow = packetWorkflow(
-                dpPortToVport = Map(1 -> nearLeftPort.getId),
+                dpPortToVport = Map(1 -> nearLeftPort),
                 natTable = table)
 
             var passed = false

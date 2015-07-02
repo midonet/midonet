@@ -21,7 +21,6 @@ import org.scalatest.junit.JUnitRunner
 
 import java.util.UUID
 
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -33,9 +32,9 @@ import org.midonet.sdn.flows.FlowTagger
 @RunWith(classOf[JUnitRunner])
 class DpPortTaggingTest extends MidolmanSpec {
     var bridge: UUID = _
-    var inPort: BridgePort = _
+    var inPort: UUID = _
     val inPortNumber = 1
-    var outPort: BridgePort = _
+    var outPort: UUID = _
     val outPortNumber = 2
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
@@ -47,13 +46,13 @@ class DpPortTaggingTest extends MidolmanSpec {
 
         materializePort(outPort, hostId, "outPort")
 
-        fetchTopology(inPort, outPort)
+        fetchPorts(inPort, outPort)
         fetchDevice[Bridge](bridge)
     }
 
     scenario ("Flow is tagged with input and output DP ports") {
         val context = packetContextFor({ eth src MAC.random() dst MAC.random() },
-                                       inPort.getId)
+                                       inPort)
         context.origMatch.setInputPortNumber(inPortNumber)
         context.wcmatch.setInputPortNumber(inPortNumber)
         workflow.start(context) should not be Drop
@@ -61,6 +60,6 @@ class DpPortTaggingTest extends MidolmanSpec {
                                       FlowTagger.tagForDpPort(outPortNumber)))
     }
 
-    def workflow = packetWorkflow(Map(inPortNumber -> inPort.getId,
-                                      outPortNumber -> outPort.getId)).underlyingActor
+    def workflow = packetWorkflow(Map(inPortNumber -> inPort,
+                                      outPortNumber -> outPort)).underlyingActor
 }

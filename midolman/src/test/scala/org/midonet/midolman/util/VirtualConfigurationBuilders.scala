@@ -29,7 +29,6 @@ import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
 
-import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
 import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
 import org.midonet.cluster.state.LegacyStorage
@@ -52,16 +51,10 @@ trait VirtualConfigurationBuilders {
     def newInboundChainOnRouter(name: String, router: UUID): Chain
     def newOutboundChainOnRouter(name: String, router: UUID): Chain
     def newChain(name: String, id: Option[UUID] = None): Chain
-    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                              (name: String, port: Port[PD, P],
-                               id: UUID): Chain
-    def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                             (name: String, port: Port[PD, P],
-                              id: UUID): Chain
-    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                              (name: String, port: Port[PD, P]): Chain
-    def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-                             (name: String, port: Port[PD, P]): Chain
+    def newOutboundChainOnPort(name: String, port: UUID, id: UUID): Chain
+    def newInboundChainOnPort(name: String, port: UUID, id: UUID): Chain
+    def newOutboundChainOnPort(name: String, port: UUID): Chain
+    def newInboundChainOnPort(name: String, port: UUID): Chain
     def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
                               action: Action): LiteralRule
     def newTcpDstRuleOnChain(
@@ -94,12 +87,12 @@ trait VirtualConfigurationBuilders {
     def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit
     def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit
 
-    def newBridgePort(bridge: UUID): BridgePort
-    def newBridgePort(bridge: UUID, port: BridgePort): BridgePort
     def newBridgePort(bridge: UUID,
-                      vlanId: Option[Short] = None): BridgePort
-    def newVxLanPort(bridge: UUID, port: VxLanPort): VxLanPort
-    def deletePort(port: Port[_, _], hostId: UUID): Unit
+                      host: Option[UUID] = None,
+                      interface: Option[String] = None): UUID
+
+    def setPortAdminStateUp(port: UUID, state: Boolean): Unit
+    def deletePort(port: UUID, hostId: UUID): Unit
     def newPortGroup(name: String, stateful: Boolean = false): ClusterPortGroup
     def updatePortGroup(pg: ClusterPortGroup): Unit
     def newPortGroupMember(pgId: UUID, portId: UUID): Unit
@@ -109,10 +102,9 @@ trait VirtualConfigurationBuilders {
     def setRouterAdminStateUp(router: UUID, state: Boolean): Unit
 
     def newRouterPort(router: UUID, mac: MAC, portAddr: String,
-                        nwAddr: String, nwLen: Int): RouterPort
-    def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): RouterPort
-    def newInteriorRouterPort(router: UUID, mac: MAC, portAddr: String,
-                              nwAddr: String, nwLen: Int): RouterPort
+                      nwAddr: String, nwLen: Int): UUID
+    def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): UUID
+
     def newRoute(router: UUID,
                  srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
                  nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
@@ -128,8 +120,7 @@ trait VirtualConfigurationBuilders {
                        subnet : Subnet6): Unit
     def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
                     host : org.midonet.cluster.data.dhcp.V6Host): Unit
-    def linkPorts(port: Port[_, _], peerPort: Port[_, _]): Unit
-    def materializePort(port: Port[_, _], hostId: UUID, portName: String): Unit
+    def linkPorts(port: UUID, peerPort: UUID): Unit
     def materializePort(port: UUID, hostId: UUID, portName: String): Unit
     def newCondition(
             nwProto: Option[Byte] = None,
@@ -211,17 +202,13 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.newOutboundChainOnRouter(name, router)
     override def newChain(name: String, id: Option[UUID] = None): Chain =
         virtConfBuilderImpl.newChain(name, id)
-    override def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-        (name: String, port: Port[PD, P], id: UUID): Chain =
+    override def newOutboundChainOnPort(name: String, port: UUID, id: UUID): Chain =
         virtConfBuilderImpl.newOutboundChainOnPort(name, port, id)
-    override def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-        (name: String, port: Port[PD, P], id: UUID): Chain =
+    override def newInboundChainOnPort(name: String, port: UUID, id: UUID): Chain =
         virtConfBuilderImpl.newInboundChainOnPort(name, port, id)
-    override def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-        (name: String, port: Port[PD, P]): Chain =
+    override def newOutboundChainOnPort(name: String, port: UUID): Chain =
         virtConfBuilderImpl.newOutboundChainOnPort(name, port)
-    override def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
-        (name: String, port: Port[PD, P]): Chain =
+    override def newInboundChainOnPort(name: String, port: UUID): Chain =
         virtConfBuilderImpl.newInboundChainOnPort(name, port)
     override def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
                                        action: Action): LiteralRule =
@@ -265,16 +252,15 @@ trait ForwardingVirtualConfigurationBuilders
     override def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit =
         virtConfBuilderImpl.feedBridgeIp4Mac(bridge, ip, mac)
 
-    override def newBridgePort(bridge: UUID): BridgePort = virtConfBuilderImpl.newBridgePort(bridge)
-    override def newBridgePort(bridge: UUID, port: BridgePort): BridgePort =
-        virtConfBuilderImpl.newBridgePort(bridge, port)
     override def newBridgePort(bridge: UUID,
-                               vlanId: Option[Short] = None): BridgePort =
-        virtConfBuilderImpl.newBridgePort(bridge, vlanId)
+                               host: Option[UUID] = None,
+                               interface: Option[String] = None): UUID =
+        virtConfBuilderImpl.newBridgePort(bridge, host, interface)
 
-    override def newVxLanPort(bridge: UUID, port: VxLanPort): VxLanPort =
-        virtConfBuilderImpl.newVxLanPort(bridge, port)
-    override def deletePort(port: Port[_, _], hostId: UUID): Unit =
+    override def setPortAdminStateUp(port: UUID, state: Boolean): Unit =
+        virtConfBuilderImpl.setPortAdminStateUp(port, state)
+
+    override def deletePort(port: UUID, hostId: UUID): Unit =
         virtConfBuilderImpl.deletePort(port, hostId)
     override def newPortGroup(name: String, stateful: Boolean = false): ClusterPortGroup =
         virtConfBuilderImpl.newPortGroup(name, stateful)
@@ -291,13 +277,11 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.setRouterAdminStateUp(router, state)
 
     override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
-                               nwAddr: String, nwLen: Int): RouterPort =
+                               nwAddr: String, nwLen: Int): UUID =
         virtConfBuilderImpl.newRouterPort(router, mac, portAddr, nwAddr, nwLen)
-    override def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): RouterPort =
+    override def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): UUID =
         virtConfBuilderImpl.newRouterPort(router, mac, portAddr)
-    override def newInteriorRouterPort(router: UUID, mac: MAC, portAddr: String,
-                                       nwAddr: String, nwLen: Int): RouterPort =
-        virtConfBuilderImpl.newInteriorRouterPort(router, mac, portAddr, nwAddr, nwLen)
+
     override def newRoute(router: UUID,
                           srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
                           nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
@@ -321,10 +305,8 @@ trait ForwardingVirtualConfigurationBuilders
     override def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
                                host : org.midonet.cluster.data.dhcp.V6Host): Unit =
         virtConfBuilderImpl.addDhcpV6Host(bridge, subnet, host)
-    override def linkPorts(port: Port[_, _], peerPort: Port[_, _]): Unit =
+    override def linkPorts(port: UUID, peerPort: UUID): Unit =
         virtConfBuilderImpl.linkPorts(port, peerPort)
-    override def materializePort(port: Port[_, _], hostId: UUID, portName: String): Unit =
-        virtConfBuilderImpl.materializePort(port, hostId, portName)
     override def materializePort(port: UUID, hostId: UUID, portName: String): Unit =
         virtConfBuilderImpl.materializePort(port, hostId, portName)
     override def newCondition(

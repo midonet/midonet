@@ -26,12 +26,12 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.l4lb
 import org.midonet.cluster.data.{Entity}
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.l4lb.LBStatus
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.ArpCacheHelper._
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
@@ -84,12 +84,12 @@ class PoolTest extends MidolmanSpec {
     var loadBalancer: l4lb.LoadBalancer = _
     var vip: l4lb.VIP = _
     var poolMembers: Seq[l4lb.PoolMember] = _
-    var exteriorClientPort: RouterPort = _
-    var exteriorBackendPorts: Seq[RouterPort] = _
+    var exteriorClientPort: UUID = _
+    var exteriorBackendPorts: Seq[UUID] = _
 
     lazy val fromClientToVipUDP = (exteriorClientPort, clientToVipPktUDP)
     def clientToVipPktUDP: Ethernet =
-        { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
+        { eth src macClientSide dst fetchDevice[RouterPort](exteriorClientPort).portMac } <<
             { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
             { udp src (clientSrcPort).toShort dst vipPort }
 
@@ -101,29 +101,29 @@ class PoolTest extends MidolmanSpec {
 
     lazy val clientToVipPkt: Ethernet = clientToVipPktOffset(0)
     def clientToVipPktOffset(sourcePortOffset: Short): Ethernet =
-        { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
+        { eth src macClientSide dst fetchDevice[RouterPort](exteriorClientPort).portMac } <<
             { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
             { tcp src (clientSrcPort + sourcePortOffset).toShort dst vipPort }
 
     lazy val clientToBadIpPkt: Ethernet =
-        { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
+        { eth src macClientSide dst fetchDevice[RouterPort](exteriorClientPort).portMac } <<
             { ip4 src ipClientSide.toUnicastString dst badIp.toUnicastString } <<
             { tcp src clientSrcPort dst vipPort }
 
     lazy val fromBackendToClient = (0 until numBackends) map {
         n => (exteriorBackendPorts(n), backendToClientPkt(n))}
     lazy val backendToClientPkt: Seq[Ethernet] = (0 until numBackends) map {
-        n => ({ eth src macsBackendSide(n) dst exteriorBackendPorts(n).getHwAddr } <<
+        n => ({ eth src macsBackendSide(n) dst fetchDevice[RouterPort](exteriorBackendPorts(n)).portMac } <<
             { ip4 src ipsBackendSide(n).toUnicastString dst ipClientSide.toUnicastString } <<
             { tcp src vipPort dst clientSrcPort }).packet
     }
 
     lazy val nattedToBackendPkt: Seq[Ethernet] = (0 until numBackends) map {
-        n => ({ eth src exteriorBackendPorts(n).getHwAddr dst macsBackendSide(n) } <<
+        n => ({ eth src fetchDevice[RouterPort](exteriorBackendPorts(n)).portMac dst macsBackendSide(n) } <<
             { ip4 src ipClientSide.toUnicastString dst ipsBackendSide(n).toUnicastString }).packet
     }
     lazy val responseToClientPkt: Ethernet =
-        { eth src exteriorClientPort.getHwAddr dst macClientSide } <<
+        { eth src fetchDevice[RouterPort](exteriorClientPort).portMac dst macClientSide } <<
             { ip4 src vipIp.toUnicastString dst ipClientSide.toUnicastString }
 
     implicit var natTx: FlowStateTransaction[NatKey, NatBinding] = _
@@ -157,14 +157,14 @@ class PoolTest extends MidolmanSpec {
         newRoute(router,
             "0.0.0.0", 0,
             ipClientSide.toUnicastString, ipClientSide.getPrefixLen,
-            Route.NextHop.PORT, exteriorClientPort.getId,
+            Route.NextHop.PORT, exteriorClientPort,
             new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
         (0 until numBackends) foreach {
             n => newRoute(router,
                 "0.0.0.0", 0,
                 ipsBackendSide(n).toUnicastString, ipsBackendSide(n).getPrefixLen,
-                Route.NextHop.PORT, exteriorBackendPorts(n).getId,
+                Route.NextHop.PORT, exteriorBackendPorts(n),
                 new IPv4Addr(Route.NO_GATEWAY).toString, 10)
         }
 
@@ -185,9 +185,8 @@ class PoolTest extends MidolmanSpec {
         }
 
         // Load topology
-        val itemsToLoad: List[Entity.Base[_,_,_]] =
-            exteriorClientPort :: exteriorBackendPorts.toList
-        val topo = fetchTopologyList(itemsToLoad)
+        fetchDevice[RouterPort](exteriorClientPort)
+        exteriorBackendPorts foreach { id => fetchDevice[RouterPort](id) }
         val r = fetchDevice[Router](router)
 
         // Seed the ARP table
@@ -287,7 +286,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("packet should be sent to out port of the one backend")
 
-            flow should be (toPort(exteriorBackendPorts(0).getId) {
+            flow should be (toPort(exteriorBackendPorts(0)) {
                 FlowTagger.tagForDevice(router)})
 
             And("Should be NATted correctly")
@@ -300,7 +299,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("packet should be sent to out port of the client")
 
-            returnFlow should be (toPort(exteriorClientPort.getId) {
+            returnFlow should be (toPort(exteriorClientPort) {
                 FlowTagger.tagForDevice(router)})
 
             And("Should be reverse NATted correctly")
@@ -319,7 +318,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("packet should be sent to out port of the one available backend")
 
-            flow should be (toPort(exteriorBackendPorts(1).getId) {
+            flow should be (toPort(exteriorBackendPorts(1)) {
                 FlowTagger.tagForDevice(router)})
 
             And("Should be NATted correctly")
@@ -332,7 +331,7 @@ class PoolTest extends MidolmanSpec {
 
             Then("packet should be sent to out port of the client")
 
-            returnFlow should be (toPort(exteriorClientPort.getId) {
+            returnFlow should be (toPort(exteriorClientPort) {
                 FlowTagger.tagForDevice(router)})
 
             And("Should be reverse NATted correctly")
@@ -596,7 +595,7 @@ class PoolTest extends MidolmanSpec {
     }
 
     private def clientToVipPkt(srcTpPort: Short): Ethernet =
-        { eth src macClientSide dst exteriorClientPort.getHwAddr } <<
+        { eth src macClientSide dst fetchDevice[RouterPort](exteriorClientPort).portMac } <<
                 { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<
                 { tcp src srcTpPort dst vipPort }
 

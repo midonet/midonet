@@ -22,7 +22,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Chain}
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Router, Bridge}
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -49,9 +48,9 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
                       val clusterRouter: UUID, spec: MidolmanSpec) {
 
     var clusterBridge: UUID = _
-    var vmPort: BridgePort = _
-    var uplinkPort: BridgePort = _
-    var routerPort: RouterPort = _
+    var vmPort: UUID = _
+    var uplinkPort: UUID = _
+    var routerPort: UUID = _
 
     val vmMac = MAC.random()
     val routerMac = MAC.random()
@@ -71,12 +70,11 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
     def bridge: Bridge = spec.fetchDevice[Bridge](clusterBridge)
     def router: Router = spec.fetchDevice[Router](clusterRouter)
 
-    def tagFor(port: BridgePort) = FlowTagger.tagForBridgePort(clusterBridge, port.getId)
-    def tagFor(port: RouterPort) = FlowTagger.tagForDevice(routerPort.getId)
+    def tagFor(port: UUID) = FlowTagger.tagForBridgePort(clusterBridge, port)
 
-    private def addAndMaterializeBridgePort(br: UUID): BridgePort = {
+    private def addAndMaterializeBridgePort(br: UUID): UUID = {
         val port = spec.newBridgePort(br)
-        spec.stateStorage.setPortLocalAndActive(port.getId, spec.hostId, true)
+        spec.stateStorage.setPortLocalAndActive(port, spec.hostId, true)
         port
     }
 
@@ -86,32 +84,32 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
         uplinkPort = spec.newBridgePort(clusterBridge)
         routerPort = spec.newRouterPort(clusterRouter, routerMac, routerIp)
 
-        spec.clusterDataClient.portsLink(routerPort.getId, uplinkPort.getId)
+        spec.clusterDataClient.portsLink(routerPort, uplinkPort)
         spec.materializePort(vmPort, spec.hostId, s"vm${BridgeWithOneVm.portIndex}")
         spec.newRoute(clusterRouter, "0.0.0.0", 0,
                       subnet.getAddress.toString, subnet.getPrefixLen,
-                      NextHop.PORT, routerPort.getId,
+                      NextHop.PORT, routerPort,
                       new IPv4Addr(Route.NO_GATEWAY).toString, 100)
 
         bridgeInFilter = spec.newInboundChainOnBridge(s"b-${clusterBridge}-in", clusterBridge)
         bridgeOutFilter = spec.newOutboundChainOnBridge(s"b-${clusterBridge}-out", clusterBridge)
 
-        vmPortInFilter = spec.newInboundChainOnPort(s"p-${vmPort.getId}-in", vmPort)
-        vmPortOutFilter = spec.newOutboundChainOnPort(s"p-${vmPort.getId}-out", vmPort)
+        vmPortInFilter = spec.newInboundChainOnPort(s"p-${vmPort}-in", vmPort)
+        vmPortOutFilter = spec.newOutboundChainOnPort(s"p-${vmPort}-out", vmPort)
 
-        uplinkPortInFilter = spec.newInboundChainOnPort(s"p-${uplinkPort.getId}-in", uplinkPort)
-        uplinkPortOutFilter = spec.newOutboundChainOnPort(s"p-${uplinkPort.getId}-out", uplinkPort)
+        uplinkPortInFilter = spec.newInboundChainOnPort(s"p-${uplinkPort}-in", uplinkPort)
+        uplinkPortOutFilter = spec.newOutboundChainOnPort(s"p-${uplinkPort}-out", uplinkPort)
 
-        routerPortInFilter = spec.newInboundChainOnPort(s"p-${routerPort.getId}-in", routerPort)
-        routerPortOutFilter = spec.newOutboundChainOnPort(s"p-${routerPort.getId}-out", routerPort)
+        routerPortInFilter = spec.newInboundChainOnPort(s"p-${routerPort}-in", routerPort)
+        routerPortOutFilter = spec.newOutboundChainOnPort(s"p-${routerPort}-out", routerPort)
 
-        spec.fetchTopology(vmPort, routerPort, uplinkPort,
-            bridgeInFilter, bridgeOutFilter, vmPortInFilter, vmPortOutFilter,
-            uplinkPortInFilter, uplinkPortOutFilter, routerPortInFilter,
-            routerPortOutFilter)
+        spec.fetchTopology(bridgeInFilter, bridgeOutFilter, vmPortInFilter, vmPortOutFilter,
+                           uplinkPortInFilter, uplinkPortOutFilter, routerPortInFilter,
+                           routerPortOutFilter)
+        spec.fetchPorts(vmPort, routerPort, uplinkPort)
         spec.fetchDevice[Bridge](clusterBridge)
         spec.fetchDevice[Router](clusterRouter)
-        bridge.vlanMacTableMap(0.toShort).add(vmMac, vmPort.getId)
+        bridge.vlanMacTableMap(0.toShort).add(vmMac, vmPort)
         feedArpCache(router, vmIp, vmMac)
     }
 }
@@ -167,7 +165,7 @@ class ChainInvalidationTest extends MidolmanSpec {
 
     def tagsUntilIngress: Seq[FlowTag] = Seq(
         FlowTagger.tagForDevice(leftBridge.vmPortInFilter.getId),
-        FlowTagger.tagForDevice(leftBridge.vmPort.getId))
+        FlowTagger.tagForDevice(leftBridge.vmPort))
 
     def tagsUntilLeftBridgeIn: Seq[FlowTag] = tagsUntilIngress ++ Seq(
         FlowTagger.tagForDevice(leftBridge.bridgeInFilter.getId),
@@ -181,7 +179,7 @@ class ChainInvalidationTest extends MidolmanSpec {
         FlowTagger.tagForDevice(leftBridge.uplinkPortOutFilter.getId))
 
     def tagsUntilLeftRouterIn: Seq[FlowTag] = tagsUntilLeftUplinkOut ++ Seq(
-        FlowTagger.tagForDevice(leftBridge.routerPort.getId),
+        FlowTagger.tagForDevice(leftBridge.routerPort),
         FlowTagger.tagForDevice(leftBridge.routerPortInFilter.getId))
 
     def tagsUntilRouterIn: Seq[FlowTag] = tagsUntilLeftRouterIn ++ Seq(
@@ -190,14 +188,14 @@ class ChainInvalidationTest extends MidolmanSpec {
         FlowTagger.tagForDevice(routerInJump.getId))
 
     def tagsUntilRightRouterOut: Seq[FlowTag] = tagsUntilRouterIn ++ Seq(
-        FlowTagger.tagForDevice(rightBridge.routerPort.getId))
+        FlowTagger.tagForDevice(rightBridge.routerPort))
 
     def tagsUntilRightUplinkIn: Seq[FlowTag] = tagsUntilRightRouterOut ++ Seq(
-        FlowTagger.tagForDevice(rightBridge.uplinkPort.getId),
+        FlowTagger.tagForDevice(rightBridge.uplinkPort),
         FlowTagger.tagForDevice(rightBridge.uplinkPortInFilter.getId))
 
     def tagsUntilEgress: Seq[FlowTag] = tagsUntilRightUplinkIn ++ Seq(
-        FlowTagger.tagForDevice(rightBridge.vmPort.getId),
+        FlowTagger.tagForDevice(rightBridge.vmPort),
         FlowTagger.tagForDevice(rightBridge.clusterBridge),
         FlowTagger.tagForDevice(rightBridge.bridgeOutFilter.getId),
         FlowTagger.tagForDevice(rightBridge.vmPortOutFilter.getId))
@@ -213,11 +211,11 @@ class ChainInvalidationTest extends MidolmanSpec {
 
     scenario("flows are properly tagged") {
         When("a packet is sent across the topology")
-        val packetContext = packetContextFor(leftToRightFrame, leftBridge.vmPort.getId)
+        val packetContext = packetContextFor(leftToRightFrame, leftBridge.vmPort)
         val result = simulate(packetContext)
 
         Then("It makes it to the other side, with all the expected tags")
-        result should be (toPort(rightBridge.vmPort.getId)(tagsUntilEgress:_*))
+        result should be (toPort(rightBridge.vmPort)(tagsUntilEgress:_*))
     }
 
     def testChain(chain: Chain, tags: Seq[FlowTag]) {
@@ -226,7 +224,7 @@ class ChainInvalidationTest extends MidolmanSpec {
         fetchDevice(chain)
 
         And("A packet is sent across the topology")
-        val packetContext = packetContextFor(leftToRightFrame, leftBridge.vmPort.getId)
+        val packetContext = packetContextFor(leftToRightFrame, leftBridge.vmPort)
         val result = simulate(packetContext)
 
         Then("It makes it to the other side, with all the expected tags")
