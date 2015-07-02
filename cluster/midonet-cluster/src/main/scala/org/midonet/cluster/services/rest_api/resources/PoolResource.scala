@@ -26,7 +26,7 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.NotFoundHttpException
+import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Pool, UriResource}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -50,6 +50,11 @@ class PoolResource @Inject()(resContext: ResourceContext)
         new PoolVipResource(id, resContext)
     }
 
+    @Path("{id}/pool_members")
+    def members(@PathParam("id") id: UUID): PoolPoolMemberResource = {
+        new PoolPoolMemberResource(id, resContext)
+    }
+
     protected override def updateFilter = (to: Pool, from: Pool) => {
         to.update(from)
     }
@@ -62,9 +67,7 @@ class PoolResource @Inject()(resContext: ResourceContext)
             case e: NotFoundHttpException => OkNoContentResponse
             case NonFatal(t) =>
                 log.error("Failed to delete Pool: ", t)
-                Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                        .entity(t.getMessage)
-                        .build()
+                throw new InternalServerErrorHttpException(t.getMessage)
         }
     }
 
