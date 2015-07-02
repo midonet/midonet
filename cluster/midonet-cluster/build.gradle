@@ -61,6 +61,7 @@ dependencies {
             libraries.jersey_core,
             libraries.jersey_guice,
             libraries.jersey_server,
+            libraries.jersey_json,
             libraries.jackson_annotations,
             libraries.jackson_core,
             libraries.jackson_databind,

@@ -47,7 +47,7 @@ dependencies {
             libraries.guice_servlet, libraries.jersey_servlet,
             libraries.jersey_server, libraries.jersey_client,
             libraries.jersey_guice, libraries.jersey_core,
-            libraries.jersey_bundle,
+            libraries.jersey_bundle, libraries.jersey_json,
             libraries.commons_lang, libraries.commons_lang3,
             libraries.commons_conf, libraries.typesafeconf,
             libraries.metrics,
