@@ -16,6 +16,24 @@
       "revId": "059825b4d3443fea7fcf779dd07ec3596d424722",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9d7924ff",
+        "filename": "midolman/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 277,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-02T08:49:06Z",
+      "side": 1,
+      "message": "I\u0027ve moved it up",
+      "parentUuid": "9ad9bd40_c6cf62af",
+      "revId": "059825b4d3443fea7fcf779dd07ec3596d424722",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
