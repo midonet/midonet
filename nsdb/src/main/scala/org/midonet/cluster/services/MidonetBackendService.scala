@@ -15,6 +15,7 @@
  */
 package org.midonet.cluster.services
 
+import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 
@@ -158,13 +159,15 @@ abstract class MidonetBackend extends AbstractService {
 /** Class responsible for providing services to access to the new Storage
   * services. */
 class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
-                                       override val curator: CuratorFramework)
+                                       override val curator: CuratorFramework,
+                                       metricRegistry: MetricRegistry = null)
     extends MidonetBackend {
 
     private val log = getLogger("org.midonet.nsdb")
 
     private val zoom =
-        new ZookeeperObjectMapper(cfg.rootKey + "/zoom", curator)
+        new ZookeeperObjectMapper(cfg.rootKey + "/zoom", curator,
+                                  Some(metricRegistry))
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom

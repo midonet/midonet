@@ -16,7 +16,7 @@
 
 package org.midonet.cluster.storage
 
-import com.google.inject.{Singleton, Inject, PrivateModule, Provider}
+import com.google.inject.{Inject, PrivateModule, Provider, Singleton}
 import com.typesafe.config.Config
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry

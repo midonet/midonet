@@ -90,6 +90,8 @@ object ZookeeperObjectState {
  */
 trait ZookeeperObjectState extends StateStorage with Storage {
 
+    implicit private[storage] val zoomMetrics: Option[ZoomMetrics]
+
     protected[storage] trait StateTransactionManager {
 
         protected val pathsToDelete = new ConcurrentHashMap[String, Void]
