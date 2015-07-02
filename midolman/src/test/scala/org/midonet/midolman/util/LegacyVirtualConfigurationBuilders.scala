@@ -25,10 +25,7 @@ import scala.collection.JavaConversions._
 import com.google.inject.Inject
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{Bridge,
-                                 Router,
-                                 PortGroup => ClusterPortGroup,
-                                 _}
+import org.midonet.cluster.data.{PortGroup => ClusterPortGroup, _}
 import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
@@ -41,8 +38,7 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
-import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
-                                      HealthMonitor}
+import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer, HealthMonitor}
 import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
 
 
@@ -139,13 +135,13 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         newInboundChainOnPort(name, port, UUID.randomUUID)
 
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                              action: Action): LiteralRule = {
+                              action: Action): UUID = {
         val rule = new LiteralRule(condition)
                        .setChainId(chain).setPosition(pos)
                        .setAction(action)
         val id = clusterDataClient().rulesCreate(rule)
         Thread.sleep(50)
-        clusterDataClient().rulesGet(id).asInstanceOf[LiteralRule]
+        id
     }
 
     /**
@@ -154,8 +150,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
      */
     override def newTcpDstRuleOnChain(
             chain: UUID, pos: Int, dstPort: Int, action: Action,
-            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
-    : LiteralRule = {
+            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED): UUID = {
         val condition = newCondition(nwProto = Some(TCP.PROTOCOL_NUMBER),
                                      tpDst = Some(dstPort),
                                      fragmentPolicy = fragmentPolicy)
@@ -164,7 +159,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
 
     override def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
                                   ipAddrGroupIdDst: Option[UUID],
-                                  ipAddrGroupIdSrc: Option[UUID]) = {
+                                  ipAddrGroupIdSrc: Option[UUID]): UUID = {
         val condition = newCondition(ipAddrGroupIdDst = ipAddrGroupIdDst,
                                      ipAddrGroupIdSrc = ipAddrGroupIdSrc)
         newLiteralRuleOnChain(chain, pos, condition, action)
@@ -172,23 +167,23 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
 
     override def newForwardNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                  action: Action, targets: Set[NatTarget],
-                                 isDnat: Boolean) : ForwardNatRule = {
+                                 isDnat: Boolean) : UUID = {
         val jTargets = new JSet[NatTarget]()
         jTargets.addAll(targets)
         val rule = new ForwardNatRule(condition, action, jTargets, isDnat).
                         setChainId(chain).setPosition(pos)
         val id = clusterDataClient().rulesCreate(rule)
         Thread.sleep(50)
-        clusterDataClient().rulesGet(id).asInstanceOf[ForwardNatRule]
+        id
     }
 
     override def newReverseNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                         action: Action, isDnat: Boolean) : ReverseNatRule = {
+                         action: Action, isDnat: Boolean) : UUID = {
         val rule = new ReverseNatRule(condition, action, isDnat).
             setChainId(chain).setPosition(pos)
         val id = clusterDataClient().rulesCreate(rule)
         Thread.sleep(50)
-        clusterDataClient().rulesGet(id).asInstanceOf[ReverseNatRule]
+        id
     }
 
     override def removeRuleFromBridge(bridgeId: UUID) {
@@ -199,17 +194,17 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     override def newJumpRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                              jumpToChainID: UUID): JumpRule = {
+                              jumpToChainID: UUID): UUID = {
         val rule = new JumpRule(condition).
             setChainId(chain).setPosition(pos).setJumpToChainId(jumpToChainID)
         val id = clusterDataClient().rulesCreate(rule)
         Thread.sleep(50)
-        clusterDataClient().rulesGet(id).asInstanceOf[JumpRule]
+        id
     }
 
     override def newFragmentRuleOnChain(chain: UUID, pos: Int,
                                fragmentPolicy: FragmentPolicy,
-                               action: Action) = {
+                               action: Action): UUID = {
         val condition = newCondition(fragmentPolicy = fragmentPolicy)
         newLiteralRuleOnChain(chain, pos, condition, action)
     }

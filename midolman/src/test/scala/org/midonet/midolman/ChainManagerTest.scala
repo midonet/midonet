@@ -249,7 +249,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                                  ipAddrGroup.getId, Set(addr), null, null)
 
             When("The rule is removed and the IP group is modified")
-            deleteRule(rule.getId)
+            deleteRule(rule)
             removeIpAddrFromIpAddrGroup(ipAddrGroup.getId, addr)
             c = expectMsgType[Chain]
             c.getRules.size() should be (0)

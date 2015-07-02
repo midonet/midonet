@@ -376,7 +376,7 @@ class TraceRequestTest extends MidolmanSpec {
         clusterDataClient.traceRequestEnable(trace1.getId)
 
         clusterDataClient.rulesFindByChain(chain).size() should be (2)
-        clusterDataClient.rulesDelete(rule1.getId)
+        clusterDataClient.rulesDelete(rule1)
 
         clusterDataClient.rulesFindByChain(chain).size() should be (1)
 
