@@ -88,7 +88,11 @@ object ZookeeperObjectState {
  * This trait will store the state value in (i) the key nodes for single-value
  * keys, and (ii) as children of the key nodes for multi-value keys.
  */
+//TODO: Missing corner cases where NoNode or NodeExists exceptions should
+//      be accounted for in ZoomMetrics.
 trait ZookeeperObjectState extends StateStorage with Storage {
+
+    implicit private[storage] val zoomMetrics: ZoomMetrics
 
     protected[storage] trait StateTransactionManager {
 
@@ -130,7 +134,9 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                                 curator.getZookeeperClient.getZooKeeper, path,
                                 true)
                         } catch {
-                            case _: NoNodeException => // Path already deleted
+                            case _: NoNodeException =>
+                                // Path already deleted
+                                zoomMetrics.incZkNoNodeExceptionCount()
                             case _: KeeperException =>
                                 pathsToDelete.putIfAbsent(path, null)
                             case NonFatal(e) => // Ignore any other exception
@@ -267,6 +273,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, Some(value), ownerId))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
+                    zoomMetrics.incZkNoNodeExceptionCount()
                     Notification.createOnNext[StateKey](
                         SingleValueKey(key, None, NoOwnerId))
                 } else {
@@ -285,6 +292,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     Notification.createOnNext[StateKey](MultiValueKey(key,
                                                                       values))
                 } else if (event.getResultCode == Code.NONODE.intValue()) {
+                    zoomMetrics.incZkNoNodeExceptionCount()
                     Notification.createOnNext[StateKey](MultiValueKey(key,
                                                                       Set()))
                 } else {
@@ -393,6 +401,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                         event.getStat.getEphemeralOwner))
                 }
             } else if (event.getResultCode == Code.NONODE.intValue()) {
+                zoomMetrics.incZkNoNodeExceptionCount()
                 asObservable {
                     curator.create().withMode(CreateMode.EPHEMERAL)
                         .inBackground(_)
@@ -452,6 +461,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     }
                 }
             } else if (event.getResultCode == Code.NONODE.intValue()) {
+                zoomMetrics.incZkNoNodeExceptionCount()
                 asObservable {
                     curator.create().withMode(CreateMode.EPHEMERAL)
                         .inBackground(_)
@@ -505,6 +515,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                     }
                 }
             } else if (event.getResultCode == Code.NONODE.intValue()) {
+                zoomMetrics.incZkNoNodeExceptionCount()
                 asObservable {
                     curator.create().withMode(CreateMode.EPHEMERAL)
                         .inBackground(_).forPath(path)
@@ -547,6 +558,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
                         event.getStat.getEphemeralOwner))
                 }
             } else if (event.getResultCode == Code.NONODE.intValue()) {
+                zoomMetrics.incZkNoNodeExceptionCount()
                 // The node does not exist: complete immediately.
                 Observable.just(StateResult(NoOwnerId))
             } else {
@@ -558,7 +570,7 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         }
     }
 
-    /** Returns an node observable for the state path of the given object.
+    /** Returns a node observable for the state path of the given object.
       * This observable is used to detect when an object is deleted, in
       * order to complete single-value key observables. */
     private def objectObservable(clazz: Class[_], id: ObjId, version: Long)
@@ -569,12 +581,14 @@ trait ZookeeperObjectState extends StateStorage with Storage {
 
         objectObservables.getOrElse(key, {
             val observable = NodeObservable.create(curator, path,
-                                                   completeOnDelete = true)
+                                                   completeOnDelete = true,
+                                                   BlackHoleZoomMetrics)
             objectObservables.putIfAbsent(key, observable).getOrElse(observable)
         }).ignoreElements()
           .map[StateKey](stateKeyMap)
           .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
             case e: NodeObservableClosedException =>
+                zoomMetrics.incNodeObservablePrematureClose()
                 objectObservables.remove(key)
                 objectObservable(clazz, id, version)
             case e: Throwable => Observable.error(e)
@@ -591,12 +605,14 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         val index = KeyIndex(clazz, getIdString(clazz, id), key)
         val path = getKeyPath(clazz, getIdString(clazz, id), key, version)
 
-        singleObservables.getOrElse(index, {
+        val obs = singleObservables.getOrElse(index, {
             val observable = NodeObservable.create(curator, path,
-                                                   completeOnDelete = false)
+                                                   completeOnDelete = false,
+                                                   zoomMetrics)
             singleObservables.putIfAbsent(index, observable)
                              .getOrElse(observable)
-        }).map[StateKey](makeFunc1((data: ChildData) => {
+        })
+        obs.map[StateKey](makeFunc1((data: ChildData) => {
             if ((data.getData ne null) && (data.getStat ne null)) {
                 val value = new String(data.getData, StringEncoding)
                 val owner = data.getStat.getEphemeralOwner
@@ -606,7 +622,8 @@ trait ZookeeperObjectState extends StateStorage with Storage {
             }
         })).onErrorResumeNext(makeFunc1((t: Throwable) => t match {
             case e: NodeObservableClosedException =>
-                singleObservables.remove(index)
+                zoomMetrics.incNodeObservablePrematureClose()
+                singleObservables.remove(index, obs)
                 singleObservable(clazz, id, key, version)
             case e: Throwable => Observable.error(e)
         })).takeUntil(objectObservable(clazz, id, version))
@@ -621,15 +638,17 @@ trait ZookeeperObjectState extends StateStorage with Storage {
         val index = KeyIndex(clazz, getIdString(clazz, id), key)
         val path = getKeyPath(clazz, getIdString(clazz, id), key, version)
 
-        multiObservables.getOrElse(index, {
-            val observable = PathDirectoryObservable.create(curator, path)
+        val obs = multiObservables.getOrElse(index, {
+            val observable = PathDirectoryObservable.create(curator, path,
+                                                            zoomMetrics)
             multiObservables.putIfAbsent(index, observable)
                             .getOrElse(observable)
-        }).map[StateKey](makeFunc1((values: Set[String]) => {
+        })
+        obs.map[StateKey](makeFunc1((values: Set[String]) => {
             MultiValueKey(key, values)
         })).onErrorResumeNext(makeFunc1((t: Throwable) => t match {
             case e: DirectoryObservableClosedException =>
-                multiObservables.remove(index)
+                multiObservables.remove(index, obs)
                 multiObservable(clazz, id, key, version)
             case e: Throwable => Observable.error(e)
         }))

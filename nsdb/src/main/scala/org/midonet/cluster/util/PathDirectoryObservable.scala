@@ -23,6 +23,7 @@ import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.api.{CuratorEvent, BackgroundCallback}
 import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListener}
 import org.apache.zookeeper.KeeperException.Code
+import org.apache.zookeeper.Watcher.Event.EventType.NodeChildrenChanged
 import org.apache.zookeeper.{WatchedEvent, Watcher}
 import org.slf4j.LoggerFactory.getLogger
 
@@ -31,6 +32,7 @@ import rx.subscriptions.Subscriptions
 import rx.{Subscriber, Observable}
 import rx.Observable.OnSubscribe
 
+import org.midonet.cluster.data.storage.{BlackHoleZoomMetrics, ZoomMetrics}
 import org.midonet.cluster.util.PathDirectoryObservable.State
 import org.midonet.cluster.util.PathDirectoryObservable.State.State
 import org.midonet.util.functors.makeAction0
@@ -55,15 +57,17 @@ object PathDirectoryObservable {
      * is closed by calling the `close()` method, the observable emits a
      * [[DirectoryObservableClosedException]].
      */
-    def create(curator: CuratorFramework, path: String)
+    def create(curator: CuratorFramework, path: String,
+               zoomMetrics: ZoomMetrics = BlackHoleZoomMetrics)
     :PathDirectoryObservable = {
         new PathDirectoryObservable(
-            new OnSubscribeToDirectory(curator, path))
+            new OnSubscribeToDirectory(curator, path, zoomMetrics))
     }
 }
 
 private[util]
-class OnSubscribeToDirectory(curator: CuratorFramework, path: String)
+class OnSubscribeToDirectory(curator: CuratorFramework, path: String,
+                             zoomMetrics: ZoomMetrics)
     extends OnSubscribe[Set[String]] {
 
     private val log = getLogger(s"org.midonet.cluster.zk-directory-[$path]")
@@ -81,8 +85,14 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String)
 
     @volatile
     private var childrenWatcher = new Watcher {
-        override def process(event: WatchedEvent): Unit =
+        override def process(event: WatchedEvent): Unit = {
+            event.getType match {
+                case NodeChildrenChanged =>
+                    zoomMetrics.incChildrenWatchTriggered()
+                case _ =>
+            }
             processWatcher(event)
+        }
     }
 
     @volatile
@@ -143,6 +153,7 @@ class OnSubscribeToDirectory(curator: CuratorFramework, path: String)
             subject.onNext(children.get)
         } else if (event.getResultCode == Code.NONODE.intValue) {
             log.debug("Node deleted: closing the observable")
+            zoomMetrics.incZkNoNodeExceptionCount()
             close(new ParentDeletedException(path))
         } else if (event.getResultCode == Code.CONNECTIONLOSS.intValue) {
             log.debug("Connection lost")
