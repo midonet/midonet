@@ -21,7 +21,6 @@ import org.junit.runner.RunWith
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -39,8 +38,8 @@ class ConntrackTest extends MidolmanSpec {
     val leftIp = "192.168.1.1"
     val rightIp = "192.168.1.10"
 
-    var leftPort: BridgePort = null
-    var rightPort: BridgePort = null
+    var leftPort: UUID = null
+    var rightPort: UUID = null
 
     var clusterBridge: UUID = null
 
@@ -52,32 +51,33 @@ class ConntrackTest extends MidolmanSpec {
         clusterBridge should not be null
 
         leftPort = newBridgePort(clusterBridge)
-        stateStorage.setPortLocalAndActive(leftPort.getId, host, true)
+        stateStorage.setPortLocalAndActive(leftPort, host, true)
         rightPort = newBridgePort(clusterBridge)
-        stateStorage.setPortLocalAndActive(rightPort.getId, host, true)
+        stateStorage.setPortLocalAndActive(rightPort, host, true)
 
         val brChain = newInboundChainOnBridge("brChain", clusterBridge)
 
         val fwdCond = new Condition()
         fwdCond.matchForwardFlow = true
         fwdCond.inPortIds = new java.util.HashSet[UUID]()
-        fwdCond.inPortIds.add(leftPort.getId)
+        fwdCond.inPortIds.add(leftPort)
 
         val retCond = new Condition()
         retCond.matchReturnFlow = true
         retCond.inPortIds = new java.util.HashSet[UUID]()
-        retCond.inPortIds.add(rightPort.getId)
+        retCond.inPortIds.add(rightPort)
 
         newLiteralRuleOnChain(brChain, 1, fwdCond, RuleResult.Action.ACCEPT)
         newLiteralRuleOnChain(brChain, 2, retCond, RuleResult.Action.ACCEPT)
         newLiteralRuleOnChain(brChain, 3, new Condition(), RuleResult.Action.DROP)
 
-        fetchTopology(brChain, leftPort, rightPort)
+        fetchTopology(brChain)
+        fetchPorts(leftPort, rightPort)
 
         val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
         val macTable = bridge.vlanMacTableMap(0.toShort)
-        macTable.add(MAC.fromString(leftMac), leftPort.getId)
-        macTable.add(MAC.fromString(rightMac), rightPort.getId)
+        macTable.add(MAC.fromString(leftMac), leftPort)
+        macTable.add(MAC.fromString(rightMac), rightPort)
     }
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor()
@@ -117,18 +117,18 @@ class ConntrackTest extends MidolmanSpec {
             implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
 
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
-                val (pktCtx, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
+                val (pktCtx, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort)
                 pktCtx.trackConnection(bridge.id)
                 conntrackTx.size() should be (1)
                 conntrackTx.commit()
                 conntrackTx.flush()
                 pktCtx.isForwardFlow should be (true)
-                fwdAct should be (ToPortAction(rightPort.getId))
+                fwdAct should be (ToPortAction(rightPort))
 
-                val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
+                val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort)
                 conntrackTx.size() should be (0)
                 retContext.isForwardFlow should be (false)
-                retAct should be (ToPortAction(leftPort.getId))
+                retAct should be (ToPortAction(leftPort))
             }
         }
 
@@ -139,11 +139,11 @@ class ConntrackTest extends MidolmanSpec {
             implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
 
             for ((fwdPkt, retPkt) <- conntrackedPacketPairs) {
-                val (fwdContext, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort.getId)
+                val (fwdContext, fwdAct) = simulateDevice(bridge, fwdPkt, leftPort)
                 fwdContext.isForwardFlow should be (true)
-                fwdAct should be (ToPortAction(rightPort.getId))
+                fwdAct should be (ToPortAction(rightPort))
 
-                val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort.getId)
+                val (retContext, retAct) = simulateDevice(bridge, retPkt, rightPort)
                 retContext.isForwardFlow should be (true)
                 retAct should be (Drop)
             }

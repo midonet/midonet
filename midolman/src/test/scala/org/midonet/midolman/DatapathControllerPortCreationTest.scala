@@ -20,8 +20,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{TunnelZone}
 import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.config.MidolmanConfig
@@ -82,10 +80,10 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
 
 
     private def addAndMaterializeBridgePort(hostId: UUID, br: UUID,
-            ifname: String): BridgePort = {
+            ifname: String): UUID = {
         val port = newBridgePort(br)
         port should not be null
-        clusterDataClient.hostsAddVrnPortMapping(hostId, port.getId, ifname)
+        clusterDataClient.hostsAddVrnPortMapping(hostId, port, ifname)
         port
     }
 
@@ -126,7 +124,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             addInterface()
 
             Then("the DpC should create the datapath port")
-            testableDpc.driver.getDpPortNumberForVport(port.getId) should not equal null
+            testableDpc.driver.getDpPortNumberForVport(port) should not equal null
 
             And("the min MTU should be the default one")
             DatapathController.minMtu should be (
@@ -135,14 +133,14 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false
-            } should equal (List(LocalPortActive(port.getId, true)))
+            } should equal (List(LocalPortActive(port, true)))
 
             When("the network interface disappears")
             VirtualToPhysicalMapper.getAndClear()
             interfaceScanner.removeInterface(ifname)
 
             Then("the DpC should delete the datapath port")
-            testableDpc.driver.getDpPortNumberForVport(port.getId) should be (null)
+            testableDpc.driver.getDpPortNumberForVport(port) should be (null)
 
             And("the min MTU should be the default one")
             DatapathController.minMtu should be (DatapathController.defaultMtu)
@@ -150,7 +148,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false
-            } should equal (List(LocalPortActive(port.getId, false)))
+            } should equal (List(LocalPortActive(port, false)))
         }
 
         scenario("Ports are created and removed based on bindings") {
@@ -162,22 +160,22 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             val port = addAndMaterializeBridgePort(host, clusterBridge, ifname)
 
             Then("the DpC should create the datapath port")
-            testableDpc.driver.getDpPortNumberForVport(port.getId) should not equal None
+            testableDpc.driver.getDpPortNumberForVport(port) should not equal None
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false
-            } should equal (List(LocalPortActive(port.getId, true)))
+            } should equal (List(LocalPortActive(port, true)))
 
             When("the binding disappears")
             VirtualToPhysicalMapper.getAndClear()
-            clusterDataClient.hostsDelVrnPortMapping(host, port.getId)
+            clusterDataClient.hostsDelVrnPortMapping(host, port)
 
             Then("the DpC should delete the datapath port")
-            testableDpc.driver.getDpPortNumberForVport(port.getId) should be (null)
+            testableDpc.driver.getDpPortNumberForVport(port) should be (null)
             VirtualToPhysicalMapper.getAndClear() filter {
                 case LocalPortActive(_,_) => true
                 case _ => false
-            } should equal (List(LocalPortActive(port.getId, false)))
+            } should equal (List(LocalPortActive(port, false)))
         }
     }
 }

@@ -21,7 +21,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Chain}
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
@@ -43,8 +42,8 @@ class FlowTracingTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var bridge: UUID = _
-    var port1: BridgePort = _
-    var port2: BridgePort = _
+    var port1: UUID = _
+    var port2: UUID = _
     var chain: Chain = _
 
     val table = new ShardedFlowStateTable[TraceKey,TraceContext](clock)
@@ -59,7 +58,8 @@ class FlowTracingTest extends MidolmanSpec {
         materializePort(port2, hostId, "port2")
 
         chain = newInboundChainOnBridge("my-chain", bridge)
-        fetchTopology(port1, port2, chain)
+        fetchTopology(chain)
+        fetchPorts(port1, port2)
         fetchDevice[Bridge](bridge)
     }
 
@@ -101,7 +101,7 @@ class FlowTracingTest extends MidolmanSpec {
             val requestId = UUID.randomUUID
             newTraceRule(requestId, chain, newCondition(), 1)
 
-            val pktCtx = packetContextFor(makeFrame(1), port1.getId)
+            val pktCtx = packetContextFor(makeFrame(1), port1)
             pktCtx.tracingEnabled(requestId) should be (false)
             try {
                 simulate(pktCtx)
@@ -120,13 +120,13 @@ class FlowTracingTest extends MidolmanSpec {
             newTraceRule(requestId, chain,
                          newCondition(tpDst = Some(500)), 1)
 
-            val pktCtx = packetContextFor(makeFrame(1), port1.getId)
+            val pktCtx = packetContextFor(makeFrame(1), port1)
             pktCtx.tracingEnabled(requestId) should be (false)
             simulate(pktCtx)._1 should be (AddVirtualWildcardFlow)
             pktCtx.tracingEnabled(requestId) should be (false)
             pktCtx.log should not be PacketContext.traceLog
 
-            val pktCtx2 = packetContextFor(makeFrame(500), port1.getId)
+            val pktCtx2 = packetContextFor(makeFrame(500), port1)
             pktCtx2.tracingEnabled(requestId) should be (false)
             try {
                 simulate(pktCtx2)
@@ -138,7 +138,7 @@ class FlowTracingTest extends MidolmanSpec {
             }
             simulate(pktCtx2)._1 should be (AddVirtualWildcardFlow)
 
-            val pktCtx3 = packetContextFor(makeFrame(1000), port1.getId)
+            val pktCtx3 = packetContextFor(makeFrame(1000), port1)
             pktCtx3.tracingEnabled(requestId) should be (false)
             simulate(pktCtx3)._1 should be (AddVirtualWildcardFlow)
             pktCtx3.tracingEnabled(requestId) should be (false)
@@ -153,7 +153,7 @@ class FlowTracingTest extends MidolmanSpec {
             newTraceRule(requestId2, chain,
                          newCondition(tpSrc = Some(1000)), 1)
 
-            val pktCtx = packetContextFor(makeFrame(500), port1.getId)
+            val pktCtx = packetContextFor(makeFrame(500), port1)
             pktCtx.tracingEnabled(requestId1) should be (false)
             pktCtx.tracingEnabled(requestId2) should be (false)
             try {
@@ -167,7 +167,7 @@ class FlowTracingTest extends MidolmanSpec {
             }
             simulate(pktCtx)._1 should be (AddVirtualWildcardFlow)
 
-            val pktCtx2 = packetContextFor(makeFrame(500, 1000), port1.getId)
+            val pktCtx2 = packetContextFor(makeFrame(500, 1000), port1)
             pktCtx2.tracingEnabled(requestId1) should be (false)
             try {
                 // should hit second rule
@@ -197,7 +197,7 @@ class FlowTracingTest extends MidolmanSpec {
             newTraceRule(requestId, chain,
                          newCondition(tpDst = Some(500)), 1)
             val pktCtxs = new LinkedList[PacketContext]()
-            val wkfl = packetWorkflow(Map(42 -> port1.getId),
+            val wkfl = packetWorkflow(Map(42 -> port1),
                                       packetCtxTrap = pktCtxs)
             wkfl ! PacketWorkflow.HandlePackets(
                 List(makePacket(500)).toArray)
@@ -212,7 +212,7 @@ class FlowTracingTest extends MidolmanSpec {
             newTraceRule(requestId1, chain,
                          newCondition(tpDst = Some(500)), 1)
             val frame = makeFrame(500)
-            val pktCtx = packetContextFor(frame, port1.getId)
+            val pktCtx = packetContextFor(frame, port1)
             pktCtx.tracingEnabled(requestId1) should be (false)
             try {
                 simulate(pktCtx)
@@ -242,7 +242,7 @@ class FlowTracingTest extends MidolmanSpec {
             context.addRequest(requestId1)
             table.putAndRef(key, context)
 
-            val pktCtx = packetContextFor(frame, port1.getId)
+            val pktCtx = packetContextFor(frame, port1)
             pktCtx.tracingEnabled(requestId1) should be (false)
 
             try {
@@ -259,7 +259,7 @@ class FlowTracingTest extends MidolmanSpec {
             // try with similar, but slightly different packet
             // shouldn't match
             val frame2 = makeFrame(500, 10001)
-            val pktCtx2 = packetContextFor(frame2, port1.getId)
+            val pktCtx2 = packetContextFor(frame2, port1)
             pktCtx2.tracingEnabled(requestId1) should be (false)
             try {
                 simulate(pktCtx2)

@@ -27,7 +27,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Chain}
-import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.layer3.{Route => L3Route}
@@ -39,6 +38,7 @@ import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.midolman.state.TraceState
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology._
+import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.{Flow, FlowMatches, Packet}
@@ -56,14 +56,14 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     var egressHostIp = IPv4Addr("180.0.1.3")
 
     var router: UUID = null
-    var uplinkPort: RouterPort = null
-    var rtrIntPort: RouterPort = null
+    var uplinkPort: UUID = null
+    var rtrIntPort: UUID = null
 
     var bridge: UUID = null
     var bridgeChain: Chain = null
-    var bridgeRtrPort: BridgePort = null
-    var bridgeVm1Port: BridgePort = null
-    var bridgeVm2Port: BridgePort = null
+    var bridgeRtrPort: UUID = null
+    var bridgeVm1Port: UUID = null
+    var bridgeVm2Port: UUID = null
 
     val tunnelPort = 10001
 
@@ -111,36 +111,34 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
                                    uplinkNwAddr.getAddress.toString,
                                    uplinkNwAddr.getPrefixLen)
         materializePort(uplinkPort, ingressHost, "uplinkPort")
-        portMapIngress.put(uplinkPort.getTunnelKey, uplinkPort.getId)
 
         newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0,
-                 NextHop.PORT, uplinkPort.getId, uplinkGatewayAddr.toString, 1)
+                 NextHop.PORT, uplinkPort, uplinkGatewayAddr.toString, 1)
         newRoute(router, "0.0.0.0", 0, uplinkNwAddr.getAddress.toString,
-                 uplinkNwAddr.getPrefixLen, NextHop.PORT, uplinkPort.getId,
+                 uplinkNwAddr.getPrefixLen, NextHop.PORT, uplinkPort,
                  new IPv4Addr(L3Route.NO_GATEWAY).toString, 10)
         rtrIntPort = newRouterPort(router, rtrIntMac, rtrIntIp.toUnicastString,
                                    rtrIntIp.toNetworkAddress.toString,
                                    rtrIntIp.getPrefixLen)
         newRoute(router, "0.0.0.0", 0,
                  rtrIntIp.toNetworkAddress.toString, rtrIntIp.getPrefixLen,
-                 NextHop.PORT, rtrIntPort.getId,
+                 NextHop.PORT, rtrIntPort,
                  new IPv4Addr(L3Route.NO_GATEWAY).toString, 10)
 
         bridge = newBridge("bridge")
         bridgeRtrPort = newBridgePort(bridge)
-        clusterDataClient.portsLink(rtrIntPort.getId, bridgeRtrPort.getId)
+        clusterDataClient.portsLink(rtrIntPort, bridgeRtrPort)
 
         bridgeChain = newInboundChainOnBridge("my-chain", bridge)
 
         // vm1 on egress host
         bridgeVm1Port = newBridgePort(bridge)
         materializePort(bridgeVm1Port, egressHost, "vm1Port")
-        portMapEgress.put(bridgeVm1Port.getTunnelKey, bridgeVm1Port.getId)
 
         // vm2 on ingress host
         bridgeVm2Port = newBridgePort(bridge)
         materializePort(bridgeVm2Port, ingressHost, "vm2Port")
-        portMapIngress.put(bridgeVm2Port.getTunnelKey, bridgeVm2Port.getId)
+
 
         val simRouter: SimRouter = fetchDevice[SimRouter](router)
         val simBridge: SimBridge = fetchDevice[SimBridge](bridge)
@@ -151,12 +149,25 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         feedArpTable(simRouter, vm1IpAddr.addr, vm1Mac)
         feedArpTable(simRouter, vm2IpAddr.addr, vm2Mac)
 
-        feedMacTable(simBridge, vm1Mac, bridgeVm1Port.getId)
-        feedMacTable(simBridge, vm2Mac, bridgeVm2Port.getId)
+        feedMacTable(simBridge, vm1Mac, bridgeVm1Port)
+        feedMacTable(simBridge, vm2Mac, bridgeVm2Port)
 
-        fetchTopology(uplinkPort, rtrIntPort,
-                      bridgeRtrPort, bridgeVm1Port,
-                      bridgeVm2Port, bridgeChain)
+        fetchPorts(uplinkPort, bridgeVm2Port) map {
+            _ match {
+                case p: Port =>
+                    portMapIngress.put(p.tunnelKey.toInt, p.id)
+                case _ =>
+            }
+        }
+        fetchPorts(bridgeVm1Port) map {
+            _ match {
+                case p: Port =>
+                    portMapEgress.put(p.tunnelKey.toInt, p.id)
+                case _ =>
+            }
+        }
+        fetchPorts(rtrIntPort, bridgeRtrPort)
+        fetchTopology(bridgeChain)
         fetchDevice[SimRouter](router)
         fetchDevice[SimBridge](bridge)
 
@@ -188,29 +199,29 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     }
 
     feature("tunnel tagging") {
-       scenario("Tunnel key is tagged with trace mask, on bridge") {
-           newTraceRule(UUID.randomUUID, bridgeChain,
-                        newCondition(tpDst = Some(500)), 1)
+        scenario("Tunnel key is tagged with trace mask, on bridge") {
+            newTraceRule(UUID.randomUUID, bridgeChain,
+                         newCondition(tpDst = Some(500)), 1)
 
-           val frame = { eth src vm2Mac dst vm1Mac } <<
-               { ip4 src vm2IpAddr dst vm1IpAddr } <<
-               { tcp src 23423 dst 500 } << payload("foobar")
+            val frame = { eth src vm2Mac dst vm1Mac } <<
+            { ip4 src vm2IpAddr dst vm1IpAddr } <<
+            { tcp src 23423 dst 500 } << payload("foobar")
 
-           val inPortNum = portMapIngress.inverse.get(bridgeVm2Port.getId)
-           injectPacketVerifyTraced(inPortNum, frame)
-       }
+            val inPortNum = portMapIngress.inverse.get(bridgeVm2Port)
+            injectPacketVerifyTraced(inPortNum, frame)
+        }
 
-       scenario("Tunnel key is tagged with trace mask, traversing router") {
-           newTraceRule(UUID.randomUUID, bridgeChain,
-                        newCondition(tpDst = Some(500)), 1)
+        scenario("Tunnel key is tagged with trace mask, traversing router") {
+            newTraceRule(UUID.randomUUID, bridgeChain,
+                         newCondition(tpDst = Some(500)), 1)
 
-           val frame = { eth src uplinkGatewayMac dst uplinkPortMac } <<
-               { ip4 src uplinkGatewayAddr dst vm1IpAddr } <<
-               { tcp src 23423 dst 500 } << payload("foobar")
+            val frame = { eth src uplinkGatewayMac dst uplinkPortMac } <<
+            { ip4 src uplinkGatewayAddr dst vm1IpAddr } <<
+            { tcp src 23423 dst 500 } << payload("foobar")
 
-           val inPortNum = portMapIngress.inverse.get(uplinkPort.getId)
-           injectPacketVerifyTraced(inPortNum, frame)
-       }
+            val inPortNum = portMapIngress.inverse.get(uplinkPort)
+            injectPacketVerifyTraced(inPortNum, frame)
+        }
     }
 
     private def injectPacketVerifyTraced(inPortNum: Int,
@@ -260,7 +271,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         val (_, actions2) = packetOutQueueEgress.remove()
 
         getOutputPort(actions2) should be (portMapEgress.inverse
-                                               .get(bridgeVm1Port.getId))
+                                               .get(bridgeVm1Port))
         val egressCtx = packetCtxTrapEgress.remove()
         egressCtx.traceFlowId should be (ingressCtx.traceFlowId())
 

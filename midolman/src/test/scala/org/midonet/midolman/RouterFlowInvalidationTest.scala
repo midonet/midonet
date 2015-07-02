@@ -23,12 +23,12 @@ import akka.testkit.TestActorRef
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{EmptyActor, MessageAccumulator}
 import org.midonet.packets.{IPv4Subnet, Packets, IPv4Addr, MAC}
@@ -40,8 +40,8 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     var router: UUID = null
-    var outPort: RouterPort = null
-    var inPort: RouterPort = null
+    var outPort: UUID = null
+    var inPort: UUID = null
     var simRouter: SimRouter = null
 
     val macInPort = "02:11:22:33:44:10"
@@ -66,7 +66,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         materializePort(inPort, hostId, "inport")
         materializePort(outPort, hostId, "outport")
 
-        fetchTopology(inPort, outPort)
+        fetchPorts(inPort, outPort)
         simRouter = fetchDevice[SimRouter](router)
 
         val actor = TestActorRef(new EmptyActor with MessageAccumulator)
@@ -79,15 +79,16 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val macToReach = "02:11:22:33:48:10"
         // add a route from ipSource to ipToReach/31, next hop is outPort
         newRoute(router, ipSource, 32, ipToReach, 31, NextHop.PORT,
-                 outPort.getId, new IPv4Addr(NO_GATEWAY).toString, 2)
+                 outPort, new IPv4Addr(NO_GATEWAY).toString, 2)
 
         feedArpTable(simRouter, IPv4Addr.fromString(ipToReach),
                      MAC.fromString(macToReach))
 
+        val portDevice = fetchDevice[RouterPort](inPort)
         val eth = createUdpPacket(macSource, ipSource,
-                                              inPort.getHwAddr.toString, ipToReach)
+                                  portDevice.portMac.toString, ipToReach)
 
-        val (simRes, pktCtx) = simulate(packetContextFor(eth, inPort.getId))
+        val (simRes, pktCtx) = simulate(packetContextFor(eth, inPort))
         simRes should not be Drop
 
         tagsProbe.getAndClear() should be (List(
@@ -110,7 +111,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val macVm3 = "11:22:33:44:55:04"
 
         newRoute(router, ipSource, 32, networkToReach, networkToReachLength,
-            NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
+            NextHop.PORT, outPort, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
         feedArpTable(simRouter, IPv4Addr.fromString(ipVm1),
@@ -123,28 +124,28 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
                      MAC.fromString(macVm3))
 
         var eth = createUdpPacket(macSource, ipSource, macInPort, ipVm1)
-        var simRes = simulate(packetContextFor(eth, inPort.getId))._2
+        var simRes = simulate(packetContextFor(eth, inPort))._2
         simRes should not be Drop
 
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm1), 1)))
 
         eth = createUdpPacket(macSource, ipSource, macInPort, ipVm2)
-        simRes = simulate(packetContextFor(eth, inPort.getId))._2
+        simRes = simulate(packetContextFor(eth, inPort))._2
         simRes should not be Drop
 
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm2), 1)))
 
         eth = createUdpPacket(macSource, ipSource, macInPort, ipVm3)
-        simRes = simulate(packetContextFor(eth, inPort.getId))._2
+        simRes = simulate(packetContextFor(eth, inPort))._2
         simRes should not be Drop
 
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm3), 1)))
 
         newRoute(router, ipSource, 32, "11.11.1.0", networkToReachLength+8,
-            NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
+            NextHop.PORT, outPort, new IPv4Addr(NO_GATEWAY).toString,
             2)
 
         flowInvalidator should invalidateForNewRoutes(
@@ -158,14 +159,14 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val macVm2 = "11:22:33:44:55:03"
 
         newRoute(router, "0.0.0.0", 0, networkToReach, networkToReachLength,
-                 NextHop.PORT, outPort.getId, new IPv4Addr(NO_GATEWAY).toString,
+                 NextHop.PORT, outPort, new IPv4Addr(NO_GATEWAY).toString,
                  2)
 
         feedArpTable(simRouter, IPv4Addr.fromString(ipVm1),
                      MAC.fromString(macVm1))
 
         var eth = createUdpPacket(macSource, ipSource, macInPort, ipVm1)
-        val (simRes1, pktCtx1) = simulate(packetContextFor(eth, inPort.getId))
+        val (simRes1, pktCtx1) = simulate(packetContextFor(eth, inPort))
         simRes1 should not be Drop
 
         tagsProbe.getAndClear() should be (List(
@@ -175,7 +176,7 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
                      MAC.fromString(macVm2))
 
         eth = createUdpPacket(macSource, ipSource, macInPort, ipVm2)
-        val (simRes2, pktCtx2) = simulate(packetContextFor(eth, inPort.getId))
+        val (simRes2, pktCtx2) = simulate(packetContextFor(eth, inPort))
         simRes2 should not be Drop
 
         tagsProbe.getAndClear() should be (List(
@@ -188,14 +189,14 @@ class RouterFlowInvalidationTest extends MidolmanSpec {
         val ipSource2 = "20.20.0.40"
 
         eth = createUdpPacket(macSource, ipSource2, macInPort, ipVm1)
-        val (simRes3, _) = simulate(packetContextFor(eth, inPort.getId))
+        val (simRes3, _) = simulate(packetContextFor(eth, inPort))
         simRes3 should not be Drop
 
         tagsProbe.getAndClear() should be (List(
             new RouterInvTrieTagCountModified(IPv4Addr.fromString(ipVm1), 1)))
 
         eth = createUdpPacket(macSource, ipSource2, macInPort, ipVm2)
-        val (simRes4, pktCtx4) = simulate(packetContextFor(eth, inPort.getId))
+        val (simRes4, pktCtx4) = simulate(packetContextFor(eth, inPort))
         simRes4 should not be Drop
 
         tagsProbe.getAndClear() should be (List(

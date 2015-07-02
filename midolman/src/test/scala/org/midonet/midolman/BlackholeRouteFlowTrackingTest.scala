@@ -20,7 +20,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.ErrorDrop
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
@@ -53,8 +52,8 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
 
     val blackholedDestination = "10.0.0.1"
 
-    var leftPort: RouterPort = null
-    var rightPort: RouterPort = null
+    var leftPort: UUID = null
+    var rightPort: UUID = null
 
     val netmask = 24
 
@@ -72,19 +71,19 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
         leftPort = newRouterPort(clusterRouter,
             MAC.fromString(leftRouterMac), leftRouterIp, leftNet, netmask)
         leftPort should not be null
-        stateStorage.setPortLocalAndActive(leftPort.getId, host, true)
+        stateStorage.setPortLocalAndActive(leftPort, host, true)
 
         rightPort = newRouterPort(clusterRouter,
             MAC.fromString(rightRouterMac), rightRouterIp, rightNet, netmask)
         rightPort should not be null
-        stateStorage.setPortLocalAndActive(rightPort.getId, host, true)
+        stateStorage.setPortLocalAndActive(rightPort, host, true)
 
         newRoute(clusterRouter, "0.0.0.0", 0, blackholedDestination, 30,
                  NextHop.BLACKHOLE, null, null, 1)
         newRoute(clusterRouter, "0.0.0.0", 0, leftNet, netmask, NextHop.PORT,
-                 leftPort.getId, new IPv4Addr(Route.NO_GATEWAY).toString, 1)
+                 leftPort, new IPv4Addr(Route.NO_GATEWAY).toString, 1)
         newRoute(clusterRouter, "0.0.0.0", 0, rightNet, netmask, NextHop.PORT,
-                 rightPort.getId, new IPv4Addr(Route.NO_GATEWAY).toString, 1)
+                 rightPort, new IPv4Addr(Route.NO_GATEWAY).toString, 1)
 
         simRouter = fetchDevice[Router](clusterRouter)
         simRouter should not be null
@@ -121,7 +120,7 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
     feature("RouterManager tracks permanent flows but not temporary ones") {
         scenario("blackhole route") {
             When("a packet hits a blackhole route")
-            val (pktContext, action) = simulateDevice(simRouter, frameThatWillBeDropped, leftPort.getId)
+            val (pktContext, action) = simulateDevice(simRouter, frameThatWillBeDropped, leftPort)
             action shouldEqual ErrorDrop
 
             And("the routing table changes")
@@ -138,8 +137,8 @@ class BlackholeRouteFlowTrackingTest extends MidolmanSpec
         scenario("to-port route") {
             When("a packet hits a forwarding route")
             val (ctx, action) = simulateDevice(simRouter,
-                frameThatWillBeForwarded, leftPort.getId)
-            action shouldEqual ToPortAction(rightPort.getId)
+                frameThatWillBeForwarded, leftPort)
+            action shouldEqual ToPortAction(rightPort)
 
             And("the routing table changes")
             flowInvalidator.clear()
