@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,24 +34,30 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.SecurityContext;
 import javax.ws.rs.core.UriInfo;
 
+import com.google.inject.Inject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.midonet.api.ResourceUriBuilder;
-import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.cluster.rest_api.models.VTEPPort;
-import org.midonet.cluster.rest_api.BadRequestHttpException;
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.GatewayTimeoutHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.cluster.southbound.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.vtep.VtepNotConnectedException;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.GatewayTimeoutHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
+import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.conversion.VTEPDataConverter;
 import org.midonet.cluster.rest_api.models.VTEP;
+import org.midonet.cluster.rest_api.models.VTEPPort;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.cluster.southbound.vtep.VtepClusterClient;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.NodeNotEmptyStateException;
@@ -59,18 +65,12 @@ import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv4Addr;
 
-import com.google.inject.Inject;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static scala.collection.JavaConversions.asJavaCollection;
-
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_EXISTS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HAS_BINDINGS;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_HOST_IP_CONFLICT;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
+import static scala.collection.JavaConversions.asJavaCollection;
 
 public class VtepResource extends AbstractVtepResource {
     private final static Logger log =
@@ -107,6 +107,15 @@ public class VtepResource extends AbstractVtepResource {
             PhysicalSwitch ps = vtepClient.getPhysicalSwitch(
                 IPv4Addr.apply(vtep.managementIp),
                 vtep.managementPort);
+
+            if (ps == null) {
+                String msg = "I can't connect to the VTEP at " +
+                             vtep.managementIp + ":" +
+                             vtep.managementPort + " because the " +
+                             "VTEP hasn't configured management and tunnel IP";
+                log.error(msg);
+                throw new ServiceUnavailableHttpException(msg);
+            }
 
             // Check all management and tunnel IPs configured for the physical
             // switch.
