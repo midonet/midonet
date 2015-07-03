@@ -49,7 +49,6 @@ trait VirtualConfigurationBuilders {
     def newHost(name: String, id: UUID): UUID
     def newHost(name: String): UUID
     def isHostAlive(id: UUID): Boolean
-
     def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain
     def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain
     def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain
@@ -91,7 +90,7 @@ trait VirtualConfigurationBuilders {
     def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit
     def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit
     def deleteIpAddrGroup(id: UUID): Unit
-    def greTunnelZone(name: String): TunnelZone
+    def greTunnelZone(name: String): UUID
     def newBridge(bridge: ClusterBridge): ClusterBridge
     def newBridge(name: String): ClusterBridge
     def newBridgePort(bridge: ClusterBridge): BridgePort
@@ -255,7 +254,7 @@ trait ForwardingVirtualConfigurationBuilders
     def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
         virtConfBuilderImpl.removeIpAddrFromIpAddrGroup(id, addr)
     def deleteIpAddrGroup(id: UUID): Unit = virtConfBuilderImpl.deleteIpAddrGroup(id)
-    def greTunnelZone(name: String): TunnelZone = virtConfBuilderImpl.greTunnelZone(name)
+    override def greTunnelZone(name: String): UUID = virtConfBuilderImpl.greTunnelZone(name)
     def newBridge(bridge: ClusterBridge): ClusterBridge = virtConfBuilderImpl.newBridge(bridge)
     def newBridge(name: String): ClusterBridge = virtConfBuilderImpl.newBridge(name)
     def newBridgePort(bridge: ClusterBridge): BridgePort = virtConfBuilderImpl.newBridgePort(bridge)

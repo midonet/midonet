@@ -132,9 +132,9 @@ class DatapathControllerActorTest extends MidolmanSpec {
         val dstIp1 = IPv4Addr("192.168.125.1")
 
         clusterDataClient.tunnelZonesAddMembership(
-            tunnelZone.getId, new TunnelZone.HostConfig(hostId).setIp(srcIp))
+            tunnelZone, new TunnelZone.HostConfig(hostId).setIp(srcIp))
         clusterDataClient.tunnelZonesAddMembership(
-            tunnelZone.getId, new TunnelZone.HostConfig(host2).setIp(dstIp1))
+            tunnelZone, new TunnelZone.HostConfig(host2).setIp(dstIp1))
 
         DatapathController.messages.collect { case p: ResolvedHost => p } should have size 1
         DatapathController.messages.collect { case p: ZoneMembers => p } should have size 1
@@ -153,9 +153,9 @@ class DatapathControllerActorTest extends MidolmanSpec {
         val dstIp2 = IPv4Addr("192.168.210.1")
         val secondGreConfig = new TunnelZone.HostConfig(host2).setIp(dstIp2)
         clusterDataClient.tunnelZonesDeleteMembership(
-            tunnelZone.getId, host2)
+            tunnelZone, host2)
         clusterDataClient.tunnelZonesAddMembership(
-            tunnelZone.getId, secondGreConfig)
+            tunnelZone, secondGreConfig)
 
         DatapathController.messages.collect { case p: ZoneChanged => p } should have size 2
         DatapathController.getAndClear() should have size 2
