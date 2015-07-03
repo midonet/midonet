@@ -1,0 +1,278 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fb123361",
+        "filename": "docs/external-services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "to remove ambiguity, indicate that audience is devs (we may polish and promote this to the operator documentation of course)",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7b062322",
+        "filename": "docs/external-services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "what\u0027s expected client behaviour on failure?",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fe09412d",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "nit: MidoNet",
+      "range": {
+        "startLine": 4,
+        "startChar": 7,
+        "endLine": 4,
+        "endChar": 8
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1e0fc531",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "implemented using ReplicatedMap, a class using ZooKeeper as a backend, that encodes all entries as directory paths.\n\nor something like that.",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5e106d4e",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "but could be adapted to other pub-sub systems",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_de2b9d80",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "This is a bit confusing for me, maybe I\u0027d rephrase to say that the replicated map will treat all writes as opinions but expose the map for reads as a consolidated view that resolves opinions deterministically.",
+      "range": {
+        "startLine": 13,
+        "startChar": 51,
+        "endLine": 14,
+        "endChar": 17
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1e26e5b7",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "mac-port assocs. can also be learned from traffic",
+      "range": {
+        "startLine": 15,
+        "startChar": 25,
+        "endLine": 16,
+        "endChar": 20
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fe20619d",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "mac-port association",
+      "range": {
+        "startLine": 16,
+        "startChar": 58,
+        "endLine": 16,
+        "endChar": 61
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_de52bd12",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "a pub/sub mechanism, in general I\u0027d try to avoid the association between merged-map and kafka, and instead talk about a pub/sub system (which is Kafka in our first implementation)",
+      "range": {
+        "startLine": 21,
+        "startChar": 19,
+        "endLine": 21,
+        "endChar": 28
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1e5d0522",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "ditto, take this to subsection and explain how we implement merged map with kafka, rather than associate mm-kafka",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7e4b7159",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "explain motivation for doing it like this? what are the tradeoffs? (e.g., why not a single topic for all opinions of an owner in all maps)",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5e65cddf",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "What if a hypervisor is decomissioned (but the host id entry remains in zk)? how do we clean its opinions?",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7e6291d9",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "Cluster Minion (and maybe add a footnote referencing https://github.com/midonet/midonet/blob/master/specs/2015.02/cluster_design.md for further info)",
+      "range": {
+        "startLine": 52,
+        "startChar": 2,
+        "endLine": 52,
+        "endChar": 8
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9e5f550e",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-03T14:47:04Z",
+      "side": 1,
+      "message": "is this service implemented, should it run in all cluster nodes, just a designated one? what are the expectations?",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
