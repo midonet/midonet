@@ -23,8 +23,7 @@ import scala.util.Random
 import scala.collection.JavaConversions._
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{Bridge => ClusterBridge,
-                                 Router => ClusterRouter,
+import org.midonet.cluster.data.{Router => ClusterRouter,
                                  PortGroup => ClusterPortGroup,
                                  _}
 import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
@@ -38,7 +37,7 @@ import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{IPv4Subnet, TCP, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
 import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
                                       HealthMonitor}
 import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
@@ -49,8 +48,8 @@ trait VirtualConfigurationBuilders {
     def newHost(name: String, id: UUID): UUID
     def newHost(name: String): UUID
     def isHostAlive(id: UUID): Boolean
-    def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain
-    def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain
+    def newInboundChainOnBridge(name: String, bridge: UUID): Chain
+    def newOutboundChainOnBridge(name: String, bridge: UUID): Chain
     def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain
     def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain
     def newChain(name: String, id: Option[UUID] = None): Chain
@@ -78,7 +77,7 @@ trait VirtualConfigurationBuilders {
                                  isDnat: Boolean) : ForwardNatRule
     def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
                          action: Action, isDnat: Boolean) : ReverseNatRule
-    def removeRuleFromBridge(bridge: ClusterBridge): Unit
+    def removeRuleFromBridge(bridge: UUID): Unit
     def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
                               jumpToChainID: UUID): JumpRule
     def newFragmentRuleOnChain(chain: Chain, pos: Int,
@@ -91,13 +90,16 @@ trait VirtualConfigurationBuilders {
     def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit
     def deleteIpAddrGroup(id: UUID): Unit
     def greTunnelZone(name: String): UUID
-    def newBridge(bridge: ClusterBridge): ClusterBridge
-    def newBridge(name: String): ClusterBridge
-    def newBridgePort(bridge: ClusterBridge): BridgePort
-    def newBridgePort(bridge: ClusterBridge, port: BridgePort): BridgePort
-    def newBridgePort(bridge: ClusterBridge,
+
+    def newBridge(name: String): UUID
+    def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit
+    def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit
+
+    def newBridgePort(bridge: UUID): BridgePort
+    def newBridgePort(bridge: UUID, port: BridgePort): BridgePort
+    def newBridgePort(bridge: UUID,
                       vlanId: Option[Short] = None): BridgePort
-    def newVxLanPort(bridge: ClusterBridge, port: VxLanPort): VxLanPort
+    def newVxLanPort(bridge: UUID, port: VxLanPort): VxLanPort
     def deletePort(port: Port[_, _], hostId: UUID): Unit
     def newPortGroup(name: String, stateful: Boolean = false): ClusterPortGroup
     def updatePortGroup(pg: ClusterPortGroup): Unit
@@ -115,15 +117,15 @@ trait VirtualConfigurationBuilders {
                  nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
                  weight: Int): UUID
     def deleteRoute(routeId: UUID): Unit
-    def addDhcpSubnet(bridge : ClusterBridge,
+    def addDhcpSubnet(bridge : UUID,
                       subnet : Subnet): Unit
-    def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
+    def addDhcpHost(bridge : UUID, subnet : Subnet,
                     host : org.midonet.cluster.data.dhcp.Host): Unit
-    def updatedhcpHost(bridge: ClusterBridge,
+    def updatedhcpHost(bridge: UUID,
                        subnet: Subnet, host: DhcpHost): Unit
-    def addDhcpSubnet6(bridge : ClusterBridge,
+    def addDhcpSubnet6(bridge : UUID,
                        subnet : Subnet6): Unit
-    def addDhcpV6Host(bridge : ClusterBridge, subnet : Subnet6,
+    def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
                     host : org.midonet.cluster.data.dhcp.V6Host): Unit
     def linkPorts(port: Port[_, _], peerPort: Port[_, _]): Unit
     def materializePort(port: Port[_, _], hostId: UUID, portName: String): Unit
@@ -198,9 +200,9 @@ trait ForwardingVirtualConfigurationBuilders
     override def isHostAlive(id: UUID): Boolean =
         virtConfBuilderImpl.isHostAlive(id)
 
-    def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain =
+    def newInboundChainOnBridge(name: String, bridge: UUID): Chain =
         virtConfBuilderImpl.newInboundChainOnBridge(name, bridge)
-    def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain =
+    def newOutboundChainOnBridge(name: String, bridge: UUID): Chain =
         virtConfBuilderImpl.newOutboundChainOnBridge(name, bridge)
     def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain =
         virtConfBuilderImpl.newInboundChainOnRouter(name, router)
@@ -238,7 +240,7 @@ trait ForwardingVirtualConfigurationBuilders
     def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
                                  action: Action, isDnat: Boolean) : ReverseNatRule =
         virtConfBuilderImpl.newReverseNatRuleOnChain(chain, pos, condition, action, isDnat)
-    def removeRuleFromBridge(bridge: ClusterBridge): Unit =
+    def removeRuleFromBridge(bridge: UUID): Unit =
         virtConfBuilderImpl.removeRuleFromBridge(bridge)
     def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
                            jumpToChainID: UUID): JumpRule =
@@ -255,15 +257,21 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.removeIpAddrFromIpAddrGroup(id, addr)
     def deleteIpAddrGroup(id: UUID): Unit = virtConfBuilderImpl.deleteIpAddrGroup(id)
     override def greTunnelZone(name: String): UUID = virtConfBuilderImpl.greTunnelZone(name)
-    def newBridge(bridge: ClusterBridge): ClusterBridge = virtConfBuilderImpl.newBridge(bridge)
-    def newBridge(name: String): ClusterBridge = virtConfBuilderImpl.newBridge(name)
-    def newBridgePort(bridge: ClusterBridge): BridgePort = virtConfBuilderImpl.newBridgePort(bridge)
-    def newBridgePort(bridge: ClusterBridge, port: BridgePort): BridgePort =
+
+    def newBridge(name: String): UUID = virtConfBuilderImpl.newBridge(name)
+    def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit =
+        virtConfBuilderImpl.setBridgeAdminStateUp(bridge, state)
+    def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit =
+        virtConfBuilderImpl.feedBridgeIp4Mac(bridge, ip, mac)
+
+    def newBridgePort(bridge: UUID): BridgePort = virtConfBuilderImpl.newBridgePort(bridge)
+    def newBridgePort(bridge: UUID, port: BridgePort): BridgePort =
         virtConfBuilderImpl.newBridgePort(bridge, port)
-    def newBridgePort(bridge: ClusterBridge,
+    def newBridgePort(bridge: UUID,
                       vlanId: Option[Short] = None): BridgePort =
         virtConfBuilderImpl.newBridgePort(bridge, vlanId)
-    def newVxLanPort(bridge: ClusterBridge, port: VxLanPort): VxLanPort =
+
+    def newVxLanPort(bridge: UUID, port: VxLanPort): VxLanPort =
         virtConfBuilderImpl.newVxLanPort(bridge, port)
     def deletePort(port: Port[_, _], hostId: UUID): Unit =
         virtConfBuilderImpl.deletePort(port, hostId)
@@ -295,19 +303,19 @@ trait ForwardingVirtualConfigurationBuilders
                        nextHop, nextHopPort, nextHopGateway, weight)
     def deleteRoute(routeId: UUID): Unit =
         virtConfBuilderImpl.deleteRoute(routeId)
-    def addDhcpSubnet(bridge : ClusterBridge,
+    def addDhcpSubnet(bridge : UUID,
                       subnet : Subnet): Unit =
         virtConfBuilderImpl.addDhcpSubnet(bridge, subnet)
-    def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
+    def addDhcpHost(bridge : UUID, subnet : Subnet,
                     host : org.midonet.cluster.data.dhcp.Host): Unit =
         virtConfBuilderImpl.addDhcpHost(bridge, subnet, host)
-    def updatedhcpHost(bridge: ClusterBridge,
+    def updatedhcpHost(bridge: UUID,
                        subnet: Subnet, host: DhcpHost): Unit =
         virtConfBuilderImpl.updatedhcpHost(bridge, subnet, host)
-    def addDhcpSubnet6(bridge : ClusterBridge,
+    def addDhcpSubnet6(bridge : UUID,
                        subnet : Subnet6): Unit =
         virtConfBuilderImpl.addDhcpSubnet6(bridge, subnet)
-    def addDhcpV6Host(bridge : ClusterBridge, subnet : Subnet6,
+    def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
                       host : org.midonet.cluster.data.dhcp.V6Host): Unit =
         virtConfBuilderImpl.addDhcpV6Host(bridge, subnet, host)
     def linkPorts(port: Port[_, _], peerPort: Port[_, _]): Unit =

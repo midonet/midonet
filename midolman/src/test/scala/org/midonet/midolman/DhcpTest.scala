@@ -17,7 +17,7 @@
 package org.midonet.midolman
 
 import java.nio.ByteBuffer
-import java.util.LinkedList
+import java.util.{LinkedList, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -26,7 +26,6 @@ import org.junit.runner.RunWith
 import org.midonet.midolman.config.MidolmanConfig
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Opt121
 import org.midonet.cluster.data.dhcp.Subnet
@@ -34,7 +33,7 @@ import org.midonet.cluster.data.dhcp.ExtraDhcpOpt
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
-import org.midonet.midolman.simulation.DhcpValueParser
+import org.midonet.midolman.simulation.{Bridge, DhcpValueParser}
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -58,7 +57,7 @@ class DhcpTest extends MidolmanSpec {
     val vm1Mac = MAC.fromString("02:23:24:25:26:27")
     val vm2Mac = MAC.fromString("02:53:53:53:53:53")
 
-    var bridge: Bridge = _
+    var bridge: UUID = _
     var bridgePort1: BridgePort = _
     val bridgePortNumber1 = 1
     var bridgePort2: BridgePort = _
@@ -139,8 +138,9 @@ class DhcpTest extends MidolmanSpec {
             .setIp(vm2IP.getAddress)
         addDhcpHost(bridge, dhcpSubnet2, dhcpHost2)
 
-        fetchTopology(router, routerPort1, routerPort2, routerPort3, bridge,
+        fetchTopology(router, routerPort1, routerPort2, routerPort3,
                       bridgeIntPort1, bridgeIntPort2, bridgePort1, bridgePort2)
+        fetchDevice[Bridge](bridge)
 
         workflow = packetWorkflow(Map(bridgePortNumber1 -> bridgePort1.getId,
                                       bridgePortNumber2 -> bridgePort2.getId)).underlyingActor

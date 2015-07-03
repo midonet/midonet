@@ -20,13 +20,13 @@ import java.util.{LinkedList, UUID}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Chain}
+import org.midonet.cluster.data.{Chain}
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.simulation.{Coordinator, PacketContext}
+import org.midonet.midolman.simulation.{Bridge, Coordinator, PacketContext}
 import org.midonet.midolman.state.HappyGoLuckyLeaser
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology._
@@ -42,7 +42,7 @@ import org.midonet.sdn.state.FlowStateTransaction
 class FlowTracingTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    var bridge: ClusterBridge = _
+    var bridge: UUID = _
     var port1: BridgePort = _
     var port2: BridgePort = _
     var chain: Chain = _
@@ -59,7 +59,8 @@ class FlowTracingTest extends MidolmanSpec {
         materializePort(port2, hostId, "port2")
 
         chain = newInboundChainOnBridge("my-chain", bridge)
-        fetchTopology(bridge, port1, port2, chain)
+        fetchTopology(port1, port2, chain)
+        fetchDevice[Bridge](bridge)
     }
 
     private def newTraceRule(requestId: UUID, chain: Chain,

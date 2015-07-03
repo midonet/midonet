@@ -20,7 +20,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Bridge => ClusterBridge}
 import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.layer3.Route
@@ -62,7 +61,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
     var rightPort: BridgePort = null
     var rtLeftPort: RouterPort = null
     var rtRightPort: RouterPort = null
-    var clusterBridge: ClusterBridge = null
+    var clusterBridge: UUID = null
     var clusterRouter: ClusterRouter = null
 
     private def setActive(id: UUID) {
@@ -89,7 +88,8 @@ class IcmpThroughNatTest extends MidolmanSpec {
         ports map{ _.getId } foreach setActive
 
         fetchTopology(leftPort, rightPort, rtLeftPort, rtRightPort,
-                      clusterRouter, clusterBridge)
+                      clusterRouter)
+        fetchDevice[Bridge](clusterBridge)
 
         val router = fetchDevice[Router](clusterRouter)
         feedArpCache(router, IPv4Addr(leftIp), leftMac)
@@ -156,7 +156,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
     feature("ICMP packets traversing bridges do not trigger l4 fields tagging") {
 
         scenario("a VM sends an ICMP echo request to another VM") {
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val macTable = bridge.vlanMacTableMap(0.toShort)
             macTable.add(rightMac, rightPort.getId)
 
@@ -172,7 +172,7 @@ class IcmpThroughNatTest extends MidolmanSpec {
         }
 
         scenario("the other VM sends back an Icmp echo reply") {
-            val bridge: Bridge = fetchDevice(clusterBridge)
+            val bridge: Bridge = fetchDevice[Bridge](clusterBridge)
             val macTable = bridge.vlanMacTableMap(0.toShort)
             macTable.add(leftMac, leftPort.getId)
 

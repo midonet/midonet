@@ -25,7 +25,7 @@ import scala.collection.JavaConversions._
 import com.google.inject.Inject
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{Bridge => ClusterBridge,
+import org.midonet.cluster.data.{Bridge,
                                  Router => ClusterRouter,
                                  PortGroup => ClusterPortGroup,
                                  _}
@@ -40,7 +40,7 @@ import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{IPv4Subnet, TCP, MAC}
+import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
 import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
                                       HealthMonitor}
 import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
@@ -64,7 +64,8 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     override def newHost(name: String): UUID = newHost(name, UUID.randomUUID())
     override def isHostAlive(id: UUID): Boolean = clusterDataClient().hostsGet(id).getIsAlive
 
-    def newInboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
+    def newInboundChainOnBridge(name: String, bridgeId: UUID): Chain = {
+        val bridge = clusterDataClient().bridgesGet(bridgeId)
         val chain = newChain(name, None)
         bridge.setInboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
@@ -72,7 +73,8 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         chain
     }
 
-    def newOutboundChainOnBridge(name: String, bridge: ClusterBridge): Chain = {
+    def newOutboundChainOnBridge(name: String, bridgeId: UUID): Chain = {
+        val bridge = clusterDataClient().bridgesGet(bridgeId)
         val chain = newChain(name, None)
         bridge.setOutboundFilter(chain.getId)
         clusterDataClient().bridgesUpdate(bridge)
@@ -189,7 +191,8 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient().rulesGet(id).asInstanceOf[ReverseNatRule]
     }
 
-    def removeRuleFromBridge(bridge: ClusterBridge) {
+    def removeRuleFromBridge(bridgeId: UUID) {
+        val bridge = clusterDataClient().bridgesGet(bridgeId)
         bridge.setInboundFilter(null)
         clusterDataClient().bridgesUpdate(bridge)
         Thread.sleep(50)
@@ -245,20 +248,32 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         tunnelZone.getId
     }
 
-    def newBridge(bridge: ClusterBridge): ClusterBridge = {
+    def newBridge(name: String): UUID = {
+        val bridge = new Bridge().setName(name)
         val id = clusterDataClient().bridgesCreate(bridge)
         Thread.sleep(50)
         clusterDataClient().bridgesGet(id)
+        id
     }
 
-    def newBridge(name: String): ClusterBridge =
-            newBridge(new ClusterBridge().setName(name))
+    def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit = {
+        val br = clusterDataClient().bridgesGet(bridge)
+        br.setAdminStateUp(state)
+        clusterDataClient().bridgesUpdate(br)
+    }
 
-    def newBridgePort(bridge: ClusterBridge): BridgePort =
-        newBridgePort(bridge, Ports.bridgePort(bridge))
+    def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit = {
+        clusterDataClient.bridgeAddIp4Mac(bridge, ip, mac)
+    }
 
-    def newBridgePort(bridge: ClusterBridge, port: BridgePort) = {
-        port.setDeviceId(bridge.getId)
+
+    def newBridgePort(bridgeId: UUID): BridgePort = {
+        val bridge = clusterDataClient().bridgesGet(bridgeId)
+        newBridgePort(bridgeId, Ports.bridgePort(bridge))
+    }
+
+    def newBridgePort(bridge: UUID, port: BridgePort) = {
+        port.setDeviceId(bridge)
         val uuid = clusterDataClient().portsCreate(port)
         Thread.sleep(50)
         // do a portsGet because some fields are set during the creating and are
@@ -266,8 +281,9 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
     }
 
-    def newBridgePort(bridge: ClusterBridge,
+    def newBridgePort(bridgeId: UUID,
                       vlanId: Option[Short] = None): BridgePort = {
+        val bridge = clusterDataClient().bridgesGet(bridgeId)
         val jVlanId: java.lang.Short = if(vlanId.isDefined) vlanId.get else null
         val uuid = clusterDataClient()
                    .portsCreate(Ports.bridgePort(bridge, jVlanId))
@@ -275,8 +291,8 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient().portsGet(uuid).asInstanceOf[BridgePort]
     }
 
-    def newVxLanPort(bridge: ClusterBridge, port: VxLanPort): VxLanPort = {
-        port.setDeviceId(bridge.getId)
+    def newVxLanPort(bridge: UUID, port: VxLanPort): VxLanPort = {
+        port.setDeviceId(bridge)
         val uuid = clusterDataClient().portsCreate(port)
         clusterDataClient().portsGet(uuid).asInstanceOf[VxLanPort]
     }
@@ -364,30 +380,30 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient().routesDelete(routeId)
     }
 
-    def addDhcpSubnet(bridge : ClusterBridge,
+    def addDhcpSubnet(bridge : UUID,
                       subnet : Subnet) = {
-        clusterDataClient().dhcpSubnetsCreate(bridge.getId, subnet)
+        clusterDataClient().dhcpSubnetsCreate(bridge, subnet)
     }
 
-    def addDhcpHost(bridge : ClusterBridge, subnet : Subnet,
+    def addDhcpHost(bridge : UUID, subnet : Subnet,
                     host : org.midonet.cluster.data.dhcp.Host) = {
-        clusterDataClient().dhcpHostsCreate(bridge.getId, subnet.getSubnetAddr, host)
+        clusterDataClient().dhcpHostsCreate(bridge, subnet.getSubnetAddr, host)
     }
 
-    def updatedhcpHost(bridge: ClusterBridge,
+    def updatedhcpHost(bridge: UUID,
                        subnet: Subnet, host: DhcpHost) = {
         clusterDataClient().dhcpHostsUpdate(
-            bridge.getId, subnet.getSubnetAddr, host)
+            bridge, subnet.getSubnetAddr, host)
     }
 
-    def addDhcpSubnet6(bridge : ClusterBridge,
+    def addDhcpSubnet6(bridge : UUID,
                        subnet : Subnet6) = {
-        clusterDataClient().dhcpSubnet6Create(bridge.getId, subnet)
+        clusterDataClient().dhcpSubnet6Create(bridge, subnet)
     }
 
-    def addDhcpV6Host(bridge : ClusterBridge, subnet : Subnet6,
+    def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
                     host : org.midonet.cluster.data.dhcp.V6Host) = {
-        clusterDataClient().dhcpV6HostCreate(bridge.getId,
+        clusterDataClient().dhcpV6HostCreate(bridge,
                                               subnet.getPrefix, host)
     }
 

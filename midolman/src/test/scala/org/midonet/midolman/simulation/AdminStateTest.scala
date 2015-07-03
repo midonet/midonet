@@ -30,7 +30,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.cluster.data.{Bridge => ClusterBridge, Entity, Router => ClusterRouter}
+import org.midonet.cluster.data.{Entity, Router => ClusterRouter}
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
@@ -66,7 +66,7 @@ class AdminStateTest extends MidolmanSpec {
     val ipRouterSide = new IPv4Subnet("10.0.1.128", 24)
     val macRouterSide = MAC.random
 
-    var bridge: ClusterBridge = _
+    var bridge: UUID = _
     var interiorBridgePort: BridgePort = _
     var exteriorBridgePort: BridgePort = _
     var router: ClusterRouter = _
@@ -118,8 +118,7 @@ class AdminStateTest extends MidolmanSpec {
             Route.NextHop.PORT, exteriorRouterPort.getId,
             new IPv4Addr(Route.NO_GATEWAY).toString, 10)
 
-        val topo = fetchTopology(bridge,
-                                 interiorBridgePort,
+        val topo = fetchTopology(interiorBridgePort,
                                  exteriorRouterPort,
                                  router,
                                  interiorRouterPort,
@@ -129,10 +128,8 @@ class AdminStateTest extends MidolmanSpec {
             feedArpTable(r, ipBridgeSide.getAddress, macBridgeSide)
             feedArpTable(r, ipRouterSide.getAddress, macRouterSide)
         }
-
-        topo.collect({ case b: Bridge => b.vlanMacTableMap})
-            .head(ClusterBridge.UNTAGGED_VLAN_ID)
-            .add(macBridgeSide, exteriorBridgePort.getId)
+        val simBridge = fetchDevice[Bridge](bridge)
+        feedMacTable(simBridge, macBridgeSide, exteriorBridgePort.getId)
 
         sendPacket (fromBridgeSide) should be (flowMatching (emittedRouterSidePkt))
         sendPacket (fromRouterSide) should be (flowMatching (emittedBridgeSidePkt))
@@ -166,8 +163,7 @@ class AdminStateTest extends MidolmanSpec {
         scenario("a down bridge drops packets silently") {
             Given("a down bridge")
 
-            bridge.setAdminStateUp(false)
-            clusterDataClient.bridgesUpdate(bridge)
+            setBridgeAdminStateUp(bridge, false)
 
             When("a packet is sent to that bridge")
 
@@ -176,7 +172,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(bridge.getId)
+                FlowTagger.tagForDevice(bridge)
             })
         }
 
@@ -253,15 +249,13 @@ class AdminStateTest extends MidolmanSpec {
 
             Given("an exterior bridge port that is flooded")
 
-            val f = ask(VirtualTopologyActor, BridgeRequest(bridge.getId))
-            Await.result(f, Duration.Inf)
-                 .asInstanceOf[Bridge]
-                 .vlanMacTableMap(ClusterBridge.UNTAGGED_VLAN_ID)
-                 .remove(macBridgeSide, exteriorBridgePort.getId)
+            val f = ask(VirtualTopologyActor, BridgeRequest(bridge))
+            val simBridge = Await.result(f, Duration.Inf).asInstanceOf[Bridge]
+            clearMacTable(simBridge, macBridgeSide, exteriorBridgePort.getId)
 
             var pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1.getId)
             var simRes = simulate (pktCtx)
-            simRes should be (toBridge(bridge.getId, brPortIds))
+            simRes should be (toBridge(bridge, brPortIds))
             ft.translate(simRes) should contain (output(1).asInstanceOf[Any])
 
             When("the port is set to down")
@@ -457,28 +451,25 @@ class AdminStateTest extends MidolmanSpec {
 
             When("setting its state to down")
 
-            bridge.setAdminStateUp(false)
-            clusterDataClient.bridgesUpdate(bridge)
+            setBridgeAdminStateUp(bridge, false)
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(bridge)
+            assertFlowTagsInvalidated2(bridge)
         }
 
         scenario("the admin state of a bridge is set to up") {
             Given("a bridge with its state set to down")
-            bridge.setAdminStateUp(false)
-            clusterDataClient.bridgesUpdate(bridge)
+            setBridgeAdminStateUp(bridge, false)
             VirtualTopologyActor.getAndClear()
 
             When("setting its state to down")
 
-            bridge.setAdminStateUp(true)
-            clusterDataClient.bridgesUpdate(bridge)
+            setBridgeAdminStateUp(bridge, true)
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(bridge)
+            assertFlowTagsInvalidated2(bridge)
         }
 
         scenario("the admin state of a bridge port is set to down") {
@@ -593,4 +584,18 @@ class AdminStateTest extends MidolmanSpec {
             invalidations should contain (tag)
         }
     }
+
+    private[this] def assertFlowTagsInvalidated2(devices: UUID*) {
+        val tags = devices map (d =>
+            VirtualTopologyActor.InvalidateFlowsByTag(
+                FlowTagger.tagForDevice(d)))
+
+        val invalidations = VirtualTopologyActor.messages
+                .filter(_.isInstanceOf[VirtualTopologyActor.InvalidateFlowsByTag])
+
+        for (tag <- tags) {
+            invalidations should contain (tag)
+        }
+    }
+
 }
