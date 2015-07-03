@@ -63,6 +63,8 @@ class FlowRecorderFactory @Inject() (config : MidolmanConfig) {
             config.flowHistory.encoding match {
                 case "json" => new JsonFlowRecorder(
                     hostUuid, config.flowHistory)
+                case "binary" => new BinaryFlowRecorder(hostUuid,
+                                                        config.flowHistory)
                 case "none" => new NullFlowRecorder
                 case other => {
                     log.error(s"Invalid encoding (${other}) specified")
@@ -176,7 +178,7 @@ object FlowRecordBuilder {
                     recActions.add(Actions.TCP(a.tcp_src.toShort,
                                                a.tcp_dst.toShort))
                 case a: FlowKeyTunnel =>
-                    recActions.add(Actions.Tunnel(a.tun_id.toInt, a.ipv4_src,
+                    recActions.add(Actions.Tunnel(a.tun_id, a.ipv4_src,
                                                   a.ipv4_dst, a.tun_flags,
                                                   a.ipv4_tos, a.ipv4_ttl))
                 case a: FlowKeyUDP =>
