@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.topology
 
+import java.util.UUID
 import scala.concurrent.duration._
 
 import akka.util.Timeout
@@ -22,8 +23,7 @@ import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Router => ClusterRouter,
-                                 PortGroup => ClusterPortGroup}
+import org.midonet.cluster.data.{PortGroup => ClusterPortGroup}
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.simulation.{PortGroup => SimPortGroup}
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
@@ -46,7 +46,7 @@ class PortGroupTest extends MidolmanSpec
 
     var portGroup: ClusterPortGroup = _
 
-    def randomPort(router: ClusterRouter) = {
+    def randomPort(router: UUID) = {
         val subnet = new IPv4Subnet(IPv4Addr.random, 24)
         newRouterPort(router, MAC.random(), subnet.toUnicastString,
             subnet.toNetworkAddress.toString, subnet.getPrefixLen)

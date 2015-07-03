@@ -47,7 +47,7 @@ class RouterManagerTest extends TestKit(ActorSystem("RouterManagerTest"))
             setLoadBalancerOnRouter(loadBalancer, router)
 
             When("the VTA receives a request for the router")
-            vta.self ! RouterRequest(router.getId, true)
+            vta.self ! RouterRequest(router, true)
 
             Then("it should return the requested router, with correct loadbalancer ID")
             val r = expectMsgType[Router]
@@ -77,7 +77,7 @@ class RouterManagerTest extends TestKit(ActorSystem("RouterManagerTest"))
             setLoadBalancerOnRouter(loadBalancer, router)
 
             lb = expectMsgType[LoadBalancer]
-            lb.routerId shouldEqual router.getId
+            lb.routerId shouldEqual router
 
             setLoadBalancerOnRouter(null, router)
 

@@ -21,7 +21,7 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Router => ClusterRouter, Chain}
+import org.midonet.cluster.data.{Chain}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Router, Bridge}
@@ -46,7 +46,7 @@ object BridgeWithOneVm {
 
 
 class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
-                      val clusterRouter: ClusterRouter, spec: MidolmanSpec) {
+                      val clusterRouter: UUID, spec: MidolmanSpec) {
 
     var clusterBridge: UUID = _
     var vmPort: BridgePort = _
@@ -69,7 +69,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
     var routerPortOutFilter: Chain = _
 
     def bridge: Bridge = spec.fetchDevice[Bridge](clusterBridge)
-    def router: Router = spec.fetchDevice(clusterRouter)
+    def router: Router = spec.fetchDevice[Router](clusterRouter)
 
     def tagFor(port: BridgePort) = FlowTagger.tagForBridgePort(clusterBridge, port.getId)
     def tagFor(port: RouterPort) = FlowTagger.tagForDevice(routerPort.getId)
@@ -106,11 +106,11 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
         routerPortOutFilter = spec.newOutboundChainOnPort(s"p-${routerPort.getId}-out", routerPort)
 
         spec.fetchTopology(vmPort, routerPort, uplinkPort,
-            clusterRouter,
             bridgeInFilter, bridgeOutFilter, vmPortInFilter, vmPortOutFilter,
             uplinkPortInFilter, uplinkPortOutFilter, routerPortInFilter,
             routerPortOutFilter)
         spec.fetchDevice[Bridge](clusterBridge)
+        spec.fetchDevice[Router](clusterRouter)
         bridge.vlanMacTableMap(0.toShort).add(vmMac, vmPort.getId)
         feedArpCache(router, vmIp, vmMac)
     }
@@ -129,7 +129,7 @@ class ChainInvalidationTest extends MidolmanSpec {
     var routerIn: Chain = _
     var routerInJump: Chain = _
 
-    var clusterRouter: ClusterRouter = _
+    var clusterRouter: UUID = _
 
     private def buildTopology() {
         val host = newHost("myself",
@@ -185,7 +185,7 @@ class ChainInvalidationTest extends MidolmanSpec {
         FlowTagger.tagForDevice(leftBridge.routerPortInFilter.getId))
 
     def tagsUntilRouterIn: Seq[FlowTag] = tagsUntilLeftRouterIn ++ Seq(
-        FlowTagger.tagForDevice(clusterRouter.getId),
+        FlowTagger.tagForDevice(clusterRouter),
         FlowTagger.tagForDevice(routerIn.getId),
         FlowTagger.tagForDevice(routerInJump.getId))
 

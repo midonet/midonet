@@ -24,9 +24,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
-import org.midonet.cluster.data.{Router => ClusterRouter}
 import org.midonet.midolman.PacketWorkflow.ErrorDrop
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.topology.BridgeManager.CheckExpiredMacPorts
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -56,7 +55,7 @@ class BridgeInvalidationTest extends MidolmanSpec
     var routerPort: RouterPort = null
 
     var clusterBridge: UUID = null
-    var clusterRouter: ClusterRouter = null
+    var clusterRouter: UUID = null
 
     val macPortExpiration = 1000
 
@@ -83,9 +82,9 @@ class BridgeInvalidationTest extends MidolmanSpec
         interiorPort = newBridgePort(clusterBridge)
         routerPort = newRouterPort(clusterRouter, MAC.fromString(routerMac), routerIp)
 
-        fetchTopology(leftPort, rightPort, otherPort, interiorPort,
-                        routerPort, clusterRouter)
+        fetchTopology(leftPort, rightPort, otherPort, interiorPort, routerPort)
         fetchDevice[Bridge](clusterBridge)
+        fetchDevice[Router](clusterRouter)
         flowInvalidator.clear()
     }
 

@@ -16,17 +16,17 @@
 
 package org.midonet.midolman
 
-import java.util.HashSet
+import java.util.{HashSet,UUID}
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.PacketWorkflow.HandlePackets
 import org.midonet.midolman.rules.{NatTarget, RuleResult, Condition}
+import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -43,8 +43,8 @@ class PingRouterWithNat extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    private var nearRouter: Router = _
-    private var farRouter: Router = _
+    private var nearRouter: UUID = _
+    private var farRouter: UUID = _
 
     private val nearNwAddr = new IPv4Subnet("172.19.0.0", 24)
     private val farNwAddr = new IPv4Subnet("172.20.0.0", 24)
@@ -123,13 +123,11 @@ class PingRouterWithNat extends MidolmanSpec {
             Set(snatTarget),
             isDnat = false)
 
-        clusterDataClient.routersUpdate(nearRouter)
+        feedArpTable(fetchDevice[Router](nearRouter),
+                     srcIp.toNetworkAddress, srcMac)
 
-        feedArpTable(fetchDevice(nearRouter), srcIp.toNetworkAddress, srcMac)
-
+        fetchRouters(nearRouter, farRouter)
         fetchTopology(
-            nearRouter,
-            farRouter,
             nearLeftPort,
             nearRightPort,
             farPort,

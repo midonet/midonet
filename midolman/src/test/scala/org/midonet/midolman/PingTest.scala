@@ -106,10 +106,10 @@ class PingTest extends MidolmanSpec {
         vm2Port should not be null
         materializePort(vm2Port, hostId, vm2PortName)
 
-        fetchTopology(router, rtrPort1, rtrPort2, brPort1, vm2Port)
+        fetchTopology(rtrPort1, rtrPort2, brPort1, vm2Port)
         fetchDevice[Bridge](bridge)
 
-        simRouter = fetchDevice(router)
+        simRouter = fetchDevice[Router](router)
     }
 
     def matchIcmp(generatedPackets: LinkedList[GeneratedPacket], egressPort: UUID,

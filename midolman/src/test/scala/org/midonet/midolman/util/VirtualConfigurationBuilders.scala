@@ -23,8 +23,7 @@ import scala.util.Random
 import scala.collection.JavaConversions._
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{Router => ClusterRouter,
-                                 PortGroup => ClusterPortGroup,
+import org.midonet.cluster.data.{PortGroup => ClusterPortGroup,
                                  _}
 import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Subnet
@@ -50,8 +49,8 @@ trait VirtualConfigurationBuilders {
     def isHostAlive(id: UUID): Boolean
     def newInboundChainOnBridge(name: String, bridge: UUID): Chain
     def newOutboundChainOnBridge(name: String, bridge: UUID): Chain
-    def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain
-    def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain
+    def newInboundChainOnRouter(name: String, router: UUID): Chain
+    def newOutboundChainOnRouter(name: String, router: UUID): Chain
     def newChain(name: String, id: Option[UUID] = None): Chain
     def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
                               (name: String, port: Port[PD, P],
@@ -105,14 +104,16 @@ trait VirtualConfigurationBuilders {
     def updatePortGroup(pg: ClusterPortGroup): Unit
     def newPortGroupMember(pgId: UUID, portId: UUID): Unit
     def deletePortGroupMember(pgId: UUID, portId: UUID): Unit
-    def newRouter(router: ClusterRouter): ClusterRouter
-    def newRouter(name: String): ClusterRouter
-    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
+
+    def newRouter(name: String): UUID
+    def setRouterAdminStateUp(router: UUID, state: Boolean): Unit
+
+    def newRouterPort(router: UUID, mac: MAC, portAddr: String,
                         nwAddr: String, nwLen: Int): RouterPort
-    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: IPv4Subnet): RouterPort
-    def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
+    def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): RouterPort
+    def newInteriorRouterPort(router: UUID, mac: MAC, portAddr: String,
                               nwAddr: String, nwLen: Int): RouterPort
-    def newRoute(router: ClusterRouter,
+    def newRoute(router: UUID,
                  srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
                  nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
                  weight: Int): UUID
@@ -143,7 +144,7 @@ trait VirtualConfigurationBuilders {
     def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit
     def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer
     def deleteLoadBalancer(id: UUID): Unit
-    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit
+    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: UUID): Unit
     def setLoadBalancerDown(loadBalancer: LoadBalancer): Unit
     def createVip(pool: Pool): VIP
     def createVip(pool: Pool, address: String, port: Int): VIP
@@ -200,131 +201,133 @@ trait ForwardingVirtualConfigurationBuilders
     override def isHostAlive(id: UUID): Boolean =
         virtConfBuilderImpl.isHostAlive(id)
 
-    def newInboundChainOnBridge(name: String, bridge: UUID): Chain =
+    override def newInboundChainOnBridge(name: String, bridge: UUID): Chain =
         virtConfBuilderImpl.newInboundChainOnBridge(name, bridge)
-    def newOutboundChainOnBridge(name: String, bridge: UUID): Chain =
+    override def newOutboundChainOnBridge(name: String, bridge: UUID): Chain =
         virtConfBuilderImpl.newOutboundChainOnBridge(name, bridge)
-    def newInboundChainOnRouter(name: String, router: ClusterRouter): Chain =
+    override def newInboundChainOnRouter(name: String, router: UUID): Chain =
         virtConfBuilderImpl.newInboundChainOnRouter(name, router)
-    def newOutboundChainOnRouter(name: String, router: ClusterRouter): Chain =
+    override def newOutboundChainOnRouter(name: String, router: UUID): Chain =
         virtConfBuilderImpl.newOutboundChainOnRouter(name, router)
-    def newChain(name: String, id: Option[UUID] = None): Chain =
+    override def newChain(name: String, id: Option[UUID] = None): Chain =
         virtConfBuilderImpl.newChain(name, id)
-    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+    override def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
         (name: String, port: Port[PD, P], id: UUID): Chain =
         virtConfBuilderImpl.newOutboundChainOnPort(name, port, id)
-    def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+    override def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
         (name: String, port: Port[PD, P], id: UUID): Chain =
         virtConfBuilderImpl.newInboundChainOnPort(name, port, id)
-    def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+    override def newOutboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
         (name: String, port: Port[PD, P]): Chain =
         virtConfBuilderImpl.newOutboundChainOnPort(name, port)
-    def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
+    override def newInboundChainOnPort[PD <: Port.Data, P <: Port[PD, P]]
         (name: String, port: Port[PD, P]): Chain =
         virtConfBuilderImpl.newInboundChainOnPort(name, port)
-    def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                              action: Action): LiteralRule =
+    override def newLiteralRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                                       action: Action): LiteralRule =
         virtConfBuilderImpl.newLiteralRuleOnChain(chain, pos, condition, action)
-    def newTcpDstRuleOnChain(
+    override def newTcpDstRuleOnChain(
             chain: Chain, pos: Int, dstPort: Int, action: Action,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
     : LiteralRule = virtConfBuilderImpl.newTcpDstRuleOnChain(chain, pos, dstPort, action, fragmentPolicy)
-    def newIpAddrGroupRuleOnChain(chain: Chain, pos: Int, action: Action,
-                                  ipAddrGroupIdDst: Option[UUID],
-                                  ipAddrGroupIdSrc: Option[UUID]): LiteralRule =
+    override def newIpAddrGroupRuleOnChain(chain: Chain, pos: Int, action: Action,
+                                           ipAddrGroupIdDst: Option[UUID],
+                                           ipAddrGroupIdSrc: Option[UUID]): LiteralRule =
         virtConfBuilderImpl.newIpAddrGroupRuleOnChain(chain, pos, action, ipAddrGroupIdDst, ipAddrGroupIdSrc)
-    def newForwardNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                                 action: Action, targets: Set[NatTarget],
-                                 isDnat: Boolean) : ForwardNatRule =
+    override def newForwardNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                                          action: Action, targets: Set[NatTarget],
+                                          isDnat: Boolean) : ForwardNatRule =
         virtConfBuilderImpl.newForwardNatRuleOnChain(chain, pos, condition, action, targets, isDnat)
-    def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                                 action: Action, isDnat: Boolean) : ReverseNatRule =
+    override def newReverseNatRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                                          action: Action, isDnat: Boolean) : ReverseNatRule =
         virtConfBuilderImpl.newReverseNatRuleOnChain(chain, pos, condition, action, isDnat)
-    def removeRuleFromBridge(bridge: UUID): Unit =
+    override def removeRuleFromBridge(bridge: UUID): Unit =
         virtConfBuilderImpl.removeRuleFromBridge(bridge)
-    def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
-                           jumpToChainID: UUID): JumpRule =
+    override def newJumpRuleOnChain(chain: Chain, pos: Int, condition: Condition,
+                                    jumpToChainID: UUID): JumpRule =
         virtConfBuilderImpl.newJumpRuleOnChain(chain, pos, condition, jumpToChainID)
-    def newFragmentRuleOnChain(chain: Chain, pos: Int,
-                               fragmentPolicy: FragmentPolicy,
-                               action: Action): LiteralRule =
+    override def newFragmentRuleOnChain(chain: Chain, pos: Int,
+                                        fragmentPolicy: FragmentPolicy,
+                                        action: Action): LiteralRule =
         virtConfBuilderImpl.newFragmentRuleOnChain(chain, pos, fragmentPolicy, action)
-    def deleteRule(id: UUID): Unit = virtConfBuilderImpl.deleteRule(id)
-    def createIpAddrGroup(): IpAddrGroup = virtConfBuilderImpl.createIpAddrGroup()
-    def createIpAddrGroup(id: UUID): IpAddrGroup = virtConfBuilderImpl.createIpAddrGroup(id)
-    def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = virtConfBuilderImpl.addIpAddrToIpAddrGroup(id, addr)
-    def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
+    override def deleteRule(id: UUID): Unit = virtConfBuilderImpl.deleteRule(id)
+    override def createIpAddrGroup(): IpAddrGroup = virtConfBuilderImpl.createIpAddrGroup()
+    override def createIpAddrGroup(id: UUID): IpAddrGroup = virtConfBuilderImpl.createIpAddrGroup(id)
+    override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = virtConfBuilderImpl.addIpAddrToIpAddrGroup(id, addr)
+    override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
         virtConfBuilderImpl.removeIpAddrFromIpAddrGroup(id, addr)
-    def deleteIpAddrGroup(id: UUID): Unit = virtConfBuilderImpl.deleteIpAddrGroup(id)
+    override def deleteIpAddrGroup(id: UUID): Unit = virtConfBuilderImpl.deleteIpAddrGroup(id)
     override def greTunnelZone(name: String): UUID = virtConfBuilderImpl.greTunnelZone(name)
 
-    def newBridge(name: String): UUID = virtConfBuilderImpl.newBridge(name)
-    def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit =
+    override def newBridge(name: String): UUID = virtConfBuilderImpl.newBridge(name)
+    override def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit =
         virtConfBuilderImpl.setBridgeAdminStateUp(bridge, state)
-    def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit =
+    override def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit =
         virtConfBuilderImpl.feedBridgeIp4Mac(bridge, ip, mac)
 
-    def newBridgePort(bridge: UUID): BridgePort = virtConfBuilderImpl.newBridgePort(bridge)
-    def newBridgePort(bridge: UUID, port: BridgePort): BridgePort =
+    override def newBridgePort(bridge: UUID): BridgePort = virtConfBuilderImpl.newBridgePort(bridge)
+    override def newBridgePort(bridge: UUID, port: BridgePort): BridgePort =
         virtConfBuilderImpl.newBridgePort(bridge, port)
-    def newBridgePort(bridge: UUID,
-                      vlanId: Option[Short] = None): BridgePort =
+    override def newBridgePort(bridge: UUID,
+                               vlanId: Option[Short] = None): BridgePort =
         virtConfBuilderImpl.newBridgePort(bridge, vlanId)
 
-    def newVxLanPort(bridge: UUID, port: VxLanPort): VxLanPort =
+    override def newVxLanPort(bridge: UUID, port: VxLanPort): VxLanPort =
         virtConfBuilderImpl.newVxLanPort(bridge, port)
-    def deletePort(port: Port[_, _], hostId: UUID): Unit =
+    override def deletePort(port: Port[_, _], hostId: UUID): Unit =
         virtConfBuilderImpl.deletePort(port, hostId)
-    def newPortGroup(name: String, stateful: Boolean = false): ClusterPortGroup =
+    override def newPortGroup(name: String, stateful: Boolean = false): ClusterPortGroup =
         virtConfBuilderImpl.newPortGroup(name, stateful)
-    def updatePortGroup(pg: ClusterPortGroup): Unit =
+    override def updatePortGroup(pg: ClusterPortGroup): Unit =
         virtConfBuilderImpl.updatePortGroup(pg)
-    def newPortGroupMember(pgId: UUID, portId: UUID): Unit =
+    override def newPortGroupMember(pgId: UUID, portId: UUID): Unit =
         virtConfBuilderImpl.newPortGroupMember(pgId, portId)
-    def deletePortGroupMember(pgId: UUID, portId: UUID): Unit =
+    override def deletePortGroupMember(pgId: UUID, portId: UUID): Unit =
         virtConfBuilderImpl.deletePortGroupMember(pgId, portId)
-    def newRouter(router: ClusterRouter): ClusterRouter =
-        virtConfBuilderImpl.newRouter(router)
-    def newRouter(name: String): ClusterRouter =
+
+    override def newRouter(name: String): UUID =
         virtConfBuilderImpl.newRouter(name)
-    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
-                      nwAddr: String, nwLen: Int): RouterPort =
+    override def setRouterAdminStateUp(router: UUID, state: Boolean): Unit =
+        virtConfBuilderImpl.setRouterAdminStateUp(router, state)
+
+    override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
+                               nwAddr: String, nwLen: Int): RouterPort =
         virtConfBuilderImpl.newRouterPort(router, mac, portAddr, nwAddr, nwLen)
-    def newRouterPort(router: ClusterRouter, mac: MAC, portAddr: IPv4Subnet): RouterPort =
+    override def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): RouterPort =
         virtConfBuilderImpl.newRouterPort(router, mac, portAddr)
-    def newInteriorRouterPort(router: ClusterRouter, mac: MAC, portAddr: String,
-                              nwAddr: String, nwLen: Int): RouterPort =
+    override def newInteriorRouterPort(router: UUID, mac: MAC, portAddr: String,
+                                       nwAddr: String, nwLen: Int): RouterPort =
         virtConfBuilderImpl.newInteriorRouterPort(router, mac, portAddr, nwAddr, nwLen)
-    def newRoute(router: ClusterRouter,
-                 srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
-                 nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
-                 weight: Int): UUID =
+    override def newRoute(router: UUID,
+                          srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
+                          nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
+                          weight: Int): UUID =
         virtConfBuilderImpl.newRoute(router, srcNw, srcNwLen, dstNw, dstNwLen,
                        nextHop, nextHopPort, nextHopGateway, weight)
-    def deleteRoute(routeId: UUID): Unit =
+    override def deleteRoute(routeId: UUID): Unit =
         virtConfBuilderImpl.deleteRoute(routeId)
-    def addDhcpSubnet(bridge : UUID,
-                      subnet : Subnet): Unit =
+    override def addDhcpSubnet(bridge : UUID,
+                               subnet : Subnet): Unit =
         virtConfBuilderImpl.addDhcpSubnet(bridge, subnet)
-    def addDhcpHost(bridge : UUID, subnet : Subnet,
-                    host : org.midonet.cluster.data.dhcp.Host): Unit =
+    override def addDhcpHost(bridge : UUID, subnet : Subnet,
+                             host : org.midonet.cluster.data.dhcp.Host): Unit =
         virtConfBuilderImpl.addDhcpHost(bridge, subnet, host)
-    def updatedhcpHost(bridge: UUID,
-                       subnet: Subnet, host: DhcpHost): Unit =
+    override def updatedhcpHost(bridge: UUID,
+                                subnet: Subnet, host: DhcpHost): Unit =
         virtConfBuilderImpl.updatedhcpHost(bridge, subnet, host)
-    def addDhcpSubnet6(bridge : UUID,
-                       subnet : Subnet6): Unit =
+    override def addDhcpSubnet6(bridge : UUID,
+                                subnet : Subnet6): Unit =
         virtConfBuilderImpl.addDhcpSubnet6(bridge, subnet)
-    def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
-                      host : org.midonet.cluster.data.dhcp.V6Host): Unit =
+    override def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
+                               host : org.midonet.cluster.data.dhcp.V6Host): Unit =
         virtConfBuilderImpl.addDhcpV6Host(bridge, subnet, host)
-    def linkPorts(port: Port[_, _], peerPort: Port[_, _]): Unit =
+    override def linkPorts(port: Port[_, _], peerPort: Port[_, _]): Unit =
         virtConfBuilderImpl.linkPorts(port, peerPort)
-    def materializePort(port: Port[_, _], hostId: UUID, portName: String): Unit =
+    override def materializePort(port: Port[_, _], hostId: UUID, portName: String): Unit =
         virtConfBuilderImpl.materializePort(port, hostId, portName)
-    def materializePort(port: UUID, hostId: UUID, portName: String): Unit =
+    override def materializePort(port: UUID, hostId: UUID, portName: String): Unit =
         virtConfBuilderImpl.materializePort(port, hostId, portName)
-    def newCondition(
+    override def newCondition(
             nwProto: Option[Byte] = None,
             tpDst: Option[Int] = None,
             tpSrc: Option[Int] = None,
@@ -334,81 +337,81 @@ trait ForwardingVirtualConfigurationBuilders
             : Condition =
         virtConfBuilderImpl.newCondition(nwProto, tpDst, tpSrc, ipAddrGroupIdDst,
                            ipAddrGroupIdSrc, fragmentPolicy)
-    def newIPAddrGroup(id: Option[UUID]): UUID =
+    override def newIPAddrGroup(id: Option[UUID]): UUID =
         virtConfBuilderImpl.newIPAddrGroup(id)
-    def addAddrToIpAddrGroup(id: UUID, addr: String): Unit =
+    override def addAddrToIpAddrGroup(id: UUID, addr: String): Unit =
         virtConfBuilderImpl.addAddrToIpAddrGroup(id, addr)
-    def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
+    override def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
         virtConfBuilderImpl.removeAddrFromIpAddrGroup(id, addr)
-    def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer =
+    override def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer =
         virtConfBuilderImpl.newLoadBalancer(id)
-    def deleteLoadBalancer(id: UUID): Unit =
+    override def deleteLoadBalancer(id: UUID): Unit =
         virtConfBuilderImpl.deleteLoadBalancer(id)
-    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: ClusterRouter): Unit =
+    override def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: UUID): Unit =
         virtConfBuilderImpl.setLoadBalancerOnRouter(loadBalancer, router)
-    def setLoadBalancerDown(loadBalancer: LoadBalancer): Unit =
+    override def setLoadBalancerDown(loadBalancer: LoadBalancer): Unit =
         virtConfBuilderImpl.setLoadBalancerDown(loadBalancer)
-    def createVip(pool: Pool): VIP =
+    override def createVip(pool: Pool): VIP =
         virtConfBuilderImpl.createVip(pool)
-    def createVip(pool: Pool, address: String, port: Int): VIP =
+    override def createVip(pool: Pool, address: String, port: Int): VIP =
         virtConfBuilderImpl.createVip(pool, address, port)
-    def deleteVip(vip: VIP): Unit =
+    override def deleteVip(vip: VIP): Unit =
         virtConfBuilderImpl.deleteVip(vip)
-    def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer): Unit =
+    override def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer): Unit =
         virtConfBuilderImpl.removeVipFromLoadBalancer(vip, loadBalancer)
-    def createRandomVip(pool: Pool): VIP =
+    override def createRandomVip(pool: Pool): VIP =
         virtConfBuilderImpl.createRandomVip(pool)
-    def setVipPool(vip: VIP, pool: Pool): Unit =
+    override def setVipPool(vip: VIP, pool: Pool): Unit =
         virtConfBuilderImpl.setVipPool(vip, pool)
-    def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean): Unit =
+    override def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean): Unit =
         virtConfBuilderImpl.setVipAdminStateUp(vip, adminStateUp)
-    def vipEnableStickySourceIP(vip: VIP): Unit =
+    override def vipEnableStickySourceIP(vip: VIP): Unit =
         virtConfBuilderImpl.vipEnableStickySourceIP(vip)
-    def vipDisableStickySourceIP(vip: VIP): Unit =
+    override def vipDisableStickySourceIP(vip: VIP): Unit =
         virtConfBuilderImpl.vipDisableStickySourceIP(vip)
-    def newHealthMonitor(id: UUID = UUID.randomUUID(),
-                           adminStateUp: Boolean = true,
-                           delay: Int = 2,
-                           maxRetries: Int = 2,
-                         timeout: Int = 2): HealthMonitor =
+    override def newHealthMonitor(id: UUID = UUID.randomUUID(),
+                                  adminStateUp: Boolean = true,
+                                  delay: Int = 2,
+                                  maxRetries: Int = 2,
+                                  timeout: Int = 2): HealthMonitor =
         virtConfBuilderImpl.newHealthMonitor(id, adminStateUp, delay, maxRetries, timeout)
-    def newRandomHealthMonitor
+    override def newRandomHealthMonitor
         (id: UUID = UUID.randomUUID()): HealthMonitor =
         virtConfBuilderImpl.newRandomHealthMonitor(id)
-    def setHealthMonitorDelay(hm: HealthMonitor, delay: Int): Unit =
+    override def setHealthMonitorDelay(hm: HealthMonitor, delay: Int): Unit =
         virtConfBuilderImpl.setHealthMonitorDelay(hm, delay)
-    def deleteHealthMonitor(hm: HealthMonitor): Unit =
+    override def deleteHealthMonitor(hm: HealthMonitor): Unit =
         virtConfBuilderImpl.deleteHealthMonitor(hm)
-    def newPool(loadBalancer: LoadBalancer,
-                id: UUID = UUID.randomUUID,
-                adminStateUp: Boolean = true,
-                lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
-                hmId: UUID = null): Pool =
+    override def newPool(loadBalancer: LoadBalancer,
+                         id: UUID = UUID.randomUUID,
+                         adminStateUp: Boolean = true,
+                         lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
+                         hmId: UUID = null): Pool =
         virtConfBuilderImpl.newPool(loadBalancer, id, adminStateUp, lbMethod, hmId)
-    def setPoolHealthMonitor(pool: Pool, hmId: UUID): Unit =
+    override def setPoolHealthMonitor(pool: Pool, hmId: UUID): Unit =
         virtConfBuilderImpl.setPoolHealthMonitor(pool, hmId)
-    def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean): Unit =
+    override def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean): Unit =
         virtConfBuilderImpl.setPoolAdminStateUp(pool, adminStateUp)
-    def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod): Unit =
+    override def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod): Unit =
         virtConfBuilderImpl.setPoolLbMethod(pool, lbMethod)
-    def newPoolMember(pool: Pool): PoolMember =
+    override def newPoolMember(pool: Pool): PoolMember =
         virtConfBuilderImpl.newPoolMember(pool)
-    def newPoolMember(pool: Pool, address: String, port: Int,
-                      weight: Int = 1): PoolMember =
+    override def newPoolMember(pool: Pool, address: String, port: Int,
+                               weight: Int = 1): PoolMember =
         virtConfBuilderImpl.newPoolMember(pool, address, port, weight)
-    def updatePoolMember(poolMember: PoolMember,
-                         poolId: Option[UUID] = None,
-                         adminStateUp: Option[Boolean] = None,
-                         weight: Option[Integer] = None,
-                         status: Option[LBStatus] = None): Unit =
+    override def updatePoolMember(poolMember: PoolMember,
+                                  poolId: Option[UUID] = None,
+                                  adminStateUp: Option[Boolean] = None,
+                                  weight: Option[Integer] = None,
+                                  status: Option[LBStatus] = None): Unit =
         virtConfBuilderImpl.updatePoolMember(poolMember, poolId, adminStateUp,
                                weight, status)
-    def deletePoolMember(poolMember: PoolMember): Unit =
+    override def deletePoolMember(poolMember: PoolMember): Unit =
         virtConfBuilderImpl.deletePoolMember(poolMember)
-    def setPoolMemberAdminStateUp(poolMember: PoolMember,
-                                  adminStateUp: Boolean): Unit =
+    override def setPoolMemberAdminStateUp(poolMember: PoolMember,
+                                           adminStateUp: Boolean): Unit =
         virtConfBuilderImpl.setPoolMemberAdminStateUp(poolMember, adminStateUp)
-    def setPoolMemberHealth(poolMember: PoolMember,
-                            status: LBStatus): Unit =
+    override def setPoolMemberHealth(poolMember: PoolMember,
+                                     status: LBStatus): Unit =
         virtConfBuilderImpl.setPoolMemberHealth(poolMember, status)
 }

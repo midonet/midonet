@@ -17,16 +17,15 @@
 package org.midonet.midolman
 
 import java.nio.ByteBuffer
-import java.util.HashSet
+import java.util.{HashSet,UUID}
 
 import org.junit.runner.RunWith
-import org.midonet.cluster.data.Router
 import org.midonet.cluster.data.ports.RouterPort
 import org.midonet.midolman.PacketWorkflow.HandlePackets
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, NatTarget, RuleResult}
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.{Bridge, Router}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -43,8 +42,8 @@ class IcmpErrorNatTest extends MidolmanSpec {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    private var nearRouter: Router = _
-    private var farRouter: Router = _
+    private var nearRouter: UUID = _
+    private var farRouter: UUID = _
 
     private val nearNwAddr = new IPv4Subnet("172.19.0.0", 24)
 
@@ -144,13 +143,11 @@ class IcmpErrorNatTest extends MidolmanSpec {
             RuleResult.Action.ACCEPT,
             isDnat = true)
 
-        clusterDataClient.routersUpdate(nearRouter)
+        feedArpTable(fetchDevice[Router](nearRouter),
+                     srcIp.toNetworkAddress, srcMac)
 
-        feedArpTable(fetchDevice(nearRouter), srcIp.toNetworkAddress, srcMac)
-
+        fetchRouters(nearRouter, farRouter)
         fetchTopology(
-            nearRouter,
-            farRouter,
             nearLeftPort,
             nearRightPort,
             farPort,

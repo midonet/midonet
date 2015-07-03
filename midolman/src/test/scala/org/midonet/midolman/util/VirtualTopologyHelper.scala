@@ -99,6 +99,10 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         }
     }
 
+    def fetchRouters(routers: UUID*): Seq[SimRouter] = {
+        routers map { fetchDevice[SimRouter](_) }
+    }
+
     def fetchTopology(entities: Entity.Base[_,_,_]*) =
         fetchTopologyList(entities)
 

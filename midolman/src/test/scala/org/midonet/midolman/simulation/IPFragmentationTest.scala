@@ -24,7 +24,7 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Entity, Port, Router => ClusterRouter}
+import org.midonet.cluster.data.{Entity, Port}
 import org.midonet.midolman.PacketWorkflow.{SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.rules.FragmentPolicy._
@@ -59,7 +59,7 @@ class IPFragmentationTest extends MidolmanSpec {
     val rightBridgePortMac = MAC.random
     val rightBridgePortSubnet = new IPv4Subnet("10.0.0.65", 24)
 
-    var router: ClusterRouter = _
+    var router: UUID = _
 
     val leftRouterPortMac = MAC.random
     val leftRouterPortSubnet = new IPv4Subnet("10.10.11.10", 24)
@@ -86,7 +86,7 @@ class IPFragmentationTest extends MidolmanSpec {
 
         if (useRouter) {
             router = newRouter("router1")
-            deviceId = router.getId
+            deviceId = router
 
             srcPort = newRouterPort(router, leftRouterPortMac,
                                     leftRouterPortSubnet)

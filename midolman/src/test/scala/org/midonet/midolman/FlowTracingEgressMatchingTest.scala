@@ -26,7 +26,7 @@ import com.google.common.collect.{BiMap, HashBiMap}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Chain, Router}
+import org.midonet.cluster.data.{Chain}
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.UnderlayResolver.Route
@@ -55,7 +55,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     var egressHost: UUID = null
     var egressHostIp = IPv4Addr("180.0.1.3")
 
-    var router: Router = null
+    var router: UUID = null
     var uplinkPort: RouterPort = null
     var rtrIntPort: RouterPort = null
 
@@ -142,7 +142,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         materializePort(bridgeVm2Port, ingressHost, "vm2Port")
         portMapIngress.put(bridgeVm2Port.getTunnelKey, bridgeVm2Port.getId)
 
-        val simRouter: SimRouter = fetchDevice(router)
+        val simRouter: SimRouter = fetchDevice[SimRouter](router)
         val simBridge: SimBridge = fetchDevice[SimBridge](bridge)
 
         feedArpTable(simRouter, uplinkGatewayAddr.addr, uplinkGatewayMac)
@@ -154,9 +154,10 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         feedMacTable(simBridge, vm1Mac, bridgeVm1Port.getId)
         feedMacTable(simBridge, vm2Mac, bridgeVm2Port.getId)
 
-        fetchTopology(router, uplinkPort, rtrIntPort,
+        fetchTopology(uplinkPort, rtrIntPort,
                       bridgeRtrPort, bridgeVm1Port,
                       bridgeVm2Port, bridgeChain)
+        fetchDevice[SimRouter](router)
         fetchDevice[SimBridge](bridge)
 
         val output = FlowActions.output(23)

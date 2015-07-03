@@ -33,7 +33,7 @@ import org.midonet.cluster.data.dhcp.ExtraDhcpOpt
 import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
-import org.midonet.midolman.simulation.{Bridge, DhcpValueParser}
+import org.midonet.midolman.simulation.{Bridge, DhcpValueParser, Router}
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
@@ -138,8 +138,9 @@ class DhcpTest extends MidolmanSpec {
             .setIp(vm2IP.getAddress)
         addDhcpHost(bridge, dhcpSubnet2, dhcpHost2)
 
-        fetchTopology(router, routerPort1, routerPort2, routerPort3,
+        fetchTopology(routerPort1, routerPort2, routerPort3,
                       bridgeIntPort1, bridgeIntPort2, bridgePort1, bridgePort2)
+        fetchDevice[Router](router)
         fetchDevice[Bridge](bridge)
 
         workflow = packetWorkflow(Map(bridgePortNumber1 -> bridgePort1.getId,
