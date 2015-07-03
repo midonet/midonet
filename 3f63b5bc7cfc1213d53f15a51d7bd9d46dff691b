@@ -16,6 +16,24 @@
       "revId": "3f63b5bc7cfc1213d53f15a51d7bd9d46dff691b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7efc513f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-03T16:23:11Z",
+      "side": 1,
+      "message": "There will be one for Vxlan, but vxlan hasn\u0027t been using any of the infrastructure (uses dataclient directly), so i\u0027ll deal with that when i come to it.\n\nWill fix the indent.",
+      "parentUuid": "9ad9bd40_9e73d54c",
+      "revId": "3f63b5bc7cfc1213d53f15a51d7bd9d46dff691b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
