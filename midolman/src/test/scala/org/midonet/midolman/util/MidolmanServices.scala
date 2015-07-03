@@ -62,6 +62,9 @@ trait MidolmanServices {
     def stateStorage =
         injector.getInstance(classOf[LegacyStorage])
 
+    def virtConfBuilderImpl =
+        injector.getInstance(classOf[VirtualConfigurationBuilders])
+
     def metrics = {
         val metricsReg = injector.getInstance(classOf[MetricRegistry])
         metricsReg.removeMatching(MetricFilter.ALL)

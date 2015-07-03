@@ -40,13 +40,13 @@ import org.midonet.midolman.host.scanner.InterfaceScanner
 import org.midonet.midolman.services.{DatapathConnectionService, HostIdProviderService, MidolmanActorsService, MidolmanService, SelectLoopService}
 import org.midonet.midolman.simulation.Chain
 import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
-import org.midonet.midolman.util.{MidolmanServices, VirtualConfigurationBuilders, VirtualTopologyHelper}
+import org.midonet.midolman.util.{MidolmanServices, ForwardingVirtualConfigurationBuilders, LegacyVirtualConfigurationBuilders, VirtualConfigurationBuilders, VirtualTopologyHelper}
 import org.midonet.util.concurrent.{MockClock, NanoClock}
 
 trait MidolmanBenchmark extends MockMidolmanActors
                         with MidolmanServices
                         with VirtualTopologyHelper
-                        with VirtualConfigurationBuilders {
+                        with ForwardingVirtualConfigurationBuilders {
     var injector: Injector = null
 
     @JmhSetup
@@ -124,6 +124,11 @@ trait MidolmanBenchmark extends MockMidolmanActors
 
                     bind(classOf[MidolmanService]).in(Scopes.SINGLETON)
                     expose(classOf[MidolmanService])
+
+                    bind(classOf[VirtualConfigurationBuilders])
+                        .to(classOf[LegacyVirtualConfigurationBuilders])
+                        .asEagerSingleton()
+                    expose(classOf[VirtualConfigurationBuilders])
 
                     bind(classOf[MidolmanConfig])
                             .toInstance(new MidolmanConfig(MidoTestConfigurator.forAgents))
