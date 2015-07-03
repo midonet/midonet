@@ -34,6 +34,7 @@ import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => MMSimRes}
 import org.midonet.midolman.config.{FlowHistoryConfig, MidolmanConfig}
 import org.midonet.midolman.rules.{RuleResult => MMRuleResult}
+import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
@@ -44,25 +45,20 @@ trait FlowRecorder {
     def record(pktContext: PacketContext, simRes: MMSimRes): Unit
 }
 
-class FlowRecorderFactory @Inject() (config : MidolmanConfig) {
+class FlowRecorderFactory @Inject() (config : MidolmanConfig,
+                                     hostIdProvider: HostIdProviderService) {
     val log = Logger(LoggerFactory.getLogger(classOf[FlowRecorderFactory]))
 
     def newFlowRecorder(): FlowRecorder = {
-        val hostUuid = try {
-            HostIdGenerator.getHostId
-        } catch {
-            case t: HostIdGenerator.PropertiesFileNotWritableException => {
-                log.warn("Couldn't get host id for flow recorded," +
-                             " using random uuid")
-                UUID.randomUUID()
-            }
-        }
+        val hostUuid = hostIdProvider.getHostId()
         log.info("Creating flow recorder with " +
                      s"(${config.flowHistory.encoding}) encoding")
         if (config.flowHistory.enabled) {
             config.flowHistory.encoding match {
                 case "json" => new JsonFlowRecorder(
                     hostUuid, config.flowHistory)
+                case "binary" => new BinaryFlowRecorder(hostUuid,
+                                                        config.flowHistory)
                 case "none" => new NullFlowRecorder
                 case other => {
                     log.error(s"Invalid encoding (${other}) specified")
@@ -176,7 +172,7 @@ object FlowRecordBuilder {
                     recActions.add(Actions.TCP(a.tcp_src.toShort,
                                                a.tcp_dst.toShort))
                 case a: FlowKeyTunnel =>
-                    recActions.add(Actions.Tunnel(a.tun_id.toInt, a.ipv4_src,
+                    recActions.add(Actions.Tunnel(a.tun_id, a.ipv4_src,
                                                   a.ipv4_dst, a.tun_flags,
                                                   a.ipv4_tos, a.ipv4_ttl))
                 case a: FlowKeyUDP =>
