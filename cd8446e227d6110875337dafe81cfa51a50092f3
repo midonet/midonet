@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7e9371fa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-03T16:40:57Z",
+      "side": 1,
+      "message": "I haven\u0027t found any nightly but I will build from master and include that as a jar until 0.8.3 is available.",
+      "parentUuid": "9ad9bd40_c6ecc2ca",
+      "range": {
+        "startLine": 76,
+        "startChar": 0,
+        "endLine": 78,
+        "endChar": 79
+      },
+      "revId": "cd8446e227d6110875337dafe81cfa51a50092f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_604afe84",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-01T15:50:49Z",
       "side": 1,
       "message": "MergedMapBus",
+      "range": {
+        "startLine": 178,
+        "startChar": 39,
+        "endLine": 178,
+        "endChar": 55
+      },
+      "revId": "cd8446e227d6110875337dafe81cfa51a50092f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9e9035ee",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-03T16:40:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_604afe84",
       "range": {
         "startLine": 178,
         "startChar": 39,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_bebc196e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-03T16:40:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_46c1922d",
+      "revId": "cd8446e227d6110875337dafe81cfa51a50092f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_66ddb614",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
         "patchSetId": 1
@@ -76,6 +142,30 @@
       "writtenOn": "2015-07-01T21:56:16Z",
       "side": 1,
       "message": "KafkaConfig, also I guess you need to update the nsdb.conf schema.",
+      "range": {
+        "startLine": 44,
+        "startChar": 6,
+        "endLine": 44,
+        "endChar": 21
+      },
+      "revId": "cd8446e227d6110875337dafe81cfa51a50092f3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7eaa911a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/storage/MidonetBackendConfig.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-03T16:40:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_66ddb614",
       "range": {
         "startLine": 44,
         "startChar": 6,
