@@ -31,6 +31,8 @@ import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 class MidonetBackendModule(val conf: MidonetBackendConfig)
     extends PrivateModule {
 
+    System.setProperty("jute.maxbuffer", Integer.toString(conf.bufferSize))
+
     def this(config: Config) = this(new MidonetBackendConfig(config))
 
     override def configure(): Unit = {

@@ -99,7 +99,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
     public static Config zkConfToConfig(ZookeeperConfig zkconf) {
         Config ret = ConfigFactory.empty()
             .withValue("zookeeper.zookeeper_hosts",
-                ConfigValueFactory.fromAnyRef(zkconf.getZkHosts()))
+                       ConfigValueFactory.fromAnyRef(zkconf.getZkHosts()))
             .withValue("zookeeper.session_gracetime",
                 ConfigValueFactory.fromAnyRef(zkconf.getZkGraceTime()))
             .withValue("zookeeper.root_key",
@@ -115,7 +115,9 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
             .withValue("zookeeper.curator_enabled",
                 ConfigValueFactory.fromAnyRef(true))
             .withValue("zookeeper.use_new_stack",
-                ConfigValueFactory.fromAnyRef(zkconf.useNewStack()));
+                ConfigValueFactory.fromAnyRef(zkconf.useNewStack()))
+            .withValue("zookeeper.buffer_size",
+                ConfigValueFactory.fromAnyRef(4194304));
         log.info("Loaded zookeeper config: {}", ret.root().render());
         return ret;
     }
