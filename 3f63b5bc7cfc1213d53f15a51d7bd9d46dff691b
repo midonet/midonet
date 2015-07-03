@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_9e73d54c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-03T15:37:34Z",
+      "side": 1,
+      "message": "ident\n\nalso, we may need one mapping from VxlanPort",
+      "revId": "3f63b5bc7cfc1213d53f15a51d7bd9d46dff691b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
