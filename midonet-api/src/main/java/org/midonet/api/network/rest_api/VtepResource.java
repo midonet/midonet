@@ -37,7 +37,6 @@ import javax.ws.rs.core.UriInfo;
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.api.auth.AuthRole;
-import org.midonet.api.network.VTEP;
 import org.midonet.api.network.VTEPPort;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.ConflictHttpException;
@@ -50,6 +49,8 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.host.Host;
 import org.midonet.cluster.data.vtep.VtepNotConnectedException;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.rest_api.conversion.VTEPDataConverter;
+import org.midonet.cluster.rest_api.models.VTEP;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
@@ -93,19 +94,19 @@ public class VtepResource extends AbstractVtepResource {
 
         validate(vtep);
 
-        if (!dataClient.tunnelZonesExists(vtep.getTunnelZoneId())) {
+        if (!dataClient.tunnelZonesExists(vtep.tunnelZoneId)) {
             throw new BadRequestHttpException(
                 getMessage(MessageProperty.TUNNEL_ZONE_ID_IS_INVALID));
         }
 
-        org.midonet.cluster.data.VTEP dataVtep = vtep.toData();
+        org.midonet.cluster.data.VTEP dataVtep = VTEPDataConverter.toData(vtep);
         List<InetAddress> vtepIps = new ArrayList<>();
 
         // Verify there is no conflict between hosts and the VTEP IPs.
         try {
             PhysicalSwitch ps = vtepClient.getPhysicalSwitch(
-                IPv4Addr.apply(vtep.getManagementIp()),
-                vtep.getManagementPort());
+                IPv4Addr.apply(vtep.managementIp),
+                vtep.managementPort);
 
             // Check all management and tunnel IPs configured for the physical
             // switch.
@@ -115,10 +116,10 @@ public class VtepResource extends AbstractVtepResource {
         } catch(GatewayTimeoutHttpException | VtepNotConnectedException e) {
             log.warn("Cannot verify conflicts between hosts and VTEP IPs "
                      + " because VTEP {}:{} is not accessible",
-                     vtep.getManagementIp(), vtep.getManagementPort());
+                     vtep.managementIp, vtep.managementPort);
         }
 
-        addIpToList(vtepIps, vtep.getManagementIp());
+        addIpToList(vtepIps, vtep.managementIp);
 
         for (Host host : dataClient.hostsGetAll()) {
             for (InetAddress ip : host.getAddresses()) {
@@ -135,7 +136,7 @@ public class VtepResource extends AbstractVtepResource {
                     getBaseUri(), dataVtep.getId().toString())).build();
         } catch(StatePathExistsException ex) {
             throw new ConflictHttpException(
-                ex, getMessage(VTEP_EXISTS, vtep.getManagementIp()));
+                ex, getMessage(VTEP_EXISTS, vtep.managementIp));
         }
     }
 
@@ -208,7 +209,7 @@ public class VtepResource extends AbstractVtepResource {
             ps = null;
         }
 
-        VTEP apiVtep = new VTEP(dataVtep, ps);
+        VTEP apiVtep = VTEPDataConverter.fromData(dataVtep, ps);
         apiVtep.setBaseUri(getBaseUri());
         return apiVtep;
     }

@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
-
 import com.google.inject.Inject;
 
 import org.opendaylight.controller.sal.utils.Status;
@@ -32,14 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.api.network.VTEPPort;
-import org.midonet.api.network.VtepBinding;
-import org.midonet.cluster.rest_api.BadGatewayHttpException;
-import org.midonet.cluster.rest_api.BadRequestHttpException;
-import org.midonet.cluster.rest_api.ConflictHttpException;
-import org.midonet.cluster.rest_api.GatewayTimeoutHttpException;
-import org.midonet.cluster.rest_api.NotFoundHttpException;
-import org.midonet.cluster.southbound.vtep.VtepDataClient;
-import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
@@ -49,12 +40,18 @@ import org.midonet.cluster.data.vtep.VtepStateException;
 import org.midonet.cluster.data.vtep.model.LogicalSwitch;
 import org.midonet.cluster.data.vtep.model.PhysicalPort;
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
+import org.midonet.cluster.rest_api.BadGatewayHttpException;
+import org.midonet.cluster.rest_api.BadRequestHttpException;
+import org.midonet.cluster.rest_api.ConflictHttpException;
+import org.midonet.cluster.rest_api.GatewayTimeoutHttpException;
+import org.midonet.cluster.rest_api.NotFoundHttpException;
+import org.midonet.cluster.rest_api.models.VTEPBinding;
+import org.midonet.cluster.southbound.vtep.VtepDataClient;
+import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
-
-import static scala.collection.JavaConversions.mapAsJavaMap;
 
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_BINDING_NOT_FOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_INACCESSIBLE;
@@ -66,6 +63,7 @@ import static org.midonet.cluster.rest_api.validation.MessageProperty.VTEP_TUNNE
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 import static org.midonet.cluster.southbound.vtep.VtepConstants.bridgeIdToLogicalSwitchName;
 import static org.midonet.cluster.southbound.vtep.VtepConstants.logicalSwitchNameToBridgeId;
+import static scala.collection.JavaConversions.mapAsJavaMap;
 
 /**
  * Coordinates VtepDataClient and DataClient (Zookeeper) operations.
@@ -287,19 +285,22 @@ public class VtepClusterClient {
      * @param bridgeId ID of bridge to get bindings for. Will return all
      *                 bindings if bridgeId is null.
      */
-    public final List<VtepBinding> listVtepBindings(IPv4Addr ipAddr,
+    public final List<VTEPBinding> listVtepBindings(IPv4Addr ipAddr,
                                                     UUID bridgeId)
             throws SerializationException, StateAccessException {
 
         List<org.midonet.cluster.data.VtepBinding> dataBindings =
                 dataClient.vtepGetBindings(ipAddr);
-        List<VtepBinding> apiBindings = new ArrayList<>();
+        List<VTEPBinding> apiBindings = new ArrayList<>();
         for (org.midonet.cluster.data.VtepBinding dataBinding : dataBindings) {
             if (bridgeId == null ||
                     bridgeId.equals(dataBinding.getNetworkId())) {
-                apiBindings.add(new VtepBinding(
-                        ipAddr.toString(), dataBinding.getPortName(),
-                        dataBinding.getVlanId(), dataBinding.getNetworkId()));
+                VTEPBinding b = new VTEPBinding();
+                b.mgmtIp = ipAddr.toString();
+                b.portName = dataBinding.getPortName();
+                b.vlanId = dataBinding.getVlanId();
+                b.networkId = dataBinding.getNetworkId();
+                apiBindings.add(b);
             }
         }
 
@@ -313,7 +314,7 @@ public class VtepClusterClient {
      * deletBinding) can reuse the VTEP and VtepDataClient.
      */
     @SuppressWarnings("unused")
-    private List<VtepBinding> listVtepBindings(VtepDataClient vtepClient,
+    private List<VTEPBinding> listVtepBindings(VtepDataClient vtepClient,
             IPv4Addr mgmtIp, int mgmtPort, UUID bridgeId)
             throws SerializationException, StateAccessException,
                    VtepNotConnectedException {
@@ -324,7 +325,7 @@ public class VtepClusterClient {
             lsToBridge.put(ls.uuid(), logicalSwitchNameToBridgeId(ls.name()));
         }
 
-        List<VtepBinding> bindings = new ArrayList<>();
+        List<VTEPBinding> bindings = new ArrayList<>();
         for (PhysicalPort pp :
                 listPhysicalPorts(vtepClient, mgmtIp, mgmtPort)) {
             for (Map.Entry<Integer, UUID> e :
@@ -336,9 +337,11 @@ public class VtepClusterClient {
                 if (bindingBridgeId != null &&
                         (bridgeId == null ||
                                 bridgeId.equals(bindingBridgeId))) {
-                    VtepBinding b = new VtepBinding(
-                            mgmtIp.toString(), pp.name(),
-                            e.getKey().shortValue(), bindingBridgeId);
+                    VTEPBinding b = new VTEPBinding();
+                    b.mgmtIp = mgmtIp.toString();
+                    b.portName = pp.name();
+                    b.vlanId = e.getKey().shortValue();
+                    b.networkId = bindingBridgeId;
                     bindings.add(b);
                 }
             }
@@ -376,7 +379,7 @@ public class VtepClusterClient {
      * @throws NotFoundHttpException when the physical port is not present in
      * the VTEP (only checked if the VTEP is reachable).
      */
-    public final void createBinding(VtepBinding binding, IPv4Addr mgmtIp,
+    public final void createBinding(VTEPBinding binding, IPv4Addr mgmtIp,
                                     Bridge bridge)
             throws SerializationException, StateAccessException {
 
@@ -431,7 +434,7 @@ public class VtepClusterClient {
     private void createAdditionalNetworkBinding(VTEP vtep,
                                                 Bridge bridge,
                                                 VxLanPort vxlanPort,
-                                                VtepBinding binding)
+                                                VTEPBinding binding)
         throws SerializationException, StateAccessException,
                VtepNotConnectedException {
 
@@ -451,12 +454,11 @@ public class VtepClusterClient {
         }
 
         try {
-            getPhysicalPortOrThrow(client, mgmtIp, mgmtPort,
-                                   binding.getPortName());
+            getPhysicalPortOrThrow(client, mgmtIp, mgmtPort, binding.portName);
 
             // Create the binding in Midonet or throw with a Conflict HTTP error
-            tryStoreBinding(mgmtIp, mgmtPort, binding.getPortName(),
-                            binding.getVlanId(), binding.getNetworkId());
+            tryStoreBinding(mgmtIp, mgmtPort, binding.portName, binding.vlanId,
+                            binding.networkId);
 
             // Try to store the binding in the VTEP if it's reachable
             if (client == null) {
@@ -465,8 +467,8 @@ public class VtepClusterClient {
                     + "VTEP {}, will be done by VxLanGatewayService", mgmtIp);
             } else {
                 String lsName = bridgeIdToLogicalSwitchName(bridge.getId());
-                Status status = client.bindVlan(lsName, binding.getPortName(),
-                                                binding.getVlanId(),
+                Status status = client.bindVlan(lsName, binding.portName,
+                                                binding.vlanId,
                                                 vxlanPort.getVni(),
                                                 new ArrayList<IPv4Addr>());
                 if (StatusCode.CONFLICT.equals(status.getCode())) {
@@ -489,7 +491,7 @@ public class VtepClusterClient {
      * left to the VxGwService.
      */
     private void createFirstNetworkBinding(VTEP vtep, Bridge bridge,
-                                           VtepBinding binding)
+                                           VTEPBinding binding)
         throws SerializationException, StateAccessException,
                VtepNotConnectedException {
 
@@ -504,8 +506,7 @@ public class VtepClusterClient {
             tunnelIp = client.getTunnelIp();
 
             // Validate that the physical port does exist
-            getPhysicalPortOrThrow(client, mgmtIp, mgmtPort,
-                                   binding.getPortName());
+            getPhysicalPortOrThrow(client, mgmtIp, mgmtPort, binding.portName);
 
         } catch (GatewayTimeoutHttpException e) {
             log.warn("VTEP {} unreachable to create binding: using the "
@@ -519,8 +520,7 @@ public class VtepClusterClient {
         if (null == tunnelIp) {
             throw new NotFoundHttpException(
                 getMessage(VTEP_TUNNEL_IP_NOT_FOUND, mgmtIp, mgmtPort,
-                           binding.getPortName()
-                )
+                           binding.portName)
             );
         }
 
@@ -530,7 +530,7 @@ public class VtepClusterClient {
         // it means we are on the first binding of a VTEP, so we need to figure
         // whether there is a binding already from a different VTEP on the
         // same network
-        int vni = -1;
+        int vni;
 
         if (bridge.getVxLanPortIds() == null ||
             bridge.getVxLanPortIds().isEmpty()) {
@@ -548,8 +548,8 @@ public class VtepClusterClient {
             vtep.getTunnelZoneId());
 
         try {
-            tryStoreBinding(mgmtIp, mgmtPort, binding.getPortName(),
-                            binding.getVlanId(), binding.getNetworkId());
+            tryStoreBinding(mgmtIp, mgmtPort, binding.portName, binding.vlanId,
+                            binding.networkId);
         } catch (ConflictHttpException e) {
             dataClient.bridgeDeleteVxLanPort(vxlanPort); // rollback
             throw e;

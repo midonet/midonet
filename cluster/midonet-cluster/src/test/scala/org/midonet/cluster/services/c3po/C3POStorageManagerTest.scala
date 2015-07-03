@@ -22,7 +22,6 @@ import java.util.{Map => JMap}
 import scala.concurrent.{Future, Promise}
 
 import com.google.protobuf.Message
-
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatcher
 import org.mockito.Matchers.{any, anyObject, argThat}
