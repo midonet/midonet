@@ -22,6 +22,30 @@
       "revId": "e524b538c50eef960cd52606c0c7c5c05391eb36",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_be633919",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualConfigurationBuilders.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-03T16:36:13Z",
+      "side": 1,
+      "message": "done in later patch.",
+      "parentUuid": "9ad9bd40_3e7c8920",
+      "range": {
+        "startLine": 142,
+        "startChar": 46,
+        "endLine": 142,
+        "endChar": 47
+      },
+      "revId": "e524b538c50eef960cd52606c0c7c5c05391eb36",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
