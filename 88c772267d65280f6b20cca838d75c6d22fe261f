@@ -16,6 +16,24 @@
       "revId": "88c772267d65280f6b20cca838d75c6d22fe261f",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7fa1b0a8",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv6Addr.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-03T08:19:22Z",
+      "side": 1,
+      "message": "I\u0027m not sure if your idea of readability would be universally accepted, but I like it :-) So, changed.\n(btw, beware of java signed awkwardness - need a \u0027\u0026 0xff\u0027 after converting to long...)",
+      "parentUuid": "9ad9bd40_338689ba",
+      "revId": "88c772267d65280f6b20cca838d75c6d22fe261f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
