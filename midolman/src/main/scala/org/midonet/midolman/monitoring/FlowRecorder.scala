@@ -38,7 +38,7 @@ import org.midonet.midolman.simulation.PacketContext
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.packets.MAC
-import org.midonet.sdn.flows.FlowTagger.{DeviceTag, FlowTag}
+import org.midonet.sdn.flows.FlowTagger.{_}
 
 trait FlowRecorder {
     def record(pktContext: PacketContext, simRes: MMSimRes): Unit
@@ -211,8 +211,24 @@ object FlowRecordBuilder {
         recActions
     }
 
-    def buildDevices(tags: List[FlowTag]): List[UUID] = {
-        tags.asScala.collect({ case d: DeviceTag => d.device }).asJava
+    def buildDevices(tags: List[FlowTag]): List[TraversedDevice] = {
+        tags.asScala.collect(
+            {
+                case t: LoadBalancerDeviceTag =>
+                    TraversedDevice(t.device, DeviceType.LOAD_BALANCER)
+                case t: PoolDeviceTag =>
+                    TraversedDevice(t.device, DeviceType.POOL)
+                case t: PortGroupDeviceTag =>
+                    TraversedDevice(t.device, DeviceType.PORT_GROUP)
+                case t: BridgeDeviceTag =>
+                    TraversedDevice(t.device, DeviceType.BRIDGE)
+                case t: RouterDeviceTag =>
+                    TraversedDevice(t.device, DeviceType.ROUTER)
+                case t: PortDeviceTag =>
+                    TraversedDevice(t.device, DeviceType.PORT)
+                case t: ChainDeviceTag =>
+                    TraversedDevice(t.device, DeviceType.CHAIN)
+            }).asJava
     }
 
     def buildRules(pktContext: PacketContext): List[TraversedRule] = {
