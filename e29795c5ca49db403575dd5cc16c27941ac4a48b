@@ -1,0 +1,90 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_1fc7c446",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv6Addr.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T08:40:20Z",
+      "side": 1,
+      "message": "Please remove.",
+      "range": {
+        "startLine": 159,
+        "startChar": 12,
+        "endLine": 159,
+        "endChar": 51
+      },
+      "revId": "e29795c5ca49db403575dd5cc16c27941ac4a48b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7fdd3014",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv6Addr.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T08:40:20Z",
+      "side": 1,
+      "message": "I think those two operations can be moved out above, which I think would make it more readable.",
+      "range": {
+        "startLine": 160,
+        "startChar": 18,
+        "endLine": 160,
+        "endChar": 36
+      },
+      "revId": "e29795c5ca49db403575dd5cc16c27941ac4a48b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ffc9405b",
+        "filename": "midonet-util/src/test/scala/org/midonet/packets/IPv6AddrTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T08:40:20Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "e29795c5ca49db403575dd5cc16c27941ac4a48b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ffd060f9",
+        "filename": "midonet-util/src/test/scala/org/midonet/packets/IPv6AddrTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T08:40:20Z",
+      "side": 1,
+      "message": "We should better explicitly test the input that would break the original implementation.",
+      "revId": "e29795c5ca49db403575dd5cc16c27941ac4a48b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
