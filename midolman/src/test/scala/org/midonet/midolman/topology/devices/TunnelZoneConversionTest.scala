@@ -34,10 +34,6 @@ import org.midonet.packets.IPAddr
 @RunWith(classOf[JUnitRunner])
 class TunnelZoneConversionTest extends FeatureSpec with Matchers {
 
-    private def deviceTag(proto: Topology.TunnelZone): FlowTag = {
-        FlowTagger.tagForDevice(proto.getId.asJava)
-    }
-
     feature("Conversion for tunnel zone of type GRE") {
         scenario("Test conversion from Protocol Buffer message") {
             val proto = newProto

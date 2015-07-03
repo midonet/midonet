@@ -61,7 +61,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             lb.vips.map(v => v.id).toSet shouldEqual vipIds
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(lb.id)) shouldBe true
+            vta.getAndClear().contains(lbFlowInvalidationMsg(lb.id)) shouldBe true
         }
 
         scenario("Receive update when a VIP is added") {
@@ -88,7 +88,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             lb2.vips.size shouldBe 2
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(lb.id)) shouldBe true
+            vta.getAndClear().contains(lbFlowInvalidationMsg(lb.id)) shouldBe true
         }
 
         scenario("Receive update when a VIP is removed") {
@@ -115,7 +115,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             lb2.vips.size shouldBe 0
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(lb.id)) shouldBe true
+            vta.getAndClear().contains(lbFlowInvalidationMsg(lb.id)) shouldBe true
         }
 
         scenario("Receive update when a VIP is changed") {
@@ -142,7 +142,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             lb2.vips.size shouldBe 1
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(lb.id)) shouldBe true
+            vta.getAndClear().contains(lbFlowInvalidationMsg(lb.id)) shouldBe true
         }
 
         scenario("Receive update when loadbalancer is changed") {
@@ -171,7 +171,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             lb2.adminStateUp shouldBe false
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(lb.id)) shouldBe true
+            vta.getAndClear().contains(lbFlowInvalidationMsg(lb.id)) shouldBe true
         }
 
     }
@@ -218,13 +218,17 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             poolMessages.size shouldBe 1
 
             And("the VTA should receive a flow invalidation for the pool")
-            vtaMessages.contains(flowInvalidationMsg(pool.getId)) shouldBe true
+            vtaMessages.contains(poolFlowInvalidationMsg(pool.getId)) shouldBe true
         }
     }
 
     def poolReqMsg(id: UUID) =
         PoolRequest(id)
 
-    def flowInvalidationMsg(id: UUID) =
-        InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
+    def lbFlowInvalidationMsg(id: UUID) =
+        InvalidateFlowsByTag(FlowTagger.tagForLoadBalancer(id))
+
+    def poolFlowInvalidationMsg(id: UUID) =
+        InvalidateFlowsByTag(FlowTagger.tagForPool(id))
+
 }

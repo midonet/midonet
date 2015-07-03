@@ -33,7 +33,7 @@ import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForBridge, tagForFloodedFlowsByDstMac, tagForVlanPort}
 
 object Bridge {
     final val UntaggedVlanId: Short = 0
@@ -109,7 +109,7 @@ class Bridge(val id: UUID,
 
     val floodAction = FloodBridgeAction(id, exteriorPorts)
 
-    override val deviceTag = tagForDevice(id)
+    override val deviceTag = tagForBridge(id)
 
     override def toString =
         s"Bridge [id=$id adminStateUp=$adminStateUp tunnelKey=$tunnelKey " +

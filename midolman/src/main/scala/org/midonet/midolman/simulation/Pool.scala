@@ -45,7 +45,7 @@ class Pool(val id: UUID, val adminStateUp: Boolean, val lbMethod: PoolLBMethod,
            val activePoolMembers: Array[PoolMember],
            val disabledPoolMembers: Array[PoolMember]) {
 
-    val deviceTag = FlowTagger.tagForDevice(id)
+    val deviceTag = FlowTagger.tagForPool(id)
 
     val isUp = adminStateUp && activePoolMembers.nonEmpty
 

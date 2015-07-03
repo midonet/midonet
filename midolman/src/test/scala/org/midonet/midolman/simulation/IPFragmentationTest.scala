@@ -233,9 +233,10 @@ class IPFragmentationTest extends MidolmanSpec {
 
     private def assertToPortFlowCreated(simRes: (SimulationResult, PacketContext)) {
         simRes should be (toPort(dstPort.getId)
-            (FlowTagger.tagForDevice(srcPort.getId),
-             FlowTagger.tagForDevice(device.getId),
-             FlowTagger.tagForDevice(dstPort.getId)))
+            (FlowTagger.tagForPort(srcPort.getId),
+             if (useRouter) { FlowTagger.tagForRouter(device.getId) }
+             else { FlowTagger.tagForBridge(device.getId) },
+             FlowTagger.tagForPort(dstPort.getId)))
     }
 
     private def assertDropFlowCreated(simRes: (SimulationResult, PacketContext),
@@ -246,8 +247,9 @@ class IPFragmentationTest extends MidolmanSpec {
         }
 
         simRes shouldBe dropped(
-            FlowTagger.tagForDevice(srcPort.getId),
-            FlowTagger.tagForDevice(device.getId))
+            FlowTagger.tagForPort(srcPort.getId),
+            if (useRouter) { FlowTagger.tagForRouter(device.getId) }
+            else { FlowTagger.tagForBridge(device.getId) })
     }
 
     private def assertIcmpFragNeededMessageReceived(context: PacketContext) {
