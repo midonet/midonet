@@ -26,16 +26,13 @@ import org.junit.runner.RunWith
 import org.midonet.midolman.config.MidolmanConfig
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
-import org.midonet.cluster.data.dhcp.Opt121
-import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.cluster.data.dhcp.ExtraDhcpOpt
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route._
 import org.midonet.midolman.simulation.{Bridge, DhcpValueParser, Router}
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
 
@@ -65,11 +62,11 @@ class DhcpTest extends MidolmanSpec {
     val vm1IP : IPv4Subnet = new IPv4Subnet("10.0.0.0", 24)
     val vm2IP: IPv4Subnet = new IPv4Subnet("10.0.1.0", 24)
 
-    var dhcpSubnet1: Subnet = _
-    var dhcpSubnet2: Subnet = _
+    var dhcpSubnet1: IPv4Subnet = _
+    var dhcpSubnet2: IPv4Subnet = _
 
-    var dhcpHost1: DhcpHost = _
-    var dhcpHost2: DhcpHost = _
+    var dhcpHost1: MAC = _
+    var dhcpHost2: MAC = _
 
     var workflow: PacketWorkflow = _
 
@@ -98,44 +95,24 @@ class DhcpTest extends MidolmanSpec {
         materializePort(bridgePort2, hostId, "bridgePort2")
 
         // First subnet is routerIp2's
-        var opt121Obj = new Opt121()
-            .setGateway(routerIp2.getAddress)
-            // TODO (galo) after talking with Abel we suspect that
-            // this below should be routerIp1, not 2. It may be
-            // irrelevant for the test, but we should confirm
-            .setRtDstSubnet(routerIp1)
-        var opt121Routes = List(opt121Obj)
+        // TODO (galo) after talking with Abel we suspect that
+        // this below should be routerIp1, not 2. It may be
+        // irrelevant for the test, but we should confirm
+        var opt121Routes = List(DhcpOpt121Route(routerIp2.getAddress(), routerIp1))
         val dnsSrvAddrs = List(IPv4Addr.fromString("192.168.77.118"),
                                IPv4Addr.fromString("192.168.77.119"),
                                IPv4Addr.fromString("192.168.77.120"))
-        dhcpSubnet1 = new Subnet()
-            .setSubnetAddr(routerIp2)
-            .setDefaultGateway(routerIp2.getAddress)
-            .setDnsServerAddrs(dnsSrvAddrs)
-            .setOpt121Routes(opt121Routes)
-        addDhcpSubnet(bridge, dhcpSubnet1)
+        dhcpSubnet1 = addDhcpSubnet(bridge, routerIp2, routerIp2.getAddress, dnsSrvAddrs,
+                                    opt121Routes)
 
         // Second subnet is routerIp3's
-        opt121Obj = new Opt121()
-            .setGateway(routerIp3.getAddress)
-            .setRtDstSubnet(routerIp3)
-        opt121Routes = List(opt121Obj)
-        dhcpSubnet2 = new Subnet()
-            .setSubnetAddr(routerIp3)
-            .setDefaultGateway(routerIp3.getAddress)
-            .setDnsServerAddrs(dnsSrvAddrs)
-            .setOpt121Routes(opt121Routes)
-        addDhcpSubnet(bridge, dhcpSubnet2)
+        opt121Routes = List(DhcpOpt121Route(routerIp3.getAddress, routerIp3))
+        dhcpSubnet2 = addDhcpSubnet(bridge, routerIp3, routerIp3.getAddress(),
+                                    dnsSrvAddrs, opt121Routes)
 
-        dhcpHost1 = new DhcpHost()
-            .setMAC(vm1Mac)
-            .setIp(vm1IP.getAddress)
-        addDhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        dhcpHost1 = addDhcpHost(bridge, dhcpSubnet1, vm1Mac, vm1IP.getAddress)
 
-        dhcpHost2 = new DhcpHost()
-            .setMAC(vm2Mac)
-            .setIp(vm2IP.getAddress)
-        addDhcpHost(bridge, dhcpSubnet2, dhcpHost2)
+        dhcpHost2 = addDhcpHost(bridge, dhcpSubnet2, vm2Mac, vm2IP.getAddress)
 
         fetchPorts(routerPort1, routerPort2, routerPort3,
                    bridgeIntPort1, bridgeIntPort2, bridgePort1, bridgePort2)
@@ -146,9 +123,9 @@ class DhcpTest extends MidolmanSpec {
                                       bridgePortNumber2 -> bridgePort2)).underlyingActor
     }
 
-    def extraDhcpOptToDhcpOption(opt: ExtraDhcpOpt): Option[DHCPOption] = for {
-        code <- DhcpValueParser.parseDhcpOptionCode(opt.optName)
-        value <- DhcpValueParser.parseDhcpOptionValue(code, opt.optValue)
+    def extraDhcpOptToDhcpOption(opt: (String, String)): Option[DHCPOption] = for {
+        code <- DhcpValueParser.parseDhcpOptionCode(opt._1)
+        value <- DhcpValueParser.parseDhcpOptionValue(code, opt._2)
     } yield new DHCPOption(code, value.length.toByte, value)
 
     def injectDhcpDiscover(port: UUID, portNumber: Int,
@@ -212,11 +189,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Dhcp Extra Option") {
-        val hostNameOption = new ExtraDhcpOpt(
-            DHCPOption.Code.HOST_NAME.value.toString, "foobar")
-        val extraDhcpOpts = List(hostNameOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val hostNameOption = (DHCPOption.Code.HOST_NAME.value.toString, "foobar")
+        val extraDhcpOpts = Map(hostNameOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val hostNameDhcpOption = extraDhcpOptToDhcpOption(hostNameOption)
@@ -225,10 +200,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Dhcp Extra Option With Name") {
-        val hostNameOption = new ExtraDhcpOpt("host-name", "foobar")
-        val extraDhcpOpts = List(hostNameOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val hostNameOption = ("host-name", "foobar")
+        val extraDhcpOpts = Map(hostNameOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val hostNameDhcpOption = extraDhcpOptToDhcpOption(hostNameOption)
@@ -237,8 +211,7 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Dhcp Extra Option Without Dhcp Host Update") {
-        val hostNameOption = new ExtraDhcpOpt(
-            DHCPOption.Code.HOST_NAME.value.toString, "foobar")
+        val hostNameOption = (DHCPOption.Code.HOST_NAME.value.toString, "foobar")
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val hostNameDhcpOption = extraDhcpOptToDhcpOption(hostNameOption)
@@ -249,10 +222,9 @@ class DhcpTest extends MidolmanSpec {
     scenario("Invalid Dhcp Extra Option Should Be Ignored") {
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
 
-        val invalidOption = new ExtraDhcpOpt("I am", "an invalid option")
-        val extraDhcpOpts = List(invalidOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val invalidOption = ("I am", "an invalid option")
+        val extraDhcpOpts = Map(invalidOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReplyWithInvalidOption = sendDhcpDiscoveryAndGetDhcpOffer()
         dhcpReply.getOptions should equal (
@@ -268,11 +240,9 @@ class DhcpTest extends MidolmanSpec {
             _.getCode == DHCPOption.Code.INTERFACE_MTU.value).get
 
         val newMtu: Int = ByteBuffer.wrap(oldMtuOption.getData).getShort + 42
-        val mtuOption = new ExtraDhcpOpt(
-            DHCPOption.Code.INTERFACE_MTU.value.toString, newMtu.toString)
-        val extraDhcpOpts = List(mtuOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val mtuOption = (DHCPOption.Code.INTERFACE_MTU.value.toString, newMtu.toString)
+        val extraDhcpOpts = Map(mtuOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReplyWithDuplicatedOption = sendDhcpDiscoveryAndGetDhcpOffer()
         val newMtuOptionsNumber =
@@ -288,12 +258,10 @@ class DhcpTest extends MidolmanSpec {
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
 
         val tooBigMtuValueString = s"$Int.MaxValue" + "0"
-        val invalidMtuOption = new ExtraDhcpOpt(
-            DHCPOption.Code.INTERFACE_MTU.value.toString,
-            tooBigMtuValueString)
-        val extraDhcpOpts = List(invalidMtuOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val invalidMtuOption = (DHCPOption.Code.INTERFACE_MTU.value.toString,
+                                tooBigMtuValueString)
+        val extraDhcpOpts = Map(invalidMtuOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReplyWithInvalidOption = sendDhcpDiscoveryAndGetDhcpOffer()
         dhcpReply.getOptions should equal (
@@ -301,21 +269,17 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Ip Required Dhcp Extra Option") {
-        val emptyRouterOption = new ExtraDhcpOpt(
-            DHCPOption.Code.ROUTER.value.toString, "")
-        val emptyExtraDhcpOpts = List(emptyRouterOption)
-        dhcpHost1.setExtraDhcpOpts(emptyExtraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val emptyRouterOption = (DHCPOption.Code.ROUTER.value.toString, "")
+        val emptyExtraDhcpOpts = Map(emptyRouterOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, emptyExtraDhcpOpts)
 
         sendDhcpDiscoveryAndGetDhcpOffer()
         val emptyRouterDhcpOption = extraDhcpOptToDhcpOption(emptyRouterOption)
         emptyRouterDhcpOption should be (None)
 
-        val routerOption = new ExtraDhcpOpt(
-            DHCPOption.Code.ROUTER.value.toString, "192.168.1.1, 192.168.11.1")
-        val extraDhcpOpts = List(routerOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val routerOption = (DHCPOption.Code.ROUTER.value.toString, "192.168.1.1, 192.168.11.1")
+        val extraDhcpOpts = Map(routerOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val routerDhcpOption = extraDhcpOptToDhcpOption(routerOption)
@@ -324,11 +288,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Boolean Required Dhcp Extra Option") {
-        val ipForwardingOption = new ExtraDhcpOpt(
-            DHCPOption.Code.IP_FOWARDING_ENABLE_DISABLE.value.toString, "1")
-        val extraDhcpOpts = List(ipForwardingOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val ipForwardingOption = (DHCPOption.Code.IP_FOWARDING_ENABLE_DISABLE.value.toString, "1")
+        val extraDhcpOpts = Map(ipForwardingOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val ipFowardingDhcpOption = extraDhcpOptToDhcpOption(ipForwardingOption)
@@ -338,11 +300,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Cidr Required Dhcp Extra Option") {
-        val cidrOption = new ExtraDhcpOpt(
-            DHCPOption.Code.STATIC_ROUTE.value.toString, "192.168.1.0/24")
-        val extraDhcpOpts = List(cidrOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val cidrOption = (DHCPOption.Code.STATIC_ROUTE.value.toString, "192.168.1.0/24")
+        val extraDhcpOpts = Map(cidrOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val cidrDhcpOption = extraDhcpOptToDhcpOption(cidrOption)
@@ -351,11 +311,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("1248 Required Dhcp Extra Option") {
-        val _1248Option = new ExtraDhcpOpt(
-            DHCPOption.Code.NETBIOS_OVER_TCP_IP_NODE_TYPE.value.toString, "4")
-        val extraDhcpOpts = List(_1248Option)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val _1248Option = (DHCPOption.Code.NETBIOS_OVER_TCP_IP_NODE_TYPE.value.toString, "4")
+        val extraDhcpOpts = Map(_1248Option)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val _1248DhcpOption = extraDhcpOptToDhcpOption(_1248Option)
@@ -364,11 +322,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("1 to 3 Required Dhcp Extra Option") {
-        val _1to3Option = new ExtraDhcpOpt(
-            DHCPOption.Code.OPTION_OVERLOAD.value.toString, "3")
-        val extraDhcpOpts = List(_1to3Option)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val _1to3Option = (DHCPOption.Code.OPTION_OVERLOAD.value.toString, "3")
+        val extraDhcpOpts = Map(_1to3Option)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val _1to3DhcpOption = extraDhcpOptToDhcpOption(_1to3Option)
@@ -377,11 +333,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("1 to 8 Required Dhcp Extra Option") {
-        val _1to8Option = new ExtraDhcpOpt(
-            DHCPOption.Code.ERROR_MESSAGE.value.toString, "8")
-        val extraDhcpOpts = List(_1to8Option)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val _1to8Option = (DHCPOption.Code.ERROR_MESSAGE.value.toString, "8")
+        val extraDhcpOpts = Map(_1to8Option)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val _1to8DhcpOption = extraDhcpOptToDhcpOption(_1to8Option)
@@ -390,12 +344,10 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Client Identifier Dhcp Extra Option") {
-        val clientIdentifierOption = new ExtraDhcpOpt(
-            DHCPOption.Code.CLIENT_IDENTIFIER.value.toString,
-            "12, midokura.com")
-        val extraDhcpOpts = List(clientIdentifierOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val clientIdentifierOption = (DHCPOption.Code.CLIENT_IDENTIFIER.value.toString,
+                                      "12, midokura.com")
+        val extraDhcpOpts = Map(clientIdentifierOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val clientIdentifierDhcpOption =
@@ -406,12 +358,10 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Byte Followd By Ip Addrs Dhcp Extra Option") {
-        val byteFollowedByIpAddrsOption = new ExtraDhcpOpt(
-            DHCPOption.Code.SLP_DIRECTORY_AGENT.value.toString,
-            "1, 192.168.1.1")
-        val extraDhcpOpts = List(byteFollowedByIpAddrsOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val byteFollowedByIpAddrsOption = (DHCPOption.Code.SLP_DIRECTORY_AGENT.value.toString,
+                                           "1, 192.168.1.1")
+        val extraDhcpOpts = Map(byteFollowedByIpAddrsOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val byteFollowedByIpAddrsDhcpOption =
@@ -422,12 +372,10 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Byte Followed By String Dhcp Extra Option") {
-        val byteFollowedByStringOption = new ExtraDhcpOpt(
-            DHCPOption.Code.SLP_SERVICE_SCOPE.value.toString,
-            "1, foobar")
-        val extraDhcpOpts = List(byteFollowedByStringOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val byteFollowedByStringOption = (DHCPOption.Code.SLP_SERVICE_SCOPE.value.toString,
+                                          "1, foobar")
+        val extraDhcpOpts = Map(byteFollowedByStringOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val byteFollowedByStringDhcpOption =
@@ -438,11 +386,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Rapid Commit Dhcp Extra Option") {
-        val rapidCommitOption = new ExtraDhcpOpt(
-            DHCPOption.Code.RAPID_COMMIT.value.toString, "")
-        val extraDhcpOpts = List(rapidCommitOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val rapidCommitOption = (DHCPOption.Code.RAPID_COMMIT.value.toString, "")
+        val extraDhcpOpts = Map(rapidCommitOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val rapdCommitDhcpOption =
@@ -453,11 +399,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Status Code Dhcp Extra Option") {
-        val statusCodeOption = new ExtraDhcpOpt(
-            DHCPOption.Code.RAPID_COMMIT.value.toString, "2")
-        val extraDhcpOpts = List(statusCodeOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val statusCodeOption = (DHCPOption.Code.RAPID_COMMIT.value.toString, "2")
+        val extraDhcpOpts = Map(statusCodeOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val statusCodeDhcpOption =
@@ -467,11 +411,9 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Data Source Dhcp Extra Option") {
-        val dataSourceOption = new ExtraDhcpOpt(
-            DHCPOption.Code.DATA_SOURCE.value.toString, "24")
-        val extraDhcpOpts = List(dataSourceOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val dataSourceOption = (DHCPOption.Code.DATA_SOURCE.value.toString, "24")
+        val extraDhcpOpts = Map(dataSourceOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val dataSourceDhcpOption =
@@ -481,12 +423,10 @@ class DhcpTest extends MidolmanSpec {
     }
 
     scenario("Classless Routes Dhcp Extra Option") {
-        val classlessRoutesOption = new ExtraDhcpOpt(
-            DHCPOption.Code.CLASSLESS_ROUTES.value.toString,
-            "192.168.100.0/24, 10.0.0.1")
-        val extraDhcpOpts = List(classlessRoutesOption)
-        dhcpHost1.setExtraDhcpOpts(extraDhcpOpts)
-        updatedhcpHost(bridge, dhcpSubnet1, dhcpHost1)
+        val classlessRoutesOption = (DHCPOption.Code.CLASSLESS_ROUTES.value.toString,
+                                     "192.168.100.0/24, 10.0.0.1")
+        val extraDhcpOpts = Map(classlessRoutesOption)
+        setDhcpHostOptions(bridge, dhcpSubnet1, dhcpHost1, extraDhcpOpts)
 
         val dhcpReply = sendDhcpDiscoveryAndGetDhcpOffer()
         val classlessRoutesDhcpOption =

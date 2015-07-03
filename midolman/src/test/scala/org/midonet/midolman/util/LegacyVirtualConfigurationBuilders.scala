@@ -16,19 +16,20 @@
 package org.midonet.midolman.util
 
 import java.util.UUID
-import java.util.{HashSet => JSet}
+import java.util.{HashSet => JSet, List => JList}
 
 import scala.util.Random
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 import com.google.inject.Inject
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
-import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.cluster.data.dhcp.Subnet6
+import org.midonet.cluster.data.dhcp.{ExtraDhcpOpt, Opt121, Subnet}
+
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
 import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
@@ -40,7 +41,7 @@ import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
 import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer, HealthMonitor}
 import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
-
+import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
 
 class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient,
                                          stateStorage: LegacyStorage)
@@ -367,31 +368,35 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient().routesDelete(routeId)
     }
 
-    override def addDhcpSubnet(bridge : UUID,
-                               subnet : Subnet) = {
-        clusterDataClient().dhcpSubnetsCreate(bridge, subnet)
+    override def addDhcpSubnet(bridge: UUID,
+                               subnet: IPv4Subnet,
+                               gw: IPv4Addr,
+                               dns: List[IPv4Addr],
+                               opt121routes: List[DhcpOpt121Route]): IPv4Subnet = {
+        val opt121 = opt121routes.map {
+            e => new Opt121().setGateway(e.gw).setRtDstSubnet(e.subnet) }.asJava
+        val subnetObj = new Subnet().setSubnetAddr(subnet)
+            .setDefaultGateway(gw).setDnsServerAddrs(dns)
+            .setOpt121Routes(opt121)
+        clusterDataClient().dhcpSubnetsCreate(bridge, subnetObj)
+        subnet
     }
 
-    override def addDhcpHost(bridge : UUID, subnet : Subnet,
-                             host : org.midonet.cluster.data.dhcp.Host) = {
-        clusterDataClient().dhcpHostsCreate(bridge, subnet.getSubnetAddr, host)
+    override def addDhcpHost(bridge: UUID, subnet: IPv4Subnet,
+                             hostMac: MAC, hostIp: IPv4Addr): MAC = {
+        clusterDataClient.dhcpHostsCreate(bridge, subnet,
+                                          new DhcpHost().setMAC(
+                                              hostMac).setIp(hostIp))
+        hostMac
     }
+    override def setDhcpHostOptions(bridge: UUID,
+                                    subnet: IPv4Subnet, hostMac: MAC,
+                                    options: Map[String, String]): Unit = {
+        val host: DhcpHost = clusterDataClient().dhcpHostsGet(bridge, subnet, hostMac.toString)
 
-    override def updatedhcpHost(bridge: UUID,
-                                subnet: Subnet, host: DhcpHost) = {
-        clusterDataClient().dhcpHostsUpdate(
-            bridge, subnet.getSubnetAddr, host)
-    }
-
-    override def addDhcpSubnet6(bridge : UUID,
-                                subnet : Subnet6) = {
-        clusterDataClient().dhcpSubnet6Create(bridge, subnet)
-    }
-
-    override def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
-                               host : org.midonet.cluster.data.dhcp.V6Host) = {
-        clusterDataClient().dhcpV6HostCreate(bridge,
-                                              subnet.getPrefix, host)
+        val opts: JList[ExtraDhcpOpt] = options map { case (k, v) => new ExtraDhcpOpt(k, v) } toList;
+        host.setExtraDhcpOpts(opts)
+        clusterDataClient().dhcpHostsUpdate(bridge, subnet, host)
     }
 
     override def linkPorts(port: UUID, peerPort: UUID) {
