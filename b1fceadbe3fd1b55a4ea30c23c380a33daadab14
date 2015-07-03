@@ -99,6 +99,24 @@
       "revId": "b1fceadbe3fd1b55a4ea30c23c380a33daadab14",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_44db451b",
+        "filename": "nsdb/src/main/proto/neutron.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-03T01:16:51Z",
+      "side": 1,
+      "message": "Looks like it is possible:\n\nhttps://bugs.launchpad.net/neutron/+bug/1057844\n\nThe FIPs would be on different external networks, so I believe we already support this case.  But we need a list of backrefs here.",
+      "parentUuid": "9ad9bd40_fd81504b",
+      "revId": "b1fceadbe3fd1b55a4ea30c23c380a33daadab14",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
