@@ -22,6 +22,30 @@
       "revId": "140c753e2cef08f01abb648d3c9db1d5e5771c7c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5f522cde",
+        "filename": "midonet-api/src/test/java/org/midonet/cluster/data/neutron/DataCheckPointTest.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-03T07:31:04Z",
+      "side": 1,
+      "message": "Maybe not, I will change to 1MB",
+      "parentUuid": "9ad9bd40_bf41780d",
+      "range": {
+        "startLine": 107,
+        "startChar": 62,
+        "endLine": 107,
+        "endChar": 69
+      },
+      "revId": "140c753e2cef08f01abb648d3c9db1d5e5771c7c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
