@@ -53,7 +53,7 @@ class JsonSerialization {
                    readUUID("inPort"),
                    readMatch(),
                    readNumber("cookie").toInt,
-                   readUUIDList("devices"),
+                   readDeviceList("devices"),
                    readRuleList(),
                    readSimResult(),
                    readUUIDList("outPorts"),
@@ -153,6 +153,44 @@ class JsonSerialization {
                     .filter(_.length > 0)
                     .map(x => UUID.fromString(x)).asJava
             case _ => null
+        }
+    }
+
+    def writeDeviceList(key: String, devices: JList[TraversedDevice])
+                       (implicit jgen: JsonGenerator): Unit = {
+        if (devices != null) {
+            jgen.writeFieldName(key)
+            jgen.writeStartArray()
+            var i = 0
+            while (i < devices.size) {
+                jgen.writeStartObject()
+                jgen.writeStringField("id", devices.get(i).id.toString)
+                jgen.writeStringField("deviceType", devices.get(i).deviceType.toString)
+                jgen.writeEndObject()
+
+                i += 1
+            }
+            jgen.writeEndArray()
+        }
+    }
+
+    def readDeviceList(key: String)
+                      (implicit map: JMap[String, Object]): JList[TraversedDevice] = {
+        val value = map.get(key)
+        if (value == null) {
+            null
+        } else {
+            val deviceList = value.asInstanceOf[JList[JMap[String,String]]]
+            val devices = new JArrayList[TraversedDevice]
+            var i = 0
+            while (i < deviceList.size) {
+                devices.add(TraversedDevice(
+                                UUID.fromString(deviceList.get(i).get("id")),
+                                DeviceType.withName(
+                                    deviceList.get(i).get("deviceType"))))
+                i += 1
+            }
+            devices
         }
     }
 
@@ -465,7 +503,7 @@ class JsonSerialization {
             writeUUID("inPort", record.inPort)
             writeMatch(record.flowMatch)
             writeNumber("cookie", record.cookie)
-            writeUUIDList("devices", record.devices)
+            writeDeviceList("devices", record.devices)
             writeRuleList(record.rules)
             writeSimResult(record.simResult)
             writeUUIDList("outPorts", record.outPorts)
