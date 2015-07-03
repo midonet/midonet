@@ -30,7 +30,7 @@ import scala.util.Try
 
 import com.typesafe.config._
 import com.typesafe.scalalogging.Logger
-import org.apache.commons.configuration.HierarchicalINIConfiguration
+import org.apache.commons.configuration.{ConfigurationException, HierarchicalINIConfiguration}
 import org.apache.curator.framework.{CuratorFrameworkFactory, CuratorFramework}
 import org.apache.curator.framework.recipes.cache.ChildData
 import org.apache.curator.retry.RetryOneTime
@@ -292,8 +292,19 @@ class MidoNodeConfigurator(zk: CuratorFramework,
     }
 
     def legacyConfigFile: Config = {
-        agentLegacyIniFile map (new LegacyConf(_).get)
-    }.getOrElse(ConfigFactory.empty)
+        // Construct the Config object representing the local configuration
+        // file.  An empty configuration is returned if the file does not exist
+        // or if the content is empty.
+        agentLegacyIniFile.fold(ConfigFactory.empty) { f =>
+            try {
+                new LegacyConf(f).get
+            } catch {
+                case e: ConfigurationException =>
+                    log.warn(s"Failed to load config file: $f", e)
+                    ConfigFactory.empty
+            }
+        }
+    }
 
     /**
      * Returns a Config object composed solely of local configuration sources.
