@@ -111,15 +111,6 @@ public class Condition extends BaseConfig {
     @ZoomField(name = "traversed_device_inv")
     public boolean traversedDeviceInv;
 
-    private FlowTagger.FlowTag _traversedDeviceTag = null;
-    private FlowTagger.FlowTag traversedDeviceTag() {
-        if (traversedDevice == null)
-            return null;
-        if (_traversedDeviceTag == null)
-            _traversedDeviceTag = FlowTagger.tagForDevice(traversedDevice);
-        return _traversedDeviceTag;
-    }
-
     // In production, this should always be initialized via the API, but there
     // are a bunch of tests that bypass the API and create conditions directly.
     @ZoomField(name = "fragment_policy")
@@ -309,8 +300,18 @@ public class Condition extends BaseConfig {
     }
 
     private boolean matchTraversedDevice(PacketContext pktCtx) {
-        FlowTagger.FlowTag tag = traversedDeviceTag();
-        return tag == null || traversedDeviceInv ^ pktCtx.flowTags().contains(tag);
+        if (traversedDevice == null) {
+            return true;
+        }
+        boolean contains = false;
+        for (FlowTagger.FlowTag tag : pktCtx.flowTags()) {
+            if (tag instanceof FlowTagger.DeviceTag
+                && ((FlowTagger.DeviceTag)tag).deviceId().equals(traversedDevice)) {
+                contains = true;
+                break;
+            }
+        }
+        return traversedDeviceInv ^ contains;
     }
 
     // This works a bit differently from how one might expect. The packet

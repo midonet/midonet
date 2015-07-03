@@ -36,7 +36,7 @@ import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForDevice, tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridge, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForPort, tagForVlanPort}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.reactivex.AwaitableObserver
 
@@ -1318,7 +1318,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("Brodcast flows should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId),
+                tagForPort(portId),
                 tagForBroadcast(bridgeId))
 
             When("Deleting the exterior port for the bridge")
@@ -1329,9 +1329,9 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("Brodcast flows should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId),
+                tagForPort(portId),
                 tagForBroadcast(bridgeId),
-                tagForDevice(portId),
+                tagForPort(portId),
                 tagForBroadcast(bridgeId))
         }
 
@@ -1362,8 +1362,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("The MAC-port mapping should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId),
-                tagForDevice(peerPortId),
+                tagForPort(portId),
+                tagForPort(peerPortId),
                 tagForArpRequests(bridgeId),
                 tagForFloodedFlowsByDstMac(bridgeId, UntaggedVlanId, peerPortMac1))
 
@@ -1375,11 +1375,11 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("The MAC-port mapping should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId),
-                tagForDevice(peerPortId),
+                tagForPort(portId),
+                tagForPort(peerPortId),
                 tagForArpRequests(bridgeId),
                 tagForFloodedFlowsByDstMac(bridgeId, UntaggedVlanId, peerPortMac1),
-                tagForDevice(peerPortId),
+                tagForPort(peerPortId),
                 tagForBridgePort(bridgeId, portId),
                 tagForArpRequests(bridgeId),
                 tagForFloodedFlowsByDstMac(bridgeId, UntaggedVlanId, peerPortMac2))
@@ -1423,10 +1423,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("Flows should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId1),
-                tagForDevice(portId2),
-                tagForDevice(peerPortId1),
-                tagForDevice(peerPortId2))
+                tagForPort(portId1),
+                tagForPort(portId2),
+                tagForPort(peerPortId1),
+                tagForPort(peerPortId2))
 
             Given("The MAC-port replicated map for the bridge")
             val map = vt.state.bridgeMacTable(bridgeId, vlanId, ephemeral = true)
@@ -1438,10 +1438,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId1),
-                tagForDevice(portId2),
-                tagForDevice(peerPortId1),
-                tagForDevice(peerPortId2),
+                tagForPort(portId1),
+                tagForPort(portId2),
+                tagForPort(peerPortId1),
+                tagForPort(peerPortId2),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac1))
 
             When("A second MAC is added to the MAC learning table")
@@ -1450,10 +1450,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId1),
-                tagForDevice(portId2),
-                tagForDevice(peerPortId1),
-                tagForDevice(peerPortId2),
+                tagForPort(portId1),
+                tagForPort(portId2),
+                tagForPort(peerPortId1),
+                tagForPort(peerPortId2),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac1),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac2))
 
@@ -1462,10 +1462,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId1),
-                tagForDevice(portId2),
-                tagForDevice(peerPortId1),
-                tagForDevice(peerPortId2),
+                tagForPort(portId1),
+                tagForPort(portId2),
+                tagForPort(peerPortId1),
+                tagForPort(peerPortId2),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac1),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac2),
                 tagForVlanPort(bridgeId, otherMac1, vlanId, portId1))
@@ -1475,10 +1475,10 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId1),
-                tagForDevice(portId2),
-                tagForDevice(peerPortId1),
-                tagForDevice(peerPortId2),
+                tagForPort(portId1),
+                tagForPort(portId2),
+                tagForPort(peerPortId1),
+                tagForPort(peerPortId2),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac1),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac2),
                 tagForVlanPort(bridgeId, otherMac1, vlanId, portId1),
@@ -1515,8 +1515,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("Flows are invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId),
-                tagForDevice(peerPortId))
+                tagForPort(portId),
+                tagForPort(peerPortId))
 
             When("A MAC reference is incremented via the flow count")
             val otherMac = MAC.random
@@ -1527,8 +1527,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("Flows should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId),
-                tagForDevice(peerPortId),
+                tagForPort(portId),
+                tagForPort(peerPortId),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac))
 
             When("A MAC reference is decremented via the flow count")
@@ -1544,8 +1544,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("Flows should be invalidated")
             flowInvalidator should invalidate (
-                tagForDevice(portId),
-                tagForDevice(peerPortId),
+                tagForPort(portId),
+                tagForPort(peerPortId),
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac),
                 tagForVlanPort(bridgeId, otherMac, vlanId, portId))
         }

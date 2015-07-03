@@ -46,7 +46,7 @@ class PortGroupConversionTest extends FeatureSpec with Matchers
             val device = ZoomConvert.fromProto(portGroup, classOf[PortGroup])
 
             device shouldBeDeviceOf portGroup
-            device.deviceTag shouldBe FlowTagger.tagForDevice(device.id)
+            device.deviceTag shouldBe FlowTagger.tagForPortGroup(device.id)
         }
 
         scenario("Test conversion to Protocol Buffers message") {

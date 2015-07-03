@@ -46,7 +46,7 @@ class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
 
     class TestableDevice(val id: UUID, val chainIds: Set[UUID])
         extends VirtualDevice {
-        override val deviceTag = FlowTagger.tagForDevice(id)
+        override val deviceTag = FlowTagger.tagForBridge(id)
         var chains = Map.empty[UUID, SimulationChain]
         override def equals(o: Any): Boolean = o match {
             case d: TestableDevice => id == d.id && chainIds == d.chainIds

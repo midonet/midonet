@@ -66,7 +66,7 @@ class FlowTaggerTest extends FeatureSpecLike
         val ip = IPv4Addr.random
         val route = new Route(int, int, int, int, NextHop.LOCAL, uuid, int, int, "", uuid)
         List(
-            () => tagForDevice(uuid),
+            () => tagForBridge(uuid),
             () => tagForFloodedFlowsByDstMac(uuid, short, mac),
             () => tagForArpRequests(uuid),
             () => tagForVlanPort(uuid, mac, short, uuid),

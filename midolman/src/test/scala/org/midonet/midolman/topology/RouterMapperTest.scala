@@ -39,7 +39,7 @@ import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.tagForDevice
+import org.midonet.sdn.flows.FlowTagger.tagForRouter
 import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
@@ -903,7 +903,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val router = testRouterCreated(obs)._1
 
             And("The flow controller should receive the device invalidation")
-            flowInvalidator should invalidate (tagForDevice(router.getId))
+            flowInvalidator should invalidate (tagForRouter(router.getId))
         }
 
         scenario("For added route corresponding to destination IP") {

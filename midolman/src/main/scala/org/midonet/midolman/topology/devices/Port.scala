@@ -77,7 +77,7 @@ sealed trait Port extends ZoomObject with VirtualDevice with Cloneable {
     def isActive: Boolean = _active
 
     override def afterFromProto(message: Message): Unit = {
-        _deviceTag = FlowTagger.tagForDevice(id)
+        _deviceTag = FlowTagger.tagForPort(id)
         _txTag = FlowTagger.tagForPortTx(id)
         _rxTag = FlowTagger.tagForPortRx(id)
         super.afterFromProto(message)

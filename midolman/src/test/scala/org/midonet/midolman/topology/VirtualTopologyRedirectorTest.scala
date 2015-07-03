@@ -475,7 +475,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(1, timeout) shouldBe true
 
             Then("The flow should receive an invalidate message")
-            flowInvalidator should invalidate(FlowTagger.tagForDevice(portId))
+            flowInvalidator should invalidate(FlowTagger.tagForPort(portId))
             flowInvalidator.clear()
 
             And("The port is updated")
@@ -487,7 +487,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             obs.awaitOnNext(2, timeout) shouldBe true
 
             Then("The flow should receive an invalidate message")
-            flowInvalidator should invalidate(FlowTagger.tagForDevice(portId))
+            flowInvalidator should invalidate(FlowTagger.tagForPort(portId))
         }
     }
 
