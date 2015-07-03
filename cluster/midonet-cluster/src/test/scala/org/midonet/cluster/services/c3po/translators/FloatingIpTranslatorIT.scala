@@ -27,8 +27,8 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{FloatingIp => FloatingIpType, Network => NetworkType, Port => PortType, PortBinding => PortBindingType, Router => RouterType, Subnet => SubnetType}
-import org.midonet.cluster.data.neutron.TaskType.{Create, Delete}
-import org.midonet.cluster.models.Neutron.FloatingIp
+import org.midonet.cluster.data.neutron.TaskType.{Create, Delete, Update}
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
@@ -283,11 +283,36 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             dnatTarget.getNwEnd.getAddress shouldBe fixedIp
             dnatTarget.getTpStart shouldBe 1
             dnatTarget.getTpEnd shouldBe 65535
+            // Test that the VIF port's been updated with the back reference.
+            val vifPortWithFip = storage.get(classOf[NeutronPort],
+                                             vifPortId).await()
+            vifPortWithFip.getFloatingIpIdsCount shouldBe 1
+            vifPortWithFip.getFloatingIpIdsList should
+                    contain only toProto(fipId)
         }
 
-        // #14 Deleting a Floating IP should clear the NAT rules and ARP entry.
+        // #14 Update the VIF. Test that the back reference to Floating IP
+        // survives.
+        val vifPortUpdatedJson = portJson(
+                name = "port1Updated", id = vifPortId,
+                networkId = privateNetworkId, macAddr = vifPortMac,
+                fixedIps = List(IPAlloc(fixedIp, privateSubnetId.toString)),
+                deviceOwner = DeviceOwner.NOVA).toString
         executeSqlStmts(insertTaskSql(
-                id = 14, Delete, FloatingIpType, json = "", fipId, "tx14"))
+                id = 14, Update, PortType, vifPortUpdatedJson, vifPortId,
+                "tx14"))
+        eventually {
+            val updatedVifPort = storage.get(classOf[NeutronPort], vifPortId)
+                                        .await()
+            updatedVifPort.getName shouldBe "port1Updated"
+            updatedVifPort.getFloatingIpIdsCount shouldBe 1
+            updatedVifPort.getFloatingIpIdsList should
+                    contain only toProto(fipId)
+        }
+
+        // #15 Deleting a Floating IP should clear the NAT rules and ARP entry.
+        executeSqlStmts(insertTaskSql(
+                id = 15, Delete, FloatingIpType, json = "", fipId, "tx15"))
         eventually {
             storage.exists(classOf[FloatingIp], fipId).await() shouldBe false
             storage.exists(classOf[Rule], snatRuleId).await() shouldBe false
@@ -301,6 +326,10 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
 
             // The ARP entry must be removed.
             arpTable.containsKey(fipIp) shouldBe false
+            // The back reference to Floating IP must be removed.
+            val vifPortWithFipRemoved = storage.get(classOf[NeutronPort],
+                                                    vifPortId).await()
+            vifPortWithFipRemoved.getFloatingIpIdsCount shouldBe 0
         }
 
         arpTable.stop()
