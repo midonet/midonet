@@ -123,36 +123,62 @@ class JsonSerialization {
     def writeShortList(key: String, shorts: JList[java.lang.Short])
                       (implicit jgen: JsonGenerator): Unit = {
         if (shorts != null) {
-            val shortStr = Joiner.on("\n").join(shorts)
-            jgen.writeStringField(key, shortStr)
+            jgen.writeFieldName(key)
+            jgen.writeStartArray()
+            var i = 0
+            while (i < shorts.size) {
+                jgen.writeNumber(shorts.get(i))
+                i += 1
+            }
+            jgen.writeEndArray()
         }
     }
 
     def readShortList(key: String)
                      (implicit map: JMap[String, Object]): JList[java.lang.Short] = {
-        map.get(key) match {
-            case s: String => s.split("\n").toList
-                    .filter(_.length() > 0)
-                    .map(x => java.lang.Short.valueOf(x)).asJava
-            case _ => null
+        val value = map.get(key)
+        if (value == null) {
+            null
+        } else {
+            val list = value.asInstanceOf[JList[Number]]
+            var i = 0
+            val shorts = new JArrayList[java.lang.Short]()
+            while (i < list.size) {
+                shorts.add(list.get(i).shortValue())
+                i += 1
+            }
+            shorts
         }
     }
 
     def writeUUIDList(key: String, uuids: JList[UUID])
                      (implicit jgen: JsonGenerator): Unit = {
         if (uuids != null) {
-            val uuidStr = Joiner.on("\n").join(uuids)
-            jgen.writeStringField(key, uuidStr)
+            jgen.writeFieldName(key)
+            jgen.writeStartArray()
+            var i = 0
+            while (i < uuids.size) {
+                jgen.writeString(uuids.get(i).toString)
+                i += 1
+            }
+            jgen.writeEndArray()
         }
     }
 
     def readUUIDList(key: String)
                     (implicit map: JMap[String, Object]): JList[UUID] = {
-        map.get(key) match {
-            case s: String => s.split("\n").toList
-                    .filter(_.length > 0)
-                    .map(x => UUID.fromString(x)).asJava
-            case _ => null
+        val value = map.get(key)
+        if (value == null) {
+            null
+        } else {
+            val list = value.asInstanceOf[JList[String]]
+            var i = 0
+            val uuids = new JArrayList[UUID]()
+            while (i < list.size) {
+                uuids.add(UUID.fromString(list.get(i)))
+                i += 1
+            }
+            uuids
         }
     }
 
@@ -469,28 +495,40 @@ class JsonSerialization {
     def writeRuleList(rules: JList[TraversedRule])
                      (implicit jgen: JsonGenerator): Unit = {
         if (rules != null) {
-            val rulesStr = Joiner.on("\n").join(
-                rules.asScala.map(
-                    r => { s"${r.rule} (${r.result})" }).asJava)
-            jgen.writeStringField("rules", rulesStr)
+            jgen.writeFieldName("rules")
+            jgen.writeStartArray()
+            var i = 0
+            while (i < rules.size) {
+                jgen.writeStartObject()
+                jgen.writeStringField("id", rules.get(i).rule.toString)
+                jgen.writeStringField("result", rules.get(i).result.toString)
+                jgen.writeEndObject()
+
+                i += 1
+            }
+            jgen.writeEndArray()
         }
     }
 
     def readRuleList()
                     (implicit map: JMap[String, Object]): JList[TraversedRule] = {
-        map.get("rules") match {
-            case s: String => s.split("\n").toList
-                    .filter(_.length > 0)
-                    .map(x => {
-                             val parts = x.split(" ")
-                             TraversedRule(UUID.fromString(parts(0)),
-                                           RuleResult.withName(
-                                               parts(1).replace(")", "")
-                                                   .replace("(", "")))
-                         }).asJava
-            case _ => null
+        val value = map.get("rules")
+        if (value == null) {
+            null
+        } else {
+            val ruleList = value.asInstanceOf[JList[JMap[String,String]]]
+            val rules = new JArrayList[TraversedRule]
+            var i = 0
+            while (i < ruleList.size) {
+                rules.add(TraversedRule(
+                                UUID.fromString(ruleList.get(i).get("id")),
+                                RuleResult.withName(
+                                    ruleList.get(i).get("result"))))
+                i += 1
+            }
+            rules
         }
-    }
+   }
 
     class JsonFlowRecordSerializer extends JsonSerializer[FlowRecord] {
         override def serialize(record: FlowRecord,
