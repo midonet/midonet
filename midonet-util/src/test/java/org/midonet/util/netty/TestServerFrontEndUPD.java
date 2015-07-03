@@ -43,6 +43,7 @@ public class TestServerFrontEndUPD {
 
     private static final Duration TIMEOUT = Duration.apply(5, TimeUnit.SECONDS);
     private static final String MSG = "hello";
+    private static final int RETRIES = 5;
     Random rand = new Random();
 
     @Test
@@ -51,13 +52,27 @@ public class TestServerFrontEndUPD {
         SimpleChan simpleadapter = new SimpleChan(sub);
         TestAwaitableObserver<byte[]> monitor = new TestAwaitableObserver<>();
         sub.subscribe(monitor);
-        int port = rand.nextInt(100) + 8000;
-        ServerFrontEnd udpSrv = ServerFrontEnd.udp(simpleadapter, port);
-        udpSrv.startAsync().awaitRunning();
+        int port;
+        ServerFrontEnd udpSrv = null;
+        int chances = RETRIES;
+        boolean ready = false;
+        do {
+            chances --;
+            port = rand.nextInt(100) + 8000;
+            try {
+                udpSrv = ServerFrontEnd.udp(simpleadapter, port);
+                udpSrv.startAsync().awaitRunning();
+                ready = true;
+            } catch (IllegalStateException e) {
+                if (chances <= 0)
+                    throw e;
+            }
+        } while (!ready);
         sendMSG(MSG.getBytes(), port);
         monitor.awaitOnNext(1, TIMEOUT);
         assertThat("msg was received", monitor.getOnNextEvents().get(0),
                    equalTo(MSG.getBytes()));
+        udpSrv.stopAsync().awaitTerminated();
     }
 
     @Test
@@ -66,8 +81,22 @@ public class TestServerFrontEndUPD {
         SimpleChan simpleadapter = new SimpleChan(sub);
         TestAwaitableObserver<byte[]> monitor = new TestAwaitableObserver<>();
         sub.subscribe(monitor);
-        int port = rand.nextInt(100) + 8000;
-        ServerFrontEnd udpSrv = ServerFrontEnd.udp(simpleadapter, port, 65536);
+        int port;
+        ServerFrontEnd udpSrv = null;
+        int chances = RETRIES;
+        boolean ready = false;
+        do {
+            chances --;
+            port = rand.nextInt(100) + 8000;
+            try {
+                udpSrv = ServerFrontEnd.udp(simpleadapter, port, 65535);
+                udpSrv.startAsync().awaitRunning();
+                ready = true;
+            } catch (IllegalStateException e) {
+                if (chances <= 0)
+                    throw e;
+            }
+        } while (!ready);
         byte[] msg = new byte[65535 - 28]; // max payload size
         rand.nextBytes(msg);
         udpSrv.startAsync().awaitRunning();
@@ -75,6 +104,7 @@ public class TestServerFrontEndUPD {
         monitor.awaitOnNext(1, TIMEOUT);
         assertThat("msg was received", monitor.getOnNextEvents().get(0),
                    equalTo(msg));
+        udpSrv.stopAsync().awaitTerminated();
     }
 
     private DatagramPacket sendMSG(byte[] msg, int port) throws Exception {
