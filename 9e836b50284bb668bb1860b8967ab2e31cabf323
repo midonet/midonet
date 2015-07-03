@@ -1,0 +1,509 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_84ee2d8a",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/conversion/DhcpHostDataConverter.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c4e8357f",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/conversion/DhcpHostDataConverter.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "Extra while lines.",
+      "range": {
+        "startLine": 71,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 1
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e4ed398d",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/conversion/DhcpOption121DataConverter.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_04021d3e",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/conversion/DhcpSubnetDataConverter.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_24ff2136",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/conversion/DhcpSubnetDataConverter.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 55,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "Do we also want to check if the size is \u003e0?",
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_64f9294d",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/conversion/DhcpSubnetDataConverter.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "Similarly we may want to check if \"routes\" is not empty.",
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a49a5112",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/conversion/DhcpSubnetDataConverter.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "You might want to check if routes is not empty.",
+      "range": {
+        "startLine": 115,
+        "startChar": 33,
+        "endLine": 115,
+        "endChar": 39
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_04dbfded",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/DHCPSubnet6.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "The capital casing of the filename is wrong. Should be \"DhcpSubnet6.java\"",
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_44e505a7",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/DHCPSubnet6.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_64e209a1",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/DHCPSubnet6.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "Better to mention IPv6?",
+      "range": {
+        "startLine": 40,
+        "startChar": 59,
+        "endLine": 40,
+        "endChar": 68
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8460ed36",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/DhcpSubnet.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "Why not using relativeUri as the original code is doing?",
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e43a9935",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/BridgeDhcpResource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c4359547",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/BridgeDhcpResource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "The correct case is DhcpSubnet as in the original text.",
+      "range": {
+        "startLine": 197,
+        "startChar": 25,
+        "endLine": 197,
+        "endChar": 35
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_043f7d26",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/BridgeDhcpV6Resource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_243c812f",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/BridgeDhcpV6Resource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 140,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/DHCP/Dhcp/",
+      "range": {
+        "startLine": 140,
+        "startChar": 30,
+        "endLine": 140,
+        "endChar": 34
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_444985cf",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/BridgeDhcpV6Resource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 195,
+        "startChar": 25,
+        "endLine": 195,
+        "endChar": 36
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_644689c1",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpHostsResource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8412adb2",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpHostsResource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 110,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/DHCPHost/DhcpHost/",
+      "range": {
+        "startLine": 110,
+        "startChar": 17,
+        "endLine": 110,
+        "endChar": 25
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a417b1a2",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpHostsResource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 157,
+        "startChar": 30,
+        "endLine": 157,
+        "endChar": 38
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c40cb597",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpHostsResource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 202,
+        "startChar": 25,
+        "endLine": 202,
+        "endChar": 33
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4420a5f7",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpV6HostsResource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e411b9ad",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpV6HostsResource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 104,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "s/DHCPV6Host/DhcpV6Host/",
+      "range": {
+        "startLine": 104,
+        "startChar": 17,
+        "endLine": 104,
+        "endChar": 27
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_04269d16",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpV6HostsResource.java",
+        "patchSetId": 25
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-03T04:24:14Z",
+      "side": 1,
+      "message": "Ditto.",
+      "range": {
+        "startLine": 148,
+        "startChar": 30,
+        "endLine": 148,
+        "endChar": 40
+      },
+      "revId": "9e836b50284bb668bb1860b8967ab2e31cabf323",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
