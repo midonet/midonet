@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_040cdd41",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 578,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-03T05:33:34Z",
+      "side": 1,
+      "message": "Ah, I see. The problem is that this expression produces a Buffer rather than the List it was expecting. If you add .toList after .asScala, it will produce a List.",
+      "parentUuid": "9ad9bd40_dd356c47",
+      "range": {
+        "startLine": 577,
+        "startChar": 0,
+        "endLine": 578,
+        "endChar": 59
+      },
+      "revId": "5c7e1efa8810358096acba49edf7bc88af1f98a0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_fa031671",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 1
