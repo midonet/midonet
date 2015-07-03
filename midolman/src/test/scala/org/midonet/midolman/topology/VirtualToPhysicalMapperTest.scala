@@ -56,20 +56,13 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec
         TestActorRef[Subscriber with MessageAccumulator](Props(
             new Subscriber(request) with MessageAccumulator)).underlyingActor
 
-    private def toDevicesHost(dataHost: DataHost): DevicesHost = {
-        val protoHost = createHost(dataHost.getId, Set.empty,
-                                   dataHost.getTunnelZones.toSet)
-        val devicesHost = ZoomConvert.fromProto(protoHost, classOf[DevicesHost])
-        devicesHost.alive = dataHost.getIsAlive
-        devicesHost
-    }
-
     private def buildHost(): DevicesHost = {
         // Create the host with the data client
-        val dataHost = newHost("myself", hostId)
-
-        // Create the equivalent org.midonet.midolman.topology.devices.Host
-        toDevicesHost(dataHost)
+        newHost("myself", hostId)
+        val protoHost = createHost(hostId, Set.empty, Set.empty)
+        val devicesHost = ZoomConvert.fromProto(protoHost, classOf[DevicesHost])
+        devicesHost.alive = isHostAlive(hostId)
+        devicesHost
     }
 
     feature("VirtualToPhysicalMapper resolves host requests.") {
@@ -94,7 +87,7 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec
         scenario("Subscribe to a tunnel zone.") {
             val zone = greTunnelZone("twilight-zone")
             val host = newHost("myself", hostId, Set(zone.getId))
-            val tunnelZoneHost = new TunnelZone.HostConfig(host.getId)
+            val tunnelZoneHost = new TunnelZone.HostConfig(host)
                                  .setIp(IPv4Addr("1.1.1.1"))
             clusterDataClient.tunnelZonesAddMembership(zone.getId,
                                                        tunnelZoneHost)

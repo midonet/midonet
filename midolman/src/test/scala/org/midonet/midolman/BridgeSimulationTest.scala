@@ -76,16 +76,16 @@ class BridgeSimulationTest extends MidolmanSpec {
         portOnHost2 = newBridgePort(bridge)
         portOnHost3 = newBridgePort(bridge)
 
-        materializePort(port1OnHost1, host1.getId, "port1")
-        materializePort(portOnHost2, host2.getId, "port2")
-        materializePort(portOnHost3, host3.getId, "port3")
-        materializePort(port2OnHost1, host1.getId, "port4")
-        materializePort(port3OnHost1, host1.getId, "port5")
+        materializePort(port1OnHost1, host1, "port1")
+        materializePort(portOnHost2, host2, "port2")
+        materializePort(portOnHost3, host3, "port3")
+        materializePort(port2OnHost1, host1, "port4")
+        materializePort(port3OnHost1, host1, "port5")
 
         List(host1, host2, host3).zip(List(host1Ip, host2Ip, host3Ip)).foreach{
             case (host, ip) =>
                 clusterDataClient.tunnelZonesAddMembership(tunnelZone.getId,
-                    new TunnelZone.HostConfig(host.getId).setIp(ip))
+                    new TunnelZone.HostConfig(host).setIp(ip))
         }
 
         fetchTopology(bridge, port1OnHost1, portOnHost2, portOnHost3,

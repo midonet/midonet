@@ -27,7 +27,6 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.{Bridge, Chain, Router}
-import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.{BridgePort, RouterPort}
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.UnderlayResolver.Route
@@ -52,8 +51,8 @@ import org.midonet.sdn.state.ShardedFlowStateTable
 @RunWith(classOf[JUnitRunner])
 class FlowTracingEgressMatchingTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
-    var ingressHost: Host = null
-    var egressHost: Host = null
+    var ingressHost: UUID = null
+    var egressHost: UUID = null
     var egressHostIp = IPv4Addr("180.0.1.3")
 
     var router: Router = null
@@ -111,7 +110,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
                                    uplinkPortAddr.toString,
                                    uplinkNwAddr.getAddress.toString,
                                    uplinkNwAddr.getPrefixLen)
-        materializePort(uplinkPort, ingressHost.getId, "uplinkPort")
+        materializePort(uplinkPort, ingressHost, "uplinkPort")
         portMapIngress.put(uplinkPort.getTunnelKey, uplinkPort.getId)
 
         newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0,
@@ -135,12 +134,12 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         // vm1 on egress host
         bridgeVm1Port = newBridgePort(bridge)
-        materializePort(bridgeVm1Port, egressHost.getId, "vm1Port")
+        materializePort(bridgeVm1Port, egressHost, "vm1Port")
         portMapEgress.put(bridgeVm1Port.getTunnelKey, bridgeVm1Port.getId)
 
         // vm2 on ingress host
         bridgeVm2Port = newBridgePort(bridge)
-        materializePort(bridgeVm2Port, ingressHost.getId, "vm2Port")
+        materializePort(bridgeVm2Port, ingressHost, "vm2Port")
         portMapIngress.put(bridgeVm2Port.getTunnelKey, bridgeVm2Port.getId)
 
         val simRouter: SimRouter = fetchDevice(router)
@@ -163,12 +162,12 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         val output = FlowActions.output(23)
         pktWkflIngress = packetWorkflow(
             dpPortToVport = portMapIngress.toMap[Int, UUID],
-            peers =  Map(egressHost.getId -> Route(uplinkPortAddr, egressHostIp, output)),
+            peers =  Map(egressHost -> Route(uplinkPortAddr, egressHostIp, output)),
             tunnelPorts = List(tunnelPort),
             traceTable = traceTable,
             dpChannel = mockDpIngress,
             packetCtxTrap = packetCtxTrapIngress
-        )(ingressHost.getId, clusterDataClient)
+        )(ingressHost, clusterDataClient)
 
         mockDpIngress.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueueIngress.add((packet,actions)) )
@@ -176,12 +175,12 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         pktWkflEgress = packetWorkflow(
             dpPortToVport = portMapEgress.toMap[Int, UUID],
-            peers =  Map(ingressHost.getId -> Route(egressHostIp, uplinkPortAddr, output)),
+            peers =  Map(ingressHost -> Route(egressHostIp, uplinkPortAddr, output)),
             tunnelPorts = List(tunnelPort),
             traceTable = traceTable,
             dpChannel = mockDpEgress,
             packetCtxTrap = packetCtxTrapEgress
-        )(egressHost.getId, clusterDataClient)
+        )(egressHost, clusterDataClient)
         mockDpEgress.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueueEgress.add((packet,actions)) )
         mockDpEgress.flowCreateSubscribe(flow => flowQueueEgress.add(flow))
