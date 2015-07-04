@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_0484d8d2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-04T08:10:59Z",
+      "side": 1,
+      "message": "Check if it already exists.",
+      "range": {
+        "startLine": 81,
+        "startChar": 20,
+        "endLine": 81,
+        "endChar": 52
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2489dceb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-04T08:10:59Z",
+      "side": 1,
+      "message": "If the path already exists do not attempt to create it.",
+      "range": {
+        "startLine": 95,
+        "startChar": 16,
+        "endLine": 95,
+        "endChar": 21
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
