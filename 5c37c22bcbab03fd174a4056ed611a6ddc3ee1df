@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_d8bf28cf",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConfTool.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 527,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-05T22:49:30Z",
+      "side": 1,
+      "message": "won\u0027t scallop just print \"Error: Failed to parse the trailing argument list:\" if you specify an invalid argument?",
+      "revId": "5c37c22bcbab03fd174a4056ed611a6ddc3ee1df",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
