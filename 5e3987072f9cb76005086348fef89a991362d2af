@@ -162,6 +162,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_1a3fc826",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1003720
+      },
+      "writtenOn": "2015-07-05T15:15:19Z",
+      "side": 1,
+      "message": "Can you explain how this will be used to resolve such conflicts (like MAC to port association)? According to my understanding, we will have 2 opinions, one of the old agent (where the MAC used to be connected) and the second of the new agent (to which the MAC has moved). Who\u0027s opinion prevails? Based on what algorithm?",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 42
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_de52bd12",
         "filename": "docs/merged-map.md",
         "patchSetId": 2
@@ -213,6 +236,29 @@
       "writtenOn": "2015-07-03T14:47:04Z",
       "side": 1,
       "message": "explain motivation for doing it like this? what are the tradeoffs? (e.g., why not a single topic for all opinions of an owner in all maps)",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ba8dfc33",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1003720
+      },
+      "writtenOn": "2015-07-05T15:15:19Z",
+      "side": 1,
+      "message": "It is not clear to me what do you mean by \u0027topic replica\u0027, please explain",
+      "range": {
+        "startLine": 39,
+        "startChar": 18,
+        "endLine": 39,
+        "endChar": 50
+      },
       "revId": "5e3987072f9cb76005086348fef89a991362d2af",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
