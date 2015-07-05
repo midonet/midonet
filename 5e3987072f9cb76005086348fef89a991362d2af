@@ -265,6 +265,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9a12f8b2",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1003720
+      },
+      "writtenOn": "2015-07-05T15:24:12Z",
+      "side": 1,
+      "message": "Ok, found the explanation in Kafka documentation",
+      "parentUuid": "9ad9bd40_ba8dfc33",
+      "range": {
+        "startLine": 39,
+        "startChar": 18,
+        "endLine": 39,
+        "endChar": 50
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5e65cddf",
         "filename": "docs/merged-map.md",
         "patchSetId": 2
