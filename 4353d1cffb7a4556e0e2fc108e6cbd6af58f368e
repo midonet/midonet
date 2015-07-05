@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5a4eb0c2",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 313,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-05T16:00:29Z",
+      "side": 1,
+      "message": "doesn\u0027t pktCtx.flowTags().contains(tag) work anymore?",
+      "revId": "4353d1cffb7a4556e0e2fc108e6cbd6af58f368e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
