@@ -29,8 +29,6 @@ import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
 
-import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
-import org.midonet.cluster.data.rules.{JumpRule, LiteralRule}
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
@@ -56,25 +54,24 @@ trait VirtualConfigurationBuilders {
     def newOutboundChainOnPort(name: String, port: UUID): UUID
     def newInboundChainOnPort(name: String, port: UUID): UUID
     def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                              action: Action): LiteralRule
+                              action: Action): UUID
     def newTcpDstRuleOnChain(
             chain: UUID, pos: Int, dstPort: Int, action: Action,
-            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
-    : LiteralRule
+            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED): UUID
     def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
                                   ipAddrGroupIdDst: Option[UUID],
-                                  ipAddrGroupIdSrc: Option[UUID]): LiteralRule
+                                  ipAddrGroupIdSrc: Option[UUID]): UUID
     def newForwardNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                  action: Action, targets: Set[NatTarget],
-                                 isDnat: Boolean) : ForwardNatRule
+                                 isDnat: Boolean) : UUID
     def newReverseNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                         action: Action, isDnat: Boolean) : ReverseNatRule
+                         action: Action, isDnat: Boolean) : UUID
     def removeRuleFromBridge(bridge: UUID): Unit
     def newJumpRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                              jumpToChainID: UUID): JumpRule
+                              jumpToChainID: UUID): UUID
     def newFragmentRuleOnChain(chain: UUID, pos: Int,
                                fragmentPolicy: FragmentPolicy,
-                               action: Action): LiteralRule
+                               action: Action): UUID
     def deleteRule(id: UUID): Unit
     def createIpAddrGroup(): IpAddrGroup
     def createIpAddrGroup(id: UUID): IpAddrGroup
@@ -211,31 +208,31 @@ trait ForwardingVirtualConfigurationBuilders
     override def newInboundChainOnPort(name: String, port: UUID): UUID =
         virtConfBuilderImpl.newInboundChainOnPort(name, port)
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                                       action: Action): LiteralRule =
+                                       action: Action): UUID =
         virtConfBuilderImpl.newLiteralRuleOnChain(chain, pos, condition, action)
     override def newTcpDstRuleOnChain(
             chain: UUID, pos: Int, dstPort: Int, action: Action,
-            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
-    : LiteralRule = virtConfBuilderImpl.newTcpDstRuleOnChain(chain, pos, dstPort, action, fragmentPolicy)
+            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED): UUID =
+        virtConfBuilderImpl.newTcpDstRuleOnChain(chain, pos, dstPort, action, fragmentPolicy)
     override def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
                                            ipAddrGroupIdDst: Option[UUID],
-                                           ipAddrGroupIdSrc: Option[UUID]): LiteralRule =
+                                           ipAddrGroupIdSrc: Option[UUID]): UUID =
         virtConfBuilderImpl.newIpAddrGroupRuleOnChain(chain, pos, action, ipAddrGroupIdDst, ipAddrGroupIdSrc)
     override def newForwardNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                           action: Action, targets: Set[NatTarget],
-                                          isDnat: Boolean) : ForwardNatRule =
+                                          isDnat: Boolean) : UUID =
         virtConfBuilderImpl.newForwardNatRuleOnChain(chain, pos, condition, action, targets, isDnat)
     override def newReverseNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                                          action: Action, isDnat: Boolean) : ReverseNatRule =
+                                          action: Action, isDnat: Boolean) : UUID =
         virtConfBuilderImpl.newReverseNatRuleOnChain(chain, pos, condition, action, isDnat)
     override def removeRuleFromBridge(bridge: UUID): Unit =
         virtConfBuilderImpl.removeRuleFromBridge(bridge)
     override def newJumpRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                                    jumpToChainID: UUID): JumpRule =
+                                    jumpToChainID: UUID): UUID =
         virtConfBuilderImpl.newJumpRuleOnChain(chain, pos, condition, jumpToChainID)
     override def newFragmentRuleOnChain(chain: UUID, pos: Int,
                                         fragmentPolicy: FragmentPolicy,
-                                        action: Action): LiteralRule =
+                                        action: Action): UUID =
         virtConfBuilderImpl.newFragmentRuleOnChain(chain, pos, fragmentPolicy, action)
     override def deleteRule(id: UUID): Unit = virtConfBuilderImpl.deleteRule(id)
     override def createIpAddrGroup(): IpAddrGroup = virtConfBuilderImpl.createIpAddrGroup()
