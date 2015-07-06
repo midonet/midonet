@@ -434,10 +434,16 @@ public abstract class AbstractNetlinkConnection {
 
                     if (seq == 0) {
                         // if the seq number is zero we are handling a PacketIn.
-                        if (bucket.consumeToken())
-                            handleNotification(type, cmd, seq, pid, reply);
-                        else
+                        if (bucket.consumeToken()) {
+                            try {
+                                handleNotification(type, cmd, seq, pid, reply);
+                            } catch (Throwable e) {
+                                bucket.giveBack();
+                                throw e;
+                            }
+                        } else {
                             log.debug("Failed to get token; dropping packet");
+                        }
                     } else  {
                         // otherwise we are processing an answer to a request.
                         processRequestAnswer(seq, flags, reply);
