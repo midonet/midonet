@@ -21,7 +21,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{Chain}
 import org.midonet.midolman.services.{HostIdProviderService}
 import org.midonet.midolman.simulation.{Router, Bridge}
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -58,14 +57,14 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
     val routerIp = new IPv4Subnet(subnet.getAddress.toInt + 1, subnet.getPrefixLen)
     val vmIp = IPv4Addr.fromInt(subnet.getAddress.toInt + 2)
 
-    var vmPortInFilter: Chain = _
-    var vmPortOutFilter: Chain = _
-    var uplinkPortInFilter: Chain = _
-    var uplinkPortOutFilter: Chain = _
-    var bridgeInFilter: Chain = _
-    var bridgeOutFilter: Chain = _
-    var routerPortInFilter: Chain = _
-    var routerPortOutFilter: Chain = _
+    var vmPortInFilter: UUID = _
+    var vmPortOutFilter: UUID = _
+    var uplinkPortInFilter: UUID = _
+    var uplinkPortOutFilter: UUID = _
+    var bridgeInFilter: UUID = _
+    var bridgeOutFilter: UUID = _
+    var routerPortInFilter: UUID = _
+    var routerPortOutFilter: UUID = _
 
     def bridge: Bridge = spec.fetchDevice[Bridge](clusterBridge)
     def router: Router = spec.fetchDevice[Router](clusterRouter)
@@ -103,9 +102,9 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
         routerPortInFilter = spec.newInboundChainOnPort(s"p-${routerPort}-in", routerPort)
         routerPortOutFilter = spec.newOutboundChainOnPort(s"p-${routerPort}-out", routerPort)
 
-        spec.fetchTopology(bridgeInFilter, bridgeOutFilter, vmPortInFilter, vmPortOutFilter,
-                           uplinkPortInFilter, uplinkPortOutFilter, routerPortInFilter,
-                           routerPortOutFilter)
+        spec.fetchChains(bridgeInFilter, bridgeOutFilter, vmPortInFilter, vmPortOutFilter,
+                         uplinkPortInFilter, uplinkPortOutFilter, routerPortInFilter,
+                         routerPortOutFilter)
         spec.fetchPorts(vmPort, routerPort, uplinkPort)
         spec.fetchDevice[Bridge](clusterBridge)
         spec.fetchDevice[Router](clusterRouter)
@@ -124,8 +123,8 @@ class ChainInvalidationTest extends MidolmanSpec {
     val leftNet = new IPv4Subnet("10.100.100.0", 30)
     val rightNet = new IPv4Subnet("10.200.200.0", 30)
 
-    var routerIn: Chain = _
-    var routerInJump: Chain = _
+    var routerIn: UUID = _
+    var routerInJump: UUID = _
 
     var clusterRouter: UUID = _
 
@@ -140,7 +139,7 @@ class ChainInvalidationTest extends MidolmanSpec {
         routerIn = newInboundChainOnRouter("routerIn", clusterRouter)
         routerInJump = newChain("jumpChain", None)
 
-        newJumpRuleOnChain(routerIn, 1, new Condition(), routerInJump.getId)
+        newJumpRuleOnChain(routerIn, 1, new Condition(), routerInJump)
 
         leftBridge = new BridgeWithOneVm(leftNet, clusterRouter, this)
         leftBridge.buildTopology()
@@ -164,41 +163,41 @@ class ChainInvalidationTest extends MidolmanSpec {
     }
 
     def tagsUntilIngress: Seq[FlowTag] = Seq(
-        FlowTagger.tagForDevice(leftBridge.vmPortInFilter.getId),
+        FlowTagger.tagForDevice(leftBridge.vmPortInFilter),
         FlowTagger.tagForDevice(leftBridge.vmPort))
 
     def tagsUntilLeftBridgeIn: Seq[FlowTag] = tagsUntilIngress ++ Seq(
-        FlowTagger.tagForDevice(leftBridge.bridgeInFilter.getId),
+        FlowTagger.tagForDevice(leftBridge.bridgeInFilter),
         FlowTagger.tagForDevice(leftBridge.clusterBridge))
 
     def tagsUntilLeftBridgeOut: Seq[FlowTag] = tagsUntilLeftBridgeIn ++ Seq(
-        FlowTagger.tagForDevice(leftBridge.bridgeOutFilter.getId))
+        FlowTagger.tagForDevice(leftBridge.bridgeOutFilter))
 
     def tagsUntilLeftUplinkOut: Seq[FlowTag] = tagsUntilLeftBridgeOut ++ Seq(
         leftBridge.tagFor(leftBridge.uplinkPort),
-        FlowTagger.tagForDevice(leftBridge.uplinkPortOutFilter.getId))
+        FlowTagger.tagForDevice(leftBridge.uplinkPortOutFilter))
 
     def tagsUntilLeftRouterIn: Seq[FlowTag] = tagsUntilLeftUplinkOut ++ Seq(
         FlowTagger.tagForDevice(leftBridge.routerPort),
-        FlowTagger.tagForDevice(leftBridge.routerPortInFilter.getId))
+        FlowTagger.tagForDevice(leftBridge.routerPortInFilter))
 
     def tagsUntilRouterIn: Seq[FlowTag] = tagsUntilLeftRouterIn ++ Seq(
         FlowTagger.tagForDevice(clusterRouter),
-        FlowTagger.tagForDevice(routerIn.getId),
-        FlowTagger.tagForDevice(routerInJump.getId))
+        FlowTagger.tagForDevice(routerIn),
+        FlowTagger.tagForDevice(routerInJump))
 
     def tagsUntilRightRouterOut: Seq[FlowTag] = tagsUntilRouterIn ++ Seq(
         FlowTagger.tagForDevice(rightBridge.routerPort))
 
     def tagsUntilRightUplinkIn: Seq[FlowTag] = tagsUntilRightRouterOut ++ Seq(
         FlowTagger.tagForDevice(rightBridge.uplinkPort),
-        FlowTagger.tagForDevice(rightBridge.uplinkPortInFilter.getId))
+        FlowTagger.tagForDevice(rightBridge.uplinkPortInFilter))
 
     def tagsUntilEgress: Seq[FlowTag] = tagsUntilRightUplinkIn ++ Seq(
         FlowTagger.tagForDevice(rightBridge.vmPort),
         FlowTagger.tagForDevice(rightBridge.clusterBridge),
-        FlowTagger.tagForDevice(rightBridge.bridgeOutFilter.getId),
-        FlowTagger.tagForDevice(rightBridge.vmPortOutFilter.getId))
+        FlowTagger.tagForDevice(rightBridge.bridgeOutFilter),
+        FlowTagger.tagForDevice(rightBridge.vmPortOutFilter))
 
     def rightToLeftFrame = {
         import org.midonet.packets.util.PacketBuilder._
@@ -218,10 +217,10 @@ class ChainInvalidationTest extends MidolmanSpec {
         result should be (toPort(rightBridge.vmPort)(tagsUntilEgress:_*))
     }
 
-    def testChain(chain: Chain, tags: Seq[FlowTag]) {
+    def testChain(chain: UUID, tags: Seq[FlowTag]) {
         When("a drop rule is added to the chain")
         newLiteralRuleOnChain(chain, 1, new Condition(), RuleResult.Action.DROP)
-        fetchDevice(chain)
+        fetchChains(chain)
 
         And("A packet is sent across the topology")
         val packetContext = packetContextFor(leftToRightFrame, leftBridge.vmPort)

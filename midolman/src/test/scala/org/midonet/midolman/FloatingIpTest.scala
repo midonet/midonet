@@ -101,7 +101,7 @@ class FloatingIpTest extends MidolmanSpec {
         newForwardNatRuleOnChain(postChain, 1, snatCond, RuleResult.Action.ACCEPT,
                                  Set(snatTarget), isDnat = false)
 
-        fetchTopology(preChain, postChain)
+        fetchChains(preChain, postChain)
         fetchPorts(rtrPort1, rtrPort2, brPort1, brPort2)
         fetchDevice[SimBridge](bridge)
         fetchDevice[SimRouter](router)

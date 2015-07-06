@@ -29,7 +29,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ports.{VxLanPort}
-import org.midonet.cluster.data.{TunnelZone, Chain, Port}
+import org.midonet.cluster.data.{TunnelZone, Port}
 import org.midonet.cluster.data.TunnelZone.{HostConfig, Data}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
@@ -134,10 +134,10 @@ class FlowTranslatorTest extends MidolmanSpec {
 
     def accept(port: UUID) = newChain(port, RuleResult.Action.ACCEPT)
 
-    def newChain(port: UUID, action: Action): Chain = {
+    def newChain(port: UUID, action: Action): UUID = {
         val chain = newOutboundChainOnPort("chain" + id, port)
         newLiteralRuleOnChain(chain, 1, new Condition(), action)
-        fetchTopology(chain)
+        fetchChains(chain)
         chain
     }
 
