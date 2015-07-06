@@ -2,6 +2,52 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_13ab33d9",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/DhcpHost.java",
+        "patchSetId": 27
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T08:29:17Z",
+      "side": 1,
+      "message": "c",
+      "range": {
+        "startLine": 57,
+        "startChar": 31,
+        "endLine": 57,
+        "endChar": 32
+      },
+      "revId": "ea175eb52250394b3076a9059b2d1e0cf96b6911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_33af57e5",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/DhcpSubnet.java",
+        "patchSetId": 27
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T08:29:17Z",
+      "side": 1,
+      "message": "relativeUri didn\u0027t work here?",
+      "range": {
+        "startLine": 109,
+        "startChar": 15,
+        "endLine": 109,
+        "endChar": 76
+      },
+      "revId": "ea175eb52250394b3076a9059b2d1e0cf96b6911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d8948839",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/DhcpSubnet6.java",
         "patchSetId": 27
