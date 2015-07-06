@@ -39,7 +39,7 @@ class BgpdTest extends Suite with BeforeAndAfter with ShouldMatchers {
     implicit def str2ipv4(str: String) = IPv4Addr.fromString(str)
 
     before {
-        bgpd = new BgpdProcess(idx,
+        bgpd = new DefaultBgpdProcess(idx,
             BGP_VTY_LOCAL_IP, BGP_VTY_MIRROR_IP,
             routerAddress, routerMac, BGP_VTY_PORT,
             "./src/lib/midolman/bgpd-helper",
