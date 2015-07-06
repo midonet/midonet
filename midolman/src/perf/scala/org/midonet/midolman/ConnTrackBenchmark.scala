@@ -83,13 +83,13 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         leftPortId = newBridgePort(clusterBridgeId)
         rightPortId = newBridgePort(clusterBridgeId)
         materializePort(rightPortId, hostId, "port0")
-        val chain = newInboundChainOnBridge("chain", clusterBridgeId)
+        val chainId = newInboundChainOnBridge("chain", clusterBridgeId)
         val fwdCond = new Condition()
         fwdCond.matchForwardFlow = true
         fwdCond.inPortIds = new java.util.HashSet[UUID]()
         fwdCond.inPortIds.add(leftPortId)
-        newLiteralRuleOnChain(chain, 1, fwdCond, RuleResult.Action.ACCEPT)
-        fetchTopology(chain)
+        newLiteralRuleOnChain(chainId, 1, fwdCond, RuleResult.Action.ACCEPT)
+        fetchChains(chainId)
         fetchPorts(leftPortId, rightPortId)
         fetchDevice[Bridge](clusterBridgeId)
 
