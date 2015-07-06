@@ -143,6 +143,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         val snatRule = Rule.newBuilder
             .setId(fipSnatRuleId(fip.getId))
             .setChainId(oChainId)
+            .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .addOutPortIds(gwPortId)
             .setNwSrcIp(IPSubnetUtil.fromAddr(fip.getFixedIpAddress))
@@ -151,6 +152,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         val dnatRule = Rule.newBuilder
             .setId(fipDnatRuleId(fip.getId))
             .setChainId(iChainId)
+            .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .addInPortIds(gwPortId)
             .setNwDstIp(IPSubnetUtil.fromAddr(fip.getFloatingIpAddress))
