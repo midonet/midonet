@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_d809e896",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv6Addr.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-06T04:31:43Z",
+      "side": 1,
+      "message": "Would it make sense to do this backwards, so you don\u0027t have to track the shift variable?\n\n    var qword \u003d 0L\n    var i \u003d 7\n    while (i \u003e\u003d 0) {\n        qword \u003d (qword \u003c\u003c 8) | (addr(i).toLong \u0026 0xff)\n        i -\u003d 1\n    }\n    qword\n\nOr something like that. I haven\u0027t tested that to make sure it\u0027s correct.",
+      "range": {
+        "startLine": 153,
+        "startChar": 0,
+        "endLine": 162,
+        "endChar": 16
+      },
+      "revId": "c003cc4684cedd6f86a9711e4012e97dccc43947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_78ad3c88",
         "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv6Addr.scala",
         "patchSetId": 4
@@ -13,6 +36,29 @@
       "writtenOn": "2015-07-06T01:32:58Z",
       "side": 1,
       "message": "An extra white space.",
+      "revId": "c003cc4684cedd6f86a9711e4012e97dccc43947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f8feac6a",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv6Addr.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 168,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-06T04:31:43Z",
+      "side": 1,
+      "message": "Alternatively, you could replace this with: \n\n  val bb \u003d ByteBuffer.wrap(addr)\n  apply(bb.getLong(), bb.getLong())\n\nThis requires allocating a ByteBuffer instance, and we may prefer a solution with no allocations, but we allocate a ByteBuffer for toBytes, so I thought it was worth mentioning.",
+      "range": {
+        "startLine": 168,
+        "startChar": 8,
+        "endLine": 168,
+        "endChar": 61
+      },
       "revId": "c003cc4684cedd6f86a9711e4012e97dccc43947",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
