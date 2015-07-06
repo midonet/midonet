@@ -117,7 +117,7 @@ public class Port extends ZoomObject {
 
     @JsonProperty("port_security_enabled")
     @ZoomField(name = "port_security_enabled")
-    public boolean securityEnabled;
+    public boolean securityEnabled = true;
 
     @JsonProperty("allowed_address_pairs")
     @ZoomField(name = "allowed_address_pairs")
