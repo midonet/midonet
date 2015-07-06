@@ -183,7 +183,7 @@ class NodeObservableConnectionTest extends FlatSpec with CuratorTestFramework
 
     override def cnxnTimeoutMs = 3000
     override def sessionTimeoutMs = 10000
-    private val timeout = 1 second
+    private val timeout = 5 second
 
     "Node observable" should "emit error on losing connection" in {
         val path = makePath("1")

@@ -74,7 +74,7 @@ class OnSubscribeToNode(curator: CuratorFramework, path: String,
                         completeOnDelete: Boolean)
     extends OnSubscribe[ChildData] {
 
-    private val log = getLogger(s"org.midonet.cluster.zk-node-[$path]")
+    private val log = getLogger(s"org.midonet.nsdb.zk-node-[$path]")
 
     final val none = new ChildData(path, null, null)
 
@@ -307,8 +307,8 @@ class NodeObservable(onSubscribe: OnSubscribeToNode)
 
 /** Signals that the [[Observable]] is no longer able to emit notifications from
   * ZooKeeper because the connection to ZooKeeper was lost. */
-class NodeObservableDisconnectedException(s: String) extends RuntimeException(s)
+class NodeObservableDisconnectedException(s: String) extends Exception(s)
 
 /** Signals that the [[Observable]] is no longer able to emit notifications from
   * ZooKeeper because the [[NodeObservable]] was closed. */
-class NodeObservableClosedException(s: String) extends RuntimeException(s)
+class NodeObservableClosedException(s: String) extends Exception(s)

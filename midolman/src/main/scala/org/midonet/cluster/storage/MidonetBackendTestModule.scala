@@ -19,6 +19,9 @@ import com.google.inject.Inject
 import com.typesafe.config.Config
 
 import org.apache.curator.framework.CuratorFramework
+import org.apache.curator.framework.state.ConnectionState
+
+import rx.subjects.BehaviorSubject
 
 import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, Storage}
 import org.midonet.cluster.services.MidonetBackend
@@ -36,11 +39,14 @@ class MidonetTestBackend extends MidonetBackend {
     var cfg: MidonetBackendConfig = _
 
     private val inMemoryZoom = new InMemoryStorage()
+    val connectionState =
+        BehaviorSubject.create[ConnectionState](ConnectionState.CONNECTED)
 
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
     override def isEnabled = cfg.useNewStack
     override def curator: CuratorFramework = null
+    override def connectionStateObservable = connectionState.asObservable()
 
     override def doStart(): Unit = {
         setupBindings()
