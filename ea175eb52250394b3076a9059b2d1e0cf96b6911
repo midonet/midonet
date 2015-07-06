@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_d8948839",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/DhcpSubnet6.java",
+        "patchSetId": 27
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-06T01:28:05Z",
+      "side": 1,
+      "message": "c/2014/2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "ea175eb52250394b3076a9059b2d1e0cf96b6911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f8994c6f",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpHostsResource.java",
+        "patchSetId": 27
+      },
+      "lineNbr": 139,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-06T01:28:05Z",
+      "side": 1,
+      "message": "s/DHCPHost/DhcpHost/",
+      "range": {
+        "startLine": 139,
+        "startChar": 30,
+        "endLine": 139,
+        "endChar": 38
+      },
+      "revId": "ea175eb52250394b3076a9059b2d1e0cf96b6911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_189fd053",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpV6HostsResource.java",
+        "patchSetId": 27
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-06T01:28:05Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "ea175eb52250394b3076a9059b2d1e0cf96b6911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_38a3b49f",
+        "filename": "midonet-api/src/main/java/org/midonet/api/dhcp/rest_api/DhcpV6HostsResource.java",
+        "patchSetId": 27
+      },
+      "lineNbr": 131,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-06T01:28:05Z",
+      "side": 1,
+      "message": "s/DHCPV6Host/DhcpV6Host/",
+      "range": {
+        "startLine": 131,
+        "startChar": 30,
+        "endLine": 131,
+        "endChar": 40
+      },
+      "revId": "ea175eb52250394b3076a9059b2d1e0cf96b6911",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
