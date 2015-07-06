@@ -99,7 +99,6 @@ class VtepControllerTest extends FlatSpec with Matchers
         }
         // These are entries currently on other participants, will be preseeded
         val preseed = 1 to 5 map { _ => randomMacLocation() }
-        
         val vtepOvsdb = new MockVtepConfig(vteps.ip1, vteps.vtepPort,
                                            vteps.tunIp1, initialVtepSnapshot)
 
@@ -108,7 +107,7 @@ class VtepControllerTest extends FlatSpec with Matchers
 
         val ls = new VxlanGateway(nwId)
         ls.vni = 111
-        ls.asObservable.subscribe(tapOnBus)
+        ls.observable.subscribe(tapOnBus)
 
         // The VTEP PEER under test
         Given("a VTEP peer")
@@ -160,7 +159,7 @@ class VtepControllerTest extends FlatSpec with Matchers
         When("new MacLocation updates come from other peers")
         val fromOthers = 1 to 5 map { _ => randomMacLocation() }
         vtepOvsdb.updatesToVtep.reset(fromOthers.size, 0, 0)
-        fromOthers foreach ls.asObserver.onNext // emit on the log. switch bus
+        fromOthers foreach ls.observer.onNext // emit on the log. switch bus
 
         Then("the peer should send them to the VTEP")
         assert(vtepOvsdb.updatesToVtep.n.await(1, SECONDS))
@@ -176,7 +175,7 @@ class VtepControllerTest extends FlatSpec with Matchers
         peer.abandon(ls)
 
         val missed = 1 to 5 map { _ => randomMacLocation(vteps.tunIp1) }
-        missed foreach ls.asObserver.onNext
+        missed foreach ls.observer.onNext
 
         vtepOvsdb.updatesToVtep.getOnNextEvents should have size 11
         tapOnBus.getOnNextEvents should have size 21 // +5 when we emitted them
