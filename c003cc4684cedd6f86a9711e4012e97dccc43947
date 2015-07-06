@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_78ad3c88",
+        "filename": "midonet-util/src/main/scala/org/midonet/packets/IPv6Addr.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 164,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-06T01:32:58Z",
+      "side": 1,
+      "message": "An extra white space.",
+      "revId": "c003cc4684cedd6f86a9711e4012e97dccc43947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
