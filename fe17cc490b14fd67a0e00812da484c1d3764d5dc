@@ -39,6 +39,23 @@
       "revId": "fe17cc490b14fd67a0e00812da484c1d3764d5dc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_293fe826",
+        "filename": "midonet-api/src/main/java/org/midonet/api/auth/keystone/KeystoneConfig.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-06T14:15:34Z",
+      "side": 1,
+      "message": "what is required to delete?",
+      "revId": "fe17cc490b14fd67a0e00812da484c1d3764d5dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
