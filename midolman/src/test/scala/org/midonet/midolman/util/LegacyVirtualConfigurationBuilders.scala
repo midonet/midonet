@@ -25,7 +25,7 @@ import scala.collection.JavaConversions._
 import com.google.inject.Inject
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{PortGroup => ClusterPortGroup, _}
+import org.midonet.cluster.data._
 import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
@@ -213,13 +213,13 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient().rulesDelete(id)
     }
 
-    override def createIpAddrGroup(): IpAddrGroup = createIpAddrGroup(UUID.randomUUID())
+    override def createIpAddrGroup(): UUID = createIpAddrGroup(UUID.randomUUID())
 
-    override def createIpAddrGroup(id: UUID): IpAddrGroup = {
+    override def createIpAddrGroup(id: UUID): UUID = {
         val ipAddrGroup = new IpAddrGroup(id, new IpAddrGroup.Data())
         clusterDataClient().ipAddrGroupsCreate(ipAddrGroup)
         Thread.sleep(50)
-        ipAddrGroup
+        id
     }
 
     override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = {
@@ -292,14 +292,16 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient().hostsDelVrnPortMapping(hostId, port)
     }
 
-    override def newPortGroup(name: String, stateful: Boolean = false) = {
-        val pg = new ClusterPortGroup().setName(name).setStateful(stateful)
+    override def newPortGroup(name: String, stateful: Boolean = false): UUID = {
+        val pg = new PortGroup().setName(name).setStateful(stateful)
         val id = clusterDataClient().portGroupsCreate(pg)
         Thread.sleep(50)
-        clusterDataClient().portGroupsGet(id)
+        id
     }
 
-    override def updatePortGroup(pg: ClusterPortGroup) = {
+    override def setPortGroupStateful(id: UUID, stateful: Boolean): Unit = {
+        val pg = clusterDataClient().portGroupsGet(id)
+        pg.setStateful(stateful)
         clusterDataClient().portGroupsUpdate(pg)
     }
 

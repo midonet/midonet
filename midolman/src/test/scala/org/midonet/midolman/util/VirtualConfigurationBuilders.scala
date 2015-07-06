@@ -23,8 +23,6 @@ import scala.util.Random
 import scala.collection.JavaConversions._
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.{PortGroup => ClusterPortGroup,
-                                 _}
 import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
 import org.midonet.cluster.data.dhcp.Subnet
 import org.midonet.cluster.data.dhcp.Subnet6
@@ -73,8 +71,8 @@ trait VirtualConfigurationBuilders {
                                fragmentPolicy: FragmentPolicy,
                                action: Action): UUID
     def deleteRule(id: UUID): Unit
-    def createIpAddrGroup(): IpAddrGroup
-    def createIpAddrGroup(id: UUID): IpAddrGroup
+    def createIpAddrGroup(): UUID
+    def createIpAddrGroup(id: UUID): UUID
     def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit
     def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit
     def deleteIpAddrGroup(id: UUID): Unit
@@ -90,8 +88,8 @@ trait VirtualConfigurationBuilders {
 
     def setPortAdminStateUp(port: UUID, state: Boolean): Unit
     def deletePort(port: UUID, hostId: UUID): Unit
-    def newPortGroup(name: String, stateful: Boolean = false): ClusterPortGroup
-    def updatePortGroup(pg: ClusterPortGroup): Unit
+    def newPortGroup(name: String, stateful: Boolean = false): UUID
+    def setPortGroupStateful(id: UUID, stateful: Boolean): Unit
     def newPortGroupMember(pgId: UUID, portId: UUID): Unit
     def deletePortGroupMember(pgId: UUID, portId: UUID): Unit
 
@@ -127,7 +125,7 @@ trait VirtualConfigurationBuilders {
             ipAddrGroupIdSrc: Option[UUID] = None,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
             : Condition
-    def newIPAddrGroup(id: Option[UUID]): UUID 
+    def newIPAddrGroup(id: Option[UUID]): UUID
     def addAddrToIpAddrGroup(id: UUID, addr: String): Unit
     def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit
     def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer
@@ -235,8 +233,8 @@ trait ForwardingVirtualConfigurationBuilders
                                         action: Action): UUID =
         virtConfBuilderImpl.newFragmentRuleOnChain(chain, pos, fragmentPolicy, action)
     override def deleteRule(id: UUID): Unit = virtConfBuilderImpl.deleteRule(id)
-    override def createIpAddrGroup(): IpAddrGroup = virtConfBuilderImpl.createIpAddrGroup()
-    override def createIpAddrGroup(id: UUID): IpAddrGroup = virtConfBuilderImpl.createIpAddrGroup(id)
+    override def createIpAddrGroup(): UUID = virtConfBuilderImpl.createIpAddrGroup()
+    override def createIpAddrGroup(id: UUID): UUID = virtConfBuilderImpl.createIpAddrGroup(id)
     override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = virtConfBuilderImpl.addIpAddrToIpAddrGroup(id, addr)
     override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
         virtConfBuilderImpl.removeIpAddrFromIpAddrGroup(id, addr)
@@ -259,10 +257,10 @@ trait ForwardingVirtualConfigurationBuilders
 
     override def deletePort(port: UUID, hostId: UUID): Unit =
         virtConfBuilderImpl.deletePort(port, hostId)
-    override def newPortGroup(name: String, stateful: Boolean = false): ClusterPortGroup =
+    override def newPortGroup(name: String, stateful: Boolean = false): UUID =
         virtConfBuilderImpl.newPortGroup(name, stateful)
-    override def updatePortGroup(pg: ClusterPortGroup): Unit =
-        virtConfBuilderImpl.updatePortGroup(pg)
+    override def setPortGroupStateful(id: UUID, stateful: Boolean): Unit =
+        virtConfBuilderImpl.setPortGroupStateful(id, stateful)
     override def newPortGroupMember(pgId: UUID, portId: UUID): Unit =
         virtConfBuilderImpl.newPortGroupMember(pgId, portId)
     override def deletePortGroupMember(pgId: UUID, portId: UUID): Unit =
