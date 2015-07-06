@@ -28,7 +28,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
-import org.midonet.api.vtep.VtepClusterClient;
+import org.midonet.cluster.southbound.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.rest_api.models.VTEPBinding;
 import org.midonet.midolman.serialization.SerializationException;

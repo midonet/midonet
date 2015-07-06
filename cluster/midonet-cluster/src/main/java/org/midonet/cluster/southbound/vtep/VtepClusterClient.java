@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.vtep;
+package org.midonet.cluster.southbound.vtep;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,7 +30,7 @@ import org.opendaylight.controller.sal.utils.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.api.network.VTEPPort;
+import org.midonet.cluster.rest_api.models.VTEPPort;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.data.VTEP;
@@ -46,8 +46,6 @@ import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.GatewayTimeoutHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.models.VTEPBinding;
-import org.midonet.cluster.southbound.vtep.VtepDataClient;
-import org.midonet.cluster.southbound.vtep.VtepDataClientFactory;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;

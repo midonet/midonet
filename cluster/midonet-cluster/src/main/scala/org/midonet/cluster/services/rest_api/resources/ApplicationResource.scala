@@ -50,7 +50,8 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
                                     systemStateResource: SystemStateResource,
                                     tenantResource: TenantResource,
                                     tunnelZoneResource: TunnelZoneResource,
-                                    vipResource: VipResource)
+                                    vipResource: VipResource,
+                                    vtepResource: VTEPResource)
     extends MidonetResource(resContext) {
 
     @GET
@@ -123,5 +124,8 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
 
     @Path("ip_addr_groups")
     def ipAddrGroups = ipAddrGroupsResource
+
+    @Path("vteps")
+    def vteps = vtepResource
 
 }

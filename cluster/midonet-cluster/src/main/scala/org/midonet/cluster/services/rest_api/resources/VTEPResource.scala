@@ -23,10 +23,10 @@ import javax.ws.rs.core.Response.Status
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.ApiException
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowList}
 import org.midonet.cluster.rest_api.models.{TunnelZone, VTEP}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
+import org.midonet.cluster.rest_api.{ApiException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
@@ -48,7 +48,8 @@ class VTEPResource @Inject()(resContext: ResourceContext)
         listResources(classOf[VTEP])
             .map(_.find(_.managementIp == mgmtIp))
             .getOrThrow
-            .getOrElse(throw new WebApplicationException(Status.NOT_FOUND))
+            .getOrElse(throw new NotFoundHttpException(
+                                    getMessage(RESOURCE_NOT_FOUND)))
     }
 
     @Path("{mgmtIp}/bindings")
