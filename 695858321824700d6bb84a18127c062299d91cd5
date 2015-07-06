@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_939023ee",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/data/TraceRequestTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 312,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-06T10:03:30Z",
+      "side": 1,
+      "message": "nit:  should have size 1",
+      "range": {
+        "startLine": 312,
+        "startChar": 49,
+        "endLine": 312,
+        "endChar": 70
+      },
+      "revId": "695858321824700d6bb84a18127c062299d91cd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b3bc476e",
+        "filename": "midolman/src/test/scala/org/midonet/cluster/data/TraceRequestTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 389,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-06T10:03:30Z",
+      "side": 1,
+      "message": "nit: shouldBe empty",
+      "range": {
+        "startLine": 389,
+        "startChar": 49,
+        "endLine": 389,
+        "endChar": 69
+      },
+      "revId": "695858321824700d6bb84a18127c062299d91cd5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
