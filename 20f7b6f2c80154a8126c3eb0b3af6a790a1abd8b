@@ -2,6 +2,213 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_33e75714",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "Nit: s/ver/version",
+      "range": {
+        "startLine": 133,
+        "startChar": 34,
+        "endLine": 133,
+        "endChar": 37
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f335ef46",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "Merge this with the objectObservables, storing NodeObservable in the map, if that\u0027s what you need, and applying the operators after.",
+      "range": {
+        "startLine": 154,
+        "startChar": 4,
+        "endLine": 154,
+        "endChar": 66
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d3d8eb55",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "s/obj/object",
+      "range": {
+        "startLine": 156,
+        "startChar": 25,
+        "endLine": 156,
+        "endChar": 28
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_73f2bf9b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "Any concern about the scalability of this?",
+      "range": {
+        "startLine": 159,
+        "startChar": 7,
+        "endLine": 159,
+        "endChar": 74
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b3d36737",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "the",
+      "range": {
+        "startLine": 160,
+        "startChar": 7,
+        "endLine": 160,
+        "endChar": 10
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_13e33308",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "s/obj/object",
+      "range": {
+        "startLine": 161,
+        "startChar": 25,
+        "endLine": 161,
+        "endChar": 28
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_53e4db0c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "This can be:\n\n  for ((key, obs) \u003c- nodeObservables.filter(_._2.isActive))",
+      "range": {
+        "startLine": 163,
+        "startChar": 7,
+        "endLine": 163,
+        "endChar": 54
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d3bf0bcf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "Do we need these in zoom? Why not use curator directly then?",
+      "range": {
+        "startLine": 185,
+        "startChar": 4,
+        "endLine": 193,
+        "endChar": 38
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f3fecf6a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "Hmmm... this sounds like benchmarking to me. Why do we need a dummy path to collect metrics? Can you elaborate?\n\nShouldn\u0027t we rather collect latency data directly from zk ops? After all writing a zoom object where you have several round-trips to zk is not the same a creating a path.\n\nI also think these can be used with curator directly.",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 26,
+        "endChar": 37
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0484d8d2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
         "patchSetId": 1
@@ -41,6 +248,121 @@
         "startChar": 16,
         "endLine": 95,
         "endChar": 21
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_53793b2e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "subscriberCount",
+      "range": {
+        "startLine": 86,
+        "startChar": 16,
+        "endLine": 86,
+        "endChar": 24
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f3996f6f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "Add this below with the other public methods.",
+      "range": {
+        "startLine": 88,
+        "startChar": 4,
+        "endLine": 88,
+        "endChar": 45
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1388931e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "that",
+      "range": {
+        "startLine": 274,
+        "startChar": 18,
+        "endLine": 274,
+        "endChar": 21
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_93c10331",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "I think we should have a MetricsCollector (or Handler or something you like) that we could pass as optional argument to the ZK observable classes. These classes can subsequently record metrics parameters via the collector.\n\nUsing these static variables here means that we record zoom  metric even from instances of these classes when not used in zoom (e.g. the ObservableNodeCache used by the configuration)",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 91,
+        "endChar": 56
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_333f5727",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-06T09:33:56Z",
+      "side": 1,
+      "message": "spaces",
+      "range": {
+        "startLine": 211,
+        "startChar": 0,
+        "endLine": 211,
+        "endChar": 12
       },
       "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
