@@ -105,6 +105,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
                                     getHostIdByName(nPort.getHostId),
                                     nPort.getProfile.getInterfaceName)
         } else {
+            midoOps ++= addLocalRouteToRouter(routerPortBldr)
             midoOps ++= createMetadataServiceRoute(
                 routerPortId, nPort.getNetworkId, portSubnet)
             midoOps ++= updateGatewayRoutesOps(gatewayIp, ns.getId)
