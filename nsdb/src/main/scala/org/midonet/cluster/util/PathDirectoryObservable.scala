@@ -66,7 +66,7 @@ private[util]
 class OnSubscribeToDirectory(curator: CuratorFramework, path: String)
     extends OnSubscribe[Set[String]] {
 
-    private val log = getLogger(s"org.midonet.cluster.zk-directory-[$path]")
+    private val log = getLogger(s"org.midonet.nsdb.zk-directory-[$path]")
 
     private val state = new AtomicReference[State](State.Stopped)
 
@@ -235,9 +235,9 @@ class PathDirectoryObservable(onSubscribe: OnSubscribeToDirectory)
 
 /** Signals that the underlying observable has lost the connection to ZK. */
 class DirectoryObservableDisconnectedException(val path: String, e: Throwable)
-    extends RuntimeException(s"Storage connection for $path was lost.", e) {
+    extends Exception(s"Storage connection for $path was lost.", e) {
     def this(path: String) = this(path, null)
 }
 /** Signals that the underlying observable has closed its connection to ZK. */
 class DirectoryObservableClosedException(val path: String)
-    extends RuntimeException(s"Storage connection for $path was closed.")
+    extends Exception(s"Storage connection for $path was closed.")
