@@ -15,12 +15,18 @@
  */
 package org.midonet.cluster.services
 
+import java.util.concurrent.TimeUnit
+
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
 
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
+import org.apache.curator.framework.state.{ConnectionState, ConnectionStateListener}
 import org.slf4j.LoggerFactory.getLogger
+
+import rx.Observable
+import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.KeyType._
@@ -30,6 +36,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.util.ConnectionObservable
 
 object MidonetBackend {
 
@@ -45,10 +52,13 @@ object MidonetBackend {
 abstract class MidonetBackend extends AbstractService {
     /** Indicates whether the new backend stack is active */
     def isEnabled = false
-    /** Provides access to the Topology storage API */
+    /** Provides access to the topology storage API. */
     def store: Storage
+    /** Provides access to the state storage API. */
     def stateStore: StateStorage
     def curator: CuratorFramework
+    /** Emits notifications with the current connection state. */
+    def connectionStateObservable: Observable[ConnectionState]
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
       * supported by MidoNet. */
@@ -162,27 +172,29 @@ abstract class MidonetBackend extends AbstractService {
 
 /** Class responsible for providing services to access to the new Storage
   * services. */
-class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
-                                       override val curator: CuratorFramework)
+class MidonetBackendService @Inject()(config: MidonetBackendConfig,
+                                      override val curator: CuratorFramework)
     extends MidonetBackend {
 
     private val log = getLogger("org.midonet.nsdb")
 
-    private val zoom =
-        new ZookeeperObjectMapper(cfg.rootKey + "/zoom", curator)
+    private val zoom = new ZookeeperObjectMapper(s"${config.rootKey}/zoom", curator)
+    @volatile private var connectionObservable: ConnectionObservable = null
 
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
-    override def isEnabled = cfg.useNewStack
+    override def isEnabled = config.useNewStack
+    override def connectionStateObservable = connectionObservable
 
     protected override def doStart(): Unit = {
         log.info(s"Starting backend ${this} store: $store")
         try {
-            if ((cfg.curatorEnabled || cfg.useNewStack) &&
+            if ((config.curatorEnabled || config.useNewStack) &&
                 curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
+                connectionObservable = ConnectionObservable.create(curator)
             }
-            if (cfg.useNewStack) {
+            if (config.useNewStack) {
                 log.info("Setting up storage bindings")
                 setupBindings()
             }
@@ -195,6 +207,9 @@ class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
     }
 
     protected def doStop(): Unit = {
+        connectionObservable.close()
+        connectionObservable = null
+
         curator.close()
         notifyStopped()
     }
