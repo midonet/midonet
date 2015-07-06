@@ -146,7 +146,7 @@ class FlowRecorderTest extends MidolmanSpec {
         val ctx = new PacketContext(0, packet, wcmatch)
 
         for (i <- 1.until(5)) {
-            ctx.addFlowTag(FlowTagger.tagForDevice(UUID.randomUUID))
+            ctx.addFlowTag(FlowTagger.tagForPort(UUID.randomUUID))
         }
         for (i <- 1.until(10)) {
             ctx.recordTraversedRule(UUID.randomUUID,

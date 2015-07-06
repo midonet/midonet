@@ -49,7 +49,7 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
                  val disabledPoolMembers: Array[PoolMember])
     extends VirtualDevice {
 
-    override val deviceTag = FlowTagger.tagForDevice(id)
+    override val deviceTag = FlowTagger.tagForPool(id)
 
     val isUp = adminStateUp && activePoolMembers.nonEmpty
 

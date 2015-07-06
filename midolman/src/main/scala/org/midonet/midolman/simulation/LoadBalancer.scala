@@ -35,7 +35,7 @@ class LoadBalancer(val id: UUID, val adminStateUp: Boolean, val routerId: UUID,
 
     import LoadBalancer._
 
-    override val deviceTag = FlowTagger.tagForDevice(id)
+    override val deviceTag = FlowTagger.tagForLoadBalancer(id)
 
     val hasStickyVips: Boolean = vips.exists(_.isStickySourceIP)
     val hasNonStickyVips: Boolean = vips.exists(!_.isStickySourceIP)

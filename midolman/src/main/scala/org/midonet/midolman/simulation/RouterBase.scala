@@ -53,7 +53,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
     def isValidEthertype(ether: Short): Boolean
 
     val routeBalancer = new RouteBalancer(rTable)
-    override val deviceTag = FlowTagger.tagForDevice(id)
+    override val deviceTag = FlowTagger.tagForRouter(id)
 
     /**
      * Process the packet. Will validate first the ethertype and ensure that

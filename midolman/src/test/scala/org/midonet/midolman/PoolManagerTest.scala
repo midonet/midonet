@@ -242,5 +242,5 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
     }
 
     def flowInvalidationMsg(id: UUID) =
-        InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
+        InvalidateFlowsByTag(FlowTagger.tagForPool(id))
 }
