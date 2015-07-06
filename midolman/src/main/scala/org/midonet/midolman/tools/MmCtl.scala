@@ -162,10 +162,13 @@ object MmCtl {
 
     import MmCtlResult._
 
+    // For backward compatibility, if the legacy midolman.conf exists on the
+    // host that mm-ctl runs, use it as its primary configuration source.
+    val LegacyConfFilePath = "/etc/midolman/midolman.conf"
+
     def getInjector: Injector = {
-        val configurator: MidoNodeConfigurator = MidoNodeConfigurator.apply()
-        val config: MidonetBackendConfig = new MidonetBackendConfig(
-            configurator.runtimeConfig)
+        val configurator = MidoNodeConfigurator.apply(LegacyConfFilePath)
+        val config = new MidonetBackendConfig(configurator.runtimeConfig)
         Guice.createInjector(new MidonetBackendModule(config),
                              new ZookeeperConnectionModule(
                                  classOf[ZookeeperConnectionWatcher]),
