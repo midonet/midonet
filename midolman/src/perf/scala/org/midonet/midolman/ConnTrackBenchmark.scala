@@ -24,7 +24,6 @@ import scala.concurrent.Future
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 import org.openjdk.jmh.infra.Blackhole
 
-import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.midolman.rules.{RuleResult, Condition}
 import org.midonet.midolman.simulation.Bridge
 import org.midonet.midolman.state.{MockStateStorage, FlowStateReplicator}
@@ -83,13 +82,13 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         leftPortId = newBridgePort(clusterBridgeId)
         rightPortId = newBridgePort(clusterBridgeId)
         materializePort(rightPortId, hostId, "port0")
-        val chain = newInboundChainOnBridge("chain", clusterBridgeId)
+        val chainId = newInboundChainOnBridge("chain", clusterBridgeId)
         val fwdCond = new Condition()
         fwdCond.matchForwardFlow = true
         fwdCond.inPortIds = new java.util.HashSet[UUID]()
         fwdCond.inPortIds.add(leftPortId)
-        newLiteralRuleOnChain(chain, 1, fwdCond, RuleResult.Action.ACCEPT)
-        fetchTopology(chain)
+        newLiteralRuleOnChain(chainId, 1, fwdCond, RuleResult.Action.ACCEPT)
+        fetchChains(chainId)
         fetchPorts(leftPortId, rightPortId)
         fetchDevice[Bridge](clusterBridgeId)
 
