@@ -54,8 +54,8 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
 
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
-    var leftPort: BridgePort = _
-    var rightPort: BridgePort = _
+    var leftPortId: UUID = _
+    var rightPortId: UUID = _
 
     val underlayResolver = new UnderlayResolver {
         override def peerTunnelInfo(peer: UUID): Option[Route] = None
@@ -74,27 +74,29 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     val packet = { { eth addr leftMac -> rightMac } <<
                    { ip4 addr IPv4Addr.random --> IPv4Addr.random } <<
                    { udp ports 5003 ---> 53 } << payload("payload") }
-    val packetContext = packetContextFor(packet, leftPort.getId)
+    val packetContext = packetContextFor(packet, leftPortId)
 
     @JmhSetup
     def setup(): Unit = {
         newHost("myself", hostId)
-        val clusterBridge = newBridge("bridge")
-        leftPort = newBridgePort(clusterBridge)
-        rightPort = newBridgePort(clusterBridge)
-        materializePort(rightPort, hostId, "port0")
-        val chain = newInboundChainOnBridge("chain", clusterBridge)
+        val clusterBridgeId: UUID = newBridge("bridge")
+        leftPortId = newBridgePort(clusterBridgeId)
+        rightPortId = newBridgePort(clusterBridgeId)
+        materializePort(rightPortId, hostId, "port0")
+        val chain = newInboundChainOnBridge("chain", clusterBridgeId)
         val fwdCond = new Condition()
         fwdCond.matchForwardFlow = true
         fwdCond.inPortIds = new java.util.HashSet[UUID]()
-        fwdCond.inPortIds.add(leftPort.getId)
+        fwdCond.inPortIds.add(leftPortId)
         newLiteralRuleOnChain(chain, 1, fwdCond, RuleResult.Action.ACCEPT)
-        fetchTopology(clusterBridge, chain, leftPort, rightPort)
+        fetchTopology(chain)
+        fetchPorts(leftPortId, rightPortId)
+        fetchDevice[Bridge](clusterBridgeId)
 
-        val bridge: Bridge = fetchDevice(clusterBridge)
+        val bridge: Bridge = fetchDevice(clusterBridgeId)
         val macTable = bridge.vlanMacTableMap(0.toShort)
-        macTable.add(leftMac, leftPort.getId)
-        macTable.add(rightMac, rightPort.getId)
+        macTable.add(leftMac, leftPortId)
+        macTable.add(rightMac, rightPortId)
         replicator = new FlowStateReplicator(conntrackTable, natTable,
                                              traceTable,
                                              Future.successful(new MockStateStorage),
