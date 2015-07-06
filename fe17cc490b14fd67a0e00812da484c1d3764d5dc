@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f33b2fe9",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-06T14:08:47Z",
+      "side": 1,
+      "message": "Maybe we should add the description in these",
+      "revId": "fe17cc490b14fd67a0e00812da484c1d3764d5dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_53221bba",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/auth/AuthModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-06T14:08:47Z",
+      "side": 1,
+      "message": "any other reason for doing it like this as opposed to just Class.forName(config.provider)? An evident (and sufficient) one is better error logging but I\u0027m curious if you were thinking of others.",
+      "range": {
+        "startLine": 31,
+        "startChar": 46,
+        "endLine": 31,
+        "endChar": 60
+      },
+      "revId": "fe17cc490b14fd67a0e00812da484c1d3764d5dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
