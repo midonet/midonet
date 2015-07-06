@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Commons.{IPVersion, IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.{Dhcp, PortOrBuilder, Route, RouteOrBuilder}
@@ -63,6 +63,7 @@ trait RouteManager {
              .setSrcSubnet(IPSubnetUtil.univSubnet4)
              .setDstSubnet(IPSubnetUtil.fromAddr(portAddr))
              .setNextHop(NextHop.LOCAL)
+             .setNextHopGateway(LOCAL_NEXT_HOP_GW_IP)
              .setWeight(DEFAULT_WEIGHT)
              .setNextHopPortId(portId).build()
     }
@@ -135,6 +136,9 @@ trait RouteManager {
  */
 object RouteManager {
     val META_DATA_SRVC = IPSubnetUtil.toProto(MetaDataService.IPv4_ADDRESS)
+    val LOCAL_NEXT_HOP_GW_IP = IPAddress.newBuilder
+        .setAddress("255.255.255.255")
+        .setVersion(IPVersion.V4).build()
     val DEFAULT_WEIGHT = 100
 
     /**
