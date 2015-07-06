@@ -104,6 +104,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         mRuleFromTxt(s"""
             id { $snatRuleId }
             chain_id { $oChainId }
+            type: NAT_RULE
             action: ACCEPT
             out_port_ids { $gatewayPortId }
             nw_src_ip { $fixedIpSubnet }
@@ -124,6 +125,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
         mRuleFromTxt(s"""
             id { $dnatRuleId }
             chain_id { $iChainId }
+            type: NAT_RULE
             action: ACCEPT
             in_port_ids { $gatewayPortId }
             nw_dst_ip { $fipIpSubnet }
