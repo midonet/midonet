@@ -27,9 +27,10 @@ import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType}
 import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.PortManager.routerInterfacePortPeerId
-import org.midonet.cluster.services.c3po.translators.RouteManager.{gatewayRouteId, metadataServiceRouteId, routerInterfaceRouteId}
+import org.midonet.cluster.services.c3po.translators.RouteManager.{gatewayRouteId, localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichJavaUuid
@@ -80,7 +81,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         rPort.hasHostId shouldBe false
         rPort.getRouterId shouldBe routerId.asProto
 
-        rPort.getRouteIdsCount shouldBe 2
+        rPort.getRouteIdsCount shouldBe 3
         val routes = storage.getAll(
             classOf[Route], rPort.getRouteIdsList.asScala).await()
 
@@ -98,6 +99,16 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         mdsRoute.getDstSubnet shouldBe RouteManager.META_DATA_SRVC
         mdsRoute.getNextHopGateway.getAddress shouldBe "10.0.0.2"
         mdsRoute.getNextHopPortId shouldBe rPeerPortId
+
+        val localRtId = localRouteId(rPort.getId)
+        val localRoute = routes.find(_.getId == localRtId).get
+        localRoute.getSrcSubnet.getAddress shouldBe "0.0.0.0"
+        localRoute.getSrcSubnet.getPrefixLength shouldBe 0
+        localRoute.getDstSubnet.getAddress shouldBe
+            rPort.getPortAddress.getAddress
+        localRoute.getNextHop shouldBe NextHop.LOCAL
+        localRoute.getNextHopPortId shouldBe rPort.getId
+
 
         // Deleting the router interface Port should delete both ports.
         insertDeleteTask(8, PortType, rifPortId)

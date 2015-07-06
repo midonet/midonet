@@ -35,7 +35,7 @@ import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.UUIDUtil.randomUuidProto
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.MacPortMap
-import org.midonet.packets.{ARP, IPv4, IPv6, MAC}
+import org.midonet.packets.{ARP, MAC}
 
 trait OpMatchers {
     /**
