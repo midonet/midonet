@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_e1a7d44d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/flowhistory/JsonSerialization.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-07T08:30:47Z",
+      "side": 1,
+      "message": "Just curious: isn\u0027t it enough to use\njgen.writeObjectField(key, shorts)\n\n(I understood that the JsonGenerator was able to convert basic java structures correctly, but I might be wrong)",
+      "range": {
+        "startLine": 126,
+        "startChar": 12,
+        "endLine": 133,
+        "endChar": 32
+      },
+      "revId": "9f7c319489d91d61d048febb927539394b7ea4c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
