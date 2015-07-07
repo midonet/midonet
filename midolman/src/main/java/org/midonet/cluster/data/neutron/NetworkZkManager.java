@@ -124,6 +124,23 @@ public class NetworkZkManager extends BaseZkManager {
         ops.add(zk.getSetDataOp(path, serializer.serialize(network)));
     }
 
+    /*
+     * The assumption is being made here that all networks will have
+     * only one subnet for IP version 4.
+     */
+    public Subnet getSubnetFromNetwork(UUID networkId)
+        throws StateAccessException, SerializationException {
+
+        for (Subnet sub: getSubnets()) {
+            if (Objects.equals(sub.networkId, networkId) &&
+                    sub.getIpVersion() == 4) {
+                return sub;
+            }
+        }
+
+        return null;
+    }
+
     public Network getNetwork(UUID networkId)
         throws StateAccessException, SerializationException {
 
