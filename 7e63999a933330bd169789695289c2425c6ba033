@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_dcd8f31f",
+        "filename": "midonet-util/src/test/java/org/midonet/util/netty/TestServerFrontEndUPD.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-07T10:47:56Z",
+      "side": 1,
+      "message": "Why don\u0027t you just...\n\nOh. Java. Thanks for taking one for the team!",
+      "range": {
+        "startLine": 56,
+        "startChar": 0,
+        "endLine": 70,
+        "endChar": 25
+      },
+      "revId": "7e63999a933330bd169789695289c2425c6ba033",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9cacabef",
         "filename": "midonet-util/src/test/java/org/midonet/util/netty/TestServerFrontEndUPD.java",
         "patchSetId": 2
