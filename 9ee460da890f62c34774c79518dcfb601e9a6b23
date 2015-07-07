@@ -2,6 +2,142 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_c181f090",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-07-07T09:22:33Z",
+      "side": 1,
+      "message": "Not sure it is the reason to move away from the current approach",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_815e0844",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-07-07T09:22:33Z",
+      "side": 1,
+      "message": "I would add simplicity, less services/agents to manage as one of the reasons to change the current approach.\nI like the idea to have distributed metadata service . Just in case MidoNet will run in non cloud environment, it should be possible to disable the functionality",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c1581059",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-07-07T09:22:33Z",
+      "side": 1,
+      "message": "typo: agent",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_812528c4",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-07-07T09:22:33Z",
+      "side": 1,
+      "message": "maybe worth to mention instance id \u003d VM",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c1065020",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-07-07T09:22:33Z",
+      "side": 1,
+      "message": "Some diagram  can be useful here to represent the Host setup",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3ccb9fa6",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 149,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-07-07T09:22:33Z",
+      "side": 1,
+      "message": "does it remove the veth as well?",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fc3777ae",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-07-07T09:22:33Z",
+      "side": 1,
+      "message": "maybe worth to name it metadata_service?",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_dc52b3dc",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1003470
+      },
+      "writtenOn": "2015-07-07T09:22:33Z",
+      "side": 1,
+      "message": "some cleanup is required",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b7cff3af",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 4
