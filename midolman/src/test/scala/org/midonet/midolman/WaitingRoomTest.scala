@@ -39,8 +39,13 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
             wr.timeout shouldEqual TimeUnit.SECONDS.toNanos(3)
         }
 
+        def evictions[T](wr: WaitingRoom[T]) = {
+            val buf = new ListBuffer[T]()
+            wr.doExpirations(buf.+=)
+            buf.toList
+        }
+
         scenario("Each waiter triggers a cleanup of timed out waiters") {
-            val evictions = new ListBuffer[Int]()
             val wr = new WaitingRoom[Int](to)
             val w1 = 1
             val w2 = 2
@@ -48,36 +53,37 @@ class WaitingRoomTest extends FeatureSpec with Matchers {
 
             // add elements and verify size
             wr.count should be (0)
-            evictions ++= wr enter w1
+            wr enter w1
             wr.count should be (1)
-            evictions should have size 0 // no evictions
+            evictions(wr) should have size 0 // no evictions
             wr enter w2
             wr.count should be (2)
 
             // duplicate elements
-            evictions ++= wr enter w1
-            evictions ++= wr enter w2
+            wr enter w1
+            wr enter w2
             wr.count should be (2) // now remain the same
 
             // wait for expirations
             Thread.sleep(TimeUnit.NANOSECONDS.toMillis(to))
 
-            // none should have happened since no elements were added
+            // none should have happened since no eviction was performed
             wr.count should be (2)
-            evictions should have size 0
 
-            evictions ++= wr enter w3 // this expires, then adds
+            wr enter w3
+            wr.count should be (3)
+            evictions(wr) shouldEqual List(w1, w2)
             wr.count should be (1)
-            evictions shouldEqual List(w1, w2)
         }
 
         scenario("A waiter leaving before timing out is not expired") {
             val wr = new WaitingRoom[Int](to)
-            List(1,2,3) foreach { wr enter _ }
+            List(1,2,3) foreach wr.enter
             wr leave 2
 
             Thread.sleep(TimeUnit.NANOSECONDS.toMillis(to))
-            (wr enter 4) should (contain(1) and contain(3) and not contain(2))
+            wr enter 4
+            evictions(wr) should (contain(1) and contain(3) and not contain 2)
         }
     }
 }
