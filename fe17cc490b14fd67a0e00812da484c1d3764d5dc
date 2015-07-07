@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_5c5ea3e7",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 2
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-07T09:26:15Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f33b2fe9",
+      "revId": "fe17cc490b14fd67a0e00812da484c1d3764d5dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_53221bba",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/auth/AuthModule.scala",
         "patchSetId": 2
@@ -42,6 +60,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_fc05b7c2",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/auth/AuthModule.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 31,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-07T09:26:15Z",
+      "side": 1,
+      "message": "In this particular case is the configuration, I\u0027m not an expert in Guice, but we\u0027d have to inject the configuration otherwise, isn\u0027t it?\n\nPreviously, the configuration was injected, but in the cluster it\u0027s created from the cluster config.",
+      "parentUuid": "9ad9bd40_53221bba",
+      "range": {
+        "startLine": 31,
+        "startChar": 46,
+        "endLine": 31,
+        "endChar": 60
+      },
+      "revId": "fe17cc490b14fd67a0e00812da484c1d3764d5dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_293fe826",
         "filename": "midonet-api/src/main/java/org/midonet/api/auth/keystone/KeystoneConfig.java",
         "patchSetId": 2
@@ -53,6 +95,24 @@
       "writtenOn": "2015-07-06T14:15:34Z",
       "side": 1,
       "message": "what is required to delete?",
+      "revId": "fe17cc490b14fd67a0e00812da484c1d3764d5dc",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1c0b3bd7",
+        "filename": "midonet-api/src/main/java/org/midonet/api/auth/keystone/KeystoneConfig.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-07T09:26:15Z",
+      "side": 1,
+      "message": "I think this is still needed for supporting the web.xml config file in tomcat.",
+      "parentUuid": "9ad9bd40_293fe826",
       "revId": "fe17cc490b14fd67a0e00812da484c1d3764d5dc",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
