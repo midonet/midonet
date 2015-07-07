@@ -111,6 +111,7 @@ project.ext {
             exclude group: 'io.netty', module: 'netty'
             exclude group: 'log4j', module: 'log4j'
             exclude group: 'org.slf4j', module: 'slf4j-log4j12'},
+        curator_discovery: "org.apache.curator:curator-x-discovery:2.9.1",
         curator_framework: dependencies.create("org.apache.curator:curator-framework:2.9.1") {
             exclude group: 'log4j', module: 'log4j'},
         curator_recipes: dependencies.create("org.apache.curator:curator-recipes:2.9.1") {
