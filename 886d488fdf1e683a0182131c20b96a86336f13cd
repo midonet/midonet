@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_82ce0682",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ConnectionObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-07T15:12:27Z",
+      "side": 1,
+      "message": "Description?",
+      "revId": "886d488fdf1e683a0182131c20b96a86336f13cd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
