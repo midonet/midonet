@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5c26a3b8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/flowhistory/FlowRecordEncoding.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-07T08:53:01Z",
+      "side": 1,
+      "message": "Could you add a comment indicating what the Array[Byte]s represent?\n\nAre they IP addresses, Macs, ...?\nIf they are IP, it may be useful to use a common representation (they are represented as Ints in other fields...)",
+      "range": {
+        "startLine": 95,
+        "startChar": 27,
+        "endLine": 95,
+        "endChar": 68
+      },
+      "revId": "384eec403e54d5132c94c779ccf0b9e2479ee4b0",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
