@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
  */
 class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
 
-    private[this] val waiters = new mutable.HashSet[W]()
+    private[this] val waiters = new java.util.HashSet[W]()
     private[this] val timeouts = new mutable.ListBuffer[(W, Long)]()
 
     /**
@@ -41,40 +41,30 @@ class WaitingRoom[W](val timeout: Long = TimeUnit.SECONDS.toNanos(3)) {
     def count = waiters.size
 
     /**
-     * Adds a new waiter w that will be kept here for a max of TIMEOUT nanos.
+     * Adds a new waiter that will be kept here for a min of TIMEOUT nanos.
      *
      * If the element is already in the waiting room, it will not be added again
-     * with the *old* waiting time unaltered.
+     * and the *old* waiting time remains unaltered.
      */
-    def enter(w: W): IndexedSeq[W] = {
-        val evictions = doExpirations()
-        if (!(waiters contains w)) {
-            waiters += w
+    def enter(w: W): Boolean =
+        if (waiters.add(w)) {
             timeouts += ((w, System.nanoTime() + timeout))
+            true
+        } else {
+            false
         }
-        evictions
-    }
 
     def leave(w: W): Unit = {
-        waiters -= w
+        waiters.remove(w)
     }
 
-    def doExpirations(): IndexedSeq[W] = {
-        var evictions: mutable.ArrayBuffer[W] = null
+    def doExpirations(f: W => Unit): Unit = {
         val now = System.nanoTime()
         while (timeouts.nonEmpty && (now - timeouts.head._2) > 0) {
             val w = (timeouts remove 0)._1
-            if (waiters contains w) {
-                if (evictions == null)
-                    evictions = mutable.ArrayBuffer()
-                evictions += w
-                waiters -= w
+            if (waiters.remove(w)) {
+                f(w)
             }
         }
-
-        if (evictions == null)
-            immutable.Vector.empty
-        else
-            evictions
     }
 }
