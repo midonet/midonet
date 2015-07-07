@@ -297,7 +297,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                 name = "port1Updated", id = vifPortId,
                 networkId = privateNetworkId, macAddr = vifPortMac,
                 fixedIps = List(IPAlloc(fixedIp, privateSubnetId.toString)),
-                deviceOwner = DeviceOwner.NOVA).toString
+                deviceOwner = DeviceOwner.COMPUTE).toString
         executeSqlStmts(insertTaskSql(
                 id = 14, Update, PortType, vifPortUpdatedJson, vifPortId,
                 "tx14"))
@@ -341,7 +341,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                 name = "vif_port2", id = vifPort2Id,
                 networkId = privateNetworkId, macAddr = vifPort2Mac,
                 fixedIps = List(IPAlloc(vifPort2FixedIp, extSubnetId.toString)),
-                deviceOwner = DeviceOwner.NOVA).toString
+                deviceOwner = DeviceOwner.COMPUTE).toString
         // #17 Create a Floating IP with the VIF port specified.
         val fip2Id = UUID.randomUUID()
         val fip2Address = "118.67.101.185"
