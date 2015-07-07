@@ -25,7 +25,7 @@ import org.midonet.cluster.DataClient;
 import org.midonet.midolman.state.StateAccessException;
 
 public class RouterIdValidator implements
-        ConstraintValidator<IsValidPortId, UUID> {
+        ConstraintValidator<IsValidRouter, UUID> {
 
     private final DataClient dataClient;
 
@@ -35,7 +35,7 @@ public class RouterIdValidator implements
     }
 
     @Override
-    public void initialize(IsValidPortId constraintAnnotation) {
+    public void initialize(IsValidRouter constraintAnnotation) {
     }
 
     @Override
