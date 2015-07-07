@@ -85,9 +85,9 @@ message NeutronPort {
         FLOATINGIP = 1;
         ROUTER_GATEWAY = 2;
         ROUTER_INTERFACE = 3;
-        NOVA=4;
+        COMPUTE = 4;
     }
-    optional DeviceOwner device_owner = 8 [default = NOVA];
+    optional DeviceOwner device_owner = 8 [default = COMPUTE];
     // Device ID may be a composite ID.
     // E.g. for a DHCP port, it is: "dhcp" + HOST_ID + "-" + NETWORK_ID
     optional string device_id = 9;

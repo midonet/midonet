@@ -29,7 +29,9 @@ public enum DeviceOwner {
     @ZoomEnumValue("FLOATINGIP") FLOATINGIP("network:floatingip"),
     @ZoomEnumValue("ROUTER_GATEWAY") ROUTER_GW("network:router_gateway"),
     @ZoomEnumValue("ROUTER_INTERFACE") ROUTER_INTF("network:router_interface"),
-    @ZoomEnumValue("NOVA") NOVA("compute:nova");
+    @ZoomEnumValue("COMPUTE") COMPUTE("compute:nova");
+
+    static public final String COMPUTE_PREFIX = "compute:";
 
     private final String value;
 
@@ -46,6 +48,10 @@ public enum DeviceOwner {
     @SuppressWarnings("unused")
     public static DeviceOwner forValue(String v) {
         if (v == null) return null;
+
+        if (v.toLowerCase().startsWith(COMPUTE_PREFIX)) {
+            return COMPUTE;
+        }
 
         for (DeviceOwner deviceOwner : DeviceOwner.values()) {
             if (v.equalsIgnoreCase(deviceOwner.value)) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{SecurityGroupRule => NeutronSecurityGroupRule, _}
+import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 
 /**
@@ -150,8 +151,16 @@ object NeutronDeserializer {
 
     private def parseEnum(desc: EnumDescriptor)
                          (node: JsonNode): EnumValueDescriptor = {
-        val textVal = cleanUpProjectPrefix(node.asText)
-        val enumVal = desc.findValueByName(textVal.toUpperCase)
+        // Neutron device_owner for vm ports looks like "compute:<az name>".
+        // we map them to "COMPUTE", throwing az away.
+        val textVal =
+            if (desc.getFullName ==
+                "org.midonet.cluster.models.NeutronPort.DeviceOwner"
+                && node.asText.startsWith(DeviceOwner.COMPUTE_PREFIX))
+                "COMPUTE"
+            else
+                cleanUpProjectPrefix(node.asText).toUpperCase
+        val enumVal = desc.findValueByName(textVal)
         if (enumVal == null)
             throw new NeutronDeserializationException(
                 s"Value $textVal not found in enum ${desc.getName}.")
