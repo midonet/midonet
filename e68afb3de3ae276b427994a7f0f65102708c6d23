@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_210b7cd7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-07T06:57:04Z",
+      "side": 1,
+      "message": "this prefix appears in several places, I\u0027d prefer to have it as a constant.",
+      "range": {
+        "startLine": 158,
+        "startChar": 42,
+        "endLine": 158,
+        "endChar": 52
+      },
+      "revId": "e68afb3de3ae276b427994a7f0f65102708c6d23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
