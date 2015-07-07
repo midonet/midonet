@@ -22,7 +22,7 @@ import com.google.protobuf.MessageOrBuilder
 import org.scalatest.Matchers
 
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
-import org.midonet.cluster.models.Topology.{Bgp => TopologyBGP, BgpRoute => TopologyBGPRoute, Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIPAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
+import org.midonet.cluster.models.Topology.{Bgp => TopologyBgp, BgpRoute => TopologyBgpRoute, Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIpAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -255,16 +255,13 @@ object TopologyMatchers {
         }
     }
 
-    class IPAddrGroupMatcher(ipAddrGroup: IPAddrGroup)
-        extends Matchers with DeviceMatcher[TopologyIPAddrGroup] {
+    class IpAddrGroupMatcher(ipAddrGroup: IPAddrGroup)
+        extends Matchers with DeviceMatcher[TopologyIpAddrGroup] {
 
-        override def shouldBeDeviceOf(i: TopologyIPAddrGroup): Unit = {
-            i.getId.asJava shouldBe ipAddrGroup.id
+        override def shouldBeDeviceOf(g: TopologyIpAddrGroup): Unit = {
+            ipAddrGroup.id shouldBe g.getId.asJava
             ipAddrGroup.addrs should contain theSameElementsAs
-            i.getIpAddrPortsList.asScala.map(ipAddrPort =>
-                                                 toIPAddr(
-                                                     ipAddrPort.getIpAddress)
-            )
+                g.getIpAddrPortsList.asScala.map(_.getIpAddress.asIPAddress)
         }
     }
 
@@ -340,8 +337,8 @@ object TopologyMatchers {
     }
 
     class BGPMatcher(bgp: Bgp) extends Matchers
-                                       with DeviceMatcher[TopologyBGP] {
-        override def shouldBeDeviceOf(b: TopologyBGP): Unit = {
+                                       with DeviceMatcher[TopologyBgp] {
+        override def shouldBeDeviceOf(b: TopologyBgp): Unit = {
             bgp.id shouldBe b.getId.asJava
             bgp.localAs shouldBe b.getLocalAs
             bgp.peerAs shouldBe b.getPeerAs
@@ -355,9 +352,9 @@ object TopologyMatchers {
     }
 
     class BGPRouteMatcher(route: BgpRoute)
-        extends Matchers with DeviceMatcher[TopologyBGPRoute] {
+        extends Matchers with DeviceMatcher[TopologyBgpRoute] {
 
-        override def shouldBeDeviceOf(r: TopologyBGPRoute): Unit = {
+        override def shouldBeDeviceOf(r: TopologyBgpRoute): Unit = {
             route.id shouldBe r.getId.asJava
             route.subnet shouldBe r.getSubnet.asJava
             route.bgpId shouldBe r.getBgpId.asJava
@@ -408,8 +405,8 @@ trait TopologyMatchers {
     implicit def asMatcher(cond: Condition): ConditionMatcher =
         new ConditionMatcher(cond)
 
-    implicit def asMatcher(ipAddrGroup: IPAddrGroup): IPAddrGroupMatcher =
-        new IPAddrGroupMatcher(ipAddrGroup)
+    implicit def asMatcher(ipAddrGroup: IPAddrGroup): IpAddrGroupMatcher =
+        new IpAddrGroupMatcher(ipAddrGroup)
 
     implicit def asMatcher(portGroup: PortGroup): PortGroupMatcher =
         new PortGroupMatcher(portGroup)

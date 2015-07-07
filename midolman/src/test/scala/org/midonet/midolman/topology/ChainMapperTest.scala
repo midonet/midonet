@@ -382,7 +382,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                              .setName("test-chain2")
                              .build())
 
-            Then("We receive only one update")
+            Then("We receive two updates")
             obs.awaitOnNext(4, timeout) shouldBe true
             obs.getOnNextEvents should have size 4
 
@@ -435,9 +435,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                          Map(ipAddrGroupSrcId -> ipAddrGroupSrc))
 
             When("We update IPAddrGroupSrc")
-            val updatedIPAddrGrpSrc = ipAddrGroupSrc.toBuilder
-                .setName("ipAddrGroupSrc2")
-                .build()
+            val updatedIPAddrGrpSrc = ipAddrGroupSrc.addIPAddrPort(
+                IPAddr.fromString("192.168.0.2"), Set(UUID.randomUUID))
             store.update(updatedIPAddrGrpSrc)
 
             Then("We receive the chain with the updated IPAddrGroupSrc")
