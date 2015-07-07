@@ -50,14 +50,12 @@ class FlowTracingAppender(sessionFuture: Future[Session])
     @volatile
     var session: Session = null
 
-    var dataInsertStatement: PreparedStatement = null
-    var flowInsertStatement: PreparedStatement = null
+    var schema: FlowTracingSchema = null
 
     override def start(): Unit = {
         sessionFuture.onSuccess {
             case s =>
-                dataInsertStatement = s.prepare(FlowTracingSchema.dataInsertCQL)
-                flowInsertStatement = s.prepare(FlowTracingSchema.flowInsertCQL)
+                schema = new FlowTracingSchema(s)
                 session = s
         }(CallingThreadExecutionContext)
         super.start()
@@ -75,16 +73,16 @@ class FlowTracingAppender(sessionFuture: Future[Session])
                 val traceId = UUID.fromString(requestIds(i))
                 val flowTraceId = UUID.fromString(mdc.get(FlowTraceIdKey))
 
-                session.execute(FlowTracingSchema.bindFlowInsertStatement(
-                            flowInsertStatement, traceId, flowTraceId,
+                session.execute(schema.bindFlowInsertStatement(
+                            traceId, flowTraceId,
                             mdc.get(EthSrcKey), mdc.get(EthDstKey),
                             intOrVal(mdc.get(EtherTypeKey), 0),
                             mdc.get(NetworkSrcKey), mdc.get(NetworkDstKey),
                             intOrVal(mdc.get(NetworkProtoKey), 0),
                             intOrVal(mdc.get(SrcPortKey), 0),
                             intOrVal(mdc.get(DstPortKey), 0)))
-                session.execute(FlowTracingSchema.bindDataInsertStatement(
-                            dataInsertStatement, traceId, flowTraceId,
+                session.execute(schema.bindDataInsertStatement(
+                            traceId, flowTraceId,
                             hostId, event.getFormattedMessage))
 
                 i -= 1

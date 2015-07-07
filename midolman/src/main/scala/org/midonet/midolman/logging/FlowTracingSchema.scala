@@ -16,8 +16,7 @@
 package org.midonet.midolman.logging
 
 import java.util.{Date, UUID}
-import com.datastax.driver.core.PreparedStatement
-import com.datastax.driver.core.BoundStatement
+import com.datastax.driver.core.{BoundStatement, PreparedStatement, Session}
 
 object FlowTracingSchema {
     val KEYSPACE_NAME = "MidonetFlowTracing"
@@ -80,9 +79,28 @@ object FlowTracingSchema {
         AND time < maxTimeuuid(?)"""
     val getTraceDataCQLAsc = getTraceDataCQLBase + " ORDER BY time ASC LIMIT ?"
     val getTraceDataCQL = getTraceDataCQLBase + " LIMIT ?"
+}
 
-    def bindFlowInsertStatement(insertStatement: PreparedStatement,
-                                traceRequestId: UUID, flowTraceId: UUID,
+
+class FlowTracingSchema(session: Session) {
+    val insertStatement: PreparedStatement =
+        session.prepare(FlowTracingSchema.flowInsertCQL)
+    val dataInsertStatement: PreparedStatement =
+        session.prepare(FlowTracingSchema.dataInsertCQL)
+    val getCountStatement: PreparedStatement =
+        session.prepare(FlowTracingSchema.countFlowTracesCQL)
+    val getFlowTraceStatement: PreparedStatement =
+        session.prepare(FlowTracingSchema.getFlowTraceCQL)
+    val getFlowTracesStatement: PreparedStatement =
+        session.prepare(FlowTracingSchema.getFlowTracesCQL)
+    val getFlowTracesStatementAsc: PreparedStatement =
+        session.prepare(FlowTracingSchema.getFlowTracesCQLAsc)
+    val getTraceDataStatement: PreparedStatement =
+        session.prepare(FlowTracingSchema.getTraceDataCQL)
+    val getTraceDataStatementAsc: PreparedStatement =
+        session.prepare(FlowTracingSchema.getTraceDataCQLAsc)
+
+    def bindFlowInsertStatement(traceRequestId: UUID, flowTraceId: UUID,
                                 ethSrc: String, ethDst: String,
                                 etherType: Integer,
                                 networkSrc: String, networkDst: String,
@@ -96,50 +114,57 @@ object FlowTracingSchema {
                                                  srcPort, dstPort)
     }
 
-    def bindDataInsertStatement(insertStatement: PreparedStatement,
-                                traceRequestId: UUID, flowTraceId: UUID,
+    def bindDataInsertStatement(traceRequestId: UUID, flowTraceId: UUID,
                                 host: UUID, data: String): BoundStatement = {
-        new BoundStatement(insertStatement).bind(traceRequestId, flowTraceId,
-                                                 host, data)
+        new BoundStatement(dataInsertStatement).bind(traceRequestId, flowTraceId,
+                                                     host, data)
     }
 
-    def bindFlowCountStatement(flowCountStatement: PreparedStatement,
-                               traceRequestId: UUID,
+    def bindFlowCountStatement(traceRequestId: UUID,
                                minTime: Option[Date] = None,
                                maxTime: Option[Date] = None): BoundStatement = {
-        new BoundStatement(flowCountStatement).bind(traceRequestId,
-                                                    minTime.getOrElse(new Date(0)),
-                                                    maxTime.getOrElse(new Date()))
+        new BoundStatement(getCountStatement).bind(traceRequestId,
+                                                   minTime.getOrElse(new Date(0)),
+                                                   maxTime.getOrElse(new Date()))
     }
 
-    def bindGetFlowStatement(getFlowStatement: PreparedStatement,
-                             traceRequestId: UUID, flowTraceId: UUID):
+    def bindGetFlowStatement(traceRequestId: UUID, flowTraceId: UUID):
             BoundStatement = {
-        new BoundStatement(getFlowStatement).bind(traceRequestId,
-                                                   flowTraceId)
+        new BoundStatement(getFlowTraceStatement).bind(traceRequestId,
+                                                       flowTraceId)
     }
 
-    def bindGetFlowsStatement(getFlowsStatement: PreparedStatement,
-                              traceRequestId: UUID,
+    def bindGetFlowsStatement(traceRequestId: UUID,
                               minTime: Option[Date] = None,
                               maxTime: Option[Date] = None,
+                              ascending: Boolean = false,
                               limit: Option[Int] = None): BoundStatement = {
-        new BoundStatement(getFlowsStatement).bind(traceRequestId,
-                                                   minTime.getOrElse(new Date(0)),
-                                                   maxTime.getOrElse(new Date()),
-                                                   Int.box(limit.getOrElse(Int.MaxValue)))
+        val statement = if (ascending) {
+            getFlowTracesStatementAsc
+        } else {
+            getFlowTracesStatement
+        }
+        new BoundStatement(statement).bind(traceRequestId,
+                                           minTime.getOrElse(new Date(0)),
+                                           maxTime.getOrElse(new Date()),
+                                           Int.box(limit.getOrElse(Int.MaxValue)))
     }
 
-    def bindGetDataStatement(getDataStatement: PreparedStatement,
-                             traceRequestId: UUID, flowTraceId: UUID,
+    def bindGetDataStatement(traceRequestId: UUID, flowTraceId: UUID,
                              minTime: Option[Date] = None,
                              maxTime: Option[Date] = None,
+                             ascending: Boolean = false,
                              limit: Option[Int] = None):
             BoundStatement = {
-        new BoundStatement(getDataStatement).bind(traceRequestId, flowTraceId,
-                                                  minTime.getOrElse(new Date(0)),
-                                                  maxTime.getOrElse(new Date()),
-                                                  Int.box(limit.getOrElse(Int.MaxValue)))
+        val statement = if (ascending) {
+            getTraceDataStatementAsc
+        } else {
+            getTraceDataStatement
+        }
+        new BoundStatement(statement).bind(traceRequestId, flowTraceId,
+                                           minTime.getOrElse(new Date(0)),
+                                           maxTime.getOrElse(new Date()),
+                                           Int.box(limit.getOrElse(Int.MaxValue)))
     }
 
 }

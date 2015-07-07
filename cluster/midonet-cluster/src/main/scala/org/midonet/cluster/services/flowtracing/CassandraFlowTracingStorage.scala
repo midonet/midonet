@@ -32,26 +32,13 @@ import org.midonet.packets.{IPAddr, MAC}
 class CassandraFlowTracingStorage(cass: CassandraClient)
         extends FlowTracingStorageBackend {
 
-    lazy val getCountStatement: PreparedStatement = getSession().prepare(
-        FlowTracingSchema.countFlowTracesCQL)
-    lazy val getFlowTraceStatement: PreparedStatement = getSession().prepare(
-        FlowTracingSchema.getFlowTraceCQL)
-    lazy val getFlowTracesStatement: PreparedStatement = getSession().prepare(
-        FlowTracingSchema.getFlowTracesCQL)
-    lazy val getFlowTracesStatementAsc: PreparedStatement = getSession().prepare(
-        FlowTracingSchema.getFlowTracesCQLAsc)
-
-    lazy val getTraceDataStatement: PreparedStatement = getSession().prepare(
-        FlowTracingSchema.getTraceDataCQL)
-    lazy val getTraceDataStatementAsc: PreparedStatement = getSession().prepare(
-        FlowTracingSchema.getTraceDataCQLAsc)
+    lazy val schema: FlowTracingSchema = new FlowTracingSchema(getSession())
 
     override def getFlowCount(traceRequestId: UUID,
                               minTime: Option[Date] = None,
                               maxTime: Option[Date] = None): Long = {
-        val res = getSession().execute(FlowTracingSchema.bindFlowCountStatement(
-                                           getCountStatement, traceRequestId,
-                                           minTime, maxTime))
+        val res = getSession().execute(schema.bindFlowCountStatement(
+                                           traceRequestId, minTime, maxTime))
         res.one() match {
             case r: Row => { r.getLong("count") }
             case _ => 0
@@ -63,11 +50,9 @@ class CassandraFlowTracingStorage(cass: CassandraClient)
                                maxTime: Option[Date] = None,
                                ascending: Boolean = false,
                                limit: Option[Int] = None): List[FlowTrace] = {
-        val res = getSession().execute(FlowTracingSchema.bindGetFlowsStatement(
-                                           if (ascending) { getFlowTracesStatementAsc }
-                                           else { getFlowTracesStatement },
+        val res = getSession().execute(schema.bindGetFlowsStatement(
                                            traceRequestId,
-                                           minTime, maxTime, limit))
+                                           minTime, maxTime, ascending, limit))
         val traces = new ArrayList[FlowTrace]
         val iter = res.iterator
         while (iter.hasNext) {
@@ -82,8 +67,7 @@ class CassandraFlowTracingStorage(cass: CassandraClient)
                                   maxTime: Option[Date] = None,
                                   ascending: Boolean = false,
                                   limit: Option[Int] = None): (FlowTrace, List[FlowTraceData]) = {
-        val res = getSession().execute(FlowTracingSchema.bindGetFlowStatement(
-                                           getFlowTraceStatement,
+        val res = getSession().execute(schema.bindGetFlowStatement(
                                            traceRequestId, flowTraceId))
         val trace = res.one() match {
             case r: Row => row2trace(r)
@@ -91,9 +75,9 @@ class CassandraFlowTracingStorage(cass: CassandraClient)
         }
 
         val traceData = getSession().execute(
-            FlowTracingSchema.bindGetDataStatement(
-                getTraceDataStatement, traceRequestId,
-                flowTraceId, minTime, maxTime, limit))
+            schema.bindGetDataStatement(
+                traceRequestId, flowTraceId, minTime,
+                maxTime, ascending, limit))
         val iter = traceData.iterator
         val data = new ArrayList[FlowTraceData]
         while (iter.hasNext) {
