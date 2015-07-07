@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7cf8c77c",
+        "filename": "docs/external-services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_fb123361",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7b062322",
         "filename": "docs/external-services.md",
         "patchSetId": 2
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-03T14:47:04Z",
       "side": 1,
       "message": "what\u0027s expected client behaviour on failure?",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_bcf24f98",
+        "filename": "docs/external-services.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "The client automatically reconnects to another broker. Messages may be redelivered but Kafka ensures at-least-once delivery. Does that answer your question?\nI added this to the text.",
+      "parentUuid": "9ad9bd40_7b062322",
       "revId": "5e3987072f9cb76005086348fef89a991362d2af",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -59,6 +95,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_27d62c50",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 4,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_fe09412d",
+      "range": {
+        "startLine": 4,
+        "startChar": 7,
+        "endLine": 4,
+        "endChar": 8
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1e0fc531",
         "filename": "docs/merged-map.md",
         "patchSetId": 2
@@ -70,6 +130,24 @@
       "writtenOn": "2015-07-03T14:47:04Z",
       "side": 1,
       "message": "implemented using ReplicatedMap, a class using ZooKeeper as a backend, that encodes all entries as directory paths.\n\nor something like that.",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0738489f",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 5,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_1e0fc531",
       "revId": "5e3987072f9cb76005086348fef89a991362d2af",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -93,6 +171,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_675e74e8",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 8,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_5e106d4e",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_de2b9d80",
         "filename": "docs/merged-map.md",
         "patchSetId": 2
@@ -104,6 +200,30 @@
       "writtenOn": "2015-07-03T14:47:04Z",
       "side": 1,
       "message": "This is a bit confusing for me, maybe I\u0027d rephrase to say that the replicated map will treat all writes as opinions but expose the map for reads as a consolidated view that resolves opinions deterministically.",
+      "range": {
+        "startLine": 13,
+        "startChar": 51,
+        "endLine": 14,
+        "endChar": 17
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_070688ce",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_de2b9d80",
       "range": {
         "startLine": 13,
         "startChar": 51,
@@ -162,6 +282,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_87a3789d",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 16,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "An opinion is a value, in that case the port, and not the key (the MAC).",
+      "parentUuid": "9ad9bd40_fe20619d",
+      "range": {
+        "startLine": 16,
+        "startChar": 58,
+        "endLine": 16,
+        "endChar": 61
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1a3fc826",
         "filename": "docs/merged-map.md",
         "patchSetId": 2
@@ -173,6 +317,30 @@
       "writtenOn": "2015-07-05T15:15:19Z",
       "side": 1,
       "message": "Can you explain how this will be used to resolve such conflicts (like MAC to port association)? According to my understanding, we will have 2 opinions, one of the old agent (where the MAC used to be connected) and the second of the new agent (to which the MAC has moved). Who\u0027s opinion prevails? Based on what algorithm?",
+      "range": {
+        "startLine": 17,
+        "startChar": 0,
+        "endLine": 17,
+        "endChar": 42
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2718ecd2",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "For each merged map, you specify a resolution strategy for map values, i.e., opinions. In practice, a resolution strategy implements:\ndef compare(value1: V, value2: V): Int (similar to the comparable java interface).\n\nI believe that for mac tables, each opinion would contain a timestamp that denotes the time of the mac-port association. The newest timestamp would win, thereby implementing a last-write win strategy.",
+      "parentUuid": "9ad9bd40_1a3fc826",
       "range": {
         "startLine": 17,
         "startChar": 0,
@@ -208,6 +376,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e71d24bf",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 21,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_de52bd12",
+      "range": {
+        "startLine": 21,
+        "startChar": 19,
+        "endLine": 21,
+        "endChar": 28
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1e5d0522",
         "filename": "docs/merged-map.md",
         "patchSetId": 2
@@ -225,6 +417,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_077a08f1",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_1e5d0522",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7e4b7159",
         "filename": "docs/merged-map.md",
         "patchSetId": 2
@@ -236,6 +446,24 @@
       "writtenOn": "2015-07-03T14:47:04Z",
       "side": 1,
       "message": "explain motivation for doing it like this? what are the tradeoffs? (e.g., why not a single topic for all opinions of an owner in all maps)",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e7a7e44d",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 24,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_7e4b7159",
       "revId": "5e3987072f9cb76005086348fef89a991362d2af",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -289,6 +517,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_47133066",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "I tried to clarify this in the text.",
+      "parentUuid": "9ad9bd40_9a12f8b2",
+      "range": {
+        "startLine": 39,
+        "startChar": 18,
+        "endLine": 39,
+        "endChar": 50
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5e65cddf",
         "filename": "docs/merged-map.md",
         "patchSetId": 2
@@ -300,6 +552,24 @@
       "writtenOn": "2015-07-03T14:47:04Z",
       "side": 1,
       "message": "What if a hypervisor is decomissioned (but the host id entry remains in zk)? how do we clean its opinions?",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_22053a11",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "We can check the alive status of the host, isn\u0027t it?",
+      "parentUuid": "9ad9bd40_5e65cddf",
       "revId": "5e3987072f9cb76005086348fef89a991362d2af",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -329,6 +599,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_222c5a99",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_7e6291d9",
+      "range": {
+        "startLine": 52,
+        "startChar": 2,
+        "endLine": 52,
+        "endChar": 8
+      },
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9e5f550e",
         "filename": "docs/merged-map.md",
         "patchSetId": 2
@@ -340,6 +634,24 @@
       "writtenOn": "2015-07-03T14:47:04Z",
       "side": 1,
       "message": "is this service implemented, should it run in all cluster nodes, just a designated one? what are the expectations?",
+      "revId": "5e3987072f9cb76005086348fef89a991362d2af",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_42215e9e",
+        "filename": "docs/merged-map.md",
+        "patchSetId": 2
+      },
+      "lineNbr": 56,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-07T14:35:10Z",
+      "side": 1,
+      "message": "It\u0027s not implemented yet, and I was thinking of using ZK\u0027s leader election capabilities to elect one cluster node to perform this task.",
+      "parentUuid": "9ad9bd40_9e5f550e",
       "revId": "5e3987072f9cb76005086348fef89a991362d2af",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
