@@ -32,8 +32,6 @@ import java.util.UUID;
 
 public final class NeutronDataConsistencyTest extends NeutronPluginTest {
 
-    private DataClient dataClient;
-    private ZkManager zk;
     private PathBuilder pb;
 
     @Before

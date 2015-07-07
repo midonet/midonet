@@ -34,6 +34,7 @@ import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.ZookeeperTest;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.ZkManager;
 import org.midonet.packets.MAC;
 
 public abstract class NeutronPluginTest extends ZookeeperTest {
@@ -120,7 +121,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
     // Default floating IP
     protected static final FloatingIp floatingIp = new FloatingIp(
         UUID.randomUUID(), TENANT_ID, router.id, "200.0.0.5", port.id,
-        "10.0.0.5");
+        "10.0.0.5", extNetwork.id);
 
     // Default Security Group Rule
     protected static final SecurityGroupRule securityGroupRule =
@@ -147,6 +148,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
 
     protected DataClient dataClient;
     protected NeutronPlugin plugin;
+    protected ZkManager zk;
 
     @Override
     protected List<PrivateModule> getExtraModules() {
@@ -169,6 +171,7 @@ public abstract class NeutronPluginTest extends ZookeeperTest {
 
         dataClient = injector.getInstance(DataClient.class);
         plugin = injector.getInstance(NeutronPlugin.class);
+        zk = injector.getInstance(ZkManager.class);
 
         // Set up a basic scenario for all the tests for now
         setUpBasicScenario();

@@ -35,6 +35,7 @@ import org.midonet.midolman.state.zkManagers.RouterZkManager.RouterConfig;
 import org.midonet.packets.IPv4;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.MAC;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -575,6 +576,41 @@ public class L3ZkManager extends BaseZkManager {
         }
     }
 
+    private String getArpEntryPath(IPv4Addr ipAddr, MAC mac, UUID extNetId) {
+        String entry = Ip4ToMacReplicatedMap.encodePersistentPath(ipAddr, mac);
+        return paths.getBridgeIP4MacMapPath(extNetId) + entry;
+    }
+
+    private void prepareDeleteArpEntry(List<Op> ops, String ipAddr,
+                                       UUID extNetId)
+            throws SerializationException, StateAccessException {
+
+        Subnet sub = networkZkManager.getSubnetFromNetwork(extNetId);
+        RouterPortConfig rpc = portZkManager.findGatewayRouterPortFromBridge(
+                extNetId, sub.gatewayIpAddr());
+        if (rpc != null) {
+            String arpPath = getArpEntryPath(new IPv4Addr(ipAddr),
+                                             rpc.getHwAddr(), extNetId);
+            if (zk.exists(arpPath)) {
+                ops.add(zk.getDeleteOp(arpPath));
+            }
+        }
+    }
+
+    private void prepareCreateArpEntry(List<Op> ops, String ipAddr,
+                                       UUID extNetId)
+            throws SerializationException, StateAccessException {
+
+        Subnet sub = networkZkManager.getSubnetFromNetwork(extNetId);
+        RouterPortConfig rpc = portZkManager.findGatewayRouterPortFromBridge(
+                extNetId, sub.gatewayIpAddr());
+        if (rpc != null) {
+            String arpPath = getArpEntryPath(new IPv4Addr(ipAddr),
+                                             rpc.getHwAddr(), extNetId);
+            ops.add(zk.getPersistentCreateOp(arpPath, null));
+        }
+    }
+
     private void prepareAssociateFloatingIp(List<Op> ops, FloatingIp fip)
             throws SerializationException, StateAccessException,
             org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
@@ -584,6 +620,19 @@ public class L3ZkManager extends BaseZkManager {
         // Find the GW port
         RouterPortConfig gwPort =
             portZkManager.findFirstRouterPortByPeer(fip.routerId, prId);
+
+        // Create an ARP entry for this floating IP address that maps to the
+        // provider router port associated with the external network.
+        //      ...Why would we do this?
+        // Its because we any VMs spawned on the external network still need
+        // to connect to the VM associated with this port. But since the VMs IP
+        // is on the same subnet, it will first try to ARP for that IP. This
+        // will fail to return any MAC because the VM is actually on a
+        // completely different subnet, and so won't respond. But if we load
+        // the ARP table with the router port's MAC, connections to the FIP
+        // will first go to the router, and then be routed to the right VM.
+        prepareCreateArpEntry(ops, fip.floatingIpAddress,
+                              fip.floatingNetworkId);
 
         // Add a route to this gateway port on the provider router
         RouterPortConfig prPortCfg =
@@ -603,6 +652,10 @@ public class L3ZkManager extends BaseZkManager {
         throws SerializationException, StateAccessException {
 
         UUID prId = providerRouterZkManager.getId();
+
+        // remove the ARP entry for this floating IP, if it exists.
+        prepareDeleteArpEntry(ops, fip.floatingIpAddress,
+                              fip.floatingNetworkId);
 
         // Remove all routes to this floating IP on provider router
         routeZkManager.prepareRoutesDelete(ops, prId, fip.floatingIpv4Subnet());

@@ -29,13 +29,14 @@ public class FloatingIp {
 
     public FloatingIp(UUID id, String tenantId, UUID routerId,
                       String floatingIpAddress, UUID portId,
-                      String fixedIpAddress) {
+                      String fixedIpAddress, UUID floatingNetworkId) {
         this.id = id;
         this.tenantId = tenantId;
         this.routerId = routerId;
         this.floatingIpAddress = floatingIpAddress;
         this.portId = portId;
         this.fixedIpAddress = fixedIpAddress;
+        this.floatingNetworkId = floatingNetworkId;
     }
 
     public UUID id;

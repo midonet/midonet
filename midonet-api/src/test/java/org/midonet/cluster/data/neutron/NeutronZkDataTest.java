@@ -17,6 +17,7 @@ package org.midonet.cluster.data.neutron;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import org.junit.Assert;
@@ -311,5 +312,53 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
         securityGroupRule.direction = null;
         plugin.createSecurityGroupRule(securityGroupRule);
         verifySecurityGroupRule();
+    }
+
+    @Test
+    public void testFloatingIpArpEntry()
+        throws SerializationException, StateAccessException,
+               Rule.RuleIndexOutOfBoundsException {
+        // The default setup of the test already set up a floating ip
+        String bridgeArpPath =
+                pathBuilder.getBridgeIP4MacMapPath(extNetwork.id);
+        Set<String> arpEntries = zk.getChildren(bridgeArpPath);
+        Assert.assertTrue(arpEntries.size() == 1);
+        for (String entry: arpEntries) {
+            Assert.assertTrue(entry.contains(floatingIp.floatingIpAddress));
+        }
+        plugin.deleteFloatingIp(floatingIp.id);
+        arpEntries = zk.getChildren(bridgeArpPath);
+        Assert.assertTrue(arpEntries.size() == 0);
+
+        floatingIp.portId = null;
+        floatingIp.fixedIpAddress = null;
+        floatingIp.floatingNetworkId = null;
+
+        plugin.createFloatingIp(floatingIp);
+
+        arpEntries = zk.getChildren(bridgeArpPath);
+        Assert.assertTrue(arpEntries.size() == 0);
+
+        floatingIp.portId = port.id;
+        floatingIp.fixedIpAddress = "10.0.0.5";
+        floatingIp.floatingNetworkId = extNetwork.id;
+
+        plugin.updateFloatingIp(floatingIp.id, floatingIp);
+
+        arpEntries = zk.getChildren(bridgeArpPath);
+        Assert.assertTrue(arpEntries.size() == 1);
+
+        for (String entry: arpEntries) {
+            Assert.assertTrue(entry.contains(floatingIp.floatingIpAddress));
+        }
+
+        floatingIp.portId = null;
+        floatingIp.fixedIpAddress = null;
+        floatingIp.floatingNetworkId = null;
+
+        plugin.updateFloatingIp(floatingIp.id, floatingIp);
+
+        arpEntries = zk.getChildren(bridgeArpPath);
+        Assert.assertTrue(arpEntries.size() == 0);
     }
 }
