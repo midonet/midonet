@@ -78,6 +78,13 @@ public class Bucket {
         return false;
     }
 
+    /*
+     * Gives back one token. Used to revert a successful call to consumeToken().
+     */
+    public void giveBack() {
+        tokens += 1;
+    }
+
     /* Signals that the caller is done consuming tokens. It returns any
      * unconsumed tokens back to the system.
      */
