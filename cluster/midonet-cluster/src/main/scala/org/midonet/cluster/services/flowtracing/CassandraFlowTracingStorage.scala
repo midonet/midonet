@@ -38,14 +38,20 @@ class CassandraFlowTracingStorage(cass: CassandraClient)
         FlowTracingSchema.getFlowTraceCQL)
     lazy val getFlowTracesStatement: PreparedStatement = getSession().prepare(
         FlowTracingSchema.getFlowTracesCQL)
+    lazy val getFlowTracesStatementAsc: PreparedStatement = getSession().prepare(
+        FlowTracingSchema.getFlowTracesCQLAsc)
+
     lazy val getTraceDataStatement: PreparedStatement = getSession().prepare(
         FlowTracingSchema.getTraceDataCQL)
+    lazy val getTraceDataStatementAsc: PreparedStatement = getSession().prepare(
+        FlowTracingSchema.getTraceDataCQLAsc)
 
     override def getFlowCount(traceRequestId: UUID,
-                              maxTime: Date, limit: Int): Long = {
+                              minTime: Option[Date] = None,
+                              maxTime: Option[Date] = None): Long = {
         val res = getSession().execute(FlowTracingSchema.bindFlowCountStatement(
                                            getCountStatement, traceRequestId,
-                                           maxTime, limit))
+                                           minTime, maxTime))
         res.one() match {
             case r: Row => { r.getLong("count") }
             case _ => 0
@@ -53,11 +59,15 @@ class CassandraFlowTracingStorage(cass: CassandraClient)
     }
 
     override def getFlowTraces(traceRequestId: UUID,
-                      maxTime: Date,
-                      limit: Int): List[FlowTrace] = {
+                               minTime: Option[Date] = None,
+                               maxTime: Option[Date] = None,
+                               ascending: Boolean = false,
+                               limit: Option[Int] = None): List[FlowTrace] = {
         val res = getSession().execute(FlowTracingSchema.bindGetFlowsStatement(
-                                           getFlowTracesStatement,
-                                           traceRequestId, maxTime, limit))
+                                           if (ascending) { getFlowTracesStatementAsc }
+                                           else { getFlowTracesStatement },
+                                           traceRequestId,
+                                           minTime, maxTime, limit))
         val traces = new ArrayList[FlowTrace]
         val iter = res.iterator
         while (iter.hasNext) {
@@ -68,9 +78,10 @@ class CassandraFlowTracingStorage(cass: CassandraClient)
 
     override def getFlowTraceData(traceRequestId: UUID,
                                   flowTraceId: UUID,
-                                  maxTime: Date,
-                                  limit: Int)
-            : (FlowTrace, List[FlowTraceData]) = {
+                                  minTime: Option[Date] = None,
+                                  maxTime: Option[Date] = None,
+                                  ascending: Boolean = false,
+                                  limit: Option[Int] = None): (FlowTrace, List[FlowTraceData]) = {
         val res = getSession().execute(FlowTracingSchema.bindGetFlowStatement(
                                            getFlowTraceStatement,
                                            traceRequestId, flowTraceId))
@@ -82,7 +93,7 @@ class CassandraFlowTracingStorage(cass: CassandraClient)
         val traceData = getSession().execute(
             FlowTracingSchema.bindGetDataStatement(
                 getTraceDataStatement, traceRequestId,
-                flowTraceId, maxTime, limit))
+                flowTraceId, minTime, maxTime, limit))
         val iter = traceData.iterator
         val data = new ArrayList[FlowTraceData]
         while (iter.hasNext) {

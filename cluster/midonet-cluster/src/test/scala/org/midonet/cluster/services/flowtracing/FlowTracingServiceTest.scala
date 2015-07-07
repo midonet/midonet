@@ -136,20 +136,26 @@ class FlowTracingServiceTest extends FeatureSpec with Matchers
         }
 
         override def getFlowCount(traceRequestId: UUID,
-                                  maxTime: Date, limit: Int): Long = {
+                                  minTime: Option[Date] = None,
+                                  maxTime: Option[Date] = None): Long = {
             traces.keys.count(k => k._1 == traceRequestId)
         }
 
         override def getFlowTraces(traceRequestId: UUID,
-                                   maxTime: Date,
-                                   limit: Int): List[FlowTrace] = {
+                                   minTime: Option[Date] = None,
+                                   maxTime: Option[Date] = None,
+                                   ascending: Boolean = false,
+                                   limit: Option[Int] = None): List[FlowTrace] = {
             log.info(s"get flow traces ${traceRequestId} ${maxTime} ${limit}")
             val keys = traces.keys.collect(
                 { case k if k._1 == traceRequestId => k })
-            var flowsToCollect = limit
+            var flowsToCollect = limit.getOrElse(Int.MaxValue)
+            var minTimeDate = minTime.getOrElse(new Date(0))
+            var maxTimeDate = minTime.getOrElse(new Date())
             var flows = keys.flatMap({ traces.get(_) })
                 .flatMap({ _.headOption })
-                .collect({ case x if (x._2 <= maxTime.getTime &&
+                .collect({ case x if (x._2 >= minTimeDate.getTime &&
+                                          x._2 < maxTimeDate.getTime &&
                                           flowsToCollect > 0)
                               => {
                                   flowsToCollect -= 1
@@ -160,15 +166,19 @@ class FlowTracingServiceTest extends FeatureSpec with Matchers
             new ArrayList(flows)
         }
 
-        override def getFlowTraceData(traceRequestId: UUID, flowTraceId: UUID,
-                                      maxTime: Date, limit: Int)
-                : (FlowTrace, List[FlowTraceData]) = {
+        override def getFlowTraceData(traceRequestId: UUID,
+                                      flowTraceId: UUID,
+                                      minTime: Option[Date] = None,
+                                      maxTime: Option[Date] = None,
+                                      ascending: Boolean = false,
+                                      limit: Option[Int] = None):
+                (FlowTrace, List[FlowTraceData]) = {
             val ftraces = traces.getOrElse((traceRequestId, flowTraceId),
                                            { throw new TraceNotFoundException })
             val ftrace = ftraces.headOption.getOrElse(
                 { throw new TraceNotFoundException })._1
 
-            var tracesToCollect = limit
+            var tracesToCollect = limit.getOrElse(Int.MaxValue)
             val host = UUID.randomUUID
 
             val data = ftraces.collect(

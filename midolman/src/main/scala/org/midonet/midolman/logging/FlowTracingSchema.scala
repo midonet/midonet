@@ -53,22 +53,33 @@ object FlowTracingSchema {
         (traceRequestId, flowTraceId, ethSrc, ethDst, etherType,
          networkSrc, networkDst, networkProto, srcPort, dstPort)
         VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"""
+
     val countFlowTracesCQL = s"""
         SELECT COUNT(*) AS count FROM ${FLOWS_TABLE}
-        WHERE traceRequestId = ? AND flowTraceId < maxTimeuuid(?) limit ?;"""
+        WHERE traceRequestId = ?
+        AND flowTraceId >= minTimeuuid(?)
+        AND flowTraceId < maxTimeuuid(?)"""
+
     val getFlowTraceCQL = s"""
         SELECT traceRequestId, flowTraceId, ethSrc, ethDst, etherType,
                networkSrc, networkDst, networkProto, srcPort, dstPort
         FROM ${FLOWS_TABLE} WHERE traceRequestId = ? AND flowTraceId = ?"""
-    val getFlowTracesCQL = s"""
+    private val getFlowTracesCQLBase = s"""
         SELECT traceRequestId, flowTraceId, ethSrc, ethDst, etherType,
                networkSrc, networkDst, networkProto, srcPort, dstPort
         FROM ${FLOWS_TABLE} WHERE traceRequestId = ?
-                                  AND flowTraceId < maxTimeuuid(?) limit ?"""
-    val getTraceDataCQL = s"""
+        AND flowTraceId >= minTimeuuid(?)
+        AND flowTraceId < maxTimeuuid(?)"""
+    val getFlowTracesCQLAsc = getFlowTracesCQLBase + " ORDER BY flowTraceId ASC LIMIT ?"
+    val getFlowTracesCQL = getFlowTracesCQLBase + " LIMIT ?"
+
+    private val getTraceDataCQLBase = s"""
         SELECT time, host, data FROM ${FLOW_EVENTS_TABLE}
         WHERE traceRequestId = ? AND flowTraceId = ?
-              AND time < maxTimeuuid(?) limit ?"""
+        AND time >= minTimeuuid(?)
+        AND time < maxTimeuuid(?)"""
+    val getTraceDataCQLAsc = getTraceDataCQLBase + " ORDER BY time ASC LIMIT ?"
+    val getTraceDataCQL = getTraceDataCQLBase + " LIMIT ?"
 
     def bindFlowInsertStatement(insertStatement: PreparedStatement,
                                 traceRequestId: UUID, flowTraceId: UUID,
@@ -93,10 +104,12 @@ object FlowTracingSchema {
     }
 
     def bindFlowCountStatement(flowCountStatement: PreparedStatement,
-                               traceRequestId: UUID, maxTime: Date,
-                               limit: Integer): BoundStatement = {
+                               traceRequestId: UUID,
+                               minTime: Option[Date] = None,
+                               maxTime: Option[Date] = None): BoundStatement = {
         new BoundStatement(flowCountStatement).bind(traceRequestId,
-                                                    maxTime, limit)
+                                                    minTime.getOrElse(new Date(0)),
+                                                    maxTime.getOrElse(new Date()))
     }
 
     def bindGetFlowStatement(getFlowStatement: PreparedStatement,
@@ -107,18 +120,26 @@ object FlowTracingSchema {
     }
 
     def bindGetFlowsStatement(getFlowsStatement: PreparedStatement,
-                              traceRequestId: UUID, maxTime: Date,
-                              limit: Integer): BoundStatement = {
+                              traceRequestId: UUID,
+                              minTime: Option[Date] = None,
+                              maxTime: Option[Date] = None,
+                              limit: Option[Int] = None): BoundStatement = {
         new BoundStatement(getFlowsStatement).bind(traceRequestId,
-                                                   maxTime, limit)
+                                                   minTime.getOrElse(new Date(0)),
+                                                   maxTime.getOrElse(new Date()),
+                                                   Int.box(limit.getOrElse(Int.MaxValue)))
     }
 
     def bindGetDataStatement(getDataStatement: PreparedStatement,
                              traceRequestId: UUID, flowTraceId: UUID,
-                             maxTime: Date, limit: Integer):
+                             minTime: Option[Date] = None,
+                             maxTime: Option[Date] = None,
+                             limit: Option[Int] = None):
             BoundStatement = {
         new BoundStatement(getDataStatement).bind(traceRequestId, flowTraceId,
-                                                  maxTime, limit)
+                                                  minTime.getOrElse(new Date(0)),
+                                                  maxTime.getOrElse(new Date()),
+                                                  Int.box(limit.getOrElse(Int.MaxValue)))
     }
 
 }

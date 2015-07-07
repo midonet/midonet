@@ -30,13 +30,16 @@ message Request {
 message FlowCountRequest {
     optional org.midonet.cluster.models.UUID traceRequestId = 1;
     optional int64 maxTimestamp = 2;
-    optional int32 limit = 3;
+    optional int32 ignored = 3; // ignored
+    optional int64 minTimestamp = 4;
 }
 
 message FlowTracesRequest {
     optional org.midonet.cluster.models.UUID traceRequestId = 1;
     optional int64 maxTimestamp = 2;
     optional int32 limit = 3;
+    optional int64 minTimestamp = 4;
+    optional bool ascending = 6 [default = false];
 }
 
 message FlowTraceDataRequest {
@@ -44,6 +47,8 @@ message FlowTraceDataRequest {
     optional org.midonet.cluster.models.UUID flowTraceId = 2;
     optional int64 maxTimestamp = 3;
     optional int32 limit = 4;
+    optional int64 minTimestamp = 5;
+    optional bool ascending = 6 [default = false];
 }
 
 message Response {
