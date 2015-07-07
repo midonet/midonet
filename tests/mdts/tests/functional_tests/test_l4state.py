@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from nose import with_setup
 
 from nose.plugins.attrib import attr
 
@@ -123,23 +124,15 @@ def feed_macs():
     feed_mac(right_uplink_port(), right_uplink_iface())
 
 def setup():
-    PTM.build()
-    VTM.build()
     random.seed()
 
+
+def setup_router_filter():
     router = VTM.get_router('router-000-001')
     infilter = VTM.get_chain('router_infilter')
     router.set_inbound_filter(infilter)
     time.sleep(5)
 
-
-
-def teardown():
-    router = VTM.get_router('router-000-001')
-    router.set_inbound_filter(None)
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
 
 def check_forward_flow(src_port_no):
     dst_mac = mac_for(downlink_port())
@@ -208,6 +201,7 @@ def await_ports(active):
 
 @attr(version="v1.6.0", slow=False)
 @bindings(binding_l4state)
+@with_setup(setup_router_filter, lambda: None)
 def test_distributed_l4():
     '''
     Title: Tests that stateful flows work across multiple agent instances
@@ -227,6 +221,7 @@ def test_distributed_l4():
 
 @attr(version="v1.6.0", slow=False)
 @bindings(binding_l4state)
+@with_setup(setup_router_filter, lambda: None)
 def test_distributed_l4_expiration():
     '''
     Title: Tests that stateful flows expire after inactivity
@@ -250,6 +245,7 @@ def test_distributed_l4_expiration():
 
 @attr(version="v1.6.0", slow=False)
 @bindings(binding_l4state)
+@with_setup(setup_router_filter, lambda: None)
 def test_distributed_l4_port_binding():
     '''
     Title: Tests that state is imported when a port is bound
@@ -274,6 +270,7 @@ def test_distributed_l4_port_binding():
 
 @attr(version="v1.6.0", slow=False)
 @bindings(binding_l4state)
+@with_setup(setup_router_filter, lambda: None)
 def test_distributed_l4_storage_ttl():
     '''
     Title: Tests that state has a correct TTL in storage

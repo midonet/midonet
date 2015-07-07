@@ -62,18 +62,6 @@ binding_multihost = {
     }
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-    random.seed()
-
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
-
 def set_bridge_port_filters(bridge_name, port_id, inbound_filter_name, outbound_filter_name):
     '''Sets an in-bound filter to a bridge.'''
     bridge_port = VTM.get_device_port(bridge_name, port_id)

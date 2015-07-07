@@ -133,14 +133,6 @@ binding_snat_3 = {
         ]
     }
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
 
 # Even though quickly copied from test_nat_router for now, utilities below
 # should probably be moved to somewhere shared among tests

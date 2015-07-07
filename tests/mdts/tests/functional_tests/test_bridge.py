@@ -93,16 +93,6 @@ binding_two_isolated_bridges = {
     ]
 }
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
 
 @attr(version="v1.2.0", slow=False)
 @failures(NoFailure())

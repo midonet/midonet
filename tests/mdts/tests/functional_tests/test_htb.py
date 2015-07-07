@@ -107,14 +107,6 @@ bindings3 = {
         ]
     }
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
 
 def check_honest_with_random_udp():
     sender = BM.get_iface_for_port('bridge-000-001', 2)

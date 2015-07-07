@@ -98,20 +98,6 @@ binding_multihost = {
     ]
 }
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-def teardown():
-    global web_servers
-    # Stop web servers if any
-    for ws in web_servers:
-        ws.kill()
-    web_servers = []
-
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
 
 @attr(version="v1.3.0", slow=False)
 # Commented out as a workaround for MNA-108

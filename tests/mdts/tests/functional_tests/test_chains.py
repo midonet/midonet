@@ -53,17 +53,6 @@ binding_multihost = {
     }
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
-
 @attr(version="v1.2.0", slow=False)
 @bindings(binding_onehost, binding_multihost)
 def test_filter_ipv6():

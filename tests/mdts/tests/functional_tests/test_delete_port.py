@@ -55,23 +55,6 @@ binding_multihost = {
     }
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-
-def teardown():
-    time.sleep(2)
-    VTM.destroy()
-    PTM.destroy()
-
-
-def teardown_ping_delete_port():
-    VTM.clear()
-    VTM.build()
-
-
-@with_setup(teardown=teardown_ping_delete_port)
 @bindings(binding_onehost, binding_multihost)
 def test_ping_delete_port():
     """

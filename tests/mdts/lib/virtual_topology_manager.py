@@ -208,6 +208,10 @@ class VirtualTopologyManager(TopologyManager):
         for port_group in self._port_groups.values(): port_group.destroy()
         self._port_groups.clear()
 
+        # Missing clearing these
+        self._resource_references = []
+        self._links = []
+
     def get_device_port(self, device_name, port_id):
         """ Returns a bridge/router port for specified device and port ID. """
         if device_name in self._bridge_router:

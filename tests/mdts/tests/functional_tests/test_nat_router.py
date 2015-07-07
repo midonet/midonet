@@ -60,17 +60,6 @@ binding_multihost = {
     }
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
-
 def set_filters(router_name, inbound_filter_name, outbound_filter_name):
     """Sets in-/out-bound filters to a router."""
     router = VTM.get_router(router_name)

@@ -74,14 +74,6 @@ binding_multi_router = {
         ]
     }
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
 
 # See MN-1758.
 #

@@ -40,6 +40,9 @@ class BindingManager(TopologyManager):
         self._port_if_map = {}
 
     def bind(self, filename=None, data=None):
+        # Create the physical/virtual topology for each binding
+        self._ptm.build()
+        self._vtm.build()
 
         self._data = self._get_data(filename, data)
         # Get a new api ref to workaround previous zk failures
@@ -96,6 +99,10 @@ class BindingManager(TopologyManager):
                     await_port_active(mn_vport_id, active=False)
 
         self._port_if_map = {}
+
+        # Destroy the physical/virtual topology for each binding
+        self._vtm.destroy()
+        self._ptm.destroy()
 
     def get_iface_for_port(self, device_name, port_id):
         (host_id, iface_id) = self._port_if_map[(device_name, port_id)]

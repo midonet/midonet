@@ -21,7 +21,7 @@ from mdts.tests.utils.asserts import *
 from mdts.tests.utils import *
 
 from hamcrest import *
-from nose.tools import nottest
+from nose.tools import nottest, with_setup
 
 import logging
 import time
@@ -69,17 +69,9 @@ bindings3 = {
                     'host_id': 2, 'interface_id': 2}}]}
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-    # wait for stp to warm up and start forwarding
+def setup_wait():
+    # Wait for stp to warm up and start forwarding
     time.sleep(30)
-
-
-def teardown():
-    time.sleep(5)
-    PTM.destroy()
-    VTM.destroy()
 
 
 def _ping_from_mn(midoVmIface, exHostIface, count=3, do_arp=False):
@@ -144,6 +136,7 @@ def _test_resiliency_from_transient_loop(ping, midoVmIface, exHostIface):
 
 @attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_icmp_from_mn():
     """
     Title: ICMP reachability from MidoNet VLAN
@@ -165,6 +158,7 @@ def test_icmp_from_mn():
 
 @attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_icmp_to_mn():
     """
     Title: ICMP reachability to MidoNet VLAN
@@ -227,6 +221,7 @@ def _test_failover_on_ifdown_with_icmp_from_mn():
 
 @attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_failover_on_ifdown_with_icmp_from_mn():
     """
     Title: Failover on Network Interface Down
@@ -251,6 +246,7 @@ def _test_failover_on_ifdown_with_icmp_to_mn():
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_failover_on_ifdown_with_icmp_to_mn():
     """
     Title: Failover on Network Interface Down
@@ -281,6 +277,7 @@ def _test_failover_on_generic_failure_with_icmp_from_mn():
 
 @attr(version="v1.2.0")
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_failover_on_generic_failure_with_icmp_from_mn():
     """
     Title: Failover on Generic Network Failure
@@ -312,6 +309,7 @@ def _test_failover_on_generic_failure_with_icmp_to_mn():
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_failover_on_generic_failure_with_icmp_to_mn():
     """
     Title: Failover on Generic Network Failure
@@ -345,6 +343,7 @@ def _test_failback(test_failover, ping, migrate=None):
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_failback_on_ifdown_with_icmp_from_mn():
     """
     Title: Failover on Network Interface Down / Failback
@@ -355,6 +354,7 @@ def test_failback_on_ifdown_with_icmp_from_mn():
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_failback_on_ifdown_with_icmp_to_mn():
     """
     Title: Failover on Network Interface Down / Failback
@@ -365,6 +365,7 @@ def test_failback_on_ifdown_with_icmp_to_mn():
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_failback_on_generic_failure_with_icmp_from_mn():
     """
     Title: Failover on Generic Network Failure / Failback
@@ -375,6 +376,7 @@ def test_failback_on_generic_failure_with_icmp_from_mn():
 
 @attr(version="v1.2.0", slow=True)
 @bindings(bindings1, bindings2, bindings3)
+@with_setup(setup_wait, lambda: None)
 def test_failback_on_generic_failure_with_icmp_to_mn():
     """
     Title: Failover on Generic Network Failure / Failback

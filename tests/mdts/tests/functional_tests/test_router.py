@@ -61,17 +61,6 @@ binding_multihost = {
     }
 
 
-def setup():
-    PTM.build()
-    VTM.build()
-
-
-def teardown():
-    time.sleep(2)
-    PTM.destroy()
-    VTM.destroy()
-
-
 # FIXME: https://midobugs.atlassian.net/browse/MN-1746
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
@@ -169,8 +158,8 @@ def test_spoofed_arp_reply():
 
     # 176.16.2.2 is not in the router's ARP table. Ping fails.
     f1 = sender.ping_ipv4_addr('176.16.2.2', suppress_failure=True)
-    assert_that(receiver, should_NOT_receive('dst host 172.16.2.2 and icmp'),
-                                             within_sec(2))
+    assert_that(receiver, should_NOT_receive('dst host 172.16.2.2 and icmp',
+                                             within_sec(5)))
     wait_on_futures([f1])
 
     # Sender sends an unsolicited ARP reply with source IP 172.16.2.2,
@@ -195,8 +184,8 @@ def test_spoofed_arp_reply():
     f3 = sender.ping_ipv4_addr('172.16.1.2', suppress_failure=True)
     receiver.send_arp_reply(receiver.get_mac_addr(), router_mac,
                             '172.16.1.2', '172.16.2.254')
-    assert_that(receiver, should_NOT_receive('dst host 172.16.1.2 and icmp'),
-                                             within_sec(2))
+    assert_that(receiver, should_NOT_receive('dst host 172.16.1.2 and icmp',
+                                             within_sec(5)))
     wait_on_futures([f3])
 
 
