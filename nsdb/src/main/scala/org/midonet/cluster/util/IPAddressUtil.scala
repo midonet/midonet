@@ -141,6 +141,7 @@ object IPAddressUtil {
 
     final class RichProtoIPAddress(val addr: Commons.IPAddress) extends AnyVal {
         def asString: String = addr.getAddress
+        def asIPAddress: IPAddr = IPAddressUtil.toIPAddr(addr)
         def asIPv4Address: IPv4Addr = IPAddressUtil.toIPv4Addr(addr)
         def asIPv6Address: IPv6Addr = IPAddressUtil.toIPv6Addr(addr)
         def asInetAddress: InetAddress = IPAddressUtil.toInetAddress(addr)
