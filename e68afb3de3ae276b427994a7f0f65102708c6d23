@@ -22,6 +22,30 @@
       "revId": "e68afb3de3ae276b427994a7f0f65102708c6d23",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7cce0785",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/NeutronDeserializer.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-07T09:55:01Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_210b7cd7",
+      "range": {
+        "startLine": 158,
+        "startChar": 42,
+        "endLine": 158,
+        "endChar": 52
+      },
+      "revId": "e68afb3de3ae276b427994a7f0f65102708c6d23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
