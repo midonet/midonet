@@ -17,10 +17,10 @@
 package org.midonet.midolman.flows
 
 import java.nio.ByteBuffer
+import java.util.Queue
 
 import akka.actor.{ActorRef, ActorSystem}
-import org.jctools.queues.SpscArrayQueue
-import org.midonet.midolman.{CheckBackchannels, FlowController}
+import org.midonet.midolman.CheckBackchannels
 import org.midonet.netlink.exceptions.NetlinkException
 import org.midonet.odp.FlowMetadata
 import org.midonet.util.collection.ObjectPool
@@ -33,7 +33,7 @@ object FlowOperation {
 
 final class FlowOperation(actor: ActorRef,
                           pool: ObjectPool[FlowOperation],
-                          completedRequests: SpscArrayQueue[FlowOperation])
+                          completedRequests: Queue[FlowOperation])
                          (implicit actorSystem: ActorSystem)
     extends Observer[ByteBuffer] {
 
