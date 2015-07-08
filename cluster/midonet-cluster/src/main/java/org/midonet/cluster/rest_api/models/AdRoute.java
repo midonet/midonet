@@ -30,7 +30,7 @@ import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.packets.IPSubnet;
 
-@ZoomClass(clazz = Topology.BgpRoute.class)
+@ZoomClass(clazz = Topology.BgpNetwork.class)
 public class AdRoute extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -44,8 +44,11 @@ public class AdRoute extends UriResource {
 
     public byte prefixLength;
 
-    @ZoomField(name = "bgp_id", converter = UUIDUtil.Converter.class)
-    public UUID bgpId = null;
+    public UUID bgpId;
+
+    @JsonIgnore
+    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    public UUID routerId;
 
     @Override
     public URI getUri() {
@@ -79,14 +82,16 @@ public class AdRoute extends UriResource {
     }
 
     @JsonIgnore
-    public void create(UUID bgpId) {
+    public void create(UUID bgpId, UUID routerId) {
         create();
         this.bgpId = bgpId;
+        this.routerId = routerId;
     }
 
     @JsonIgnore
     public void update(AdRoute from) {
         id = from.id;
+        routerId = from.routerId;
     }
 
 }

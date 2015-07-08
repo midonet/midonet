@@ -22,8 +22,8 @@ option java_outer_classname = "Topology";
 
 // One per type
 enum Type {
-    BGP = 1;
-    BGP_ROUTE = 2;
+    BGP_NETWORK = 1;
+    BGP_PEER = 2;
     CHAIN = 3;
     DHCP = 4;
     HEALTH_MONITOR = 5;
@@ -44,24 +44,24 @@ enum Type {
     VTEP_BINDING = 20;
 }
 
-message Bgp {
-    optional UUID id = 1;
-    optional int32 local_as = 2;
-    optional int32 peer_as = 3;
-    optional IPAddress peer_address = 4;
-    repeated UUID bgp_route_ids = 5;
-
-    // Backreference
-    optional UUID port_id = 6;
-}
-
-message BgpRoute {
-
+message BgpNetwork {
     optional UUID id = 1;
     optional IPSubnet subnet = 2;
 
     // Backreference
-    optional UUID bgp_id = 3;
+    optional UUID router_id = 3;
+}
+
+message BgpPeer {
+    optional UUID id = 1;
+    optional int32 peer_as = 2;
+    optional IPAddress peer_address = 3;
+    optional int32 keep_alive = 4;
+    optional int32 hold_time = 5;
+    optional int32 connect_retry = 6;
+
+    // Backreference
+    optional UUID router_id = 7;
 }
 
 message Chain {
@@ -241,14 +241,13 @@ message Port {
     optional IPSubnet port_subnet = 14;
     optional IPAddress port_address = 15;
     optional string port_mac = 16;
-    optional UUID bgp_id = 17;
-    repeated UUID route_ids = 18;
+    repeated UUID route_ids = 17;
 
     // Specific to router interface ports (not used for router gateway ports).
-    optional UUID dhcp_id = 19;
+    optional UUID dhcp_id = 18;
 
     // VXLAN port specific
-    optional UUID vtep_id = 20;
+    optional UUID vtep_id = 19;
 
     // Backreferences
     repeated UUID rule_ids = 101;
@@ -296,6 +295,11 @@ message Router {
     optional UUID outbound_filter_id = 6;
     optional UUID load_balancer_id = 7;
     repeated UUID route_ids = 8;
+
+    // Specific to routers that have BGP routing enabled.
+    optional int32 local_as = 18 [default = -1];
+    repeated UUID bgp_network_ids = 19;
+    repeated UUID bgp_peer_ids = 20;
 
     // Backreferences
     repeated UUID port_ids = 101;
