@@ -16,8 +16,6 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.util.Range
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -32,9 +30,10 @@ import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.{RangeUtil, IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
+import org.midonet.util.Range
 import org.midonet.util.concurrent.toFutureOps
 
 object PortTranslator {
@@ -114,8 +113,13 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             midoOps += Delete(classOf[Port], id)
 
         if (isRouterGatewayPort(nPort)) {
-            midoOps += Delete(classOf[Port],
-                              RouterTranslator.tenantGwPortId(id))
+            // Delete the router port.
+            val rPortId = RouterTranslator.tenantGwPortId(id)
+            midoOps += Delete(classOf[Port], rPortId)
+
+            // Delete the SNAT rules if they exist.
+            midoOps ++= deleteRouterSnatRulesOps(rPortId)
+
             // Delete the ARP entry in the external network if it exists.
             if (nPort.getFixedIpsCount > 0 && nPort.hasMacAddress) {
                 val arpPath = arpEntryPath(
@@ -233,9 +237,10 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     private def addMidoOps(portContext: PortContext,
                            midoOps: MidoOpListBuffer) {
             midoOps ++= portContext.midoDhcps.values.map(d => Update(d.build))
-            midoOps ++= portContext.inRules ++ portContext.outRules
-            midoOps ++= portContext.antiSpoofRules
             midoOps ++= portContext.chains
+            midoOps ++= portContext.inRules
+            midoOps ++= portContext.outRules
+            midoOps ++= portContext.antiSpoofRules
             midoOps ++= portContext.updatedIpAddrGrps
     }
 
@@ -386,8 +391,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             var added = ips diff oldIps
             for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
                 if (removed.contains(ipPorts.getIpAddress)) {
-                    val idx = ipPorts.getPortIdsList.asScala
-                                                    .indexOf(portId)
+                    val idx = ipPorts.getPortIdsList.indexOf(portId)
                     if (idx >= 0) ipPorts.removePortIds(idx)
                 } else  if (added contains ipPorts.getIpAddress) {
                     // Exclude IPs that are already in IP Address Groups.
@@ -419,7 +423,29 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val portId = nPort.getId
         val inChainId = mPort.getInboundFilterId
         val outChainId = mPort.getOutboundFilterId
+        val antiSpfChainId = antiSpoofChainId(portId)
 
+        // Create in/outbound chains.
+        val inChain = newChain(inChainId, egressChainName(portId))
+        val outChain = newChain(outChainId, ingressChainName(portId))
+        val antiSpoofChain = newChain(antiSpfChainId, "Anti-Spoof Chain")
+
+        // If this is an update, clear the chains. Ideally we would be a bit
+        // smarter about this and only delete rules that actually need deleting,
+        // but this is simpler.
+        if (nPortOld != null) { // Update
+            portCtx.inRules ++= deleteRulesOps(
+                storage.get(classOf[Chain], inChainId).await())
+            portCtx.outRules ++= deleteRulesOps(
+                storage.get(classOf[Chain], outChainId).await())
+            portCtx.antiSpoofRules ++= deleteRulesOps(
+                storage.get(classOf[Chain], antiSpfChainId).await())
+        } else { // Create
+            portCtx.chains += (
+                Create(inChain), Create(outChain), Create(antiSpoofChain))
+        }
+
+        // Add new rules if appropriate.
         if (nPort.getPortSecurityEnabled) {
 
             // Create return flow rules.
@@ -433,36 +459,6 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             buildSecurityGroupJumpRules(nPort, nPortOld, portCtx, portId,
                                         inChainId, outChainId)
         }
-
-        // Create in/outbound chains with the IDs of the above rules.
-        val inChain = newChain(inChainId, egressChainName(portId),
-                               toRuleIdList(portCtx.inRules))
-        val outChain = newChain(outChainId, ingressChainName(portId),
-                                toRuleIdList(portCtx.outRules))
-        val antiSpoofChain = newChain(antiSpoofChainId(portId),
-                                      "Anti Spoof Chain",
-                                      toRuleIdList(portCtx.antiSpoofRules))
-
-        if (nPortOld != null) { // Update
-            portCtx.chains += (Update(antiSpoofChain),
-                               Update(inChain),
-                               Update(outChain))
-
-            val iChain = storage.get(classOf[Chain], inChainId).await()
-            portCtx.inRules ++= iChain
-                .getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
-            val oChain = storage.get(classOf[Chain], outChainId).await()
-            portCtx.outRules ++= oChain
-                .getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
-            val aChain = storage.get(
-                classOf[Chain], antiSpoofChainId(portId)).await()
-            portCtx.antiSpoofRules ++= aChain
-                .getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
-        } else { // Create
-            portCtx.chains += (Create(inChain),
-                               Create(outChain),
-                               Create(antiSpoofChain))
-        }
     }
 
     /* Delete chains, rules and IP Address Groups associated with nPortOld. */
@@ -470,25 +466,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                                        mPort: Port,
                                        portContext: PortContext) {
         val portId = nPortOld.getId
-        val inChainId = mPort.getInboundFilterId
-        val outChainId = mPort.getOutboundFilterId
-        val aChainId = antiSpoofChainId(mPort.getId)
 
-        val iChain = storage.get(classOf[Chain], inChainId).await()
-
-
-        portContext.inRules ++= iChain.getRuleIdsList.asScala
-                                   .map(Delete(classOf[Rule], _))
-        val oChain = storage.get(classOf[Chain], outChainId).await()
-        portContext.outRules ++= oChain.getRuleIdsList.asScala
-                                   .map(Delete(classOf[Rule], _))
-        val aChain = storage.get(classOf[Chain], aChainId).await()
-        portContext.outRules ++= aChain.getRuleIdsList.asScala
-                                   .map(Delete(classOf[Rule], _))
-
-        portContext.chains += (Delete(classOf[Chain], inChainId),
-                               Delete(classOf[Chain], outChainId),
-                               Delete(classOf[Chain], aChainId))
+        portContext.chains ++= List(
+            Delete(classOf[Chain], mPort.getInboundFilterId),
+            Delete(classOf[Chain], mPort.getOutboundFilterId),
+            Delete(classOf[Chain], antiSpoofChainId(mPort.getId)))
 
         // Remove the fixed IPs from IP Address Groups
         for (sgId <- nPortOld.getSecurityGroupsList.asScala) {
@@ -497,8 +479,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             val oldIps = nPortOld.getFixedIpsList.asScala.map(_.getIpAddress)
             for (ipPorts <- updatedIpAddrG.getIpAddrPortsBuilderList.asScala) {
                 if (oldIps.contains(ipPorts.getIpAddress)) {
-                    val idx = ipPorts.getPortIdsList.asScala
-                                                    .indexWhere(_ == portId)
+                    val idx = ipPorts.getPortIdsList.indexOf(portId)
                     if (idx >= 0) ipPorts.removePortIds(idx)
                 }
             }
@@ -591,6 +572,18 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         }
     }
 
+    private def deleteRouterSnatRulesOps(rPortId: UUID): MidoOpList = {
+        import RouterTranslator._
+        val rPort = storage.get(classOf[Port], rPortId).await()
+        val rtrId = rPort.getRouterId
+
+        // The rules should all exist, or none.
+        if (!storage.exists(classOf[Rule], outSnatRuleId(rtrId)).await()) List()
+        else List(Delete(classOf[Rule], outSnatRuleId(rtrId)),
+                  Delete(classOf[Rule], outDropUnmatchedFragmentsRuleId(rtrId)),
+                  Delete(classOf[Rule], inReverseSnatRuleId(rtrId)),
+                  Delete(classOf[Rule], inDropWrongPortTrafficRuleId(rtrId)))
+    }
 }
 
 private[translators] object PortUpdateValidator extends UpdateValidator[Port] {
