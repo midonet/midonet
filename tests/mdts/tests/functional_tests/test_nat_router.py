@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from nose.plugins.attrib import attr
+from nose.tools import nottest
 
 from mdts.lib.binding_manager import BindingManager
 from mdts.lib.physical_topology_manager import PhysicalTopologyManager
@@ -107,6 +108,7 @@ def feed_receiver_mac(receiver):
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1643
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
+@nottest
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
 def test_dnat():
@@ -146,7 +148,7 @@ def test_dnat():
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
 @attr(version="v1.2.0", slow=False, flaky=True)
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_dnat_for_udp():
     """
     Title: Tests DNAT on UDP packets.
@@ -192,6 +194,7 @@ def test_dnat_for_udp():
 
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
+@nottest
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
 def test_snat():
@@ -232,6 +235,7 @@ def test_snat():
 
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
+@nottest
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
 def test_snat_for_udp():
@@ -281,6 +285,7 @@ def test_snat_for_udp():
 
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
+@nottest
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
 def test_floating_ip():
