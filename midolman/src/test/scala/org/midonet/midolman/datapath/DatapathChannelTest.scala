@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.datapath
 
+import java.nio.channels.spi.SelectorProvider
 import java.nio.{BufferOverflowException, ByteBuffer}
 import java.util.ArrayList
 
@@ -68,7 +69,8 @@ class DatapathChannelTest extends MidolmanSpec {
     override def beforeTest() {
         val ovsFamilies = new OvsNetlinkFamilies(new DatapathFamily(1), new PortFamily(2),
                                                  new FlowFamily(3), new PacketFamily(4), 5, 6)
-        fp = new FlowProcessor(ovsFamilies, 1024, 2048, factory, clock)
+        fp = new FlowProcessor(ovsFamilies, 1024, 2048, factory,
+                               SelectorProvider.provider(), clock)
         ringBuffer = RingBuffer.createSingleProducer[DatapathEvent](
             DisruptorDatapathChannel.eventFactory(config), capacity)
         val processors = Array(new BackchannelEventProcessor[DatapathEvent](

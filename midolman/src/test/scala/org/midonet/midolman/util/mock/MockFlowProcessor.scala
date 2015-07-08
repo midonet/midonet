@@ -17,6 +17,7 @@
 package org.midonet.midolman.util.mock
 
 import java.nio.ByteBuffer
+import java.nio.channels.spi.SelectorProvider
 import java.util.{Map => JMap}
 
 import com.typesafe.scalalogging.Logger
@@ -37,6 +38,7 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
                                                      new FlowFamily(0),
                                                      new PacketFamily(0), 0, 0),
                               10000, 1023, new MockNetlinkChannelFactory,
+                              SelectorProvider.provider(),
                               new MockClock) {
     var flowDelCb: Flow => Unit = _
 

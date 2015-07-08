@@ -16,7 +16,11 @@
 
 package org.midonet.midolman.datapath
 
+import java.nio.channels._
+import java.nio.channels.spi.SelectorProvider
 import java.nio.ByteBuffer
+
+import scala.util.control.NonFatal
 
 import com.lmax.disruptor.{Sequencer, LifecycleAware, EventPoller}
 import rx.Observer
@@ -47,6 +51,7 @@ class FlowProcessor(families: OvsNetlinkFamilies,
                     maxPendingRequests: Int,
                     maxRequestSize: Int,
                     channelFactory: NetlinkChannelFactory,
+                    selectorProvider: SelectorProvider,
                     clock: NanoClock)
     extends EventPoller.Handler[DatapathEvent]
     with Backchannel
@@ -57,19 +62,28 @@ class FlowProcessor(families: OvsNetlinkFamilies,
     private val log = Logger(LoggerFactory.getLogger(
         "org.midonet.datapath.flow-processor"))
 
-    private val channel = channelFactory.create(blocking = true)
-    private val pid = channel.getLocalAddress.getPid
+    private var writeBuf = BytesUtil.instance.allocateDirect(64 * 1024)
+    private val selector = selectorProvider.openSelector()
+    private val createChannel = channelFactory.create(blocking = false)
+    private val createChannelPid = createChannel.getLocalAddress.getPid
+    private val createProtocol = new OvsProtocol(createChannelPid, families)
+    private val brokerChannel = channelFactory.create(blocking = false)
+    private val brokerChannelPid = brokerChannel.getLocalAddress.getPid
+    private val brokerProtocol = new OvsProtocol(brokerChannelPid, families)
 
     {
-        log.debug(s"Created channel with pid $pid")
+        log.debug(s"Created write channel with pid $createChannelPid")
+        log.debug(s"Created delete channel with pid $brokerChannelPid")
     }
 
-    private val writer = new NetlinkBlockingWriter(channel)
+    private val writer = new NetlinkBlockingWriter(createChannel)
     private val broker = new NetlinkRequestBroker(
-        writer, new NetlinkReader(channel), maxPendingRequests, maxRequestSize,
-        BytesUtil.instance.allocateDirect(8 * 1024), clock)
-
-    private val protocol = new OvsProtocol(pid, families)
+        new NetlinkBlockingWriter(brokerChannel),
+        new NetlinkReader(brokerChannel),
+        maxPendingRequests,
+        maxRequestSize,
+        BytesUtil.instance.allocateDirect(64 * 1024),
+        clock)
 
     private var lastSequence = Sequencer.INITIAL_CURSOR_VALUE
 
@@ -77,7 +91,7 @@ class FlowProcessor(families: OvsNetlinkFamilies,
                          endOfBatch: Boolean): Boolean = {
         if (event.op == FLOW_CREATE) {
             try {
-                event.bb.putInt(NetlinkMessage.NLMSG_PID_OFFSET, pid)
+                event.bb.putInt(NetlinkMessage.NLMSG_PID_OFFSET, createChannelPid)
                 writer.write(event.bb)
                 log.debug(s"Created flow #$sequence")
             } catch { case t: Throwable =>
@@ -89,8 +103,6 @@ class FlowProcessor(families: OvsNetlinkFamilies,
     }
 
     def capacity = broker.capacity
-
-    def hasPendingOperations = broker.hasRequestsToWrite
 
     /**
      * Tries to eject a flow only if the corresponding Disruptor sequence is
@@ -104,7 +116,8 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         if (disruptorSeq >= sequence && { brokerSeq = broker.nextSequence()
                                           brokerSeq } != NetlinkRequestBroker.FULL) {
             try {
-                protocol.prepareFlowDelete(datapathId, flowMatch.getKeys, broker.get(brokerSeq))
+                brokerProtocol.prepareFlowDelete(
+                    datapathId, flowMatch.getKeys, broker.get(brokerSeq))
                 broker.publishRequest(brokerSeq, obs)
             } catch { case e: Throwable =>
                 obs.onError(e)
@@ -120,7 +133,8 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         var seq = 0L
         if ({ seq = broker.nextSequence(); seq } != NetlinkRequestBroker.FULL) {
             try {
-                protocol.prepareFlowGet(datapathId, flowMatch, broker.get(seq))
+                brokerProtocol.prepareFlowGet(
+                    datapathId, flowMatch, broker.get(seq))
                 broker.publishRequest(seq, obs)
             } catch { case e: Throwable =>
                 obs.onError(e)
@@ -134,34 +148,68 @@ class FlowProcessor(families: OvsNetlinkFamilies,
     override def shouldProcess(): Boolean =
         broker.hasRequestsToWrite
 
-    override def process(): Unit =
-        broker.writePublishedRequests()
+    override def process(): Unit = {
+        if (broker.hasRequestsToWrite) {
+            val bytes = broker.writePublishedRequests()
+            log.debug(s"Wrote flow deletion requests ($bytes bytes)")
+        }
+    }
 
-    val defaultObserver = new Observer[ByteBuffer] {
+    val handleDeleteError = new Observer[ByteBuffer] {
         override def onCompleted(): Unit =
-            log.warn("Unexpected reply; probably the late answer of a request that timed out")
+            log.warn("Unexpected reply to flow deletion; probably the late " +
+                     "answer of a request that timed out")
 
         override def onError(e: Throwable): Unit = e match {
-            case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
-                log.debug("Tried to add duplicate DP flow")
             case ne: NetlinkException =>
-                log.warn(s"Unexpected error ${ne.getErrorCodeEnum}; " +
+                log.warn(s"Unexpected flow deletion error ${ne.getErrorCodeEnum}; " +
                          "probably the late answer of a request that timed out")
-            }
+            case NonFatal(nf) =>
+                log.error("Unexpected error when deleting a flow", nf)
+        }
 
         override def onNext(t: ByteBuffer): Unit = { }
     }
 
+    private def handleCreateError(reader: NetlinkReader, buf: ByteBuffer): Unit =
+        try {
+            reader.read(buf)
+        } catch {
+            case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
+                log.debug("Tried to add duplicate DP flow")
+            case e: NetlinkException =>
+                log.warn("Failed to create flow", e)
+            case NonFatal(e) =>
+                log.error("Unexpected error when creating a flow")
+        } finally {
+            buf.clear()
+        }
 
-    val replies = new Thread("flow-processor-replies") {
-        override def run(): Unit =
-            while (channel.isOpen) {
+    private val replies = new Thread("flow-processor-errors") {
+        override def run(): Unit = {
+            val reader = new NetlinkReader(createChannel)
+            val createErrorsBuffer = BytesUtil.instance.allocateDirect(64 * 1024)
+            while (createChannel.isOpen && brokerChannel.isOpen) {
+                val createKey = createChannel.register(selector, SelectionKey.OP_READ)
+                val deleteKey = brokerChannel.register(selector, SelectionKey.OP_READ)
                 try {
-                    broker.readReply(defaultObserver)
-                } catch { case t: Throwable =>
-                    log.debug("Error while reading replies", t)
+                    if (selector.select() > 0) {
+                        if (createKey.isReadable)
+                            handleCreateError(reader, createErrorsBuffer)
+                        if (deleteKey.isReadable)
+                            broker.readReply(handleDeleteError)
+                        selector.selectedKeys().clear()
+                    }
+                } catch {
+                    case ignored @ (_: InterruptedException |
+                                    _: ClosedChannelException |
+                                    _: ClosedByInterruptException|
+                                    _: AsynchronousCloseException) =>
+                    case NonFatal(t) =>
+                        log.debug("Error while reading replies", t)
                 }
             }
+        }
     }
 
     override def onStart(): Unit = {
@@ -170,7 +218,8 @@ class FlowProcessor(families: OvsNetlinkFamilies,
     }
 
     override def onShutdown(): Unit = {
-        channel.close()
-        replies.interrupt()
+        createChannel.close()
+        brokerChannel.close()
+        selector.wakeup()
     }
 }
