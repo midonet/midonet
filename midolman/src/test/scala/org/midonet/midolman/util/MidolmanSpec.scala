@@ -115,6 +115,7 @@ trait MidolmanSpec extends FeatureSpecLike
         config.withFallback(ConfigFactory.parseString(defaults))
     }
 
+    def useNewStorageStack: Boolean = System.getProperty("midonet.newStack") != null
     protected def getModules = {
         val conf = MidoTestConfigurator.forAgents(fillConfig())
         val modules = List(
@@ -151,7 +152,7 @@ trait MidolmanSpec extends FeatureSpecLike
                     expose(classOf[InterfaceScanner])
                 }
             })
-        if (System.getProperty("midonet.newStack") != null) {
+        if (useNewStorageStack) {
             log.info("Using zoom storage")
             modules :+ new AbstractModule {
                 override def configure() {

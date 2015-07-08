@@ -267,7 +267,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             action should be (bridge.floodAction)
 
             When("The router is linked to the bridge")
-            clusterDataClient.portsLink(routerPort, leftPort)
+            linkPorts(routerPort, leftPort)
 
             Then("Invalidations for flooded and unicast flows should happen")
             flowInvalidator should invalidate(
@@ -277,7 +277,7 @@ class BridgeInvalidationTest extends MidolmanSpec
         scenario("a interior port is unlinked") {
             When("The router is linked to the bridge")
             var bridge: Bridge = fetchDevice[Bridge](clusterBridge)
-            clusterDataClient.portsLink(routerPort, interiorPort)
+            linkPorts(routerPort, interiorPort)
             eventually {
                 val newBridge: Bridge = fetchDevice[Bridge](clusterBridge)
                 newBridge should not be bridge
@@ -295,7 +295,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             flowInvalidator.clear()
 
             And("The interior port is then unlinked")
-            clusterDataClient.portsUnlink(interiorPort)
+            unlinkPorts(interiorPort)
 
             Then("A flow invalidation should be produced")
             flowInvalidator should invalidate(interiorPortTag)

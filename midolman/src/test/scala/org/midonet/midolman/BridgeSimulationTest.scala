@@ -27,7 +27,6 @@ import org.scalatest.junit.JUnitRunner
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.{TunnelZone}
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Bridge
@@ -83,8 +82,7 @@ class BridgeSimulationTest extends MidolmanSpec {
 
         List(host1, host2, host3).zip(List(host1Ip, host2Ip, host3Ip)).foreach{
             case (host, ip) =>
-                clusterDataClient.tunnelZonesAddMembership(tunnelZone,
-                    new TunnelZone.HostConfig(host).setIp(ip))
+                addTunnelZoneMember(tunnelZone, host, ip)
         }
 
         fetchPorts(port1OnHost1, portOnHost2, portOnHost3,

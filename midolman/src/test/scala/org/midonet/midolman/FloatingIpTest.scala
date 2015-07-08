@@ -73,7 +73,7 @@ class FloatingIpTest extends MidolmanSpec {
 
         val bridge = newBridge("bridge")
         val brPort1 = newBridgePort(bridge)
-        clusterDataClient.portsLink(rtrPort2, brPort1)
+        linkPorts(rtrPort2, brPort1)
 
         brPort2 = newBridgePort(bridge)
         materializePort(brPort2, hostId, "VM2")

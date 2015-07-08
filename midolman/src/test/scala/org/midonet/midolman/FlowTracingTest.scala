@@ -20,7 +20,6 @@ import java.util.{LinkedList, UUID}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.rules.Condition
@@ -62,14 +61,6 @@ class FlowTracingTest extends MidolmanSpec {
         fetchDevice[Bridge](bridge)
     }
 
-    private def newTraceRule(requestId: UUID, chain: UUID,
-                             condition: Condition, pos: Int) {
-        val traceRule = new TraceRuleData(requestId, condition, Long.MaxValue)
-            .setChainId(chain).setPosition(pos)
-        clusterDataClient.rulesCreate(traceRule)
-        fetchChains(chain)
-    }
-
     private def makeFrame(tpDst: Short, tpSrc: Short = 10101) =
         { eth addr "00:02:03:04:05:06" -> "00:20:30:40:50:60" } <<
         { ip4 addr "192.168.0.1" --> "192.168.0.2" } <<
@@ -98,7 +89,7 @@ class FlowTracingTest extends MidolmanSpec {
     feature("Tracing enabled by rule in chain") {
         scenario("tracing enabled by catchall rule") {
             val requestId = UUID.randomUUID
-            newTraceRule(requestId, chain, newCondition(), 1)
+            newTraceRuleOnChain(chain, 1, newCondition(), requestId)
 
             val pktCtx = packetContextFor(makeFrame(1), port1)
             pktCtx.tracingEnabled(requestId) should be (false)
@@ -116,8 +107,8 @@ class FlowTracingTest extends MidolmanSpec {
 
         scenario("tracing enabled by specific rule match") {
             val requestId = UUID.randomUUID
-            newTraceRule(requestId, chain,
-                         newCondition(tpDst = Some(500)), 1)
+            newTraceRuleOnChain(chain, 1,
+                                newCondition(tpDst = Some(500)), requestId)
 
             val pktCtx = packetContextFor(makeFrame(1), port1)
             pktCtx.tracingEnabled(requestId) should be (false)
@@ -147,10 +138,10 @@ class FlowTracingTest extends MidolmanSpec {
         scenario("Multiple rules matching on different things") {
             val requestId1 = UUID.randomUUID
             val requestId2 = UUID.randomUUID
-            newTraceRule(requestId1, chain,
-                         newCondition(tpDst = Some(500)), 1)
-            newTraceRule(requestId2, chain,
-                         newCondition(tpSrc = Some(1000)), 1)
+            newTraceRuleOnChain(chain, 1,
+                                newCondition(tpDst = Some(500)), requestId1)
+            newTraceRuleOnChain(chain, 1,
+                                newCondition(tpSrc = Some(1000)), requestId2)
 
             val pktCtx = packetContextFor(makeFrame(500), port1)
             pktCtx.tracingEnabled(requestId1) should be (false)
@@ -193,8 +184,8 @@ class FlowTracingTest extends MidolmanSpec {
 
         scenario("restart on trace requested exception") {
             val requestId = UUID.randomUUID
-            newTraceRule(requestId, chain,
-                         newCondition(tpDst = Some(500)), 1)
+            newTraceRuleOnChain(chain, 1,
+                                newCondition(tpDst = Some(500)), requestId)
             val pktCtxs = new LinkedList[PacketContext]()
             val wkfl = packetWorkflow(Map(42 -> port1),
                                       packetCtxTrap = pktCtxs)
@@ -208,8 +199,8 @@ class FlowTracingTest extends MidolmanSpec {
     feature("Ingress/Egress matching") {
         scenario("Trace generates flow state messages") {
             val requestId1 = UUID.randomUUID
-            newTraceRule(requestId1, chain,
-                         newCondition(tpDst = Some(500)), 1)
+            newTraceRuleOnChain(chain, 1,
+                                newCondition(tpDst = Some(500)), requestId1)
             val frame = makeFrame(500)
             val pktCtx = packetContextFor(frame, port1)
             pktCtx.tracingEnabled(requestId1) should be (false)
@@ -230,8 +221,9 @@ class FlowTracingTest extends MidolmanSpec {
 
         scenario("Trace gets enabled on egress host (no tunnel key hint)") {
             val requestId1 = UUID.randomUUID
-            newTraceRule(requestId1, chain,
-                         newCondition(tpDst = Some(500)), 1)
+            newTraceRuleOnChain(chain, 1,
+                                newCondition(tpDst = Some(500)),
+                                requestId1)
 
             val frame = makeFrame(500)
             val key = TraceKey.fromFlowMatch(

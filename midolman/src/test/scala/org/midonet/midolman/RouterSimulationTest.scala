@@ -198,7 +198,7 @@ class RouterSimulationTest extends MidolmanSpec {
     }
 
     scenario("No route") {
-        clusterDataClient.routesDelete(upLinkRoute)
+        deleteRoute(upLinkRoute)
 
         val fromMac = MAC.random()
         val fromIp = addressInSegment(port1)
@@ -282,7 +282,7 @@ class RouterSimulationTest extends MidolmanSpec {
 
     scenario("Next hop non-local address") {
         val badGwAddr = "179.0.0.1"
-        clusterDataClient.routesDelete(upLinkRoute)
+        deleteRoute(upLinkRoute)
         newRoute(router, "0.0.0.0", 0, "0.0.0.0", 0, NextHop.PORT,
                  uplinkPort, badGwAddr, 1)
         val fromMac = MAC.random
@@ -388,7 +388,7 @@ class RouterSimulationTest extends MidolmanSpec {
     }
 
     scenario("Ports can be deactivate and reactivated") {
-        clusterDataClient.routesDelete(upLinkRoute)
+        deleteRoute(upLinkRoute)
 
         val fromMac = MAC.random
         val fromIp = addressInSegment(port1)
@@ -419,7 +419,7 @@ class RouterSimulationTest extends MidolmanSpec {
         pktCtx2.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port1))
 
         // Deactivate port2
-        clusterDataClient.portsDelete(port2)
+        deletePort(port2)
         pkt = { eth src fromMac dst port1dev.portMac } <<
               { ip4 src fromIp dst toIp } <<
               { icmp.echo request }

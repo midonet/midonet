@@ -98,7 +98,7 @@ class PingTest extends MidolmanSpec {
 
         val brPort1 = newBridgePort(bridge)
         brPort1 should not be null
-        clusterDataClient.portsLink(rtrPort2, brPort1)
+        linkPorts(rtrPort2, brPort1)
 
         // add a materialized port on bridge, logically connected to VM2
         vm2Port = newBridgePort(bridge)

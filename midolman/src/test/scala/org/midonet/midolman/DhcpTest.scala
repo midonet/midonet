@@ -83,10 +83,10 @@ class DhcpTest extends MidolmanSpec {
         bridge = newBridge("bridge")
 
         val bridgeIntPort1 = newBridgePort(bridge)
-        clusterDataClient.portsLink(routerPort2, bridgeIntPort1)
+        linkPorts(routerPort2, bridgeIntPort1)
 
         val bridgeIntPort2 = newBridgePort(bridge)
-        clusterDataClient.portsLink(routerPort3, bridgeIntPort2)
+        linkPorts(routerPort3, bridgeIntPort2)
 
         bridgePort1 = newBridgePort(bridge)
         materializePort(bridgePort1, hostId, "bridgePort1")

@@ -20,7 +20,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.{TunnelZone}
 import org.midonet.midolman.DatapathController.Initialize
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
@@ -83,7 +82,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             ifname: String): UUID = {
         val port = newBridgePort(br)
         port should not be null
-        clusterDataClient.hostsAddVrnPortMapping(hostId, port, ifname)
+        addHostVrnPortMapping(hostId, port, ifname)
         port
     }
 
@@ -95,8 +94,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
             Set(zone))
         host should not be null
 
-        clusterDataClient.tunnelZonesAddMembership(zone,
-            new TunnelZone.HostConfig(host).setIp(ip))
+        addTunnelZoneMember(zone, host, ip)
 
         clusterBridge = newBridge("bridge")
         clusterBridge should not be null
@@ -168,7 +166,7 @@ class DatapathControllerPortCreationTest extends MidolmanSpec {
 
             When("the binding disappears")
             VirtualToPhysicalMapper.getAndClear()
-            clusterDataClient.hostsDelVrnPortMapping(host, port)
+            deletePort(port, host)
 
             Then("the DpC should delete the datapath port")
             testableDpc.driver.getDpPortNumberForVport(port) should be (null)
