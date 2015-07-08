@@ -21,12 +21,15 @@ import org.midonet.netlink.NetlinkProtocol.NETLINK_GENERIC
 import org.midonet.netlink.{NetlinkUtil, MockNetlinkChannel, NetlinkChannelFactory, NetlinkProtocol}
 
 class MockNetlinkChannelFactory extends NetlinkChannelFactory {
+    val selectorProvider = new MockSelectorProvider
     val channel = new MockNetlinkChannel(
-        new MockSelectorProvider,
+        selectorProvider,
         NetlinkProtocol.NETLINK_GENERIC)
+    channel.configureBlocking(false)
 
-    override def create(blocking: Boolean = true,
+    override def create(blocking: Boolean = false,
                         protocol: NetlinkProtocol = NETLINK_GENERIC,
-                        notificationGroups: Int = NetlinkUtil.NO_NOTIFICATION) =
+                        notificationGroups: Int = NetlinkUtil.NO_NOTIFICATION) = {
         channel
+    }
 }
