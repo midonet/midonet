@@ -16,9 +16,11 @@
 
 package org.midonet.midolman.datapath
 
-import java.nio.channels.{AsynchronousCloseException, ClosedByInterruptException, ClosedChannelException}
+import java.nio.channels._
 import java.nio.{BufferOverflowException, ByteBuffer}
 import java.util.ArrayList
+
+import scala.util.control.NonFatal
 
 import com.lmax.disruptor.{Sequencer, LifecycleAware, EventPoller}
 import org.midonet.midolman.DatapathState
@@ -68,23 +70,27 @@ class FlowProcessor(dpState: DatapathState,
     private val supportsMegaflow = dpState.datapath.supportsMegaflow()
 
     private var writeBuf = BytesUtil.instance.allocateDirect(64 * 1024)
-    private val channel = channelFactory.create(blocking = true)
-    private val pid = channel.getLocalAddress.getPid
+    private val selector = Selector.open()
+    private val createChannel = channelFactory.create(blocking = false)
+    private val deleteChannel = channelFactory.create(blocking = false)
+    private val createPid = createChannel.getLocalAddress.getPid
+    private val deletePid = deleteChannel.getLocalAddress.getPid
 
     {
-        log.debug(s"Created channel with pid $pid")
+        log.debug(s"Created write channel with pid $createPid")
+        log.debug(s"Created delete channel with pid $deletePid")
     }
 
-    private val writer = new NetlinkBlockingWriter(channel)
+    private val writer = new NetlinkBlockingWriter(createChannel)
     private val broker = new NetlinkRequestBroker(
         writer,
-        new NetlinkReader(channel),
+        new NetlinkReader(deleteChannel),
         maxPendingRequests,
         maxRequestSize,
         BytesUtil.instance.allocateDirect(64 * 1024),
         clock)
 
-    private val protocol = new OvsProtocol(pid, families)
+    private val protocol = new OvsProtocol(createPid, families)
 
     private val flowMask = new FlowMask()
 
@@ -102,8 +108,8 @@ class FlowProcessor(dpState: DatapathState,
                     context.log.debug(s"Applying mask $flowMask")
                     flowMask
                 } else null
-                writeFlow(datapathId, flowMatch.getKeys,
-                          context.flowActions, mask)
+                writeFlow(
+                    datapathId, flowMatch.getKeys, context.flowActions, mask)
                 context.log.debug("Created datapath flow")
             } catch { case t: Throwable =>
                 context.log.error("Failed to create datapath flow", t)
@@ -133,8 +139,6 @@ class FlowProcessor(dpState: DatapathState,
         }
 
     def capacity = broker.capacity
-
-    def hasPendingOperations = broker.hasRequestsToWrite
 
     /**
      * Tries to eject a flow only if the corresponding Disruptor sequence is
@@ -181,35 +185,53 @@ class FlowProcessor(dpState: DatapathState,
     override def process(): Unit =
         broker.writePublishedRequests()
 
-    val defaultObserver = new Observer[ByteBuffer] {
+    val handleDeleteError = new Observer[ByteBuffer] {
         override def onCompleted(): Unit =
-            log.warn("Unexpected reply; probably the late answer of a request that timed out")
+            log.warn("Unexpected reply to flow deletion; probably the late answer of a request that timed out")
 
         override def onError(e: Throwable): Unit = e match {
-            case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
-                log.debug("Tried to add duplicate DP flow")
             case ne: NetlinkException =>
-                log.warn(s"Unexpected error ${ne.getErrorCodeEnum}; " +
+                log.warn(s"Unexpected flow deletion error ${ne.getErrorCodeEnum}; " +
                          "probably the late answer of a request that timed out")
             }
 
         override def onNext(t: ByteBuffer): Unit = { }
     }
 
-    val replies = new Thread("flow-processor-replies") {
-        override def run(): Unit =
-            while (channel.isOpen) {
+    private def handleCreateError(reader: NetlinkReader, buf: ByteBuffer): Unit =
+        try {
+            reader.read(buf)
+        } catch {
+            case ne: NetlinkException if ne.getErrorCodeEnum == ErrorCode.EEXIST =>
+                log.debug("Tried to add duplicate DP flow")
+            case e: NetlinkException =>
+                log.warn("Failed to create flow", e)
+        }
+
+    private val replies = new Thread("flow-processor-errors") {
+        override def run(): Unit = {
+            val reader = new NetlinkReader(createChannel)
+            val createErrorsBuffer = BytesUtil.instance.allocateDirect(64 * 1024)
+            val createKey = createChannel.register(selector, SelectionKey.OP_READ)
+            val deleteKey = deleteChannel.register(selector, SelectionKey.OP_READ)
+            while (createChannel.isOpen && deleteChannel.isOpen) {
                 try {
-                    broker.readReply(defaultObserver)
+                    if (selector.select() > 0) {
+                        if (createKey.isReadable)
+                            handleCreateError(reader, createErrorsBuffer)
+                        if (deleteKey.isReadable)
+                            broker.readReply(handleDeleteError)
+                    }
                 } catch {
                     case ignored @ (_: InterruptedException |
                                     _: ClosedChannelException |
                                     _: ClosedByInterruptException|
                                     _: AsynchronousCloseException) =>
-                    case t: Throwable =>
+                    case NonFatal(t) =>
                         log.debug("Error while reading replies", t)
                 }
             }
+        }
     }
 
     override def onStart(): Unit = {
@@ -218,7 +240,8 @@ class FlowProcessor(dpState: DatapathState,
     }
 
     override def onShutdown(): Unit = {
-        channel.close()
-        replies.interrupt()
+        createChannel.close()
+        deleteChannel.close()
+        selector.wakeup()
     }
 }
