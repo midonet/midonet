@@ -17,7 +17,6 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -29,13 +28,12 @@ import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil;
 
-@ZoomClass(clazz = Topology.Bgp.class)
+@ZoomClass(clazz = Topology.BgpPeer.class)
 public class Bgp extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @ZoomField(name = "local_as")
     public int localAS;
 
     @ZoomField(name = "peer_as")
@@ -46,10 +44,6 @@ public class Bgp extends UriResource {
 
     @ZoomField(name = "port_id", converter = UUIDUtil.Converter.class)
     public UUID portId;
-
-    @JsonIgnore
-    @ZoomField(name = "bgp_route_ids", converter = UUIDUtil.Converter.class)
-    public List<UUID> adRouteIds;
 
     public String status;
 
@@ -83,7 +77,6 @@ public class Bgp extends UriResource {
     @JsonIgnore
     public void update(Bgp from) {
         id = from.id;
-        adRouteIds = from.adRouteIds;
     }
 
 }
