@@ -24,8 +24,6 @@ import akka.util.Timeout
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.l4lb
-import org.midonet.cluster.data.{Entity}
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
@@ -81,9 +79,10 @@ class PoolTest extends MidolmanSpec {
         n => new IPv4Subnet(s"10.0.$n.254", 24)}
 
     var router: UUID = _
-    var loadBalancer: l4lb.LoadBalancer = _
-    var vip: l4lb.VIP = _
-    var poolMembers: Seq[l4lb.PoolMember] = _
+    var loadBalancer: UUID = _
+    var vip: UUID = _
+    var pool: UUID = _
+    var poolMembers: Seq[UUID] = _
     var exteriorClientPort: UUID = _
     var exteriorBackendPorts: Seq[UUID] = _
 
@@ -171,8 +170,7 @@ class PoolTest extends MidolmanSpec {
         // Create loadbalancer topology
         loadBalancer = newLoadBalancer()
         setLoadBalancerOnRouter(loadBalancer, router)
-        loadBalancer.setRouterId(router)
-        val pool = newPool(loadBalancer)
+        pool = newPool(loadBalancer)
         vip = createVip(pool, vipIp.toUnicastString, vipPort)
         poolMembers = (0 until numBackends) map {
             n => newPoolMember(pool, ipsBackendSide(n).toUnicastString,
@@ -682,9 +680,12 @@ class PoolTest extends MidolmanSpec {
         }
     }
 
-    private[this] def getPoolMemberFromIp(ip: Int): l4lb.PoolMember = {
-        val ipStr: String = IPv4Addr.intToString(ip)
-        poolMembers.find(_.getAddress == ipStr).get
+    private[this] def getPoolMemberFromIp(ip: Int): UUID = {
+        val ipaddr = IPv4Addr.fromInt(ip)
+        fetchDevice[Pool](pool).members.find(x => {
+                                                 log.info(s"IKDEBUG member $x");
+                                                 x.address.equals(ipaddr)
+                                             }).get.id
     }
 
     private[this] def setPoolMemberDisabledByIp(ip: Int) {

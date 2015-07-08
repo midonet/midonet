@@ -38,7 +38,7 @@ import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, TCP, MAC}
 import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer, HealthMonitor}
 import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
 import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
@@ -450,43 +450,46 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     // L4LB
-    override def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer = {
+    override def newLoadBalancer(id: UUID = UUID.randomUUID): UUID = {
         val loadBalancer = new LoadBalancer()
         loadBalancer.setAdminStateUp(true)
         loadBalancer.setId(id)
         clusterDataClient().loadBalancerCreate(loadBalancer)
         Thread.sleep(50)
-        loadBalancer
+        id
     }
 
     override def deleteLoadBalancer(id: UUID) {
         clusterDataClient().loadBalancerDelete(id)
     }
 
-    override def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, routerId: UUID): Unit = {
+    override def setLoadBalancerOnRouter(loadBalancer: UUID, routerId: UUID): Unit = {
         val router = clusterDataClient().routersGet(routerId)
         if (loadBalancer != null) {
-            router.setLoadBalancer(loadBalancer.getId)
+            router.setLoadBalancer(loadBalancer)
         } else {
             router.setLoadBalancer(null)
         }
         clusterDataClient().routersUpdate(router)
     }
 
-    override def setLoadBalancerDown(loadBalancer: LoadBalancer) {
+    override def setLoadBalancerDown(loadBalancerId: UUID) {
+        val loadBalancer = clusterDataClient().loadBalancerGet(loadBalancerId)
         loadBalancer.setAdminStateUp(false)
         clusterDataClient().loadBalancerUpdate(loadBalancer)
     }
 
-    override def createVip(pool: Pool): VIP = createVip(pool, "10.10.10.10", 10)
+    override def createVip(pool: UUID): UUID = createVip(pool, "10.10.10.10", 10)
 
-    override def createVip(pool: Pool, address: String, port: Int): VIP = {
+    override def createVip(poolId: UUID, address: String, port: Int): UUID = {
+        val pool = clusterDataClient().poolGet(poolId)
         val vip = new VIP()
         vip.setId(UUID.randomUUID)
         vip.setAddress(address)
         vip.setPoolId(pool.getId)
         // Set the load balancer ID manually. This should be done automatically
         // when we go through the REST API.
+
         vip.setLoadBalancerId(pool.getLoadBalancerId)
         vip.setProtocolPort(port)
         vip.setAdminStateUp(true)
@@ -495,48 +498,47 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         // Getting the created VIP to see the actual model stored in
         // ZooKeeper because `loadBalancerId` would be populated though
         // the associated pool.
-        clusterDataClient().vipGet(vip.getId)
+        vip.getId
     }
 
-    override def deleteVip(vip: VIP): Unit = clusterDataClient().vipDelete(vip.getId)
+    override def deleteVip(vip: UUID): Unit = clusterDataClient().vipDelete(vip)
 
-    override def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer) {
-        vip.setLoadBalancerId(null)
-        clusterDataClient().vipUpdate(vip)
+    override def matchVip(vipId: UUID, address: IPAddr, protocolPort: Int): Boolean = {
+        val vip = clusterDataClient().vipGet(vipId)
+        IPAddr.fromString(vip.getAddress()).equals(address) &&
+            vip.getProtocolPort() == protocolPort
     }
 
-    override def createRandomVip(pool: Pool): VIP = {
+    override def createRandomVip(poolId: UUID): UUID = {
         val rand = new Random()
         val vip = new VIP()
         vip.setId(UUID.randomUUID)
         vip.setAddress("10.10.10." + Integer.toString(rand.nextInt(200) +1))
         vip.setProtocolPort(rand.nextInt(1000) + 1)
         vip.setAdminStateUp(true)
-        vip.setPoolId(pool.getId)
+        vip.setPoolId(poolId)
         clusterDataClient().vipCreate(vip)
         Thread.sleep(50)
         // Getting the created VIP to see the actual model stored in
         // ZooKeeper because `loadBalancerId` would be populated though
         // the associated pool.
-        clusterDataClient().vipGet(vip.getId)
+        vip.getId
     }
 
-    override def setVipPool(vip: VIP, pool: Pool) {
-        vip.setPoolId(pool.getId)
-        clusterDataClient().vipUpdate(vip)
-    }
-
-    override def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean) {
+    override def setVipAdminStateUp(vipId: UUID, adminStateUp: Boolean) {
+        val vip = clusterDataClient().vipGet(vipId)
         vip.setAdminStateUp(adminStateUp)
         clusterDataClient().vipUpdate(vip)
     }
 
-    override def vipEnableStickySourceIP(vip: VIP) {
+    override def vipEnableStickySourceIP(vipId: UUID) {
+        val vip = clusterDataClient().vipGet(vipId)
         vip.setSessionPersistence(VipSessionPersistence.SOURCE_IP)
         clusterDataClient().vipUpdate(vip)
     }
 
-    override def vipDisableStickySourceIP(vip: VIP) {
+    override def vipDisableStickySourceIP(vipId: UUID) {
+        val vip = clusterDataClient().vipGet(vipId)
         vip.setSessionPersistence(null)
         clusterDataClient().vipUpdate(vip)
     }
@@ -545,7 +547,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
                                   adminStateUp: Boolean = true,
                                   delay: Int = 2,
                                   maxRetries: Int = 2,
-                                  timeout: Int = 2): HealthMonitor = {
+                                  timeout: Int = 2): UUID = {
         val hm = new HealthMonitor()
         hm.setId(id)
         hm.setAdminStateUp(adminStateUp)
@@ -554,11 +556,19 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         hm.setTimeout(timeout)
         clusterDataClient().healthMonitorCreate(hm)
         Thread.sleep(50)
-        hm
+        id
     }
 
+    override def matchHealthMonitor(id: UUID, adminStateUp: Boolean,
+                                    delay: Int, timeout: Int, maxRetries: Int): Boolean = {
+        val hm = clusterDataClient().healthMonitorGet(id)
+        hm.isAdminStateUp() == adminStateUp && hm.getDelay() == delay &&
+            hm.getTimeout() == timeout && hm.getMaxRetries() == maxRetries
+    }
+
+
     override def newRandomHealthMonitor
-            (id: UUID = UUID.randomUUID()): HealthMonitor = {
+            (id: UUID = UUID.randomUUID()): UUID = {
         val rand = new Random()
         val hm = new HealthMonitor()
         hm.setId(id)
@@ -568,74 +578,79 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         hm.setTimeout(rand.nextInt(100) + 1)
         clusterDataClient().healthMonitorCreate(hm)
         Thread.sleep(50)
-        hm
+        id
     }
 
-    override def setHealthMonitorDelay(hm: HealthMonitor, delay: Int) = {
+    override def setHealthMonitorDelay(hmId: UUID, delay: Int) = {
+        val hm = clusterDataClient().healthMonitorGet(hmId)
         hm.setDelay(delay)
         clusterDataClient().healthMonitorUpdate(hm)
     }
 
-    override def deleteHealthMonitor(hm: HealthMonitor) {
-        clusterDataClient().healthMonitorDelete(hm.getId)
+    override def deleteHealthMonitor(hm: UUID) {
+        clusterDataClient().healthMonitorDelete(hm)
     }
 
-    override def newPool(loadBalancer: LoadBalancer,
+    override def newPool(loadBalancer: UUID,
                          id: UUID = UUID.randomUUID,
                          adminStateUp: Boolean = true,
                          lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
-                         hmId: UUID = null): Pool = {
+                         hmId: UUID = null): UUID = {
         val pool = new Pool()
-        pool.setLoadBalancerId(loadBalancer.getId)
+        pool.setLoadBalancerId(loadBalancer)
         pool.setHealthMonitorId(hmId)
         pool.setAdminStateUp(adminStateUp)
         pool.setLbMethod(lbMethod)
-        pool.setLoadBalancerId(loadBalancer.getId)
+        pool.setLoadBalancerId(loadBalancer)
         pool.setId(id)
         clusterDataClient().poolCreate(pool)
         Thread.sleep(50)
-        pool
+        id
     }
 
-    override def setPoolHealthMonitor(pool: Pool, hmId: UUID) = {
+    override def setPoolHealthMonitor(poolId: UUID, hmId: UUID) = {
+        val pool = clusterDataClient().poolGet(poolId)
         pool.setHealthMonitorId(hmId)
         clusterDataClient().poolUpdate(pool)
     }
 
-    override def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean) {
+    override def setPoolAdminStateUp(poolId: UUID, adminStateUp: Boolean) {
+        val pool = clusterDataClient().poolGet(poolId)
         pool.setAdminStateUp(adminStateUp)
         clusterDataClient().poolUpdate(pool)
     }
 
-    override def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod) {
+    override def setPoolLbMethod(poolId: UUID, lbMethod: PoolLBMethod) {
+        val pool = clusterDataClient().poolGet(poolId)
         pool.setLbMethod(lbMethod)
         clusterDataClient().poolUpdate(pool)
     }
 
-    override def newPoolMember(pool: Pool): PoolMember = {
+    override def newPoolMember(pool: UUID): UUID = {
         newPoolMember(pool, "10.10.10.10", 10)
     }
 
-    override def newPoolMember(pool: Pool, address: String, port: Int,
-                               weight: Int = 1) : PoolMember = {
+    override def newPoolMember(pool: UUID, address: String, port: Int,
+                               weight: Int = 1) : UUID = {
         val poolMember = new PoolMember()
         poolMember.setId(UUID.randomUUID)
         poolMember.setAdminStateUp(true)
         poolMember.setStatus(LBStatus.ACTIVE)
         poolMember.setAddress(address)
         poolMember.setProtocolPort(port)
-        poolMember.setPoolId(pool.getId)
+        poolMember.setPoolId(pool)
         poolMember.setWeight(weight)
         clusterDataClient().poolMemberCreate(poolMember)
         Thread.sleep(50)
-        poolMember
+        poolMember.getId
     }
 
-    override def updatePoolMember(poolMember: PoolMember,
+    override def updatePoolMember(poolMemberId: UUID,
                                   poolId: Option[UUID] = None,
                                   adminStateUp: Option[Boolean] = None,
                                   weight: Option[Integer] = None,
                                   status: Option[LBStatus] = None) {
+        val poolMember = clusterDataClient().poolMemberGet(poolMemberId)
         poolId.foreach(poolMember.setPoolId)
         adminStateUp.foreach(poolMember.setAdminStateUp)
         weight.foreach(poolMember.setWeight(_))
@@ -643,14 +658,14 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient().poolMemberUpdate(poolMember)
     }
 
-    override def deletePoolMember(poolMember: PoolMember): Unit =
-        clusterDataClient().poolMemberDelete(poolMember.getId)
+    override def deletePoolMember(poolMember: UUID): Unit =
+        clusterDataClient().poolMemberDelete(poolMember)
 
-    override def setPoolMemberAdminStateUp(poolMember: PoolMember,
+    override def setPoolMemberAdminStateUp(poolMember: UUID,
                                            adminStateUp: Boolean) =
         updatePoolMember(poolMember, adminStateUp = Some(adminStateUp))
 
-    override def setPoolMemberHealth(poolMember: PoolMember,
+    override def setPoolMemberHealth(poolMember: UUID,
                                      status: LBStatus) =
         updatePoolMember(poolMember, status = Some(status))
 }
