@@ -60,6 +60,8 @@ trait MidolmanSpec extends FeatureSpecLike
         with OneInstancePerTest {
 
     val log = LoggerFactory.getLogger(getClass)
+    System.setProperty("java.nio.channels.spi.SelectorProvider",
+                       classOf[MockSelectorProvider].getName)
 
     var injector: Injector = null
 
