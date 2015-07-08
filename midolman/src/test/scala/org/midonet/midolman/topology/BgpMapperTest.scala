@@ -1,5 +1,6 @@
 package org.midonet.midolman.topology
 
+/*
 import java.util.UUID
 
 import scala.concurrent.duration._
@@ -1206,4 +1207,4 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             }
         }
     }
-}
+}*/

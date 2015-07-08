@@ -15,13 +15,13 @@ import org.midonet.midolman.topology.TopologyBuilder.randomIPv4Subnet
 @RunWith(classOf[JUnitRunner])
 class BgpRouteConversionTest extends FlatSpec with Matchers
                              with TopologyBuilder with TopologyMatchers {
-
+/*
     "BGP route" should "convert from Protocol Buffers" in {
         val proto = createBGPRoute(subnet = Some(randomIPv4Subnet),
                                    bgpId = Some(UUID.randomUUID))
         val route = ZoomConvert.fromProto(proto, classOf[BgpRoute])
 
         route shouldBeDeviceOf proto
-    }
+    }*/
 
 }
