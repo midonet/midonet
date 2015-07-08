@@ -72,11 +72,15 @@ public class MidolmanModule extends PrivateModule {
         bind(FlowRecorderFactory.class).asEagerSingleton();
         expose(FlowRecorderFactory.class);
 
-        bind(SelectLoopService.class)
-            .asEagerSingleton();
+        bindZebraSelectLoop();
+        expose(SelectLoopService.class);
 
         requestStaticInjection(Chain.class);
+    }
 
+    protected void bindZebraSelectLoop() {
+        bind(SelectLoopService.class)
+            .asEagerSingleton();
     }
 
     protected void bindSimulationBackChannel() {

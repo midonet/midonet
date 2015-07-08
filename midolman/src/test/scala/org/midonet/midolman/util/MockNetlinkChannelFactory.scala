@@ -16,6 +16,8 @@
 
 package org.midonet.midolman.util
 
+import java.nio.channels.spi.SelectorProvider
+
 import org.midonet.netlink.NetlinkProtocol.NETLINK_GENERIC
 
 import org.midonet.netlink.{NetlinkUtil, MockNetlinkChannel, NetlinkChannelFactory, NetlinkProtocol}
@@ -24,9 +26,11 @@ class MockNetlinkChannelFactory extends NetlinkChannelFactory {
     val channel = new MockNetlinkChannel(
         new MockSelectorProvider,
         NetlinkProtocol.NETLINK_GENERIC)
+    channel.configureBlocking(false)
 
-    override def create(blocking: Boolean = true,
+    override def create(blocking: Boolean = false,
                         protocol: NetlinkProtocol = NETLINK_GENERIC,
-                        notificationGroups: Int = NetlinkUtil.NO_NOTIFICATION) =
+                        notificationGroups: Int = NetlinkUtil.NO_NOTIFICATION) = {
         channel
+    }
 }
