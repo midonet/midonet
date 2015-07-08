@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a0069d1e",
+        "filename": "docs/external-services.md",
+        "patchSetId": 4
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-08T16:30:59Z",
+      "side": 1,
+      "message": "add: This is used to determine the set of \"in-sync\" replicas. Published messages are only sent to this set of replicas.",
+      "range": {
+        "startLine": 31,
+        "startChar": 27,
+        "endLine": 33,
+        "endChar": 49
+      },
+      "revId": "5def42e7729d6308d8a4f0f47a35af87335c3e73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
