@@ -5,24 +5,27 @@ import java.util.UUID
 import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
-import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.{ReferenceConflictException, NotFoundException, Storage}
-import org.midonet.cluster.models.Topology.{Bgp, BgpRoute, Port}
+import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.models.Topology.{Router, BgpNetwork, BgpPeer, Port}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.util.IPAddressUtil._
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.BgpMapper._
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.IPv4Addr
-import org.midonet.util.reactivex.{AwaitableObserver, AssertableObserver}
+import org.midonet.packets.{IPSubnet, IPv4Addr}
+import org.midonet.quagga.BgpdConfiguration.{Network, Neighbor, BgpRouter}
+import org.midonet.util.MidonetEventually
+import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 
 @RunWith(classOf[JUnitRunner])
 class BgpMapperTest extends MidolmanSpec with TopologyBuilder
-                    with TopologyMatchers with Eventually {
+                    with TopologyMatchers with MidonetEventually {
 
     import TopologyBuilder._
 
@@ -39,23 +42,26 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     private def createObserver() = {
-        new TestObserver[BgpUpdate]
-        with AwaitableObserver[BgpUpdate]
-        with AssertableObserver[BgpUpdate] {
+        val createThreadId = Thread.currentThread().getId
+        new TestObserver[BgpNotification]
+        with AwaitableObserver[BgpNotification]
+        with AssertableObserver[BgpNotification] {
             override def assert() =
-                BgpMapperTest.this.assert(vt.vtThreadId == Thread.currentThread.getId)
+                BgpMapperTest.this.assert(
+                    vt.vtThreadId == Thread.currentThread.getId ||
+                    createThreadId == Thread.currentThread.getId)
         }
     }
 
-    private def createPort(): Port = {
+    private def createPort(): (Port, Router) = {
         val router = createRouter()
         val port = createRouterPort(routerId = Some(router.getId))
         store.create(router)
         store.create(port)
-        port
+        (port, router)
     }
 
-    private def createExteriorPort(): Port = {
+    private def createExteriorPort(): (Port, Router) = {
         val router = createRouter()
         val host = createHost()
         val port = createRouterPort(routerId = Some(router.getId),
@@ -64,21 +70,21 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
         store.create(router)
         store.create(host)
         store.create(port)
-        port
+        (port, router)
     }
 
-    private def createInteriorPort(): Port = {
+    private def createInteriorPort(): (Port, Router) = {
         val router = createRouter()
-        val peerPort = createPort()
+        val (peerPort, _) = createPort()
         val port = createRouterPort(routerId = Some(router.getId),
                                     peerId = Some(peerPort.getId))
         store.create(router)
         store.create(port)
-        port
+        (port, router)
     }
 
     private def makePortInterior(port: Port): Port = {
-        val peerPort = createPort()
+        val (peerPort, _) = createPort()
         port.clearHostId().clearInterfaceName().setPeerId(peerPort.getId)
     }
 
@@ -88,14 +94,37 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
         port.clearPeerId().setHostId(host.getId).setInterfaceName("iface")
     }
 
+    private def bgpUpdate(port: Port, router: Router,
+                          peers: Set[BgpPeer] = Set.empty,
+                          networks: Set[BgpNetwork] = Set.empty)
+    : BgpNotification = {
+        val bgpRouter = BgpRouter(
+            as = router.getLocalAs,
+            neighbors = peers
+                .map(p => (p.getPeerAddress.asIPv4Address,
+                           Neighbor(p.getPeerAddress.asIPv4Address,
+                                    p.getPeerAs,
+                                    Some(vt.config.bgpKeepAlive),
+                                    Some(vt.config.bgpHoldTime),
+                                    Some(vt.config.bgpConnectRetry)))).toMap,
+            networks = networks
+                .map(n => Network(IPSubnetUtil.fromV4Proto(n.getSubnet)))
+        )
+        BgpUpdated(bgpRouter, peers.map(_.getId.asJava))
+    }
+
+    implicit def asIPSubnet(str: String): IPSubnet[_] = IPSubnet.fromString(str)
+    implicit def asIPAddress(str: String): IPv4Addr = IPv4Addr(str)
+
     feature("Test mapper lifecycle") {
         scenario("Mapper subscribes and unsubscribes") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A two BGP observers")
+            And("Three BGP observers")
             val obs1 = createObserver()
             val obs2 = createObserver()
+            val obs3 = createObserver()
 
             When("Creating a BGP mapper for the port")
             val mapper = new BgpMapper(port.getId, vt)
@@ -137,14 +166,21 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             When("The second observable unsubscribes")
             sub2.unsubscribe()
 
-            Then("The mapper should be unsubscribed")
-            eventually { mapper.mapperState shouldBe State.Unsubscribed }
+            Then("The mapper should be closed")
+            eventually { mapper.mapperState shouldBe State.Closed }
             eventually { mapper.hasObservers shouldBe false }
+
+            When("A third observer subscribes")
+            observable subscribe obs3
+
+            Then("The observer should receive an error")
+            obs3.awaitCompletion(timeout)
+            obs3.getOnErrorEvents.get(0) shouldBe BgpMapper.MapperClosedException
         }
 
         scenario("Mapper re-subscribes") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
             And("A BGP observer")
             val obs = createObserver()
@@ -172,24 +208,21 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             When("The observer unsubscribes")
             sub1.unsubscribe()
 
-            Then("The mapper should be unsubscribed")
-            eventually { mapper.mapperState shouldBe State.Unsubscribed }
+            Then("The mapper should be closed")
+            eventually { mapper.mapperState shouldBe State.Closed }
             eventually { mapper.hasObservers shouldBe false }
 
             When("The observer re-subscribes to the observable")
-            val sub2 = observable subscribe obs
+            observable subscribe obs
 
-            Then("The mapper should be subscribed")
-            eventually { mapper.mapperState shouldBe State.Subscribed }
-            eventually { mapper.hasObservers shouldBe true }
-
-            And("The observer should receive a second notification")
-            obs.awaitOnNext(2, timeout) shouldBe true
+            Then("The observer should receive an error")
+            obs.awaitCompletion(timeout)
+            obs.getOnErrorEvents.get(0) shouldBe BgpMapper.MapperClosedException
         }
 
         scenario("Mapper terminates with completed") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
             And("A BGP observer")
             val obs = createObserver()
@@ -231,8 +264,9 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             Given("A non-existent port")
             val portId = UUID.randomUUID
 
-            And("A BGP observer")
-            val obs = createObserver()
+            And("Two BGP observers")
+            val obs1 = createObserver()
+            val obs2 = createObserver()
 
             When("Creating a BGP mapper for the port")
             val mapper = new BgpMapper(portId, vt)
@@ -245,16 +279,23 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             eventually { mapper.hasObservers shouldBe false }
 
             When("The observer subscribes to the observable")
-            val sub = observable subscribe obs
+            val sub1 = observable subscribe obs1
 
             Then("The observer should receive an error")
-            obs.awaitCompletion(timeout)
-            obs.getOnErrorEvents.get(0).getClass shouldBe classOf[NotFoundException]
-            sub.isUnsubscribed shouldBe true
+            obs1.awaitCompletion(timeout)
+            obs1.getOnErrorEvents.get(0).getClass shouldBe classOf[NotFoundException]
+            sub1.isUnsubscribed shouldBe true
 
             And("The mapper should be receive an error")
             mapper.mapperState shouldBe State.Error
             mapper.hasObservers shouldBe false
+
+            When("A second observer subscribes")
+            val sub2 = observable subscribe obs2
+
+            Then("The observer should receive an error")
+            obs2.getOnErrorEvents.get(0).getClass shouldBe classOf[NotFoundException]
+            sub2.isUnsubscribed shouldBe true
         }
     }
 
@@ -282,7 +323,7 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Observer receives initial port notification") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
             And("A BGP observer")
             val obs = createObserver()
@@ -303,7 +344,7 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
 
         scenario("Observer receives port notification on update") {
             Given("A router exterior port")
-            val port1 = createExteriorPort()
+            val (port1, router) = createExteriorPort()
 
             And("A BGP observer")
             val obs = createObserver()
@@ -330,14 +371,16 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
         }
     }
 
-    feature("Test BGP peering updates for exterior ports") {
-        scenario("For existing BGP peerings") {
+    feature("Test BGP peer updates for exterior ports") {
+        scenario("For existing BGP peers") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
             And("A BGP observer")
             val obs = createObserver()
@@ -348,17 +391,14 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             And("Subscribing to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive the port and BGP peering")
+            Then("The observer should receive the port and BGP peer")
             obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer))
         }
 
-        scenario("When adding a BGP peering") {
+        scenario("When adding a BGP peer") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
             And("A BGP observer")
             val obs = createObserver()
@@ -372,29 +412,26 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observer should receive the port update")
             obs.awaitOnNext(1, timeout) shouldBe true
 
-            When("Creating a BGP peering for the port")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            When("Creating a BGP peer for the router")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
             Then("The observer should receive two updates")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) match {
-                case BgpPort(p) => p shouldBeDeviceOf port.setBgpId(bgp.getId)
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(2) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer))
         }
 
-        scenario("When updating a BGP peering") {
+        scenario("When updating a BGP peer") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp1 = createBGP(portId = Some(port.getId))
-            store.create(bgp1)
+            And("A BGP peer")
+            val bgpPeer1 = createBgpPeer(routerId = Some(router.getId),
+                                         peerAs = Some(1),
+                                         peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer1)
 
             And("A BGP observer")
             val obs = createObserver()
@@ -405,28 +442,35 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             And("Subscribing to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive the port and BGP peering")
+            Then("The observer should receive the port and BGP peer")
             obs.awaitOnNext(2, timeout) shouldBe true
 
-            When("Updating the BGP peering")
-            val bgp2 = bgp1.setLocalAs(10)
-            store.update(bgp2)
+            When("Updating the BGP peer with a different AS")
+            val bgpPeer2 = bgpPeer1.setPeerAs(10)
+            store.update(bgpPeer2)
 
-            Then("The observer should receive a BGP peering update")
+            Then("The observer should receive a BGP peer update")
             obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(2) match {
-                case BgpUpdated(b) => b shouldBeDeviceOf bgp2
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port, router, Set(bgpPeer2))
+
+            When("Updating the BGP peer with a different address")
+            val bgpPeer3 = bgpPeer2.setPeerAddress("10.0.0.2")
+            store.update(bgpPeer3)
+
+            Then("The observer should receive a BGP peer update")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            obs.getOnNextEvents.get(3) shouldBe bgpUpdate(port, router, Set(bgpPeer3))
         }
 
-        scenario("When removing a BGP peering") {
+        scenario("When removing a BGP peer") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
             And("A BGP observer")
             val obs = createObserver()
@@ -437,31 +481,26 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             And("Subscribing to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive the port and BGP peering")
+            Then("The observer should receive the port and BGP peer")
             obs.awaitOnNext(2, timeout) shouldBe true
 
-            When("Deleting the BGP peering")
-            store.delete(classOf[Bgp], bgp.getId)
+            When("Deleting the BGP peer")
+            store.delete(classOf[BgpPeer], bgpPeer.getId)
 
             Then("The observer should receive a BGP removal update")
-            obs.awaitOnNext(4, timeout) shouldBe true
-            obs.getOnNextEvents.get(2) match {
-                case BgpRemoved(id) => id shouldBe bgp.getId.asJava
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(3) match {
-                case BgpPort(p) => p shouldBeDeviceOf port
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port, router)
         }
 
-        scenario("When adding/removing multiple BGP peerings") {
+        scenario("When adding/removing multiple BGP peers with different addresses") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp1 = createBGP(portId = Some(port.getId))
-            store.create(bgp1)
+            And("A BGP peer")
+            val bgpPeer1 = createBgpPeer(routerId = Some(router.getId),
+                                         peerAs = Some(1),
+                                         peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer1)
 
             And("A BGP observer")
             val obs = createObserver()
@@ -472,29 +511,81 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             And("Subscribing to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive the port and BGP peering")
+            Then("The observer should receive the port and BGP peer")
             obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp1
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer1))
 
-            And("Adding a second BGP peering should fail")
-            val bgp2 = createBGP(portId = Some(port.getId))
-            intercept[ReferenceConflictException] {
-                store.create(bgp2)
-            }
+            When("Adding a second BGP peer")
+            val bgpPeer2 = createBgpPeer(routerId = Some(router.getId),
+                                         peerAs = Some(2),
+                                         peerAddress = Some("10.0.0.2"))
+            store.create(bgpPeer2)
+
+            Then("The observer should receive the first and second peers")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port, router,
+                                                          Set(bgpPeer1, bgpPeer2))
+
+            When("Removing the first BGP peer")
+            store.delete(classOf[BgpPeer], bgpPeer1.getId)
+
+            Then("The observer should receive only the second peer")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            obs.getOnNextEvents.get(3) shouldBe bgpUpdate(port, router, Set(bgpPeer2))
+        }
+
+        scenario("When adding/removing multiple BGP peers with same address") {
+            Given("A router exterior port")
+            val (port, router) = createExteriorPort()
+
+            And("A BGP peer")
+            val bgpPeer1 = createBgpPeer(routerId = Some(router.getId),
+                                         peerAs = Some(1),
+                                         peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer1)
+
+            And("A BGP observer")
+            val obs = createObserver()
+
+            When("Creating a BGP mapper for the port")
+            val mapper = new BgpMapper(port.getId, vt)
+
+            And("Subscribing to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the port and BGP peer")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer1))
+
+            When("Adding a second BGP peer with the same address")
+            val bgpPeer2 = createBgpPeer(routerId = Some(router.getId),
+                                         peerAs = Some(2),
+                                         peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer2)
+
+            Then("The observer should receive only the first peer")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port, router, Set(bgpPeer1))
+
+            When("Removing the first BGP peer")
+            store.delete(classOf[BgpPeer], bgpPeer1.getId)
+
+            Then("The observer should receive only the second peer")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            obs.getOnNextEvents.get(3) shouldBe bgpUpdate(port, router, Set(bgpPeer2))
         }
     }
 
-    feature("Test BGP peering are not advertised for interior ports") {
-        scenario("For existing BGP peerings") {
+    feature("Test BGP peer are not advertised for interior ports") {
+        scenario("For existing BGP peers") {
             Given("A router interior port")
-            val port = createInteriorPort()
+            val (port, router) = createInteriorPort()
 
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
             And("A BGP observer")
             val obs = createObserver()
@@ -514,63 +605,22 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observer should receive no BGP updates")
             obs.awaitCompletion(timeout)
             obs.getOnNextEvents should have size 1
-            obs.getOnNextEvents.get(0) match {
-                case BgpPort(p) => p shouldBeDeviceOf port.setBgpId(bgp.getId)
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnCompletedEvents should not be empty
-        }
-
-        scenario("When adding a BGP peering") {
-            Given("A router interior port")
-            val port = createInteriorPort()
-
-            And("A BGP observer")
-            val obs = createObserver()
-
-            When("Creating a BGP mapper for the port")
-            val mapper = new BgpMapper(port.getId, vt)
-
-            And("Subscribing to an observable on the mapper")
-            Observable.create(mapper).subscribe(obs)
-
-            When("Creating a BGP peering for the port")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
-
-            And("Waiting to receive the port update")
-            obs.awaitOnNext(1, timeout) shouldBe true
-
-            And("Deleting the port to generate another notification")
-            store.delete(classOf[Port], port.getId)
-
-            Then("The observer should receive no BGP updates")
-            obs.awaitCompletion(timeout)
-            obs.getOnNextEvents should have size 2
             obs.getOnNextEvents.get(0) match {
                 case BgpPort(p) => p shouldBeDeviceOf port
                 case u => fail(s"Unexpected update $u")
             }
-            obs.getOnNextEvents.get(1) match {
-                case BgpPort(p) => p shouldBeDeviceOf port.setBgpId(bgp.getId)
-                case u => fail(s"Unexpected update $u")
-            }
             obs.getOnCompletedEvents should not be empty
         }
 
-        scenario("When updating a BGP peering") {
+        scenario("When adding a BGP peer") {
             Given("A router interior port")
-            val port = createInteriorPort()
-
-            And("A BGP peering")
-            val bgp1 = createBGP(portId = Some(port.getId))
-            store.create(bgp1)
+            val (port1, router) = createInteriorPort()
 
             And("A BGP observer")
             val obs = createObserver()
 
             When("Creating a BGP mapper for the port")
-            val mapper = new BgpMapper(port.getId, vt)
+            val mapper = new BgpMapper(port1.getId, vt)
 
             And("Subscribing to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
@@ -578,30 +628,84 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             And("Waiting to receive the port update")
             obs.awaitOnNext(1, timeout) shouldBe true
 
-            When("Updating the BGP peering")
-            val bgp2 = bgp1.setLocalAs(10)
-            store.update(bgp2)
+            When("Creating a BGP peer for the router")
+            val bgpPeer1 = createBgpPeer(routerId = Some(router.getId),
+                                         peerAs = Some(1),
+                                         peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer1)
 
-            And("Deleting the port to generate another notification")
-            store.delete(classOf[Port], port.getId)
+            And("Waiting to receive the port update")
+            obs.awaitOnNext(1, timeout) shouldBe true
 
-            Then("The observer should receive a BGP peering update")
-            obs.awaitCompletion(timeout)
-            obs.getOnNextEvents should have size 1
+            And("Updating the port to generate another notification")
+            val port2 = port1.setVlanId(1)
+            store.update(port2)
+
+            Then("The observer should receive only port updates")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
             obs.getOnNextEvents.get(0) match {
-                case BgpPort(p) => p shouldBeDeviceOf port.setBgpId(bgp1.getId)
+                case BgpPort(p) => p shouldBeDeviceOf port1
                 case u => fail(s"Unexpected update $u")
             }
-            obs.getOnCompletedEvents should not be empty
+            obs.getOnNextEvents.get(1) match {
+                case BgpPort(p) => p shouldBeDeviceOf port2
+                case u => fail(s"Unexpected update $u")
+            }
+        }
+
+        scenario("When updating a BGP peer") {
+            Given("A router interior port")
+            val (port1, router) = createInteriorPort()
+
+            And("A BGP peer")
+            val bgpPeer1 = createBgpPeer(routerId = Some(router.getId),
+                                         peerAs = Some(1),
+                                         peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer1)
+
+            And("A BGP observer")
+            val obs = createObserver()
+
+            When("Creating a BGP mapper for the port")
+            val mapper = new BgpMapper(port1.getId, vt)
+
+            And("Subscribing to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            And("Waiting to receive the port update")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Updating the BGP peer")
+            val bgpPeer2 = bgpPeer1.setPeerAs(10)
+            store.update(bgpPeer2)
+
+            And("Updating the port to generate another notification")
+            val port2 = port1.setVlanId(1)
+            store.update(port2)
+
+            Then("The observer should receive a BGP peer update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents should have size 2
+            obs.getOnNextEvents.get(0) match {
+                case BgpPort(p) => p shouldBeDeviceOf port1
+                case u => fail(s"Unexpected update $u")
+            }
+            obs.getOnNextEvents.get(1) match {
+                case BgpPort(p) => p shouldBeDeviceOf port2
+                case u => fail(s"Unexpected update $u")
+            }
         }
 
         scenario("An exterior port with BGP becomes interior") {
             Given("A router exterior port")
-            val port1 = createExteriorPort()
+            val (port1, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port1.getId))
-            store.create(bgp)
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
             And("A BGP observer")
             val obs = createObserver()
@@ -612,32 +716,26 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             And("Subscribing to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive the port and BGP peering")
+            Then("The observer should receive the port and BGP peer")
             obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port1, router, Set(bgpPeer))
 
             When("The port becomes interior")
             val port2 = makePortInterior(port1)
             store.update(port2)
 
-            Then("The observer should receive the port and BGP peering removed")
+            Then("The observer should receive the port and BGP peer removed")
             obs.awaitOnNext(4, timeout) shouldBe true
             obs.getOnNextEvents.get(2) match {
                 case BgpPort(p) => p shouldBeDeviceOf port2
                 case u => fail(s"Unexpected update $u")
             }
-            obs.getOnNextEvents.get(3) match {
-                case BgpRemoved(b) => b shouldBe bgp.getId.asJava
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.getOnNextEvents.get(3) shouldBe bgpUpdate(port2, router)
         }
 
         scenario("An exterior port adds BGP and becomes interior") {
             Given("A router exterior port")
-            val port1 = createExteriorPort()
+            val (port1, router) = createExteriorPort()
 
             And("A BGP observer")
             val obs = createObserver()
@@ -651,155 +749,158 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observer should receive the port update")
             obs.awaitOnNext(1, timeout) shouldBe true
 
-            When("Creating a BGP peering for the port")
-            val bgp = createBGP(portId = Some(port1.getId))
-            store.create(bgp)
+            When("Creating a BGP peer for the router")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
             Then("The observer should receive two updates")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(2) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port1, router, Set(bgpPeer))
 
             When("The port becomes interior")
             val port2 = makePortInterior(port1)
             store.update(port2)
 
-            Then("The observer should receive the port and BGP peering removed")
-            obs.awaitOnNext(5, timeout) shouldBe true
-            obs.getOnNextEvents.get(3) match {
-                case BgpPort(p) => p shouldBeDeviceOf port2
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(4) match {
-                case BgpRemoved(b) => b shouldBe bgp.getId.asJava
-                case u => fail(s"Unexpected update $u")
-            }
-        }
-
-        scenario("An exterior port becomes interior and adds BGP") {
-            Given("A router exterior port")
-            val port1 = createExteriorPort()
-
-            And("A BGP observer")
-            val obs = createObserver()
-
-            When("Creating a BGP mapper for the port")
-            val mapper = new BgpMapper(port1.getId, vt)
-
-            And("Subscribing to an observable on the mapper")
-            Observable.create(mapper).subscribe(obs)
-
-            Then("The observer should receive the port update")
-            obs.awaitOnNext(1, timeout) shouldBe true
-
-            When("The port becomes interior")
-            val port2 = makePortInterior(port1)
-            store.update(port2)
-
-            Then("The observer should receive the port update")
-            obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) match {
-                case BgpPort(p) => p shouldBeDeviceOf port2
-                case u => fail(s"Unexpected update $u")
-            }
-
-            When("Creating a BGP peering for the port")
-            val bgp = createBGP(portId = Some(port1.getId))
-            store.create(bgp)
-
-            Then("The observer should receive the port update")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(2) match {
-                case BgpPort(p) => p shouldBeDeviceOf port2.setBgpId(bgp.getId)
-                case u => fail(s"Unexpected update $u")
-            }
-
-            When("Deleting the port to generate another notification")
-            store.delete(classOf[Port], port2.getId)
-
-            Then("The observer should receive the port removed")
-            obs.awaitCompletion(timeout)
-            obs.getOnNextEvents should have size 3
-            obs.getOnCompletedEvents should not be empty
-        }
-
-        scenario("An interior port with BGP becomes exterior") {
-            Given("A router interior port")
-            val port1 = createInteriorPort()
-
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port1.getId))
-            store.create(bgp)
-
-            And("A BGP observer")
-            val obs = createObserver()
-
-            When("Creating a BGP mapper for the port")
-            val mapper = new BgpMapper(port1.getId, vt)
-
-            And("Subscribing to an observable on the mapper")
-            Observable.create(mapper).subscribe(obs)
-
-            And("Waiting to receive the port update")
-            obs.awaitOnNext(1, timeout) shouldBe true
-
-            When("The port becomes exterior")
-            val port2 = makePortExterior(port1).setBgpId(bgp.getId)
-            store.update(port2)
-
-            Then("The observer should receive the port and BGP updates")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) match {
-                case BgpPort(p) => p shouldBeDeviceOf port2
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(2) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected updated $u")
-            }
-        }
-
-        scenario("An interior port adds BGP and becomes exterior") {
-            Given("A router interior port")
-            val port1 = createInteriorPort()
-
-            And("A BGP observer")
-            val obs = createObserver()
-
-            When("Creating a BGP mapper for the port")
-            val mapper = new BgpMapper(port1.getId, vt)
-
-            And("Subscribing to an observable on the mapper")
-            Observable.create(mapper).subscribe(obs)
-
-            When("Creating a BGP peering for the port")
-            val bgp = createBGP(portId = Some(port1.getId))
-            store.create(bgp)
-
-            And("Waiting to receive the port update")
-            obs.awaitOnNext(2, timeout) shouldBe true
-
-            When("The port becomes exterior")
-            val port2 = makePortExterior(port1).setBgpId(bgp.getId)
-            store.update(port2)
-
-            Then("The observer should receive the port and BGP updates")
+            Then("The observer should receive the port and BGP peer removed")
             obs.awaitOnNext(4, timeout) shouldBe true
             obs.getOnNextEvents.get(2) match {
                 case BgpPort(p) => p shouldBeDeviceOf port2
                 case u => fail(s"Unexpected update $u")
             }
-            obs.getOnNextEvents.get(3) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected updated $u")
+            obs.getOnNextEvents.get(3) shouldBe bgpUpdate(port2, router)
+        }
+
+        scenario("An exterior port becomes interior and adds BGP") {
+            Given("A router exterior port")
+            val (port1, router) = createExteriorPort()
+
+            And("A BGP observer")
+            val obs = createObserver()
+
+            When("Creating a BGP mapper for the port")
+            val mapper = new BgpMapper(port1.getId, vt)
+
+            And("Subscribing to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the port update")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The port becomes interior")
+            val port2 = makePortInterior(port1)
+            store.update(port2)
+
+            Then("The observer should receive the port update")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) match {
+                case BgpPort(p) => p shouldBeDeviceOf port2
+                case u => fail(s"Unexpected update $u")
             }
+
+            When("Creating a BGP peer for the router")
+            val bgpPeer1 = createBgpPeer(routerId = Some(router.getId),
+                                         peerAs = Some(1),
+                                         peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer1)
+
+            And("Updating the port to generate another notification")
+            val port3 = port2.setVlanId(1)
+            store.update(port3)
+
+            Then("The observer should receive the updated port")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(2) match {
+                case BgpPort(p) => p shouldBeDeviceOf port3
+                case u => fail(s"Unexpected update $u")
+            }
+        }
+
+        scenario("An interior port with BGP becomes exterior") {
+            Given("A router interior port")
+            val (port1, router) = createInteriorPort()
+
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
+
+            And("A BGP observer")
+            val obs = createObserver()
+
+            When("Creating a BGP mapper for the port")
+            val mapper = new BgpMapper(port1.getId, vt)
+
+            And("Subscribing to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            And("Waiting to receive the port update")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("The port becomes exterior")
+            val port2 = makePortExterior(port1)
+            store.update(port2)
+
+            Then("The observer should receive the port and BGP updates")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) match {
+                case BgpPort(p) => p shouldBeDeviceOf port2
+                case u => fail(s"Unexpected update $u")
+            }
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port2, router, Set(bgpPeer))
+        }
+
+        scenario("An interior port adds BGP and becomes exterior") {
+            Given("A router interior port")
+            val (port1, router) = createInteriorPort()
+
+            And("A BGP observer")
+            val obs = createObserver()
+
+            When("Creating a BGP mapper for the port")
+            val mapper = new BgpMapper(port1.getId, vt)
+
+            And("Subscribing to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            And("Waiting to receive the port update")
+            obs.awaitOnNext(1, timeout) shouldBe true
+
+            When("Creating a BGP peer for the router")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
+
+            And("Updating the port to generate another notification")
+            val port2 = port1.setVlanId(1)
+            store.update(port2)
+
+            Then("The observer should receive the updated port")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) match {
+                case BgpPort(p) => p shouldBeDeviceOf port2
+                case u => fail(s"Unexpected update $u")
+            }
+
+            When("The port becomes exterior")
+            val port3 = makePortExterior(port2)
+            store.update(port3)
+
+            Then("The observer should receive the port and BGP updates")
+            obs.awaitOnNext(4, timeout) shouldBe true
+            obs.getOnNextEvents.get(2) match {
+                case BgpPort(p) => p shouldBeDeviceOf port3
+                case u => fail(s"Unexpected update $u")
+            }
+            obs.getOnNextEvents.get(3) shouldBe bgpUpdate(port3, router, Set(bgpPeer))
         }
 
         scenario("An interior port becomes exterior and adds BGP") {
             Given("A router interior port")
-            val port1 = createInteriorPort()
+            val (port1, router) = createInteriorPort()
 
             And("A BGP observer")
             val obs = createObserver()
@@ -818,42 +919,40 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             store.update(port2)
 
             Then("The observer should receive a port updates")
-            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.awaitOnNext(3, timeout) shouldBe true
             obs.getOnNextEvents.get(1) match {
                 case BgpPort(p) => p shouldBeDeviceOf port2
                 case u => fail(s"Unexpected update $u")
             }
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port2, router)
 
-            When("Creating a BGP peering for the port")
-            val bgp = createBGP(portId = Some(port1.getId))
-            store.create(bgp)
+            When("Creating a BGP peer for the router")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
-            Then("The observer should receove the BGP update")
+            Then("The observer should receive the BGP update")
             obs.awaitOnNext(4, timeout) shouldBe true
-            obs.getOnNextEvents.get(2) match {
-                case BgpPort(p) => p shouldBeDeviceOf port2.setBgpId(bgp.getId)
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(3) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected updated $u")
-            }
+            obs.getOnNextEvents.get(3) shouldBe bgpUpdate(port2, router, Set(bgpPeer))
         }
     }
 
-    feature("Test BGP route updates") {
-        scenario("For existing BGP route") {
+    feature("Test BGP network updates") {
+        scenario("For existing BGP network") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
-            And("A BGP route")
-            val route = createBGPRoute(subnet = Some(randomIPv4Subnet),
-                                       bgpId = Some(bgp.getId))
-            store.create(route)
+            And("A BGP network")
+            val bgpNetwork = createBgpNetwork(routerId = Some(router.getId),
+                                              subnet = Some(randomIPv4Subnet))
+            store.create(bgpNetwork)
 
             And("A BGP observer")
             val obs = createObserver()
@@ -864,58 +963,53 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             And("Subscribing to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive the BGP route")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(2) match {
-                case BgpRouteAdded(r) => r shouldBeDeviceOf route
-                case u => fail(s"Unexpected update $u")
-            }
-        }
-
-        scenario("For added BGP route to existing BGP peering") {
-            Given("A router exterior port")
-            val port = createExteriorPort()
-
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
-
-            And("A BGP observer")
-            val obs = createObserver()
-
-            When("Creating a BGP mapper for the port")
-            val mapper = new BgpMapper(port.getId, vt)
-
-            And("Subscribing to an observable on the mapper")
-            Observable.create(mapper).subscribe(obs)
-
-            Then("The observer should receive the BGP peering")
+            Then("The observer should receive the BGP network")
             obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected update $u")
-            }
-
-            When("Adding a BGP route")
-            val route = createBGPRoute(subnet = Some(randomIPv4Subnet),
-                                       bgpId = Some(bgp.getId))
-            store.create(route)
-
-            Then("The observer should receive the BGP route")
-            obs.awaitOnNext(4, timeout) shouldBe true
-            obs.getOnNextEvents.get(2) match {
-                case BgpUpdated(b) => b shouldBeDeviceOf bgp.addBgpRouteId(route.getId)
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(3) match {
-                case BgpRouteAdded(r) => r shouldBeDeviceOf route
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                          Set(bgpNetwork))
         }
 
-        scenario("For BGP route added to added BGP peering") {
+        scenario("For added BGP network to existing BGP peer") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
+
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
+
+            And("A BGP observer")
+            val obs = createObserver()
+
+            When("Creating a BGP mapper for the port")
+            val mapper = new BgpMapper(port.getId, vt)
+
+            And("Subscribing to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the BGP peer")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) match {
+                case BgpPort(p) => p shouldBeDeviceOf port
+                case u => fail(s"Unexpected update $u")
+            }
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer))
+
+            When("Adding a BGP network")
+            val bgpNetwork = createBgpNetwork(routerId = Some(router.getId),
+                                              subnet = Some(randomIPv4Subnet))
+            store.create(bgpNetwork)
+
+            Then("The observer should receive the BGP network")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                          Set(bgpNetwork))
+        }
+
+        scenario("For BGP network added to added BGP peer") {
+            Given("A router exterior port")
+            val (port, router) = createExteriorPort()
 
             And("A BGP observer")
             val obs = createObserver()
@@ -933,50 +1027,41 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
                 case u => fail(s"Unexpected update $u")
             }
 
-            When("Adding a BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            When("Adding a BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
-            Then("The observer should receive the BGP peering")
+            Then("The observer should receive the BGP peer")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer))
+
+            When("Adding a BGP network")
+            val bgpNetwork = createBgpNetwork(routerId = Some(router.getId),
+                                              subnet = Some(randomIPv4Subnet))
+            store.create(bgpNetwork)
+
+            Then("The observer should receive the BGP network")
             obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) match {
-                case BgpPort(p) => p shouldBeDeviceOf port.setBgpId(bgp.getId)
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(2) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected update $u")
-            }
-
-            When("Adding a BGP route")
-            val route = createBGPRoute(subnet = Some(randomIPv4Subnet),
-                                       bgpId = Some(bgp.getId))
-            store.create(route)
-
-            Then("The observer should receive the BGP route")
-            obs.awaitOnNext(5, timeout) shouldBe true
-            obs.getOnNextEvents.get(3) match {
-                case BgpUpdated(b) => b shouldBeDeviceOf bgp.addBgpRouteId(route.getId)
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(4) match {
-                case BgpRouteAdded(r) => r shouldBeDeviceOf route
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                          Set(bgpNetwork))
         }
 
-        scenario("For updated BGP route") {
+        scenario("For updated BGP network") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
-            And("A BGP route")
-            val route1 = createBGPRoute(subnet = Some(randomIPv4Subnet),
-                                        bgpId = Some(bgp.getId))
-            store.create(route1)
+            And("A BGP network")
+            val bgpNetwork1 = createBgpNetwork(routerId = Some(router.getId),
+                                               subnet = Some(randomIPv4Subnet))
+            store.create(bgpNetwork1)
 
             And("A BGP observer")
             val obs = createObserver()
@@ -987,37 +1072,35 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             And("Subscribing to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive the BGP route")
-            obs.awaitOnNext(3, timeout) shouldBe true
+            Then("The observer should receive the BGP network")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                          Set(bgpNetwork1))
 
-            When("Updating the BGP route")
-            val route2 = route1.setSubnet(randomIPv4Subnet)
-            store.update(route2)
+            When("Updating the BGP network")
+            val bgpNetwork2 = bgpNetwork1.setSubnet(randomIPv4Subnet)
+            store.update(bgpNetwork2)
 
             Then("The observer should receive the update")
-            obs.awaitOnNext(5, timeout) shouldBe true
-            obs.getOnNextEvents.get(3) match {
-                case BgpRouteRemoved(r) => r shouldBeDeviceOf route1
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(4) match {
-                case BgpRouteAdded(r) => r shouldBeDeviceOf route2
-                case u => fail(s"Unexpected update $u")
-            }
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                          Set(bgpNetwork2))
         }
 
-        scenario("For removed BGP route") {
+        scenario("For removed BGP network") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
-            And("A BGP route")
-            val route = createBGPRoute(subnet = Some(randomIPv4Subnet),
-                                       bgpId = Some(bgp.getId))
-            store.create(route)
+            And("A BGP network")
+            val bgpNetwork = createBgpNetwork(routerId = Some(router.getId),
+                                              subnet = Some(randomIPv4Subnet))
+            store.create(bgpNetwork)
 
             And("A BGP observer")
             val obs = createObserver()
@@ -1028,82 +1111,39 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             And("Subscribing to an observable on the mapper")
             Observable.create(mapper).subscribe(obs)
 
-            Then("The observer should receive the BGP route")
-            obs.awaitOnNext(3, timeout) shouldBe true
-
-            When("Removing the BGP route")
-            store.delete(classOf[BgpRoute], route.getId)
-
-            Then("The observer should receive the route removal")
-            obs.awaitOnNext(5, timeout) shouldBe true
-            obs.getOnNextEvents.get(3) match {
-                case BgpRouteRemoved(r) => r shouldBeDeviceOf route
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(4) match {
-                case BgpUpdated(b) => b shouldBeDeviceOf bgp
-                case u => fail(s"Unexpected update $u")
-            }
-        }
-
-        scenario("Route removed when BGP peering is removed") {
-            Given("A router exterior port")
-            val port = createExteriorPort()
-
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
-
-            And("A BGP route")
-            val route = createBGPRoute(subnet = Some(randomIPv4Subnet),
-                                       bgpId = Some(bgp.getId))
-            store.create(route)
-
-            And("A BGP observer")
-            val obs = createObserver()
-
-            When("Creating a BGP mapper for the port")
-            val mapper = new BgpMapper(port.getId, vt)
-
-            And("Subscribing to an observable on the mapper")
-            Observable.create(mapper).subscribe(obs)
-
-            Then("The observer should receive the BGP route")
-            obs.awaitOnNext(3, timeout) shouldBe true
-
-            When("The BGP peering is removed")
-            store.delete(classOf[Bgp], bgp.getId)
-
-            Then("The observer should receive the BGP peering and route removal")
-            obs.awaitOnNext(6, timeout) shouldBe true
-            obs.getOnNextEvents.get(3) match {
-                case BgpRouteRemoved(r) => r shouldBeDeviceOf route
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(4) match {
-                case BgpRemoved(id) => id shouldBe bgp.getId.asJava
-                case u => fail(s"Unexpected update $u")
-            }
-            obs.getOnNextEvents.get(5) match {
+            Then("The observer should receive the BGP network")
+            obs.awaitOnNext(2, timeout) shouldBe true
+            obs.getOnNextEvents.get(0) match {
                 case BgpPort(p) => p shouldBeDeviceOf port
                 case u => fail(s"Unexpected update $u")
             }
+            obs.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                          Set(bgpNetwork))
+
+            When("Removing the BGP network")
+            store.delete(classOf[BgpNetwork], bgpNetwork.getId)
+
+            Then("The observer should receive the network removal")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            obs.getOnNextEvents.get(2) shouldBe bgpUpdate(port, router, Set(bgpPeer))
         }
     }
 
     feature("Test subscriber receives initial state") {
         scenario("There are no updates from a previous subscription") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
-            And("A BGP route")
-            val route = createBGPRoute(subnet = Some(randomIPv4Subnet),
-                                       bgpId = Some(bgp.getId))
-            store.create(route)
+            And("A BGP network")
+            val bgpNetwork = createBgpNetwork(routerId = Some(router.getId),
+                                              subnet = Some(randomIPv4Subnet))
+            store.create(bgpNetwork)
 
             And("A first BGP observer")
             val obs1 = createObserver()
@@ -1115,41 +1155,37 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             val observable = Observable.create(mapper)
             observable.subscribe(obs1)
 
-            Then("The observer should receive the BGP route")
-            obs1.awaitOnNext(3, timeout) shouldBe true
+            Then("The observer should receive the BGP network")
+            obs1.awaitOnNext(2, timeout) shouldBe true
 
             When("A second BGP observer subscribes")
             val obs2 = createObserver()
             observable.subscribe(obs2)
 
             Then("The observer should receive all previous updates")
-            obs2.awaitOnNext(3, timeout) shouldBe true
+            obs2.awaitOnNext(2, timeout) shouldBe true
             obs2.getOnNextEvents.get(0) match {
-                case BgpPort(p) => p shouldBeDeviceOf port.setBgpId(bgp.getId)
+                case BgpPort(p) => p shouldBeDeviceOf port
                 case u => fail(s"Unexpected update $u")
             }
-            obs2.getOnNextEvents.get(1) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp.addBgpRouteId(route.getId)
-                case u => fail(s"Unexpected update $u")
-            }
-            obs2.getOnNextEvents.get(2) match {
-                case BgpRouteAdded(r) => r shouldBeDeviceOf route
-                case u => fail(s"Unexpected update $u")
-            }
+            obs2.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                           Set(bgpNetwork))
         }
 
         scenario("With updates from a previous subscriber") {
             Given("A router exterior port")
-            val port = createExteriorPort()
+            val (port, router) = createExteriorPort()
 
-            And("A BGP peering")
-            val bgp = createBGP(portId = Some(port.getId))
-            store.create(bgp)
+            And("A BGP peer")
+            val bgpPeer = createBgpPeer(routerId = Some(router.getId),
+                                        peerAs = Some(1),
+                                        peerAddress = Some("10.0.0.1"))
+            store.create(bgpPeer)
 
-            And("A BGP route")
-            val route1 = createBGPRoute(subnet = Some(randomIPv4Subnet),
-                                        bgpId = Some(bgp.getId))
-            store.create(route1)
+            And("A BGP network")
+            val bgpNetwork1 = createBgpNetwork(routerId = Some(router.getId),
+                                               subnet = Some(randomIPv4Subnet))
+            store.create(bgpNetwork1)
 
             And("A first BGP observer")
             val obs1 = createObserver()
@@ -1161,49 +1197,40 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
             val observable = Observable.create(mapper)
             observable.subscribe(obs1)
 
-            Then("The observer should receive the BGP route")
+            Then("The observer should receive the BGP network")
+            obs1.awaitOnNext(2, timeout) shouldBe true
+
+            When("Adding a new network to the BGP peer")
+            val bgpNetwork2 = createBgpNetwork(routerId = Some(router.getId),
+                                               subnet = Some(randomIPv4Subnet))
+            store.create(bgpNetwork2)
+
+            Then("The observer should receive the second network")
             obs1.awaitOnNext(3, timeout) shouldBe true
+            obs1.getOnNextEvents.get(2) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                           Set(bgpNetwork1,
+                                                               bgpNetwork2))
 
-            When("Adding a new route to the BGP peering")
-            val route2 = createBGPRoute(subnet = Some(randomIPv4Subnet),
-                                        bgpId = Some(bgp.getId))
-            store.create(route2)
+            When("Removing the first network")
+            store.delete(classOf[BgpNetwork], bgpNetwork1.getId)
 
-            Then("The observer should receive the second route")
-            obs1.awaitOnNext(5, timeout) shouldBe true
-            obs1.getOnNextEvents.get(4) match {
-                case BgpRouteAdded(r) => r shouldBeDeviceOf route2
-                case u => fail(s"Unexpected update $u")
-            }
-
-            When("Removing the first route")
-            store.delete(classOf[BgpRoute], route1.getId)
-
-            Then("The observer should receive the route removal")
-            obs1.awaitOnNext(7, timeout) shouldBe true
-            obs1.getOnNextEvents.get(5) match {
-                case BgpRouteRemoved(r) => r shouldBeDeviceOf route1
-                case u => fail(s"Unexpected update $u")
-            }
+            Then("The observer should receive the network removal")
+            obs1.awaitOnNext(4, timeout) shouldBe true
+            obs1.getOnNextEvents.get(3) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                           Set(bgpNetwork2))
 
             When("A second BGP observer subscribes")
             val obs2 = createObserver()
             observable.subscribe(obs2)
 
             Then("The observer should receive all previous updates")
-            obs2.awaitOnNext(3, timeout) shouldBe true
+            obs2.awaitOnNext(2, timeout) shouldBe true
             obs2.getOnNextEvents.get(0) match {
-                case BgpPort(p) => p shouldBeDeviceOf port.setBgpId(bgp.getId)
+                case BgpPort(p) => p shouldBeDeviceOf port
                 case u => fail(s"Unexpected update $u")
             }
-            obs2.getOnNextEvents.get(1) match {
-                case BgpAdded(b) => b shouldBeDeviceOf bgp.addBgpRouteId(route2.getId)
-                case u => fail(s"Unexpected update $u")
-            }
-            obs2.getOnNextEvents.get(2) match {
-                case BgpRouteAdded(r) => r shouldBeDeviceOf route2
-                case u => fail(s"Unexpected update $u")
-            }
+            obs2.getOnNextEvents.get(1) shouldBe bgpUpdate(port, router, Set(bgpPeer),
+                                                           Set(bgpNetwork2))
         }
     }
 }
