@@ -21,10 +21,13 @@ import java.nio.channels.spi.{AbstractSelector, SelectorProvider}
 import java.nio.channels.{DatagramChannel, Pipe, ServerSocketChannel, SocketChannel}
 
 class MockSelectorProvider extends SelectorProvider {
+
+    val selector = new MockSelector(this)
+
     override def openDatagramChannel(): DatagramChannel = ???
     override def openDatagramChannel(family: ProtocolFamily): DatagramChannel = ???
     override def openServerSocketChannel(): ServerSocketChannel = ???
     override def openSocketChannel(): SocketChannel = ???
-    override def openSelector(): AbstractSelector = new MockSelector(this)
+    override def openSelector(): AbstractSelector = selector
     override def openPipe(): Pipe = ???
 }
