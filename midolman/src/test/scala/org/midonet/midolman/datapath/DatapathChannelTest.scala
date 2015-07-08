@@ -17,23 +17,25 @@
 package org.midonet.midolman.datapath
 
 import java.nio.ByteBuffer
+import java.nio.channels.SelectionKey
+import java.util.concurrent.{TimeUnit, LinkedBlockingQueue}
 import java.util.{UUID, ArrayList}
 
 import akka.testkit.TestProbe
 import com.lmax.disruptor.RingBuffer
 import org.jctools.queues.SpscArrayQueue
-
 import org.junit.runner.RunWith
-import org.midonet.midolman.DatapathStateDriver
-import org.midonet.odp.Datapath.{Stats, MegaflowStats}
+import org.restlet.util.ByteUtils
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.concurrent.Eventually._
 
 import org.midonet.midolman.datapath.DisruptorDatapathChannel.PacketContextHolder
+import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.flows.{FlowOperation, ManagedFlow}
-import org.midonet.midolman.util.{MockNetlinkChannelFactory, MidolmanSpec}
-import org.midonet.netlink.NetlinkMessage
+import org.midonet.midolman.util.{MockSelector, MockNetlinkChannelFactory, MidolmanSpec}
+import org.midonet.netlink.{BytesUtil, NLMessageType, NetlinkMessage}
 import org.midonet.odp._
+import org.midonet.odp.Datapath.{Stats, MegaflowStats}
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
 import org.midonet.odp.flows.{FlowKey, FlowKeys, FlowAction, FlowActions}
 import org.midonet.packets.util.PacketBuilder._
@@ -179,6 +181,55 @@ class DatapathChannelTest extends MidolmanSpec {
             eventually {
                 nlChannel.packetsWritten.get() should be (3)
             }
+        }
+
+        scenario ("Create flow errors don't interfere with pending delete requests") {
+            val context = packetContextFor(ethernet, UUID.randomUUID())
+            context.flowActions.addAll(actions)
+            context.flow = new ManagedFlow(null)
+            dpChannel.handoff(context)
+
+            barrier.waitFor(0)
+            nlChannel.packetsWritten.get() should be (1)
+
+            val seq = context.flow.sequence
+            seq should be (0)
+            val queue = new LinkedBlockingQueue[FlowOperation]()
+            val flowDelete = new FlowOperation(TestProbe().ref,
+                                               new ArrayObjectPool(0, _ => null),
+                                               queue)
+            val managedFlow = new ManagedFlow(null)
+            managedFlow.flowMatch.reset(context.origMatch)
+            flowDelete.reset(FlowOperation.DELETE, managedFlow, retries = 0)
+            fp.tryEject(seq, datapathId, managedFlow.flowMatch,
+                        flowDelete) should be (true)
+
+            // Lets fail the create and complete the delete
+            // If the test fails, maybe the order of selection in FlowProcessor changed
+            val createReplyBuf = BytesUtil.instance.allocate(32)
+            var size = NetlinkMessage.NLMSG_ERROR_SIZE + NetlinkMessage.NLMSG_ERROR_HEADER_SIZE
+            NetlinkMessage.writeHeader(createReplyBuf, size, NLMessageType.ERROR, 0, seq.toInt, 0, 0, 0)
+            createReplyBuf.putInt(NetlinkMessage.NLMSG_ERROR_OFFSET, 0)
+            createReplyBuf.limit(size)
+            nlChannel.toRead.offer(createReplyBuf)
+
+            val deleteReplyBuf = BytesUtil.instance.allocate(64)
+            deleteReplyBuf.position(NetlinkMessage.GENL_HEADER_SIZE)
+            deleteReplyBuf.putInt(0) // dp index
+            deleteReplyBuf.putShort(12)
+            deleteReplyBuf.putShort(OpenVSwitch.Flow.Attr.Used)
+            deleteReplyBuf.putLong(10)
+            size = deleteReplyBuf.position()
+            deleteReplyBuf.flip()
+            NetlinkMessage.writeHeader(deleteReplyBuf, size,
+                (NLMessageType.NLMSG_MIN_TYPE + 1).toShort, 0, seq.toInt, 0, 0, 0)
+            nlChannel.toRead.offer(deleteReplyBuf)
+
+            nlChannel.selector.asInstanceOf[MockSelector].makeReady(SelectionKey.OP_READ, 2)
+
+            queue.poll(1, TimeUnit.HOURS) should not be null
+            flowDelete.failure should be (null)
+            flowDelete.flowMetadata.getLastUsedMillis should be (10)
         }
     }
 
