@@ -139,8 +139,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                         fragmentPolicy: rules.FragmentPolicy,
                                         action: RuleResult.Action): UUID = ???
     override def deleteRule(id: UUID): Unit = ???
-    override def createIpAddrGroup(): UUID = ???
-    override def createIpAddrGroup(id: UUID): UUID = ???
+    override def newIpAddrGroup(): UUID = ???
+    override def newIpAddrGroup(id: UUID): UUID = ???
     override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = ???
     override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit = ???
     override def deleteIpAddrGroup(id: UUID): Unit = ???
@@ -251,12 +251,12 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def deleteLoadBalancer(id: UUID): Unit = ???
     override def setLoadBalancerOnRouter(loadBalancer: UUID, router: UUID): Unit = ???
     override def setLoadBalancerDown(loadBalancer: UUID): Unit = ???
-    override def createVip(pool: UUID): UUID = ???
-    override def createVip(pool: UUID, address: String, port: Int): UUID = ???
+    override def newVip(pool: UUID): UUID = ???
+    override def newVip(pool: UUID, address: String, port: Int): UUID = ???
     override def deleteVip(vip: UUID): Unit = ???
     override def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean = ???
 
-    override def createRandomVip(pool: UUID): UUID = ???
+    override def newRandomVip(pool: UUID): UUID = ???
 
     override def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit = ???
     override def vipEnableStickySourceIP(vip: UUID): Unit = ???

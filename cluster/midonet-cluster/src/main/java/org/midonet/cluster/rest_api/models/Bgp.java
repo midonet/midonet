@@ -17,7 +17,6 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -29,13 +28,12 @@ import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.IPAddressUtil;
 import org.midonet.cluster.util.UUIDUtil;
 
-@ZoomClass(clazz = Topology.Bgp.class)
+@ZoomClass(clazz = Topology.BgpPeer.class)
 public class Bgp extends UriResource {
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
-    @ZoomField(name = "local_as")
     public int localAS;
 
     @ZoomField(name = "peer_as")
@@ -44,12 +42,23 @@ public class Bgp extends UriResource {
     @ZoomField(name = "peer_address", converter = IPAddressUtil.Converter.class)
     public String peerAddr;
 
-    @ZoomField(name = "port_id", converter = UUIDUtil.Converter.class)
+    @JsonIgnore
+    @ZoomField(name = "keep_alive")
+    public Integer keepAlive;
+
+    @JsonIgnore
+    @ZoomField(name = "hold_time")
+    public Integer holdTime;
+
+    @JsonIgnore
+    @ZoomField(name = "connect_retry")
+    public Integer connectRetry;
+
     public UUID portId;
 
     @JsonIgnore
-    @ZoomField(name = "bgp_route_ids", converter = UUIDUtil.Converter.class)
-    public List<UUID> adRouteIds;
+    @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
+    public UUID routerId;
 
     public String status;
 
@@ -75,15 +84,18 @@ public class Bgp extends UriResource {
     }
 
     @JsonIgnore
-    public void create(UUID portId) {
+    public void create(UUID routerId) {
         create();
-        this.portId = portId;
+        this.routerId = routerId;
     }
 
     @JsonIgnore
     public void update(Bgp from) {
         id = from.id;
-        adRouteIds = from.adRouteIds;
+        routerId = from.routerId;
+        keepAlive = from.keepAlive;
+        holdTime = from.holdTime;
+        connectRetry = from.connectRetry;
     }
 
 }

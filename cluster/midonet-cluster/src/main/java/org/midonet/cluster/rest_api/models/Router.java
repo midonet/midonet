@@ -33,6 +33,8 @@ import org.midonet.util.version.Since;
 @ZoomClass(clazz = Topology.Router.class)
 public class Router extends UriResource {
 
+    public static final int NO_AS = -1;
+
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
 
@@ -62,6 +64,18 @@ public class Router extends UriResource {
     @JsonIgnore
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
+
+    @JsonIgnore
+    @ZoomField(name = "local_as")
+    public int localAs = NO_AS;
+
+    @JsonIgnore
+    @ZoomField(name = "bgp_network_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> bgpNetworkIds;
+
+    @JsonIgnore
+    @ZoomField(name = "bgp_peer_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> bgpPeerIds;
 
     public Router() {
         adminStateUp = true;
@@ -115,6 +129,9 @@ public class Router extends UriResource {
         this.id = from.id;
         portIds = from.portIds;
         routeIds = from.routeIds;
+        localAs = from.localAs;
+        bgpNetworkIds = from.bgpNetworkIds;
+        bgpPeerIds = from.bgpPeerIds;
     }
 
 }
