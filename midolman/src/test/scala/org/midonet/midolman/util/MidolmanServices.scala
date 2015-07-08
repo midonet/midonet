@@ -32,8 +32,8 @@ import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.cluster.Client
-import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.dhcp.{Host,Subnet}
+
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
@@ -41,6 +41,7 @@ import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.services.HostIdProviderService
+import org.midonet.midolman.simulation.DhcpConfig
 import org.midonet.midolman.util.mock.{MockFlowProcessor, MockDatapathChannel, MockUpcallDatapathConnectionManager}
 import org.midonet.odp.protos.{OvsDatapathConnection, MockOvsDatapathConnection}
 import org.midonet.util.concurrent.MockClock
@@ -53,17 +54,16 @@ trait MidolmanServices {
     def config =
         injector.getInstance(classOf[MidolmanConfig])
 
-    def clusterClient =
-        injector.getInstance(classOf[Client])
-
-    implicit def clusterDataClient: DataClient =
-        injector.getInstance(classOf[DataClient])
-
     def stateStorage =
         injector.getInstance(classOf[LegacyStorage])
 
     def virtConfBuilderImpl =
         injector.getInstance(classOf[VirtualConfigurationBuilders])
+
+    def mockDhcpConfig = new DhcpConfig() {
+        override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = List()
+        override def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String): Option[Host] = None
+    }
 
     def metrics = {
         val metricsReg = injector.getInstance(classOf[MetricRegistry])

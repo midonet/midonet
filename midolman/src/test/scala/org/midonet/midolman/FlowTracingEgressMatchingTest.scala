@@ -126,7 +126,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         bridge = newBridge("bridge")
         bridgeRtrPort = newBridgePort(bridge)
-        clusterDataClient.portsLink(rtrIntPort, bridgeRtrPort)
+        linkPorts(rtrIntPort, bridgeRtrPort)
 
         bridgeChain = newInboundChainOnBridge("my-chain", bridge)
 
@@ -178,7 +178,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
             traceTable = traceTable,
             dpChannel = mockDpIngress,
             packetCtxTrap = packetCtxTrapIngress
-        )(ingressHost, clusterDataClient)
+        )(ingressHost)
 
         mockDpIngress.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueueIngress.add((packet,actions)) )
@@ -191,7 +191,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
             traceTable = traceTable,
             dpChannel = mockDpEgress,
             packetCtxTrap = packetCtxTrapEgress
-        )(egressHost, clusterDataClient)
+        )(egressHost)
         mockDpEgress.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueueEgress.add((packet,actions)) )
         mockDpEgress.flowCreateSubscribe(flow => flowQueueEgress.add(flow))
@@ -199,8 +199,9 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
     feature("tunnel tagging") {
         scenario("Tunnel key is tagged with trace mask, on bridge") {
-            newTraceRule(UUID.randomUUID, bridgeChain,
-                         newCondition(tpDst = Some(500)), 1)
+            newTraceRuleOnChain(bridgeChain, 1,
+                                newCondition(tpDst = Some(500)),
+                                UUID.randomUUID)
 
             val frame = { eth src vm2Mac dst vm1Mac } <<
             { ip4 src vm2IpAddr dst vm1IpAddr } <<
@@ -211,8 +212,9 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         }
 
         scenario("Tunnel key is tagged with trace mask, traversing router") {
-            newTraceRule(UUID.randomUUID, bridgeChain,
-                         newCondition(tpDst = Some(500)), 1)
+            newTraceRuleOnChain(bridgeChain, 1,
+                                newCondition(tpDst = Some(500)),
+                                UUID.randomUUID)
 
             val frame = { eth src uplinkGatewayMac dst uplinkPortMac } <<
             { ip4 src uplinkGatewayAddr dst vm1IpAddr } <<
@@ -276,15 +278,6 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         // shouldn't create a flow for trace packets
         flowQueueEgress.size should be (0)
-    }
-
-    private def newTraceRule(requestId: UUID, chain: UUID,
-                             condition: Condition, pos: Int): Unit = {
-        val traceRule = new TraceRuleData(requestId, condition, Long.MaxValue)
-            .setChainId(chain).setPosition(pos)
-        clusterDataClient.rulesCreate(traceRule)
-
-        fetchChains(chain)
     }
 
     private def getTunnelId(actions: ju.List[FlowAction]): Long = {

@@ -205,7 +205,7 @@ class NatTest extends MidolmanSpec {
 
         val brPort = newBridgePort(bridge)
         brPort should not be null
-        clusterDataClient.portsLink(rtrPort, brPort)
+        linkPorts(rtrPort, brPort)
 
         vmPorts = vmPortNames map { _ => newBridgePort(bridge) }
         vmPorts zip vmPortNames foreach {

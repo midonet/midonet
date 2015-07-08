@@ -27,13 +27,12 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.slf4j.helpers.NOPLogger
 
-import org.midonet.cluster.DataClient
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
-import org.midonet.midolman.simulation.{DhcpConfigFromDataclient, PacketContext}
+import org.midonet.midolman.simulation.{DhcpConfig, PacketContext}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
@@ -78,7 +77,7 @@ class PacketWorkflowTest extends MidolmanSpec {
 
         val ddaProps = Props {
             new TestableDDA(new CookieGenerator(1, 1),
-            mockDpChannel, clusterDataClient,
+            mockDpChannel,
             (x: Int) => { packetsOut += x },
             simulationExpireMillis)
         }
@@ -426,13 +425,12 @@ class PacketWorkflowTest extends MidolmanSpec {
            */
     class TestableDDA(cookieGen: CookieGenerator,
                       dpChannel: DatapathChannel,
-                      clusterDataClient: DataClient,
                       packetOut: Int => Unit,
                       override val simulationExpireMillis: Long)
             extends PacketWorkflow(injector.getInstance(classOf[MidolmanConfig]),
                                    hostId, new DatapathStateDriver(new Datapath(0, "midonet")),
                                    cookieGen, clock, dpChannel,
-                                   new DhcpConfigFromDataclient(clusterDataClient),
+                                   mockDhcpConfig,
                                    simBackChannel,
                                    flowProcessor,
                                    conntrackTable, natTable,

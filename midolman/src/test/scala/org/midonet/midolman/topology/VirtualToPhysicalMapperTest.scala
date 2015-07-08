@@ -88,10 +88,8 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec
             val zone = greTunnelZone("twilight-zone")
             val host = newHost("myself", hostId, Set(zone))
             val tunnelZoneHost = new TunnelZone.HostConfig(host)
-                                 .setIp(IPv4Addr("1.1.1.1"))
-            clusterDataClient.tunnelZonesAddMembership(zone,
-                                                       tunnelZoneHost)
-
+                .setIp(IPv4Addr("1.1.1.1"))
+            addTunnelZoneMember(zone, host, tunnelZoneHost.getIp())
             val subscriber = subscribe(TunnelZoneRequest(zone))
             subscriber.getAndClear() should be (List(
                 ZoneMembers(zone, TunnelZone.Type.gre, Set(tunnelZoneHost))))

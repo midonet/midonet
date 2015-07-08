@@ -28,15 +28,12 @@ import akka.event.{Logging, LoggingAdapter}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.ports.{VxLanPort}
-import org.midonet.cluster.data.{TunnelZone, Port}
-import org.midonet.cluster.data.TunnelZone.{HostConfig, Data}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.{Bridge, PacketContext}
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
-import org.midonet.midolman.topology.devices.BridgePort
+import org.midonet.midolman.topology.devices.{BridgePort,VxLanPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}
@@ -110,18 +107,14 @@ class FlowTranslatorTest extends MidolmanSpec {
     }
 
     case class VtepDef(tunIp: IPv4Addr, mgmtIp: IPv4Addr, vni: Int)
-    def makeVxLanPort(host: UUID, bridge: UUID, vtep: VtepDef, tzId: UUID)
-                     (f: VxLanPort => VxLanPort): VxLanPort = {
+    def makeVxLanPort(host: UUID, bridge: UUID, vtep: VtepDef, tzId: UUID): VxLanPort = {
 
-        val port = clusterDataClient.bridgeCreateVxLanPort(bridge,
-                                                           vtep.mgmtIp, 4789,
-                                                           vtep.vni,
-                                                           vtep.tunIp, tzId)
-        stateStorage.setPortLocalAndActive(port.getId, host, true)
-        port.setHostId(host)
-        fetchTopology(port)
+        val port = newVxLanPort(bridge, vtep.mgmtIp, 4789,
+                                vtep.vni, vtep.tunIp, tzId)
+        stateStorage.setPortLocalAndActive(port, host, true)
+
         fetchDevice[Bridge](bridge)
-        port
+        fetchDevice[VxLanPort](port)
     }
 
     def activatePorts(localPorts: Seq[UUID]): Unit = {
@@ -190,12 +183,8 @@ class FlowTranslatorTest extends MidolmanSpec {
                  zones: Map[UUID, IPv4Addr] = Map()) = {
         newHost("vanderlay", hostId)
         (Map(UUID.randomUUID() -> hostIp) ++ zones) foreach { case (id, ip) =>
-            clusterDataClient.tunnelZonesCreate(
-                new TunnelZone(id, new Data())
-                    .setName(ip.toString)
-                    .setType(TunnelZone.Type.gre))
-            clusterDataClient.tunnelZonesAddMembership(id,
-                new HostConfig(hostId).setIp(ip))
+            greTunnelZone(ip.toString, id=Some(id))
+            addTunnelZoneMember(id, hostId, ip)
         }
         bindings foreach { case (id, name) => materializePort(id, hostId, name) }
         fetchHost(hostId)
@@ -209,14 +198,14 @@ class FlowTranslatorTest extends MidolmanSpec {
             val tzId = UUID.randomUUID()
             val bridge = newBridge("floodBridge")
 
-            val inPort = makeVxLanPort(hostId, bridge, vtep, tzId)(identity)
+            val inPort = makeVxLanPort(hostId, bridge, vtep, tzId)
             val port0 = makePort(hostId, bridge=Some(bridge)) // code assumes
             val port1 = makePort(hostId, bridge=Some(bridge)) // them exterior
 
-            activatePorts(List(inPort.getId(), port0.id, port1.id))
-            makeHost(Map(inPort.getId -> "in", port0.id -> "port0"))
-            ctx input inPort.getId
-            ctx local inPort.getId -> 1
+            activatePorts(List(inPort.id, port0.id, port1.id))
+            makeHost(Map(inPort.id -> "in", port0.id -> "port0"))
+            ctx input inPort.id
+            ctx local inPort.id -> 1
             ctx local port0.id -> 2
             ctx local port1.id -> 3
 
@@ -287,11 +276,11 @@ class FlowTranslatorTest extends MidolmanSpec {
             var bridge = newBridge("floodBridge")
             val inPort = makePort(hostId, bridge=Some(bridge))
             val port0 = makePort(hostId, bridge=Some(bridge))
-            val vxlanPort1 = makeVxLanPort(hostId, bridge, vtep1, tzId)(identity)
-            val vxlanPort2 = makeVxLanPort(hostId, bridge, vtep2, tzId)(identity)
+            val vxlanPort1 = makeVxLanPort(hostId, bridge, vtep1, tzId)
+            val vxlanPort2 = makeVxLanPort(hostId, bridge, vtep2, tzId)
 
             // refetch bridge, it was updated with the vxlan port
-            activatePorts(List(inPort.id, port0.id, vxlanPort1.getId(), vxlanPort2.getId()))
+            activatePorts(List(inPort.id, port0.id, vxlanPort1.id, vxlanPort2.id))
 
             makeHost(
                 Map(port0.id -> "port0"),

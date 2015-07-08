@@ -52,7 +52,8 @@ import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology.devices.{Host, Port => SimPort,
                                               BridgePort => SimBridgePort,
-                                              RouterPort => SimRouterPort}
+                                              RouterPort => SimRouterPort,
+                                              VxLanPort}
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, BridgeRequest, ChainRequest, IPAddrGroupRequest,
                                                            PortRequest, RouterRequest, PoolRequest, LoadBalancerRequest}
@@ -89,6 +90,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         classTag[SimPort]              -> (new PortRequest(_)),
         classTag[SimBridgePort]        -> (new PortRequest(_)),
         classTag[SimRouterPort]        -> (new PortRequest(_)),
+        classTag[VxLanPort]            -> (new PortRequest(_)),
         classTag[SimBridge]            -> (new BridgeRequest(_)),
         classTag[SimRouter]            -> (new RouterRequest(_)),
         classTag[SimChain]             -> (new ChainRequest(_)),
@@ -316,7 +318,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue] = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
                        natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
                        traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
-                      (implicit hostId: UUID, client: DataClient) = {
+                      (implicit hostId: UUID) = {
         val dpState = new DatapathState {
             override val datapath = new Datapath(0, "midonet")
             override def peerTunnelInfo(peer: UUID): Option[UnderlayRoute] =
@@ -341,7 +343,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             new CookieGenerator(0, 1),
             clock,
             dpChannel,
-            new DhcpConfigFromDataclient(client),
+            new DhcpConfigFromDataclient(injector.getInstance(classOf[DataClient])),
             simBackChannel,
             flowProcessor,
             conntrackTable,

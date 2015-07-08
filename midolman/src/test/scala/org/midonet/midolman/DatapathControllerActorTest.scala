@@ -23,7 +23,6 @@ import com.typesafe.config.{Config, ConfigValueFactory}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.TunnelZone
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.host.interfaces.InterfaceDescription
 import org.midonet.midolman.io.{ChannelType, UpcallDatapathConnectionManager}
@@ -131,10 +130,8 @@ class DatapathControllerActorTest extends MidolmanSpec {
         val srcIp = IPv4Addr("192.168.100.1")
         val dstIp1 = IPv4Addr("192.168.125.1")
 
-        clusterDataClient.tunnelZonesAddMembership(
-            tunnelZone, new TunnelZone.HostConfig(hostId).setIp(srcIp))
-        clusterDataClient.tunnelZonesAddMembership(
-            tunnelZone, new TunnelZone.HostConfig(host2).setIp(dstIp1))
+        addTunnelZoneMember(tunnelZone, hostId, srcIp)
+        addTunnelZoneMember(tunnelZone, host2, dstIp1)
 
         DatapathController.messages.collect { case p: ResolvedHost => p } should have size 1
         DatapathController.messages.collect { case p: ZoneMembers => p } should have size 1
@@ -151,11 +148,9 @@ class DatapathControllerActorTest extends MidolmanSpec {
 
         // update the gre ip of the second host
         val dstIp2 = IPv4Addr("192.168.210.1")
-        val secondGreConfig = new TunnelZone.HostConfig(host2).setIp(dstIp2)
-        clusterDataClient.tunnelZonesDeleteMembership(
-            tunnelZone, host2)
-        clusterDataClient.tunnelZonesAddMembership(
-            tunnelZone, secondGreConfig)
+        deleteTunnelZoneMember(tunnelZone, host2)
+        deleteTunnelZoneMember(tunnelZone, host2)
+        addTunnelZoneMember(tunnelZone, host2, dstIp2)
 
         DatapathController.messages.collect { case p: ZoneChanged => p } should have size 2
         DatapathController.getAndClear() should have size 2

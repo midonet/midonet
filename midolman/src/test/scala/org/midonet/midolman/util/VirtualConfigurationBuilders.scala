@@ -29,10 +29,16 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, TCP, MAC}
+import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
 
 object VirtualConfigurationBuilders {
     case class DhcpOpt121Route(gw: IPv4Addr, subnet: IPv4Subnet)
+
+    object TraceDeviceType extends Enumeration {
+        type TraceDeviceType = Value
+        val BRIDGE, ROUTER, PORT = Value
+    }
 }
 
 trait VirtualConfigurationBuilders {
@@ -41,6 +47,8 @@ trait VirtualConfigurationBuilders {
     def newHost(name: String, id: UUID): UUID
     def newHost(name: String): UUID
     def isHostAlive(id: UUID): Boolean
+    def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit
+
     def newInboundChainOnBridge(name: String, bridge: UUID): UUID
     def newOutboundChainOnBridge(name: String, bridge: UUID): UUID
     def newInboundChainOnRouter(name: String, router: UUID): UUID
@@ -52,6 +60,8 @@ trait VirtualConfigurationBuilders {
     def newInboundChainOnPort(name: String, port: UUID): UUID
     def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                               action: Action): UUID
+    def newTraceRuleOnChain(chain: UUID, pos: Int, condition: Condition,
+                            requestId: UUID): UUID
     def newTcpDstRuleOnChain(
             chain: UUID, pos: Int, dstPort: Int, action: Action,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED): UUID
@@ -75,17 +85,21 @@ trait VirtualConfigurationBuilders {
     def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit
     def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit
     def deleteIpAddrGroup(id: UUID): Unit
-    def greTunnelZone(name: String): UUID
+    def greTunnelZone(name: String, id: Option[UUID] = None): UUID
+    def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit
+    def deleteTunnelZoneMember(tz: UUID, host: UUID): Unit
 
-    def newBridge(name: String): UUID
+    def newBridge(name: String, tenant: Option[String] = None): UUID
     def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit
     def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit
+    def deleteBridge(bridge: UUID): Unit
 
     def newBridgePort(bridge: UUID,
                       host: Option[UUID] = None,
                       interface: Option[String] = None): UUID
 
     def setPortAdminStateUp(port: UUID, state: Boolean): Unit
+    def deletePort(port: UUID): Unit
     def deletePort(port: UUID, hostId: UUID): Unit
     def newPortGroup(name: String, stateful: Boolean = false): UUID
     def setPortGroupStateful(id: UUID, stateful: Boolean): Unit
@@ -94,10 +108,14 @@ trait VirtualConfigurationBuilders {
 
     def newRouter(name: String): UUID
     def setRouterAdminStateUp(router: UUID, state: Boolean): Unit
+    def deleteRouter(router: UUID): Unit
 
     def newRouterPort(router: UUID, mac: MAC, portAddr: String,
                       nwAddr: String, nwLen: Int): UUID
     def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): UUID
+
+    def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
+                     vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID
 
     def newRoute(router: UUID,
                  srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
@@ -116,6 +134,7 @@ trait VirtualConfigurationBuilders {
                            host: MAC, options: Map[String, String]): Unit
 
     def linkPorts(port: UUID, peerPort: UUID): Unit
+    def unlinkPorts(port: UUID): Unit
     def materializePort(port: UUID, hostId: UUID, portName: String): Unit
     def newCondition(
             nwProto: Option[Byte] = None,
@@ -161,6 +180,7 @@ trait VirtualConfigurationBuilders {
     def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit
     def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit
     def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit
+    def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit
     def newPoolMember(pool: UUID): UUID
     def newPoolMember(pool: UUID, address: String, port: Int,
                          weight: Int = 1): UUID
@@ -174,6 +194,17 @@ trait VirtualConfigurationBuilders {
                                   adminStateUp: Boolean): Unit
     def setPoolMemberHealth(poolMember: UUID,
                             status: LBStatus): Unit
+
+    import VirtualConfigurationBuilders.TraceDeviceType
+    def newTraceRequest(device: UUID,
+                        devType: TraceDeviceType.TraceDeviceType,
+                        condition: Condition,
+                        enabled: Boolean = false): UUID
+    def listTraceRequests(tenant: Option[String] = None): List[UUID]
+    def deleteTraceRequest(tr: UUID): Unit
+    def enableTraceRequest(tr: UUID): Unit
+    def disableTraceRequest(tr: UUID): Unit
+    def isTraceRequestEnabled(tr: UUID): Boolean
 }
 
 trait ForwardingVirtualConfigurationBuilders
@@ -189,6 +220,8 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.newHost(name)
     override def isHostAlive(id: UUID): Boolean =
         virtConfBuilderImpl.isHostAlive(id)
+    override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit =
+        virtConfBuilderImpl.addHostVrnPortMapping(host, port, iface)
 
     override def newInboundChainOnBridge(name: String, bridge: UUID): UUID =
         virtConfBuilderImpl.newInboundChainOnBridge(name, bridge)
@@ -211,6 +244,9 @@ trait ForwardingVirtualConfigurationBuilders
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                        action: Action): UUID =
         virtConfBuilderImpl.newLiteralRuleOnChain(chain, pos, condition, action)
+    override def newTraceRuleOnChain(chain: UUID, pos: Int, condition: Condition,
+                                     requestId: UUID): UUID =
+        virtConfBuilderImpl.newTraceRuleOnChain(chain, pos, condition, requestId)
     override def newTcpDstRuleOnChain(
             chain: UUID, pos: Int, dstPort: Int, action: Action,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED): UUID =
@@ -242,13 +278,21 @@ trait ForwardingVirtualConfigurationBuilders
     override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
         virtConfBuilderImpl.removeIpAddrFromIpAddrGroup(id, addr)
     override def deleteIpAddrGroup(id: UUID): Unit = virtConfBuilderImpl.deleteIpAddrGroup(id)
-    override def greTunnelZone(name: String): UUID = virtConfBuilderImpl.greTunnelZone(name)
+    override def greTunnelZone(name: String, id: Option[UUID] = None): UUID =
+        virtConfBuilderImpl.greTunnelZone(name, id)
+    override def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit =
+        virtConfBuilderImpl.addTunnelZoneMember(tz, host, ip)
+    override def deleteTunnelZoneMember(tz: UUID, host: UUID): Unit =
+        virtConfBuilderImpl.deleteTunnelZoneMember(tz, host)
 
-    override def newBridge(name: String): UUID = virtConfBuilderImpl.newBridge(name)
+    override def newBridge(name: String, tenant: Option[String] = None): UUID =
+        virtConfBuilderImpl.newBridge(name, tenant)
     override def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit =
         virtConfBuilderImpl.setBridgeAdminStateUp(bridge, state)
     override def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit =
         virtConfBuilderImpl.feedBridgeIp4Mac(bridge, ip, mac)
+    override def deleteBridge(bridge: UUID): Unit =
+        virtConfBuilderImpl.deleteBridge(bridge)
 
     override def newBridgePort(bridge: UUID,
                                host: Option[UUID] = None,
@@ -258,6 +302,8 @@ trait ForwardingVirtualConfigurationBuilders
     override def setPortAdminStateUp(port: UUID, state: Boolean): Unit =
         virtConfBuilderImpl.setPortAdminStateUp(port, state)
 
+    override def deletePort(port: UUID): Unit =
+        virtConfBuilderImpl.deletePort(port)
     override def deletePort(port: UUID, hostId: UUID): Unit =
         virtConfBuilderImpl.deletePort(port, hostId)
     override def newPortGroup(name: String, stateful: Boolean = false): UUID =
@@ -273,12 +319,19 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.newRouter(name)
     override def setRouterAdminStateUp(router: UUID, state: Boolean): Unit =
         virtConfBuilderImpl.setRouterAdminStateUp(router, state)
+    override def deleteRouter(router: UUID): Unit =
+        virtConfBuilderImpl.deleteRouter(router)
 
     override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
                                nwAddr: String, nwLen: Int): UUID =
         virtConfBuilderImpl.newRouterPort(router, mac, portAddr, nwAddr, nwLen)
     override def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): UUID =
         virtConfBuilderImpl.newRouterPort(router, mac, portAddr)
+
+    def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
+                     vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID =
+        virtConfBuilderImpl.newVxLanPort(bridge, mgmtIp, mgmtPort,
+                                         vni, tunnelIp, tunnelZone)
 
     override def newRoute(router: UUID,
                           srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
@@ -305,6 +358,9 @@ trait ForwardingVirtualConfigurationBuilders
 
     override def linkPorts(port: UUID, peerPort: UUID): Unit =
         virtConfBuilderImpl.linkPorts(port, peerPort)
+    override def unlinkPorts(port: UUID): Unit =
+        virtConfBuilderImpl.unlinkPorts(port)
+
     override def materializePort(port: UUID, hostId: UUID, portName: String): Unit =
         virtConfBuilderImpl.materializePort(port, hostId, portName)
     override def newCondition(
@@ -378,6 +434,8 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.setPoolAdminStateUp(pool, adminStateUp)
     override def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit =
         virtConfBuilderImpl.setPoolLbMethod(pool, lbMethod)
+    override def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit =
+        virtConfBuilderImpl.setPoolMapStatus(pool, status)
     override def newPoolMember(pool: UUID): UUID =
         virtConfBuilderImpl.newPoolMember(pool)
     override def newPoolMember(pool: UUID, address: String, port: Int,
@@ -398,4 +456,21 @@ trait ForwardingVirtualConfigurationBuilders
     override def setPoolMemberHealth(poolMember: UUID,
                                      status: LBStatus): Unit =
         virtConfBuilderImpl.setPoolMemberHealth(poolMember, status)
+
+    import VirtualConfigurationBuilders.TraceDeviceType
+    override def newTraceRequest(device: UUID,
+                                 devType: TraceDeviceType.TraceDeviceType,
+                                 condition: Condition,
+                                 enabled: Boolean = false): UUID =
+        virtConfBuilderImpl.newTraceRequest(device, devType, condition, enabled)
+    override def listTraceRequests(tenant: Option[String] = None): List[UUID] =
+        virtConfBuilderImpl.listTraceRequests(tenant)
+    override def deleteTraceRequest(tr: UUID): Unit =
+        virtConfBuilderImpl.deleteTraceRequest(tr)
+    override def enableTraceRequest(tr: UUID): Unit =
+        virtConfBuilderImpl.enableTraceRequest(tr)
+    override def disableTraceRequest(tr: UUID): Unit =
+        virtConfBuilderImpl.disableTraceRequest(tr)
+    override def isTraceRequestEnabled(tr: UUID): Boolean =
+        virtConfBuilderImpl.isTraceRequestEnabled(tr)
 }

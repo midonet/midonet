@@ -83,7 +83,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
         uplinkPort = spec.newBridgePort(clusterBridge)
         routerPort = spec.newRouterPort(clusterRouter, routerMac, routerIp)
 
-        spec.clusterDataClient.portsLink(routerPort, uplinkPort)
+        spec.linkPorts(routerPort, uplinkPort)
         spec.materializePort(vmPort, spec.hostId, s"vm${BridgeWithOneVm.portIndex}")
         spec.newRoute(clusterRouter, "0.0.0.0", 0,
                       subnet.getAddress.toString, subnet.getPrefixLen,
