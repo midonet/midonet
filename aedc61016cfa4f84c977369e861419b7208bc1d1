@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b7b420d2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-08T16:02:09Z",
+      "side": 1,
+      "message": "deleteChannel.getLocalAddress.getPid",
+      "revId": "aedc61016cfa4f84c977369e861419b7208bc1d1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
