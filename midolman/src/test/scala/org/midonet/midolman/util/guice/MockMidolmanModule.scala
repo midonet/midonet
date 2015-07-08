@@ -22,6 +22,7 @@ import java.util.concurrent.ExecutorService
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.name.Names
 
+import org.midonet.midolman.services.SelectLoopService
 import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel, ShardedSimulationBackChannel}
 import org.midonet.midolman.cluster.MidolmanModule
 import org.midonet.midolman.state.{MockNatBlockAllocator, NatBlockAllocator}
@@ -49,6 +50,13 @@ class MockMidolmanModule extends MidolmanModule {
         expose(classOf[ShardedSimulationBackChannel])
 
         IPv4InvalidationArray.reset()
+    }
+
+    protected override def bindZebraSelectLoop(): Unit = {
+        bind(classOf[SelectLoopService]).toInstance(new SelectLoopService {
+           override def doStart(): Unit = notifyStarted()
+           override def doStop(): Unit = notifyStopped()
+        })
     }
 
     protected override def bindAllocator() {
