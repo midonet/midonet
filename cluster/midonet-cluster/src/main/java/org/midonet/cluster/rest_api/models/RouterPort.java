@@ -38,6 +38,8 @@ import org.midonet.packets.MAC;
 
 public class RouterPort extends Port {
 
+    public static final int NO_AS = -1;
+
     @NotNull
     @Pattern(regexp = IPv4.regex, message = "is an invalid IP format")
     public String networkAddress;
@@ -63,12 +65,20 @@ public class RouterPort extends Port {
     public UUID routerId;
 
     @JsonIgnore
-    @ZoomField(name = "bgp_id", converter = UUIDUtil.Converter.class)
-    public UUID bgpId;
-
-    @JsonIgnore
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
+
+    @JsonIgnore
+    @ZoomField(name = "local_as")
+    public int localAs = NO_AS;
+
+    @JsonIgnore
+    @ZoomField(name = "bgp_network_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> bgpNetworkIds;
+
+    @JsonIgnore
+    @ZoomField(name = "bgp_peer_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> bgpPeerIds;
 
     @Override
     public UUID getDeviceId() {
@@ -109,7 +119,8 @@ public class RouterPort extends Port {
         super.update(from);
         RouterPort routerPort = (RouterPort)from;
         routerId = routerPort.routerId;
-        bgpId = routerPort.bgpId;
         routeIds = routerPort.routeIds;
+        bgpNetworkIds = routerPort.bgpNetworkIds;
+        bgpPeerIds = routerPort.bgpPeerIds;
     }
 }

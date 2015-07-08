@@ -77,8 +77,10 @@ trait TopologyBuilder {
                                    portSubnet: IPSubnet[_] = randomIPv4Subnet,
                                    portAddress: IPAddr = IPv4Addr.random,
                                    portMac: MAC = MAC.random,
-                                   bgpId: Option[UUID] = None,
-                                   routeIds: Set[UUID] = Set.empty): Port = {
+                                   routeIds: Set[UUID] = Set.empty,
+                                   bgpNetworkIds: Set[UUID] = Set.empty,
+                                   bgpPeerIds: Set[UUID] = Set.empty)
+    : Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
@@ -86,7 +88,8 @@ trait TopologyBuilder {
             .setPortAddress(portAddress.asProto)
             .setPortMac(portMac.toString)
             .addAllRouteIds(routeIds.map(_.asProto).asJava)
-        if (bgpId.isDefined) builder.setBgpId(bgpId.get.asProto)
+            .addAllBgpNetworkIds(bgpNetworkIds.map(_.asProto).asJava)
+            .addAllBgpPeerIds(bgpPeerIds.map(_.asProto).asJava)
         if (routerId.isDefined) builder.setRouterId(routerId.get.asProto)
         builder.build()
     }
@@ -560,34 +563,29 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createBGP(id: UUID = UUID.randomUUID,
-                            localAs: Option[Int] = None,
-                            peerAs: Option[Int] = None,
-                            peerAddress: Option[IPAddr] = None,
-                            portId: Option[UUID] = None,
-                            bgpRouteIds: Set[UUID] = Set.empty): Bgp = {
-        val builder = Bgp.newBuilder
-            .setId(id.asProto)
-            .addAllBgpRouteIds(bgpRouteIds.map(_.asProto).asJava)
-        if (localAs.isDefined)
-            builder.setLocalAs(localAs.get)
+    protected def createBgpNetwork(id: UUID = UUID.randomUUID,
+                                   subnet: Option[IPSubnet[_]] = None,
+                                   portId: Option[UUID] = None)
+    : BgpNetwork = {
+        val builder = BgpNetwork.newBuilder().setId(id.asProto)
+        if (subnet.isDefined)
+            builder.setSubnet(subnet.get.asProto)
+        if (portId.isDefined)
+            builder.setPortId(portId.get.asProto)
+        builder.build()
+    }
+
+    protected def createBgpPeer(id: UUID = UUID.randomUUID,
+                                peerAs: Option[Int] = None,
+                                peerAddress: Option[IPAddr] = None,
+                                portId: Option[UUID] = None): BgpPeer = {
+        val builder = BgpPeer.newBuilder().setId(id.asProto)
         if (peerAs.isDefined)
             builder.setPeerAs(peerAs.get)
         if (peerAddress.isDefined)
             builder.setPeerAddress(peerAddress.get.asProto)
         if (portId.isDefined)
             builder.setPortId(portId.get.asProto)
-        builder.build()
-    }
-
-    protected def createBGPRoute(id: UUID = UUID.randomUUID,
-                                 subnet: Option[IPSubnet[_]] = None,
-                                 bgpId: Option[UUID] = None): BgpRoute = {
-        val builder = BgpRoute.newBuilder.setId(id.asProto)
-        if (subnet.isDefined)
-            builder.setSubnet(subnet.get.asProto)
-        if (bgpId.isDefined)
-            builder.setBgpId(bgpId.get.asProto)
         builder.build()
     }
 
@@ -648,7 +646,7 @@ trait TopologyBuilder {
 
 object TopologyBuilder {
 
-    class RichPort(port: Port) {
+    class RichPort(val port: Port) extends AnyVal {
         def setBridgeId(bridgeId: UUID): Port =
             port.toBuilder.setNetworkId(bridgeId.asProto).build()
         def setRouterId(routerId: UUID): Port =
@@ -677,8 +675,6 @@ object TopologyBuilder {
             port.toBuilder.setPortAddress(ipAddress.asProto).build()
         def setPortMac(mac: MAC): Port =
             port.toBuilder.setPortMac(mac.toString).build()
-        def setBgpId(bgpId: UUID): Port =
-            port.toBuilder.setBgpId(bgpId.asProto).build()
         def clearBridgeId(): Port =
             port.toBuilder.clearNetworkId().build()
         def clearRouterId(): Port =
@@ -707,9 +703,13 @@ object TopologyBuilder {
             port.toBuilder.addRouteIds(routeId.asProto).build()
         def addRuleId(ruleId: UUID): Port =
             port.toBuilder.addRuleIds(ruleId.asProto).build()
+        def addBgpNetworkId(networkId: UUID): Port =
+            port.toBuilder.addBgpNetworkIds(networkId.asProto).build()
+        def addBgpPeerId(peerId: UUID): Port =
+            port.toBuilder.addBgpPeerIds(peerId.asProto).build()
     }
 
-    class RichBridge(bridge: Network) {
+    class RichBridge(val bridge: Network) extends AnyVal {
         def setName(name: String): Network =
             bridge.toBuilder.setName(name).build()
         def setTenantId(tenantId: String): Network =
@@ -738,7 +738,7 @@ object TopologyBuilder {
             bridge.toBuilder.clearVni().build()
     }
 
-    class RichRouter(router: Router) {
+    class RichRouter(val router: Router) extends AnyVal {
         def setName(name: String): Router =
             router.toBuilder.setName(name).build()
         def setTenantId(tenantId: String): Router =
@@ -767,7 +767,7 @@ object TopologyBuilder {
             router.toBuilder.clearLoadBalancerId().build()
     }
 
-    class RichRoute(route: Route) {
+    class RichRoute(val route: Route) extends AnyVal {
 
         def asJava: l3.Route = ZoomConvert.fromProto(route, classOf[l3.Route])
 
@@ -789,12 +789,12 @@ object TopologyBuilder {
             route.toBuilder.setRouterId(routerId.asProto).build()
     }
 
-    class RichChain(chain: Chain) {
+    class RichChain(val chain: Chain) extends AnyVal {
         def setName(name: String): Chain =
             chain.toBuilder.setName(name).build()
     }
 
-    class RichPortGroup(portGroup: PortGroup) {
+    class RichPortGroup(val portGroup: PortGroup) extends AnyVal {
         def setName(name: String): PortGroup =
             portGroup.toBuilder.setName(name).build()
         def setTenantId(tenantId: String): PortGroup =
@@ -805,7 +805,7 @@ object TopologyBuilder {
             portGroup.toBuilder.addPortIds(portId.asProto).build()
     }
 
-    class RichIPAddrGroup(ipAddrGroup: IPAddrGroup) {
+    class RichIPAddrGroup(val ipAddrGroup: IPAddrGroup) extends AnyVal {
         def setName(name: String): IPAddrGroup =
             ipAddrGroup.toBuilder.setName(name).build()
         def setInboundChainId(chainId: UUID): IPAddrGroup =
@@ -822,7 +822,7 @@ object TopologyBuilder {
                     .build()).build()
     }
 
-    class RichPool(pool: Pool) {
+    class RichPool(val pool: Pool) extends AnyVal {
         def setAdminStateUp(adminStateUp: Boolean): Pool =
             pool.toBuilder.setAdminStateUp(adminStateUp).build()
         def setHealthMonitorId(healthMonitorId: UUID): Pool =
@@ -841,7 +841,7 @@ object TopologyBuilder {
             pool.toBuilder.addPoolMemberIds(poolMemberId.asProto).build()
     }
 
-    class RichPoolMember(poolMember: PoolMember) {
+    class RichPoolMember(val poolMember: PoolMember) extends AnyVal {
         def setAdminStateUp(adminStateUp: Boolean): PoolMember =
             poolMember.toBuilder.setAdminStateUp(adminStateUp).build()
         def setPoolId(poolId: UUID): PoolMember =
@@ -856,17 +856,17 @@ object TopologyBuilder {
             poolMember.toBuilder.setWeight(weight).build()
     }
 
-    class RichLoadBalancer(loadBalancer: LoadBalancer) {
+    class RichLoadBalancer(val loadBalancer: LoadBalancer) extends AnyVal {
         def setAdminStateUp(adminStateUp: Boolean): LoadBalancer =
             loadBalancer.toBuilder.setAdminStateUp(adminStateUp).build()
     }
 
-    class RichVip(vip: Vip) {
+    class RichVip(val vip: Vip) extends AnyVal {
         def setAddress(ipAddress: IPAddress): Vip =
             vip.toBuilder.setAddress(ipAddress).build()
     }
 
-    class RichHealthMonitor(healthMonitor: HealthMonitor) {
+    class RichHealthMonitor(val healthMonitor: HealthMonitor) extends AnyVal {
         def setAdminStateUp(adminStateUp: Boolean): HealthMonitor =
             healthMonitor.toBuilder.setAdminStateUp(adminStateUp).build()
         def setStatus(status: LBStatus): HealthMonitor =
@@ -884,22 +884,20 @@ object TopologyBuilder {
             healthMonitor.toBuilder.setPoolId(poolId.asProto).build()
     }
 
-    class RichBgp(bgp: Bgp) {
-        def setLocalAs(as: Int): Bgp =
-            bgp.toBuilder.setLocalAs(as).build()
-        def setPeerAs(as: Int): Bgp =
-            bgp.toBuilder.setPeerAs(as).build()
-        def setPeerAddress(address: IPAddr): Bgp =
-            bgp.toBuilder.setPeerAddress(address.asProto).build()
-        def addBgpRouteId(routeId: UUID): Bgp =
-            bgp.toBuilder.addBgpRouteIds(routeId.asProto).build()
-        def clearBgpRouteIds(): Bgp =
-            bgp.toBuilder.clearBgpRouteIds().build()
+    class RichBgpPeer(val bgpPeer: BgpPeer) extends AnyVal {
+        def setPeerAs(as: Int): BgpPeer =
+            bgpPeer.toBuilder.setPeerAs(as).build()
+        def setPeerAddress(address: IPAddr): BgpPeer =
+            bgpPeer.toBuilder.setPeerAddress(address.asProto).build()
+        def setPortId(portId: UUID): BgpPeer =
+            bgpPeer.toBuilder.setPortId(portId.asProto).build()
     }
 
-    class RichBgpRoute(bgpRoute: BgpRoute) {
-        def setSubnet(subnet: IPSubnet[_]): BgpRoute =
-            bgpRoute.toBuilder.setSubnet(subnet.asProto).build()
+    class RichBgpNetwork(val bgpNetwork: BgpNetwork) extends AnyVal {
+        def setSubnet(subnet: IPSubnet[_]): BgpNetwork =
+            bgpNetwork.toBuilder.setSubnet(subnet.asProto).build()
+        def setPortId(portId: UUID): BgpNetwork =
+            bgpNetwork.toBuilder.setPortId(portId.asProto).build()
     }
 
     private val random = new Random()
@@ -938,9 +936,10 @@ object TopologyBuilder {
     implicit def asRichHealthMonitor(healthMonitor: HealthMonitor): RichHealthMonitor =
         new RichHealthMonitor(healthMonitor)
 
-    implicit def asRichBgp(bgp: Bgp): RichBgp = new RichBgp(bgp)
+    implicit def asRichBgpPeer(bgpPeer: BgpPeer): RichBgpPeer =
+        new RichBgpPeer(bgpPeer)
 
-    implicit def asRichBgpRoute(bgpRoute: BgpRoute): RichBgpRoute =
-        new RichBgpRoute(bgpRoute)
+    implicit def asRichBgpNetwork(bgpNetwork: BgpNetwork): RichBgpNetwork =
+        new RichBgpNetwork(bgpNetwork)
 
 }

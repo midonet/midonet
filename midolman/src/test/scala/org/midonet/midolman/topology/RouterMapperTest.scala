@@ -63,7 +63,7 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
     }
 
     implicit def asIPSubnet(str: String): IPSubnet[_] = IPSubnet.fromString(str)
-    implicit def asIPAddres(str: String): IPv4Addr = IPv4Addr(str)
+    implicit def asIPAddress(str: String): IPv4Addr = IPv4Addr(str)
     implicit def asMAC(str: String): MAC = MAC.fromString(str)
     implicit def asRoute(str: String): Route =
         new Route(0, 0, IPv4Addr(str).toInt, 32, null, null, 0, 0, null, null)
