@@ -25,7 +25,7 @@ import rx.Observer
 
 import org.midonet.midolman.DatapathStateDriver
 import org.midonet.midolman.datapath.FlowProcessor
-import org.midonet.midolman.util.MockNetlinkChannelFactory
+import org.midonet.midolman.util.{MockSelectorProvider, MockNetlinkChannelFactory}
 import org.midonet.netlink.NetlinkMessage
 import org.midonet.odp.OpenVSwitch.Flow.Attr
 import org.midonet.odp.family.{DatapathFamily, FlowFamily, PacketFamily, PortFamily}
@@ -40,6 +40,7 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
                                                      new FlowFamily(0),
                                                      new PacketFamily(0), 0, 0),
                               10000, 1023, new MockNetlinkChannelFactory,
+                              new MockSelectorProvider,
                               new MockClock) {
     var flowDelCb: Flow => Unit = _
 
