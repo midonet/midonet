@@ -100,6 +100,8 @@ echo "Binding: ${BINDING}"
 
 # Create the veth interfaces
 sudo ip link add type veth
+sudo ip addr flush veth0
+sudo ip addr flush veth1
 sudo ip link set dev veth0 up
 sudo ip link set dev veth1 up
 
@@ -114,6 +116,7 @@ if ! brctl show uplinkbridge | grep veth0; then
 fi
 
 if ! ip addr | grep uplinkbridge | grep 172.19.0.1; then
+    sudo ip addr flush uplinkbridge
     sudo ip addr add 172.19.0.1/30 dev uplinkbridge
 fi
 
