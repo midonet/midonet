@@ -16,11 +16,11 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
-import org.midonet.cluster.models.Topology.{Chain, Route, Router, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Rule}
+import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state.PathBuilder
@@ -144,7 +144,6 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         val routerGwPortId = tenantGwPortId(gwPortId)
         val snatRule = Rule.newBuilder
             .setId(fipSnatRuleId(fip.getId))
-            .setChainId(oChainId)
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .addOutPortIds(routerGwPortId)
@@ -153,7 +152,6 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .build()
         val dnatRule = Rule.newBuilder
             .setId(fipDnatRuleId(fip.getId))
-            .setChainId(iChainId)
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .addInPortIds(routerGwPortId)
@@ -176,14 +174,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
 
     /* Since Delete is idempotent, it is fine if those rules don't exist. */
     private def removeNatRules(fip: FloatingIp): MidoOpList = {
-        val fipId = fip.getId
-        val routerId = fip.getRouterId
-        val inChain = storage.get(classOf[Chain], inChainId(routerId)).await()
-        val outChain = storage.get(classOf[Chain], outChainId(routerId)).await()
-
-        List(Delete(classOf[Rule], fipSnatRuleId(fipId)),
-             Delete(classOf[Rule], fipDnatRuleId(fipId)),
-             Update(removeRule(inChain, fipDnatRuleId(fipId))),
-             Update(removeRule(outChain, fipSnatRuleId(fipId))))
+        List(Delete(classOf[Rule], fipSnatRuleId(fip.getId)),
+             Delete(classOf[Rule], fipDnatRuleId(fip.getId)))
     }
 }
