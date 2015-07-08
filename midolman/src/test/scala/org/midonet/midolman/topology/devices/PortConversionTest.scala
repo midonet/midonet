@@ -75,7 +75,9 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 hostId = Some(UUID.randomUUID),
                 interfaceName = Some(random.nextString(10)),
                 adminStateUp = random.nextBoolean(),
-                portGroupIds = Set(UUID.randomUUID, UUID.randomUUID))
+                portGroupIds = Set(UUID.randomUUID, UUID.randomUUID),
+                bgpPeerIds = Set(UUID.randomUUID, UUID.randomUUID),
+                bgpNetworkIds = Set(UUID.randomUUID, UUID.randomUUID))
             val device = ZoomConvert.fromProto(port, classOf[Port])
 
             device shouldBeDeviceOf port
@@ -88,6 +90,8 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
             port.portSubnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
             port.portIp = new IPv4Addr(random.nextInt())
             port.portMac = new MAC(random.nextLong())
+            port.bgpNetworkIds = Set(UUID.randomUUID, UUID.randomUUID)
+            port.bgpPeerIds = Set(UUID.randomUUID, UUID.randomUUID)
 
             val proto = ZoomConvert.toProto(port, classOf[Topology.Port])
 
