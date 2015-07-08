@@ -1,0 +1,106 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c09c816c",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/MirrorRule.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-08T12:46:20Z",
+      "side": 1,
+      "message": "Do we need this?  I don\u0027t see it in the other rules?",
+      "revId": "753a949c33fb51adf464f0fd9a03384837a39bbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_80927955",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/validation/PortIdValidator.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-08T12:46:20Z",
+      "side": 1,
+      "message": "In the new API, we are not validating (yet) the port ID, so to be consistent, let\u0027s not introduce this here.  Look at the Route model\u0027s nextHopPort.  I\u0027m not saying this is desirable, but this patch should only include relevant changes conforming to the current model.  So I suggest you remove this file.",
+      "revId": "753a949c33fb51adf464f0fd9a03384837a39bbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_008e692e",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/validation/ValidPortId.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-08T12:46:20Z",
+      "side": 1,
+      "message": "Likewise, I think we should remove this from the patch set.  Galo what do you think?",
+      "revId": "753a949c33fb51adf464f0fd9a03384837a39bbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c0c1e12f",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-08T12:46:20Z",
+      "side": 1,
+      "message": "This does not apply to v2 so no need to make changes here.",
+      "revId": "753a949c33fb51adf464f0fd9a03384837a39bbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e0dd0516",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/rules/MirrorRule.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-08T12:46:20Z",
+      "side": 1,
+      "message": "This is only for v1.X no need to add",
+      "revId": "753a949c33fb51adf464f0fd9a03384837a39bbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e0bc256f",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/MirrorRule.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-08T12:46:20Z",
+      "side": 1,
+      "message": "Do we need this?",
+      "revId": "753a949c33fb51adf464f0fd9a03384837a39bbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
