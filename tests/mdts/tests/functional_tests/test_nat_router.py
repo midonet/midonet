@@ -107,6 +107,7 @@ def feed_receiver_mac(receiver):
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1643
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
+@notest
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
 def test_dnat():
@@ -146,7 +147,7 @@ def test_dnat():
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
 @attr(version="v1.2.0", slow=False, flaky=True)
-@bindings(binding_onehost, binding_multihost)
+@bindings(binding_multihost)
 def test_dnat_for_udp():
     """
     Title: Tests DNAT on UDP packets.
@@ -192,6 +193,7 @@ def test_dnat_for_udp():
 
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
+@notest
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
 def test_snat():
@@ -232,6 +234,7 @@ def test_snat():
 
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
+@notest
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
 def test_snat_for_udp():
@@ -281,6 +284,7 @@ def test_snat_for_udp():
 
 
 # FIXME: https://midobugs.atlassian.net/browse/MN-1760
+@notest
 @attr(version="v1.2.0", slow=False, flaky=True)
 @bindings(binding_onehost, binding_multihost)
 def test_floating_ip():
