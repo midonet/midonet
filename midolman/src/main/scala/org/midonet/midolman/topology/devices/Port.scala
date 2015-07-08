@@ -199,8 +199,13 @@ class RouterPort extends Port {
     var portMac: MAC = _
     @ZoomField(name = "route_ids", converter = classOf[UUIDConverter])
     var routeIds: Set[UUID] = _
-    @ZoomField(name = "bgp_id", converter = classOf[UUIDConverter])
-    var bgpId: UUID = _
+
+    @ZoomField(name = "local_as")
+    var localAs: Int = _
+    @ZoomField(name = "bgp_network_ids", converter = classOf[UUIDConverter])
+    var bgpNetworkIds: Set[UUID] = _
+    @ZoomField(name = "bgp_peer_ids", converter = classOf[UUIDConverter])
+    var bgpPeerIds: Set[UUID] = _
 
     private var _portAddr: IPv4Subnet = _
 

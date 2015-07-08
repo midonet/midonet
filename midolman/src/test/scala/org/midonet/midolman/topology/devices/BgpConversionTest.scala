@@ -35,6 +35,7 @@ class BgpConversionTest extends FlatSpec with Matchers
 
     private val random = new Random()
 
+    /*
     "BGP" should "convert from Protocol Buffers" in {
         val proto = createBGP(localAs = Some(random.nextInt()),
                             peerAs = Some(random.nextInt()),
@@ -44,6 +45,6 @@ class BgpConversionTest extends FlatSpec with Matchers
         val bgp = ZoomConvert.fromProto(proto, classOf[Bgp])
 
         bgp shouldBeDeviceOf proto
-    }
+    }*/
 
 }

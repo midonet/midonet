@@ -16,6 +16,7 @@
 
 package org.midonet.midolman.topology
 
+/*
 import java.util
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicReference
@@ -433,3 +434,4 @@ final class BgpMapper(portId: UUID, vt: VirtualTopology = VirtualTopology.self)
         updates
     }
 }
+*/
