@@ -138,6 +138,9 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[Route], "gateway_dhcp_id", CLEAR,
                              classOf[Dhcp], "gateway_route_ids", CLEAR)
 
+        store.declareBinding(classOf[Chain], "rule_ids", CASCADE,
+                             classOf[Rule], "chain_id", CLEAR)
+
         // Field bindings between Neutron objects
         store.declareBinding(classOf[NeutronPort], "floating_ip_ids", CLEAR,
                              classOf[FloatingIp], "port_id", CLEAR)

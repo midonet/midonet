@@ -16,14 +16,11 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConverters._
-
-import org.midonet.cluster.services.c3po.midonet._
 import org.midonet.cluster.data.storage.ReadOnlyStorage
-import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
+import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
-import org.midonet.cluster.models.Topology.{Chain, Rule}
-import org.midonet.util.concurrent.toFutureOps
+import org.midonet.cluster.models.Topology.Rule
+import org.midonet.cluster.services.c3po.midonet._
 
 class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
     extends NeutronTranslator[SecurityGroupRule] with ChainManager {
@@ -34,18 +31,7 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
      */
     protected override def translateCreate(sgr: SecurityGroupRule)
     : MidoOpList = {
-
-        val chainId = sgr.getDirection match {
-            case RuleDirection.INGRESS => outChainId(sgr.getSecurityGroupId)
-            case _ => inChainId(sgr.getSecurityGroupId)
-        }
-
-        val chain = storage.get(classOf[Chain], chainId).await()
-
-        val updatedChain = chain.toBuilder.addRuleIds(sgr.getId).build()
-
-        List(Create(SecurityGroupRuleManager.translate(sgr)),
-             Update(updatedChain))
+        List(Create(SecurityGroupRuleManager.translate(sgr)))
     }
 
     protected override def translateUpdate(newSgr: SecurityGroupRule)
@@ -54,17 +40,7 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
             "SecurityGroupRule update not supported.")
     }
 
-    /*
-     * Need to delete the rule, but also need to delete it from the security
-     * group chain that it is assigned to.
-     */
     protected override def translateDelete(sgrId: UUID) : MidoOpList = {
-        val rule = storage.get(classOf[Rule], sgrId).await()
-        val chain = storage.get(classOf[Chain], rule.getChainId).await()
-
-        val ruleIdx = chain.getRuleIdsList.asScala.indexOf(sgrId)
-        val updatedChain = chain.toBuilder.removeRuleIds(ruleIdx).build
-
-        List(Delete(classOf[Rule], rule.getId), Update(updatedChain))
+        List(Delete(classOf[Rule], sgrId))
     }
 }
