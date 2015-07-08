@@ -23,9 +23,6 @@ import scala.util.Random
 import scala.collection.JavaConversions._
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
-import org.midonet.cluster.data.dhcp.Subnet
-import org.midonet.cluster.data.dhcp.Subnet6
 
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
@@ -35,6 +32,10 @@ import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
 import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
                                       HealthMonitor}
 import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
+
+object VirtualConfigurationBuilders {
+    case class DhcpOpt121Route(gw: IPv4Addr, subnet: IPv4Subnet)
+}
 
 trait VirtualConfigurationBuilders {
 
@@ -105,16 +106,17 @@ trait VirtualConfigurationBuilders {
                  nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
                  weight: Int): UUID
     def deleteRoute(routeId: UUID): Unit
-    def addDhcpSubnet(bridge : UUID,
-                      subnet : Subnet): Unit
-    def addDhcpHost(bridge : UUID, subnet : Subnet,
-                    host : org.midonet.cluster.data.dhcp.Host): Unit
-    def updatedhcpHost(bridge: UUID,
-                       subnet: Subnet, host: DhcpHost): Unit
-    def addDhcpSubnet6(bridge : UUID,
-                       subnet : Subnet6): Unit
-    def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
-                    host : org.midonet.cluster.data.dhcp.V6Host): Unit
+
+    def addDhcpSubnet(bridge: UUID,
+                      subnet: IPv4Subnet,
+                      gw: IPv4Addr,
+                      dns: List[IPv4Addr],
+                      opt121routes: List[VirtualConfigurationBuilders.DhcpOpt121Route]): IPv4Subnet
+    def addDhcpHost(bridge: UUID, subnet: IPv4Subnet,
+                    hostMac: MAC, hostIp: IPv4Addr): MAC
+    def setDhcpHostOptions(bridge: UUID, subnet: IPv4Subnet,
+                           host: MAC, options: Map[String, String]): Unit
+
     def linkPorts(port: UUID, peerPort: UUID): Unit
     def materializePort(port: UUID, hostId: UUID, portName: String): Unit
     def newCondition(
@@ -128,6 +130,7 @@ trait VirtualConfigurationBuilders {
     def newIPAddrGroup(id: Option[UUID]): UUID
     def addAddrToIpAddrGroup(id: UUID, addr: String): Unit
     def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit
+
     def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer
     def deleteLoadBalancer(id: UUID): Unit
     def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: UUID): Unit
@@ -285,21 +288,21 @@ trait ForwardingVirtualConfigurationBuilders
                        nextHop, nextHopPort, nextHopGateway, weight)
     override def deleteRoute(routeId: UUID): Unit =
         virtConfBuilderImpl.deleteRoute(routeId)
-    override def addDhcpSubnet(bridge : UUID,
-                               subnet : Subnet): Unit =
-        virtConfBuilderImpl.addDhcpSubnet(bridge, subnet)
-    override def addDhcpHost(bridge : UUID, subnet : Subnet,
-                             host : org.midonet.cluster.data.dhcp.Host): Unit =
-        virtConfBuilderImpl.addDhcpHost(bridge, subnet, host)
-    override def updatedhcpHost(bridge: UUID,
-                                subnet: Subnet, host: DhcpHost): Unit =
-        virtConfBuilderImpl.updatedhcpHost(bridge, subnet, host)
-    override def addDhcpSubnet6(bridge : UUID,
-                                subnet : Subnet6): Unit =
-        virtConfBuilderImpl.addDhcpSubnet6(bridge, subnet)
-    override def addDhcpV6Host(bridge : UUID, subnet : Subnet6,
-                               host : org.midonet.cluster.data.dhcp.V6Host): Unit =
-        virtConfBuilderImpl.addDhcpV6Host(bridge, subnet, host)
+
+    override def addDhcpSubnet(bridge: UUID,
+                               subnet: IPv4Subnet,
+                               gw: IPv4Addr,
+                               dns: List[IPv4Addr],
+                               opt121routes: List[VirtualConfigurationBuilders.DhcpOpt121Route]): IPv4Subnet =
+        virtConfBuilderImpl.addDhcpSubnet(bridge, subnet, gw, dns, opt121routes)
+    override def addDhcpHost(bridge: UUID, subnet: IPv4Subnet,
+                             hostMac: MAC, hostIp: IPv4Addr): MAC =
+        virtConfBuilderImpl.addDhcpHost(bridge, subnet, hostMac, hostIp)
+    override def setDhcpHostOptions(bridge: UUID,
+                                    subnet: IPv4Subnet, host: MAC,
+                                    options: Map[String, String]): Unit =
+        virtConfBuilderImpl.setDhcpHostOptions(bridge, subnet, host, options)
+
     override def linkPorts(port: UUID, peerPort: UUID): Unit =
         virtConfBuilderImpl.linkPorts(port, peerPort)
     override def materializePort(port: UUID, hostId: UUID, portName: String): Unit =
