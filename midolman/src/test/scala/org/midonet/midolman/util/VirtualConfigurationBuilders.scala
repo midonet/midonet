@@ -28,9 +28,7 @@ import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{IPv4Addr, IPv4Subnet, TCP, MAC}
-import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer,
-                                      HealthMonitor}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, TCP, MAC}
 import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
 
 object VirtualConfigurationBuilders {
@@ -131,48 +129,50 @@ trait VirtualConfigurationBuilders {
     def addAddrToIpAddrGroup(id: UUID, addr: String): Unit
     def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit
 
-    def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer
+    def newLoadBalancer(id: UUID = UUID.randomUUID): UUID
     def deleteLoadBalancer(id: UUID): Unit
-    def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: UUID): Unit
-    def setLoadBalancerDown(loadBalancer: LoadBalancer): Unit
-    def createVip(pool: Pool): VIP
-    def createVip(pool: Pool, address: String, port: Int): VIP
-    def deleteVip(vip: VIP): Unit
-    def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer): Unit
-    def createRandomVip(pool: Pool): VIP
-    def setVipPool(vip: VIP, pool: Pool): Unit
-    def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean): Unit
-    def vipEnableStickySourceIP(vip: VIP): Unit
-    def vipDisableStickySourceIP(vip: VIP): Unit
+    def setLoadBalancerOnRouter(loadBalancer: UUID, router: UUID): Unit
+    def setLoadBalancerDown(loadBalancer: UUID): Unit
+    def createVip(pool: UUID): UUID
+    def createVip(pool: UUID, address: String, port: Int): UUID
+    def deleteVip(vip: UUID): Unit
+    def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean
+
+    def createRandomVip(pool: UUID): UUID
+
+    def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit
+    def vipEnableStickySourceIP(vip: UUID): Unit
+    def vipDisableStickySourceIP(vip: UUID): Unit
     def newHealthMonitor(id: UUID = UUID.randomUUID(),
                            adminStateUp: Boolean = true,
                            delay: Int = 2,
                            maxRetries: Int = 2,
-                           timeout: Int = 2): HealthMonitor
-    def newRandomHealthMonitor
-            (id: UUID = UUID.randomUUID()): HealthMonitor
-    def setHealthMonitorDelay(hm: HealthMonitor, delay: Int): Unit
-    def deleteHealthMonitor(hm: HealthMonitor): Unit
-    def newPool(loadBalancer: LoadBalancer,
+                         timeout: Int = 2): UUID
+    def matchHealthMonitor(id: UUID, adminStateUp: Boolean,
+                           delay: Int, timeout: Int, maxRetries: Int): Boolean
+    def newRandomHealthMonitor(id: UUID = UUID.randomUUID()): UUID
+    def setHealthMonitorDelay(hm: UUID, delay: Int): Unit
+    def deleteHealthMonitor(hm: UUID): Unit
+    def newPool(loadBalancer: UUID,
                 id: UUID = UUID.randomUUID,
                 adminStateUp: Boolean = true,
                 lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
-                hmId: UUID = null): Pool
-    def setPoolHealthMonitor(pool: Pool, hmId: UUID): Unit
-    def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean): Unit
-    def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod): Unit
-    def newPoolMember(pool: Pool): PoolMember
-    def newPoolMember(pool: Pool, address: String, port: Int,
-                         weight: Int = 1): PoolMember
-    def updatePoolMember(poolMember: PoolMember,
+                hmId: UUID = null): UUID
+    def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit
+    def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit
+    def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit
+    def newPoolMember(pool: UUID): UUID
+    def newPoolMember(pool: UUID, address: String, port: Int,
+                         weight: Int = 1): UUID
+    def updatePoolMember(poolMember: UUID,
                          poolId: Option[UUID] = None,
                          adminStateUp: Option[Boolean] = None,
                          weight: Option[Integer] = None,
                          status: Option[LBStatus] = None): Unit
-    def deletePoolMember(poolMember: PoolMember): Unit
-    def setPoolMemberAdminStateUp(poolMember: PoolMember,
+    def deletePoolMember(poolMember: UUID): Unit
+    def setPoolMemberAdminStateUp(poolMember: UUID,
                                   adminStateUp: Boolean): Unit
-    def setPoolMemberHealth(poolMember: PoolMember,
+    def setPoolMemberHealth(poolMember: UUID,
                             status: LBStatus): Unit
 }
 
@@ -323,75 +323,79 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.addAddrToIpAddrGroup(id, addr)
     override def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
         virtConfBuilderImpl.removeAddrFromIpAddrGroup(id, addr)
-    override def newLoadBalancer(id: UUID = UUID.randomUUID): LoadBalancer =
+    override def newLoadBalancer(id: UUID = UUID.randomUUID): UUID =
         virtConfBuilderImpl.newLoadBalancer(id)
     override def deleteLoadBalancer(id: UUID): Unit =
         virtConfBuilderImpl.deleteLoadBalancer(id)
-    override def setLoadBalancerOnRouter(loadBalancer: LoadBalancer, router: UUID): Unit =
+    override def setLoadBalancerOnRouter(loadBalancer: UUID, router: UUID): Unit =
         virtConfBuilderImpl.setLoadBalancerOnRouter(loadBalancer, router)
-    override def setLoadBalancerDown(loadBalancer: LoadBalancer): Unit =
+    override def setLoadBalancerDown(loadBalancer: UUID): Unit =
         virtConfBuilderImpl.setLoadBalancerDown(loadBalancer)
-    override def createVip(pool: Pool): VIP =
+    override def createVip(pool: UUID): UUID =
         virtConfBuilderImpl.createVip(pool)
-    override def createVip(pool: Pool, address: String, port: Int): VIP =
+    override def createVip(pool: UUID, address: String, port: Int): UUID =
         virtConfBuilderImpl.createVip(pool, address, port)
-    override def deleteVip(vip: VIP): Unit =
+    override def deleteVip(vip: UUID): Unit =
         virtConfBuilderImpl.deleteVip(vip)
-    override def removeVipFromLoadBalancer(vip: VIP, loadBalancer: LoadBalancer): Unit =
-        virtConfBuilderImpl.removeVipFromLoadBalancer(vip, loadBalancer)
-    override def createRandomVip(pool: Pool): VIP =
+    override def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean =
+        virtConfBuilderImpl.matchVip(vip, address, protocolPort)
+
+    override def createRandomVip(pool: UUID): UUID =
         virtConfBuilderImpl.createRandomVip(pool)
-    override def setVipPool(vip: VIP, pool: Pool): Unit =
-        virtConfBuilderImpl.setVipPool(vip, pool)
-    override def setVipAdminStateUp(vip: VIP, adminStateUp: Boolean): Unit =
+
+    override def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit =
         virtConfBuilderImpl.setVipAdminStateUp(vip, adminStateUp)
-    override def vipEnableStickySourceIP(vip: VIP): Unit =
+    override def vipEnableStickySourceIP(vip: UUID): Unit =
         virtConfBuilderImpl.vipEnableStickySourceIP(vip)
-    override def vipDisableStickySourceIP(vip: VIP): Unit =
+    override def vipDisableStickySourceIP(vip: UUID): Unit =
         virtConfBuilderImpl.vipDisableStickySourceIP(vip)
     override def newHealthMonitor(id: UUID = UUID.randomUUID(),
                                   adminStateUp: Boolean = true,
                                   delay: Int = 2,
                                   maxRetries: Int = 2,
-                                  timeout: Int = 2): HealthMonitor =
+                                  timeout: Int = 2): UUID =
         virtConfBuilderImpl.newHealthMonitor(id, adminStateUp, delay, maxRetries, timeout)
+    override def matchHealthMonitor(id: UUID, adminStateUp: Boolean,
+                                    delay: Int, timeout: Int, maxRetries: Int): Boolean =
+        virtConfBuilderImpl.matchHealthMonitor(id, adminStateUp, delay,
+                                               timeout, maxRetries)
     override def newRandomHealthMonitor
-        (id: UUID = UUID.randomUUID()): HealthMonitor =
+        (id: UUID = UUID.randomUUID()): UUID =
         virtConfBuilderImpl.newRandomHealthMonitor(id)
-    override def setHealthMonitorDelay(hm: HealthMonitor, delay: Int): Unit =
+    override def setHealthMonitorDelay(hm: UUID, delay: Int): Unit =
         virtConfBuilderImpl.setHealthMonitorDelay(hm, delay)
-    override def deleteHealthMonitor(hm: HealthMonitor): Unit =
+    override def deleteHealthMonitor(hm: UUID): Unit =
         virtConfBuilderImpl.deleteHealthMonitor(hm)
-    override def newPool(loadBalancer: LoadBalancer,
+    override def newPool(loadBalancer: UUID,
                          id: UUID = UUID.randomUUID,
                          adminStateUp: Boolean = true,
                          lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
-                         hmId: UUID = null): Pool =
+                         hmId: UUID = null): UUID =
         virtConfBuilderImpl.newPool(loadBalancer, id, adminStateUp, lbMethod, hmId)
-    override def setPoolHealthMonitor(pool: Pool, hmId: UUID): Unit =
+    override def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit =
         virtConfBuilderImpl.setPoolHealthMonitor(pool, hmId)
-    override def setPoolAdminStateUp(pool: Pool, adminStateUp: Boolean): Unit =
+    override def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit =
         virtConfBuilderImpl.setPoolAdminStateUp(pool, adminStateUp)
-    override def setPoolLbMethod(pool: Pool, lbMethod: PoolLBMethod): Unit =
+    override def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit =
         virtConfBuilderImpl.setPoolLbMethod(pool, lbMethod)
-    override def newPoolMember(pool: Pool): PoolMember =
+    override def newPoolMember(pool: UUID): UUID =
         virtConfBuilderImpl.newPoolMember(pool)
-    override def newPoolMember(pool: Pool, address: String, port: Int,
-                               weight: Int = 1): PoolMember =
+    override def newPoolMember(pool: UUID, address: String, port: Int,
+                               weight: Int = 1): UUID =
         virtConfBuilderImpl.newPoolMember(pool, address, port, weight)
-    override def updatePoolMember(poolMember: PoolMember,
+    override def updatePoolMember(poolMember: UUID,
                                   poolId: Option[UUID] = None,
                                   adminStateUp: Option[Boolean] = None,
                                   weight: Option[Integer] = None,
                                   status: Option[LBStatus] = None): Unit =
         virtConfBuilderImpl.updatePoolMember(poolMember, poolId, adminStateUp,
                                weight, status)
-    override def deletePoolMember(poolMember: PoolMember): Unit =
+    override def deletePoolMember(poolMember: UUID): Unit =
         virtConfBuilderImpl.deletePoolMember(poolMember)
-    override def setPoolMemberAdminStateUp(poolMember: PoolMember,
+    override def setPoolMemberAdminStateUp(poolMember: UUID,
                                            adminStateUp: Boolean): Unit =
         virtConfBuilderImpl.setPoolMemberAdminStateUp(poolMember, adminStateUp)
-    override def setPoolMemberHealth(poolMember: PoolMember,
+    override def setPoolMemberHealth(poolMember: UUID,
                                      status: LBStatus): Unit =
         virtConfBuilderImpl.setPoolMemberHealth(poolMember, status)
 }

@@ -43,7 +43,7 @@ import org.midonet.midolman.simulation.{Bridge => SimBridge,
                                         DhcpConfigFromDataclient,
                                         IPAddrGroup => SimIPAddrGroup,
                                         PacketContext, PacketEmitter,
-                                        Router => SimRouter}
+                                        Router => SimRouter, Pool, LoadBalancer}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
@@ -54,7 +54,8 @@ import org.midonet.midolman.topology.devices.{Host, Port => SimPort,
                                               BridgePort => SimBridgePort,
                                               RouterPort => SimRouterPort}
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
-import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, BridgeRequest, ChainRequest, IPAddrGroupRequest, PortRequest, RouterRequest}
+import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, BridgeRequest, ChainRequest, IPAddrGroupRequest,
+                                                           PortRequest, RouterRequest, PoolRequest, LoadBalancerRequest}
 import org.midonet.odp._
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowKeys, _}
 import org.midonet.odp.ports.InternalPort
@@ -90,7 +91,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         classTag[SimRouterPort]        -> (new PortRequest(_)),
         classTag[SimBridge]            -> (new BridgeRequest(_)),
         classTag[SimRouter]            -> (new RouterRequest(_)),
-        classTag[SimChain]             -> (new ChainRequest(_))
+        classTag[SimChain]             -> (new ChainRequest(_)),
+        classTag[Pool]                 -> (new PoolRequest(_)),
+        classTag[LoadBalancer]         -> (new LoadBalancerRequest(_))
     )
 
     def fetchDevice[T](id: UUID)(implicit tag: ClassTag[T]): T = {

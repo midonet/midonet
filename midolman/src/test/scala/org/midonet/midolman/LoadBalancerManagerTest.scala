@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.midonet.odp.FlowMatch
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer}
+import org.midonet.midolman.simulation.{Pool, PacketContext, LoadBalancer, VIP}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{InvalidateFlowsByTag, PoolRequest, LoadBalancerRequest}
 import org.midonet.midolman.util.MidolmanSpec
@@ -48,15 +48,15 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             val loadBalancer = newLoadBalancer()
             val pool = newPool(loadBalancer)
             val vips = (0 until 2).map(n => createVip(pool))
-            val vipIds = vips.map(v => v.getId).toSet
+            val vipIds = vips.toSet
             vips.size shouldBe 2
 
             When("the VTA receives a request for it")
-            vta.self ! LoadBalancerRequest(loadBalancer.getId)
+            vta.self ! LoadBalancerRequest(loadBalancer)
 
             Then("it should return the requested loadBalancer, including the VIPs")
             val lb = expectMsgType[LoadBalancer]
-            lb.id shouldEqual loadBalancer.getId
+            lb.id shouldEqual loadBalancer
             lb.vips.size shouldBe 2
             lb.vips.map(v => v.id).toSet shouldEqual vipIds
 
@@ -71,11 +71,11 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
-            vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
+            vta.self ! LoadBalancerRequest(loadBalancer, update = true)
 
             And("it returns the first version of the loadBalancer")
             val lb = expectMsgType[LoadBalancer]
-            lb.id shouldEqual loadBalancer.getId
+            lb.id shouldEqual loadBalancer
             lb.vips.length shouldBe 1
             vta.getAndClear()
 
@@ -84,7 +84,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
 
             Then("the VTA should send an update")
             val lb2 = expectMsgType[LoadBalancer]
-            lb2.id shouldEqual loadBalancer.getId
+            lb2.id shouldEqual loadBalancer
             lb2.vips.size shouldBe 2
 
             And("the VTA should receive a flow invalidation")
@@ -98,11 +98,11 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
-            vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
+            vta.self ! LoadBalancerRequest(loadBalancer, update = true)
 
             And("it returns the first version of the loadBalancer")
             val lb = expectMsgType[LoadBalancer]
-            lb.id shouldEqual loadBalancer.getId
+            lb.id shouldEqual loadBalancer
             lb.vips.size shouldBe 1
             vta.getAndClear()
 
@@ -111,7 +111,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
 
             Then("the VTA should send an update")
             val lb2 = expectMsgType[LoadBalancer]
-            lb2.id shouldEqual loadBalancer.getId
+            lb2.id shouldEqual loadBalancer
             lb2.vips.size shouldBe 0
 
             And("the VTA should receive a flow invalidation")
@@ -125,11 +125,11 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
-            vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
+            vta.self ! LoadBalancerRequest(loadBalancer, update = true)
 
             And("it returns the first version of the loadBalancer")
             val lb = expectMsgType[LoadBalancer]
-            lb.id shouldEqual loadBalancer.getId
+            lb.id shouldEqual loadBalancer
             lb.vips.size shouldBe 1
             vta.getAndClear()
 
@@ -138,7 +138,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
 
             Then("the VTA should send an update")
             val lb2 = expectMsgType[LoadBalancer]
-            lb2.id shouldEqual loadBalancer.getId
+            lb2.id shouldEqual loadBalancer
             lb2.vips.size shouldBe 1
 
             And("the VTA should receive a flow invalidation")
@@ -152,11 +152,11 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
-            vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
+            vta.self ! LoadBalancerRequest(loadBalancer, update = true)
 
             And("it returns the first version of the loadBalancer")
             val lb = expectMsgType[LoadBalancer]
-            lb.id shouldEqual loadBalancer.getId
+            lb.id shouldEqual loadBalancer
             lb.adminStateUp shouldBe true
             lb.vips.size shouldBe 1
             vta.getAndClear()
@@ -166,7 +166,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
 
             Then("the VTA should send an update")
             val lb2 = expectMsgType[LoadBalancer]
-            lb2.id shouldEqual loadBalancer.getId
+            lb2.id shouldEqual loadBalancer
             lb2.vips.size shouldBe 1
             lb2.adminStateUp shouldBe false
 
@@ -184,20 +184,21 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             val firstVip = createVip(pool)
 
             When("the VTA receives a subscription request for it")
-            vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
+            vta.self ! LoadBalancerRequest(loadBalancer, update = true)
 
             And("it returns the first version of the loadBalancer")
             val lb = expectMsgType[LoadBalancer]
-            lb.id shouldEqual loadBalancer.getId
+            lb.id shouldEqual loadBalancer
             lb.adminStateUp shouldBe true
             lb.vips.size shouldBe 1
             vta.getAndClear()
 
             And("traffic is sent through the loadbalancer")
             // Ingress match for packet destined to VIP
+            val vipDevice: VIP = lb.vips.find(_.id.equals(firstVip)).get
             val ingressMatch = new FlowMatch()
-                .setNetworkDst(IPv4Addr.fromString(firstVip.getAddress))
-                .setDstPort(firstVip.getProtocolPort)
+                .setNetworkDst(vipDevice.address)
+                .setDstPort(vipDevice.protocolPort)
                 .setNetworkSrc(IPv4Addr.fromString("1.1.1.1"))
                 .setSrcPort(1)
                 .setNetworkProto(TCP.PROTOCOL_NUMBER)
@@ -211,14 +212,14 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             val vtaMessages = vta.getAndClear()
             vtaMessages.size shouldBe 3
 
-            vtaMessages.contains(poolReqMsg(pool.getId)) shouldBe true
+            vtaMessages.contains(poolReqMsg(pool)) shouldBe true
 
             And("the VTA should receive the pool itself")
             val poolMessages = vtaMessages.filter(m => m.isInstanceOf[Pool])
             poolMessages.size shouldBe 1
 
             And("the VTA should receive a flow invalidation for the pool")
-            vtaMessages.contains(poolFlowInvalidationMsg(pool.getId)) shouldBe true
+            vtaMessages.contains(poolFlowInvalidationMsg(pool)) shouldBe true
         }
     }
 

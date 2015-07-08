@@ -51,15 +51,15 @@ class RouterManagerTest extends TestKit(ActorSystem("RouterManagerTest"))
 
             Then("it should return the requested router, with correct loadbalancer ID")
             val r = expectMsgType[Router]
-            r.cfg.loadBalancer shouldEqual loadBalancer.getId
+            r.cfg.loadBalancer shouldEqual loadBalancer
 
             And("The associated load balancer should be updated")
-            vta.self ! LoadBalancerRequest(loadBalancer.getId, update = false)
+            vta.self ! LoadBalancerRequest(loadBalancer, update = false)
             val lb = expectMsgType[LoadBalancer]
             lb.routerId shouldEqual r.id
 
             Then("Delete load balancer")
-            deleteLoadBalancer(loadBalancer.getId)
+            deleteLoadBalancer(loadBalancer)
 
             Then("it should return the requested router, with null loadbalancer ID")
             val r2 = expectMsgType[Router]
@@ -68,7 +68,7 @@ class RouterManagerTest extends TestKit(ActorSystem("RouterManagerTest"))
         scenario("The load balancer gets updated when the routerId changes") {
             Given ("a load balancer")
             val loadBalancer = newLoadBalancer()
-            vta.self ! LoadBalancerRequest(loadBalancer.getId, update = true)
+            vta.self ! LoadBalancerRequest(loadBalancer, update = true)
 
             var lb = expectMsgType[LoadBalancer]
             lb.routerId shouldEqual null
