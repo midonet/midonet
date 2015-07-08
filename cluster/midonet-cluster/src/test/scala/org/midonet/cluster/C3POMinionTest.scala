@@ -468,7 +468,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
             if (extGwNetworkId != null)
                 egi.put("network_id", extGwNetworkId.toString)
             egi.put("enable_snat", enableSnat)
-            r.set("extenal_gateway_info", egi)
+            r.set("external_gateway_info", egi)
         }
         r
     }
@@ -628,10 +628,11 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     }
 
     protected def createRouter(taskId: Int, routerId: UUID,
-                               gwPortId: UUID = null): Unit = {
+                               gwPortId: UUID = null,
+                               enableSnat: Boolean = false): Unit = {
         val json = routerJson(routerId, name = "router-" + routerId,
-                              gwPortId = gwPortId).toString
-        insertCreateTask(taskId, RouterType, json, routerId)
+                              gwPortId = gwPortId, enableSnat = enableSnat)
+        insertCreateTask(taskId, RouterType, json.toString, routerId)
     }
 
     protected def createSubnet(taskId: Int, subnetId: UUID,

@@ -183,17 +183,6 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                             gatewayDhcpId = dhcpId, nextHopGwIpAddr = nextHopIp)
     }
 
-    // Deterministically generate SNAT rule IDs so we can delete them without
-    // fetching and examining each rule to see whether it's an SNAT rule.
-    private def outSnatRuleId(routerId: UUID): UUID =
-        routerId.xorWith(0x68fd6d8bbd3343d8L, 0x9909aa4ad4b691d8L)
-    private def outDropUnmatchedFragmentsRuleId(routerId: UUID): UUID =
-        routerId.xorWith(0xbac97789e63e4663L, 0xa00989d341c8636fL)
-    private def inReverseSnatRuleId(routerId: UUID): UUID =
-        routerId.xorWith(0x928eb605e3e04119L, 0x8c40e4ca90769cf4L)
-    private def inDropWrongPortTrafficRuleId(routerId: UUID): UUID =
-        routerId.xorWith(0xb807509d2fa04b9eL, 0x96b1f45a04e6d128L)
-
     private def snatRuleCreateOps(nr: NeutronRouter, r: Router,
                                   gwIpAddr: IPAddress, tenantGwPortId: UUID)
     : MidoOpList = {
@@ -215,20 +204,24 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 
         val snatRule = outRuleBuilder
             .setId(outSnatRuleId(nr.getId))
+            .setType(Rule.Type.NAT_RULE)
             .setNatRuleData(natRuleData(gwIpAddr, dnat = false))
             .build()
         val dropUnmatchedFragmentsRule = outRuleBuilder
             .setId(outDropUnmatchedFragmentsRuleId(nr.getId))
+            .setType(Rule.Type.LITERAL_RULE)
             .setFragmentPolicy(FragmentPolicy.ANY)
             .setAction(Action.DROP).build()
 
         val revSnatRule = inRuleBuilder
             .setId(inReverseSnatRuleId(nr.getId))
+            .setType(Rule.Type.NAT_RULE)
             .addInPortIds(tenantGwPortId)
             .setNatRuleData(revNatRuleData(dnat = false))
             .build()
         val dropWrongPortTrafficRule = inRuleBuilder
             .setId(inDropWrongPortTrafficRuleId(nr.getId))
+            .setType(Rule.Type.LITERAL_RULE)
             .setNwProto(ICMP.PROTOCOL_NUMBER).setNwProtoInv(true)
             .setAction(Action.DROP).build()
 
@@ -277,4 +270,15 @@ object RouterTranslator {
     /** ID of tenant router port that connects to external network port. */
     def tenantGwPortId(providerGwPortId: UUID) =
         providerGwPortId.xorWith(0xd3a45084502f4366L, 0x9fd7d26cc7566972L)
+
+    // Deterministically generate SNAT rule IDs so we can delete them without
+    // fetching and examining each rule to see whether it's an SNAT rule.
+    def outSnatRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0x68fd6d8bbd3343d8L, 0x9909aa4ad4b691d8L)
+    def outDropUnmatchedFragmentsRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0xbac97789e63e4663L, 0xa00989d341c8636fL)
+    def inReverseSnatRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0x928eb605e3e04119L, 0x8c40e4ca90769cf4L)
+    def inDropWrongPortTrafficRuleId(routerId: UUID): UUID =
+        routerId.xorWith(0xb807509d2fa04b9eL, 0x96b1f45a04e6d128L)
 }

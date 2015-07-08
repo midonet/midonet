@@ -142,7 +142,6 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
         val oChainId = outChainId(fip.getRouterId)
         val snatRule = Rule.newBuilder
             .setId(fipSnatRuleId(fip.getId))
-            .setChainId(oChainId)
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .addOutPortIds(gwPortId)
@@ -151,7 +150,6 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .build()
         val dnatRule = Rule.newBuilder
             .setId(fipDnatRuleId(fip.getId))
-            .setChainId(iChainId)
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
             .addInPortIds(gwPortId)
@@ -174,14 +172,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
 
     /* Since Delete is idempotent, it is fine if those rules don't exist. */
     private def removeNatRules(fip: FloatingIp): MidoOpList = {
-        val fipId = fip.getId
-        val routerId = fip.getRouterId
-        val inChain = storage.get(classOf[Chain], inChainId(routerId)).await()
-        val outChain = storage.get(classOf[Chain], outChainId(routerId)).await()
-
-        List(Delete(classOf[Rule], fipSnatRuleId(fipId)),
-             Delete(classOf[Rule], fipDnatRuleId(fipId)),
-             Update(removeRule(inChain, fipDnatRuleId(fipId))),
-             Update(removeRule(outChain, fipSnatRuleId(fipId))))
+        List(Delete(classOf[Rule], fipSnatRuleId(fip.getId)),
+             Delete(classOf[Rule], fipDnatRuleId(fip.getId)))
     }
 }

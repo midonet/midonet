@@ -99,11 +99,10 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val snatRuleId = RouteManager.fipSnatRuleId(fipId)
     protected val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
 
-    protected def snatRule(oChainId: UUID, gatewayPortId: UUID,
+    protected def snatRule(gatewayPortId: UUID,
                            fixedIpSubnet: IPSubnet = fipFixedIpSubnet) =
         mRuleFromTxt(s"""
             id { $snatRuleId }
-            chain_id { $oChainId }
             type: NAT_RULE
             action: ACCEPT
             out_port_ids { $gatewayPortId }
@@ -118,13 +117,12 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 dnat: false
             }
         """)
-    protected val snat = snatRule(tntRouterOutChainId, tntRouterGatewayPortId)
+    protected val snat = snatRule(tntRouterGatewayPortId)
 
-    protected def dnatRule(iChainId: UUID, gatewayPortId: UUID,
+    protected def dnatRule(gatewayPortId: UUID,
                            fixedIpAddr: IPAddress = fipFixedIpAddr) =
         mRuleFromTxt(s"""
             id { $dnatRuleId }
-            chain_id { $iChainId }
             type: NAT_RULE
             action: ACCEPT
             in_port_ids { $gatewayPortId }
@@ -139,7 +137,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 dnat: true
             }
         """)
-    protected val dnat = dnatRule(tntRouterInChainId, tntRouterGatewayPortId)
+    protected val dnat = dnatRule(tntRouterGatewayPortId)
 
     protected val inChainDummyRuleIds = """
         rule_ids { msb: 1 lsb: 2 }
@@ -232,16 +230,16 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     protected val fipMovedPort2 = fip(portId = fipPort2Id, fixedIp = fixedIp2)
     protected val fipMovedRtr2Port2 =
         fip(routerId = tntRouter2Id, portId = fipPort2Id, fixedIp = fixedIp2)
-    protected val snatRtr2 = snatRule(tntRouter2OutChainId, tntRouter2GwPortId)
-    protected val dnatRtr2 = dnatRule(tntRouter2InChainId, tntRouter2GwPortId)
+    protected val snatRtr2 = snatRule(tntRouter2GwPortId)
+    protected val dnatRtr2 = dnatRule(tntRouter2GwPortId)
     protected val snatPort2 =
-        snatRule(tntRouterOutChainId, tntRouterGatewayPortId, fixedIpSubnet2)
+        snatRule(tntRouterGatewayPortId, fixedIpSubnet2)
     protected val dnatPort2 =
-        dnatRule(tntRouterInChainId, tntRouterGatewayPortId, fixedIp2)
+        dnatRule(tntRouterGatewayPortId, fixedIp2)
     protected val snatRtr2Port2 =
-        snatRule(tntRouter2OutChainId, tntRouter2GwPortId, fixedIpSubnet2)
+        snatRule(tntRouter2GwPortId, fixedIpSubnet2)
     protected val dnatRtr2Port2 =
-        dnatRule(tntRouter2InChainId, tntRouter2GwPortId, fixedIp2)
+        dnatRule(tntRouter2GwPortId, fixedIp2)
 
     protected val nTntRouter2 = nRouterFromTxt(s"""
         id { $tntRouter2Id }
@@ -307,11 +305,12 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bind(fipId, unboundFip)
         val midoOps = translator.translate(neutron.Update(boundFip))
 
-        midoOps should contain inOrderOnly (midonet.CreateNode(fipArpEntryPath),
-                                            midonet.Create(snat),
-                                            midonet.Create(dnat),
-                                            midonet.Update(inChainWithDnat),
-                                            midonet.Update(outChainWithSnat))
+        midoOps should contain inOrderOnly (
+            midonet.CreateNode(fipArpEntryPath),
+            midonet.Create(snat),
+            midonet.Create(dnat),
+            midonet.Update(inChainWithDnat),
+            midonet.Update(outChainWithSnat))
     }
 
     "Associating a floating IP to a port" should "throw an exception if the " +
@@ -336,13 +335,10 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         bind(fipId, boundFip)
         val midoOps = translator.translate(neutron.Update(unboundFip))
 
-        midoOps should contain inOrderOnly (midonet.DeleteNode(fipArpEntryPath),
-                                            midonet.Delete(classOf[Rule],
-                                                           snatRuleId),
-                                            midonet.Delete(classOf[Rule],
-                                                           dnatRuleId),
-                                            midonet.Update(tntRouterInChain),
-                                            midonet.Update(tntRouterOutChain))
+        midoOps should contain inOrderOnly (
+            midonet.DeleteNode(fipArpEntryPath),
+            midonet.Delete(classOf[Rule], snatRuleId),
+            midonet.Delete(classOf[Rule], dnatRuleId))
     }
 
     "UPDATE that keeps the floating IP on the same port/router " should
@@ -360,16 +356,14 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         val midoOps = translator.translate(neutron.Update(fipMovedRtr2))
 
         midoOps should contain inOrderOnly (
-                midonet.DeleteNode(fipArpEntryPath),
-                midonet.CreateNode(fipArpEntryPath2),
-                midonet.Delete(classOf[Rule], snatRuleId),
-                midonet.Delete(classOf[Rule], dnatRuleId),
-                midonet.Update(tntRouterInChain),
-                midonet.Update(tntRouterOutChain),
-                midonet.Create(snatRtr2),
-                midonet.Create(dnatRtr2),
-                midonet.Update(tntRouter2InChainWithDnat),
-                midonet.Update(tntRouter2OutChainWithSnat))
+            midonet.DeleteNode(fipArpEntryPath),
+            midonet.CreateNode(fipArpEntryPath2),
+            midonet.Delete(classOf[Rule], snatRuleId),
+            midonet.Delete(classOf[Rule], dnatRuleId),
+            midonet.Create(snatRtr2),
+            midonet.Create(dnatRtr2),
+            midonet.Update(tntRouter2InChainWithDnat),
+            midonet.Update(tntRouter2OutChainWithSnat))
     }
 
     "UpdateOp that moves the floating IP to a different port on the same " +
@@ -379,14 +373,12 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         val midoOps = translator.translate(neutron.Update(fipMovedPort2))
 
         midoOps should contain inOrderOnly (
-                midonet.Delete(classOf[Rule], snatRuleId),
-                midonet.Delete(classOf[Rule], dnatRuleId),
-                midonet.Update(tntRouterInChain),
-                midonet.Update(tntRouterOutChain),
-                midonet.Create(snatPort2),
-                midonet.Create(dnatPort2),
-                midonet.Update(inChainWithDnat),
-                midonet.Update(outChainWithSnat))
+            midonet.Delete(classOf[Rule], snatRuleId),
+            midonet.Delete(classOf[Rule], dnatRuleId),
+            midonet.Create(snatPort2),
+            midonet.Create(dnatPort2),
+            midonet.Update(inChainWithDnat),
+            midonet.Update(outChainWithSnat))
     }
 
     "UpdateOp that moves the floating IP to a different port on a different " +
@@ -396,16 +388,14 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
         val midoOps = translator.translate(neutron.Update(fipMovedRtr2Port2))
 
         midoOps should contain inOrderOnly (
-                midonet.DeleteNode(fipArpEntryPath),
-                midonet.CreateNode(fipArpEntryPath2),
-                midonet.Delete(classOf[Rule], snatRuleId),
-                midonet.Delete(classOf[Rule], dnatRuleId),
-                midonet.Update(tntRouterInChain),
-                midonet.Update(tntRouterOutChain),
-                midonet.Create(snatRtr2Port2),
-                midonet.Create(dnatRtr2Port2),
-                midonet.Update(tntRouter2InChainWithDnat),
-                midonet.Update(tntRouter2OutChainWithSnat))
+            midonet.DeleteNode(fipArpEntryPath),
+            midonet.CreateNode(fipArpEntryPath2),
+            midonet.Delete(classOf[Rule], snatRuleId),
+            midonet.Delete(classOf[Rule], dnatRuleId),
+            midonet.Create(snatRtr2Port2),
+            midonet.Create(dnatRtr2Port2),
+            midonet.Update(tntRouter2InChainWithDnat),
+            midonet.Update(tntRouter2OutChainWithSnat))
     }
 }
 
@@ -435,12 +425,9 @@ class FloatingIpTranslatorDeleteTest extends FloatingIpTranslatorTestBase {
         val midoOps = translator.translate(neutron.Delete(classOf[FloatingIp],
                                                           fipId))
 
-        midoOps should contain inOrderOnly (midonet.DeleteNode(fipArpEntryPath),
-                                            midonet.Delete(classOf[Rule],
-                                                           snatRuleId),
-                                            midonet.Delete(classOf[Rule],
-                                                           dnatRuleId),
-                                            midonet.Update(tntRouterInChain),
-                                            midonet.Update(tntRouterOutChain))
+        midoOps should contain inOrderOnly (
+            midonet.DeleteNode(fipArpEntryPath),
+            midonet.Delete(classOf[Rule], snatRuleId),
+            midonet.Delete(classOf[Rule], dnatRuleId))
     }
 }

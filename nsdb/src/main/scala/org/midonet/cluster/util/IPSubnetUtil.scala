@@ -58,6 +58,10 @@ object IPSubnetUtil {
         toProto(IPSubnet.fromString(cidr))
     }
 
+    def fromAddr(addr: String): Commons.IPSubnet = {
+        fromAddr(IPAddressUtil.toProto(addr))
+    }
+
     def fromAddr(addr: IPAddress): Commons.IPSubnet = {
         fromAddr(addr, if (addr.getVersion == Commons.IPVersion.V4) 32 else 128)
     }

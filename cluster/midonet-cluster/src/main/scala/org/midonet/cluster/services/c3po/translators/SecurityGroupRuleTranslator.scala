@@ -42,10 +42,7 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
 
         val chain = storage.get(classOf[Chain], chainId).await()
 
-        val updatedChain = chain.toBuilder.addRuleIds(sgr.getId).build()
-
-        List(Create(SecurityGroupRuleManager.translate(sgr)),
-             Update(updatedChain))
+        List(Create(SecurityGroupRuleManager.translate(sgr)))
     }
 
     protected override def translateUpdate(newSgr: SecurityGroupRule)
@@ -54,17 +51,7 @@ class SecurityGroupRuleTranslator(storage: ReadOnlyStorage)
             "SecurityGroupRule update not supported.")
     }
 
-    /*
-     * Need to delete the rule, but also need to delete it from the security
-     * group chain that it is assigned to.
-     */
     protected override def translateDelete(sgrId: UUID) : MidoOpList = {
-        val rule = storage.get(classOf[Rule], sgrId).await()
-        val chain = storage.get(classOf[Chain], rule.getChainId).await()
-
-        val ruleIdx = chain.getRuleIdsList.asScala.indexOf(sgrId)
-        val updatedChain = chain.toBuilder.removeRuleIds(ruleIdx).build
-
-        List(Delete(classOf[Rule], rule.getId), Update(updatedChain))
+        List(Delete(classOf[Rule], sgrId))
     }
 }
