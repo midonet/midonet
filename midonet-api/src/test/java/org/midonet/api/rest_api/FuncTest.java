@@ -87,7 +87,7 @@ public class FuncTest {
      * variable is set to "true".
      */
     public static WebAppDescriptor.Builder getBuilder() {
-        if (isCompatApiEnabled()) {
+        if (!isCompatApiEnabled()) {
             return getBuilderForVladimir();
         } else {
             return getBuilderForLegacyApi();
