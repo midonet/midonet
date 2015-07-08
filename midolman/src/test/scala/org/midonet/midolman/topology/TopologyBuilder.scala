@@ -559,7 +559,7 @@ trait TopologyBuilder {
             builder.setWeight(weight.get)
         builder.build()
     }
-
+/*
     protected def createBGP(id: UUID = UUID.randomUUID,
                             localAs: Option[Int] = None,
                             peerAs: Option[Int] = None,
@@ -590,7 +590,7 @@ trait TopologyBuilder {
             builder.setBgpId(bgpId.get.asProto)
         builder.build()
     }
-
+*/
     private def createPortBuilder(id: UUID,
                                   inboundFilterId: Option[UUID],
                                   outboundFilterId: Option[UUID],
@@ -883,7 +883,7 @@ object TopologyBuilder {
         def setPoolId(poolId: UUID): HealthMonitor =
             healthMonitor.toBuilder.setPoolId(poolId.asProto).build()
     }
-
+/*
     class RichBgp(bgp: Bgp) {
         def setLocalAs(as: Int): Bgp =
             bgp.toBuilder.setLocalAs(as).build()
@@ -901,7 +901,7 @@ object TopologyBuilder {
         def setSubnet(subnet: IPSubnet[_]): BgpRoute =
             bgpRoute.toBuilder.setSubnet(subnet.asProto).build()
     }
-
+*/
     private val random = new Random()
 
     def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
@@ -938,9 +938,10 @@ object TopologyBuilder {
     implicit def asRichHealthMonitor(healthMonitor: HealthMonitor): RichHealthMonitor =
         new RichHealthMonitor(healthMonitor)
 
+/*
     implicit def asRichBgp(bgp: Bgp): RichBgp = new RichBgp(bgp)
 
     implicit def asRichBgpRoute(bgpRoute: BgpRoute): RichBgpRoute =
         new RichBgpRoute(bgpRoute)
-
+*/
 }
