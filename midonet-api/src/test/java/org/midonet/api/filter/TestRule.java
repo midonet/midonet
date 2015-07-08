@@ -501,10 +501,12 @@ public class TestRule {
             rules = dtoResource.getAndVerifyOk(rulesUri,
                     APPLICATION_RULE_COLLECTION_JSON_V2, DtoRule[].class);
             assertEquals(2, rules.length);
+            assertEquals(1, rules[0].getPosition());
+            assertEquals(2, rules[1].getPosition());
 
             // Delete one of the rules
             dtoResource.deleteAndVerifyNoContent(rule1Uri,
-                    APPLICATION_RULE_JSON_V2);
+                                                 APPLICATION_RULE_JSON_V2);
 
             // Verify that the rule is gone
             dtoResource.getAndVerifyNotFound(rule1Uri,

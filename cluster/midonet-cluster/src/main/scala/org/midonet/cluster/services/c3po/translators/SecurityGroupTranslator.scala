@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ import scala.collection.mutable.ListBuffer
 
 import com.google.protobuf.Message
 
-import org.midonet.cluster.services.c3po.midonet._
-import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage}
-import org.midonet.cluster.models.Commons.{Int32Range, RuleDirection, UUID}
-import org.midonet.cluster.models.Neutron.{SecurityGroup, SecurityGroupRule}
+import org.midonet.cluster.data.storage.ReadOnlyStorage
+import org.midonet.cluster.models.Commons.{RuleDirection, UUID}
+import org.midonet.cluster.models.Neutron.SecurityGroup
 import org.midonet.cluster.models.Topology.{Chain, IPAddrGroup, Rule}
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.services.c3po.midonet._
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.util.StringUtil.indent
 import org.midonet.util.concurrent.toFutureOps
 
@@ -70,18 +70,15 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
 
         val outboundRules = neutronIngressRules.map(
             SecurityGroupRuleManager.translate)
-        val outboundRuleIds = neutronIngressRules.map(_.getId)
         val inboundRules = neutronEgressRules.map(
             SecurityGroupRuleManager.translate)
-        val inboundRuleIds = neutronEgressRules.map(_.getId)
 
         val inboundChainId = inChainId(sg.getId)
         val outboundChainId = outChainId(sg.getId)
 
-        val inboundChain = createChain(
-            sg, inboundChainId, egressChainName(sg.getId), inboundRuleIds)
-        val outboundChain = createChain(
-            sg, outboundChainId, ingressChainName(sg.getId), outboundRuleIds)
+        val inboundChain = newChain(inboundChainId, egressChainName(sg.getId))
+        val outboundChain = newChain(outboundChainId,
+                                     ingressChainName(sg.getId))
 
         val ipAddrGroup = createIpAddrGroup(sg, inboundChainId, outboundChainId)
 
@@ -101,10 +98,10 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
 
         val ops = new ListBuffer[MidoOp[_ <: Message]]
 
-        for (rule <- translatedSg.inboundRules) ops += Create(rule)
-        for (rule <- translatedSg.outboundRules) ops += Create(rule)
         ops += Create(translatedSg.inboundChain)
         ops += Create(translatedSg.outboundChain)
+        ops ++= translatedSg.inboundRules.map(Create(_))
+        ops ++= translatedSg.outboundRules.map(Create(_))
         ops += Create(translatedSg.ipAddrGroup)
         ops.toList
     }
@@ -121,36 +118,16 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
         val xltOldSg = translate(oldSg)
         val xltNewSg = translate(newSg)
 
-        val ruleChangeOps = getRuleChangeOps(
+        getRuleChangeOps(
             xltOldSg.inboundRules ++ xltOldSg.outboundRules,
             xltNewSg.inboundRules ++ xltNewSg.outboundRules)
-
-        val ops = new ListBuffer[MidoOp[_ <: Message]]
-        ops ++= ruleChangeOps
-        if (xltNewSg.inboundChain != xltOldSg.inboundChain)
-            ops += Update(xltNewSg.inboundChain)
-        if (xltNewSg.outboundChain != xltOldSg.outboundChain)
-            ops += Update(xltNewSg.outboundChain)
-        if (xltNewSg.ipAddrGroup != xltOldSg.ipAddrGroup)
-            ops += Update(xltNewSg.ipAddrGroup)
-        ops.toList
     }
 
     protected override def translateDelete(sgId: UUID)
     : List[MidoOp[_ <: Message]] = {
-        val sg = try storage.get(classOf[SecurityGroup], sgId).await() catch {
-            case ex: NotFoundException =>
-                return List() // Okay. Delete is idempotent.
-        }
-
-        val sgrs = sg.getSecurityGroupRulesList.asScala
-
-        val ops = new ListBuffer[MidoOp[_ <: Message]]
-        ops ++= sgrs.map(sgr => Delete(classOf[Rule], sgr.getId))
-        ops += Delete(classOf[Chain], inChainId(sgId))
-        ops += Delete(classOf[Chain], outChainId(sgId))
-        ops += Delete(classOf[IPAddrGroup], sgId)
-        ops.toList
+        List(Delete(classOf[Chain], inChainId(sgId)),
+             Delete(classOf[Chain], outChainId(sgId)),
+             Delete(classOf[IPAddrGroup], sgId))
     }
 
     /**
@@ -179,27 +156,9 @@ class SecurityGroupTranslator(storage: ReadOnlyStorage)
         // No need to update rules that aren't changing.
         val updatedRules = keptRules.diff(oldRules)
 
-        val ops = new ListBuffer[MidoOp[Rule]]()
-        ops.appendAll(removedIds.map(Delete(classOf[Rule], _)))
-        ops.appendAll(updatedRules.map(Update(_)))
-        ops.appendAll(addedRules.map(Create(_)))
-        ops.toList
-    }
-
-    private def createRange(start: Int, end: Int): Int32Range = {
-        Int32Range.newBuilder.setStart(start).setEnd(end).build()
-    }
-
-    private def createChain(sg: SecurityGroup,
-                            chainId: UUID,
-                            name: String,
-                            ruleIds: Seq[UUID]): Chain = {
-        // TODO: Tenant ID isn't in the topology object. Should it be?
-        Chain.newBuilder()
-            .setId(chainId)
-            .setName(name)
-            .addAllRuleIds(ruleIds.asJava)
-            .build()
+        removedIds.map(Delete(classOf[Rule], _)) ++
+        updatedRules.map(Update(_)) ++
+        addedRules.map(Create(_))
     }
 
     private def createIpAddrGroup(sg: SecurityGroup,

@@ -19,13 +19,15 @@ package org.midonet.cluster.services.c3po.translators
 import scala.collection.JavaConverters._
 
 import org.midonet.cluster.models.Commons.UUID
-import org.midonet.cluster.models.Topology.Chain
+import org.midonet.cluster.models.Topology.{Chain, Rule}
+import org.midonet.cluster.services.c3po.midonet.Delete
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 
 /**
  * Contains chain-related operations shared by multiple translators.
  */
 trait ChainManager {
+
     protected case class ChainIds(inChainId: UUID, outChainId: UUID)
 
     /** Deterministically generate inbound chain ID from device ID. */
@@ -53,11 +55,8 @@ trait ChainManager {
     protected def prependRule(chain: Chain, ruleId: UUID): Chain =
         chain.toBuilder.addRuleIds(0, ruleId).build()
 
-    /** Returns a new Chain with the specified rule deleted if exists. */
-    protected def removeRule(chain: Chain, ruleId: UUID): Chain = {
-        val removeRuleIdx = chain.getRuleIdsList.asScala.indexOf(ruleId)
-        if (removeRuleIdx >= 0)
-            chain.toBuilder().removeRuleIds(removeRuleIdx).build
-        else chain
+    /** Returns operations to delete all rules for the specified chain. */
+    protected def deleteRulesOps(chain: Chain): Seq[Delete[Rule]] = {
+        chain.getRuleIdsList.asScala.map(Delete(classOf[Rule], _))
     }
 }

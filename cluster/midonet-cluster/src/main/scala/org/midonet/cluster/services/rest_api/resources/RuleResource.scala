@@ -20,8 +20,7 @@ import java.util.{List => JList, UUID}
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.Response.Status
-import javax.ws.rs.core.{Response, UriInfo}
+import javax.ws.rs.core.Response
 
 import scala.collection.JavaConverters._
 
@@ -31,9 +30,8 @@ import com.google.inject.servlet.RequestScoped
 import org.midonet.cluster.rest_api.BadRequestHttpException
 import org.midonet.cluster.rest_api.annotation.AllowGet
 import org.midonet.cluster.rest_api.models.{Chain, Rule}
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
-import org.midonet.cluster.services.rest_api.resources.MidonetResource.{ResourceContext, Delete, Create, Update}
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Create, ResourceContext, Update}
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_RULE_JSON,
@@ -42,21 +40,15 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Resource
 class RuleResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Rule](resContext) {
 
-    @DELETE
+    @GET
     @Path("{id}")
-    override def delete(@PathParam("id") id: String): Response = {
-        val ruleId = UUID.fromString(id)
-        getResource(classOf[Rule], ruleId).flatMap(rule => {
-            getResource(classOf[Chain], rule.chainId)
-        }).map(chain => {
-            if (chain.ruleIds.remove(ruleId)) {
-                multiResource(Seq(Update(chain), Delete(classOf[Rule], ruleId)))
-            } else {
-                Response.status(Status.NOT_FOUND).build()
-            }
-        }).getOrThrow
+    override def get(@PathParam("id") id: String,
+                     @HeaderParam("Accept") accept: String): Rule = {
+        val rule = getResource(classOf[Rule], id).getOrThrow
+        val chain = getResource(classOf[Chain], rule.chainId).getOrThrow
+        rule.position = chain.ruleIds.indexOf(rule.id) + 1
+        rule
     }
-
 }
 
 @RequestScoped
@@ -68,11 +60,13 @@ class ChainRuleResource @Inject()(chainId: UUID, resContext: ResourceContext)
                     APPLICATION_RULE_COLLECTION_JSON_V2,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String): JList[Rule] = {
-        getResource(classOf[Chain], chainId)
+        val rules = getResource(classOf[Chain], chainId)
             .flatMap(chain => listResources(classOf[Rule],
                                             chain.ruleIds.asScala))
             .getOrThrow
-            .asJava
+
+        for (i <- 0 until rules.size) rules(i).position = i + 1
+        rules.asJava
     }
 
     @POST

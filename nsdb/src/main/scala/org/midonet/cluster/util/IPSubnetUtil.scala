@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014 Midokura SARL, All Rights Reserved.
+ * Copyright (c) 2015 Midokura SARL, All Rights Reserved.
  */
 package org.midonet.cluster.util
 
@@ -56,6 +56,10 @@ object IPSubnetUtil {
 
     def toProto(cidr: String): Commons.IPSubnet = {
         toProto(IPSubnet.fromString(cidr))
+    }
+
+    def fromAddr(addr: String): Commons.IPSubnet = {
+        fromAddr(IPAddressUtil.toProto(addr))
     }
 
     def fromAddr(addr: IPAddress): Commons.IPSubnet = {

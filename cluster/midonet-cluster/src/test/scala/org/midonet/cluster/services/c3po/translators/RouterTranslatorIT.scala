@@ -25,14 +25,16 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, Router => RouterType}
 import org.midonet.cluster.data.neutron.TaskType._
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.{Network, Port, Route, Router}
+import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
-import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
-import org.midonet.packets.MAC
+import org.midonet.midolman.state.Ip4ToMacReplicatedMap
 import org.midonet.packets.util.AddressConversions._
+import org.midonet.packets.{ICMP, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -153,20 +155,23 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         // Create tenant router and check gateway setup.
         createRouterGatewayPort(13, extNwGwPortId, extNwId, tntRtrId,
                                 "10.0.1.3", "ab:cd:ef:00:00:03", extNwSubnetId)
-        createRouter(14, tntRtrId, gwPortId = extNwGwPortId)
+        createRouter(14, tntRtrId, gwPortId = extNwGwPortId, enableSnat = true)
         validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3",
-                        "ab:cd:ef:00:00:03", "10.0.1.2", extNwArpTable)
+                        "ab:cd:ef:00:00:03", "10.0.1.2", snatEnabled = true,
+                        extNwArpTable)
 
         // Rename router to make sure update doesn't break anything.
         val trRenamedJson = routerJson(tntRtrId, name = "tr-renamed",
-                                       gwPortId = extNwGwPortId).toString
+                                       gwPortId = extNwGwPortId,
+                                       enableSnat = true).toString
         insertUpdateTask(15, RouterType, trRenamedJson, tntRtrId)
         eventually {
             val tr = storage.get(classOf[Router], tntRtrId).await()
             tr.getName shouldBe "tr-renamed"
             tr.getPortIdsCount shouldBe 1
             validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3",
-                            "ab:cd:ef:00:00:03", "10.0.1.2", extNwArpTable)
+                            "ab:cd:ef:00:00:03", "10.0.1.2", snatEnabled = true,
+                            extNwArpTable)
         }
 
         // Delete gateway.
@@ -180,19 +185,44 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                 UUIDUtil.toProto(edgeRtrExtNwIfPortId),
                 UUIDUtil.toProto(extNwDhcpPortId))
             extNwArpTable.containsKey("10.0.1.3") shouldBe false
+            validateNatRulesDeleted(tntRtrId)
         }
 
         // Re-add gateway.
         createRouterGatewayPort(17, extNwGwPortId, extNwId, tntRtrId,
                                 "10.0.1.4", "ab:cd:ef:00:00:04", extNwSubnetId)
         val trAddGwJson = routerJson(tntRtrId, name = "tr-add-gw",
-                                     gwPortId = extNwGwPortId).toString
+                                     gwPortId = extNwGwPortId,
+                                     enableSnat = true).toString
         insertUpdateTask(18, RouterType, trAddGwJson, tntRtrId)
-        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
-                        "ab:cd:ef:00:00:04", "10.0.1.2", extNwArpTable)
+        eventually {
+            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+                            "ab:cd:ef:00:00:04", "10.0.1.2", snatEnabled = true,
+                            extNwArpTable)
+        }
+
+        // Disable SNAT.
+        val trDisableSnatJson = routerJson(tntRtrId, name = "tr-disable-snat",
+                                           gwPortId = extNwGwPortId,
+                                           enableSnat = false).toString
+        insertUpdateTask(19, RouterType, trDisableSnatJson, tntRtrId)
+        eventually {
+            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+                            "ab:cd:ef:00:00:04", "10.0.1.2",
+                            snatEnabled = false, extNwArpTable)
+        }
+
+        // Re-enable SNAT.
+        insertUpdateTask(20, RouterType, trAddGwJson, tntRtrId)
+        eventually {
+            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+                            "ab:cd:ef:00:00:04", "10.0.1.2", snatEnabled = true,
+                            extNwArpTable)
+        }
+
         // Delete gateway and router.
-        insertDeleteTask(19, PortType, extNwGwPortId)
-        insertDeleteTask(20, RouterType, tntRtrId)
+        insertDeleteTask(21, PortType, extNwGwPortId)
+        insertDeleteTask(22, RouterType, tntRtrId)
         eventually {
             val extNwF = storage.get(classOf[Network], extNwId)
             List(storage.exists(classOf[Router], tntRtrId),
@@ -209,18 +239,19 @@ class RouterTranslatorIT extends C3POMinionTestBase {
     }
 
     private def validateGateway(rtrId: UUID, nwGwPortId: UUID,
-                                trPortIpAddr: String, trPortMac: String,
-                                gwIpAddr: String,
+                                gatewayIp: String, trPortMac: String,
+                                nextHopIp: String, snatEnabled: Boolean,
                                 extNwArpTable: Ip4ToMacReplicatedMap): Unit = {
         // Tenant router should have gateway port and no routes.
         val trGwPortId = tenantGwPortId(nwGwPortId)
-        eventually {
+        val tr = eventually {
             val tr = storage.get(classOf[Router], rtrId).await()
             tr.getPortIdsList.asScala should contain only trGwPortId
             tr.getRouteIdsCount shouldBe 0
 
             // The ARP entry should be added to the external network ARP table.
-            extNwArpTable.get(trPortIpAddr) shouldBe MAC.fromString(trPortMac)
+            extNwArpTable.get(gatewayIp) shouldBe MAC.fromString(trPortMac)
+            tr
         }
 
         // Get the router gateway port and its peer on the network.
@@ -248,7 +279,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         nwGwPort.getPeerId shouldBe trGwPortId
         trGwPort.getPeerId shouldBe nwGwPort.getId
 
-        trGwPort.getPortAddress.getAddress shouldBe trPortIpAddr
+        trGwPort.getPortAddress.getAddress shouldBe gatewayIp
         trGwPort.getPortMac shouldBe trPortMac
 
         validateLocalRoute(trLocalRt, trGwPort)
@@ -257,7 +288,10 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         trGwRt.getNextHopPortId shouldBe trGwPort.getId
         trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
         trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-        trGwRt.getNextHopGateway.getAddress shouldBe gwIpAddr
+        trGwRt.getNextHopGateway.getAddress shouldBe nextHopIp
+
+        if (snatEnabled)
+            validateGatewayNatRules(tr, gatewayIp, trGwPortId)
     }
 
     private def validateLocalRoute(rt: Route, nextHopPort: Port): Unit = {
@@ -269,5 +303,77 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         rt.getWeight shouldBe RouteManager.DEFAULT_WEIGHT
     }
 
+    private def validateGatewayNatRules(tr: Router, gatewayIp: String,
+                                        trGwPortId: Commons.UUID): Unit = {
+        val chainIds = List(tr.getInboundFilterId, tr.getOutboundFilterId)
+        val List(inChain, outChain) =
+            storage.getAll(classOf[Chain], chainIds).await()
+        inChain.getRuleIdsCount shouldBe 2
+        outChain.getRuleIdsCount shouldBe 2
 
+        val ruleIds = inChain.getRuleIdsList.asScala.toList ++
+                      outChain.getRuleIdsList.asScala
+        val List(inRevSnatRule, inDropWrongPortTrafficRule,
+                 outSnatRule, outDropFragmentsRule) =
+            storage.getAll(classOf[Rule], ruleIds).await()
+
+        val gwSubnet = IPSubnetUtil.fromAddr(gatewayIp)
+
+        outSnatRule.getChainId shouldBe outChain.getId
+        outSnatRule.getOutPortIdsList.asScala should contain only trGwPortId
+        outSnatRule.getNwSrcIp shouldBe gwSubnet
+        outSnatRule.getNwSrcInv shouldBe true
+        validateNatRule(outSnatRule, dnat = false, gatewayIp)
+
+        val odfr = outDropFragmentsRule
+        odfr.getChainId shouldBe outChain.getId
+        odfr.getOutPortIdsList should contain only trGwPortId
+        odfr.getNwSrcIp.getAddress shouldBe gatewayIp
+        odfr.getNwSrcInv shouldBe true
+        odfr.getType shouldBe Rule.Type.LITERAL_RULE
+        odfr.getFragmentPolicy shouldBe FragmentPolicy.ANY
+        odfr.getAction shouldBe Action.DROP
+
+        inRevSnatRule.getChainId shouldBe inChain.getId
+        inRevSnatRule.getNwDstIp shouldBe gwSubnet
+        validateNatRule(inRevSnatRule, dnat = false, addr = null)
+
+        val idwptr = inDropWrongPortTrafficRule
+        idwptr.getChainId shouldBe inChain.getId
+        idwptr.getNwDstIp shouldBe gwSubnet
+        idwptr.getType shouldBe Rule.Type.LITERAL_RULE
+        idwptr.getNwProto shouldBe ICMP.PROTOCOL_NUMBER
+        idwptr.getAction shouldBe Action.DROP
+    }
+
+    // addr == null for reverse NAT rule
+    private def validateNatRule(r: Rule, dnat: Boolean, addr: String): Unit = {
+        r.getType shouldBe Rule.Type.NAT_RULE
+
+        val data = r.getNatRuleData
+        data.getDnat shouldBe dnat
+        data.getReverse shouldBe (addr == null)
+
+        if (addr != null) {
+            data.getNatTargetsCount shouldBe 1
+            data.getNatTargets(0).getTpStart shouldBe 1
+            data.getNatTargets(0).getTpEnd shouldBe 0xffff
+            data.getNatTargets(0).getNwStart.getAddress shouldBe addr
+            data.getNatTargets(0).getNwEnd.getAddress shouldBe addr
+        }
+    }
+
+    private def validateNatRulesDeleted(rtrId: UUID): Unit = {
+        import RouterTranslator._
+        val r = storage.get(classOf[Router], rtrId).await()
+        val Seq(inChain, outChain) = storage.getAll(
+            classOf[Chain],
+            Seq(r.getInboundFilterId, r.getOutboundFilterId)).await()
+        inChain.getRuleIdsCount shouldBe 0
+        outChain.getRuleIdsCount shouldBe 0
+        Seq(outSnatRuleId(rtrId), outDropUnmatchedFragmentsRuleId(rtrId),
+            inReverseSnatRuleId(rtrId), inDropWrongPortTrafficRuleId(rtrId))
+            .map(storage.exists(classOf[Rule], _).await()) shouldBe
+            Seq(false, false, false, false)
+    }
 }

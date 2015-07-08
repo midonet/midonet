@@ -41,7 +41,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ClusterNode.Context
-import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, SecurityGroup => SecurityGroupType, Subnet => SubnetType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
 import org.midonet.cluster.models.Commons
@@ -468,7 +468,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
             if (extGwNetworkId != null)
                 egi.put("network_id", extGwNetworkId.toString)
             egi.put("enable_snat", enableSnat)
-            r.set("extenal_gateway_info", egi)
+            r.set("external_gateway_info", egi)
         }
         r
     }
@@ -628,10 +628,11 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     }
 
     protected def createRouter(taskId: Int, routerId: UUID,
-                               gwPortId: UUID = null): Unit = {
+                               gwPortId: UUID = null,
+                               enableSnat: Boolean = false): Unit = {
         val json = routerJson(routerId, name = "router-" + routerId,
-                              gwPortId = gwPortId).toString
-        insertCreateTask(taskId, RouterType, json, routerId)
+                              gwPortId = gwPortId, enableSnat = enableSnat)
+        insertCreateTask(taskId, RouterType, json.toString, routerId)
     }
 
     protected def createSubnet(taskId: Int, subnetId: UUID,
