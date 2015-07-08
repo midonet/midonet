@@ -28,7 +28,7 @@ import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.DirectoryCallback
+import org.midonet.midolman.state.{MockZookeeperConnectionWatcher, DirectoryCallback}
 import org.midonet.midolman.topology.VxLanPortMapper.VxLanPorts
 import org.midonet.midolman.topology.devices.{BridgePort, Port, VxLanPort}
 import org.midonet.packets.IPv4Addr
@@ -57,7 +57,7 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
                 testKit ! IdsRequest(cb, watcher)
             }
         }
-        val props = Props(classOf[VxLanPortMapper], testKit, prov, shortRetry)
+        val props = Props(classOf[VxLanPortMapper], testKit, prov, new MockZookeeperConnectionWatcher())
         TestActorRef[VxLanPortMapper](props)
     }
 
@@ -152,7 +152,6 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
 
 
         describe("when the ZkManager triggers the directory callback") {
-
             it("sends port requests to the VTA when it s a success") {
                 vxlanMapper(self)
                 val ids = new java.util.HashSet[UUID]
@@ -163,15 +162,6 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
                     lastSender ! new BridgePort // don't care about port type
                 }
                 expectNoMsg(Duration fromNanos 10000)
-            }
-
-            it("retries if it s an error or a timeout") {
-                vxlanMapper(self)
-                expectMsgType[IdsRequest].cb.onTimeout()
-                Thread sleep shortRetry.toMillis
-                expectMsgType[IdsRequest].cb.onError(new KeeperException.NoNodeException())
-                Thread sleep shortRetry.toMillis
-                expectMsgType[IdsRequest]
             }
         }
 
