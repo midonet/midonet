@@ -29,6 +29,7 @@ import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{ApiException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.packets.IPv4Addr
 
 @RequestScoped
 @AllowList(Array(APPLICATION_VTEP_COLLECTION_JSON,
@@ -45,6 +46,14 @@ class VTEPResource @Inject()(resContext: ResourceContext)
                     APPLICATION_JSON))
     override def get(@PathParam("mgmtIp") mgmtIp: String,
                      @HeaderParam("Accept") accept: String): VTEP = {
+        try {
+            IPv4Addr.fromString(mgmtIp)
+        } catch {
+            case e: IllegalArgumentException =>
+                val msg = getMessage(IP_ADDR_INVALID_WITH_PARAM, mgmtIp)
+                throw new ApiException(Status.BAD_REQUEST, msg)
+        }
+        IPv4Addr.fromString(mgmtIp)
         listResources(classOf[VTEP])
             .map(_.find(_.managementIp == mgmtIp))
             .getOrThrow

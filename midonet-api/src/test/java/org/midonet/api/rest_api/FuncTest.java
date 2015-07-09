@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.auth.AuthConfig;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.cluster.ClusterConfig;
+import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.services.MidonetBackendService;
@@ -174,7 +175,9 @@ public class FuncTest {
                     "zookeeper.use_new_stack = true \n" +
                     "zookeeper.curator_enabled = true \n" +
                     "zookeeper.root_key = " + ZK_ROOT_MIDOLMAN + "\n" +
-                    "cluster.rest_api.root_uri = " + CONTEXT_PATH
+                    "cluster.rest_api.root_uri = " + CONTEXT_PATH + "\n" +
+                    "cluster.auth.provider_class = "
+                        + MockAuthService.class.getName()
                 )
             );
 
