@@ -22,7 +22,7 @@ import javax.ws.rs.WebApplicationException;
  * WebApplicationException class to represent 504 status. Thrown when
  * an upstream service returns an invalid response.
  */
-public class BadGatewayHttpException  extends WebApplicationException {
+public class BadGatewayHttpException extends WebApplicationException {
     private static final long serialVersionUID = 1L;
 
     public BadGatewayHttpException(String message) {
