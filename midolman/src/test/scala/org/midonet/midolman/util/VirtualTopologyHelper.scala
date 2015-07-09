@@ -30,7 +30,6 @@ import akka.util.Timeout.durationToTimeout
 import com.google.inject.Injector
 
 import org.midonet.cluster.DataClient
-import org.midonet.cluster.data._
 import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman._
@@ -81,11 +80,6 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             force(block)
         }
 
-    def fetchDevice[T](device: Entity.Base[_,_,_]) =
-        Await.result(
-            ask(VirtualTopologyActor, buildRequest(device)).asInstanceOf[Future[T]],
-            timeout.duration)
-
     private val requestsFactory = Map[ClassTag[_], UUID => DeviceRequest](
         classTag[SimPort]              -> (new PortRequest(_)),
         classTag[SimBridgePort]        -> (new PortRequest(_)),
@@ -119,14 +113,6 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def fetchChains(chains: UUID*): Seq[SimChain] = {
         chains map { fetchDevice[SimChain](_) }
     }
-
-    def fetchTopology(entities: Entity.Base[_,_,_]*) =
-        fetchTopologyList(entities)
-
-    def fetchTopologyList(entities: Seq[Entity.Base[_,_,_]]) =
-        Await.result(Future.sequence(entities map buildRequest map
-                                     { VirtualTopologyActor ? _ }),
-                     timeout.duration)
 
     def fetchHost(hostId: UUID): Host =
         Await.result(
@@ -360,14 +346,5 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                 super.runWorkflow(pktCtx)
             }
         }))
-    }
-
-    @inline
-    private[this] def buildRequest(entity: Entity.Base[_,_,_]) = entity match {
-        case p: Port[_, _] => PortRequest(p.getId, update = true)
-        case b: Bridge => BridgeRequest(b.getId, update = true)
-        case r: Router => RouterRequest(r.getId, update = true)
-        case c: Chain => ChainRequest(c.getId, update = true)
-        case i: IpAddrGroup => IPAddrGroupRequest(i.getId, update = true)
     }
 }
