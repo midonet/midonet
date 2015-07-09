@@ -22,6 +22,30 @@
       "revId": "9f7c319489d91d61d048febb927539394b7ea4c4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a2222ab7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/flowhistory/JsonSerialization.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-09T08:57:25Z",
+      "side": 1,
+      "message": "good point. will update.",
+      "parentUuid": "9ad9bd40_e1a7d44d",
+      "range": {
+        "startLine": 126,
+        "startChar": 12,
+        "endLine": 133,
+        "endChar": 32
+      },
+      "revId": "9f7c319489d91d61d048febb927539394b7ea4c4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
