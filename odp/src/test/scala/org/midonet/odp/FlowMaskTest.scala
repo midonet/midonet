@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadLocalRandom
 import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith
+import org.midonet.packets.MAC
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
@@ -174,10 +175,22 @@ class FlowMaskTest  extends FlatSpec with ShouldMatchers {
     }
 
     "Only flow keys with exact matches" should "be serialized" in {
-        (0 to 5000) map { _ =>
+        (0 to 10000) map { _ =>
             FlowMatches.generateFlowMatch(ThreadLocalRandom.current())
         } map seeSomeFields foreach { case(fmatch, expected) =>
             verify(fmatch, maskedFlowKeys(fmatch), expected)
         }
+    }
+
+    "No ethertype key" should "cause a specific mask" in {
+        val fmatch = new FlowMatch()
+        fmatch.addKey(FlowKeys.inPort(9))
+        val normalKey = FlowKeys.ethernet(MAC.random().getAddress, MAC.random().getAddress)
+        fmatch.addKey(FlowKeys.ethernet(MAC.random().getAddress, MAC.random().getAddress))
+        val mask = new FlowMask()
+        mask.calculateFor(fmatch)
+        val maskedKey = mask.getMaskFor(normalKey.attrId()).asInstanceOf[FlowKeyEthernet]
+        allOnes(maskedKey.eth_src)
+        allOnes(maskedKey.eth_dst)
     }
 }
