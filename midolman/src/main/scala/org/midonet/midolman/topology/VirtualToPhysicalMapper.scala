@@ -35,7 +35,7 @@ import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman._
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.Directory.TypedWatcher
-import org.midonet.midolman.state.DirectoryCallback
+import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
 
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.Host
@@ -300,6 +300,9 @@ trait DataClientLink {
     @Inject
     val hostIdProvider : HostIdProviderService = null
 
+    @Inject
+    val connWatcher: ZkConnectionAwareWatcher = null
+
     def notifyLocalPortActive(vportID: UUID, active: Boolean) {
         stateStorage.setPortLocalAndActive(vportID, hostIdProvider.getHostId,
                                            active)
@@ -340,6 +343,7 @@ trait DeviceManagement {
 abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
 
     val cluster: DataClient
+    val connWatcher: ZkConnectionAwareWatcher
 
     import context.system
     import VirtualToPhysicalMapper._
@@ -379,8 +383,8 @@ abstract class VirtualToPhysicalMapperBase extends VTPMRedirector {
                 cluster vxLanPortIdsAsyncGet (cb, watcher)
             }
         }
-        val props = VxLanPortMapper props (VirtualTopologyActor, provider,
-                                           context.props.dispatcher)
+        val props = VxLanPortMapper.props(VirtualTopologyActor, provider,
+                                          connWatcher, context.props.dispatcher)
         context actorOf (props, "VxLanPortMapper")
     }
 

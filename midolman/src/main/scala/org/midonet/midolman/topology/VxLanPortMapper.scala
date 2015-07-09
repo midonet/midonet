@@ -18,21 +18,24 @@ package org.midonet.midolman.topology
 
 import java.util.{UUID, Set => JSet}
 
-import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import akka.event.LoggingReceive
+import akka.actor.{Actor, ActorRef, Props}
 import akka.pattern.{ask, pipe}
 import akka.util.Timeout
+import com.typesafe.scalalogging.Logger
 import org.apache.zookeeper.KeeperException
-import org.midonet.midolman.state.Directory.{DefaultTypedWatcher, TypedWatcher}
-import org.midonet.midolman.state.DirectoryCallback
-import org.midonet.midolman.topology.VxLanPortMapper.{TunnelIpAndVni, VxLanPorts, VxLanMapping, PortsIDRequest}
-
+import org.slf4j.LoggerFactory
 import scala.collection.JavaConversions.asScalaSet
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
+import scala.util.Success
 
+import org.midonet.midolman.state.Directory.{DefaultTypedWatcher, TypedWatcher}
+import org.midonet.midolman.state.{ZkConnectionAwareWatcher, DirectoryCallback}
+import org.midonet.midolman.topology.VxLanPortMapper.{TunnelIpAndVni, VxLanPorts, VxLanMapping}
 import org.midonet.midolman.topology.devices.VxLanPort
-import org.midonet.packets.{IPv4Addr, IPv4}
+import org.midonet.packets.IPv4Addr
+import org.midonet.util.concurrent.{SingleThreadExecutionContextProvider, ConveyorBelt}
+
 
 /** Adapter trait around the DataClient interface which exposes the unique
  *  setter method needed by the VxLanMapper. */
@@ -54,10 +57,10 @@ object VxLanPortMapper {
         vniUUIDMap get (tunnelIp, vni & (1 << 24) - 1)
 
     /** Type safe actor Props constructor for #actorOf(). */
-    def props(vta: ActorRef, provider: VxLanIdsProvider, dispatcher: String) =
-        Props(classOf[VxLanPortMapper], vta, provider, 2.seconds).withDispatcher(dispatcher)
+    def props(vta: ActorRef, provider: VxLanIdsProvider,
+              connWatcher: ZkConnectionAwareWatcher, dispatcher: String) =
+        Props(classOf[VxLanPortMapper], vta, provider, connWatcher).withDispatcher(dispatcher)
 
-    case object PortsIDRequest
     case class VxLanPorts(vxlanPorts: Seq[UUID])
     case class VxLanMapping(map: Map[TunnelIpAndVni, UUID])
 }
@@ -78,53 +81,67 @@ object VxLanPortMapper {
  */
 class VxLanPortMapper(val vta: ActorRef,
                       val provider: VxLanIdsProvider,
-                      val retryPeriod: FiniteDuration) extends Actor
-                                                       with ActorLogging {
+                      val connWatcher: ZkConnectionAwareWatcher) extends Actor
+                          with SingleThreadExecutionContextProvider {
 
-    import context._
+    val log = Logger(LoggerFactory.getLogger("org.midonet.vxgw"))
+
     import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
+
+    val belt = new ConveyorBelt(_ => {})
 
     override def preStart() {
         VxLanPortMapper.vniUUIDMap = Map.empty
-        self ! PortsIDRequest
+        updateVxLanPortIDs()
     }
 
-    override def receive = LoggingReceive {
-        case PortsIDRequest =>
+    private val fetch = new Runnable {
+        override def run(): Unit = {
+            log.debug("fetching the set of vxlan port IDs")
             provider vxLanPortIdsAsyncGet (directoryCallback, watcherCallback)
+        }
+    }
 
+    private def updateVxLanPortIDs() = fetch.run()
+
+    override def receive = super.receive orElse {
         case VxLanPorts(portIds) =>
-            implicit val askTimeout = Timeout(3.seconds)
-            Future.traverse(portIds) { vta ? PortRequest(_) }
-                  .map { assembleMap }
-                  .map { VxLanMapping } pipeTo self
+            belt.handle(() => {
+                implicit val askTimeout = Timeout(3.seconds)
+                implicit val ec: ExecutionContext = singleThreadExecutionContext
+                Future.traverse(portIds) { vta ? PortRequest(_) }
+                    .map { ports => VxLanMapping(assembleMap(ports)) }
+                    .andThen { case Success(m) => self ! m }
+            })
 
         case VxLanMapping(mapping) =>
+            log.info(s"resolved vxlan port mappings: $mapping")
             VxLanPortMapper.vniUUIDMap = mapping
 
         case unknown =>
-            log info ("received unknown message {}", unknown)
+            log.info(s"received unknown message $unknown")
     }
 
-    private val directoryCallback = new DirectoryCallback[JSet[UUID]] {
-        override def onSuccess(uuids: JSet[UUID]) {
-            self ! VxLanPorts(uuids.toSeq)
+    private val directoryCallback: DirectoryCallback[JSet[UUID]] =
+        new DirectoryCallback[JSet[UUID]] {
+            override def onSuccess(uuids: JSet[UUID]) {
+                self ! VxLanPorts(uuids.toSeq)
+            }
+            override def onTimeout() {
+                log.warn("timed out while getting vxlan port uuids")
+                connWatcher.handleTimeout(fetch)
+            }
+            override def onError(e: KeeperException) {
+                connWatcher.handleError("vxlan port uuids", fetch, e)
+            }
         }
-        override def onTimeout() {
-            retry("timeout")
-        }
-        override def onError(e: KeeperException) {
-            retry("Zk exception " + e.getClass.getSimpleName)
-        }
-        def retry(reason: String) {
-            log warning ("{} while getting vxlan port uuids, retrying", reason)
-            system.scheduler scheduleOnce (retryPeriod, self, PortsIDRequest)
-        }
-    }
 
-    private val watcherCallback = new DefaultTypedWatcher {
-        override def run() { self ! PortsIDRequest }
-    }
+    private val watcherCallback: DefaultTypedWatcher =
+        new DefaultTypedWatcher {
+            override def run() {
+                updateVxLanPortIDs()
+            }
+        }
 
     private def assembleMap(ports: Seq[Any]) =
         ports.collect {

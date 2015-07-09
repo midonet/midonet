@@ -204,7 +204,7 @@ trait FlowTranslator {
                 val vxlanPortId = br.vxlanPortIds(i)
                 i += 1
                 tryAsk[Port](vxlanPortId) match {
-                    case p: VxLanPort =>
+                    case p: VxLanPort if context.inPortId != p.id =>
                         outputActionsToVtep(p.vtepVni, p.vtepTunnelIp,
                                             p.vtepTunnelZoneId, context)
                     case _ =>
