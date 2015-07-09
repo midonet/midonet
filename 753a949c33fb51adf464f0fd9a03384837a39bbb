@@ -53,6 +53,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b136e850",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/validation/ValidPortId.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-09T12:41:03Z",
+      "side": 1,
+      "message": "Validators can be implemented in v2 also, but of course they should be in /cluster/midonet-cluster, and without dependencies on the dataclient.\n\nThat said, validating port ids should be redundant as long as backreferences are well set up, zoom will throw if a referenced object doesn\u0027t exist.",
+      "parentUuid": "9ad9bd40_008e692e",
+      "revId": "753a949c33fb51adf464f0fd9a03384837a39bbb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c0c1e12f",
         "filename": "midolman/src/main/java/org/midonet/cluster/data/Converter.java",
         "patchSetId": 8
