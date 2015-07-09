@@ -99,7 +99,7 @@ public class FuncTest {
      * Tells if we're testing against the Compat API.
      */
     public static boolean isCompatApiEnabled() {
-        return Boolean.parseBoolean(System.getenv("withVladimir"));
+        return !Boolean.parseBoolean(System.getenv("withVladimir"));
     }
 
     private static WebAppDescriptor.Builder getBuilderForLegacyApi() {

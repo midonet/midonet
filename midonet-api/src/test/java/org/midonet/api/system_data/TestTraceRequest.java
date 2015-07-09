@@ -26,7 +26,9 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
+import org.junit.Assume;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.midonet.api.ResourceUriBuilder;
@@ -47,8 +49,7 @@ import static java.lang.System.currentTimeMillis;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.midonet.api.auth.AuthFilter.HEADER_X_AUTH_TOKEN;
-
-import static org.midonet.cluster.rest_api.conversion.TraceRequestDataConverter.*;
+import static org.midonet.cluster.rest_api.conversion.TraceRequestDataConverter.toData;
 
 public class TestTraceRequest extends JerseyTest {
 
@@ -72,10 +73,18 @@ public class TestTraceRequest extends JerseyTest {
               .build());
     }
 
+    @BeforeClass
+    public static void ignoreIfNewStack() {
+        // TODO: remove this check once trace request is migrated to the new
+        //       stack
+        Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+    }
+
     @Before
     public void setUp() throws InterruptedException,
                                KeeperException,
                                StateAccessException {
+
         DtoWebResource dtoWebResource = new DtoWebResource(resource());
 
         Topology.Builder builder = new Topology.Builder(dtoWebResource);
