@@ -20,7 +20,7 @@ import java.util.UUID
 import scala.collection.JavaConversions._
 
 import com.google.inject._
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{ConfigFactory, Config, ConfigValueFactory}
 
 import org.scalatest.{BeforeAndAfter, FeatureSpecLike, GivenWhenThen, Matchers, OneInstancePerTest}
 import org.midonet.cluster.{Client,DataClient,ExplodingClient}
@@ -108,11 +108,11 @@ trait MidolmanSpec extends FeatureSpecLike
     }
 
     protected def fillConfig(config: Config = ConfigFactory.empty) : Config = {
-        val defaults =
-            """
-              |cassandra.servers = "localhost:9171"
-            """.stripMargin
+        val defaults = """cassandra.servers = "localhost:9171""""
+
         config.withFallback(ConfigFactory.parseString(defaults))
+            .withValue("zookeeper.use_new_stack",
+                       ConfigValueFactory.fromAnyRef(useNewStorageStack))
     }
 
     def useNewStorageStack: Boolean = System.getProperty("midonet.newStack") != null
@@ -154,30 +154,14 @@ trait MidolmanSpec extends FeatureSpecLike
             })
         if (useNewStorageStack) {
             log.info("Using zoom storage")
-            modules :+ new AbstractModule {
-                override def configure() {
-                    bind(classOf[Client])
-                        .to(classOf[ExplodingClient])
-                        .asEagerSingleton()
-                    bind(classOf[DataClient])
-                        .to(classOf[ExplodingDataClient])
-                        .asEagerSingleton()
-                    bind(classOf[LegacyStorage])
-                        .to(classOf[ExplodingLegacyStorage])
-                        .asEagerSingleton()
-                    bind(classOf[ZkManager])
-                        .to(classOf[ExplodingZkManager])
-                        .asEagerSingleton()
-                    bind(classOf[PathBuilder])
-                        .toInstance(new PathBuilder("/ERRORING/PATH"))
-                    bind(classOf[LegacyStorageService])
-                        .toInstance(new LegacyStorageService(null, null, null) {
-                                        protected override def doStart(): Unit = {
-                                            notifyStarted()
-                                        }
-                                    })
-                }
-            }
+            modules ++ List(new LegacyClusterModule(), // needed for LegacyStorage
+                            new AbstractModule {
+                                override def configure() {
+                                    bind(classOf[VirtualConfigurationBuilders])
+                                        .to(classOf[ZoomVirtualConfigurationBuilders])
+                                        .asEagerSingleton()
+                                }
+                            })
         } else {
             log.info("Using legacy storage")
             modules ++ List(new LegacyClusterModule(),
