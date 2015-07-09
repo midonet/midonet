@@ -16,6 +16,8 @@
 
 package org.midonet.util.netty;
 
+import scala.Option;
+
 import com.google.protobuf.GeneratedMessage;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -25,6 +27,7 @@ import io.netty.handler.codec.protobuf.ProtobufDecoder;
 import io.netty.handler.codec.protobuf.ProtobufEncoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32FrameDecoder;
 import io.netty.handler.codec.protobuf.ProtobufVarint32LengthFieldPrepender;
+import io.netty.handler.ssl.SslContext;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 
@@ -41,6 +44,7 @@ public class ProtoBufSocketAdapter<T extends GeneratedMessage>
 
     private final SimpleChannelInboundHandler<T> handler;
     private final T prototype;
+    private final SslContext sslCtx;
 
     /**
      * Create a plain adapter pipeline (protobuf-based)
@@ -49,14 +53,22 @@ public class ProtoBufSocketAdapter<T extends GeneratedMessage>
      */
     public ProtoBufSocketAdapter(SimpleChannelInboundHandler<T> handler,
                                  T prototype) {
+        this(handler, prototype, Option.apply((SslContext)null));
+    }
+
+    public ProtoBufSocketAdapter(SimpleChannelInboundHandler<T> handler,
+                                 T prototype, Option<SslContext> sslCtx) {
         this.handler = handler;
         this.prototype = prototype;
+        this.sslCtx = sslCtx.isDefined()? sslCtx.get(): null;
     }
 
     @Override
     public void initChannel(SocketChannel ch) {
         final ChannelPipeline pipe = ch.pipeline();
 
+        if (sslCtx != null)
+            pipe.addLast(sslCtx.newHandler(ch.alloc()));
         pipe.addLast(new ProtobufVarint32FrameDecoder());
         pipe.addLast(new ProtobufDecoder(prototype));
         pipe.addLast(new ProtobufVarint32LengthFieldPrepender());
