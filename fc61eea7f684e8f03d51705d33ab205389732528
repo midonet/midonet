@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_c6865413",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/datapath/FlowProcessor.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-09T08:13:56Z",
+      "side": 1,
+      "message": "maybe when we have proper counters? this is the only external visible warning that netlink is falling behind.",
+      "parentUuid": "9ad9bd40_b7398043",
+      "revId": "fc61eea7f684e8f03d51705d33ab205389732528",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_773538f6",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockNetlinkChannelFactory.scala",
         "patchSetId": 2
@@ -47,6 +65,24 @@
       "writtenOn": "2015-07-08T16:40:53Z",
       "side": 1,
       "message": "why? is it not a mock?",
+      "revId": "fc61eea7f684e8f03d51705d33ab205389732528",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_66890826",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockNetlinkChannelFactory.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-09T08:13:56Z",
+      "side": 1,
+      "message": "not a complete mock, it still inherits from SelectableChannel. java makes some internal casts.. this is pretty messy. anyway, it should be \u0027blocking\u0027 instead of \u0027false\u0027.",
+      "parentUuid": "9ad9bd40_773538f6",
       "revId": "fc61eea7f684e8f03d51705d33ab205389732528",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
