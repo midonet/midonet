@@ -165,6 +165,14 @@ public class FlowMask extends NetlinkSerializable
         short highestLayer = fmatch.highestLayerSeen();
         if (highestLayer >= 2) {
             maskLayer2(fmatch, highestLayer);
+        } else if (!fmatch.isUsed(FlowMatch.Field.EtherType)) {
+            // This is an IEEE 802.3 packet, better make sure we don't
+            // install a drop flow that drops everything.
+            FlowKeyEthernet ethernet = key(Ethernet);
+            Arrays.fill(ethernet.eth_src, EXACT_8);
+            exactMatchInKey(Ethernet);
+            Arrays.fill(ethernet.eth_dst, EXACT_8);
+            exactMatchInKey(Ethernet);
         }
     }
 
