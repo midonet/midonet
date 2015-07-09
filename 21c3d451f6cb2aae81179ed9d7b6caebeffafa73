@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_51511cd7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 43,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-09T13:20:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_5b7780d4",
+      "range": {
+        "startLine": 43,
+        "startChar": 33,
+        "endLine": 43,
+        "endChar": 45
+      },
+      "revId": "21c3d451f6cb2aae81179ed9d7b6caebeffafa73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1b8418d3",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 2
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_715f00e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-09T13:20:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_1b8418d3",
+      "revId": "21c3d451f6cb2aae81179ed9d7b6caebeffafa73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9baae817",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 2
@@ -53,6 +95,30 @@
       "writtenOn": "2015-07-08T15:29:41Z",
       "side": 1,
       "message": "service-discovery",
+      "range": {
+        "startLine": 81,
+        "startChar": 40,
+        "endLine": 81,
+        "endChar": 49
+      },
+      "revId": "21c3d451f6cb2aae81179ed9d7b6caebeffafa73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3121f8fb",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-09T13:20:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_9baae817",
       "range": {
         "startLine": 81,
         "startChar": 40,
@@ -88,6 +154,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_11223401",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-09T13:20:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_7b5b6454",
+      "range": {
+        "startLine": 89,
+        "startChar": 4,
+        "endLine": 89,
+        "endChar": 16
+      },
+      "revId": "21c3d451f6cb2aae81179ed9d7b6caebeffafa73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5b5ea046",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 2
@@ -105,6 +195,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_511cbcc1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-09T13:20:10Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_5b5ea046",
+      "revId": "21c3d451f6cb2aae81179ed9d7b6caebeffafa73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_7b8604bb",
         "filename": "nsdb/src/test/java/org/midonet/cluster/services/discovery/TestJavaServiceDetails.java",
         "patchSetId": 2
@@ -116,6 +224,30 @@
       "writtenOn": "2015-07-08T15:29:41Z",
       "side": 1,
       "message": "why not throw NPE?",
+      "range": {
+        "startLine": 37,
+        "startChar": 22,
+        "endLine": 37,
+        "endChar": 41
+      },
+      "revId": "21c3d451f6cb2aae81179ed9d7b6caebeffafa73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_917d64ea",
+        "filename": "nsdb/src/test/java/org/midonet/cluster/services/discovery/TestJavaServiceDetails.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-09T13:20:10Z",
+      "side": 1,
+      "message": "It really does not matter. I just wanted to have a constructor with non-trivial code for testing.",
+      "parentUuid": "9ad9bd40_7b8604bb",
       "range": {
         "startLine": 37,
         "startChar": 22,
