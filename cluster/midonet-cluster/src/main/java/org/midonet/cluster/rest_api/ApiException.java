@@ -21,8 +21,10 @@ import javax.ws.rs.core.Response;
 
 public class ApiException extends WebApplicationException {
 
+    private static final long serialVersionUID = 1L;
+
     public ApiException(Response.Status status) {
-        super(status);
+        this(status, null);
     }
 
     public ApiException(Response.Status status, String message) {

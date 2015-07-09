@@ -53,9 +53,9 @@ class VTEPBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
                                 binding.portName == portName &&
                                 binding.vlanId == vlanId))
         })
-            .getOrThrow
-            .getOrElse(throw new ApiException(Status.NOT_FOUND,
-                                              getMessage(VTEP_BINDING_NOT_FOUND)))
+        .getOrThrow
+        .getOrElse(throw new ApiException(Status.NOT_FOUND,
+                                          getMessage(VTEP_BINDING_NOT_FOUND)))
     }
 
     @GET
@@ -73,7 +73,7 @@ class VTEPBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
     protected override def createFilter = (binding: VTEPBinding) => {
         hasResource(classOf[Bridge], binding.networkId).map(exists => {
             // Validate the bridge exists.
-            if (!exists) throw new ApiException(Status.NOT_FOUND)
+            if (!exists) throw new ApiException(Status.BAD_REQUEST)
         }).getOrThrow
         binding.create(mgmtIp)
     }
