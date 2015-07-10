@@ -42,7 +42,7 @@ object ChainMapper {
      * @param ruleId The id of the rule we want to start observing.
      * @param vt The virtual topology object.
      */
-    private final class RuleState(ruleId: UUID, vt: VirtualTopology) {
+    private final class RuleState(val ruleId: UUID, vt: VirtualTopology) {
 
         private val mark = PublishSubject.create[SimRule]()
         private var _previousRule: SimRule = null
@@ -52,7 +52,7 @@ object ChainMapper {
         val observable = vt.store.observable(classOf[TopologyRule],ruleId)
             .observeOn(vt.vtScheduler)
             .takeUntil(mark)
-            .map[SimRule](makeFunc1(ruleUpdated))
+            .map[RuleState](makeFunc1(ruleUpdated))
 
         /** Returns the previously obtained rule. */
         def previousRule = _previousRule
@@ -71,10 +71,10 @@ object ChainMapper {
          */
         def isReady = (_currentRule ne null) && (_currentRule.chainId ne null)
 
-        private def ruleUpdated(rule: TopologyRule): SimRule = {
+        private def ruleUpdated(rule: TopologyRule): RuleState = {
             _previousRule = _currentRule
             _currentRule = ZoomConvert.fromProto(rule, classOf[SimRule])
-            _currentRule
+            this
         }
     }
 
@@ -122,7 +122,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
     private var chainProto: TopologyChain = TopologyChain.newBuilder.build()
 
     // The stream of rules that belong to this chain
-    private val ruleStream = PublishSubject.create[Observable[SimRule]]()
+    private val ruleStream = PublishSubject.create[Observable[RuleState]]()
     private val rules = new mutable.HashMap[UUID, RuleState]()
     // The ordered list of rules in the chain
     private var ruleIds: Seq[UUID] = mutable.Seq.empty
@@ -135,6 +135,10 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
     private val ipAddrGroupStream = PublishSubject
         .create[Observable[SimIPAddrGroup]]()
     private val ipAddrGroups = new mutable.HashMap[UUID, IpAddressGroupState]()
+
+    //private val addedRules = new mutable.HashMap[UUID, RuleState]
+    //private val addedIpAddressGroups =
+    //    new mutable.HashMap[UUID, IpAddressGroupState]
 
     private def subscribeToJumpChain(jumpChainId: UUID): Unit = {
         jumpChains get jumpChainId match {
@@ -164,14 +168,17 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
         }
     }
 
-    private def subscribeToIpAddrGroup(ipAddrGroupId: UUID): Unit = {
+    private def subscribeToIpAddrGroup(ipAddrGroupId: UUID)
+    : IpAddressGroupState = {
         ipAddrGroups get ipAddrGroupId match {
-            case Some(ipAddrGroup) => ipAddrGroup.refCount += 1
+            case Some(ipAddrGroup) =>
+                ipAddrGroup.refCount += 1
+                null
             case None =>
                 log.debug("Subscribing to IP address group: {}", ipAddrGroupId)
                 val ipAddrGroupState = new IpAddressGroupState(ipAddrGroupId, vt)
                 ipAddrGroups += ipAddrGroupId -> ipAddrGroupState
-                ipAddrGroupStream onNext ipAddrGroupState.observable
+                ipAddrGroupState
         }
     }
 
@@ -180,8 +187,8 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
             case Some(ipAddrGroup) if ipAddrGroup.refCount == 1 =>
                 log.debug("Unsubscribing from IP address group: {}",
                           ipAddrGroupId)
-                ipAddrGroups(ipAddrGroupId).complete()
-                ipAddrGroups.remove(ipAddrGroupId)
+                ipAddrGroup.complete()
+                ipAddrGroups -= ipAddrGroupId
             case Some(ipAddrGroup) => ipAddrGroup.refCount -= 1
             case None =>
                 log.warn("IP address group {} does not exist", ipAddrGroupId)
@@ -196,11 +203,13 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
         ruleIds = chain.getRuleIdsList.asScala.map(_.asJava)
 
         // Subscribe to all rules we are not subscribed to yet.
+        val addedRules = new mutable.MutableList[RuleState]
+        val addedGroups = new mutable.MutableList[IpAddressGroupState]
         for (ruleId <- ruleIds if !rules.contains(ruleId)) {
             log.debug("Subscribing to rule: {}", ruleId)
             val ruleState = new RuleState(ruleId, vt)
-            rules(ruleId) = ruleState
-            ruleStream.onNext(ruleState.observable)
+            rules += ruleId -> ruleState
+            addedRules += ruleState
         }
 
         // Unsubscribe from rules that are not part of the chain anymore.
@@ -210,10 +219,10 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
 
             // If it is a jump rule, unsubscribe from the chain the rule
             // references.
-            if (rule.currentRule.isInstanceOf[JumpRule]) {
-                val jumpChainId = rule.currentRule.asInstanceOf[JumpRule]
-                    .jumpToChainID
-                unsubscribeFromJumpChain(jumpChainId)
+            rule.currentRule match {
+                case jumpRule: JumpRule =>
+                    unsubscribeFromJumpChain(jumpRule.jumpToChainID)
+                case _ =>
             }
 
             // Unsubscribe from IPAddrGroups the rule may be referencing.
@@ -225,76 +234,84 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
                 unsubscribeFromIpAddrGroup(condition.ipAddrGroupIdDst)
             }
 
-            rules.remove(ruleId)
+            rules -= ruleId
         }
+
+        // Publish observables for added rules and IP address groups.
+        for (ruleState <- addedRules) {
+            ruleStream onNext ruleState.observable
+        }
+        for (ipAddrGroupState <- addedGroups) {
+            ipAddrGroupStream onNext ipAddrGroupState.observable
+        }
+
         chainProto = chain
         chainProto
     }
 
-    private def ruleUpdated(rule: SimRule): TopologyChain = {
+    private def ruleUpdated(ruleState: RuleState): TopologyChain = {
         assertThread()
-        log.debug("Rule updated: {}", rule)
-
-        val ruleState = rules get rule.id match {
-            case Some(r) => r
-            case None =>
-                log.warn("Update for unknown rule {}, ignoring", rule.id)
-                return chainProto
-        }
+        log.debug("Rule updated: {}", ruleState.currentRule)
 
         // Handle jump rules
-        if (rule.isInstanceOf[JumpRule]) {
-            val jumpChainId = rule.asInstanceOf[JumpRule].jumpToChainID
-
-            if (ruleState.previousRule ne null) {
-                val prevJumpChainId = ruleState.previousRule
-                    .asInstanceOf[JumpRule]
-                    .jumpToChainID
-
-                // If this rule points to a new chain, unsubscribe from the
-                // previous one.
-                if (prevJumpChainId != jumpChainId) {
-                    log.debug("Rule: {} is a jump rule and now references " +
-                              "chain: {}, decreasing ref. count of " +
-                              "previous chain: {}", rule.id, jumpChainId,
-                              prevJumpChainId)
-                    unsubscribeFromJumpChain(prevJumpChainId)
-                    subscribeToJumpChain(jumpChainId)
-                }
-            } else {
-                subscribeToJumpChain(jumpChainId)
-            }
+        (ruleState.currentRule, ruleState.previousRule) match {
+            case (currJumpRule: JumpRule, prevJumpRule: JumpRule)
+                if currJumpRule.jumpToChainID != prevJumpRule.jumpToChainID =>
+                log.debug("Jump chain for rule {} changed from {} to {}",
+                          ruleState.ruleId, currJumpRule.jumpToChainID,
+                          prevJumpRule.jumpToChainID)
+                unsubscribeFromJumpChain(prevJumpRule.jumpToChainID)
+                subscribeToJumpChain(currJumpRule.jumpToChainID)
+            case (currJumpRule: JumpRule, prevJumpRule: JumpRule) =>
+                // Jump chain ID remains the same
+            case (currJumpRule: JumpRule, _) =>
+                subscribeToJumpChain(currJumpRule.jumpToChainID)
+            case (_, prevJumpRule: JumpRule) =>
+                unsubscribeFromJumpChain(prevJumpRule.jumpToChainID)
+            case _ => // Not jump rules
         }
 
         // Handle IP address groups.
-        val newCond = rule.getCondition
+        val addedGroups = new mutable.MutableList[IpAddressGroupState]
         if (ruleState.previousRule eq null) {
-            handleIpAddrGroupSubscription(prevIpAddrGroupId = null,
-                                          newCond.ipAddrGroupIdSrc)
-            handleIpAddrGroupSubscription(prevIpAddrGroupId = null,
-                                          newCond.ipAddrGroupIdDst)
+            addedGroups <<< handleIpAddrGroupSubscription(
+                prevIpAddrGroupId = null,
+                ruleState.currentRule.getCondition.ipAddrGroupIdSrc)
+            addedGroups <<< handleIpAddrGroupSubscription(
+                prevIpAddrGroupId = null,
+                ruleState.currentRule.getCondition.ipAddrGroupIdDst)
         } else {
-            val prevCond = ruleState.previousRule.getCondition
-            handleIpAddrGroupSubscription(prevCond.ipAddrGroupIdSrc,
-                                          newCond.ipAddrGroupIdSrc)
-            handleIpAddrGroupSubscription(prevCond.ipAddrGroupIdDst,
-                                          newCond.ipAddrGroupIdDst)
+            addedGroups <<< handleIpAddrGroupSubscription(
+                ruleState.previousRule.getCondition.ipAddrGroupIdSrc,
+                ruleState.currentRule.getCondition.ipAddrGroupIdSrc)
+            addedGroups <<< handleIpAddrGroupSubscription(
+                ruleState.previousRule.getCondition.ipAddrGroupIdDst,
+                ruleState.currentRule.getCondition.ipAddrGroupIdDst)
         }
+
+        // Publish observables for added IP address groups.
+        for (ipAddrGroupState <- addedGroups) {
+            ipAddrGroupStream onNext ipAddrGroupState.observable
+        }
+
         chainProto
     }
 
     private def handleIpAddrGroupSubscription(prevIpAddrGroupId: UUID,
                                               newIpAddrGroupId: UUID)
-    : Unit = (prevIpAddrGroupId, newIpAddrGroupId) match {
-        case (null, null) => // Do nothing.
-        case (null, newId) =>
-            subscribeToIpAddrGroup(newId)
-        case (prevId, null) =>
-            unsubscribeFromIpAddrGroup(prevId)
-        case (prevId, newId) if prevId != newId =>
-            unsubscribeFromIpAddrGroup(prevId)
-            subscribeToIpAddrGroup(newId)
-        case _ => // Do nothing.
+    : IpAddressGroupState = {
+        (prevIpAddrGroupId, newIpAddrGroupId) match {
+            case (null, null) => null // Do nothing.
+            case (null, newId) =>
+                subscribeToIpAddrGroup(newId)
+            case (prevId, null) =>
+                unsubscribeFromIpAddrGroup(prevId)
+                null
+            case (prevId, newId) if prevId != newId =>
+                unsubscribeFromIpAddrGroup(prevId)
+                subscribeToIpAddrGroup(newId)
+            case _ => null // Do nothing.
+        }
     }
 
     private def chainReady(update: Any): Boolean = {
