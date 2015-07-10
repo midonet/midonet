@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.client.dto.DtoTenant;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.Tenant;
 
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_CHAIN_JSON;
@@ -77,7 +77,7 @@ public class Topology {
 
         private DtoApplication app;
         private final String appMediaType;
-        private final Map<String, DtoTenant> tenants;
+        private final Map<String, Tenant> tenants;
         private final Map<String, DtoRouter> routers;
         private final Map<String, DtoBridge> bridges;
         private final Map<String, DtoRuleChain> chains;
@@ -319,11 +319,11 @@ public class Topology {
             }
 
             // Tenants are created behind the scene.  Get all tenants
-            DtoTenant[] tenantList = resource.getAndVerifyOk(app.getTenants(),
-                APPLICATION_TENANT_COLLECTION_JSON, DtoTenant[].class);
+            Tenant[] tenantList = resource.getAndVerifyOk(app.getTenants(),
+                APPLICATION_TENANT_COLLECTION_JSON, Tenant[].class);
             if (tenantList != null) {
-                for (DtoTenant t : tenantList) {
-                    tenants.put(t.getId(), t);
+                for (Tenant t : tenantList) {
+                    tenants.put(t.id, t);
                 }
             }
 
@@ -339,8 +339,10 @@ public class Topology {
         return this.builder.app;
     }
 
-    public DtoTenant getTenant(String id) {
-        return this.builder.tenants.get(id);
+    public Tenant getTenant(String id) {
+        Tenant t = this.builder.tenants.get(id);
+        t.setBaseUri(getApplication().getUri());
+        return t;
     }
 
     public DtoRouter getRouter(String tag) {

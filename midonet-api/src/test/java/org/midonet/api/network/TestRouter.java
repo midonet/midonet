@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.api.rest_api.TopologyBackdoor;
@@ -47,8 +46,10 @@ import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRouterPort;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.client.dto.DtoTenant;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.Tenant;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -59,6 +60,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.midonet.api.rest_api.FuncTest._injector;
+import static org.midonet.api.rest_api.FuncTest.appDesc;
+import static org.midonet.api.rest_api.FuncTest.isCompatApiEnabled;
+import static org.midonet.api.rest_api.FuncTest.objectMapper;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_LINK_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_PORT_V2_JSON;
@@ -76,12 +81,19 @@ public class TestRouter {
         private DtoWebResource dtoResource;
 
         public TestRouterList() {
-            super(FuncTest.appDesc);
+            super(appDesc);
         }
 
         private void addActualRouters(Topology.Builder builder, String tenantId,
                                       int count) {
             for (int i = 0 ; i < count ; i++) {
+                if (isCompatApiEnabled()) {
+                    // In the new storage stack we don't store tenants in MidoNet
+                    // and instead fetch them directly from the AuthService, so
+                    // let's add them there.
+                    AuthService as = _injector.getInstance(AuthService.class);
+                    ((MockAuthService)as).addTenant(tenantId, tenantId);
+                }
                 DtoRouter router = new DtoRouter();
                 String tag = Integer.toString(i) + tenantId;
                 router.setName(tag);
@@ -151,10 +163,10 @@ public class TestRouter {
             String actualRaw = dtoResource.getAndVerifyOk(app.getRouters(),
                     VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
                     String.class);
-            JavaType type = FuncTest.objectMapper.getTypeFactory()
+            JavaType type = objectMapper.getTypeFactory()
                     .constructParametrizedType(List.class, List.class,
                                                DtoRouter.class);
-            List<DtoRouter> actual = FuncTest.objectMapper.readValue(
+            List<DtoRouter> actual = objectMapper.readValue(
                     actualRaw, type);
 
             // Compare the actual and expected
@@ -167,18 +179,19 @@ public class TestRouter {
 
             // Get the expected list of DtoBridge objects
             DtoApplication app = topology.getApplication();
-            DtoTenant tenant = topology.getTenant("tenant0");
+            Tenant tenant = topology.getTenant("tenant0");
+
             List<DtoRouter> expected = getExpectedRouters(app.getRouters(),
-                    tenant.getId(), 0, 4);
+                    tenant.id, 0, 4);
 
             // Get the actual DtoRouter objects
             String actualRaw = dtoResource.getAndVerifyOk(tenant.getRouters(),
                     VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
                     String.class);
-            JavaType type = FuncTest.objectMapper.getTypeFactory()
+            JavaType type = objectMapper.getTypeFactory()
                     .constructParametrizedType(List.class, List.class,
                                                DtoRouter.class);
-            List<DtoRouter> actual = FuncTest.objectMapper.readValue(
+            List<DtoRouter> actual = objectMapper.readValue(
                     actualRaw, type);
 
             // Compare the actual and expected
@@ -193,7 +206,7 @@ public class TestRouter {
         private Topology topology;
 
         public TestRouterCrud() {
-            super(FuncTest.appDesc);
+            super(appDesc);
         }
 
         private Map<String, String> getTenantQueryParams(String tenantId) {
@@ -420,7 +433,7 @@ public class TestRouter {
 
             // Add a router with a loadbalancer
             DtoRouter resRouter = createRouter("router1", "tenant1-id",
-                    true, true, 2);
+                                               true, true, 2);
 
             // List the routers
             routers = dtoResource.getAndVerifyOk(app.getRouters(),
@@ -475,7 +488,7 @@ public class TestRouter {
             DtoRouter resRouter = createRouter("router1", "tenant1-id",
                     false, false, 2);
             // Add an ARP entry in this router's ARP cache.
-            FuncTest._injector
+            _injector
                 .getInstance(TopologyBackdoor.class)
                 .addArpTableEntryToRouter(resRouter.getId(),
                                           IPv4Addr.fromString("10.0.0.3"),

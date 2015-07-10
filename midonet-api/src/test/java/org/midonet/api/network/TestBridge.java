@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import org.junit.runner.RunWith;
 
 import org.midonet.api.ResourceUriBuilder;
 import org.midonet.api.rest_api.DtoWebResource;
-import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
 import org.midonet.client.dto.DtoApplication;
@@ -48,7 +47,9 @@ import org.midonet.client.dto.DtoIP4MacPair;
 import org.midonet.client.dto.DtoMacPort;
 import org.midonet.client.dto.DtoPort;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.client.dto.DtoTenant;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.MockAuthService;
+import org.midonet.cluster.rest_api.models.Tenant;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -60,6 +61,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.midonet.api.rest_api.FuncTest._injector;
+import static org.midonet.api.rest_api.FuncTest.appDesc;
+import static org.midonet.api.rest_api.FuncTest.isCompatApiEnabled;
+import static org.midonet.api.rest_api.FuncTest.objectMapper;
 import static org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_JSON;
@@ -83,12 +88,19 @@ public class TestBridge {
         private DtoWebResource dtoWebResource;
 
         public TestBridgeList() {
-            super(FuncTest.appDesc);
+            super(appDesc);
         }
 
         private void addActualBridges(Topology.Builder builder, String tenantId,
                                       int count) {
             for (int i = 0 ; i < count ; i++) {
+                if (isCompatApiEnabled()) {
+                    // In the new storage stack we don't store tenants in MidoNet
+                    // and instead fetch them directly from the AuthService, so
+                    // let's add them there.
+                    AuthService as = _injector.getInstance(AuthService.class);
+                    ((MockAuthService)as).addTenant(tenantId, tenantId);
+                }
                 DtoBridge bridge = new DtoBridge();
                 String tag = Integer.toString(i) + tenantId;
                 bridge.setName(tag);
@@ -160,10 +172,10 @@ public class TestBridge {
             // Get the actual DtoBridge objects
             String actualRaw = dtoWebResource.getAndVerifyOk(app.getBridges(),
                     APPLICATION_BRIDGE_COLLECTION_JSON, String.class);
-            JavaType type = FuncTest.objectMapper.getTypeFactory()
+            JavaType type = objectMapper.getTypeFactory()
                     .constructParametrizedType(List.class, List.class,
                                                DtoBridge.class);
-            List<DtoBridge> actual = FuncTest.objectMapper.readValue(
+            List<DtoBridge> actual = objectMapper.readValue(
                     actualRaw, type);
 
             // Compare the actual and expected
@@ -176,17 +188,17 @@ public class TestBridge {
 
             // Get the expected list of DtoBridge objects
             DtoApplication app = topology.getApplication();
-            DtoTenant tenant = topology.getTenant("tenant0");
+            Tenant tenant = topology.getTenant("tenant0");
             List<DtoBridge> expected = getExpectedBridges(app.getBridges(),
-                    tenant.getId(), 0, 4);
+                    tenant.id, 0, 4);
 
             // Get the actual DtoBridge objects
             String actualRaw = dtoWebResource.getAndVerifyOk(tenant.getBridges(),
                     APPLICATION_BRIDGE_COLLECTION_JSON, String.class);
-            JavaType type = FuncTest.objectMapper.getTypeFactory()
+            JavaType type = objectMapper.getTypeFactory()
                     .constructParametrizedType(List.class, List.class,
                                                DtoBridge.class);
-            List<DtoBridge> actual = FuncTest.objectMapper.readValue(
+            List<DtoBridge> actual = objectMapper.readValue(
                     actualRaw, type);
 
             // Compare the actual and expected
@@ -203,7 +215,7 @@ public class TestBridge {
         private String mac3 = "01:23:45:67:89:03";
 
         public TestBridgeCrud() {
-            super(FuncTest.appDesc);
+            super(appDesc);
         }
 
         @Override
