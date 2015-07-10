@@ -34,6 +34,7 @@ import rx.functions.Func1;
 
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import org.midonet.cluster.DataClient;
 import org.midonet.cluster.data.storage.SingleValueKey;
 import org.midonet.cluster.data.storage.StateKey;
 import org.midonet.cluster.data.storage.StateResult;
@@ -43,6 +44,9 @@ import org.midonet.cluster.models.Topology.Host;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.services.rest_api.resources.HostInterfacePortResource;
 import org.midonet.cluster.services.rest_api.resources.MidonetResource;
+import org.midonet.cluster.state.ZookeeperLegacyStorage;
+import org.midonet.midolman.state.Ip4ToMacReplicatedMap;
+import org.midonet.midolman.state.PathBuilder;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -64,6 +68,13 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
 
     @Override
     public void addArpTableEntryToRouter(UUID routerId, IPv4Addr ip, MAC mac) {
+        // Implementing this is just pointless in v2.  This is just used in
+        // a single test that verified that a Router that had ARP entries
+        // could be deleted correctly as they resided as children of the
+        // Router path in ZK.  In v2, the ARP table is written in a whole
+        // different tree than the Router, so this test doesn't really verify
+        // anything.  We add an Assume clause to the test, so this code should
+        // never be hit.
         throw new NotImplementedException();
     }
 

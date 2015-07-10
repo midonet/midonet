@@ -28,6 +28,7 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -467,6 +468,9 @@ public class TestRouter {
 
         @Test
         public void testRouterDeleteWithArpEntries() throws Exception {
+
+            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
             // Add a router
             DtoRouter resRouter = createRouter("router1", "tenant1-id",
                     false, false, 2);
