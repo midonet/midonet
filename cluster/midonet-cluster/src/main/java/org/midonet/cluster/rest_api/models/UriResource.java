@@ -37,6 +37,11 @@ public abstract class UriResource extends ZoomObject {
     /** Retrieve the URI of this resource. */
     public abstract URI getUri();
 
+    @JsonIgnore
+    final protected URI getBaseUri() {
+        return baseUri;
+    }
+
     /** Gets an URI for the specified path and identifier, relative to the base
       * URI of the current object. */
     final protected URI absoluteUri(String path, Object id) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,60 +23,36 @@ import org.midonet.client.dto.DtoBridge;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRouter;
 import org.midonet.client.dto.DtoRuleChain;
-import org.midonet.client.dto.DtoTenant;
 import org.midonet.cluster.rest_api.VendorMediaType;
 
-public class Tenant extends ResourceBase<Tenant, DtoTenant> {
+import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_TENANT_JSON;
 
-    public Tenant(WebResource resource, URI uriForCreation, DtoTenant t) {
-        super(resource, uriForCreation, t,
-              VendorMediaType.APPLICATION_TENANT_JSON);
+public class Tenant extends ResourceBase<Tenant,
+    org.midonet.cluster.rest_api.models.Tenant> {
+
+    public Tenant(WebResource resource, URI uriForCreation,
+                  org.midonet.cluster.rest_api.models.Tenant t) {
+        super(resource, uriForCreation, t, APPLICATION_TENANT_JSON);
     }
 
-    /**
-     * Gets URI of this resource
-     *
-     * @return URI of this resource
-     */
     @Override
     public URI getUri() {
         return principalDto.getUri();
     }
 
-    /**
-     * Gets ID of this resource
-     *
-     * @return String
-     */
     public String getId() {
-        return principalDto.getId();
+        return principalDto.id;
     }
 
-    /**
-     * Gets name of the tenant
-     *
-     * @return name
-     */
     public String getName() {
-        return principalDto.getName();
+        return principalDto.name;
     }
 
-    /**
-     * Sets name to the DTO.
-     *
-     * @param name
-     * @return this
-     */
     public Tenant name(String name) {
-        principalDto.setName(name);
+        principalDto.name = name;
         return this;
     }
 
-    /**
-     * Returns collection of bridges under the tenant
-     *
-     * @return collection of bridges
-     */
     public ResourceCollection<Bridge> getBridges() {
         return getChildResources(
             principalDto.getBridges(),
@@ -85,11 +61,6 @@ public class Tenant extends ResourceBase<Tenant, DtoTenant> {
             Bridge.class, DtoBridge.class);
     }
 
-    /**
-     * Returns collection of port groups under the tenant
-     *
-     * @return collection of port groups
-     */
     public ResourceCollection<PortGroup> getPortGroups() {
         return getChildResources(
                 principalDto.getPortGroups(),
@@ -98,11 +69,6 @@ public class Tenant extends ResourceBase<Tenant, DtoTenant> {
                 PortGroup.class, DtoPortGroup.class);
     }
 
-    /**
-     * Returns collection of routers under the tenant
-     *
-     * @return collection of routers
-     */
     public ResourceCollection<Router> getRouters() {
         return getChildResources(
                 principalDto.getRouters(),
@@ -111,11 +77,6 @@ public class Tenant extends ResourceBase<Tenant, DtoTenant> {
                 Router.class, DtoRouter.class);
     }
 
-    /**
-     * Returns collection of chains under the tenant
-     *
-     * @return collection of chains
-     */
     public ResourceCollection<RuleChain> getRuleChains() {
         return getChildResources(
                 principalDto.getChains(),
@@ -127,7 +88,7 @@ public class Tenant extends ResourceBase<Tenant, DtoTenant> {
 
     @Override
     public String toString() {
-        return String.format("Tenant{id=%s, name=%s}", principalDto.getId(),
-                             principalDto.getName());
+        return String.format("Tenant{id=%s, name=%s}", principalDto.id,
+                             principalDto.name);
     }
 }
