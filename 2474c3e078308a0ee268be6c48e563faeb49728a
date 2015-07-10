@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_8f00d802",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-10T16:19:57Z",
+      "side": 1,
+      "message": "See comment below, you can use a trait with stub implementations to save this, and reduce ephemeral object creation",
+      "range": {
+        "startLine": 148,
+        "startChar": 3,
+        "endLine": 151,
+        "endChar": 5
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b467b124",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-10T16:19:57Z",
+      "side": 1,
+      "message": "is this related to the metrics change? otherwise I\u0027d move to a separate patch",
+      "range": {
+        "startLine": 529,
+        "startChar": 20,
+        "endLine": 537,
+        "endChar": 23
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d46ef500",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 569,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-10T16:19:57Z",
+      "side": 1,
+      "message": "Is this right? Shouldn\u0027t it be System.nanoTime() ?",
+      "range": {
+        "startLine": 569,
+        "startChar": 20,
+        "endLine": 569,
+        "endChar": 22
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_742b6994",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-10T16:19:57Z",
+      "side": 1,
+      "message": "nano?",
+      "range": {
+        "startLine": 576,
+        "startChar": 41,
+        "endLine": 576,
+        "endChar": 58
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_54302501",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-10T16:19:57Z",
+      "side": 1,
+      "message": "I\u0027m not totally sure that we should be adding the closure. I guess it\u0027s ok to pass it as Option in the constructor, but I\u0027d rather have an if here (or hidden in some other interface).\n\nMaybe instead of having zoomMetrics an Option, you can have a ZoomMetrics trait and:\n\nval zoomMetrics: ZoomMetrics \u003d metrics.map(LoggedZoomMetrics(_)).getOrElse(DevNullZoomMetrics)\n\nWhere DevNullZoomMetrics is an implementation of the ZoomMetrics trait that implements all required methods, but does nothing. This would spare us the creation of closures.",
+      "range": {
+        "startLine": 577,
+        "startChar": 24,
+        "endLine": 577,
+        "endChar": 44
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9419cd8a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 633,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-10T16:19:57Z",
+      "side": 1,
+      "message": "ditto, also move to right before the commit, the foreach below doesn\u0027t really count as zk latency",
+      "range": {
+        "startLine": 633,
+        "startChar": 27,
+        "endLine": 633,
+        "endChar": 44
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d4135564",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 686,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-10T16:19:57Z",
+      "side": 1,
+      "message": "It would be more readable:\n\n.doOnEach(incObjectWatcherTrigger)\n\nWhere\n\nval incObjectWatcherTrigger \u003d makeAction1 { ... }",
+      "range": {
+        "startLine": 680,
+        "startChar": 18,
+        "endLine": 686,
+        "endChar": 10
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5407451c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 711,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-10T16:19:57Z",
+      "side": 1,
+      "message": "This is a sign of hard-to-read code!\n\nWhy not just \n\n.doOnEach(incClassWatcherTriggered)\n\nas suggested above?\n\nBtw, I\u0027d pack all those incrementers in a separate Object, along with ZoomMetrics, just to keep this file with a reasonable size.",
+      "range": {
+        "startLine": 710,
+        "startChar": 10,
+        "endLine": 711,
+        "endChar": 35
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
