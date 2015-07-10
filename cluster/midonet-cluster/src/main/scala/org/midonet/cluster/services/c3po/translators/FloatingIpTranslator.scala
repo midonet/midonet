@@ -34,6 +34,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
                                               with RuleManager
                                               with BridgeStateTableManager {
     import org.midonet.cluster.services.c3po.translators.RouteManager._
+    import RouterTranslator.tenantGwPortId
     implicit val storage: ReadOnlyStorage = readOnlyStorage
 
     override protected def translateCreate(fip: FloatingIp): MidoOpList = {
@@ -140,12 +141,13 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
     private def addNatRules(fip: FloatingIp, gwPortId: UUID) = {
         val iChainId = inChainId(fip.getRouterId)
         val oChainId = outChainId(fip.getRouterId)
+        val routerGwPortId = tenantGwPortId(gwPortId)
         val snatRule = Rule.newBuilder
             .setId(fipSnatRuleId(fip.getId))
             .setChainId(oChainId)
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
-            .addOutPortIds(gwPortId)
+            .addOutPortIds(routerGwPortId)
             .setNwSrcIp(IPSubnetUtil.fromAddr(fip.getFixedIpAddress))
             .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = false))
             .build()
@@ -154,7 +156,7 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .setChainId(iChainId)
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
-            .addInPortIds(gwPortId)
+            .addInPortIds(routerGwPortId)
             .setNwDstIp(IPSubnetUtil.fromAddr(fip.getFloatingIpAddress))
             .setNatRuleData(natRuleData(fip.getFixedIpAddress, dnat = true))
             .build()
