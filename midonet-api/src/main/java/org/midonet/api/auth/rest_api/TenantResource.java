@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,10 +34,8 @@ import com.google.inject.Inject;
 import com.google.inject.servlet.RequestScoped;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.midonet.api.rest_api.AbstractResource;
-import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthRole;
@@ -45,8 +43,11 @@ import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.cluster.rest_api.models.Tenant;
 import org.midonet.cluster.rest_api.serialization.ViewMixinProvider;
 import org.midonet.cluster.rest_api.serialization.Views;
+
+import static org.slf4j.LoggerFactory.getLogger;
 
 /**
  * Root resource class for tenants
@@ -54,12 +55,10 @@ import org.midonet.cluster.rest_api.serialization.Views;
 @RequestScoped
 public class TenantResource extends AbstractResource {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(TenantResource.class);
+    private final static Logger log = getLogger(TenantResource.class);
 
     private final AuthService authService;
     private final HttpServletRequest reqContext;
-    private final ResourceFactory factory;
 
     /**
      * Represents the view of the Tenant object used in the API
@@ -100,11 +99,10 @@ public class TenantResource extends AbstractResource {
     @Inject
     public TenantResource(RestApiConfig config, UriInfo uriInfo,
                           SecurityContext context, AuthService authService,
-                          HttpServletRequest reqContext, ResourceFactory factory) {
+                          HttpServletRequest reqContext) {
         super(config, uriInfo, context, null, null);
         this.authService = authService;
         this.reqContext = reqContext;
-        this.factory = factory;
     }
 
     /**
@@ -124,37 +122,30 @@ public class TenantResource extends AbstractResource {
                     "Not authorized to view this tenant.");
         }
 
-        org.midonet.cluster.auth.Tenant authTenant = authService.getTenant(tenantId);
-        if (authTenant == null) {
+        org.midonet.cluster.auth.Tenant tenant = authService.getTenant(tenantId);
+        if (tenant == null) {
             throw new NotFoundHttpException(
                     "The requested resource was not found.");
         }
 
-        Tenant tenant = new Tenant(authTenant);
-        tenant.setBaseUri(getBaseUri());
-        return tenant;
+        return new Tenant(getBaseUri(), tenant.getId(), tenant.getName());
     }
 
-    /**
-     * Handler to list tenants.
-     *
-     * @return A list of Tenant objects.
-     */
     @GET
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_TENANT_COLLECTION_JSON })
     public List<Tenant> list() throws AuthException {
         log.debug("TenantResource.list: entered");
-
         List<org.midonet.cluster.auth.Tenant> authTenants =
                 authService.getTenants(this.reqContext);
         List<Tenant> tenants = new ArrayList<>();
-        if (authTenants != null) {
-            for (org.midonet.cluster.auth.Tenant authTenant : authTenants) {
-                Tenant tenant = new Tenant(authTenant);
-                tenant.setBaseUri(getBaseUri());
-                tenants.add(tenant);
-            }
+        if (authTenants == null) {
+            return tenants;
+        }
+        for (org.midonet.cluster.auth.Tenant authTenant : authTenants) {
+            tenants.add(new Tenant(getBaseUri(),
+                                   authTenant.getId(),
+                                   authTenant.getName()));
         }
         return tenants;
     }
