@@ -29,7 +29,7 @@ import rx.subjects.{BehaviorSubject, PublishSubject}
 import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.topology.DeviceMapper.DeviceState
+import org.midonet.midolman.topology.DeviceMapper.{RichList, DeviceState}
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.util.functors._
 
@@ -59,6 +59,12 @@ object DeviceMapper {
         def device: T = currentDevice
         /** Indicates whether the device state has received the device data */
         def isReady: Boolean = currentDevice ne null
+    }
+
+    protected class RichList[T <: AnyRef](val list: mutable.MutableList[T])
+        extends AnyVal {
+        /** Adds the value to the list if not null. */
+        def <<<(value: T): Unit = if (value ne null) list += value
     }
 }
 
@@ -184,6 +190,10 @@ abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
             devicesObserver.onNext(state.observable)
         }
     }
+
+    /** Conversion to a rich list with additional utility methods. */
+    protected implicit def asRichList[T <: AnyRef](list: mutable.MutableList[T])
+    : RichList[T] = new RichList(list)
 }
 
 class DeviceMapperException(msg: String) extends Exception(msg) {
