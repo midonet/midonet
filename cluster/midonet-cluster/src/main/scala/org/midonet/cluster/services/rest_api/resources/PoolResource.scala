@@ -26,6 +26,7 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.{Pool, UriResource}
@@ -47,11 +48,13 @@ class PoolResource @Inject()(resContext: ResourceContext)
 
     @Path("{id}/vips")
     def vips(@PathParam("id") id: UUID): PoolVipResource = {
+        getResource(classOf[Pool], id).getOrThrow
         new PoolVipResource(id, resContext)
     }
 
     @Path("{id}/pool_members")
     def members(@PathParam("id") id: UUID): PoolPoolMemberResource = {
+        getResource(classOf[Pool], id).getOrThrow
         new PoolPoolMemberResource(id, resContext)
     }
 

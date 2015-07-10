@@ -19,7 +19,7 @@ package org.midonet.cluster.services.rest_api.resources
 import java.util.UUID
 
 import javax.servlet.http.HttpServletRequest
-import javax.ws.rs.{GET, Path, Produces}
+import javax.ws.rs.{PathParam, GET, Path, Produces}
 
 import scala.util.control.NonFatal
 
@@ -38,7 +38,7 @@ class TenantResource @Inject()(authService: AuthService,
     @GET
     @Path("{id}")
     @Produces(Array(APPLICATION_TENANT_JSON))
-    def get(id: UUID): Tenant = {
+    def get(@PathParam("id") id: UUID): Tenant = {
         wrapException {
             authService.getTenant(id.toString)
         }

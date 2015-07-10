@@ -30,6 +30,7 @@ import com.sun.jersey.test.framework.JerseyTest;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -274,6 +275,8 @@ public class TestTunnelZoneHost {
 
         @Test
         public void testBaseUriOverride() throws Exception {
+
+            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
 
             URI baseUri = resource().getURI();
             MidonetApi api = new MidonetApi(baseUri.toString());
