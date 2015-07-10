@@ -18,17 +18,19 @@ package org.midonet.midolman.simulation
 
 import java.util.ArrayList
 
+
 import com.google.protobuf.MessageLite
 
-import org.midonet.midolman.state.{NatLeaser, FlowState, ConnTrackState, NatState}
+import org.midonet.midolman.state.{NatLeaser, ConnTrackState, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.TraceState
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.sdn.state.FlowStateTransaction
+import org.midonet.util.Clearable
 
-trait StateContext extends FlowState
+trait StateContext extends Clearable
                    with ConnTrackState
                    with NatState
                    with TraceState { this: PacketContext =>
@@ -55,7 +57,7 @@ trait StateContext extends FlowState
         traceTx.commit()
     }
 
-    override def clear(): Unit = {
+    abstract override def clear(): Unit = {
         super.clear()
         stateActions.clear()
     }
