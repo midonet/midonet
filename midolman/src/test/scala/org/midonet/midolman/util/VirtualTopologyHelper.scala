@@ -315,6 +315,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        peers: Map[UUID, UnderlayRoute] = Map.empty,
                        dpChannel: DatapathChannel = mockDpChannel,
                        packetCtxTrap: Queue[PacketContext] = new LinkedList[PacketContext](),
+                       workflowTrap: PacketContext => SimulationResult = null,
                        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue] = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
                        natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
                        traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
@@ -356,9 +357,17 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             _ => { }) {
 
             override def runWorkflow(pktCtx: PacketContext) = {
-                packetCtxTrap.add(pktCtx)
+                packetCtxTrap.offer(pktCtx)
                 super.runWorkflow(pktCtx)
             }
+
+            override def start(pktCtx: PacketContext): SimulationResult =
+                if (workflowTrap ne null) {
+                    pktCtx.prepareForSimulation()
+                    workflowTrap(pktCtx)
+                } else {
+                    super.start(pktCtx)
+                }
         }))
     }
 
