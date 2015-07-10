@@ -175,6 +175,11 @@ trait NatState extends FlowState { this: PacketContext =>
     var natTx: FlowStateTransaction[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
 
+    abstract override def clear(): Unit = {
+        super.clear()
+        natTx.flush()
+    }
+
     def applyDnat(deviceId: UUID, natTargets: Array[NatTarget]): Boolean =
         applyDnat(deviceId, FWD_DNAT, natTargets)
 

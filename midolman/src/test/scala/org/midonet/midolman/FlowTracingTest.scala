@@ -17,12 +17,12 @@ package org.midonet.midolman
 
 import java.util.{LinkedList, UUID}
 
+import scala.concurrent.Future
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
-import org.midonet.midolman.PacketWorkflow.SimulationResult
-import org.midonet.midolman.rules.Condition
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
 import org.midonet.midolman.simulation.{Bridge, Coordinator, PacketContext}
 import org.midonet.midolman.state.HappyGoLuckyLeaser
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
@@ -193,6 +193,79 @@ class FlowTracingTest extends MidolmanSpec {
                 List(makePacket(500)).toArray)
             pktCtxs.size() should be (2)
             pktCtxs.pop().runs should be (2)
+        }
+    }
+
+    feature("Tracing across a simulation restart") {
+        scenario("The trace request should not persist across restarts") {
+            var trace = true
+            var restart = true
+            val requestId = UUID.randomUUID
+            val pktCtxs = new LinkedList[PacketContext]()
+            val wkfl = packetWorkflow(Map(42 -> port1), workflowTrap = pktCtx => {
+                if (trace) {
+                    trace = false
+                    pktCtx.enableTracing(requestId)
+                    throw TraceRequiredException
+                }
+                if (restart) {
+                    pktCtx.traceTx.get(TraceKey.fromFlowMatch(pktCtx.origMatch)) should not be null
+                    restart = false
+                    throw new NotYetException(Future.successful(null))
+                }
+                pktCtx.traceTx.get(TraceKey.fromFlowMatch(pktCtx.origMatch)) should be (null)
+                AddVirtualWildcardFlow
+            }, packetCtxTrap = pktCtxs)
+            wkfl ! PacketWorkflow.HandlePackets(Array(makePacket(500)))
+            pktCtxs.size() should be (3)
+            val pktCtx = pktCtxs.pop()
+            pktCtx.runs should be (3)
+            pktCtx should be (pktCtxs.pop())
+            pktCtx should be (pktCtxs.pop())
+        }
+
+        scenario("The trace request should not persist across different packets") {
+            var trace = true
+            val requestId = UUID.randomUUID
+            val pktCtxs = new LinkedList[PacketContext]()
+            val wkfl = packetWorkflow(Map(42 -> port1), workflowTrap = pktCtx => {
+                if (trace) {
+                    trace = false
+                    pktCtx.enableTracing(requestId)
+                    throw TraceRequiredException
+                }
+                AddVirtualWildcardFlow
+            }, packetCtxTrap = pktCtxs)
+            wkfl ! PacketWorkflow.HandlePackets(Array(makePacket(500), makePacket(501)))
+            pktCtxs.size() should be (3)
+            val tracedPktCtx = pktCtxs.pop()
+            tracedPktCtx should be (pktCtxs.pop())
+            tracedPktCtx.traceTx.get(TraceKey.fromFlowMatch(tracedPktCtx.origMatch)) should be (null)
+            val nonTracePktCtx = pktCtxs.pop()
+            nonTracePktCtx.traceTx.get(TraceKey.fromFlowMatch(nonTracePktCtx.origMatch)) should be (null)
+            nonTracePktCtx.traceTx.get(TraceKey.fromFlowMatch(tracedPktCtx.origMatch)) should be (null)
+        }
+
+        scenario("The trace request should not persist across different packets when an exception is thrown") {
+            var trace = true
+            val requestId = UUID.randomUUID
+            val pktCtxs = new LinkedList[PacketContext]()
+            val wkfl = packetWorkflow(Map(42 -> port1), workflowTrap = pktCtx => {
+                if (trace) {
+                    trace = false
+                    pktCtx.enableTracing(requestId)
+                    throw TraceRequiredException
+                }
+                throw new Exception()
+            }, packetCtxTrap = pktCtxs)
+            wkfl ! PacketWorkflow.HandlePackets(Array(makePacket(500), makePacket(501)))
+            pktCtxs.size() should be (3)
+            val tracedPktCtx = pktCtxs.pop()
+            tracedPktCtx should be (pktCtxs.pop())
+            tracedPktCtx.traceTx.get(TraceKey.fromFlowMatch(tracedPktCtx.origMatch)) should be (null)
+            val nonTracePktCtx = pktCtxs.pop()
+            nonTracePktCtx.traceTx.get(TraceKey.fromFlowMatch(nonTracePktCtx.origMatch)) should be (null)
+            nonTracePktCtx.traceTx.get(TraceKey.fromFlowMatch(tracedPktCtx.origMatch)) should be (null)
         }
     }
 

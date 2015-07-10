@@ -331,9 +331,9 @@ class PacketWorkflow(
     private def drop(context: PacketContext): Unit =
         try {
             MDC.put("cookie", context.cookieStr)
+            context.prepareForDrop()
             if (context.ingressed) {
                 context.log.debug("Dropping packet")
-                context.prepareForDrop()
                 addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
                 handoff(context)
             }
@@ -401,11 +401,8 @@ class PacketWorkflow(
 
     protected def runWorkflow(pktCtx: PacketContext): Unit =
         try {
-            try {
-                complete(pktCtx, start(pktCtx))
-            } finally {
-                flushTransactions()
-            }
+            complete(pktCtx, start(pktCtx))
+            flushTransactions()
         } catch {
             case TraceRequiredException =>
                 pktCtx.log.debug(s"Enabling trace for $pktCtx, and rerunning simulation")
@@ -437,11 +434,7 @@ class PacketWorkflow(
     private def flushTransactions(): Unit = {
         connTrackTx.flush()
         natTx.flush()
-
-        // Note that trace state cannot be flushed with the rest of the state
-        // as the trace request ids need to persist across calls to
-        // workflow.start(pktCtx). It gets flushed in PacketContext#clear()
-        // instead.
+        traceStateTx.flush()
     }
 
     def start(context: PacketContext): SimulationResult = {
@@ -525,6 +518,7 @@ class PacketWorkflow(
                 context.flowRemovedCallbacks.runAndClear()
                 NoOp
             case ErrorDrop =>
+                context.flowRemovedCallbacks.runAndClear()
                 context.clearFlowTags()
                 addTranslatedFlow(context, FlowExpirationIndexer.ERROR_CONDITION_EXPIRATION)
             case ShortDrop =>
