@@ -571,6 +571,49 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             obs.awaitOnNext(6, timeout) shouldBe true
             obs.getOnNextEvents should have size 6
         }
+
+        scenario("Re-add a rule with IP address groups to a chain") {
+            Given("A chain with one rule")
+            val chainId = UUID.randomUUID()
+            val ipAddrGroupSrc = buildAndStoreIPAddrGroup("192.168.0.1",
+                                                          "ipAddrGroupSrc")
+            val ipAddrGroupDst = buildAndStoreIPAddrGroup("192.168.0.2",
+                                                          "ipAddrGroupDst")
+            val rule = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT,
+                                                Some(ipAddrGroupSrc.getId.asJava),
+                                                Some(ipAddrGroupDst.getId.asJava))
+            val chain1 = buildAndStoreChain(chainId, "test-chain",
+                                            Set(rule.getId.asJava))
+
+            When("We subscribe to the chain")
+            val (_, obs) = subscribeToChain(count = 1, chainId)
+
+            Then("We receive the chain with the rule and associated IPAddrGroups")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            assertEquals(chain1, obs.getOnNextEvents.get(0), List(rule),
+                         jumpChain = null,
+                         Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc,
+                             ipAddrGroupDst.getId.asJava -> ipAddrGroupDst))
+
+            When("Deleting the rule from the chain")
+            val chain2 = removeRuleFromChain(rule.getId, chain1)
+            store.update(chain2)
+
+            Then("The observer should receive the chain without a rule")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            assertEquals(chain1, obs.getOnNextEvents.get(2), List.empty,
+                         jumpChain = null)
+
+            When("Adding the rule to the chain")
+            store.update(chain1)
+
+            Then("The observer should receive the chain with a rule")
+            obs.awaitOnNext(5, timeout) shouldBe true
+            assertEquals(chain1, obs.getOnNextEvents.get(4), List(rule),
+                         jumpChain = null,
+                         Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc,
+                             ipAddrGroupDst.getId.asJava -> ipAddrGroupDst))
+        }
     }
 
     private def assertEquals(chain: ProtoChain, simChain: SimChain,
