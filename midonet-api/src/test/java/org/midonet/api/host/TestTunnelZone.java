@@ -25,6 +25,7 @@ import com.sun.jersey.api.client.WebResource;
 
 import org.apache.zookeeper.KeeperException;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
@@ -151,6 +152,8 @@ public class TestTunnelZone {
          */
         @Test
         public void testDeleteFailsIfVTEPUsingTunnelZone() {
+
+            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
 
             DtoApplication app = topology.getApplication();
             URI tunnelZonesUri = app.getTunnelZones();
