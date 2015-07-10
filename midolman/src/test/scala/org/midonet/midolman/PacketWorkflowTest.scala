@@ -194,16 +194,6 @@ class PacketWorkflowTest extends MidolmanSpec {
             Then("the packet context should be clear")
             isCleared(packetsSeen.head)
             packetsSeen.head.origMatch should not be packetsSeen.head.wcmatch
-
-            When("completing the packet")
-            dda.complete(List(FlowActions.output(1)))
-
-            Then("the packet context should contain the simulation state")
-            packetsSeen.head.flowTags should not be empty
-            packetsSeen.head.flowRemovedCallbacks should not be empty
-            packetsSeen.head.packetActions should not be empty
-            packetsSeen.head.flowActions should not be empty
-            packetsSeen.head.origMatch should not be packetsSeen.head.wcmatch
         }
 
         scenario("packet context is cleared when dropping") {
@@ -215,11 +205,7 @@ class PacketWorkflowTest extends MidolmanSpec {
             dda.completeWithException(new Exception("c'est ne pas une exception"))
 
             Then("the packet is dropped")
-            packetsSeen.head.flow should not be null
-            packetsSeen.head.flowTags should be (empty)
-            packetsSeen.head.flowRemovedCallbacks should not be (empty)
-            packetsSeen.head.packetActions should be (empty)
-            packetsSeen.head.flowActions should be (empty)
+            isCleared(packetsSeen.head)
 
             And("the modified flow match is not reset")
             packetsSeen.head.wcmatch should not be packetsSeen.head.origMatch
