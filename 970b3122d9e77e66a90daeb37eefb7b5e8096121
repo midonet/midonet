@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_54abc51c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T16:01:54Z",
+      "side": 1,
+      "message": "???",
+      "range": {
+        "startLine": 386,
+        "startChar": 12,
+        "endLine": 386,
+        "endChar": 30
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_74a60955",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T16:01:54Z",
+      "side": 1,
+      "message": "What\u0027s the bug?",
+      "range": {
+        "startLine": 396,
+        "startChar": 21,
+        "endLine": 396,
+        "endChar": 63
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
