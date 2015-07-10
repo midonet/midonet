@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -159,27 +159,23 @@ object IPv6Addr {
     def illegalIPv6Bytes = new IllegalArgumentException(
         "byte array representing an IPv6 address must have length 16 exactly")
 
+    private def buildWord(addr: Array[Byte], start: Int): Long = {
+        var quadWord = 0L
+        var shift = 56
+        val end = start + 8
+        var i = start
+        while (i < end) {
+            quadWord |= (addr(i).toLong & 0xff) << shift
+            shift -= 8
+            i += 1
+        }
+        quadWord
+    }
+
     def fromBytes(addr: Array[Byte]): IPv6Addr = {
         if (addr == null || addr.length != 16)
             throw illegalIPv6Bytes
-
-        val upper: Long = ((addr(0) & 0xff) << 56) |
-                          ((addr(1) & 0xff) << 48) |
-                          ((addr(2) & 0xff) << 40) |
-                          ((addr(3) & 0xff) << 32) |
-                          ((addr(4) & 0xff) << 24) |
-                          ((addr(5) & 0xff) << 16) |
-                          ((addr(6) & 0xff) << 8) |
-                           (addr(7) & 0xff)
-        val lower: Long = ((addr(8) & 0xff) << 56) |
-                          ((addr(9) & 0xff) << 48) |
-                          ((addr(10) & 0xff) << 40) |
-                          ((addr(11) & 0xff) << 32) |
-                          ((addr(12) & 0xff) << 24) |
-                          ((addr(13) & 0xff) << 16) |
-                          ((addr(14) & 0xff) << 8) |
-                           (addr(15) & 0xff)
-        apply(upper, lower)
+        apply(buildWord(addr, 0), buildWord(addr, 8))
     }
 
     // TODO: Verify each piece is valid 1-4 digit hex.
