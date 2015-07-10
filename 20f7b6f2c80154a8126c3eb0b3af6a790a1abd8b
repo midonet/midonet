@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a0905d96",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 133,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "version conflicts with the atomic integer.",
+      "parentUuid": "9ad9bd40_33e75714",
+      "range": {
+        "startLine": 133,
+        "startChar": 34,
+        "endLine": 133,
+        "endChar": 37
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d37e2be4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-06T09:51:17Z",
       "side": 1,
       "message": "Do we need to, or can we just aggregate all running in the same JVM? What use cases were you thinking of?",
+      "range": {
+        "startLine": 146,
+        "startChar": 59,
+        "endLine": 147,
+        "endChar": 61
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_60dd7570",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 147,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "I had no use case in mind, I just took your recommendation from the JIRA ticket (that I may have misunderstood).\n-------\nConsider that a single JVM may have several ZOOM instances active. These should provide distinct metric endpoints. A good way of doing this could be to use the absolute path of their curator instance, plus a random int (in case some point at the same path)",
+      "parentUuid": "9ad9bd40_d37e2be4",
       "range": {
         "startLine": 146,
         "startChar": 59,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_80c19982",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 154,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f335ef46",
+      "range": {
+        "startLine": 154,
+        "startChar": 4,
+        "endLine": 154,
+        "endChar": 66
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d3d8eb55",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-07-06T09:33:56Z",
       "side": 1,
       "message": "s/obj/object",
+      "range": {
+        "startLine": 156,
+        "startChar": 25,
+        "endLine": 156,
+        "endChar": 28
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_80da7976",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 156,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d3d8eb55",
       "range": {
         "startLine": 156,
         "startChar": 25,
@@ -141,6 +237,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_60f9f5c7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "I\u0027m now aggregating per class to solve the scalability issue as well as the issue Galo mentioned about the count always be 1.",
+      "parentUuid": "9ad9bd40_73771f03",
+      "range": {
+        "startLine": 159,
+        "startChar": 7,
+        "endLine": 159,
+        "endChar": 74
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b3d36737",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 1
@@ -152,6 +272,30 @@
       "writtenOn": "2015-07-06T09:33:56Z",
       "side": 1,
       "message": "the",
+      "range": {
+        "startLine": 160,
+        "startChar": 7,
+        "endLine": 160,
+        "endChar": 10
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a0be9dfd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_b3d36737",
       "range": {
         "startLine": 160,
         "startChar": 7,
@@ -187,6 +331,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_c0bba10c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_13e33308",
+      "range": {
+        "startLine": 161,
+        "startChar": 25,
+        "endLine": 161,
+        "endChar": 28
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_53e4db0c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 1
@@ -198,6 +366,30 @@
       "writtenOn": "2015-07-06T09:33:56Z",
       "side": 1,
       "message": "This can be:\n\n  for ((key, obs) \u003c- nodeObservables.filter(_._2.isActive))",
+      "range": {
+        "startLine": 163,
+        "startChar": 7,
+        "endLine": 163,
+        "endChar": 54
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e037c5ae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_53e4db0c",
       "range": {
         "startLine": 163,
         "startChar": 7,
@@ -233,6 +425,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2010cd00",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 193,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "I was trying to not expose curator to the outside. This will go away with a better modularization.",
+      "parentUuid": "9ad9bd40_d3bf0bcf",
+      "range": {
+        "startLine": 185,
+        "startChar": 4,
+        "endLine": 193,
+        "endChar": 38
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f3fecf6a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
         "patchSetId": 1
@@ -244,6 +460,30 @@
       "writtenOn": "2015-07-06T09:33:56Z",
       "side": 1,
       "message": "Hmmm... this sounds like benchmarking to me. Why do we need a dummy path to collect metrics? Can you elaborate?\n\nShouldn\u0027t we rather collect latency data directly from zk ops? After all writing a zoom object where you have several round-trips to zk is not the same a creating a path.\n\nI also think these can be used with curator directly.",
+      "range": {
+        "startLine": 25,
+        "startChar": 4,
+        "endLine": 26,
+        "endChar": 37
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_96c0f5e1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 26,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f3fecf6a",
       "range": {
         "startLine": 25,
         "startChar": 4,
@@ -279,6 +519,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b6b7b985",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "After checking with jconsole, only the name provided here appears. I\u0027d like to keep the Zoom prefix as it makes it clear what the metric is about. I put the zoomId in between \"Zoom\" and the metric name. If there are any strong objections, I\u0027ll remove Zoom.\nWhat about count instead of \u0027#\u0027?",
+      "parentUuid": "9ad9bd40_53513b61",
+      "range": {
+        "startLine": 44,
+        "startChar": 32,
+        "endLine": 44,
+        "endChar": 33
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_3354b753",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
         "patchSetId": 1
@@ -290,6 +554,30 @@
       "writtenOn": "2015-07-06T09:51:17Z",
       "side": 1,
       "message": "Type seems clearer from an operator\u0027s point of view",
+      "range": {
+        "startLine": 57,
+        "startChar": 32,
+        "endLine": 57,
+        "endChar": 37
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5654ad20",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_3354b753",
       "range": {
         "startLine": 57,
         "startChar": 32,
@@ -325,6 +613,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_76329111",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "This got removed in favour of measuring zoom operations as they are invoked by clients.",
+      "parentUuid": "9ad9bd40_f35a4f82",
+      "range": {
+        "startLine": 77,
+        "startChar": 32,
+        "endLine": 77,
+        "endChar": 45
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0484d8d2",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
         "patchSetId": 1
@@ -336,6 +648,30 @@
       "writtenOn": "2015-07-04T08:10:59Z",
       "side": 1,
       "message": "Check if it already exists.",
+      "range": {
+        "startLine": 81,
+        "startChar": 20,
+        "endLine": 81,
+        "endChar": 52
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_963555f9",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "No need anymore.",
+      "parentUuid": "9ad9bd40_0484d8d2",
       "range": {
         "startLine": 81,
         "startChar": 20,
@@ -371,6 +707,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b63c19e4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "same",
+      "parentUuid": "9ad9bd40_2489dceb",
+      "range": {
+        "startLine": 95,
+        "startChar": 16,
+        "endLine": 95,
+        "endChar": 21
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_53793b2e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
         "patchSetId": 1
@@ -382,6 +742,30 @@
       "writtenOn": "2015-07-06T09:33:56Z",
       "side": 1,
       "message": "subscriberCount",
+      "range": {
+        "startLine": 86,
+        "startChar": 16,
+        "endLine": 86,
+        "endChar": 24
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_17306c00",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "This got removed since we don\u0027t report the number of subscriptions anymore.",
+      "parentUuid": "9ad9bd40_53793b2e",
       "range": {
         "startLine": 86,
         "startChar": 16,
@@ -417,6 +801,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_771c5878",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "9ad9bd40_f3996f6f",
+      "range": {
+        "startLine": 88,
+        "startChar": 4,
+        "endLine": 88,
+        "endChar": 45
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1388931e",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
         "patchSetId": 1
@@ -428,6 +836,30 @@
       "writtenOn": "2015-07-06T09:33:56Z",
       "side": 1,
       "message": "that",
+      "range": {
+        "startLine": 274,
+        "startChar": 18,
+        "endLine": 274,
+        "endChar": 21
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_97139c65",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 274,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_1388931e",
       "range": {
         "startLine": 274,
         "startChar": 18,
@@ -487,6 +919,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d63fddd4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ObservableNodeCache.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 91,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_931d83c0",
+      "range": {
+        "startLine": 91,
+        "startChar": 12,
+        "endLine": 91,
+        "endChar": 56
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_333f5727",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
         "patchSetId": 1
@@ -498,6 +954,30 @@
       "writtenOn": "2015-07-06T09:33:56Z",
       "side": 1,
       "message": "spaces",
+      "range": {
+        "startLine": 211,
+        "startChar": 0,
+        "endLine": 211,
+        "endChar": 12
+      },
+      "revId": "20f7b6f2c80154a8126c3eb0b3af6a790a1abd8b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7a035d0d",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-10T08:25:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_333f5727",
       "range": {
         "startLine": 211,
         "startChar": 0,
