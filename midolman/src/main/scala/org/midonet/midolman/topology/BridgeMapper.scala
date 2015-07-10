@@ -273,10 +273,15 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
     override def logSource = s"org.midonet.devices.bridge.bridge-$bridgeId"
 
     private var bridge: TopologyBridge = null
+
     private val localPorts = new mutable.HashMap[UUID, LocalPortState]
     private val peerPorts = new mutable.HashMap[UUID, PeerPortState]
+
     private val exteriorPorts = new mutable.HashSet[UUID]
     private var oldExteriorPorts = Set.empty[UUID]
+
+    private val addedPorts = new mutable.HashMap[UUID, PortState[_]]
+
     private var oldRouterMacPortMap = Map.empty[MAC, UUID]
     private val macLearningTables = new TrieMap[Short, BridgeMacLearningTable]
     private val macLearning =
@@ -444,8 +449,14 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
         for (portId <- portIds if !localPorts.contains(portId)) {
             val portState = new LocalPortState(portId)
             localPorts += portId -> portState
+            addedPorts += portId -> portState
+        }
+
+        // Publish observable for added ports.
+        for ((_, portState) <- addedPorts) {
             portsSubject onNext portState.observable
         }
+        addedPorts.clear()
 
         // Request the chains for this bridge.
         requestChains(
