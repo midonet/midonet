@@ -50,6 +50,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assume.assumeFalse;
 import static org.midonet.api.network.TestPort.createBridgePort;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON;
 import static org.midonet.cluster.rest_api.VendorMediaType.APPLICATION_BRIDGE_COLLECTION_JSON_V2;
@@ -105,6 +106,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testCreate() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         assertEquals(VtepConnectionState.CONNECTED.toString(),
                      vtep.getConnectionState());
@@ -138,6 +140,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testCreateWithNullTunnelZone() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = new DtoVtep();
         vtep.setManagementIp(mockVtep1.mgmtIp());
         vtep.setManagementPort(mockVtep1.mgmtPort());
@@ -167,6 +170,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testCreateWithInaccessibleIpAddr() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep("10.0.0.1", 10001);
         assertEquals(VtepConnectionState.ERROR.toString(),
                      vtep.getConnectionState());
@@ -179,6 +183,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testCreateWithHostConflict() throws Exception {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         String ip = "10.255.255.1";
 
         // Add the host to ZooKeeper.
@@ -224,6 +229,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testListVtepsWithTwoVteps() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         // The mock client supports only one management IP/port, so
         // only one will successfully connect.
         DtoVtep[] expectedVteps = new DtoVtep[2];
@@ -241,6 +247,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testDeleteVtep() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         DtoBridge bridge = postBridge("bridge1");
         DtoVtepBinding binding =
@@ -262,13 +269,14 @@ public class TestVtep extends RestApiTestBase {
     @Test
     public void testDeleteNonexistingVtep() {
         DtoError error = dtoResource.deleteAndVerifyNotFound(
-                ResourceUriBuilder.getVtep(app.getUri(), "1.2.3.4"),
-                APPLICATION_VTEP_JSON);
+            ResourceUriBuilder.getVtep(app.getUri(), "1.2.3.4"),
+            APPLICATION_VTEP_JSON);
         assertErrorMatches(error, VTEP_NOT_FOUND, "1.2.3.4");
     }
 
     @Test
     public void testDeleteVtepWithInvalidIPAddress() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoError error = dtoResource.deleteAndVerifyBadRequest(
                 ResourceUriBuilder.getVtep(app.getUri(), "300.1.2.3"),
                 APPLICATION_VTEP_JSON);
@@ -277,6 +285,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddBindingsSingleNetworkMultipleVteps() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep1 = postVtep();
         DtoVtep vtep2 = postVtep(mockVtep2.mgmtIp(), mockVtep2.mgmtPort());
 
@@ -332,6 +341,7 @@ public class TestVtep extends RestApiTestBase {
     // just adding
     @Test
     public void testAddRemoveBindings() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
 
         assertEquals(0, listBindings(vtep).length);
@@ -386,27 +396,31 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddRemoveMultipleBindingsOnSingleNetwork() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         testAddRemoveBinding(mockVtep1.portNames()[0]);
     }
 
     @Test
     public void testAddRemoveBindingWithWeirdName() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         testAddRemoveBinding(mockVtep1.portNames()[3]);
     }
 
     @Test
     public void testDeleteNonExistentBinding() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         DtoBridge br = postBridge("n");
         DtoVtepBinding binding =
                 addAndVerifyBinding(vtep, br, mockVtep1.portNames()[0], 1);
         deleteBinding(binding.getUri());
         dtoResource.deleteAndVerifyNotFound(binding.getUri(),
-                APPLICATION_VTEP_BINDING_JSON);
+                                            APPLICATION_VTEP_BINDING_JSON);
     }
 
     @Test
     public void testAddBindingWithIllFormedIP() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         URI bindingsUri = replaceInUri(
                 vtep.getBindings(), mockVtep1.mgmtIp(), "300.0.0.1");
@@ -418,14 +432,15 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddBindingWithUnrecognizedIP() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoBridge bridge = postBridge("network1");
         DtoVtep vtep = postVtep();
         URI bindingsUri = replaceInUri(
                 vtep.getBindings(), mockVtep1.mgmtIp(), "10.10.10.10");
         DtoVtepBinding binding = makeBinding("eth0", 1, bridge.getId());
         DtoError error = dtoResource.postAndVerifyError(
-                bindingsUri, APPLICATION_VTEP_BINDING_JSON,
-                binding, Status.BAD_REQUEST);
+            bindingsUri, APPLICATION_VTEP_BINDING_JSON,
+            binding, Status.BAD_REQUEST);
         assertErrorMatches(error, VTEP_NOT_FOUND, "10.10.10.10");
     }
 
@@ -473,18 +488,20 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testAddBindingWithUnrecognizedPortName() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoBridge bridge = postBridge("network1");
         DtoVtep vtep = postVtep();
         DtoVtepBinding binding = makeBinding("blah", 1, bridge.getId());
         DtoError err = postBindingWithError(vtep, binding, Status.NOT_FOUND);
         assertErrorMatches(err, VTEP_PORT_NOT_FOUND, mockVtep1.mgmtIp(),
-                mockVtep1.mgmtPort(), "blah");
+                           mockVtep1.mgmtPort(), "blah");
     }
 
     // The same port/vlan pair on the same vtep should not be used by two
     // midonet networks.
     @Test
     public void testAddConflictingBinding() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoBridge bridge = postBridge("network1");
         DtoBridge bridge2 = postBridge("network2");
         DtoVtep vtep = postVtep();
@@ -505,6 +522,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testListBindings() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         // First try getting the bindings when the VTEP is first
         // created. The mock VTEP client is preseeded with a non-
         // Midonet binding, so there should actually be one, but the
@@ -544,6 +562,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testListAndGetBindingsOnVxLanPort() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         DtoBridge bridge1 = postBridge("bridge1");
         DtoBridge bridge2 = postBridge("bridge2");
@@ -586,19 +605,20 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testListAndGetBindingsOnNonVxLanPort() throws Exception {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoBridge bridge = postBridge("bridge1");
         DtoBridgePort port = postBridgePort(
                 createBridgePort(null, bridge.getId(), null, null, null),
                 bridge);
 
         URI bindingsUri = ResourceUriBuilder.getVxLanPortBindings(
-                app.getUri(), port.getId());
+            app.getUri(), port.getId());
         DtoError error = dtoResource.getAndVerifyBadRequest(
-                bindingsUri, APPLICATION_VTEP_BINDING_COLLECTION_JSON);
+            bindingsUri, APPLICATION_VTEP_BINDING_COLLECTION_JSON);
         assertErrorMatches(error, PORT_NOT_VXLAN_PORT, port.getId());
 
         URI singleBindingUri = ResourceUriBuilder.getVxLanPortBinding(
-                app.getUri(), port.getId(), "eth0", (short) 1);
+            app.getUri(), port.getId(), "eth0", (short) 1);
         error = dtoResource.getAndVerifyBadRequest(
                 singleBindingUri, APPLICATION_VTEP_BINDING_JSON);
         assertErrorMatches(error, PORT_NOT_VXLAN_PORT, port.getId());
@@ -606,6 +626,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testListBindingsOnNonexistingPort() throws Exception {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         UUID portId = UUID.randomUUID();
         URI bindingsUri =
                 ResourceUriBuilder.getVxLanPortBindings(app.getUri(), portId);
@@ -616,6 +637,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testGetBindingOnNonexistingPort() throws Exception {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         UUID portId = UUID.randomUUID();
         URI bindingUri = ResourceUriBuilder.getVxLanPortBinding
                 (app.getUri(), portId, "eth0", (short) 1);
@@ -626,6 +648,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testListVtepPorts() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoVtep vtep = postVtep();
         DtoVtepPort[] ports = dtoResource.getAndVerifyOk(vtep.getPorts(),
                 VendorMediaType.APPLICATION_VTEP_PORT_COLLECTION_JSON,
@@ -643,6 +666,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testDeleteVxLanPortDeletesBindings() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoBridge bridge1 = postBridge("bridge1");
         DtoBridge bridge2 = postBridge("bridge2");
         DtoVtep vtep = postVtep();
@@ -669,6 +693,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testListBridgePortsExcludesVxlanPort() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoBridge bridge = postBridge("bridge1");
         DtoBridgePort bridgePort = postBridgePort(
                 createBridgePort(null, bridge.getId(), null, null, null),
@@ -686,6 +711,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testBridgeV1LacksVxLanPortId() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoBridge b1 = postBridge("bridge1");
         DtoVtep vtep = postVtep();
 
@@ -719,6 +745,7 @@ public class TestVtep extends RestApiTestBase {
 
     @Test
     public void testDeleteAndRecreateBindings() {
+        assumeFalse(FuncTest.isCompatApiEnabled());
         DtoBridge bridge = postBridge("bridge1");
         DtoVtep vtep = postVtep();
         DtoVtepBinding binding = postBinding(vtep,
