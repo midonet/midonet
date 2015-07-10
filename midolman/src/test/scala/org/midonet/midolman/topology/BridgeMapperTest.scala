@@ -34,10 +34,12 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
+import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, MAC}
-import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridge, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForPort, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForPort, tagForVlanPort}
 import org.midonet.util.MidonetEventually
+import org.midonet.util.concurrent._
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
@@ -1296,6 +1298,42 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             And("There should be no MAC-port or IP-MAC mappings")
             device.macToLogicalPortId.toSeq shouldBe empty
             device.ipToMac.toSeq shouldBe empty
+        }
+
+        scenario("Mapper does not emit bridge until all ports are loaded") {
+            Given("A bridge with two exterior ports")
+            val hostId = createHostInStore()
+            val bridge = createBridge()
+            val port1 = createBridgePort(bridgeId = Some(bridge.getId),
+                                         hostId = Some(hostId),
+                                         interfaceName = Some("iface1"))
+            val port2 = createBridgePort(bridgeId = Some(bridge.getId),
+                                         hostId = Some(hostId),
+                                         interfaceName = Some("iface1"))
+            store.multi(Seq(CreateOp(bridge), CreateOp(port1), CreateOp(port2)))
+
+            And("A bridge observer")
+            val obs = createObserver()
+
+            And("A bridge mapper")
+            val mapper = new BridgeMapper(bridge.getId, vt)
+
+            When("Requesting the ports to have them cached")
+            VirtualTopology.get[BridgePort](port1.getId)
+                           .await(timeout) shouldBeDeviceOf port1
+            VirtualTopology.get[BridgePort](port2.getId)
+                           .await(timeout) shouldBeDeviceOf port2
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the bridge device")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device shouldBeDeviceOf bridge
+
+            And("The bridge should have the two exterior ports")
+            device.exteriorPorts should have size 2
         }
     }
 

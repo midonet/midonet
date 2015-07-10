@@ -441,9 +441,15 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
 
         // Create observables for the new ports of this bridge, and notify them
         // on the ports observable.
+        val addedPorts = new mutable.MutableList[PortState[_]]
         for (portId <- portIds if !localPorts.contains(portId)) {
             val portState = new LocalPortState(portId)
             localPorts += portId -> portState
+            addedPorts += portState
+        }
+
+        // Publish observable for added ports.
+        for (portState <- addedPorts) {
             portsSubject onNext portState.observable
         }
 
