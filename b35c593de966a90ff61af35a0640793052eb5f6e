@@ -16,6 +16,24 @@
       "revId": "b35c593de966a90ff61af35a0640793052eb5f6e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f4ebf9ad",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-10T15:08:30Z",
+      "side": 1,
+      "message": "Agree, done.",
+      "parentUuid": "9ad9bd40_59a69e54",
+      "revId": "b35c593de966a90ff61af35a0640793052eb5f6e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
