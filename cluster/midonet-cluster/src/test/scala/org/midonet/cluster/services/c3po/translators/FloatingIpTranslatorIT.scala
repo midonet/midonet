@@ -258,7 +258,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             snat.getChainId shouldBe outboundChainId
             snat.getAction shouldBe Rule.Action.ACCEPT
             snat.getOutPortIdsCount shouldBe 1
-            snat.getOutPortIds(0) shouldBe toProto(rgwPortId)
+            snat.getOutPortIds(0) shouldBe toProto(rgwPort.getPeerId)
             snat.getNwSrcIp.getAddress shouldBe fixedIp
             val snatRule = snat.getNatRuleData
             snatRule.getDnat shouldBe false
@@ -273,7 +273,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             dnat.getChainId shouldBe inboundChainId
             dnat.getAction shouldBe Rule.Action.ACCEPT
             dnat.getInPortIdsCount shouldBe 1
-            dnat.getInPortIds(0) shouldBe toProto(rgwPortId)
+            dnat.getInPortIds(0) shouldBe toProto(rgwPort.getPeerId)
             dnat.getNwDstIp.getAddress shouldBe fipIp
             val dnatRule = dnat.getNatRuleData
             dnatRule.getDnat shouldBe true

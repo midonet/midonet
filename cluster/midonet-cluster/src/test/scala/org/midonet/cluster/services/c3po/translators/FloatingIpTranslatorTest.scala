@@ -32,6 +32,7 @@ import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
 
 class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                                                               with OpMatchers {
+    import RouterTranslator.tenantGwPortId
     protected var translator: FloatingIpTranslator = _
 
     // Floating IP data setup
@@ -106,7 +107,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             chain_id { $oChainId }
             type: NAT_RULE
             action: ACCEPT
-            out_port_ids { $gatewayPortId }
+            out_port_ids { ${tenantGwPortId(gatewayPortId)} }
             nw_src_ip { $fixedIpSubnet }
             nat_rule_data {
                 nat_targets {
@@ -127,7 +128,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             chain_id { $iChainId }
             type: NAT_RULE
             action: ACCEPT
-            in_port_ids { $gatewayPortId }
+            in_port_ids { ${tenantGwPortId(gatewayPortId)} }
             nw_dst_ip { $fipIpSubnet }
             nat_rule_data {
                 nat_targets {
