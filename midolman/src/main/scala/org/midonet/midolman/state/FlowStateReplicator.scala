@@ -444,7 +444,8 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
                                tags: Collection[FlowTag]): Unit = {
         hosts.clear()
         ports.clear()
-        collectPeersForPort(ingressPort, hosts, ports, tags)
+        if (ingressPort ne null)
+            collectPeersForPort(ingressPort, hosts, ports, tags)
         val portsIt = egressPorts.iterator
         while (portsIt.hasNext) {
             val port = portsIt.next()

@@ -16,14 +16,16 @@
 
 package org.midonet.midolman.simulation
 
-import org.midonet.midolman.state.{NatLeaser, FlowState, ConnTrackState, NatState}
+
+import org.midonet.midolman.state.{NatLeaser, ConnTrackState, NatState}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackValue, ConnTrackKey}
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
 import org.midonet.midolman.state.TraceState
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.sdn.state.FlowStateTransaction
+import org.midonet.util.Clearable
 
-trait StateContext extends FlowState
+trait StateContext extends Clearable
                    with ConnTrackState
                    with NatState
                    with TraceState { this: PacketContext =>
@@ -40,4 +42,10 @@ trait StateContext extends FlowState
 
     def containsFlowState =
         conntrackTx.size() > 0 || natTx.size() > 0 || traceTx.size() > 0
+
+    def commitStateTransactions(): Unit ={
+        conntrackTx.commit()
+        natTx.commit()
+        traceTx.commit()
+    }
 }
