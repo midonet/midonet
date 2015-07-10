@@ -96,6 +96,8 @@ if [[ -z "$BINDING" ]]; then
 
     # Create the veth interfaces
     sudo ip link add type veth
+    sudo ip addr flush veth0
+    sudo ip addr flush veth1
     sudo ip link set dev veth0 up
     sudo ip link set dev veth1 up
 
