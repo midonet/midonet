@@ -276,7 +276,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
     private def sendInvalidationIfNeeded() {
         if (publishingNeedsInvalidation) {
             VirtualTopologyActor !
-                InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
+                InvalidateFlowsByTag(FlowTagger.tagForChain(id))
             publishingNeedsInvalidation = false
         }
     }

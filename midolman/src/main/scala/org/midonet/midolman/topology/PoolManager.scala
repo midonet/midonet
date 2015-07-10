@@ -84,7 +84,7 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
             id, poolConfig.isAdminStateUp, poolConfig.getLbMethod,
             simPoolMembers, disabledPoolMembers)
         VirtualTopologyActor ! simPool
-        VirtualTopologyActor ! InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
+        VirtualTopologyActor ! InvalidateFlowsByTag(FlowTagger.tagForPool(id))
     }
 
     override def receive = {

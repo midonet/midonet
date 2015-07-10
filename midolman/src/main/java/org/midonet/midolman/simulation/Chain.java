@@ -48,7 +48,7 @@ public class Chain implements VirtualDevice {
         this.rules = new ArrayList<>(rules);
         this.jumpTargets = jumpTargets;
         this.name = name;
-        flowInvTag = FlowTagger.tagForDevice(id);
+        flowInvTag = FlowTagger.tagForChain(id);
     }
 
     public int hashCode() {

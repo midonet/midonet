@@ -164,7 +164,7 @@ class BridgeInvalidationTest extends MidolmanSpec
 
             And("The flow is tagged with flood, ingress port, and device tags")
             val expectedTags = Set(
-                FlowTagger.tagForDevice(bridge.id),
+                FlowTagger.tagForBridge(bridge.id),
                 leftPortUnicastInvalidation,
                 rightMacFloodInvalidation,
                 floodInvalidation)
@@ -185,7 +185,7 @@ class BridgeInvalidationTest extends MidolmanSpec
 
             And("The flow is tagged with ingress port, egress port and device tags")
             val expectedTags = Set(
-                FlowTagger.tagForDevice(bridge.id),
+                FlowTagger.tagForBridge(bridge.id),
                 leftPortUnicastInvalidation,
                 rightPortUnicastInvalidation)
             pktContext.flowTags.asScala.toSet should be (expectedTags)
@@ -209,7 +209,7 @@ class BridgeInvalidationTest extends MidolmanSpec
             And("new packets should be directed to the newly associated port")
             val (pktContext, action) = simulateDevice(bridge, leftToRightFrame, leftPort.getId)
             val expectedTags = Set(
-                FlowTagger.tagForDevice(bridge.id),
+                FlowTagger.tagForBridge(bridge.id),
                 leftPortUnicastInvalidation,
                 otherPortUnicastInvalidation)
 

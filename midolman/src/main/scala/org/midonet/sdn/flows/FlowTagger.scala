@@ -18,6 +18,7 @@ package org.midonet.sdn.flows
 
 import java.util.{UUID, WeakHashMap}
 import java.lang.ref.WeakReference
+import scala.reflect.{ClassTag,classTag}
 
 import org.midonet.packets.{IPv6Addr, IPv4Addr, IPAddr, MAC}
 import org.midonet.midolman.layer3.Route
@@ -67,22 +68,50 @@ object FlowTagger {
      * Tag for the flows related to the specified device.
      */
     case class DeviceTag(device: UUID) extends FlowTag with MeterTag {
+        def deviceId(): UUID = device
         override def toString = "device:" + device
     }
+
+    class LoadBalancerDeviceTag(device: UUID) extends DeviceTag(device)
+    class PoolDeviceTag(device: UUID) extends DeviceTag(device)
+    class PortGroupDeviceTag(device: UUID) extends DeviceTag(device)
+    class BridgeDeviceTag(device: UUID) extends DeviceTag(device)
+    class RouterDeviceTag(device: UUID) extends DeviceTag(device)
+    class PortDeviceTag(device: UUID) extends DeviceTag(device)
+    class ChainDeviceTag(device: UUID) extends DeviceTag(device)
 
     val cachedDeviceTags = new ThreadLocal[TagsTrie] {
         override def initialValue = new TagsTrie
     }
 
-    def tagForDevice(device: UUID): FlowTag = {
+    val deviceTagMap = Map[ClassTag[_], UUID => DeviceTag] (
+        classTag[LoadBalancerDeviceTag] -> (new LoadBalancerDeviceTag(_)),
+        classTag[PoolDeviceTag] -> (new PoolDeviceTag(_)),
+        classTag[PortGroupDeviceTag] -> (new PortGroupDeviceTag(_)),
+        classTag[BridgeDeviceTag] -> (new BridgeDeviceTag(_)),
+        classTag[RouterDeviceTag] -> (new RouterDeviceTag(_)),
+        classTag[PortDeviceTag] -> (new PortDeviceTag(_)),
+        classTag[ChainDeviceTag] -> (new ChainDeviceTag(_)))
+
+    private def tagForDevice[T <: DeviceTag](device: UUID)(implicit ctag: ClassTag[T]): FlowTag = {
         val segment = cachedDeviceTags.get().getOrAddSegment(device)
         var tag = segment.value
         if (tag eq null) {
-            tag = new DeviceTag(device)
+            tag = deviceTagMap.get(ctag)
+                .map({ factory => factory(device) })
+                .getOrElse({ new DeviceTag(device) })
             segment.value = tag
         }
         tag
     }
+
+    def tagForLoadBalancer(device: UUID) = tagForDevice[LoadBalancerDeviceTag](device)
+    def tagForPool(device: UUID) = tagForDevice[PoolDeviceTag](device)
+    def tagForPortGroup(device: UUID) = tagForDevice[PortGroupDeviceTag](device)
+    def tagForBridge(device: UUID) = tagForDevice[BridgeDeviceTag](device)
+    def tagForRouter(device: UUID) = tagForDevice[RouterDeviceTag](device)
+    def tagForPort(device: UUID) = tagForDevice[PortDeviceTag](device)
+    def tagForChain(device: UUID) = tagForDevice[ChainDeviceTag](device)
 
     case class PortTxTag(port: UUID) extends FlowTag with MeterTag {
         override def toString = "port:tx:" + port

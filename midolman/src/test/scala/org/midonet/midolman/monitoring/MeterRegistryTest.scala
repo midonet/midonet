@@ -33,9 +33,9 @@ import org.midonet.sdn.flows.FlowTagger.MeterTag
 @RunWith(classOf[JUnitRunner])
 class MeterRegistryTest extends FeatureSpec with Matchers {
 
-    val deviceA: MeterTag = FlowTagger.tagForDevice(UUID.randomUUID()).asInstanceOf[MeterTag]
-    val deviceB: MeterTag = FlowTagger.tagForDevice(UUID.randomUUID()).asInstanceOf[MeterTag]
-    val commonDevice: MeterTag = FlowTagger.tagForDevice(UUID.randomUUID()).asInstanceOf[MeterTag]
+    val deviceA: MeterTag = FlowTagger.tagForBridge(UUID.randomUUID()).asInstanceOf[MeterTag]
+    val deviceB: MeterTag = FlowTagger.tagForRouter(UUID.randomUUID()).asInstanceOf[MeterTag]
+    val commonDevice: MeterTag = FlowTagger.tagForPort(UUID.randomUUID()).asInstanceOf[MeterTag]
 
     def nonMeterRandomTag = FlowTagger.tagForBroadcast(UUID.randomUUID())
 

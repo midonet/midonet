@@ -176,7 +176,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(bridge.getId)
+                FlowTagger.tagForBridge(bridge.getId)
             })
         }
 
@@ -193,7 +193,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(interiorBridgePort.getId)
+                FlowTagger.tagForPort(interiorBridgePort.getId)
             })
         }
 
@@ -210,7 +210,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(interiorBridgePort.getId)
+                FlowTagger.tagForPort(interiorBridgePort.getId)
             })
         }
 
@@ -227,7 +227,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(exteriorBridgePort.getId)
+                FlowTagger.tagForPort(exteriorBridgePort.getId)
             })
         }
 
@@ -244,7 +244,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(exteriorBridgePort.getId)
+                FlowTagger.tagForPort(exteriorBridgePort.getId)
             })
         }
 
@@ -276,7 +276,7 @@ class AdminStateTest extends MidolmanSpec {
 
             simRes should be (dropped())
             pktCtx.flowTags should contain(
-                FlowTagger.tagForDevice(exteriorBridgePort.getId))
+                FlowTagger.tagForPort(exteriorBridgePort.getId))
         }
 
         scenario("a down router sends an ICMP prohibited error") {
@@ -292,7 +292,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(router.getId)
+                FlowTagger.tagForRouter(router.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the " +
@@ -315,7 +315,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(interiorRouterPort.getId)
+                FlowTagger.tagForPort(interiorRouterPort.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the " +
@@ -338,7 +338,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(interiorRouterPort.getId)
+                FlowTagger.tagForPort(interiorRouterPort.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the port")
@@ -360,7 +360,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(exteriorRouterPort.getId)
+                FlowTagger.tagForPort(exteriorRouterPort.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the " +
@@ -383,7 +383,7 @@ class AdminStateTest extends MidolmanSpec {
             Then("a drop flow should be installed")
 
             flow should be (dropped {
-                FlowTagger.tagForDevice(exteriorRouterPort.getId)
+                FlowTagger.tagForPort(exteriorRouterPort.getId)
             })
 
             And("an ICMP prohibited error should be emitted from the port")
@@ -458,7 +458,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(bridge)
+            assertFlowTagsInvalidated(FlowTagger.tagForBridge(bridge.getId))
         }
 
         scenario("the admin state of a bridge is set to up") {
@@ -474,7 +474,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(bridge)
+            assertFlowTagsInvalidated(FlowTagger.tagForBridge(bridge.getId))
         }
 
         scenario("the admin state of a bridge port is set to down") {
@@ -489,7 +489,8 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(interiorBridgePort, exteriorBridgePort)
+            assertFlowTagsInvalidated(FlowTagger.tagForPort(interiorBridgePort.getId),
+                                      FlowTagger.tagForPort(exteriorBridgePort.getId))
         }
 
         scenario("the admin state of a bridge port is set to up") {
@@ -509,7 +510,8 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(interiorBridgePort, exteriorBridgePort)
+            assertFlowTagsInvalidated(FlowTagger.tagForPort(interiorBridgePort.getId),
+                                      FlowTagger.tagForPort(exteriorBridgePort.getId))
         }
 
         scenario("the admin state of a router is set to down") {
@@ -522,7 +524,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(router)
+            assertFlowTagsInvalidated(FlowTagger.tagForRouter(router.getId))
         }
 
         scenario("the admin state of a router is set to up") {
@@ -538,7 +540,7 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(router)
+            assertFlowTagsInvalidated(FlowTagger.tagForRouter(router.getId))
         }
 
         scenario("the admin state of a router port is set to down") {
@@ -553,7 +555,8 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(interiorRouterPort, exteriorRouterPort)
+            assertFlowTagsInvalidated(FlowTagger.tagForPort(interiorRouterPort.getId),
+                                      FlowTagger.tagForPort(exteriorRouterPort.getId))
         }
 
         scenario("the admin state of a router port is set to up") {
@@ -573,14 +576,14 @@ class AdminStateTest extends MidolmanSpec {
 
             Then("corresponding flows should be invalidated")
 
-            assertFlowTagsInvalidated(interiorRouterPort, exteriorRouterPort)
+            assertFlowTagsInvalidated(FlowTagger.tagForPort(interiorRouterPort.getId),
+                                      FlowTagger.tagForPort(exteriorRouterPort.getId))
         }
     }
 
-    private[this] def assertFlowTagsInvalidated(devices: Entity.Base[UUID,_,_]*) {
+    private[this] def assertFlowTagsInvalidated(devices: FlowTagger.FlowTag*) {
         val tags = devices map (d =>
-            VirtualTopologyActor.InvalidateFlowsByTag(
-                FlowTagger.tagForDevice(d.getId)))
+            VirtualTopologyActor.InvalidateFlowsByTag(d))
 
         val invalidations = VirtualTopologyActor.messages
                 .filter(_.isInstanceOf[VirtualTopologyActor.InvalidateFlowsByTag])

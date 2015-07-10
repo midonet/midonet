@@ -72,7 +72,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
     def router: Router = spec.fetchDevice(clusterRouter)
 
     def tagFor(port: BridgePort) = FlowTagger.tagForBridgePort(clusterBridge.getId, port.getId)
-    def tagFor(port: RouterPort) = FlowTagger.tagForDevice(routerPort.getId)
+    def tagFor(port: RouterPort) = FlowTagger.tagForPort(routerPort.getId)
 
     private def addAndMaterializeBridgePort(br: ClusterBridge): BridgePort = {
         val port = spec.newBridgePort(br)
@@ -166,41 +166,41 @@ class ChainInvalidationTest extends MidolmanSpec {
     }
 
     def tagsUntilIngress: Seq[FlowTag] = Seq(
-        FlowTagger.tagForDevice(leftBridge.vmPortInFilter.getId),
-        FlowTagger.tagForDevice(leftBridge.vmPort.getId))
+        FlowTagger.tagForChain(leftBridge.vmPortInFilter.getId),
+        FlowTagger.tagForPort(leftBridge.vmPort.getId))
 
     def tagsUntilLeftBridgeIn: Seq[FlowTag] = tagsUntilIngress ++ Seq(
-        FlowTagger.tagForDevice(leftBridge.bridgeInFilter.getId),
-        FlowTagger.tagForDevice(leftBridge.clusterBridge.getId))
+        FlowTagger.tagForChain(leftBridge.bridgeInFilter.getId),
+        FlowTagger.tagForBridge(leftBridge.clusterBridge.getId))
 
     def tagsUntilLeftBridgeOut: Seq[FlowTag] = tagsUntilLeftBridgeIn ++ Seq(
-        FlowTagger.tagForDevice(leftBridge.bridgeOutFilter.getId))
+        FlowTagger.tagForChain(leftBridge.bridgeOutFilter.getId))
 
     def tagsUntilLeftUplinkOut: Seq[FlowTag] = tagsUntilLeftBridgeOut ++ Seq(
         leftBridge.tagFor(leftBridge.uplinkPort),
-        FlowTagger.tagForDevice(leftBridge.uplinkPortOutFilter.getId))
+        FlowTagger.tagForChain(leftBridge.uplinkPortOutFilter.getId))
 
     def tagsUntilLeftRouterIn: Seq[FlowTag] = tagsUntilLeftUplinkOut ++ Seq(
-        FlowTagger.tagForDevice(leftBridge.routerPort.getId),
-        FlowTagger.tagForDevice(leftBridge.routerPortInFilter.getId))
+        FlowTagger.tagForPort(leftBridge.routerPort.getId),
+        FlowTagger.tagForChain(leftBridge.routerPortInFilter.getId))
 
     def tagsUntilRouterIn: Seq[FlowTag] = tagsUntilLeftRouterIn ++ Seq(
-        FlowTagger.tagForDevice(clusterRouter.getId),
-        FlowTagger.tagForDevice(routerIn.getId),
-        FlowTagger.tagForDevice(routerInJump.getId))
+        FlowTagger.tagForRouter(clusterRouter.getId),
+        FlowTagger.tagForPort(routerIn.getId),
+        FlowTagger.tagForChain(routerInJump.getId))
 
     def tagsUntilRightRouterOut: Seq[FlowTag] = tagsUntilRouterIn ++ Seq(
-        FlowTagger.tagForDevice(rightBridge.routerPort.getId))
+        FlowTagger.tagForPort(rightBridge.routerPort.getId))
 
     def tagsUntilRightUplinkIn: Seq[FlowTag] = tagsUntilRightRouterOut ++ Seq(
-        FlowTagger.tagForDevice(rightBridge.uplinkPort.getId),
-        FlowTagger.tagForDevice(rightBridge.uplinkPortInFilter.getId))
+        FlowTagger.tagForPort(rightBridge.uplinkPort.getId),
+        FlowTagger.tagForChain(rightBridge.uplinkPortInFilter.getId))
 
     def tagsUntilEgress: Seq[FlowTag] = tagsUntilRightUplinkIn ++ Seq(
-        FlowTagger.tagForDevice(rightBridge.vmPort.getId),
-        FlowTagger.tagForDevice(rightBridge.clusterBridge.getId),
-        FlowTagger.tagForDevice(rightBridge.bridgeOutFilter.getId),
-        FlowTagger.tagForDevice(rightBridge.vmPortOutFilter.getId))
+        FlowTagger.tagForPort(rightBridge.vmPort.getId),
+        FlowTagger.tagForBridge(rightBridge.clusterBridge.getId),
+        FlowTagger.tagForChain(rightBridge.bridgeOutFilter.getId),
+        FlowTagger.tagForChain(rightBridge.vmPortOutFilter.getId))
 
     def rightToLeftFrame = {
         import org.midonet.packets.util.PacketBuilder._

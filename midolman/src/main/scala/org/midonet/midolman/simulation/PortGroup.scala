@@ -36,12 +36,12 @@ class PortGroup(@ScalaZoomField(name = "id", converter = classOf[UUIDConverter])
                 val members: Set[UUID])
     extends ZoomObject with VirtualDevice {
 
-    private var _deviceTag = FlowTagger.tagForDevice(id)
+    private var _deviceTag = FlowTagger.tagForPortGroup(id)
 
     def this() = this(null, null, false, null)
     override def deviceTag = _deviceTag
 
     override def afterFromProto(proto: MessageOrBuilder): Unit = {
-        _deviceTag = FlowTagger.tagForDevice(id)
+        _deviceTag = FlowTagger.tagForPortGroup(id)
     }
 }

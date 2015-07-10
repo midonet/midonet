@@ -371,7 +371,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
     }
 
     def flowInvalidationMsg(id: UUID) =
-        InvalidateFlowsByTag(FlowTagger.tagForDevice(id))
+        InvalidateFlowsByTag(FlowTagger.tagForChain(id))
 }
 
 class TestableVTA extends VirtualTopologyActor with MessageAccumulator {
