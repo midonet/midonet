@@ -171,7 +171,7 @@ class PoolTest extends MidolmanSpec {
         loadBalancer = newLoadBalancer()
         setLoadBalancerOnRouter(loadBalancer, router)
         pool = newPool(loadBalancer)
-        vip = createVip(pool, vipIp.toUnicastString, vipPort)
+        vip = newVip(pool, vipIp.toUnicastString, vipPort)
         poolMembers = (0 until numBackends) map {
             n => newPoolMember(pool, ipsBackendSide(n).toUnicastString,
                 vipPort)

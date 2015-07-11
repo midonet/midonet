@@ -74,8 +74,8 @@ class PoolHealthMonitorMapManagerTest
             val pool2 = newPool(loadBalancer2, hmId = hm)
             emulatePoolHealthMonitorMappingActivate(pool)
             emulatePoolHealthMonitorMappingActivate(pool2)
-            val vip = createRandomVip(pool)
-            val vip2 = createRandomVip(pool2)
+            val vip = newRandomVip(pool)
+            val vip2 = newRandomVip(pool2)
 
             When("the VTA receives a request for the map")
             vta.self ! PoolHealthMonitorMapRequest(update = true)
@@ -99,7 +99,7 @@ class PoolHealthMonitorMapManagerTest
             val hm = newRandomHealthMonitor()
             val pool = newPool(loadBalancer, hmId = hm)
             emulatePoolHealthMonitorMappingActivate(pool)
-            val vip = createRandomVip(pool)
+            val vip = newRandomVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! PoolHealthMonitorMapRequest(update = true)
@@ -117,7 +117,7 @@ class PoolHealthMonitorMapManagerTest
             val pool2 = newPool(loadBalancer2, hmId = hm)
             emulatePoolHealthMonitorMappingActivate(pool2)
             expectMsgType[PoolHealthMonitorMap]
-            val vip2 = createRandomVip(pool2)
+            val vip2 = newRandomVip(pool2)
 
             Then("the VTA should send an update")
             val newMap
@@ -137,8 +137,8 @@ class PoolHealthMonitorMapManagerTest
             val pool2 = newPool(loadBalancer2, hmId = hm2)
             emulatePoolHealthMonitorMappingActivate(pool)
             emulatePoolHealthMonitorMappingActivate(pool2)
-            val vip = createRandomVip(pool)
-            val vip2 = createRandomVip(pool2)
+            val vip = newRandomVip(pool)
+            val vip2 = newRandomVip(pool2)
 
             When("the VTA receives a subscription request for it")
             vta.self ! PoolHealthMonitorMapRequest(update = true)
@@ -175,7 +175,7 @@ class PoolHealthMonitorMapManagerTest
             val hm = newRandomHealthMonitor()
             val pool = newPool(loadBalancer, hmId = hm)
             emulatePoolHealthMonitorMappingActivate(pool)
-            val vip = createRandomVip(pool)
+            val vip = newRandomVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! PoolHealthMonitorMapRequest(update = true)
@@ -207,7 +207,7 @@ class PoolHealthMonitorMapManagerTest
             val hm2 = newRandomHealthMonitor()
             val pool = newPool(loadBalancer, hmId = hm)
             emulatePoolHealthMonitorMappingActivate(pool)
-            val vip = createRandomVip(pool)
+            val vip = newRandomVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! PoolHealthMonitorMapRequest(update = true)

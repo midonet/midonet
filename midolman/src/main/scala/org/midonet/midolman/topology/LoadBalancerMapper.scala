@@ -111,9 +111,15 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
 
                 // Create state for the new vips of this load-balancer, and
                 // notify their observable on the vips observable.
+                val addedVips = new mutable.MutableList[VipState]
                 for (vipId <- vipIds if !vips.contains(vipId)) {
                     val vipState = new VipState(vipId, vt)
                     vips += vipId -> vipState
+                    addedVips += vipState
+                }
+
+                // Publish observable for added VIPs.
+                for (vipState <- addedVips) {
                     vipSubject onNext vipState.observable
                 }
 

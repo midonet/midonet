@@ -47,7 +47,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             Given("a loadBalancer with two VIPs")
             val loadBalancer = newLoadBalancer()
             val pool = newPool(loadBalancer)
-            val vips = (0 until 2).map(n => createVip(pool))
+            val vips = (0 until 2).map(n => newVip(pool))
             val vipIds = vips.toSet
             vips.size shouldBe 2
 
@@ -68,7 +68,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             Given("a loadBalancer with one VIP")
             val loadBalancer = newLoadBalancer()
             val pool = newPool(loadBalancer)
-            val firstVip = createVip(pool)
+            val firstVip = newVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer, update = true)
@@ -80,7 +80,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             vta.getAndClear()
 
             And("a new VIP is added")
-            createVip(pool)
+            newVip(pool)
 
             Then("the VTA should send an update")
             val lb2 = expectMsgType[LoadBalancer]
@@ -95,7 +95,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             Given("a loadBalancer with one VIP")
             val loadBalancer = newLoadBalancer()
             val pool = newPool(loadBalancer)
-            val firstVip = createVip(pool)
+            val firstVip = newVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer, update = true)
@@ -122,7 +122,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             Given("a loadBalancer with one VIP")
             val loadBalancer = newLoadBalancer()
             val pool = newPool(loadBalancer)
-            val firstVip = createVip(pool)
+            val firstVip = newVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer, update = true)
@@ -149,7 +149,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             Given("a loadBalancer with one VIP")
             val loadBalancer = newLoadBalancer()
             val pool = newPool(loadBalancer)
-            val firstVip = createVip(pool)
+            val firstVip = newVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer, update = true)
@@ -181,7 +181,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             Given("a loadBalancer with a pool")
             val loadBalancer = newLoadBalancer()
             val pool = newPool(loadBalancer)
-            val firstVip = createVip(pool)
+            val firstVip = newVip(pool)
 
             When("the VTA receives a subscription request for it")
             vta.self ! LoadBalancerRequest(loadBalancer, update = true)
