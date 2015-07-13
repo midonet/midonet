@@ -215,17 +215,26 @@ class ZookeeperObjectMapper(protected override val rootPath: String,
 
             for ((Key(clazz, id), txOp) <- ops) txn = txOp match {
                 case TxCreate(obj) =>
-                    txn.create.forPath(getPath(clazz, id), serialize(obj)).and
+                    val path = getPath(clazz, id)
+                    log.debug(s"ZOOM create: $path")
+                    txn.create.forPath(path, serialize(obj)).and
                 case TxUpdate(obj, ver) =>
+                    val path = getPath(clazz, id)
+                    log.debug(s"ZOOM update ($ver): $path")
                     txn.setData().withVersion(ver)
-                        .forPath(getPath(clazz, id), serialize(obj)).and
+                        .forPath(path, serialize(obj)).and
                 case TxDelete(ver) =>
-                    txn.delete.withVersion(ver).forPath(getPath(clazz, id)).and
+                    val path = getPath(clazz, id)
+                    log.debug(s"ZOOM delete ($ver): $path")
+                    txn.delete.withVersion(ver).forPath(path).and
                 case TxCreateNode(value) =>
+                    log.debug(s"ZOOM create node: $id -> $value")
                     txn.create.forPath(id, asBytes(value)).and
                 case TxUpdateNode(value) =>
+                    log.debug(s"ZOOM update node: $id -> $value")
                     txn.setData().forPath(id, asBytes(value)).and
                 case TxDeleteNode =>
+                    log.debug(s"ZOOM delete node: $id")
                     txn.delete.forPath(id).and
                 case TxNodeExists =>
                     throw new InternalObjectMapperException(
