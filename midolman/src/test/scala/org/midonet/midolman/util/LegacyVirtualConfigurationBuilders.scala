@@ -15,87 +15,77 @@
  */
 package org.midonet.midolman.util
 
-import java.util.UUID
-import java.util.{HashSet => JSet, List => JList}
-
-import scala.util.Random
+import java.util.{HashSet => JSet, List => JList, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.util.Random
 
 import com.google.inject.Inject
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data._
-import org.midonet.cluster.data.dhcp.{Host => DhcpHost}
-import org.midonet.cluster.data.dhcp.{ExtraDhcpOpt, Opt121, Subnet}
-
+import org.midonet.cluster.data.dhcp.{ExtraDhcpOpt, Host => DhcpHost, Opt121, Subnet}
 import org.midonet.cluster.data.host.Host
-import org.midonet.cluster.data.ports.{RouterPort, BridgePort, VxLanPort}
-import org.midonet.cluster.data.rules.{ForwardNatRule, ReverseNatRule}
-import org.midonet.cluster.data.rules.{JumpRule, LiteralRule, TraceRule}
+import org.midonet.cluster.data.l4lb.{HealthMonitor, LoadBalancer, Pool, PoolMember, VIP}
+import org.midonet.cluster.data.rules.{ForwardNatRule, JumpRule, LiteralRule, ReverseNatRule, TraceRule}
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, TCP, MAC}
-import org.midonet.cluster.data.l4lb.{PoolMember, Pool, VIP, LoadBalancer, HealthMonitor}
+import org.midonet.midolman.rules.{Condition, FragmentPolicy, NatTarget}
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
+import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod, VipSessionPersistence}
 import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC, TCP}
 
 class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient,
-                                         stateStorage: LegacyStorage)
-                                         extends VirtualConfigurationBuilders {
-
-    def clusterDataClient(): DataClient = clusterDataClient
-
-    def stateStorage(): LegacyStorage = stateStorage
+                                                   stateStorage: LegacyStorage)
+    extends VirtualConfigurationBuilders {
 
     override def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID = {
         val host = new Host().setName(name).setTunnelZones(tunnelZones)
-        clusterDataClient().hostsCreate(id, host)
+        clusterDataClient.hostsCreate(id, host)
         id
     }
 
     override def newHost(name: String, id: UUID): UUID = newHost(name, id, Set.empty)
     override def newHost(name: String): UUID = newHost(name, UUID.randomUUID())
-    override def isHostAlive(id: UUID): Boolean = clusterDataClient().hostsGet(id).getIsAlive
+    override def isHostAlive(id: UUID): Boolean = clusterDataClient.hostsGet(id).getIsAlive
     override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit =
-        clusterDataClient().hostsAddVrnPortMapping(host, port, iface)
+        clusterDataClient.hostsAddVrnPortMapping(host, port, iface)
 
     override def newInboundChainOnBridge(name: String, bridgeId: UUID): UUID = {
-        val bridge = clusterDataClient().bridgesGet(bridgeId)
+        val bridge = clusterDataClient.bridgesGet(bridgeId)
         val chain = newChain(name, None)
         bridge.setInboundFilter(chain)
-        clusterDataClient().bridgesUpdate(bridge)
+        clusterDataClient.bridgesUpdate(bridge)
         Thread.sleep(50)
         chain
     }
 
     override def newOutboundChainOnBridge(name: String, bridgeId: UUID): UUID = {
-        val bridge = clusterDataClient().bridgesGet(bridgeId)
+        val bridge = clusterDataClient.bridgesGet(bridgeId)
         val chain = newChain(name, None)
         bridge.setOutboundFilter(chain)
-        clusterDataClient().bridgesUpdate(bridge)
+        clusterDataClient.bridgesUpdate(bridge)
         Thread.sleep(50)
         chain
     }
 
     override def newInboundChainOnRouter(name: String, routerId: UUID): UUID = {
-        val router = clusterDataClient().routersGet(routerId)
+        val router = clusterDataClient.routersGet(routerId)
         val chain = newChain(name, None)
         router.setInboundFilter(chain)
-        clusterDataClient().routersUpdate(router)
+        clusterDataClient.routersUpdate(router)
         Thread.sleep(50)
         chain
     }
 
     override def newOutboundChainOnRouter(name: String, routerId: UUID): UUID = {
-        val router = clusterDataClient().routersGet(routerId)
+        val router = clusterDataClient.routersGet(routerId)
         val chain = newChain(name, None)
         router.setOutboundFilter(chain)
-        clusterDataClient().routersUpdate(router)
+        clusterDataClient.routersUpdate(router)
         Thread.sleep(50)
         chain
     }
@@ -106,7 +96,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
             chain.setId(id.get)
         else
             chain.setId(UUID.randomUUID)
-        clusterDataClient().chainsCreate(chain)
+        clusterDataClient.chainsCreate(chain)
         Thread.sleep(50)
         chain.getId
     }
@@ -114,9 +104,9 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     override def newOutboundChainOnPort(name: String, portId: UUID,
                                         id: UUID): UUID = {
         val chain = newChain(name, Some(id))
-        val port = clusterDataClient().portsGet(portId)
+        val port = clusterDataClient.portsGet(portId)
         port.setOutboundFilter(id)
-        clusterDataClient().portsUpdate(port)
+        clusterDataClient.portsUpdate(port)
         Thread.sleep(50)
         chain
     }
@@ -124,12 +114,12 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     override def newInboundChainOnPort(name: String, portId: UUID,
                                        id: UUID): UUID = {
         val chain = new Chain().setName(name).setId(id)
-        clusterDataClient().chainsCreate(chain)
-        val port = clusterDataClient().portsGet(portId)
+        clusterDataClient.chainsCreate(chain)
+        val port = clusterDataClient.portsGet(portId)
         port.setInboundFilter(id)
-        clusterDataClient().portsUpdate(port)
+        clusterDataClient.portsUpdate(port)
         Thread.sleep(50)
-        chain.getId()
+        chain.getId
     }
 
     override def newOutboundChainOnPort(name: String, port: UUID): UUID =
@@ -143,7 +133,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         val rule = new LiteralRule(condition)
                        .setChainId(chain).setPosition(pos)
                        .setAction(action)
-        val id = clusterDataClient().rulesCreate(rule)
+        val id = clusterDataClient.rulesCreate(rule)
         Thread.sleep(50)
         id
     }
@@ -152,7 +142,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
                                      requestId: UUID): UUID = {
         val rule = new TraceRule(requestId, condition, Long.MaxValue)
             .setChainId(chain).setPosition(pos)
-        clusterDataClient().rulesCreate(rule)
+        clusterDataClient.rulesCreate(rule)
     }
 
     /**
@@ -183,7 +173,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         jTargets.addAll(targets)
         val rule = new ForwardNatRule(condition, action, jTargets, isDnat).
                         setChainId(chain).setPosition(pos)
-        val id = clusterDataClient().rulesCreate(rule)
+        val id = clusterDataClient.rulesCreate(rule)
         Thread.sleep(50)
         id
     }
@@ -192,15 +182,15 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
                          action: Action, isDnat: Boolean) : UUID = {
         val rule = new ReverseNatRule(condition, action, isDnat).
             setChainId(chain).setPosition(pos)
-        val id = clusterDataClient().rulesCreate(rule)
+        val id = clusterDataClient.rulesCreate(rule)
         Thread.sleep(50)
         id
     }
 
     override def removeRuleFromBridge(bridgeId: UUID) {
-        val bridge = clusterDataClient().bridgesGet(bridgeId)
+        val bridge = clusterDataClient.bridgesGet(bridgeId)
         bridge.setInboundFilter(null)
-        clusterDataClient().bridgesUpdate(bridge)
+        clusterDataClient.bridgesUpdate(bridge)
         Thread.sleep(50)
     }
 
@@ -208,7 +198,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
                               jumpToChainID: UUID): UUID = {
         val rule = new JumpRule(condition).
             setChainId(chain).setPosition(pos).setJumpToChainId(jumpToChainID)
-        val id = clusterDataClient().rulesCreate(rule)
+        val id = clusterDataClient.rulesCreate(rule)
         Thread.sleep(50)
         id
     }
@@ -221,62 +211,62 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     override def deleteRule(id: UUID) {
-        clusterDataClient().rulesDelete(id)
+        clusterDataClient.rulesDelete(id)
     }
 
-    override def createIpAddrGroup(): UUID = createIpAddrGroup(UUID.randomUUID())
+    override def newIpAddrGroup(): UUID = newIpAddrGroup(UUID.randomUUID())
 
-    override def createIpAddrGroup(id: UUID): UUID = {
+    override def newIpAddrGroup(id: UUID): UUID = {
         val ipAddrGroup = new IpAddrGroup(id, new IpAddrGroup.Data())
-        clusterDataClient().ipAddrGroupsCreate(ipAddrGroup)
+        clusterDataClient.ipAddrGroupsCreate(ipAddrGroup)
         Thread.sleep(50)
         id
     }
 
     override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = {
-        clusterDataClient().ipAddrGroupAddAddr(id, addr)
+        clusterDataClient.ipAddrGroupAddAddr(id, addr)
     }
 
     override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit = {
-        clusterDataClient().ipAddrGroupRemoveAddr(id, addr)
+        clusterDataClient.ipAddrGroupRemoveAddr(id, addr)
     }
 
     override def deleteIpAddrGroup(id: UUID) = {
-        clusterDataClient().ipAddrGroupsDelete(id)
+        clusterDataClient.ipAddrGroupsDelete(id)
     }
 
     override def greTunnelZone(name: String, id: Option[UUID] = None): UUID = {
         val tunnelZone = new TunnelZone().
             setName(name).
             setType(TunnelZone.Type.gre)
-        id.foreach(tunnelZone.setId(_))
-        clusterDataClient().tunnelZonesCreate(tunnelZone)
+        id.foreach(tunnelZone.setId)
+        clusterDataClient.tunnelZonesCreate(tunnelZone)
         Thread.sleep(50)
         tunnelZone.getId
     }
 
     override def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit = {
-        clusterDataClient().tunnelZonesAddMembership(
+        clusterDataClient.tunnelZonesAddMembership(
             tz, new TunnelZone.HostConfig(host).setIp(ip))
     }
 
     override def deleteTunnelZoneMember(tz: UUID, host: UUID): Unit = {
-        clusterDataClient().tunnelZonesDeleteMembership(tz, host)
+        clusterDataClient.tunnelZonesDeleteMembership(tz, host)
     }
 
     override def newBridge(name: String, tenant: Option[String] = None): UUID = {
         val bridge = new Bridge().setName(name)
         tenant.foreach(bridge.setProperty(Bridge.Property.tenant_id, _))
-        val id = clusterDataClient().bridgesCreate(bridge)
+        val id = clusterDataClient.bridgesCreate(bridge)
         Thread.sleep(50)
-        clusterDataClient().bridgesGet(id)
+        clusterDataClient.bridgesGet(id)
         id
     }
 
     override def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit = {
-        val br = clusterDataClient().bridgesGet(bridge)
+        val br = clusterDataClient.bridgesGet(bridge)
         br.setAdminStateUp(state)
-        clusterDataClient().bridgesUpdate(br)
+        clusterDataClient.bridgesUpdate(br)
     }
 
     override def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit = {
@@ -284,13 +274,13 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     override def deleteBridge(bridge: UUID): Unit = {
-        clusterDataClient().bridgesDelete(bridge)
+        clusterDataClient.bridgesDelete(bridge)
     }
 
     override def newBridgePort(bridgeId: UUID,
                                host: Option[UUID] = None,
                                interface: Option[String] = None): UUID = {
-        val bridge = clusterDataClient().bridgesGet(bridgeId)
+        val bridge = clusterDataClient.bridgesGet(bridgeId)
         val port = Ports.bridgePort(bridge)
         host match {
             case Some(hostId) => port.setHostId(hostId)
@@ -300,7 +290,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
             case Some(iface) => port.setInterfaceName(iface)
             case None =>
         }
-        val uuid = clusterDataClient().portsCreate(port)
+        val uuid = clusterDataClient.portsCreate(port)
         Thread.sleep(50)
         // do a portsGet because some fields are set during the creating and are
         // not copied in the port object we pass, eg. TunnelKey
@@ -308,66 +298,66 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     override def setPortAdminStateUp(port: UUID, state: Boolean): Unit = {
-        val portdata = clusterDataClient().portsGet(port)
+        val portdata = clusterDataClient.portsGet(port)
         portdata.setAdminStateUp(state)
-        clusterDataClient().portsUpdate(portdata)
+        clusterDataClient.portsUpdate(portdata)
     }
 
     override def deletePort(port: UUID): Unit = {
-        clusterDataClient().portsDelete(port)
+        clusterDataClient.portsDelete(port)
     }
 
     override def deletePort(port: UUID, hostId: UUID){
-        clusterDataClient().hostsDelVrnPortMapping(hostId, port)
+        clusterDataClient.hostsDelVrnPortMapping(hostId, port)
     }
 
     override def newPortGroup(name: String, stateful: Boolean = false): UUID = {
         val pg = new PortGroup().setName(name).setStateful(stateful)
-        val id = clusterDataClient().portGroupsCreate(pg)
+        val id = clusterDataClient.portGroupsCreate(pg)
         Thread.sleep(50)
         id
     }
 
     override def setPortGroupStateful(id: UUID, stateful: Boolean): Unit = {
-        val pg = clusterDataClient().portGroupsGet(id)
+        val pg = clusterDataClient.portGroupsGet(id)
         pg.setStateful(stateful)
-        clusterDataClient().portGroupsUpdate(pg)
+        clusterDataClient.portGroupsUpdate(pg)
     }
 
     override def newPortGroupMember(pgId: UUID, portId: UUID) = {
-        clusterDataClient().portGroupsAddPortMembership(pgId, portId)
+        clusterDataClient.portGroupsAddPortMembership(pgId, portId)
     }
 
     override def deletePortGroupMember(pgId: UUID, portId: UUID) = {
-        clusterDataClient().portGroupsRemovePortMembership(pgId, portId)
+        clusterDataClient.portGroupsRemovePortMembership(pgId, portId)
     }
 
     override def newRouter(name: String): UUID = {
         val router = new Router().setName(name)
-        val id = clusterDataClient().routersCreate(router)
+        val id = clusterDataClient.routersCreate(router)
         Thread.sleep(50)
         id
     }
 
     override def setRouterAdminStateUp(routerId: UUID, state: Boolean): Unit = {
-        val router = clusterDataClient().routersGet(routerId)
+        val router = clusterDataClient.routersGet(routerId)
         router.setAdminStateUp(state)
-        clusterDataClient().routersUpdate(router)
+        clusterDataClient.routersUpdate(router)
     }
 
     override def deleteRouter(router: UUID): Unit = {
-        clusterDataClient().routersDelete(router)
+        clusterDataClient.routersDelete(router)
     }
 
     override def newRouterPort(routerId: UUID, mac: MAC, portAddr: String,
                                nwAddr: String, nwLen: Int): UUID = {
-        val router = clusterDataClient().routersGet(routerId)
+        val router = clusterDataClient.routersGet(routerId)
         val port = Ports.routerPort(router)
                         .setPortAddr(portAddr)
                         .setNwAddr(nwAddr)
                         .setNwLength(nwLen)
                         .setHwAddr(mac)
-        val uuid = clusterDataClient().portsCreate(port)
+        val uuid = clusterDataClient.portsCreate(port)
         Thread.sleep(50)
         uuid
     }
@@ -380,15 +370,15 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
 
     override def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
                               vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID = {
-        clusterDataClient().bridgeCreateVxLanPort(bridge, mgmtIp, mgmtPort,
-                                                  vni, tunnelIp, tunnelZone).getId()
+        clusterDataClient.bridgeCreateVxLanPort(bridge, mgmtIp, mgmtPort,
+                                                  vni, tunnelIp, tunnelZone).getId
     }
 
     override def newRoute(router: UUID,
                           srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
                           nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
                           weight: Int): UUID = {
-        val uuid = clusterDataClient().routesCreate(new Route()
+        val uuid = clusterDataClient.routesCreate(new Route()
             .setRouterId(router)
             .setSrcNetworkAddr(srcNw)
             .setSrcNetworkLength(srcNwLen)
@@ -403,7 +393,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     override def deleteRoute(routeId: UUID) {
-        clusterDataClient().routesDelete(routeId)
+        clusterDataClient.routesDelete(routeId)
     }
 
     override def addDhcpSubnet(bridge: UUID,
@@ -416,7 +406,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         val subnetObj = new Subnet().setSubnetAddr(subnet)
             .setDefaultGateway(gw).setDnsServerAddrs(dns)
             .setOpt121Routes(opt121)
-        clusterDataClient().dhcpSubnetsCreate(bridge, subnetObj)
+        clusterDataClient.dhcpSubnetsCreate(bridge, subnetObj)
         subnet
     }
 
@@ -430,23 +420,23 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     override def setDhcpHostOptions(bridge: UUID,
                                     subnet: IPv4Subnet, hostMac: MAC,
                                     options: Map[String, String]): Unit = {
-        val host: DhcpHost = clusterDataClient().dhcpHostsGet(bridge, subnet, hostMac.toString)
+        val host: DhcpHost = clusterDataClient.dhcpHostsGet(bridge, subnet, hostMac.toString)
 
         val opts: JList[ExtraDhcpOpt] = options map { case (k, v) => new ExtraDhcpOpt(k, v) } toList;
         host.setExtraDhcpOpts(opts)
-        clusterDataClient().dhcpHostsUpdate(bridge, subnet, host)
+        clusterDataClient.dhcpHostsUpdate(bridge, subnet, host)
     }
 
     override def linkPorts(port: UUID, peerPort: UUID) {
-        clusterDataClient().portsLink(port, peerPort)
+        clusterDataClient.portsLink(port, peerPort)
     }
 
     override def unlinkPorts(port: UUID): Unit = {
-        clusterDataClient().portsUnlink(port)
+        clusterDataClient.portsUnlink(port)
     }
 
     override def materializePort(port: UUID, hostId: UUID, portName: String): Unit = {
-        clusterDataClient().hostsAddVrnPortMappingAndReturnPort(
+        clusterDataClient.hostsAddVrnPortMappingAndReturnPort(
             hostId, port, portName)
 
         stateStorage.setPortLocalAndActive(port, hostId, true)
@@ -480,15 +470,15 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
             case None => new IpAddrGroup()
             case Some(id) => new IpAddrGroup(id)
         }
-        clusterDataClient().ipAddrGroupsCreate(ipAddrGroup)
+        clusterDataClient.ipAddrGroupsCreate(ipAddrGroup)
     }
 
     override def addAddrToIpAddrGroup(id: UUID, addr: String) {
-        clusterDataClient().ipAddrGroupAddAddr(id, addr)
+        clusterDataClient.ipAddrGroupAddAddr(id, addr)
     }
 
     override def removeAddrFromIpAddrGroup(id: UUID, addr: String) {
-        clusterDataClient().ipAddrGroupRemoveAddr(id, addr)
+        clusterDataClient.ipAddrGroupRemoveAddr(id, addr)
     }
 
     // L4LB
@@ -496,35 +486,35 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         val loadBalancer = new LoadBalancer()
         loadBalancer.setAdminStateUp(true)
         loadBalancer.setId(id)
-        clusterDataClient().loadBalancerCreate(loadBalancer)
+        clusterDataClient.loadBalancerCreate(loadBalancer)
         Thread.sleep(50)
         id
     }
 
     override def deleteLoadBalancer(id: UUID) {
-        clusterDataClient().loadBalancerDelete(id)
+        clusterDataClient.loadBalancerDelete(id)
     }
 
     override def setLoadBalancerOnRouter(loadBalancer: UUID, routerId: UUID): Unit = {
-        val router = clusterDataClient().routersGet(routerId)
+        val router = clusterDataClient.routersGet(routerId)
         if (loadBalancer != null) {
             router.setLoadBalancer(loadBalancer)
         } else {
             router.setLoadBalancer(null)
         }
-        clusterDataClient().routersUpdate(router)
+        clusterDataClient.routersUpdate(router)
     }
 
     override def setLoadBalancerDown(loadBalancerId: UUID) {
-        val loadBalancer = clusterDataClient().loadBalancerGet(loadBalancerId)
+        val loadBalancer = clusterDataClient.loadBalancerGet(loadBalancerId)
         loadBalancer.setAdminStateUp(false)
-        clusterDataClient().loadBalancerUpdate(loadBalancer)
+        clusterDataClient.loadBalancerUpdate(loadBalancer)
     }
 
-    override def createVip(pool: UUID): UUID = createVip(pool, "10.10.10.10", 10)
+    override def newVip(pool: UUID): UUID = newVip(pool, "10.10.10.10", 10)
 
-    override def createVip(poolId: UUID, address: String, port: Int): UUID = {
-        val pool = clusterDataClient().poolGet(poolId)
+    override def newVip(poolId: UUID, address: String, port: Int): UUID = {
+        val pool = clusterDataClient.poolGet(poolId)
         val vip = new VIP()
         vip.setId(UUID.randomUUID)
         vip.setAddress(address)
@@ -535,7 +525,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         vip.setLoadBalancerId(pool.getLoadBalancerId)
         vip.setProtocolPort(port)
         vip.setAdminStateUp(true)
-        clusterDataClient().vipCreate(vip)
+        clusterDataClient.vipCreate(vip)
         Thread.sleep(50)
         // Getting the created VIP to see the actual model stored in
         // ZooKeeper because `loadBalancerId` would be populated though
@@ -543,15 +533,15 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         vip.getId
     }
 
-    override def deleteVip(vip: UUID): Unit = clusterDataClient().vipDelete(vip)
+    override def deleteVip(vip: UUID): Unit = clusterDataClient.vipDelete(vip)
 
     override def matchVip(vipId: UUID, address: IPAddr, protocolPort: Int): Boolean = {
-        val vip = clusterDataClient().vipGet(vipId)
-        IPAddr.fromString(vip.getAddress()).equals(address) &&
-            vip.getProtocolPort() == protocolPort
+        val vip = clusterDataClient.vipGet(vipId)
+        IPAddr.fromString(vip.getAddress).equals(address) &&
+            vip.getProtocolPort == protocolPort
     }
 
-    override def createRandomVip(poolId: UUID): UUID = {
+    override def newRandomVip(poolId: UUID): UUID = {
         val rand = new Random()
         val vip = new VIP()
         vip.setId(UUID.randomUUID)
@@ -559,7 +549,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         vip.setProtocolPort(rand.nextInt(1000) + 1)
         vip.setAdminStateUp(true)
         vip.setPoolId(poolId)
-        clusterDataClient().vipCreate(vip)
+        clusterDataClient.vipCreate(vip)
         Thread.sleep(50)
         // Getting the created VIP to see the actual model stored in
         // ZooKeeper because `loadBalancerId` would be populated though
@@ -568,21 +558,21 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     override def setVipAdminStateUp(vipId: UUID, adminStateUp: Boolean) {
-        val vip = clusterDataClient().vipGet(vipId)
+        val vip = clusterDataClient.vipGet(vipId)
         vip.setAdminStateUp(adminStateUp)
-        clusterDataClient().vipUpdate(vip)
+        clusterDataClient.vipUpdate(vip)
     }
 
     override def vipEnableStickySourceIP(vipId: UUID) {
-        val vip = clusterDataClient().vipGet(vipId)
+        val vip = clusterDataClient.vipGet(vipId)
         vip.setSessionPersistence(VipSessionPersistence.SOURCE_IP)
-        clusterDataClient().vipUpdate(vip)
+        clusterDataClient.vipUpdate(vip)
     }
 
     override def vipDisableStickySourceIP(vipId: UUID) {
-        val vip = clusterDataClient().vipGet(vipId)
+        val vip = clusterDataClient.vipGet(vipId)
         vip.setSessionPersistence(null)
-        clusterDataClient().vipUpdate(vip)
+        clusterDataClient.vipUpdate(vip)
     }
 
     override def newHealthMonitor(id: UUID = UUID.randomUUID(),
@@ -596,16 +586,16 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         hm.setDelay(delay)
         hm.setMaxRetries(maxRetries)
         hm.setTimeout(timeout)
-        clusterDataClient().healthMonitorCreate(hm)
+        clusterDataClient.healthMonitorCreate(hm)
         Thread.sleep(50)
         id
     }
 
     override def matchHealthMonitor(id: UUID, adminStateUp: Boolean,
                                     delay: Int, timeout: Int, maxRetries: Int): Boolean = {
-        val hm = clusterDataClient().healthMonitorGet(id)
-        hm.isAdminStateUp() == adminStateUp && hm.getDelay() == delay &&
-            hm.getTimeout() == timeout && hm.getMaxRetries() == maxRetries
+        val hm = clusterDataClient.healthMonitorGet(id)
+        hm.isAdminStateUp == adminStateUp && hm.getDelay == delay &&
+            hm.getTimeout == timeout && hm.getMaxRetries == maxRetries
     }
 
 
@@ -618,19 +608,19 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         hm.setDelay(rand.nextInt(100) + 1)
         hm.setMaxRetries(rand.nextInt(100) + 1)
         hm.setTimeout(rand.nextInt(100) + 1)
-        clusterDataClient().healthMonitorCreate(hm)
+        clusterDataClient.healthMonitorCreate(hm)
         Thread.sleep(50)
         id
     }
 
     override def setHealthMonitorDelay(hmId: UUID, delay: Int) = {
-        val hm = clusterDataClient().healthMonitorGet(hmId)
+        val hm = clusterDataClient.healthMonitorGet(hmId)
         hm.setDelay(delay)
-        clusterDataClient().healthMonitorUpdate(hm)
+        clusterDataClient.healthMonitorUpdate(hm)
     }
 
     override def deleteHealthMonitor(hm: UUID) {
-        clusterDataClient().healthMonitorDelete(hm)
+        clusterDataClient.healthMonitorDelete(hm)
     }
 
     override def newPool(loadBalancer: UUID,
@@ -645,27 +635,27 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         pool.setLbMethod(lbMethod)
         pool.setLoadBalancerId(loadBalancer)
         pool.setId(id)
-        clusterDataClient().poolCreate(pool)
+        clusterDataClient.poolCreate(pool)
         Thread.sleep(50)
         id
     }
 
     override def setPoolHealthMonitor(poolId: UUID, hmId: UUID) = {
-        val pool = clusterDataClient().poolGet(poolId)
+        val pool = clusterDataClient.poolGet(poolId)
         pool.setHealthMonitorId(hmId)
-        clusterDataClient().poolUpdate(pool)
+        clusterDataClient.poolUpdate(pool)
     }
 
     override def setPoolAdminStateUp(poolId: UUID, adminStateUp: Boolean) {
-        val pool = clusterDataClient().poolGet(poolId)
+        val pool = clusterDataClient.poolGet(poolId)
         pool.setAdminStateUp(adminStateUp)
-        clusterDataClient().poolUpdate(pool)
+        clusterDataClient.poolUpdate(pool)
     }
 
     override def setPoolLbMethod(poolId: UUID, lbMethod: PoolLBMethod) {
-        val pool = clusterDataClient().poolGet(poolId)
+        val pool = clusterDataClient.poolGet(poolId)
         pool.setLbMethod(lbMethod)
-        clusterDataClient().poolUpdate(pool)
+        clusterDataClient.poolUpdate(pool)
     }
 
     override def setPoolMapStatus(
@@ -687,7 +677,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         poolMember.setProtocolPort(port)
         poolMember.setPoolId(pool)
         poolMember.setWeight(weight)
-        clusterDataClient().poolMemberCreate(poolMember)
+        clusterDataClient.poolMemberCreate(poolMember)
         Thread.sleep(50)
         poolMember.getId
     }
@@ -697,16 +687,16 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
                                   adminStateUp: Option[Boolean] = None,
                                   weight: Option[Integer] = None,
                                   status: Option[LBStatus] = None) {
-        val poolMember = clusterDataClient().poolMemberGet(poolMemberId)
+        val poolMember = clusterDataClient.poolMemberGet(poolMemberId)
         poolId.foreach(poolMember.setPoolId)
         adminStateUp.foreach(poolMember.setAdminStateUp)
         weight.foreach(poolMember.setWeight(_))
         status.foreach(poolMember.setStatus)
-        clusterDataClient().poolMemberUpdate(poolMember)
+        clusterDataClient.poolMemberUpdate(poolMember)
     }
 
     override def deletePoolMember(poolMember: UUID): Unit =
-        clusterDataClient().poolMemberDelete(poolMember)
+        clusterDataClient.poolMemberDelete(poolMember)
 
     override def setPoolMemberAdminStateUp(poolMember: UUID,
                                            adminStateUp: Boolean) =
@@ -729,31 +719,31 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
                            })
             .setDeviceId(device)
             .setCondition(condition)
-        clusterDataClient().traceRequestCreate(trace, enabled)
+        clusterDataClient.traceRequestCreate(trace, enabled)
     }
 
     override def listTraceRequests(tenant: Option[String] = None): List[UUID] = {
         tenant match {
-            case Some(t) => clusterDataClient().traceRequestFindByTenant(t).
+            case Some(t) => clusterDataClient.traceRequestFindByTenant(t).
                     asScala.map( _.getId).toList
-            case None => clusterDataClient().traceRequestGetAll().
+            case None => clusterDataClient.traceRequestGetAll().
                     asScala.map(_.getId).toList
         }
     }
 
     override def deleteTraceRequest(tr: UUID): Unit = {
-        clusterDataClient().traceRequestDelete(tr)
+        clusterDataClient.traceRequestDelete(tr)
     }
     override def enableTraceRequest(tr: UUID): Unit = {
-        clusterDataClient().traceRequestEnable(tr)
+        clusterDataClient.traceRequestEnable(tr)
     }
 
     override def disableTraceRequest(tr: UUID): Unit = {
-        clusterDataClient().traceRequestDisable(tr)
+        clusterDataClient.traceRequestDisable(tr)
     }
 
     override def isTraceRequestEnabled(tr: UUID): Boolean = {
-        (clusterDataClient().traceRequestGet(tr).getEnabledRule()) != null
+        clusterDataClient.traceRequestGet(tr).getEnabledRule != null
     }
 
 }

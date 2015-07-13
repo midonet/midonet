@@ -15,22 +15,14 @@
  */
 package org.midonet.midolman.util
 
-import java.util.UUID
-import java.util.{HashSet => JSet}
+import java.util.{HashSet => JSet, UUID}
 
-import scala.util.Random
-
-import scala.collection.JavaConversions._
-
-import org.midonet.cluster.DataClient
-
-import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.{FragmentPolicy, Condition, NatTarget}
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, TCP, MAC}
+import org.midonet.midolman.rules.{Condition, FragmentPolicy, NatTarget}
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
-import org.midonet.midolman.state.l4lb.{PoolLBMethod, VipSessionPersistence, LBStatus}
+import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC}
 
 object VirtualConfigurationBuilders {
     case class DhcpOpt121Route(gw: IPv4Addr, subnet: IPv4Subnet)
@@ -80,8 +72,8 @@ trait VirtualConfigurationBuilders {
                                fragmentPolicy: FragmentPolicy,
                                action: Action): UUID
     def deleteRule(id: UUID): Unit
-    def createIpAddrGroup(): UUID
-    def createIpAddrGroup(id: UUID): UUID
+    def newIpAddrGroup(): UUID
+    def newIpAddrGroup(id: UUID): UUID
     def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit
     def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit
     def deleteIpAddrGroup(id: UUID): Unit
@@ -152,12 +144,12 @@ trait VirtualConfigurationBuilders {
     def deleteLoadBalancer(id: UUID): Unit
     def setLoadBalancerOnRouter(loadBalancer: UUID, router: UUID): Unit
     def setLoadBalancerDown(loadBalancer: UUID): Unit
-    def createVip(pool: UUID): UUID
-    def createVip(pool: UUID, address: String, port: Int): UUID
+    def newVip(pool: UUID): UUID
+    def newVip(pool: UUID, address: String, port: Int): UUID
     def deleteVip(vip: UUID): Unit
     def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean
 
-    def createRandomVip(pool: UUID): UUID
+    def newRandomVip(pool: UUID): UUID
 
     def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit
     def vipEnableStickySourceIP(vip: UUID): Unit
@@ -272,8 +264,8 @@ trait ForwardingVirtualConfigurationBuilders
                                         action: Action): UUID =
         virtConfBuilderImpl.newFragmentRuleOnChain(chain, pos, fragmentPolicy, action)
     override def deleteRule(id: UUID): Unit = virtConfBuilderImpl.deleteRule(id)
-    override def createIpAddrGroup(): UUID = virtConfBuilderImpl.createIpAddrGroup()
-    override def createIpAddrGroup(id: UUID): UUID = virtConfBuilderImpl.createIpAddrGroup(id)
+    override def newIpAddrGroup(): UUID = virtConfBuilderImpl.newIpAddrGroup()
+    override def newIpAddrGroup(id: UUID): UUID = virtConfBuilderImpl.newIpAddrGroup(id)
     override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = virtConfBuilderImpl.addIpAddrToIpAddrGroup(id, addr)
     override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
         virtConfBuilderImpl.removeIpAddrFromIpAddrGroup(id, addr)
@@ -387,17 +379,17 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.setLoadBalancerOnRouter(loadBalancer, router)
     override def setLoadBalancerDown(loadBalancer: UUID): Unit =
         virtConfBuilderImpl.setLoadBalancerDown(loadBalancer)
-    override def createVip(pool: UUID): UUID =
-        virtConfBuilderImpl.createVip(pool)
-    override def createVip(pool: UUID, address: String, port: Int): UUID =
-        virtConfBuilderImpl.createVip(pool, address, port)
+    override def newVip(pool: UUID): UUID =
+        virtConfBuilderImpl.newVip(pool)
+    override def newVip(pool: UUID, address: String, port: Int): UUID =
+        virtConfBuilderImpl.newVip(pool, address, port)
     override def deleteVip(vip: UUID): Unit =
         virtConfBuilderImpl.deleteVip(vip)
     override def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean =
         virtConfBuilderImpl.matchVip(vip, address, protocolPort)
 
-    override def createRandomVip(pool: UUID): UUID =
-        virtConfBuilderImpl.createRandomVip(pool)
+    override def newRandomVip(pool: UUID): UUID =
+        virtConfBuilderImpl.newRandomVip(pool)
 
     override def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit =
         virtConfBuilderImpl.setVipAdminStateUp(vip, adminStateUp)

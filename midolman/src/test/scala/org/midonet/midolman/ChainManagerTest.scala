@@ -211,7 +211,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
     feature("ChainManager loads IPAddrGroups associated with its chain") {
         scenario("Load chain with a rule with one IPAddrGroup") {
             Given("a chain with a rule with one IPAddrGroup")
-            val ipAddrGroup = createIpAddrGroup()
+            val ipAddrGroup = newIpAddrGroup()
             val addr = "10.0.1.1"
             addAddrToIpAddrGroup(ipAddrGroup, addr)
 
@@ -231,7 +231,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
         scenario("Only track IPAddrGroups used in rules") {
             Given("a chain with a rule with one IPAddrGroup")
-            val ipAddrGroup = createIpAddrGroup()
+            val ipAddrGroup = newIpAddrGroup()
             val addr = "10.0.1.1"
             addAddrToIpAddrGroup(ipAddrGroup, addr)
 
@@ -264,7 +264,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
         scenario("Add an address to an IPAddrGroup") {
             Given("A chain with a rule with one IPAddrGroup")
-            val ipAddrGroup = createIpAddrGroup()
+            val ipAddrGroup = newIpAddrGroup()
             val addr1 = "10.0.1.1"
             addAddrToIpAddrGroup(ipAddrGroup, addr1)
 
@@ -296,7 +296,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
         scenario("Remove an address from an IPAddrGroup") {
             Given("A chain with a rule with one IPAddrGroup with two rules")
-            val ipAddrGroup = createIpAddrGroup()
+            val ipAddrGroup = newIpAddrGroup()
             val addr1 = "10.0.1.1"
             val addr2 = "10.0.1.2"
             addAddrToIpAddrGroup(ipAddrGroup, addr1)
@@ -374,9 +374,4 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
         InvalidateFlowsByTag(FlowTagger.tagForChain(id))
 }
 
-class TestableVTA extends VirtualTopologyActor with MessageAccumulator {
-
-}
-
-
-
+class TestableVTA extends VirtualTopologyActor with MessageAccumulator

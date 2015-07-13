@@ -26,9 +26,10 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
+import rx.observers.TestObserver
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.data.storage.{NotFoundException, Storage, UpdateOp}
+import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, Vip => TopologyVip}
 import org.midonet.cluster.services.MidonetBackend
@@ -36,11 +37,14 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVIP}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class LoadBalancerMapperTest extends MidolmanSpec
                              with TopologyBuilder
                              with TopologyMatchers {
+
+    import TopologyBuilder._
 
     private var vt: VirtualTopology = _
     private var store: Storage = _
@@ -257,6 +261,39 @@ class LoadBalancerMapperTest extends MidolmanSpec
             Then("The mapper emits an on complete notification")
             obs.awaitCompletion(timeout)
             obs.getOnCompletedEvents should have size 1
+        }
+
+        scenario("Mapper does not emit LB until all VIPs are loaded") {
+            Given("A load-balancer with two VIPs")
+            val loadBalancer = createLoadBalancer()
+            val vip1 = createVip(loadBalancerId = Some(loadBalancer.getId))
+            val vip2 = createVip(loadBalancerId = Some(loadBalancer.getId))
+            store.multi(Seq(CreateOp(loadBalancer), CreateOp(vip1),
+                            CreateOp(vip2)))
+
+            And("A load-balancer observer")
+            val obs = new DeviceObserver[SimLB](vt)
+
+            And("A load-balancer mapper")
+            val mapper = new LoadBalancerMapper(loadBalancer.getId, vt)
+
+            And("Requesting the VIPs to have them cached in store")
+            val obsVip = new TestObserver[TopologyVip]
+                             with AwaitableObserver[TopologyVip]
+            vt.store.observable(classOf[TopologyVip], vip1.getId)
+                .subscribe(obsVip)
+            vt.store.observable(classOf[TopologyVip], vip2.getId)
+                .subscribe(obsVip)
+            obsVip.awaitOnNext(2, timeout)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the load balancer device")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device shouldBeDeviceOf loadBalancer.addVipId(vip1.getId)
+                                                .addVipId(vip2.getId)
         }
     }
 

@@ -859,6 +859,8 @@ object TopologyBuilder {
     class RichLoadBalancer(loadBalancer: LoadBalancer) {
         def setAdminStateUp(adminStateUp: Boolean): LoadBalancer =
             loadBalancer.toBuilder.setAdminStateUp(adminStateUp).build()
+        def addVipId(vipId: UUID): LoadBalancer =
+            loadBalancer.toBuilder.addVipIds(vipId.asProto).build()
     }
 
     class RichVip(vip: Vip) {
