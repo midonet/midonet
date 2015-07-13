@@ -23,18 +23,21 @@ import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
 import scala.reflect.ClassTag
+import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
-import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
+import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.{Create, ResourceContext, Update}
+import org.midonet.cluster.util.SequenceType
 
 class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
                                               (implicit tag: ClassTag[P])
@@ -51,6 +54,18 @@ class AbstractPortResource[P >: Null <: Port] (resContext: ResourceContext)
     private def setActive(port: P): P = {
         port.active = isActive(port.id.toString)
         port
+    }
+
+    protected[resources] def ensureTunnelKey(port: P): Unit = try {
+        port.tunnelKey = Await.result (
+            resContext.seqDispenser.next(SequenceType.OverlayTunnelKey),
+            MidonetResource.Timeout
+        ).get
+    } catch {
+        case NonFatal(t) =>
+            log.error("Failed to generate tunnel key", t)
+            throw new InternalServerErrorHttpException(
+                s"Unable to generate new tunnel key: ${t.getMessage}")
     }
 
 }
@@ -99,7 +114,10 @@ class PortResource @Inject()(resContext: ResourceContext)
         new PortBgpResource(id, resContext)
     }
 
-    protected override def updateFilter = (to: Port, from: Port) => {
+    // The final is not totally required, but it just helps confirming that
+    // nobody is overriding the tunnelKey check below
+    protected final override def updateFilter = (to: Port, from: Port) => {
+        to.tunnelKey = from.tunnelKey // disallow updating
         to.update(from)
     }
 
@@ -112,7 +130,8 @@ class PortResource @Inject()(resContext: ResourceContext)
 @AllowCreate(Array(APPLICATION_PORT_JSON,
                    APPLICATION_PORT_V2_JSON,
                    APPLICATION_JSON))
-class BridgePortResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
+class BridgePortResource @Inject()(bridgeId: UUID,
+                                   resContext: ResourceContext)
     extends AbstractPortResource[BridgePort](resContext) {
 
     protected override def listFilter = (port: Port) => {
@@ -120,6 +139,7 @@ class BridgePortResource @Inject()(bridgeId: UUID, resContext: ResourceContext)
     }
 
     protected override def createFilter = (port: BridgePort) => {
+        ensureTunnelKey(port)
         port.create(bridgeId)
     }
 }
@@ -145,6 +165,7 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
 
         throwIfViolationsOn(port)
 
+        ensureTunnelKey(port)
         port.create(routerId)
         port.setBaseUri(resContext.uriInfo.getBaseUri)
         val route = new Route("0.0.0.0", 0, port.portAddress, 32, NextHop.Local,
