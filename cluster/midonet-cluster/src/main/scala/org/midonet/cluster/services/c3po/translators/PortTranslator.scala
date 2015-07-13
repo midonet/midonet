@@ -32,7 +32,7 @@ import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager._
 import org.midonet.cluster.util.DhcpUtil.asRichDhcp
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.{RangeUtil, IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util._
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
 import org.midonet.util.concurrent.toFutureOps
@@ -46,7 +46,8 @@ object PortTranslator {
 }
 
 class PortTranslator(protected val storage: ReadOnlyStorage,
-                     protected val pathBldr: PathBuilder)
+                     protected val pathBldr: PathBuilder,
+                     sequenceDispenser: SequenceDispenser)
         extends NeutronTranslator[NeutronPort]
         with ChainManager with PortManager with RouteManager with RuleManager
         with BridgeStateTableManager {
@@ -76,6 +77,16 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val midoOps = new MidoOpListBuffer
         val portContext = initPortContext
         if (isVifPort(nPort)) {
+
+            // Generate a new tunnel key
+            val tk = sequenceDispenser.next(SequenceType.OverlayTunnelKey)
+                                      .await()
+                                      .getOrElse (
+                    throw new TranslationException(neutron.Create(nPort), null,
+                        "Unable to generate overlay tunnel key")
+                )
+            midoPortBldr.setTunnelKey(tk)
+
             // Generate in/outbound chain IDs from Port ID.
             midoPortBldr.setInboundFilterId(inChainId(portId))
             midoPortBldr.setOutboundFilterId(outChainId(portId))

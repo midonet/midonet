@@ -16,7 +16,8 @@
 
 package org.midonet.cluster.util
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.fromExecutor
+import scala.concurrent.Future
 
 import com.google.common.util.concurrent.MoreExecutors.sameThreadExecutor
 import com.google.inject.Inject
@@ -26,8 +27,8 @@ import org.apache.curator.framework.recipes.shared.SharedCount
 import org.midonet.cluster.storage.MidonetBackendConfig
 
 object SequenceType extends Enumeration {
-    val AgentTunnelKeys = Value("AGENT_TUNNEL_KEYS")
-    val VxgwVni = Value("VXGW_VNI")
+    val OverlayTunnelKey = Value("OVERLAY_TUNNEL_KEY")
+    val VxgwVni = Value("VXGW_TUNNEL_KEY")
 }
 
 /** This class provides a catalogue of several types of counters used in
@@ -49,16 +50,12 @@ class SequenceDispenser @Inject()(curator: CuratorFramework,
                                  cause: Throwable = null)
         extends Exception("Can't read counter for type " + t, cause)
 
-    class SequenceWriteException(t: SequenceType.Value,
-                                  cause: Throwable = null)
-        extends Exception("Can't update counter for type " + t, cause)
-
-    private implicit val ec = ExecutionContext.fromExecutor(sameThreadExecutor())
+    private implicit val ec = fromExecutor(sameThreadExecutor())
 
     // This gets added to the root path of the Curator instance.
 
     private val paths = Map (
-        SequenceType.AgentTunnelKeys -> "agent_tunnel_keys",
+        SequenceType.OverlayTunnelKey -> "agent_tunnel_keys",
         SequenceType.VxgwVni -> "vxgw_vni"
     )
 
