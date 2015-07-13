@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_29efc788",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T08:00:24Z",
+      "side": 1,
+      "message": "I originally called it antiSpoofChainId, but that conflicted with the function of the same name. I guess I can call it antiSpfChainId or something?",
+      "parentUuid": "9ad9bd40_49640b49",
+      "range": {
+        "startLine": 428,
+        "startChar": 12,
+        "endLine": 428,
+        "endChar": 21
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c94f3bbd",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-13T02:33:52Z",
       "side": 1,
       "message": "You can use aChainId declared above, or otherwise delete the above declaration.",
+      "range": {
+        "startLine": 476,
+        "startChar": 35,
+        "endLine": 476,
+        "endChar": 64
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4c86d966",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T08:00:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c94f3bbd",
       "range": {
         "startLine": 476,
         "startChar": 35,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_69e9cf7f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 584,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T08:00:24Z",
+      "side": 1,
+      "message": "As discussed in an email thread earlier this year, it turns out that errors have a surprisingly large impact on Zookeeper performance due to error logging, so I think it\u0027s best that we not rely on that behavior when there\u0027s a simple alternative.",
+      "parentUuid": "9ad9bd40_e94ebfc0",
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_094a03ac",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 2
@@ -76,6 +142,30 @@
       "writtenOn": "2015-07-13T02:33:52Z",
       "side": 1,
       "message": "We cannot reuse the same builder here.",
+      "range": {
+        "startLine": 210,
+        "startChar": 41,
+        "endLine": 210,
+        "endChar": 55
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_89ec5391",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T08:00:24Z",
+      "side": 1,
+      "message": "OutRuleBuilder and inRuleBuilder are functions. This creates a new builder. Maybe I should make them take the ID as an argument, to make it more obvious.",
+      "parentUuid": "9ad9bd40_094a03ac",
       "range": {
         "startLine": 210,
         "startChar": 41,
@@ -134,6 +224,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4ca5f9b3",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T08:00:24Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_0973e315",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_29618739",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
         "patchSetId": 2
@@ -145,6 +259,30 @@
       "writtenOn": "2015-07-13T02:33:52Z",
       "side": 1,
       "message": "This doesn\u0027t seem to preserve the orders of the rules in newRules. Could you care to explain, please?",
+      "range": {
+        "startLine": 159,
+        "startChar": 8,
+        "endLine": 161,
+        "endChar": 33
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a902f73b",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T08:00:24Z",
+      "side": 1,
+      "message": "These are all literal accept rules, so all this chain does is accept a union of the conditions of all the individual rules. Union is commutative, so order doesn\u0027t matter.\n\nOrder matters in the top-level chains because there\u0027s a mixture of drop, accept, and jump rules.",
+      "parentUuid": "9ad9bd40_29618739",
       "range": {
         "startLine": 159,
         "startChar": 8,
@@ -180,6 +318,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e9e5dfa8",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 386,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T08:00:24Z",
+      "side": 1,
+      "message": "I added this in the first version of the patch while trying to figure out why this test was failing, and checked in into my local repository. Then, after making more changes and removing this line, I ran git diff and it showed that I was deleting this line. By that time, I had forgotten that I was the one who originally added it, so I put it back in.\n\nAnyway, I\u0027ll take it out.",
+      "parentUuid": "9ad9bd40_54abc51c",
+      "range": {
+        "startLine": 386,
+        "startChar": 12,
+        "endLine": 386,
+        "endChar": 30
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_74a60955",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
         "patchSetId": 2
@@ -191,6 +353,30 @@
       "writtenOn": "2015-07-10T16:01:54Z",
       "side": 1,
       "message": "What\u0027s the bug?",
+      "range": {
+        "startLine": 396,
+        "startChar": 21,
+        "endLine": 396,
+        "endChar": 63
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_09e1239a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 396,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T08:00:24Z",
+      "side": 1,
+      "message": "In ChainMapper.ruleUpdated, if the rule has two IPAddressGroups added (source and destination), we will subscribe to the first IPAddressGroup. If the IPAddressGroup is already cached by Zoom, this will publish the IPAddressGroup immediately, which results in an attempt to build the chain. This fails because we haven\u0027t yet added the second IPAddressGroup.\n\nApparently there are similar issues in several other mappers.\n\nI\u0027ll ask Alex if there\u0027s a JIRA issue for it.",
+      "parentUuid": "9ad9bd40_74a60955",
       "range": {
         "startLine": 396,
         "startChar": 21,
