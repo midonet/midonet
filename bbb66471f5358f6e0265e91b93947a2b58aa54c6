@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_3d3b7d9d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BgpResource.scala",
+        "patchSetId": 9
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T16:35:44Z",
+      "side": 1,
+      "message": "shouldn\u0027t the proper port be chosen based on their ip addresses?",
+      "revId": "bbb66471f5358f6e0265e91b93947a2b58aa54c6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
