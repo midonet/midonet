@@ -90,9 +90,15 @@ abstract class DeviceWithChainsMapper[D <: VirtualDevice](deviceId: UUID,
             chains -= chainId
         }
         // Create the state and emit observables for the new chains.
+        val addedChains = new mutable.MutableList[ChainState]
         for (chainId <- chainIds if !chains.contains(chainId)) {
             val chainState = new ChainState(chainId)
             chains += chainId -> chainState
+            addedChains += chainState
+        }
+
+        // Publish observable for added chains.
+        for (chainState <- addedChains) {
             chainsSubject onNext chainState.observable
         }
     }

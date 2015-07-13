@@ -37,6 +37,7 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 import org.midonet.util.reactivex.AwaitableObserver
+import org.midonet.util.concurrent._
 
 @RunWith(classOf[JUnitRunner])
 class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
@@ -69,14 +70,16 @@ class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
             .doOnCompleted(makeAction0(deviceDeleted()))
             .doOnNext(makeAction1(deviceUpdated))
         protected lazy val observable = Observable
-            .merge(chainsObservable.map[TestableDevice](makeFunc1(_ => device)),
+            .merge(chainsObservable.map[TestableDevice](makeFunc1(_ =>
+                    TestableDevice(device.id, currentChains.keySet.toSeq: _*))),
                    deviceObservable)
             .filter(makeFunc1(isDeviceReady))
 
         private def deviceDeleted(): Unit = completeChains()
 
         private def deviceUpdated(device: TestableDevice): Unit = {
-            this.device = device
+            this.device = TestableDevice(device.id,
+                                         currentChains.keySet.toSeq: _*)
             requestChains(device.chainIds)
         }
 
@@ -313,6 +316,39 @@ class DeviceWithChainsMapperTest extends MidolmanSpec with TopologyBuilder
             Then("The observable should receive on completed")
             observer.awaitCompletion(timeout)
             observer.getOnCompletedEvents should not be empty
+        }
+
+        scenario("Mapper does not emit device until all chains are loaded") {
+            Given("A device observable")
+            val id = UUID.randomUUID
+            val observable = TestableObservable(id)
+
+            And("Three chains")
+            val chain1 = createChain()
+            val chain2 = createChain()
+            val chain3 = createChain()
+            store.multi(Seq(CreateOp(chain1), CreateOp(chain2), CreateOp(chain3)))
+
+            When("Requesting the chains to have them cached")
+            VirtualTopology.get[SimulationChain](chain1.getId)
+                           .await(timeout) shouldBeDeviceOf chain1
+            VirtualTopology.get[SimulationChain](chain2.getId)
+                           .await(timeout) shouldBeDeviceOf chain2
+            VirtualTopology.get[SimulationChain](chain3.getId)
+                           .await(timeout) shouldBeDeviceOf chain3
+
+            And("A device observer subscribed to the observable")
+            val observer = createObserver()
+            observable.subscribe(observer)
+
+            And("The stream emits a device with chains")
+            stream.onNext(TestableDevice(id, chain1.getId, chain2.getId,
+                                         chain3.getId))
+
+            Then("The observer should receive the device")
+            observer.awaitOnNext(1, timeout) shouldBe true
+            observer.getOnNextEvents.get(0) shouldBe TestableDevice(
+                id, chain1.getId, chain2.getId, chain3.getId)
         }
     }
 }
