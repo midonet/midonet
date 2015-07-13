@@ -1,0 +1,113 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ec2fad9f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T09:54:39Z",
+      "side": 1,
+      "message": "Delete.",
+      "range": {
+        "startLine": 138,
+        "startChar": 0,
+        "endLine": 141,
+        "endChar": 56
+      },
+      "revId": "a2007fad3db9804c16f181812b729c2336fa3371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_af6837bb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T09:54:39Z",
+      "side": 1,
+      "message": "Or:\n\nval prevCond \u003d Option(ruleState.prevRule).map(_.getCondition)\nval newCond \u003d ruleState.currentRule.getCondition\nval addedGroups \u003d\n    handleIpAddrGroupSubscription(\n        prevCond.map(_.ipAddrGroupIdSrc).orNull,\n        newCond.ipAddrgroupIdSrc) ++\n    handleIpAddrGroupSubscription(\n        prevCond.map(_.ipAddrGroupIdDst).orNull,\n        newCond.ipAddrGroupIdDst)\n\nYou can also eliminate the orNull if handleIpAddrGroupSubscription() takes an option for the first parameter.",
+      "range": {
+        "startLine": 276,
+        "startChar": 0,
+        "endLine": 290,
+        "endChar": 9
+      },
+      "revId": "a2007fad3db9804c16f181812b729c2336fa3371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8c162154",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T09:54:39Z",
+      "side": 1,
+      "message": "Your call, but this can be expressed more concisely and with less repetition as:\n\nif (prevId \u003d\u003d newId) return null\nif (prevId !\u003d null) unsubscribeFromIpAddrGroup(prevId)\nif (newId) \u003d\u003d subscribeToIpAddrGroup(newId) else null\n\nAlso, rather than returning null and using \u003c\u003c\u003c operator, I think the more idiomatic approach would be to return Option[IPAddressGroupState] and use ++\u003d to append it to the list.",
+      "range": {
+        "startLine": 303,
+        "startChar": 0,
+        "endLine": 314,
+        "endChar": 9
+      },
+      "revId": "a2007fad3db9804c16f181812b729c2336fa3371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2f834757",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T09:54:39Z",
+      "side": 1,
+      "message": "Oh. No wonder I\u0027ve never heard of this. Do we really want to add a non-standard operator just to avoid using Option?",
+      "range": {
+        "startLine": 64,
+        "startChar": 0,
+        "endLine": 68,
+        "endChar": 5
+      },
+      "revId": "a2007fad3db9804c16f181812b729c2336fa3371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cf91fb9b",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 575,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T09:54:39Z",
+      "side": 1,
+      "message": "This will need some changes when the Rule-Chain binding is added, but I have it covered in my patch.",
+      "revId": "a2007fad3db9804c16f181812b729c2336fa3371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
