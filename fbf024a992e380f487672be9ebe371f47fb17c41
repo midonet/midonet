@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_181327b9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T21:40:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ac02053c",
+      "range": {
+        "startLine": 139,
+        "startChar": 4,
+        "endLine": 141,
+        "endChar": 7
+      },
+      "revId": "fbf024a992e380f487672be9ebe371f47fb17c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4c35f9f5",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 2
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_98265715",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 207,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T21:40:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_4c35f9f5",
+      "range": {
+        "startLine": 207,
+        "startChar": 8,
+        "endLine": 207,
+        "endChar": 70
+      },
+      "revId": "fbf024a992e380f487672be9ebe371f47fb17c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6c3c7de3",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 2
@@ -59,6 +107,30 @@
       "writtenOn": "2015-07-13T09:30:28Z",
       "side": 1,
       "message": "Not needed",
+      "range": {
+        "startLine": 244,
+        "startChar": 8,
+        "endLine": 246,
+        "endChar": 9
+      },
+      "revId": "fbf024a992e380f487672be9ebe371f47fb17c41",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b8215bfe",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T21:40:34Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_6c3c7de3",
       "range": {
         "startLine": 244,
         "startChar": 8,
