@@ -59,6 +59,14 @@ dependencies {
             libraries.jsonpath, libraries.curator_recipes,
             libraries.scala_logging, libraries.scallop, libraries.protobuf,
             libraries.disruptor,
+            /*
+             * TODO(yamamoto): check which jersey components are
+             * actually necessary
+             */
+            libraries.jersey_servlet,
+            libraries.jersey_server, libraries.jersey_client,
+            libraries.jersey_guice, libraries.jersey_core,
+            libraries.jersey_bundle, libraries.jersey_json,
             "com.fasterxml.jackson.core:jackson-databind:2.3.0"
 
     testCompile project(path: ':nsdb', configuration: 'tests')
