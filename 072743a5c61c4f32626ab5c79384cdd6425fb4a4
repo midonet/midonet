@@ -194,6 +194,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f21dc467",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T16:15:52Z",
+      "side": 1,
+      "message": "Added to the BgpPeer topology object. If they are missing, the mapper will use the one specified in config.",
+      "parentUuid": "9ad9bd40_af72f779",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ef6cff9e",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpMapper.scala",
         "patchSetId": 7
@@ -205,6 +223,24 @@
       "writtenOn": "2015-07-13T10:20:26Z",
       "side": 1,
       "message": "is port.bgpNetworkIds the set of advertised routes? If so, they should be at the router level, not port.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_12194879",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T16:15:52Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ef6cff9e",
       "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
