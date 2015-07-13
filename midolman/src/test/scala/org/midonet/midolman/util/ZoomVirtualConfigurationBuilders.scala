@@ -139,8 +139,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                         fragmentPolicy: rules.FragmentPolicy,
                                         action: RuleResult.Action): UUID = ???
     override def deleteRule(id: UUID): Unit = ???
-    override def createIpAddrGroup(): UUID = ???
-    override def createIpAddrGroup(id: UUID): UUID = ???
+    override def newIpAddrGroup(): UUID = ???
+    override def newIpAddrGroup(id: UUID): UUID = ???
     override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = ???
     override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit = ???
     override def deleteIpAddrGroup(id: UUID): Unit = ???
@@ -251,12 +251,12 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def deleteLoadBalancer(id: UUID): Unit = ???
     override def setLoadBalancerOnRouter(loadBalancer: UUID, router: UUID): Unit = ???
     override def setLoadBalancerDown(loadBalancer: UUID): Unit = ???
-    override def createVip(pool: UUID): UUID = ???
-    override def createVip(pool: UUID, address: String, port: Int): UUID = ???
+    override def newVip(pool: UUID): UUID = ???
+    override def newVip(pool: UUID, address: String, port: Int): UUID = ???
     override def deleteVip(vip: UUID): Unit = ???
     override def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean = ???
 
-    override def createRandomVip(pool: UUID): UUID = ???
+    override def newRandomVip(pool: UUID): UUID = ???
 
     override def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit = ???
     override def vipEnableStickySourceIP(vip: UUID): Unit = ???
@@ -321,9 +321,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     def setConditionFromCondition(rule: Rule.Builder,
                                   condition: rules.Condition): Rule.Builder = {
         setCondition(rule,
-                     someOrNone(condition.conjunctionInv),
-                     someOrNone(condition.matchForwardFlow),
-                     someOrNone(condition.matchReturnFlow),
+                     Option(condition.conjunctionInv),
+                     Option(condition.matchForwardFlow),
+                     Option(condition.matchReturnFlow),
                      if (condition.inPortIds != null) {
                          Some(condition.inPortIds.asScala.toSet)
                      } else { None },
@@ -331,59 +331,36 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                      if (condition.outPortIds != null) {
                          Some(condition.outPortIds.asScala.toSet)
                      } else { None },
-                     someOrNone(condition.outPortInv),
-                     someOrNone(condition.portGroup),
-                     someOrNone(condition.invPortGroup),
-                     someOrNone(condition.ipAddrGroupIdSrc),
-                     someOrNone(condition.invIpAddrGroupIdSrc),
-                     someOrNone(condition.ipAddrGroupIdDst),
-                     someOrNone(condition.invIpAddrGroupIdDst),
-                     someOrNone(condition.etherType),
-                     someOrNone(condition.invDlType),
-                     someOrNone(condition.ethSrc),
-                     someOrNone(condition.ethSrcMask),
-                     someOrNone(condition.invDlSrc),
-                     someOrNone(condition.ethDst),
-                     someOrNone(condition.dlDstMask),
-                     someOrNone(condition.invDlDst),
-                     someOrNone(condition.nwTos),
-                     someOrNone(condition.nwTosInv),
-                     someOrNone(condition.nwProto),
-                     someOrNone(condition.nwProtoInv),
-                     someOrNone(condition.nwSrcIp),
-                     someOrNone(condition.nwDstIp),
-                     someOrNone(condition.tpSrc),
-                     someOrNone(condition.tpDst),
-                     someOrNone(condition.nwSrcInv),
-                     someOrNone(condition.nwDstInv),
-                     someOrNone(condition.tpSrcInv),
-                     someOrNone(condition.tpDstInv),
-                     someOrNone(condition.traversedDevice),
-                     someOrNone(condition.traversedDeviceInv),
-                     someOrNone(condition.fragmentPolicy))
+                     Option(condition.outPortInv),
+                     Option(condition.portGroup),
+                     Option(condition.invPortGroup),
+                     Option(condition.ipAddrGroupIdSrc),
+                     Option(condition.invIpAddrGroupIdSrc),
+                     Option(condition.ipAddrGroupIdDst),
+                     Option(condition.invIpAddrGroupIdDst),
+                     Option(condition.etherType),
+                     Option(condition.invDlType),
+                     Option(condition.ethSrc),
+                     Option(condition.ethSrcMask),
+                     Option(condition.invDlSrc),
+                     Option(condition.ethDst),
+                     Option(condition.dlDstMask),
+                     Option(condition.invDlDst),
+                     Option(condition.nwTos),
+                     Option(condition.nwTosInv),
+                     Option(condition.nwProto),
+                     Option(condition.nwProtoInv),
+                     Option(condition.nwSrcIp),
+                     Option(condition.nwDstIp),
+                     Option(condition.tpSrc),
+                     Option(condition.tpDst),
+                     Option(condition.nwSrcInv),
+                     Option(condition.nwDstInv),
+                     Option(condition.tpSrcInv),
+                     Option(condition.tpDstInv),
+                     Option(condition.traversedDevice),
+                     Option(condition.traversedDeviceInv),
+                     Option(condition.fragmentPolicy))
     }
 
-    def someOrNone(ref: java.lang.Integer): Option[Int] = {
-        if (ref != null) {
-            Some(ref)
-        } else {
-            None
-        }
-    }
-
-    def someOrNone(ref: java.lang.Byte): Option[Byte] = {
-        if (ref != null) {
-            Some(ref)
-        } else {
-            None
-        }
-    }
-
-    def someOrNone[T](ref: T): Option[T] = {
-        if (ref != null) {
-            Some(ref)
-        } else {
-            None
-        }
-    }
 }
