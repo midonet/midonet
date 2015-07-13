@@ -104,6 +104,24 @@
       "revId": "fc61eea7f684e8f03d51705d33ab205389732528",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_72a61412",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/MockNetlinkChannelFactory.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T13:07:19Z",
+      "side": 1,
+      "message": "why?",
+      "parentUuid": "9ad9bd40_6fbab40b",
+      "revId": "fc61eea7f684e8f03d51705d33ab205389732528",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
