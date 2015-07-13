@@ -2,6 +2,161 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_49640b49",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 428,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-13T02:33:52Z",
+      "side": 1,
+      "message": "Just commenting that \"as\"ChainId may be a little confusing...",
+      "range": {
+        "startLine": 428,
+        "startChar": 12,
+        "endLine": 428,
+        "endChar": 21
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c94f3bbd",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 476,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-13T02:33:52Z",
+      "side": 1,
+      "message": "You can use aChainId declared above, or otherwise delete the above declaration.",
+      "range": {
+        "startLine": 476,
+        "startChar": 35,
+        "endLine": 476,
+        "endChar": 64
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e94ebfc0",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 584,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-13T02:33:52Z",
+      "side": 1,
+      "message": "We can delete those rules without checking as Delete is idempotent anyway.",
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_094a03ac",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 210,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-13T02:33:52Z",
+      "side": 1,
+      "message": "We cannot reuse the same builder here.",
+      "range": {
+        "startLine": 210,
+        "startChar": 41,
+        "endLine": 210,
+        "endChar": 55
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_29c8a721",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 222,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-13T02:33:52Z",
+      "side": 1,
+      "message": "Here, either.",
+      "range": {
+        "startLine": 222,
+        "startChar": 39,
+        "endLine": 222,
+        "endChar": 52
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0973e315",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-13T02:33:52Z",
+      "side": 1,
+      "message": "s/2014/2015/",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_29618739",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/SecurityGroupTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-13T02:33:52Z",
+      "side": 1,
+      "message": "This doesn\u0027t seem to preserve the orders of the rules in newRules. Could you care to explain, please?",
+      "range": {
+        "startLine": 159,
+        "startChar": 8,
+        "endLine": 161,
+        "endChar": 33
+      },
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_54abc51c",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
         "patchSetId": 2
