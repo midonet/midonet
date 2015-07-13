@@ -22,6 +22,30 @@
       "revId": "1c1c15e090a423b88a3823a862b6ae7208f73e23",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_acb0458c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-13T09:09:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ac6da534",
+      "range": {
+        "startLine": 228,
+        "startChar": 32,
+        "endLine": 228,
+        "endChar": 36
+      },
+      "revId": "1c1c15e090a423b88a3823a862b6ae7208f73e23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
