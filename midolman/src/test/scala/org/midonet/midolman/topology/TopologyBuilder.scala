@@ -241,6 +241,7 @@ trait TopologyBuilder {
     protected def setCondition(builder: Rule.Builder,
                                conjunctionInv: Option[Boolean] = None,
                                matchForwardFlow: Option[Boolean] = None,
+                               matchReturnFlow: Option[Boolean] = None,
                                inPortIds: Option[Set[UUID]] = None,
                                inPortInv: Option[Boolean] = None,
                                outPortIds: Option[Set[UUID]] = None,
@@ -278,7 +279,9 @@ trait TopologyBuilder {
 
         if (matchForwardFlow.isDefined) {
             builder.setMatchForwardFlow(matchForwardFlow.get)
-            builder.setMatchReturnFlow(!matchForwardFlow.get)
+        }
+        if (matchReturnFlow.isDefined) {
+            builder.setMatchReturnFlow(matchReturnFlow.get)
         }
         if (conjunctionInv.isDefined)
             builder.setConjunctionInv(conjunctionInv.get)
