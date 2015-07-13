@@ -24,8 +24,9 @@ import scala.concurrent.duration._
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import rx.Observable
+import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.{Pool => TopologyPool, PoolMember}
 import org.midonet.cluster.services.MidonetBackend
@@ -34,6 +35,7 @@ import org.midonet.midolman.simulation.{Pool => SimulationPool}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
+import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class PoolMapperTest extends MidolmanSpec with TopologyBuilder
@@ -726,6 +728,41 @@ class PoolMapperTest extends MidolmanSpec with TopologyBuilder
             device2 shouldBeDeviceOf pool
             device2.activePoolMembers shouldBe empty
             device2.disabledPoolMembers shouldBe empty
+        }
+
+        scenario("Mapper does not emit pool until all members are loaded") {
+            Given("A pool with tw members")
+            val pool = createPool()
+            val member1 = createPoolMember(poolId = Some(pool.getId),
+                                           adminStateUp = Some(false))
+            val member2 = createPoolMember(poolId = Some(pool.getId),
+                                           adminStateUp = Some(false))
+            store.multi(Seq(CreateOp(pool), CreateOp(member1),
+                            CreateOp(member2)))
+
+            And("A pool observer")
+            val obs = new DeviceObserver[SimulationPool](vt)
+
+            And("a pool mapper")
+            val mapper = new PoolMapper(pool.getId, vt)
+
+            When("Requesting the members to have them cached in the store")
+            val obsMember = new TestObserver[PoolMember]
+                                with AwaitableObserver[PoolMember]
+            vt.store.observable(classOf[PoolMember], member1.getId)
+                .subscribe(obsMember)
+            vt.store.observable(classOf[PoolMember], member2.getId)
+                .subscribe(obsMember)
+            obsMember.awaitOnNext(2, timeout)
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receivgit statuse the mapper device")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device shouldBeDeviceOf pool.addPoolMember(member1.getId)
+                                        .addPoolMember(member2.getId)
         }
     }
 }
