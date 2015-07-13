@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.auth.AuthConfig;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.cluster.ClusterConfig;
+import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
@@ -51,6 +52,7 @@ import org.midonet.cluster.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.conf.HostIdGenerator;
 
 import static org.apache.curator.framework.CuratorFrameworkFactory.newClient;
+import static org.slf4j.LoggerFactory.getLogger;
 
 public class FuncTest {
     static final ClientConfig config = new DefaultClientConfig();
@@ -85,7 +87,7 @@ public class FuncTest {
 
     /**
      * Choose the right Builder.  Defaults to the old midonet-api, but will
-     * return the new cluster-based midonet-api if the withVladimir env.
+     * return the new cluster-based midonet-api if the midonet.newStack env.
      * variable is set to "true".
      */
     public static WebAppDescriptor.Builder getBuilder() {
@@ -100,7 +102,7 @@ public class FuncTest {
      * Tells if we're testing against the Compat API.
      */
     public static boolean isCompatApiEnabled() {
-        return Boolean.parseBoolean(System.getenv("withVladimir"));
+        return Boolean.parseBoolean(System.getenv("midonet.newStack"));
     }
 
     private static WebAppDescriptor.Builder getBuilderForLegacyApi() {
@@ -175,11 +177,11 @@ public class FuncTest {
                     "zookeeper.use_new_stack = true \n" +
                     "zookeeper.curator_enabled = true \n" +
                     "zookeeper.root_key = " + ZK_ROOT_MIDOLMAN + "\n" +
-                    "cluster.rest_api.root_uri = " + CONTEXT_PATH + "\n" +
-                    "cluster.auth.provider_class = "
-                        + MockAuthService.class.getName()
+                    "cluster.rest_api.root_uri = " + CONTEXT_PATH
                 )
             );
+
+            AuthService authService = new MockAuthService(cfg.conf());
 
             MidonetBackendService backend =
                 new MidonetBackendService(cfg.backend(), curator);
@@ -187,8 +189,8 @@ public class FuncTest {
 
             FuncTest._injector = Guice.createInjector(
                 Vladimir.servletModule(
-                    backend, curator, cfg,
-                    Logger.apply(LoggerFactory.getLogger(getClass()))),
+                    backend, curator, authService, cfg,
+                    Logger.apply(getLogger(getClass()))),
                 new AbstractModule() {
                     @Override
                     protected void configure() {
@@ -206,7 +208,7 @@ public class FuncTest {
         config.getSingletons()
               .add(new WildcardJacksonJaxbJsonProvider(
                   new ObjectMapperProvider()));
-        LoggerFactory.getLogger(FuncTest.class)
+        getLogger(FuncTest.class)
                      .info("TESTING MIDONET API AGAINST ZOOM IMPLEMENTATION");
         return new WebAppDescriptor.Builder()
             .contextListenerClass(VladimirServletContextListener.class)

@@ -24,8 +24,7 @@ import org.apache.commons.configuration.ConfigurationException
 
 import org.midonet.cluster.AuthConfig
 
-class AuthModule(config: AuthConfig, log: Logger)
-    extends AbstractModule {
+class AuthModule(config: AuthConfig, log: Logger) extends AbstractModule {
 
     override def configure(): Unit = {
         bind(classOf[AuthService]).toInstance(newAuthService)
@@ -36,18 +35,13 @@ class AuthModule(config: AuthConfig, log: Logger)
         log.info("Authentication provider: {}", authProvider)
 
         try {
-
             val clazz = Class.forName(authProvider)
-            try {
-                val constructor = clazz.getDeclaredConstructor(classOf[Config])
-                constructor.setAccessible(true)
-                constructor.newInstance(config.conf).asInstanceOf[AuthService]
-            } catch {
-                case _: NoSuchMethodException =>
-                    val constructor = clazz.getDeclaredConstructor()
-                    constructor.setAccessible(true)
-                    constructor.newInstance().asInstanceOf[AuthService]
+            var constructor = clazz.getDeclaredConstructor(classOf[Config])
+            if (constructor == null) {
+                constructor = clazz.getDeclaredConstructor()
             }
+            constructor.setAccessible(true)
+            constructor.newInstance(config.conf).asInstanceOf[AuthService]
         } catch {
             case e: ClassNotFoundException =>
                 throw new ConfigurationException(

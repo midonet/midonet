@@ -15,9 +15,6 @@
  */
 package org.midonet.cluster.auth;
 
-/**
- * AuthServerException class for bad HTTP response from external auth system..
- */
 public class AuthServerException extends AuthException {
 
     private static final long serialVersionUID = 1L;
