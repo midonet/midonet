@@ -178,9 +178,15 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
 
         // Create observables for the new members of this pool, and notify them
         // on the pool members observable.
+        val addedMembers = new mutable.MutableList[PoolMemberState]
         for (memberId <- memberIds if !poolMembers.contains(memberId)) {
             val memberState = new PoolMemberState(memberId, vt)
             poolMembers += memberId -> memberState
+            addedMembers += memberState
+        }
+
+        // Publish observable for added members.
+        for (memberState <- addedMembers) {
             poolMembersSubject onNext memberState.observable
         }
     }
