@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2ca275ae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 151,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-13T12:44:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8f00d802",
+      "range": {
+        "startLine": 148,
+        "startChar": 3,
+        "endLine": 151,
+        "endChar": 5
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b467b124",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 3
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-10T16:19:57Z",
       "side": 1,
       "message": "is this related to the metrics change? otherwise I\u0027d move to a separate patch",
+      "range": {
+        "startLine": 529,
+        "startChar": 20,
+        "endLine": 537,
+        "endChar": 23
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_acaf65e2",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 537,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-13T12:44:06Z",
+      "side": 1,
+      "message": "Yes it is related. Previously, we were storing object observables in the objectObservables map. Now we are storing the underlying node observable in the nodeObservables map. Whenever we retrieve a node observable from the map we add the various rx operators to it.",
+      "parentUuid": "9ad9bd40_b467b124",
       "range": {
         "startLine": 529,
         "startChar": 20,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ccaae9d1",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 569,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-13T12:44:06Z",
+      "side": 1,
+      "message": "This is just to initialize the variable to a default value, start is assigned the current time below in the try catch block.",
+      "parentUuid": "9ad9bd40_d46ef500",
+      "range": {
+        "startLine": 569,
+        "startChar": 20,
+        "endLine": 569,
+        "endChar": 22
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_742b6994",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 3
@@ -82,6 +154,30 @@
       "writtenOn": "2015-07-10T16:19:57Z",
       "side": 1,
       "message": "nano?",
+      "range": {
+        "startLine": 576,
+        "startChar": 41,
+        "endLine": 576,
+        "endChar": 58
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_726ff4c5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 576,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-13T12:44:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_742b6994",
       "range": {
         "startLine": 576,
         "startChar": 41,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0cc4d15d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 577,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-13T12:44:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_54302501",
+      "range": {
+        "startLine": 577,
+        "startChar": 24,
+        "endLine": 577,
+        "endChar": 44
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9419cd8a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 3
@@ -128,6 +248,30 @@
       "writtenOn": "2015-07-10T16:19:57Z",
       "side": 1,
       "message": "ditto, also move to right before the commit, the foreach below doesn\u0027t really count as zk latency",
+      "range": {
+        "startLine": 633,
+        "startChar": 27,
+        "endLine": 633,
+        "endChar": 44
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2c06f5ce",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 633,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-13T12:44:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_9419cd8a",
       "range": {
         "startLine": 633,
         "startChar": 27,
@@ -163,6 +307,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2c5fd5e6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 686,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-13T12:44:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d4135564",
+      "range": {
+        "startLine": 680,
+        "startChar": 18,
+        "endLine": 686,
+        "endChar": 10
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5407451c",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 3
@@ -174,6 +342,30 @@
       "writtenOn": "2015-07-10T16:19:57Z",
       "side": 1,
       "message": "This is a sign of hard-to-read code!\n\nWhy not just \n\n.doOnEach(incClassWatcherTriggered)\n\nas suggested above?\n\nBtw, I\u0027d pack all those incrementers in a separate Object, along with ZoomMetrics, just to keep this file with a reasonable size.",
+      "range": {
+        "startLine": 710,
+        "startChar": 10,
+        "endLine": 711,
+        "endChar": 35
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4c6259ae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 711,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-13T12:44:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_5407451c",
       "range": {
         "startLine": 710,
         "startChar": 10,
