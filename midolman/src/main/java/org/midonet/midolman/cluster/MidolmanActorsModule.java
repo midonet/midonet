@@ -41,6 +41,10 @@ import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.l4lb.HealthMonitor;
+import org.midonet.midolman.openstack.metadata.DatapathInterface;
+import org.midonet.midolman.openstack.metadata.FlowWriter;
+import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor;
+import org.midonet.midolman.openstack.metadata.Plumber;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
@@ -113,8 +117,13 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(DatapathController.class);
         bind(PacketsEntryPoint.class);
         bind(NetlinkCallbackDispatcher.class);
+        bind(MetadataServiceManagerActor.class);
         bind(RoutingManagerActor.class);
         bind(HealthMonitor.class);
+
+        bind(DatapathInterface.class);
+        bind(FlowWriter.class);
+        bind(Plumber.class);
     }
 
     protected void bindMidolmanActorsService() {
