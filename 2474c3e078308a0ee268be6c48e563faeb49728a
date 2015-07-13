@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f26ce49e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 569,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "Ah ok, you can also do\n\nvar start: Long \u003d _\n\nBut it\u0027s fine like this of course",
+      "parentUuid": "9ad9bd40_ccaae9d1",
+      "range": {
+        "startLine": 569,
+        "startChar": 20,
+        "endLine": 569,
+        "endChar": 22
+      },
+      "revId": "2474c3e078308a0ee268be6c48e563faeb49728a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_742b6994",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 3
