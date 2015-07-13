@@ -1,0 +1,84 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_0c54d11f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-13T09:34:12Z",
+      "side": 1,
+      "message": "new... is a bad name, use something more specific.",
+      "range": {
+        "startLine": 81,
+        "startChar": 36,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ec588d58",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-13T09:34:12Z",
+      "side": 1,
+      "message": "this looks dodgy. It seems that the UUID is not used at all in the routing handler.",
+      "range": {
+        "startLine": 89,
+        "startChar": 17,
+        "endLine": 89,
+        "endChar": 27
+      },
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2c327510",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-13T09:34:12Z",
+      "side": 1,
+      "message": "await? surely there\u0027s a more deterministic way to see if it completed?",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6c139d66",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-13T09:34:12Z",
+      "side": 1,
+      "message": "there\u0027s nothing here to distinguish learned routes and statically defined routes, so syncPeerRoutes will end up deleting them.",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
