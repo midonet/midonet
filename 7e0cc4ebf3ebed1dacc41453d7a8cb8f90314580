@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_afc4b792",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T10:20:37Z",
+      "side": 1,
+      "message": "The port notifications arrive on the same observable. That it the BGP mapper watches the port in order to update the BGP peers/routes, then the same notifications are forwarded on the same observable too.",
+      "parentUuid": "9ad9bd40_af41173b",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4f86cb66",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 11
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-13T09:56:13Z",
       "side": 1,
       "message": "weird, make a set?",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0f684386",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T10:20:37Z",
+      "side": 1,
+      "message": "this was kept a map, to distinguish between being aware of a learned route and having it published in storage.\n\nI guess the difference comes from not having an id for learned routes in v2 (see the comment for syncPeerRoutes below). if you think that it\u0027s necessary to add one, then these changes are not needed.",
+      "parentUuid": "9ad9bd40_4f86cb66",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_cfe2db00",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T10:20:37Z",
+      "side": 1,
+      "message": "You are right, maybe the actor should be stopped.\n\nonError happens when the zk connection is lost, or there is any other unexpected exception in the processing path (e.g. corrupt data in zk/serialization error, corrupt internal state, bugs, etc).\n\nWe can add recovery code for all/certain exceptions if needed, either with onErrorResumeNext on the original observable, or by resubscribing to a new observable here, and updating the subscription.",
+      "parentUuid": "9ad9bd40_0f5e8312",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2f9c27c0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 11
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_eff15fce",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T10:20:37Z",
+      "side": 1,
+      "message": "This should happen when the port is deleted.",
+      "parentUuid": "9ad9bd40_2f9c27c0",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8f80d347",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 11
@@ -81,6 +153,24 @@
       "writtenOn": "2015-07-13T09:56:13Z",
       "side": 1,
       "message": "this is now doing full object comparison as opposed to UUID comparison, that worries me.",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8f5c53ef",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T10:20:37Z",
+      "side": 1,
+      "message": "To save memory for learned routes, we haven\u0027t added a route id in v2 (see class RoutingTableStorage for rationale, discussion and benchmark results). We can add it if needed but that would increase the zk client buffer requirements/bandwidth when reading a routing table by ~23.5%.\n\nHence, in v2 there is no id to compare. That is also the reason why the map[Route, UUID] was changed to a map[Route, Route]",
+      "parentUuid": "9ad9bd40_8f80d347",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -234,6 +324,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8fb8d3e6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T10:20:37Z",
+      "side": 1,
+      "message": "Ok, got it.",
+      "parentUuid": "9ad9bd40_afdd9772",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6c139d66",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 11
@@ -280,6 +388,24 @@
       "writtenOn": "2015-07-13T09:56:13Z",
       "side": 1,
       "message": "ditto wrt await().",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_afce7781",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T10:20:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_efe79f3e",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
