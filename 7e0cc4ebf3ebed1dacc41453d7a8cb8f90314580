@@ -2,6 +2,91 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_af41173b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T09:56:13Z",
+      "side": 1,
+      "message": "what about the port subscription?",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4f86cb66",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T09:56:13Z",
+      "side": 1,
+      "message": "weird, make a set?",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0f5e8312",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T09:56:13Z",
+      "side": 1,
+      "message": "does this mean this actor will remain up but disabled forever? shouldn\u0027t the actor be stopped?\n\nin which cases does an onError happen? is it recoverable?",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2f9c27c0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T09:56:13Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8f80d347",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T09:56:13Z",
+      "side": 1,
+      "message": "this is now doing full object comparison as opposed to UUID comparison, that worries me.",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0c54d11f",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 11
@@ -131,6 +216,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_afdd9772",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T09:56:13Z",
+      "side": 1,
+      "message": "I agree, those \u00275 seconds\u0027 look fishy.",
+      "parentUuid": "9ad9bd40_6f58ef32",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6c139d66",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 11
@@ -160,6 +263,23 @@
       "side": 1,
       "message": "In v2, the learned routes are stored separately from the static ones (i.e. topology). All routes returned from the state storage are learned routes, since the agent does not modify the zoom topology.",
       "parentUuid": "9ad9bd40_6c139d66",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_efe79f3e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 95,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T09:56:13Z",
+      "side": 1,
+      "message": "ditto wrt await().",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
