@@ -131,6 +131,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0cc05129",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 584,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-13T08:14:42Z",
+      "side": 1,
+      "message": "Acknowledged.",
+      "parentUuid": "9ad9bd40_69e9cf7f",
+      "revId": "970b3122d9e77e66a90daeb37eefb7b5e8096121",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_094a03ac",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
         "patchSetId": 2
