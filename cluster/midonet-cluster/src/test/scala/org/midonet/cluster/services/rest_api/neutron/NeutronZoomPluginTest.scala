@@ -22,20 +22,18 @@ import scala.collection.JavaConversions._
 import scala.concurrent.duration._
 
 import com.typesafe.config.ConfigFactory
-
 import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
 import org.scalatest._
+import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.ZoomConvert.toProto
-import org.midonet.cluster.data.storage.NotFoundException
-import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRouter, NeutronRouterInterface, NeutronSubnet, SecurityGroup => NeutronSecurityGroup}
-import org.midonet.cluster.models.Topology
+import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.util.CuratorTestFramework
@@ -66,8 +64,9 @@ class NeutronZoomPluginTest extends FeatureSpec
         backend.setupBindings()
 
         val paths = new PathBuilder(ZK_ROOT)
+        val resContext = new ResourceContext(backend, null, null, null)
         val lockFactory = new ZookeeperLockFactory(curator, paths)
-        plugin = new NeutronZoomPlugin(backend, cfg, lockFactory)
+        plugin = new NeutronZoomPlugin(resContext, paths, lockFactory)
     }
 
     feature("The Plugin should be able to CRUD") {
