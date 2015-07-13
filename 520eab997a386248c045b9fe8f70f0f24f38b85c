@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_32ef2c89",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/ClusterConfig.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 132,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T14:36:13Z",
+      "side": 0,
+      "message": "remove from the schema?",
+      "revId": "520eab997a386248c045b9fe8f70f0f24f38b85c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

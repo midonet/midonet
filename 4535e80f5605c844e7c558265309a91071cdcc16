@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f2e5c4a8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/Vladimir.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T14:36:13Z",
+      "side": 1,
+      "message": "shouldn\u0027t there be a conf/ prefix to all of these, or are we just putting them bare at the root?",
+      "revId": "4535e80f5605c844e7c558265309a91071cdcc16",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
