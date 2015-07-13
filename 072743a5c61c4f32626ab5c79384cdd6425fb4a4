@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ef9f9f5d",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/AdRoute.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "This is used for compatibility with v1",
+      "parentUuid": "9ad9bd40_ef55dfc6",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0f5123d8",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bgp.java",
         "patchSetId": 7
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-13T10:20:26Z",
       "side": 1,
       "message": "shouldn\u0027t be here.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2f898726",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bgp.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Compatibility with v1",
+      "parentUuid": "9ad9bd40_0f5123d8",
       "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6f838f04",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bgp.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Ditto.",
+      "parentUuid": "9ad9bd40_2f5fc7e6",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4f624bae",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
         "patchSetId": 7
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_efe5dfa8",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_4f624bae",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6f59cffd",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
         "patchSetId": 7
@@ -81,6 +153,24 @@
       "writtenOn": "2015-07-13T10:20:26Z",
       "side": 1,
       "message": "what is this?",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2fefc788",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Moved to Router.\nThis is used for internal API bookkeeping (i.e. keeping the references such that they are not modified by zoom convert)",
+      "parentUuid": "9ad9bd40_6f59cffd",
       "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -138,6 +228,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4fba4bc1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_4f096bdc",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8f2a932a",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 7
@@ -149,6 +257,24 @@
       "writtenOn": "2015-07-13T10:20:26Z",
       "side": 1,
       "message": "doesn\u0027t belong here.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6fe9cf7f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8f2a932a",
       "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -172,6 +298,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8fec5391",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_cf1bbb1a",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ef1a3f16",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
         "patchSetId": 7
@@ -183,6 +327,24 @@
       "writtenOn": "2015-07-13T10:20:26Z",
       "side": 1,
       "message": "doesn\u0027t belong here.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_af02f73b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ef1a3f16",
       "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -206,6 +368,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4fcb2b1e",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_0f1683f1",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2fd4271f",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 7
@@ -217,6 +397,24 @@
       "writtenOn": "2015-07-13T10:20:26Z",
       "side": 1,
       "message": "belongs to router, not port.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6fd2afd3",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_2fd4271f",
       "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -240,6 +438,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8fd533bb",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_4fd7ab23",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6fde2f41",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 7
@@ -251,6 +467,24 @@
       "writtenOn": "2015-07-13T10:20:26Z",
       "side": 1,
       "message": "ditto.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_afdbd7eb",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T11:42:45Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_6fde2f41",
       "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
