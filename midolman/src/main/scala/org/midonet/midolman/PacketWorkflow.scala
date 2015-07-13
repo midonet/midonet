@@ -38,6 +38,7 @@ import org.midonet.midolman.logging.{ActorLogWithoutPath, FlowTracingContext}
 import org.midonet.midolman.management.PacketTracing
 import org.midonet.midolman.monitoring.FlowRecorder
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
+import org.midonet.midolman.openstack.metadata.MetadataServiceWorkflow
 import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedLogicalPacket
@@ -165,6 +166,7 @@ class PacketWorkflow(
             val packetOut: Int => Unit)
         extends Actor with ActorLogWithoutPath with Stash with Backchannel
         with UnderlayTrafficHandler with FlowTranslator with RoutingWorkflow
+        with MetadataServiceWorkflow
         with FlowController with BackChannelHandler {
 
     import PacketWorkflow._
@@ -499,9 +501,21 @@ class PacketWorkflow(
         if (context.origMatch.isFromTunnel) {
             handleFromTunnel(context, inPortNo)
         } else if (resolveVport(context, inPortNo)) {
-            processSimulationResult(context, simulatePacketIn(context))
+            val result = handleMetadataIngress(context)
+
+            if (result != NoOp) {
+                processSimulationResult(context, result)
+            } else {
+                processSimulationResult(context, simulatePacketIn(context))
+            }
         } else {
-            processSimulationResult(context, handleBgp(context, inPortNo))
+            val result = handleMetadataEgress(context)
+
+            if (result != NoOp) {
+                processSimulationResult(context, result)
+            } else {
+                processSimulationResult(context, handleBgp(context, inPortNo))
+            }
         }
     }
 
