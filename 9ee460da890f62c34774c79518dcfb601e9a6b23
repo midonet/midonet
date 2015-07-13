@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_09f84348",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-13T05:33:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_815e0844",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c1581059",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 4
@@ -47,6 +65,24 @@
       "writtenOn": "2015-07-07T09:22:33Z",
       "side": 1,
       "message": "typo: agent",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c9fd7b3d",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-13T05:33:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c1581059",
       "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -70,6 +106,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2996e7f0",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-13T05:33:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_812528c4",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c1065020",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 4
@@ -81,6 +135,24 @@
       "writtenOn": "2015-07-07T09:22:33Z",
       "side": 1,
       "message": "Some diagram  can be useful here to represent the Host setup",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a97757d3",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-13T05:33:29Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c1065020",
       "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -121,6 +193,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_494ecb97",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-13T05:33:29Z",
+      "side": 1,
+      "message": "probably.",
+      "parentUuid": "9ad9bd40_fc3777ae",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_dc52b3dc",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 4
@@ -132,6 +222,24 @@
       "writtenOn": "2015-07-07T09:22:33Z",
       "side": 1,
       "message": "some cleanup is required",
+      "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_097da3b1",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 4
+      },
+      "lineNbr": 218,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-13T05:33:29Z",
+      "side": 1,
+      "message": "this is a property of the tool i\u0027m using.\nlet me leave it until it get sure i don\u0027t need to edit these diagrams anymore.",
+      "parentUuid": "9ad9bd40_dc52b3dc",
       "revId": "9ee460da890f62c34774c79518dcfb601e9a6b23",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
