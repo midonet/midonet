@@ -18,7 +18,6 @@ package org.midonet.cluster.rest_api.models;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -53,8 +52,6 @@ public abstract class Port extends UriResource {
             else throw new IllegalArgumentException("Unknown port type: " + proto);
         }
     }
-
-    private static AtomicLong tunnelKeyGenerator = new AtomicLong();
 
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     public UUID id;
@@ -126,9 +123,6 @@ public abstract class Port extends UriResource {
     public void create() {
         if (null == id) {
             id = UUID.randomUUID();
-        }
-        if (0 == tunnelKey) {
-            tunnelKey = tunnelKeyGenerator.incrementAndGet();
         }
     }
 
