@@ -31,7 +31,7 @@ import static org.midonet.cluster.rest_api.ResourceUris.TENANT_ID_PARAM;
 /**
  * Class representing a tenant object in the identity service.  This is the
  * generic MidoNet representation of tenant models from various identity
- * services that it could integrate with..
+ * services that it could integrate with.
  */
 public class Tenant extends UriResource {
 

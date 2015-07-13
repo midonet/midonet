@@ -23,7 +23,7 @@ import com.sun.jersey.spi.container.ContainerRequestFilter;
 
 import org.midonet.cluster.auth.UserIdentity;
 
-import static org.midonet.api.auth.AuthFilter.USER_IDENTITY_ATTR_KEY;
+import static org.midonet.cluster.rest_api.auth.AuthFilter.USER_IDENTITY_ATTR_KEY;
 
 public class AuthContainerRequestFilter implements ContainerRequestFilter {
 

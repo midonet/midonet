@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 import com.google.inject.Inject;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.auth.AuthDataAccessException;
@@ -38,14 +37,15 @@ import org.midonet.cluster.auth.Token;
 import org.midonet.cluster.auth.UserIdentity;
 import org.midonet.midolman.state.StateAccessException;
 
+import static org.slf4j.LoggerFactory.getLogger;
+
 /**
  * Configurable auth client that skips authentication but allows setting of
  * roles.
  */
 public final class MockAuthService implements AuthService {
 
-    private final static Logger log = LoggerFactory
-            .getLogger(MockAuthService.class);
+    private final static Logger log = getLogger(MockAuthService.class);
     private final MockAuthConfig config;
     private final Map<String, UserIdentity> tokenMap;
     private final DataClient dataClient;
@@ -74,12 +74,12 @@ public final class MockAuthService implements AuthService {
     }
 
     private UserIdentity createUserIdentity() {
-        UserIdentity userIdentity = new UserIdentity();
-        userIdentity.setTenantId("no_auth_tenant_id");
-        userIdentity.setTenantName("no_auth_tenant_name");
-        userIdentity.setUserId("no_auth_user");
-        userIdentity.setToken("no_auth_token");
-        return userIdentity;
+        return new UserIdentity(
+            "no_auth_tenant_id",
+            "no_auth_tenant_name",
+            "no_auth_user",
+            "no_auth_token"
+        );
     }
 
     private void setRoles(String tokenStr, String role) {
@@ -97,13 +97,6 @@ public final class MockAuthService implements AuthService {
         }
     }
 
-    /**
-     * Return a UserIdentity object.
-     *
-     * @param token
-     *            Token to use to get the roles.
-     * @return UserIdentity object.
-     */
     @Override
     public UserIdentity getUserIdentityByToken(String token) {
         log.debug("MockAuthService.getUserIdentityByToken entered. {}", token);
@@ -149,7 +142,7 @@ public final class MockAuthService implements AuthService {
     @Override
     public List<Tenant> getTenants(HttpServletRequest request)
             throws AuthException {
-        List<Tenant> tenantIds = new ArrayList<Tenant>();
+        List<Tenant> tenantIds = new ArrayList<>();
 
         try {
             Set<String> ids = dataClient.tenantsGetAll();
