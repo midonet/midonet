@@ -1,0 +1,259 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ef55dfc6",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/AdRoute.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "do we have \u0027bgp\u0027 objects in v2?",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0f5123d8",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bgp.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "shouldn\u0027t be here.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2f5fc7e6",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bgp.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 46,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "shouldn\u0027t be here, it should be deduced by peer addr.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4f624bae",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "should be on the router object, not port.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6f59cffd",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/RouterPort.java",
+        "patchSetId": 7
+      },
+      "lineNbr": 77,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "what is this?",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_af72f779",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 176,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "the times should be configurable on a per peer basis.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ef6cff9e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 301,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "is port.bgpNetworkIds the set of advertised routes? If so, they should be at the router level, not port.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4f096bdc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpMapper.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 460,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "inconsistent peer vs neighbor.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8f2a932a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 204,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "doesn\u0027t belong here.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cf1bbb1a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 206,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "doesn\u0027t belong here.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ef1a3f16",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 208,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "doesn\u0027t belong here.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0f1683f1",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "belongs to router, not port.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2fd4271f",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "belongs to router, not port.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4fd7ab23",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6fde2f41",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 7
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:20:26Z",
+      "side": 1,
+      "message": "ditto.",
+      "revId": "072743a5c61c4f32626ab5c79384cdd6425fb4a4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
