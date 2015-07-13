@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_325f2ce7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "Should probably be an object. \n\nAlso, Stub, or Blackhole seems to convey the purpose better.",
+      "range": {
+        "startLine": 148,
+        "startChar": 21,
+        "endLine": 148,
+        "endChar": 41
+      },
+      "revId": "41582000e4bf80171634dd6c2dedeb2b7c42f839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_925c78ef",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 158,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "Why needed? You\u0027re injecting the metricRegistry so you should be able to access it there. Same below.",
+      "range": {
+        "startLine": 156,
+        "startChar": 4,
+        "endLine": 158,
+        "endChar": 49
+      },
+      "revId": "41582000e4bf80171634dd6c2dedeb2b7c42f839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_125148d8",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "Does this one need to be an Observer? Why not a plain action?",
+      "range": {
+        "startLine": 670,
+        "startChar": 18,
+        "endLine": 670,
+        "endChar": 69
+      },
+      "revId": "41582000e4bf80171634dd6c2dedeb2b7c42f839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_72429411",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 34,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "nit: inc (it\u0027s more concise, and common in AtomicXX, metrics, etc.)",
+      "range": {
+        "startLine": 34,
+        "startChar": 8,
+        "endLine": 34,
+        "endChar": 17
+      },
+      "revId": "41582000e4bf80171634dd6c2dedeb2b7c42f839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7227f464",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "commented elsewhere, not sure whether these are required as Observer or could be plain actions",
+      "range": {
+        "startLine": 35,
+        "startChar": 49,
+        "endLine": 35,
+        "endChar": 57
+      },
+      "revId": "41582000e4bf80171634dd6c2dedeb2b7c42f839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_12ff88ab",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "commented elsewhere, Stub or Blackhole or Sink or DevNull, etc. might convey the intention better.",
+      "range": {
+        "startLine": 38,
+        "startChar": 6,
+        "endLine": 38,
+        "endChar": 22
+      },
+      "revId": "41582000e4bf80171634dd6c2dedeb2b7c42f839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d2460021",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "mega-nit: def getValue(): Int \u003d zoom.objectObservableCount",
+      "range": {
+        "startLine": 81,
+        "startChar": 38,
+        "endLine": 83,
+        "endChar": 17
+      },
+      "revId": "41582000e4bf80171634dd6c2dedeb2b7c42f839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f255c4c6",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "micros?",
+      "range": {
+        "startLine": 113,
+        "startChar": 63,
+        "endLine": 113,
+        "endChar": 71
+      },
+      "revId": "41582000e4bf80171634dd6c2dedeb2b7c42f839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_52d75023",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T13:42:09Z",
+      "side": 1,
+      "message": "why?",
+      "range": {
+        "startLine": 126,
+        "startChar": 43,
+        "endLine": 126,
+        "endChar": 51
+      },
+      "revId": "41582000e4bf80171634dd6c2dedeb2b7c42f839",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
