@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.services
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Await, Future}
 import scala.reflect.ClassTag
@@ -33,6 +34,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HealthMonitor
 import org.midonet.midolman.management.PacketTracing
+import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -61,7 +63,7 @@ class MidolmanActorsService extends AbstractService {
     implicit protected val tout = new Timeout(60 seconds)
 
     protected def actorSpecs = {
-        val actors = List(
+        val actors = ListBuffer(
             (propsFor(classOf[VirtualTopologyActor]), VirtualTopologyActor.Name),
             (propsFor(classOf[VirtualToPhysicalMapper]).
                 withDispatcher("actors.stash-dispatcher"),
@@ -72,10 +74,17 @@ class MidolmanActorsService extends AbstractService {
             (propsFor(classOf[NetlinkCallbackDispatcher]),
                 NetlinkCallbackDispatcher.Name))
         if (config.healthMonitor.enable)
-            actors :+ (propsFor(classOf[HealthMonitor])
-                .withDispatcher("actors.pinned-dispatcher"), HealthMonitor.Name)
-        else
-            actors
+            actors += (
+                (propsFor(classOf[HealthMonitor])
+                 .withDispatcher("actors.pinned-dispatcher"),
+                 HealthMonitor.Name)
+            )
+        if (config.openstack.metadata.enabled)
+            actors += (
+                (propsFor(classOf[MetadataServiceManagerActor]),
+                 MetadataServiceManagerActor.Name)
+            )
+        actors.toList
     }
 
     protected var supervisorActor: ActorRef = _
