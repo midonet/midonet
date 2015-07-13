@@ -26,10 +26,12 @@ import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.google.inject.name.Names
 import com.google.inject.{AbstractModule, Guice, Singleton}
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
 import org.apache.commons.dbcp2.BasicDataSource
 import org.reflections.Reflections
 import org.slf4j.LoggerFactory
 
+import org.midonet.cluster.auth.AuthModule
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, Minion}
 import org.midonet.cluster.storage._
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
@@ -133,6 +135,7 @@ object ClusterNode extends App {
             bind(classOf[MetricRegistry]).toInstance(metrics)
             bind(classOf[DataSource]).toInstance(dataSrc)
             bind(classOf[ClusterNode.Context]).toInstance(nodeContext)
+            install(new AuthModule(clusterConf.auth, Logger(log)))
 
             // Minion configurations
             bind(classOf[ClusterConfig]).toInstance(clusterConf)

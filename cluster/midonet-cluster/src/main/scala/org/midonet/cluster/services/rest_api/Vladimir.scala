@@ -17,21 +17,23 @@
 package org.midonet.cluster.services.rest_api
 
 import java.util
-
 import javax.validation.Validator
 
+import scala.collection.JavaConversions._
+
+import com.google.inject.Guice._
 import com.google.inject.servlet.{GuiceFilter, GuiceServletContextListener}
-import com.google.inject.{Guice, Inject, Injector}
+import com.google.inject.{Inject, Injector}
 import com.sun.jersey.guice.JerseyServletModule
 import com.sun.jersey.guice.spi.container.servlet.GuiceContainer
 import com.typesafe.scalalogging.Logger
-
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.auth.AuthModule
+import org.midonet.cluster.auth.AuthService
+import org.midonet.cluster.rest_api.auth.{AdminOnlyAuthFilter, AuthFilter}
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider
 import org.midonet.cluster.rest_api.validation.ValidatorProvider
 import org.midonet.cluster.services.rest_api.resources._
@@ -52,30 +54,32 @@ object Vladimir {
         "com.sun.jersey.api.json.POJOMappingFeature"
 
     def servletModule(backend: MidonetBackend, curator: CuratorFramework,
-                      config: ClusterConfig, log: Logger) = {
-        new JerseyServletModule {
-            override def configureServlets(): Unit = {
+                      authService: AuthService, config: ClusterConfig,
+                      log: Logger) = new JerseyServletModule {
+        override def configureServlets(): Unit = {
 
-                install(new AuthModule(config.auth, log))
+            bind(classOf[WildcardJacksonJaxbJsonProvider]).asEagerSingleton()
+            bind(classOf[CorsFilter])
+            bind(classOf[PathBuilder])
+                .toInstance(new PathBuilder(config.backend.rootKey))
+            bind(classOf[CuratorFramework]).toInstance(curator)
+            bind(classOf[MidonetBackend]).toInstance(backend)
+            bind(classOf[AuthService]).toInstance(authService)
+            bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
+            bind(classOf[ApplicationResource])
+            bind(classOf[Validator]).toProvider(classOf[ValidatorProvider])
+                                    .asEagerSingleton()
 
-                bind(classOf[WildcardJacksonJaxbJsonProvider])
-                    .asEagerSingleton()
-                bind(classOf[PathBuilder])
-                    .toInstance(new PathBuilder(config.backend.rootKey))
-                bind(classOf[CuratorFramework]).toInstance(curator)
-                bind(classOf[MidonetBackend]).toInstance(backend)
-                bind(classOf[MidonetBackendConfig]).toInstance(config.backend)
-                bind(classOf[ApplicationResource])
-                bind(classOf[Validator]).toProvider(classOf[ValidatorProvider])
-                    .asEagerSingleton()
-                val initParams = new java.util.HashMap[String, String]
-                initParams.put(ContainerRequestFiltersClass,
-                               LoggingFilterClass)
-                initParams.put(ContainerResponseFiltersClass,
-                               LoggingFilterClass)
-                initParams.put(POJOMappingFeatureClass, "true")
-                serve("/*").`with`(classOf[GuiceContainer], initParams)
-            }
+            filter("/*").through(classOf[CorsFilter])
+            filter("/*").through(classOf[AuthFilter])
+            filter("/*").through(classOf[AdminOnlyAuthFilter])
+
+            val initParams = Map (
+                ContainerRequestFiltersClass -> LoggingFilterClass,
+                ContainerResponseFiltersClass -> LoggingFilterClass,
+                POJOMappingFeatureClass -> "true"
+            )
+            serve("/*").`with`(classOf[GuiceContainer], initParams)
         }
     }
 
@@ -85,6 +89,7 @@ object Vladimir {
 class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                          backend: MidonetBackend,
                          curator: CuratorFramework,
+                         authService: AuthService,
                          config: ClusterConfig)
     extends Minion(nodeContext) {
 
@@ -97,8 +102,9 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
 
     override def doStart(): Unit = {
         log.info(s"Starting REST API service at port: " +
-                 s"${config.restApi.httpPort} and " +
-                 s"root uri = ${config.restApi.rootUri}")
+                 s"${config.restApi.httpPort}, with " +
+                 s"root uri: ${config.restApi.rootUri} " +
+                 s"and auth service: ${authService.getClass.getName}")
 
         server = new Server(config.restApi.httpPort)
 
@@ -106,12 +112,13 @@ class Vladimir @Inject()(nodeContext: ClusterNode.Context,
                                                 ServletContextHandler.SESSIONS)
         context.addEventListener(new GuiceServletContextListener {
             override def getInjector: Injector = {
-                Guice.createInjector(servletModule(backend, curator, config,
-                                                   log))
+                createInjector(servletModule(backend, curator, authService,
+                                             config, log))
             }
         })
-        context.addFilter(classOf[GuiceFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
-        context.addFilter(classOf[CorsFilter], "/*", util.EnumSet.allOf(classOf[DispatcherType]))
+
+        val allDispatchers = util.EnumSet.allOf(classOf[DispatcherType])
+        context.addFilter(classOf[GuiceFilter], "/*", allDispatchers)
         context.addServlet(classOf[DefaultServlet], "/*")
         context.setClassLoader(Thread.currentThread().getContextClassLoader)
 
