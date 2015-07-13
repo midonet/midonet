@@ -24,7 +24,7 @@ project.ext {
         rhelTarget = "7"
     }
 
-    jdkBootstrap = "${rootDir}/midonet-jdk-bootstrap/build/classes/main:${System.properties['java.home']}/lib/rt.jar"
+    jdkBootstrap = "${rootDir}/midonet-jdk-bootstrap/build/classes/main:${System.properties['java.home']}/lib/rt.jar:${System.properties['java.home']}/lib/jce.jar"
     ideaJdkBootstrap = "-Xbootclasspath/p:${rootDir}/idea/out/midonet-jdk-bootstrap"
     scalaLangLevel = 'Scala 2.11.2'
 

@@ -27,20 +27,28 @@ import akka.actor.SupervisorStrategy.Directive;
 import akka.japi.Function;
 import com.google.inject.BindingAnnotation;
 import com.google.inject.Exposed;
+import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
+import com.google.inject.Provider;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.DatapathController;
+import org.midonet.midolman.DatapathState;
 import org.midonet.midolman.NetlinkCallbackDispatcher;
 import org.midonet.midolman.PacketsEntryPoint;
 import org.midonet.midolman.SupervisorActor;
 import org.midonet.midolman.config.MidolmanConfig;
+import org.midonet.midolman.host.scanner.InterfaceScanner;
 import org.midonet.midolman.io.DatapathConnectionPool;
 import org.midonet.midolman.io.UpcallDatapathConnectionManager;
 import org.midonet.midolman.l4lb.HealthMonitor;
+import org.midonet.midolman.openstack.metadata.DatapathInterface;
+import org.midonet.midolman.openstack.metadata.FlowWriter;
+import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor;
+import org.midonet.midolman.openstack.metadata.Plumber;
 import org.midonet.midolman.routingprotocols.RoutingManagerActor;
 import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.midolman.services.MidolmanActorsService;
@@ -48,6 +56,7 @@ import org.midonet.midolman.state.FlowStateStorageFactory;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopologyActor;
 import org.midonet.netlink.NetlinkChannelFactory;
+import org.midonet.odp.OvsNetlinkFamilies;
 import org.midonet.util.UnixClock;
 import org.midonet.util.UnixClock$;
 import org.midonet.util.concurrent.NanoClock;
@@ -113,12 +122,52 @@ public class MidolmanActorsModule extends PrivateModule {
         bind(DatapathController.class);
         bind(PacketsEntryPoint.class);
         bind(NetlinkCallbackDispatcher.class);
+        bind(MetadataServiceManagerActor.class);
         bind(RoutingManagerActor.class);
         bind(HealthMonitor.class);
+
+        bindMetadataService();
     }
 
     protected void bindMidolmanActorsService() {
         bind(MidolmanActorsService.class).in(Singleton.class);
+    }
+
+    protected void bindMetadataService() {
+        bind(DatapathInterface.class).
+        toProvider(new Provider<DatapathInterface>() {
+            @Inject
+            InterfaceScanner scanner;
+
+            @Override
+            public DatapathInterface get() {
+                return new DatapathInterface(scanner);
+            }
+        });
+        bind(FlowWriter.class).toProvider(new Provider<FlowWriter>() {
+            @Inject
+            NetlinkChannelFactory channelFactory;
+
+            @Inject
+            OvsNetlinkFamilies families;
+
+            @Inject
+            DatapathState dpState;
+
+            @Override
+            public FlowWriter get() {
+                return new FlowWriter(channelFactory, families, dpState);
+            }
+        }).in(Singleton.class);
+        bind(Plumber.class).toProvider(new Provider<Plumber>() {
+            @Inject
+            FlowWriter writer;
+
+            @Override
+            public Plumber get() {
+                return new Plumber(writer);
+            }
+        });
     }
 
     @Provides @Exposed
