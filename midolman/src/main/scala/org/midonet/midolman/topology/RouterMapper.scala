@@ -157,9 +157,13 @@ object RouterMapper {
 
             // Add the state for the new routes of this port, and notify its
             // observable on the routes observable.
+            val addedRoutes = new mutable.MutableList[RouteState]
             for (routeId <- port.routeIds if !routes.contains(routeId)) {
                 val routeState = new RouteState(routeId, vt, log)
                 routes += routeId -> routeState
+                addedRoutes += routeState
+            }
+            for (routeState <- addedRoutes) {
                 routesSubject onNext routeState.observable
             }
 
@@ -517,9 +521,13 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
 
         // Create observables for the new ports of this router, and notify them
         // on the ports observable.
+        val addedPorts = new mutable.MutableList[PortState]
         for (portId <- portIds if !ports.contains(portId)) {
             val portState = new PortState(portId, vt, log)
             ports += portId -> portState
+            addedPorts += portState
+        }
+        for (portState <- addedPorts) {
             portRoutesSubject onNext portState.observable
         }
 
@@ -550,9 +558,13 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
         }
         // Add any routes present in the router's configuration, and not part of
         // the local routes map.
+        val addedRoutes = new mutable.MutableList[RouteState]
         for (routeId <- routeIds if !localRoutes.contains(routeId)) {
             val routeState = new RouteState(routeId, vt, log)
             localRoutes += routeId -> routeState
+            addedRoutes += routeState
+        }
+        for (routeState <- addedRoutes) {
             routesSubject onNext routeState.observable
         }
 
