@@ -33,6 +33,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HealthMonitor
 import org.midonet.midolman.management.PacketTracing
+import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -67,6 +68,8 @@ class MidolmanActorsService extends AbstractService {
                 withDispatcher("actors.stash-dispatcher"),
                 VirtualToPhysicalMapper.Name),
             (propsFor(classOf[DatapathController]), DatapathController.Name),
+            (propsFor(classOf[MetadataServiceManagerActor]),
+                MetadataServiceManagerActor.Name),
             (propsFor(classOf[RoutingManagerActor]), RoutingManagerActor.Name),
             (propsFor(classOf[PacketsEntryPoint]), PacketsEntryPoint.Name),
             (propsFor(classOf[NetlinkCallbackDispatcher]),
