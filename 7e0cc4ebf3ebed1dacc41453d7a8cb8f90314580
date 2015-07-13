@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8faff393",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 179,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:30:20Z",
+      "side": 1,
+      "message": "got it.",
+      "parentUuid": "9ad9bd40_afc4b792",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4f86cb66",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 11
@@ -66,6 +84,24 @@
       "side": 1,
       "message": "this was kept a map, to distinguish between being aware of a learned route and having it published in storage.\n\nI guess the difference comes from not having an id for learned routes in v2 (see the comment for syncPeerRoutes below). if you think that it\u0027s necessary to add one, then these changes are not needed.",
       "parentUuid": "9ad9bd40_4f86cb66",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cf773b3a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:30:20Z",
+      "side": 1,
+      "message": "would it make more sense as a Map[Route, Boolean]?",
+      "parentUuid": "9ad9bd40_0f684386",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -107,6 +143,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0f9be372",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:30:20Z",
+      "side": 1,
+      "message": "is \"zk connection lost\u0027 temporary or fatal (session lost, reboot upcoming)?\n\nIn any case, the lifecycle of the actor should be \"correct\", so yes, I\u0027d stop, restart or resubscribe upon errors accordingly.",
+      "parentUuid": "9ad9bd40_cfe2db00",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2f9c27c0",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 11
@@ -142,6 +196,41 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4f8c0b36",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:30:20Z",
+      "side": 1,
+      "message": "then we should stop the actor, right? It\u0027s parent should learn how to handle it.",
+      "parentUuid": "9ad9bd40_eff15fce",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8f861312",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:30:20Z",
+      "side": 1,
+      "message": "which would make this flag redundant.",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8f80d347",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 11
@@ -171,6 +260,24 @@
       "side": 1,
       "message": "To save memory for learned routes, we haven\u0027t added a route id in v2 (see class RoutingTableStorage for rationale, discussion and benchmark results). We can add it if needed but that would increase the zk client buffer requirements/bandwidth when reading a routing table by ~23.5%.\n\nHence, in v2 there is no id to compare. That is also the reason why the map[Route, UUID] was changed to a map[Route, Route]",
       "parentUuid": "9ad9bd40_8f80d347",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_af7cb721",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 415,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-13T10:30:20Z",
+      "side": 1,
+      "message": "got it.",
+      "parentUuid": "9ad9bd40_8f5c53ef",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
