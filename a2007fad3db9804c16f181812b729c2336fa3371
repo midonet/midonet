@@ -71,6 +71,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2fd18757",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-13T09:59:14Z",
+      "side": 1,
+      "message": "That last line should be:\n\n  if (newId !\u003d null) subscribeToIpAddrGroup(newId) else null",
+      "parentUuid": "9ad9bd40_8c162154",
+      "range": {
+        "startLine": 303,
+        "startChar": 0,
+        "endLine": 314,
+        "endChar": 9
+      },
+      "revId": "a2007fad3db9804c16f181812b729c2336fa3371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2f834757",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
         "patchSetId": 3
