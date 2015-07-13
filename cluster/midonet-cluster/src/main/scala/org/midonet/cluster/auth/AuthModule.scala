@@ -16,6 +16,8 @@
 
 package org.midonet.cluster.auth
 
+import scala.util.{Failure, Success, Try}
+
 import com.google.inject.AbstractModule
 import com.typesafe.config.Config
 import com.typesafe.scalalogging.Logger
@@ -24,8 +26,7 @@ import org.apache.commons.configuration.ConfigurationException
 
 import org.midonet.cluster.AuthConfig
 
-class AuthModule(config: AuthConfig, log: Logger)
-    extends AbstractModule {
+class AuthModule(config: AuthConfig, log: Logger) extends AbstractModule {
 
     override def configure(): Unit = {
         bind(classOf[AuthService]).toInstance(newAuthService)
@@ -35,39 +36,37 @@ class AuthModule(config: AuthConfig, log: Logger)
         val authProvider = config.provider
         log.info("Authentication provider: {}", authProvider)
 
-        try {
-
-            val clazz = Class.forName(authProvider)
-            try {
-                val constructor = clazz.getDeclaredConstructor(classOf[Config])
-                constructor.setAccessible(true)
-                constructor.newInstance(config.conf).asInstanceOf[AuthService]
-            } catch {
-                case _: NoSuchMethodException =>
-                    val constructor = clazz.getDeclaredConstructor()
-                    constructor.setAccessible(true)
-                    constructor.newInstance().asInstanceOf[AuthService]
+        Try (
+            Class.forName(authProvider)
+        ) flatMap { clazz =>
+            Try (
+                clazz.getDeclaredConstructor(classOf[Config])
+            ) recover {
+                case e: NoSuchMethodException => clazz.getDeclaredConstructor()
             }
-        } catch {
-            case e: ClassNotFoundException =>
-                throw new ConfigurationException(
-                    s"Cannot find authentication provider $authProvider in" +
-                    s"current class path", e)
-            case e @ (_: InstantiationException |
-                      _: IllegalAccessException |
-                      _: NoSuchMethodException) =>
+        } match {
+            case Success(c) =>
+                c.setAccessible(true)
+                c.newInstance(config.conf).asInstanceOf[AuthService]
+            case e @ Failure(_: InstantiationException |
+                             _: IllegalAccessException |
+                             _: NoSuchMethodException) =>
                 throw new ConfigurationException(
                     s"Authentication provider $authProvider must expose a " +
                     s"either a default constructor or a constructor taking " +
-                    s"a single configuration argument", e)
-            case e: SecurityException =>
+                    s"a single configuration argument", e.exception)
+            case Failure(e: SecurityException) =>
                 throw new ConfigurationException(
                     s"Failed to create an instance of the authentication " +
                     s"provider $authProvider", e)
-            case e: ClassCastException =>
+            case Failure(e: ClassCastException) =>
                 throw new ConfigurationException(
                     s"Authentication provider $authProvider is not a valid", e)
-        }
+            case Failure(e: ClassNotFoundException) =>
+                throw new ConfigurationException(
+                    s"Cannot find authentication provider  " +
+                    s"$authProvider in current class path", e)
+            }
     }
 
 }

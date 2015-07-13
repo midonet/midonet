@@ -25,33 +25,18 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class UserIdentity {
 
-    private String tenantId = null;
-    private String tenantName = null;
-    private String userId = null;
-    private String token = null;
-    private final Set<String> roles = new HashSet<String>();
+    public final String tenantId;
+    public final String tenantName;
+    public final String userId;
+    public final String token;
 
-    public String getTenantId() {
-        return tenantId;
-    }
+    private final Set<String> roles = new HashSet<>();
 
-    public void setTenantId(String tenantId) {
+    public UserIdentity(String tenantId, String tenantName, String userId,
+                        String token) {
         this.tenantId = tenantId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
+        this.tenantName = tenantName;
         this.userId = userId;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
         this.token = token;
     }
 
@@ -63,22 +48,12 @@ public class UserIdentity {
         return roles.contains(role);
     }
 
-    public String getTenantName() {
-        return tenantName;
-    }
-
-    public void setTenantName(String tenantName) {
-        this.tenantName = tenantName;
-    }
-
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("UserIdentity: userId=" + this.userId);
-        sb.append(", token=" + this.token);
-        sb.append(", tenantId=" + this.tenantId);
-        sb.append(", tenantName=" + this.tenantName);
-        sb.append(", roles=" + StringUtils.join(this.roles, '|'));
-        return sb.toString();
+        return "UserIdentity: userId=" + this.userId +
+               ", token=" + this.token +
+               ", tenantId=" + this.tenantId +
+               ", tenantName=" + this.tenantName +
+               ", roles=" + StringUtils.join(this.roles, '|');
     }
 }

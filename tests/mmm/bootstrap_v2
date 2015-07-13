@@ -15,6 +15,8 @@ pushd scripts/midolman
 sudo ./stop
 popd
 
+sudo service tomcat7 stop
+
 sleep 10
 
 echo "Now we tell agents to run on the new stack.."

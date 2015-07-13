@@ -48,7 +48,7 @@ import org.midonet.midolman.state.StateAccessException;
 import static java.lang.System.currentTimeMillis;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.midonet.api.auth.AuthFilter.HEADER_X_AUTH_TOKEN;
+import static org.midonet.cluster.rest_api.auth.AuthFilter.HEADER_X_AUTH_TOKEN;
 import static org.midonet.cluster.rest_api.conversion.TraceRequestDataConverter.toData;
 
 public class TestTraceRequest extends JerseyTest {

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.api.auth;
+package org.midonet.cluster.rest_api.auth;
 
 import java.io.IOException;
 
@@ -30,30 +30,23 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.auth.AuthException;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.UserIdentity;
 import org.midonet.cluster.rest_api.ResponseUtils;
 
-/**
- * Servlet filter for authentication.
- */
+import static javax.servlet.http.HttpServletResponse.*;
+import static org.slf4j.LoggerFactory.getLogger;
+
 @Singleton
 public final class AuthFilter implements Filter {
 
-    private final static Logger log = LoggerFactory.getLogger(AuthFilter.class);
+    private final static Logger log = getLogger("org.midonet.rest_api-auth");
 
-    /**
-     * User identity key
-     */
     public static final String USER_IDENTITY_ATTR_KEY =
             UserIdentity.class.getName();
 
-    /**
-     * HTTP extension token header
-     */
     public final static String HEADER_X_AUTH_TOKEN = "X-Auth-Token";
 
     @Inject
@@ -70,9 +63,7 @@ public final class AuthFilter implements Filter {
      *             A servlet error.
      */
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-        log.debug("AuthFilter.init: entered.");
-    }
+    public void init(FilterConfig filterConfig) throws ServletException {}
 
     /**
      * Called by the container each time a request/response pair is passed
@@ -88,34 +79,31 @@ public final class AuthFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain) throws IOException, ServletException {
-        log.debug("AuthFilter: entered doFilter.");
         HttpServletRequest req = (HttpServletRequest) request; // Assume HTTP.
-
         String token = req.getHeader(HEADER_X_AUTH_TOKEN);
-
-        UserIdentity user = null;
+        UserIdentity user;
         try {
             // It will accept null token since client implementations may
             // want to treat such case differently.
             user = this.service.getUserIdentityByToken(token);
         } catch (AuthException ex) {
             ResponseUtils.setErrorResponse((HttpServletResponse) response,
-                    HttpServletResponse.SC_UNAUTHORIZED, ex.getMessage());
-            log.error("AuthFilter: auth error occurred. ", ex);
+                                           SC_UNAUTHORIZED, ex.getMessage());
+            log.error("Authentication error.", ex);
             return;
         }
 
         if (user != null) {
+            log.info("Accepted auth token from " + req.getRemoteAddr());
             req.setAttribute(USER_IDENTITY_ATTR_KEY, user);
             chain.doFilter(request, response);
         } else {
             // This is the case where a token was invalid.  Challenge the
             // client to submit Basic auth credentials.
+            log.info("Invalid auth token from " + req.getRemoteAddr());
             ResponseUtils.setAuthErrorResponse((HttpServletResponse) response,
                                                "Authentication error");
         }
-
-        log.debug("AuthFilter: exiting doFilter.");
     }
 
     /**
@@ -124,8 +112,6 @@ public final class AuthFilter implements Filter {
      */
     @Override
     public void destroy() {
-        log.debug("AuthFilter.destroy: entered.");
-        // Reset all the member variables.
         this.service = null;
     }
 }
