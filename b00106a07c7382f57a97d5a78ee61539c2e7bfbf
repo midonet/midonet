@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_4f3b2b9c",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T10:05:16Z",
+      "side": 1,
+      "message": "5",
+      "range": {
+        "startLine": 2,
+        "startChar": 16,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "b00106a07c7382f57a97d5a78ee61539c2e7bfbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2f38a79f",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 379,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-13T10:05:16Z",
+      "side": 1,
+      "message": "Option(ref) does the same thing, no?",
+      "range": {
+        "startLine": 375,
+        "startChar": 8,
+        "endLine": 379,
+        "endChar": 9
+      },
+      "revId": "b00106a07c7382f57a97d5a78ee61539c2e7bfbf",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
