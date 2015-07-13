@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_cf0e5b32",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T09:47:27Z",
+      "side": 1,
+      "message": "How about using v1 and v2, the same as in the HostService?",
+      "parentUuid": "9ad9bd40_0c54d11f",
+      "range": {
+        "startLine": 81,
+        "startChar": 36,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ec588d58",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 11
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-13T09:34:12Z",
       "side": 1,
       "message": "this looks dodgy. It seems that the UUID is not used at all in the routing handler.",
+      "range": {
+        "startLine": 89,
+        "startChar": 17,
+        "endLine": 89,
+        "endChar": 27
+      },
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0f3043e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T09:47:27Z",
+      "side": 1,
+      "message": "There is no id for learned routes in the new architecture. This is kept here for compatibility with the dataClient, which does return an id for newly create learned route, and with these changes the id is mainly used to determine whether a route was successfully written to the mock dataClient.\n\nWhen using dataClient, the underlying RouterZkManager.create(...) return a random UUID, which is emulated here.",
+      "parentUuid": "9ad9bd40_ec588d58",
       "range": {
         "startLine": 89,
         "startChar": 17,
@@ -65,6 +113,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6f58ef32",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T09:47:27Z",
+      "side": 1,
+      "message": "I\u0027m not sure if I understood the comment: can you elaborate a bit?",
+      "parentUuid": "9ad9bd40_2c327510",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6c139d66",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 11
@@ -76,6 +142,24 @@
       "writtenOn": "2015-07-13T09:34:12Z",
       "side": 1,
       "message": "there\u0027s nothing here to distinguish learned routes and statically defined routes, so syncPeerRoutes will end up deleting them.",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0f47634c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-13T09:47:27Z",
+      "side": 1,
+      "message": "In v2, the learned routes are stored separately from the static ones (i.e. topology). All routes returned from the state storage are learned routes, since the agent does not modify the zoom topology.",
+      "parentUuid": "9ad9bd40_6c139d66",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
