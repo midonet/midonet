@@ -88,6 +88,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val healthMonitor = new HealthMonitorConfig(conf, schema)
     val host = new HostConfig(conf, schema)
     val neutron = new NeutronConfig(conf, schema)
+    val openstack = new OpenStackConfig(conf, schema)
     val flowHistory = new FlowHistoryConfig(conf, schema)
 }
 
@@ -147,6 +148,17 @@ class HealthMonitorConfig(val conf: Config, val schema: Config) extends TypeFail
 class NeutronConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
     def tasksDb = getString("agent.cluster.tasks_db_connection")
     def enabled = getBoolean("agent.cluster.enabled")
+}
+
+class OpenStackConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def metadata = new MetadataConfig(conf, schema)
+}
+
+class MetadataConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {
+    def enabled = getBoolean("agent.openstack.metadata.enabled")
+    def nova_metadata_url =
+        getString("agent.openstack.metadata.nova_metadata_url")
+    def shared_secret = getString("agent.openstack.metadata.shared_secret")
 }
 
 class FlowHistoryConfig(val conf: Config, val schema: Config) extends TypeFailureFallback {

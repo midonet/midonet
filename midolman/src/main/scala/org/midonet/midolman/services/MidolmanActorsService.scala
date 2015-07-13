@@ -33,6 +33,7 @@ import org.midonet.midolman._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.HealthMonitor
 import org.midonet.midolman.management.PacketTracing
+import org.midonet.midolman.openstack.metadata.MetadataServiceManagerActor
 import org.midonet.midolman.routingprotocols.RoutingManagerActor
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualTopologyActor
@@ -74,8 +75,10 @@ class MidolmanActorsService extends AbstractService {
         if (config.healthMonitor.enable)
             actors :+ (propsFor(classOf[HealthMonitor])
                 .withDispatcher("actors.pinned-dispatcher"), HealthMonitor.Name)
-        else
-            actors
+        if (config.openstack.metadata.enabled)
+            actors :+ (propsFor(classOf[MetadataServiceManagerActor]),
+                MetadataServiceManagerActor.Name)
+        actors
     }
 
     protected var supervisorActor: ActorRef = _
