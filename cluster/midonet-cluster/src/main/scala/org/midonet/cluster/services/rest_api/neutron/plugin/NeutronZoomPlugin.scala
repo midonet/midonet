@@ -29,7 +29,6 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.Inject
 import com.google.protobuf.Message
-
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
@@ -40,14 +39,14 @@ import org.midonet.cluster.data.{ZoomClass, ZoomObject}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.rest_api.{ConflictHttpException, InternalServerErrorHttpException, NotFoundHttpException, ServiceUnavailableHttpException}
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.c3po.{C3POMinion, neutron}
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.concurrent.toFutureOps
 
-class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
-                                  cfg: MidonetBackendConfig,
+class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
+                                  pathBuilder: PathBuilder,
                                   lockFactory: ZookeeperLockFactory)
     extends L3Api with LoadBalancerApi with NetworkApi with SecurityGroupApi {
 
@@ -56,8 +55,10 @@ class NeutronZoomPlugin @Inject()(backend: MidonetBackend,
     private implicit val ec = fromExecutor(MoreExecutors.sameThreadExecutor())
 
     private val timeout = 10.seconds
-    private val store = backend.store
-    private val c3po = C3POMinion.initDataManager(store, cfg)
+    private val store = resourceContext.backend.store
+    private val seqDispenser = resourceContext.seqDispenser
+    private val c3po = C3POMinion.initDataManager(store, seqDispenser,
+                                                  pathBuilder)
 
     private val lockOpNumber = new AtomicInteger(0)
     private val lockName = "neutron-zoom"
