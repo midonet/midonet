@@ -273,20 +273,21 @@ class MidoNodeConfigurator(zk: CuratorFramework,
         zk.newNamespaceAwareEnsurePath(s"/config/schemas").ensure(zkClient)
     }
 
-    def dropSchema(cfg: Config): Config = {
-        def drop(conf: Config, key: String, suffix: String): Config = {
-            if (conf.hasPath(s"$key$suffix"))
-                conf.withoutPath(s"$key$suffix")
-            else
-                conf
-        }
+    def keyWithSuffix(key: String, suffix: String): String = {
+        val keyParts: Seq[String] = ConfigUtil.splitPath(key)
+        ConfigUtil.joinPath(keyParts.dropRight(1).:+(s"${keyParts.last}$suffix"))
+    }
 
+    def dropSchema(cfg: Config): Config = {
         var ret = cfg
         for (entry <- cfg.entrySet()) {
-            if (ret.hasPath(s"${entry.getKey}_type"))
-                ret = ret.withoutPath(s"${entry.getKey}_type")
-            if (entry.getKey.endsWith("_description"))
-                ret = ret.withoutPath(entry.getKey)
+            val typeKey = keyWithSuffix(entry.getKey, "_type")
+            val descrKey = keyWithSuffix(entry.getKey, "_description")
+
+            if (ret.hasPath(typeKey))
+                ret = ret.withoutPath(typeKey)
+            if (ret.hasPath(descrKey))
+                ret = ret.withoutPath(descrKey)
         }
         ret
     }
