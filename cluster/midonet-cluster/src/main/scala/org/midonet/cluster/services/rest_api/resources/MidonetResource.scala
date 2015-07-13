@@ -46,6 +46,7 @@ import org.midonet.cluster.rest_api.models.UriResource
 import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
+import org.midonet.cluster.util.SequenceDispenser
 import org.midonet.util.reactivex._
 
 object MidonetResource {
@@ -121,7 +122,8 @@ object MidonetResource {
 
     case class ResourceContext @Inject() (backend: MidonetBackend,
                                           uriInfo: UriInfo,
-                                          validator: Validator)
+                                          validator: Validator,
+                                          seqDispenser: SequenceDispenser)
 
 }
 
