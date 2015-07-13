@@ -27,7 +27,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{GivenWhenThen, Matchers, FeatureSpecLike}
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.SequenceType.AgentTunnelKeys
+import org.midonet.cluster.util.SequenceType.OverlayTunnelKey
 import org.midonet.util.concurrent.toFutureOps
 import scala.concurrent.duration._
 
@@ -72,13 +72,13 @@ class SequenceDispenserTest extends FeatureSpecLike
         scenario("Get for supported sequences fails") {
             intercept[KeeperException.ConnectionLossException] {
                 val sequencer = new SequenceDispenser(illCurator, conf)
-                sequencer.current(AgentTunnelKeys).await(timeout)
+                sequencer.current(OverlayTunnelKey).await(timeout)
             }
         }
         scenario("Next for supported sequences fails") {
             intercept[KeeperException.ConnectionLossException] {
                 val sequencer = new SequenceDispenser(illCurator, conf)
-                sequencer.next(AgentTunnelKeys).await(timeout)
+                sequencer.next(OverlayTunnelKey).await(timeout)
             }
         }
     }
