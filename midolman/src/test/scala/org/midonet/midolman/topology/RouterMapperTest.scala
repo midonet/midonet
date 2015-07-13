@@ -25,6 +25,7 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
+import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Route.NextHop
@@ -34,12 +35,14 @@ import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.simulation.{Router => SimulationRouter, Chain}
+import org.midonet.midolman.simulation.{Chain, Router => SimulationRouter}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
+import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.tagForRouter
+import org.midonet.util.concurrent._
 import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
@@ -638,6 +641,89 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             device shouldBeDeviceOf router
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
         }
+
+        scenario("Mapper does not emit router until all ports are loaded") {
+            Given("A router with two exterior ports")
+            val router = createRouter()
+            val route1 = createRoute(srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "2.0.0.0/24",
+                                     routerId = Some(router.getId))
+            val route2 = createRoute(srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "3.0.0.0/24",
+                                     routerId = Some(router.getId))
+            val port1 = createExteriorPort(routerId = router.getId)
+                .addRouteId(route1.getId)
+            val port2 = createExteriorPort(routerId = router.getId)
+                .addRouteId(route2.getId)
+            store.multi(Seq(CreateOp(router), CreateOp(route1), CreateOp(route2),
+                            CreateOp(port1), CreateOp(port2)))
+
+            And("A router observer")
+            val obs = createObserver()
+
+            And("A router mapper")
+            val mapper = new RouterMapper(router.getId, vt)
+
+            And("Requesting the ports to have them cached")
+            VirtualTopology.get[RouterPort](port1.getId)
+                           .await(timeout) shouldBeDeviceOf port1
+            VirtualTopology.get[RouterPort](port2.getId)
+                           .await(timeout) shouldBeDeviceOf port2
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the router device")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device shouldBeDeviceOf router
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only route1
+                .setNextHopPortId(port1.getId).asJava
+            device.rTable.lookup(flowOf("1.0.0.0", "3.0.0.0")) should contain only route2
+                .setNextHopPortId(port2.getId).asJava
+        }
+
+        scenario("Mapper does not emit router until all port routes are loaded") {
+            Given("A router with an exterior port and two routes")
+            val router = createRouter()
+            val route1 = createRoute(srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "2.0.0.0/24",
+                                     routerId = Some(router.getId))
+            val route2 = createRoute(srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "3.0.0.0/24",
+                                     routerId = Some(router.getId))
+            val port = createExteriorPort(routerId = router.getId)
+                .addRouteId(route1.getId).addRouteId(route2.getId)
+            store.multi(Seq(CreateOp(router), CreateOp(route1), CreateOp(route2),
+                            CreateOp(port)))
+
+            And("A router observer")
+            val obs = createObserver()
+
+            And("A router mapper")
+            val mapper = new RouterMapper(router.getId, vt)
+
+            And("Requesting the routes to have them cached")
+            val obsRoute = new TestObserver[TopologyRoute]
+                               with AwaitableObserver[TopologyRoute]
+            store.observable(classOf[TopologyRoute], route1.getId)
+                 .subscribe(obsRoute)
+            store.observable(classOf[TopologyRoute], route2.getId)
+                 .subscribe(obsRoute)
+            obsRoute.awaitOnNext(2, timeout) shouldBe true
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receive the router device")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device shouldBeDeviceOf router
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only route1
+                .setNextHopPortId(port.getId).asJava
+            device.rTable.lookup(flowOf("1.0.0.0", "3.0.0.0")) should contain only route2
+                .setNextHopPortId(port.getId).asJava
+        }
     }
 
     feature("Test router route updates") {
@@ -706,6 +792,43 @@ class RouterMapperTest extends MidolmanSpec with TopologyBuilder
             val device = obs.getOnNextEvents.get(2)
             device shouldBeDeviceOf router
             device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) shouldBe empty
+        }
+
+        scenario("Mapper does not emit router until all routes are loaded") {
+            Given("A router with two routes")
+            val router = createRouter()
+            val route1 = createRoute(srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "2.0.0.0/24",
+                                     routerId = Some(router.getId))
+            val route2 = createRoute(srcNetwork = "1.0.0.0/24",
+                                     dstNetwork = "3.0.0.0/24",
+                                     routerId = Some(router.getId))
+            store.multi(Seq(CreateOp(router), CreateOp(route1),
+                            CreateOp(route2)))
+
+            And("A router observer")
+            val obs = new DeviceObserver[SimulationRouter](vt)
+
+            And("A router mapper")
+            val mapper = new RouterMapper(router.getId, vt)
+
+            And("Requesting the routes to have them cached in store")
+            val obsRoute = new TestObserver[TopologyRoute]
+                               with AwaitableObserver[TopologyRoute]
+            vt.store.observable(classOf[TopologyRoute], route1.getId)
+                    .subscribe(obsRoute)
+            vt.store.observable(classOf[TopologyRoute], route2.getId)
+                    .subscribe(obsRoute)
+            obsRoute.awaitOnNext(2, timeout) shouldBe true
+
+            And("The observer subscribes to an observable on the mapper")
+            Observable.create(mapper).subscribe(obs)
+
+            Then("The observer should receove the router device")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            val device = obs.getOnNextEvents.get(0)
+            device.rTable.lookup(flowOf("1.0.0.0", "2.0.0.0")) should contain only route1.asJava
+            device.rTable.lookup(flowOf("1.0.0.0", "3.0.0.0")) should contain only route2.asJava
         }
     }
 
