@@ -29,6 +29,7 @@ import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.ICMP;
 import org.midonet.packets.IPv4Subnet;
+import org.midonet.packets.Unsigned;
 import org.midonet.util.Range;
 
 @ZoomClass(clazz = Neutron.SecurityGroupRule.class)

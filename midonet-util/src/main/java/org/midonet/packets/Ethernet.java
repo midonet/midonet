@@ -61,7 +61,7 @@ public class Ethernet extends BasePacket {
     public static Map<Short, Class<? extends IPacket>> etherTypeClassMap;
 
     static {
-        etherTypeClassMap = new HashMap<Short, Class<? extends IPacket>>();
+        etherTypeClassMap = new HashMap<>();
         etherTypeClassMap.put(ARP.ETHERTYPE, ARP.class);
         etherTypeClassMap.put(IPv4.ETHERTYPE, IPv4.class);
         etherTypeClassMap.put(IPv6.ETHERTYPE, IPv6.class);
@@ -153,7 +153,7 @@ public class Ethernet extends BasePacket {
     }
 
     /**
-     * @param vlanID the vlanIDs to set
+     * @param vlanIDs the vlanIDs to set
      */
     public Ethernet setVlanIDs(List<Short> vlanIDs) {
         this.vlanIDs.addAll(vlanIDs);
