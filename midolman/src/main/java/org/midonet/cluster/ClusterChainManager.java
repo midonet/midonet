@@ -193,6 +193,7 @@ public class ClusterChainManager extends ClusterManager<ChainBuilder> {
 
         @Override
         public void onSuccess(Rule rule) {
+            rule.id = ruleId;
             Collection<UUID> missingRuleIds =
                     chainToMissingRuleIds.get(rule.chainId);
             List<UUID> ruleIds = chainToRuleIds.get(rule.chainId);
