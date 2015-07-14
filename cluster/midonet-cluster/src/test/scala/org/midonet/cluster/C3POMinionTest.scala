@@ -831,6 +831,12 @@ class C3POMinionTest extends C3POMinionTestBase {
         eventually {
             storage.getAll(classOf[Dhcp]).await().size shouldBe 0
         }
+
+        // Delete the DHCP Port, whose fixed IP points to the deleted subnet.
+        executeSqlStmts(insertTaskSql(7, Delete, PortType, null, portId, "tx6"))
+        eventually {
+            storage.exists(classOf[Port], portId).await() shouldBe false
+        }
     }
 
     it should "handle Config / AgentMembership Create" in {

@@ -16,13 +16,11 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.util.Range
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
+import org.midonet.cluster.data.storage.{NotFoundException, ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology._
@@ -35,6 +33,7 @@ import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.cluster.util.{RangeUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ARP
+import org.midonet.util.Range
 import org.midonet.util.concurrent.toFutureOps
 
 object PortTranslator {
@@ -154,7 +153,9 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         } else if (isDhcpPort(nPort)) {
             updateDhcpEntries(nPort,
                               portContext.midoDhcps,
-                              delDhcpServer)
+                              delDhcpServer,
+                              // DHCP may have already been deleted.
+                              ignoreNonExistingDhcp = true)
             midoOps ++= deleteMetaDataServiceRoute(nPort)
         }
         addMidoOps(portContext, midoOps)
@@ -262,15 +263,21 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
     private def updateDhcpEntries(
             nPort: NeutronPort,
             subnetCache: mutable.Map[UUID, Dhcp.Builder],
-            updateFun: (Dhcp.Builder, String, IPAddress) => Unit) {
+            updateFun: (Dhcp.Builder, String, IPAddress) => Unit,
+            ignoreNonExistingDhcp: Boolean = false) {
         for (ipAlloc <- nPort.getFixedIpsList.asScala) {
-            val subnet = subnetCache.getOrElseUpdate(
-                    ipAlloc.getSubnetId,
-                    storage.get(classOf[Dhcp],
-                                ipAlloc.getSubnetId).await().toBuilder)
-            val mac = nPort.getMacAddress
-            val ipAddress = ipAlloc.getIpAddress
-            updateFun(subnet, mac, ipAddress)
+            try {
+                val subnet = subnetCache.getOrElseUpdate(
+                        ipAlloc.getSubnetId,
+                        storage.get(classOf[Dhcp],
+                                    ipAlloc.getSubnetId).await().toBuilder)
+                val mac = nPort.getMacAddress
+                val ipAddress = ipAlloc.getIpAddress
+                updateFun(subnet, mac, ipAddress)
+            } catch {
+                case nfe: NotFoundException if ignoreNonExistingDhcp =>
+                    // Ignores DHCPs already deleted.
+            }
         }
     }
 
@@ -517,10 +524,11 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             List(Create(route))
         }
 
-    /* If the first fixed IP address is configured with a gateway IP address,
-     * delete a route to Meta Data Service from the gateway router.*/
+    /* Deletes the meta data service route for the deleted Neutron Port if the
+     * first fixed IP address is configured with a gateway IP address.*/
     private def deleteMetaDataServiceRoute(nPort: NeutronPort): MidoOpList = {
-        val gateway = findGateway(nPort).getOrElse(return List())
+        val gateway = findGateway(nPort, ignoreDeletedDhcp = true)
+                      .getOrElse(return List())
         val port = storage.get(classOf[Port], gateway.peerRouterPortId).await()
         val routeIds = port.getRouteIdsList.asScala
         val routes = routeIds.map(storage.get(classOf[Route], _)).map(_.await())
@@ -534,18 +542,25 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                                peerRouterPortId: UUID, peerRouter: Router)
 
     /* Find gateway router & router port configured with the port's fixed IP. */
-    private def findGateway(nPort: NeutronPort): Option[Gateway] =
-    if (nPort.getFixedIpsCount == 0) None else {
+    private def findGateway(
+            nPort: NeutronPort, ignoreDeletedDhcp: Boolean = false)
+    : Option[Gateway] = if (nPort.getFixedIpsCount == 0) None else {
         val nextHopGateway = nPort.getFixedIps(0).getIpAddress
         val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
 
-        val dhcp = storage.get(classOf[Dhcp], nextHopGatewaySubnetId).await()
-        if (!dhcp.hasRouterGwPortId) return None
+        val someDhcp: Option[Dhcp] = try {
+            Option(storage.get(classOf[Dhcp], nextHopGatewaySubnetId).await())
+        } catch {
+            case nfe: NotFoundException if ignoreDeletedDhcp => None
+        }
+        someDhcp filter(_.hasRouterGwPortId) map { dhcp =>
+            val rtrGwPort = storage.get(classOf[Port],
+                                        dhcp.getRouterGwPortId).await()
+            val router = storage.get(classOf[Router],
+                                     rtrGwPort.getRouterId).await()
+            Gateway(nextHopGateway, dhcp, rtrGwPort.getId, router)
+        }
 
-        val rtrGwPort = storage.get(classOf[Port],
-                                    dhcp.getRouterGwPortId).await()
-        val router = storage.get(classOf[Router], rtrGwPort.getRouterId).await()
-        Some(Gateway(nextHopGateway, dhcp, rtrGwPort.getId, router))
     }
 
     private def translateNeutronPort(nPort: NeutronPort): Port.Builder = {
