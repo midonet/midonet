@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_41893725",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 7
+      },
+      "lineNbr": 1232,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-14T22:53:28Z",
+      "side": 1,
+      "message": "This is clearly incorrect as midoOps.head is midonet.Create(PORT) and is not PORT. Please see the line above.\n\nAlso, if we look at PortTranslator, it seems that the tunnel key seems to be only specified with a VIF Port, so I\u0027m not sure if the intention of this test is correct.",
+      "range": {
+        "startLine": 1231,
+        "startChar": 0,
+        "endLine": 1232,
+        "endChar": 51
+      },
+      "revId": "3ce9161e7a4304beded8f02935787da724c31e0e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
