@@ -2,6 +2,75 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_151e8d63",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/PortTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 85,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-14T08:52:17Z",
+      "side": 1,
+      "message": "I know we do this some places, but it really isn\u0027t necessary. NeutronTranslator.translate() catches all nonfatal exceptions (including TranslationException) and wraps them in new TranslationException(op, _). I suggest throwing a more specific exception.",
+      "range": {
+        "startLine": 85,
+        "startChar": 30,
+        "endLine": 85,
+        "endChar": 72
+      },
+      "revId": "224945108919694d70a7850dc16440aaeedba64a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9558dd33",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-14T08:52:17Z",
+      "side": 1,
+      "message": "Should either of these be bundled into the ResourceContext?\n\nAlternatively, what\u0027s the justification for the existence of ResourceContext? With injection, is there actually any advantage to bundling resources together?",
+      "range": {
+        "startLine": 49,
+        "startChar": 34,
+        "endLine": 50,
+        "endChar": 67
+      },
+      "revId": "224945108919694d70a7850dc16440aaeedba64a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3547114d",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PortResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 70,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-14T08:52:17Z",
+      "side": 1,
+      "message": "Should we include t as the cause?\n\nAlso, if the getOrElse block throws the exception, this is going to say \"Unable to generate new tunnel key: Unable to generate new tunnel key.\" Might as well just call get instead of getOrElse and catch the exception that throws.",
+      "range": {
+        "startLine": 69,
+        "startChar": 22,
+        "endLine": 70,
+        "endChar": 70
+      },
+      "revId": "224945108919694d70a7850dc16440aaeedba64a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_fe7cabb7",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
         "patchSetId": 1
