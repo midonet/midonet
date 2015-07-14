@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_925b9386",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/neutron/L3ZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 591,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-07-14T07:56:13Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_fc63f717",
+      "revId": "a19395800c5640017d7a987e824da296a7091832",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_3cb71f88",
         "filename": "midolman/src/main/java/org/midonet/cluster/data/neutron/L3ZkManager.java",
         "patchSetId": 1
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-07T11:55:21Z",
       "side": 1,
       "message": "nit comments regarding this if condition:\n\nportZkManager.get() never returns null, so the null check is unnecessary.  Also, the other two lines could shortened to:\n\nObjects.equals(routerPort.getPeerId(), bpId)",
+      "revId": "a19395800c5640017d7a987e824da296a7091832",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b25ed774",
+        "filename": "midolman/src/main/java/org/midonet/cluster/data/neutron/L3ZkManager.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 601,
+      "author": {
+        "id": 1002741
+      },
+      "writtenOn": "2015-07-14T07:56:13Z",
+      "side": 1,
+      "message": "I removed this function from the patch.",
+      "parentUuid": "9ad9bd40_3cb71f88",
       "revId": "a19395800c5640017d7a987e824da296a7091832",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
