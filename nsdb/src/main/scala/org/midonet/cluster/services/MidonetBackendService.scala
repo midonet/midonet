@@ -99,7 +99,7 @@ abstract class MidonetBackend extends AbstractService {
         store.declareBinding(classOf[Port], "peer_id", CLEAR,
                              classOf[Port], "peer_id", CLEAR)
         store.declareBinding(classOf[Port], "dhcp_id", CLEAR,
-                             classOf[Dhcp], "router_gw_port_id", CLEAR)
+                             classOf[Dhcp], "router_if_port_id", CLEAR)
         store.declareBinding(classOf[Port], "host_id", CLEAR,
                              classOf[Host], "port_ids", CLEAR)
         store.declareBinding(classOf[Port], "port_group_ids", CLEAR,
