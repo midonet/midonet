@@ -737,7 +737,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             br.getDhcpIdsList.asScala.map(_.asJava).toList
         )
 
-        log.debug("Bridge ready: {}", device)
+        log.debug("Build bridge: {}", device)
 
         device
     }

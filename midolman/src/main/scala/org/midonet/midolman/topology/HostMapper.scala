@@ -90,30 +90,31 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         assertThread()
         update match {
             case host: TopologyHost =>
-                log.debug("Update for host {}", hostId)
+                val tunnelZoneIds =
+                    host.getTunnelZoneIdsList.asScala.map(_.asJava).toSet
+                val portIds =
+                    host.getPortIdsList.asScala.map(_.asJava).toSet
+                log.debug("Host updated with tunnel zones: {} bound ports: {}",
+                          tunnelZoneIds, portIds)
 
-                updateDeviceState(
-                    host.getTunnelZoneIdsList.asScala.map(_.asJava).toSet,
-                    tunnelZones, tunnelZonesSubject)
-                updateDeviceState(
-                    host.getPortIdsList.asScala.map(_.asJava).toSet,
-                    ports, portsSubject)
+                updateDeviceState(tunnelZoneIds, tunnelZones, tunnelZonesSubject)
+                updateDeviceState(portIds, ports, portsSubject)
 
                 currentHost = host
             case a: Boolean =>
-                log.debug("Host {} alive changed: {}", hostId, Boolean.box(a))
+                log.debug("Host alive changed: {}", Boolean.box(a))
                 alive = Some(a)
             case tunnelZone: TunnelZone if tunnelZones.contains(tunnelZone.id) =>
-                log.debug("Update for tunnel zone {}", tunnelZone.id)
+                log.debug("Host tunnel zone updated: {}", tunnelZone.id)
             case port: Port if ports.contains(port.id) =>
-                log.debug("Update for port {}", port.id)
+                log.debug("Host bound port updated: {}", port)
             case _ => log.warn("Unexpected update: ignoring")
         }
 
         val ready = (currentHost ne null) && alive.isDefined &&
                     tunnelZones.forall(_._2.isReady) &&
                     ports.forall(_._2.isReady)
-        log.debug("Host {} ready: {}", hostId, Boolean.box(ready))
+        log.debug("Host ready: {}", Boolean.box(ready))
         ready
     }
 
@@ -122,7 +123,6 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
      * host, tunnel-zones, ports and alive information.
      */
     private def deviceUpdated(update: Any): SimulationHost = {
-        log.debug("Processing and creating host {} device", hostId)
         assertThread()
 
         // Compute the tunnel zones to IP mapping for this host.
@@ -138,6 +138,9 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
         host.alive = alive.get
         host.tunnelZones = tzIps.toMap
         host.portBindings = portBdgs.toMap
+
+        log.debug("Build host: {}", host)
+
         host
     }
 
@@ -147,7 +150,7 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
      * observables, and the alive observable.
      */
     private def hostDeleted(): Unit = {
-        log.debug("Host {} deleted", hostId)
+        log.debug("Host deleted")
         assertThread()
         tunnelZonesSubject.onCompleted()
         tunnelZones.values.foreach(_.complete())
