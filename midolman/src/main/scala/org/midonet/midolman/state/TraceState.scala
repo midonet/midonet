@@ -136,7 +136,7 @@ trait TraceState extends FlowState { this: PacketContext =>
     }
 
     def enableTracing(traceRequestId: UUID): Unit = {
-        val key = TraceKey.fromFlowMatch(origMatch)
+        val key = TraceKey.fromFlowMatch(currentMatch)
         if (!traceContext.enabled) {
             val storedCtx = traceTx.get(key)
             if (storedCtx == null) {
@@ -173,8 +173,8 @@ trait TraceState extends FlowState { this: PacketContext =>
     }
 
     def hasTraceTunnelBit: Boolean = {
-        TraceState.traceBitPresent(origMatch.getTunnelKey) &&
-                origMatch.getTunnelKey != FlowStatePackets.TUNNEL_KEY
+        TraceState.traceBitPresent(currentMatch.getTunnelKey) &&
+                currentMatch.getTunnelKey != FlowStatePackets.TUNNEL_KEY
     }
 
     def stripTraceBit(m: FlowMatch): Unit = {
@@ -184,7 +184,7 @@ trait TraceState extends FlowState { this: PacketContext =>
     }
 
     def enableTracingOnEgress(): Unit = {
-        val key = TraceKey.fromFlowMatch(origMatch)
+        val key = TraceKey.fromFlowMatch(currentMatch)
         val storedContext = traceTx.get(key)
         log = PacketContext.traceLog
         if (storedContext == null) {

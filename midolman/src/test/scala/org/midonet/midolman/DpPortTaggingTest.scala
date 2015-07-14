@@ -53,7 +53,7 @@ class DpPortTaggingTest extends MidolmanSpec {
     scenario ("Flow is tagged with input and output DP ports") {
         val context = packetContextFor({ eth src MAC.random() dst MAC.random() },
                                        inPort)
-        context.origMatch.setInputPortNumber(inPortNumber)
+        context.currentMatch.setInputPortNumber(inPortNumber)
         context.wcmatch.setInputPortNumber(inPortNumber)
         workflow.start(context) should not be Drop
         context should be (taggedWith(FlowTagger.tagForDpPort(inPortNumber),

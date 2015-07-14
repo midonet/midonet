@@ -54,13 +54,13 @@ class MockDatapathChannel(val flowsTable: JMap[FlowMatch, Flow] = null)
         }
 
         if (context.flow ne null) {
-            val flow = new Flow(context.origMatch, context.flowActions)
+            val flow = new Flow(context.currentMatch, context.flowActions)
             if (flowCreateCb ne null) {
                 flowCreateCb(flow)
             }
 
             if (flowsTable ne null) {
-                flowsTable.put(context.origMatch, flow)
+                flowsTable.put(context.currentMatch, flow)
             }
         }
 
