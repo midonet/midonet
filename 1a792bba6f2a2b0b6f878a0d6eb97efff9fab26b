@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_7208cf91",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 219,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-14T06:34:41Z",
+      "side": 1,
+      "message": "I know I originally suggested this, but Samir\u0027s going to complain if we have all these multiline log statements.",
+      "range": {
+        "startLine": 219,
+        "startChar": 49,
+        "endLine": 219,
+        "endChar": 53
+      },
+      "revId": "1a792bba6f2a2b0b6f878a0d6eb97efff9fab26b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
