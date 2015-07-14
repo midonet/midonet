@@ -26,6 +26,7 @@ import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.MAC;
+import org.midonet.packets.Unsigned;
 
 
 public class RuleBuilder {
@@ -140,7 +141,7 @@ public class RuleBuilder {
     }
 
     public RuleBuilder notARP() {
-        c.etherType = (int) ARP.ETHERTYPE;
+        c.etherType = Unsigned.unsign(ARP.ETHERTYPE);
         c.invDlType = true;
         return this;
     }
@@ -154,7 +155,7 @@ public class RuleBuilder {
     public RuleBuilder notFromSubnet(IPSubnet sub) {
         c.nwSrcIp = sub;
         c.nwSrcInv = true;
-        c.etherType = (int) sub.ethertype();
+        c.etherType = Unsigned.unsign(sub.ethertype());
         return this;
     }
 
