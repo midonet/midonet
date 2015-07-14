@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_550655cf",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 1235,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-14T09:51:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_756279ae",
+      "range": {
+        "startLine": 1231,
+        "startChar": 0,
+        "endLine": 1235,
+        "endChar": 9
+      },
+      "revId": "20fa9229cdeabe2c479600da12f387c196258650",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d54b4529",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
         "patchSetId": 2
@@ -72,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d520a54b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-14T09:51:57Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d54b4529",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 9
+      },
+      "revId": "20fa9229cdeabe2c479600da12f387c196258650",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b545e118",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
         "patchSetId": 2
@@ -83,6 +131,30 @@
       "writtenOn": "2015-07-14T09:28:16Z",
       "side": 1,
       "message": "Do we really want to fail the request because of contention? Why not retry? TrySetCount() will only return false for a BadVersionException due to contention. If there\u0027s some kind of connection error it will throw that exception.\n\nSomething like:\n  var cur \u003d counter.getVersionedValue\n  while (!counter.trySetCount(cur, cur.getValue + 1)) {\n      cur \u003d counter.getVersionedValue\n  }\n  counter.close()\n  Some(cur.getValue + 1)\n\nAlthough the Some isn\u0027t really needed, since now you can take the Option out altogether. Maybe you could put a limit on the number of retries just in case, although I can\u0027t see how this could get stuck in an infinite loop.\n\nI really don\u0027t like having the function return an Option when there\u0027s a possibility of throwing an exception anyway, and no clear justification for treating the Option and Exception cases differently. This complicates things for the caller, as you probably noticed when you had to call it. Maybe just throw an exception if it reaches the retry limit.",
+      "range": {
+        "startLine": 82,
+        "startChar": 0,
+        "endLine": 84,
+        "endChar": 80
+      },
+      "revId": "20fa9229cdeabe2c479600da12f387c196258650",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b52a412a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-14T09:51:57Z",
+      "side": 1,
+      "message": "Yeah, I got carried away with retries and was just dumping that on the client. Added retries, but bounded.",
+      "parentUuid": "9ad9bd40_b545e118",
       "range": {
         "startLine": 82,
         "startChar": 0,
