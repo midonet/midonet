@@ -48,6 +48,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b513210c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 74,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-14T09:45:06Z",
+      "side": 1,
+      "message": "Agree, the enumeration values can also contain the zk path.",
+      "parentUuid": "9ad9bd40_d54b4529",
+      "range": {
+        "startLine": 72,
+        "startChar": 0,
+        "endLine": 74,
+        "endChar": 9
+      },
+      "revId": "20fa9229cdeabe2c479600da12f387c196258650",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b545e118",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/util/SequenceDispenser.scala",
         "patchSetId": 2
