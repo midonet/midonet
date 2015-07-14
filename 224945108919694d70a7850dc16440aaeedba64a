@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_b55b212d",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-14T08:47:14Z",
+      "side": 1,
+      "message": "Yeah, I prefer to use this approach when the overrides are small as it ends up similar to programming the mock.",
+      "parentUuid": "9ad9bd40_fe7cabb7",
+      "range": {
+        "startLine": 109,
+        "startChar": 4,
+        "endLine": 119,
+        "endChar": 5
+      },
+      "revId": "224945108919694d70a7850dc16440aaeedba64a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_3e4e1397",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-14T00:31:08Z",
       "side": 1,
       "message": "Should Router Interface Port have a tunnel key?",
+      "range": {
+        "startLine": 1226,
+        "startChar": 4,
+        "endLine": 1235,
+        "endChar": 9
+      },
+      "revId": "224945108919694d70a7850dc16440aaeedba64a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f53cc9c1",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 1235,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-14T08:47:14Z",
+      "side": 1,
+      "message": "All ports created in midonet do get one. I added the assert here because it has the midoOp exposed already.",
+      "parentUuid": "9ad9bd40_3e4e1397",
       "range": {
         "startLine": 1226,
         "startChar": 4,
