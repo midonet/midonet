@@ -151,29 +151,24 @@ class FlowTracingHandler(storage: FlowTracingStorageBackend)
     }
 
     def handleFlowCountRequest(req: FlowCountRequest): FlowCountResponse = {
+        val minTimestamp = if (req.hasMinTimestamp)
+            Some(new Date(req.getMinTimestamp)) else None
+        val maxTimestamp = if (req.hasMaxTimestamp)
+            Some(new Date(req.getMaxTimestamp)) else None
         val count = storage.getFlowCount(req.getTraceRequestId,
-                                         if (req.hasMaxTimestamp)
-                                             new Date(req.getMaxTimestamp)
-                                         else
-                                             new Date(),
-                                         if (req.hasLimit)
-                                             req.getLimit
-                                         else
-                                             Int.MaxValue)
-        FlowCountResponse.newBuilder()
-            .setCount(count).build()
+                                         minTimestamp, maxTimestamp)
+        FlowCountResponse.newBuilder().setCount(count).build()
     }
 
     def handleFlowTracesRequest(req: FlowTracesRequest): FlowTracesResponse = {
+        val minTimestamp = if (req.hasMinTimestamp)
+            Some(new Date(req.getMinTimestamp)) else None
+        val maxTimestamp = if (req.hasMaxTimestamp)
+            Some(new Date(req.getMaxTimestamp)) else None
+        val limit = if (req.hasLimit) Some(req.getLimit()) else None
         val flows = storage.getFlowTraces(req.getTraceRequestId,
-                                          if (req.hasMaxTimestamp)
-                                             new Date(req.getMaxTimestamp)
-                                         else
-                                             new Date(),
-                                         if (req.hasLimit)
-                                             req.getLimit
-                                         else
-                                             Int.MaxValue)
+                                          minTimestamp, maxTimestamp,
+                                          req.getAscending, limit)
         import FlowTraceUtil._
         val builder = FlowTracesResponse.newBuilder
         var i = 0
@@ -186,17 +181,17 @@ class FlowTracingHandler(storage: FlowTracingStorageBackend)
 
     def handleFlowTraceDataRequest(req: FlowTraceDataRequest):
             FlowTraceDataResponse = {
+        val minTimestamp = if (req.hasMinTimestamp)
+            Some(new Date(req.getMinTimestamp)) else None
+        val maxTimestamp = if (req.hasMaxTimestamp)
+            Some(new Date(req.getMaxTimestamp)) else None
+        val limit = if (req.hasLimit) Some(req.getLimit()) else None
+
         val (ftrace, data) =
             storage.getFlowTraceData(req.getTraceRequestId,
                                      req.getFlowTraceId,
-                                     if (req.hasMaxTimestamp)
-                                         new Date(req.getMaxTimestamp)
-                                     else
-                                         new Date(),
-                                     if (req.hasLimit)
-                                         req.getLimit
-                                     else
-                                         Int.MaxValue)
+                                     minTimestamp, maxTimestamp,
+                                     req.getAscending, limit)
         import FlowTraceUtil._
         val builder = FlowTraceDataResponse.newBuilder
         builder.setTrace(ftrace)

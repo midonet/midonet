@@ -100,10 +100,8 @@ class CassandraFlowTracingServiceTest extends FeatureSpec with Matchers
             insertData(100)
             val storage = new CassandraFlowTracingStorage(cass)
 
-            storage.getFlowCount(traceRequestId, new Date(),
-                                 Integer.MAX_VALUE) should be (1)
-            val flows = storage.getFlowTraces(traceRequestId, new Date(),
-                                              Integer.MAX_VALUE)
+            storage.getFlowCount(traceRequestId) should be (1)
+            val flows = storage.getFlowTraces(traceRequestId)
             flows.size should be (1)
             val flowTrace = flows.get(0)
             flowTrace.id should be (flowTraceId)
@@ -120,7 +118,7 @@ class CassandraFlowTracingServiceTest extends FeatureSpec with Matchers
 
             val storage = new CassandraFlowTracingStorage(cass)
             val (flowTrace, data) = storage.getFlowTraceData(
-                traceRequestId, flowTraceId, new Date(), Integer.MAX_VALUE)
+                traceRequestId, flowTraceId)
             data.size should be (100)
             flowTrace.id should be (flowTraceId)
             flowTrace.ethSrc should be (srcMAC)
@@ -133,8 +131,7 @@ class CassandraFlowTracingServiceTest extends FeatureSpec with Matchers
             val storage = new CassandraFlowTracingStorage(cass)
             try {
                 storage.getFlowTraceData(
-                    traceRequestId, UUIDs.timeBased(), new Date(),
-                    Integer.MAX_VALUE)
+                    traceRequestId, UUIDs.timeBased())
                 fail("Should have thrown an exception")
             } catch {
                 case t: TraceNotFoundException => { /* correct */ }

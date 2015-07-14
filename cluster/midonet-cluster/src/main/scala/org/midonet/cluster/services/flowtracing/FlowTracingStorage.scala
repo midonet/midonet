@@ -22,14 +22,19 @@ import org.midonet.packets.{IPAddr, MAC}
 
 trait FlowTracingStorageBackend {
     def getFlowCount(traceRequestId: UUID,
-                     maxTime: Date, limit: Int): Long
+                     minTime: Option[Date] = None,
+                     maxTime: Option[Date] = None): Long
     def getFlowTraces(traceRequestId: UUID,
-                      maxTime: Date,
-                      limit: Int): List[FlowTrace]
+                      minTime: Option[Date] = None,
+                      maxTime: Option[Date] = None,
+                      ascending: Boolean = false,
+                      limit: Option[Int] = None): List[FlowTrace]
     def getFlowTraceData(traceRequestId: UUID,
                          flowTraceId: UUID,
-                         maxTime: Date,
-                         limit: Int): (FlowTrace, List[FlowTraceData])
+                         minTime: Option[Date] = None,
+                         maxTime: Option[Date] = None,
+                         ascending: Boolean = false,
+                         limit: Option[Int] = None): (FlowTrace, List[FlowTraceData])
 }
 
 case class FlowTrace(id: UUID, ethSrc: MAC, ethDst: MAC, etherType: Short = 0,

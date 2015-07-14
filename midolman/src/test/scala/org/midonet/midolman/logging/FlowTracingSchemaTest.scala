@@ -51,8 +51,11 @@ class FlowTracingSchemaTest extends FeatureSpec
     var insertStatement: PreparedStatement = _
     var dataInsertStatement: PreparedStatement = _
     var countStatement: PreparedStatement = _
+    var countStatementAsc: PreparedStatement = _
     var getFlowsStatement: PreparedStatement = _
+    var getFlowsStatementAsc: PreparedStatement = _
     var getDataStatement: PreparedStatement = _
+    var getDataStatementAsc: PreparedStatement = _
 
     val traceId1 = UUID.randomUUID
     val traceId2 = UUID.randomUUID
@@ -83,15 +86,20 @@ class FlowTracingSchemaTest extends FeatureSpec
         Await.result(sessionF, 10 seconds)
 
         insertStatement = cass.session.prepare(
-            FlowTracingSchema.flowInsertCQL)
+            FlowTracingSchema.flowInsertCQL).enableTracing
         dataInsertStatement = cass.session.prepare(
-            FlowTracingSchema.dataInsertCQL)
+            FlowTracingSchema.dataInsertCQL).enableTracing
         countStatement = cass.session.prepare(
-            FlowTracingSchema.countFlowTracesCQL)
+            FlowTracingSchema.countFlowTracesCQL).enableTracing
         getFlowsStatement = cass.session.prepare(
-            FlowTracingSchema.getFlowTracesCQL)
+            FlowTracingSchema.getFlowTracesCQL).enableTracing
+        getFlowsStatementAsc = cass.session.prepare(
+            FlowTracingSchema.getFlowTracesCQLAsc).enableTracing
+
         getDataStatement = cass.session.prepare(
-            FlowTracingSchema.getTraceDataCQL)
+            FlowTracingSchema.getTraceDataCQL).enableTracing
+        getDataStatementAsc = cass.session.prepare(
+            FlowTracingSchema.getTraceDataCQLAsc).enableTracing
     }
 
     feature("Writing flow traces to cassandra") {
@@ -100,8 +108,7 @@ class FlowTracingSchemaTest extends FeatureSpec
 
             val res1 = cass.session.execute(
                 FlowTracingSchema.bindFlowCountStatement(
-                    countStatement, traceId1, new Date(),
-                    Integer.MAX_VALUE))
+                    countStatement, traceId1))
             val rows = res1.all
             rows.size should be (1)
             rows.get(0).getLong("count") should be (3)
@@ -109,8 +116,8 @@ class FlowTracingSchemaTest extends FeatureSpec
             // offset by timestamp
             val res2 = cass.session.execute(
                 FlowTracingSchema.bindFlowCountStatement(
-                    countStatement, traceId1, new Date(UUIDs.unixTimestamp(flowTraceId3)),
-                    Integer.MAX_VALUE))
+                    countStatement, traceId1,
+                    maxTime=Some(new Date(UUIDs.unixTimestamp(flowTraceId3)))))
             val rows2 = res2.all
             rows2.size should be (1)
             rows2.get(0).getLong("count") should be (2)
@@ -118,15 +125,15 @@ class FlowTracingSchemaTest extends FeatureSpec
             // limiting reads
             val res3 = cass.session.execute(
                 FlowTracingSchema.bindFlowCountStatement(
-                    countStatement, traceId1, new Date(), 1))
+                    countStatement, traceId1))
             val rows3 = res3.all
             rows3.size should be (1)
-            rows3.get(0).getLong("count") should be (1)
+            rows3.get(0).getLong("count") should be (3)
 
             val res4 = cass.session.execute(
                 FlowTracingSchema.bindFlowCountStatement(
-                    countStatement, traceId2, new Date(UUIDs.unixTimestamp(flowTraceId1)),
-                    Integer.MAX_VALUE))
+                    countStatement, traceId2,
+                    maxTime=Some(new Date(UUIDs.unixTimestamp(flowTraceId1)))))
             val rows4 = res4.all
             rows4.size should be (1)
             rows4.get(0).getLong("count") should be (0)
@@ -137,8 +144,7 @@ class FlowTracingSchemaTest extends FeatureSpec
 
             val res1 = cass.session.execute(
                 FlowTracingSchema.bindGetFlowsStatement(getFlowsStatement,
-                                                        traceId1, new Date(),
-                                                        Integer.MAX_VALUE))
+                                                        traceId1))
             val rows1 = res1.all
             rows1.size should be (3)
             val flowTraceIds = rows1.asScala.map(
@@ -149,8 +155,9 @@ class FlowTracingSchemaTest extends FeatureSpec
 
             val res2 = cass.session.execute(
                 FlowTracingSchema.bindGetFlowsStatement(
-                    getFlowsStatement,traceId1,
-                    new Date(UUIDs.unixTimestamp(flowTraceId2)), 1))
+                    getFlowsStatement, traceId1,
+                    maxTime=Some(new Date(UUIDs.unixTimestamp(flowTraceId2))),
+                    limit=Some(1)))
             val rows2 = res2.all
             rows2.size should be (1)
             rows2.get(0).getUUID("flowTraceId") should be (flowTraceId1)
@@ -186,33 +193,66 @@ class FlowTracingSchemaTest extends FeatureSpec
 
             val res1 = cass.session.execute(
                 FlowTracingSchema.bindGetDataStatement(
-                    getDataStatement, traceId1, flowTraceId3,
-                    new Date(), Integer.MAX_VALUE))
+                    getDataStatement, traceId1, flowTraceId3))
             res1.all.size should be (100)
 
             val res2 = cass.session.execute(
                 FlowTracingSchema.bindGetDataStatement(
                     getDataStatement, traceId1, flowTraceId3,
-                    new Date(filterTime), Integer.MAX_VALUE))
+                    maxTime=Some(new Date(filterTime))))
             res2.all.size should be (10)
 
             val res3 = cass.session.execute(
                 FlowTracingSchema.bindGetDataStatement(
                     getDataStatement, traceId2, flowTraceId2,
-                    new Date(filterTime), Integer.MAX_VALUE))
+                    maxTime=Some(new Date(filterTime))))
             res3.all.size should be (10)
 
             val res4 = cass.session.execute(
                 FlowTracingSchema.bindGetDataStatement(
                     getDataStatement, traceId1, flowTraceId3,
-                    new Date(filterTime), 3))
+                    maxTime=Some(new Date(filterTime)),
+                    limit=Some(3)))
             res4.all.size should be (3)
 
             val res5 = cass.session.execute(
                 FlowTracingSchema.bindGetDataStatement(
-                    getDataStatement, traceId1, flowTraceId1,
-                    new Date(), Integer.MAX_VALUE))
+                    getDataStatement, traceId1, flowTraceId1))
             res5.all.size should be (0)
+        }
+
+        scenario("Counting from oldest first") {
+            val startTime = System.currentTimeMillis()
+            cass.session.execute(
+                FlowTracingSchema.bindDataInsertStatement(
+                    dataInsertStatement, traceId1, flowTraceId1,
+                    UUID.randomUUID, "data1"))
+
+            Thread.sleep(1000)
+            val secondTime = System.currentTimeMillis()
+            cass.session.execute(
+                FlowTracingSchema.bindDataInsertStatement(
+                    dataInsertStatement, traceId1, flowTraceId1,
+                    UUID.randomUUID, "data2"))
+
+            val res1 = cass.session.execute(
+                FlowTracingSchema.bindGetDataStatement(
+                    getDataStatementAsc, traceId1, flowTraceId1,
+                    minTime=Some(new Date(startTime)),
+                    limit=Some(1)))
+            var rows1 = res1.all
+            rows1.size should be (1)
+            rows1.get(0).getString("data") should be ("data1")
+
+
+            val res2 = cass.session.execute(
+                FlowTracingSchema.bindGetDataStatement(
+                    getDataStatementAsc, traceId1, flowTraceId1,
+                    minTime=Some(new Date(secondTime)),
+                    limit=Some(1)))
+            var rows2 = res2.all
+            rows2.size should be (1)
+            rows2.get(0).getString("data") should be ("data2")
         }
     }
 
