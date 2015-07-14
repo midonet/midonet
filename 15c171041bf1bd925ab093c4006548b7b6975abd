@@ -172,6 +172,23 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e87230e2",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-14T14:30:53Z",
+      "side": 1,
+      "message": "I\u0027m really not understanding why checkpointAction is needed, can you explain? (I also followed up on the email thread, please check that out).\n\nAlso, I don\u0027t understand why MirrorRule calls pktContext.applyMirrorring() and yet we need special code and this checkpoing here. I think i\u0027m missing something, but it looks to me that if the rule itself is calling into the packet context to apply the mirroring, there should be nothing at all left to do out here.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0863d4dc",
         "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
         "patchSetId": 2
