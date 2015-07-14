@@ -176,7 +176,7 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
             id { $nIpv4Subnet1Id }
             network_id { $networkId }
             subnet_address { $ipv4Subnet1 }
-            router_gw_port_id { $peerRouterPortId }
+            router_if_port_id { $peerRouterPortId }
         """
     val mIpv4Dhcp = mDhcpFromTxt(midoIpv4Dhcp)
 

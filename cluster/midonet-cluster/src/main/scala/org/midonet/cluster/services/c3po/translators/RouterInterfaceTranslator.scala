@@ -125,8 +125,7 @@ class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
         // its DHCP Port.
         val mNetwork = storage.get(classOf[Network], networkId).await()
         val portIds = mNetwork.getPortIdsList.asScala
-        val portFutures = portIds.map(storage.get(classOf[NeutronPort], _))
-        val ports = portFutures.map(_.await())
+        val ports = storage.getAll(classOf[NeutronPort], portIds).await()
         val dhcpPortOpt = ports.find(
             port => isDhcpPort(port) && port.getFixedIpsCount > 0)
         dhcpPortOpt.map(p => Create(newMetaDataServiceRoute(
