@@ -493,8 +493,8 @@ class JsonSerialization {
             var i = 0
             while (i < rules.size) {
                 jgen.writeStartObject()
-                jgen.writeStringField("id", rules.get(i).rule.toString)
-                jgen.writeStringField("result", rules.get(i).result.toString)
+                jgen.writeStringField("id", String.valueOf(rules.get(i).rule))
+                jgen.writeStringField("result", String.valueOf(rules.get(i).result))
                 jgen.writeEndObject()
 
                 i += 1
