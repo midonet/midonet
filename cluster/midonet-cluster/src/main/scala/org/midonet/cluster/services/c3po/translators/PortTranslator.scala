@@ -504,15 +504,14 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val gateway = findGateway(nPort).getOrElse(return List())
         val port = storage.get(classOf[Port], gateway.peerRouterPortId).await()
         val routeIds = port.getRouteIdsList.asScala
-        val routes = routeIds.map(storage.get(classOf[Route], _)).map(_.await())
+        val routes = storage.getAll(classOf[Route], routeIds).await()
         val route = routes.find(isMetaDataSvrRoute(_, gateway.nextHop))
-            .getOrElse(return List())
-        List(Delete(classOf[Route], route.getId))
+        route.toList.map(r => Delete(classOf[Route], r.getId))
     }
 
     /* The next hop gateway context for Neutron Port. */
     private case class Gateway(nextHop: IPAddress, nextHopDhcp: Dhcp,
-                               peerRouterPortId: UUID, peerRouter: Router)
+                               peerRouterPortId: UUID)
 
     /* Find gateway router & router port configured with the port's fixed IP. */
     private def findGateway(nPort: NeutronPort): Option[Gateway] =
@@ -521,12 +520,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val nextHopGatewaySubnetId = nPort.getFixedIps(0).getSubnetId
 
         val dhcp = storage.get(classOf[Dhcp], nextHopGatewaySubnetId).await()
-        if (!dhcp.hasRouterGwPortId) return None
-
-        val rtrGwPort = storage.get(classOf[Port],
-                                    dhcp.getRouterGwPortId).await()
-        val router = storage.get(classOf[Router], rtrGwPort.getRouterId).await()
-        Some(Gateway(nextHopGateway, dhcp, rtrGwPort.getId, router))
+        if (!dhcp.hasRouterIfPortId) None
+        else Some(Gateway(nextHopGateway, dhcp, dhcp.getRouterIfPortId))
     }
 
     private def translateNeutronPort(nPort: NeutronPort): Port.Builder = {

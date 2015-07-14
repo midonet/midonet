@@ -28,7 +28,7 @@ import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronPort
-import org.midonet.cluster.models.Topology.{Chain, Port, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Port, Route, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
@@ -176,7 +176,7 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
             id { $nIpv4Subnet1Id }
             network_id { $networkId }
             subnet_address { $ipv4Subnet1 }
-            router_gw_port_id { $peerRouterPortId }
+            router_if_port_id { $peerRouterPortId }
         """
     val mIpv4Dhcp = mDhcpFromTxt(midoIpv4Dhcp)
 
@@ -1109,6 +1109,7 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
     // TODO Add an assert that the fixed IPs haven't been changed.
 
     "DHCP port  DELETE" should "delete the MidoNet Port" in {
+        bindAll(List.empty, List.empty, classOf[Route])
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain only(

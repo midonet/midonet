@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, Router => RouterType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.Route.NextHop
@@ -124,7 +124,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         // Create external network.
         createTenantNetwork(8, extNwId, external = true)
-        createSubnet(9, extNwSubnetId, extNwId, "10.0.1.0/24")
+        createSubnet(9, extNwSubnetId, extNwId, "10.0.1.0/24",
+                     gatewayIp = "10.0.1.2")
         createDhcpPort(10, extNwDhcpPortId, extNwId,
                        extNwSubnetId, "10.0.1.0")
         createRouterInterfacePort(11, edgeRtrExtNwIfPortId, extNwId, edgeRtrId,
@@ -195,34 +196,45 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                      gwPortId = extNwGwPortId,
                                      enableSnat = true).toString
         insertUpdateTask(18, RouterType, trAddGwJson, tntRtrId)
-        eventually {
-            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
-                            "ab:cd:ef:00:00:04", "10.0.1.2", snatEnabled = true,
-                            extNwArpTable)
-        }
+        eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+                                   "ab:cd:ef:00:00:04", "10.0.1.2",
+                                   snatEnabled = true, extNwArpTable))
 
         // Disable SNAT.
         val trDisableSnatJson = routerJson(tntRtrId, name = "tr-disable-snat",
                                            gwPortId = extNwGwPortId,
                                            enableSnat = false).toString
         insertUpdateTask(19, RouterType, trDisableSnatJson, tntRtrId)
-        eventually {
-            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
-                            "ab:cd:ef:00:00:04", "10.0.1.2",
-                            snatEnabled = false, extNwArpTable)
-        }
+        eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+                                   "ab:cd:ef:00:00:04", "10.0.1.2",
+                                   snatEnabled = false, extNwArpTable))
 
         // Re-enable SNAT.
         insertUpdateTask(20, RouterType, trAddGwJson, tntRtrId)
-        eventually {
-            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
-                            "ab:cd:ef:00:00:04", "10.0.1.2", snatEnabled = true,
-                            extNwArpTable)
-        }
+        eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+                                   "ab:cd:ef:00:00:04", "10.0.1.2",
+                                   snatEnabled = true, extNwArpTable))
+
+        // Clear the default gateway on the subnet.
+        val extNwSubnetNoGwJson =
+            subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24").toString
+        insertUpdateTask(21, SubnetType, extNwSubnetNoGwJson, extNwSubnetId)
+        eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+                                   "ab:cd:ef:00:00:04", null,
+                                   snatEnabled = true, extNwArpTable))
+
+        // Readd the default gateway on the subnet.
+        val extNwSubnetNewGwJson =
+            subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24",
+                       gatewayIp = "10.0.1.50").toString
+        insertUpdateTask(22, SubnetType, extNwSubnetNewGwJson, extNwSubnetId)
+        eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+                                   "ab:cd:ef:00:00:04", "10.0.1.50",
+                                   snatEnabled = true, extNwArpTable))
 
         // Delete gateway and router.
-        insertDeleteTask(21, PortType, extNwGwPortId)
-        insertDeleteTask(22, RouterType, tntRtrId)
+        insertDeleteTask(23, PortType, extNwGwPortId)
+        insertDeleteTask(24, RouterType, tntRtrId)
         eventually {
             val extNwF = storage.get(classOf[Network], extNwId)
             List(storage.exists(classOf[Router], tntRtrId),
@@ -288,7 +300,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         trGwRt.getNextHopPortId shouldBe trGwPort.getId
         trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
         trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
-        trGwRt.getNextHopGateway.getAddress shouldBe nextHopIp
+        if (nextHopIp == null) trGwRt.hasNextHopGateway shouldBe false
+        else trGwRt.getNextHopGateway.getAddress shouldBe nextHopIp
 
         if (snatEnabled)
             validateGatewayNatRules(tr, gatewayIp, trGwPortId)
