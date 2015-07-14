@@ -114,8 +114,8 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
     "Initialization" should "generate the right logical switch name" in {
         Given("A bridge bound to a vtep")
-        val host = new HostOnVtepTunnelZone(1)
-        val ctx = new BridgeWithTwoPortsOnOneHost(mac1, mac2, host.id)
+        val hosts = new HostsOnVtepTunnelZone()
+        val ctx = new BridgeWithTwoPortsOnOneHost(mac1, mac2, hosts.host.getId)
         val mgr = new VxlanGatewayManager(ctx.nwId, dataClient, null,
                                           tzState, zkConnWatcher,
                                           () => mgrClosedLatch.countDown() )
@@ -124,14 +124,14 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         mgr.terminate()
 
         ctx.delete()
-        host.delete()
+        hosts.delete()
     }
 
     "A bridge with local ports" should "publish mac updates from Midonet" in {
 
         Given("A bridge bound to a VTEP")
-        val host = new HostOnVtepTunnelZone(1)
-        val ctx = new BridgeWithTwoPortsOnOneHost(mac1, mac2, host.id)
+        val hosts = new HostsOnVtepTunnelZone()
+        val ctx = new BridgeWithTwoPortsOnOneHost(mac1, mac2, hosts.host.getId)
 
         // Pre populate the mac port map with some VM macs
         ctx.macPortMap.put(mac1, ctx.port1.getId)
@@ -139,13 +139,13 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         // bind the network to a VTEP
         Given("two VTEPs")
-        val vteps = new TwoVtepsOn(host.tzId)
+        val vteps = new TwoVtepsOn(hosts.tzId)
 
         When("a VxLAN port appears on a Network")
         // The API would do both vxlan port creation + binding creation
         val vxPort1 = dataClient.bridgeCreateVxLanPort(ctx.nwId, vteps.ip1,
                                                        VTEP_PORT, vni1,
-                                                       vteps.tunIp1, host.tzId)
+                                                       vteps.tunIp1, hosts.tzId)
         dataClient.vtepAddBinding(vteps.ip1, "eth0", 10, ctx.nwId)
         dataClient.vtepAddBinding(vteps.ip1, "eth0", 66, ctx.nwId)
         dataClient.vtepAddBinding(vteps.ip1, "eth1", 66, ctx.nwId)
@@ -172,9 +172,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             vtep1MacRemotes.getOnErrorEvents shouldBe empty
             vtep1MacRemotes.getOnCompletedEvents shouldBe empty
             vtep1MacRemotes.getOnNextEvents should contain only (
-                MacLocation(mac1, mgr.lsName, host.ip),
-                MacLocation(mac2, mgr.lsName, host.ip),
-                MacLocation(UNKNOWN_DST, mgr.lsName, host.ip)
+                MacLocation(mac1, mgr.lsName, hosts.ip),
+                MacLocation(mac2, mgr.lsName, hosts.ip),
+                MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip)
                 // the last one might be duplicated because we emit the initial
                 // flooding proxy twice: first because it's the first
                 // subscription to the tz, another on the VTEP preseed, both
@@ -193,16 +193,16 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         Then("the update should be received")
         eventually {
             vtep1MacRemotes.getOnNextEvents should contain only (
-                MacLocation(mac1, mgr.lsName, host.ip),
-                MacLocation(mac2, mgr.lsName, host.ip),
-                MacLocation(UNKNOWN_DST, mgr.lsName, host.ip), // x2
-                MacLocation(mac3, mgr.lsName, host.ip)
+                MacLocation(mac1, mgr.lsName, hosts.ip),
+                MacLocation(mac2, mgr.lsName, hosts.ip),
+                MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip), // x2
+                MacLocation(mac3, mgr.lsName, hosts.ip)
             )
         }
 
         When("a second VTEP is bound to the same neutron network (same VNI)")
         dataClient.bridgeCreateVxLanPort(ctx.nwId, vteps.ip2, VTEP_PORT, vni1,
-                                         vteps.tunIp2, host.tzId)
+                                         vteps.tunIp2, hosts.tzId)
         dataClient.vtepAddBinding(vteps.ip2, "eth0", 10, ctx.nwId)
         dataClient.vtepAddBinding(vteps.ip2, "eth1", 43, ctx.nwId)
 
@@ -224,20 +224,20 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnNextEvents should contain only (
-            MacLocation(mac1, mgr.lsName, host.ip),
-            MacLocation(mac2, mgr.lsName, host.ip),
-            MacLocation(mac3, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, mgr.lsName, host.ip), // x2
+            MacLocation(mac1, mgr.lsName, hosts.ip),
+            MacLocation(mac2, mgr.lsName, hosts.ip),
+            MacLocation(mac3, mgr.lsName, hosts.ip),
+            MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip), // x2
             MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp1)
         )
 
         And("the first VTEP just saw an extra update with vtep2's unknown-dst")
         vtep1MacRemotes.getOnNextEvents should have size 6
         vtep1MacRemotes.getOnNextEvents should contain only (
-            MacLocation(mac1, mgr.lsName, host.ip),
-            MacLocation(mac2, mgr.lsName, host.ip),
-            MacLocation(mac3, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, mgr.lsName, host.ip), // x2
+            MacLocation(mac1, mgr.lsName, hosts.ip),
+            MacLocation(mac2, mgr.lsName, hosts.ip),
+            MacLocation(mac3, mgr.lsName, hosts.ip),
+            MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip), // x2
             MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp2)
         )
 
@@ -247,7 +247,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("both VTEPs should see the update")
         eventually {
-            val newMl = MacLocation(mac2, newIp, mgr.lsName, host.ip)
+            val newMl = MacLocation(mac2, newIp, mgr.lsName, hosts.ip)
             vtep1MacRemotes.getOnNextEvents.get(6) shouldBe newMl
             vtep2MacRemotes.getOnNextEvents.get(6) shouldBe newMl
         }
@@ -280,7 +280,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             vtep2MacRemotes.getOnCompletedEvents shouldBe empty
             vtep2MacRemotes.getOnNextEvents should have size 9
             vtep2MacRemotes.getOnNextEvents.get(8) shouldBe
-            MacLocation(mac1, mgr.lsName, host.ip)
+            MacLocation(mac1, mgr.lsName, hosts.ip)
         }
 
         // Yes, this last MacLocation was redundant, but for now we have no way
@@ -306,14 +306,14 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         vtep1MacRemotes.getOnErrorEvents shouldBe empty
 
         ctx.delete()
-        host.delete()
+        hosts.delete()
     }
 
     "A bridge with local ports" should "process updates from VTEPs" in {
 
         Given("A bridge bound to a VTEP")
-        val host = new HostOnVtepTunnelZone(1)
-        val ctx = new BridgeWithTwoPortsOnOneHost(mac1, mac2, host.id)
+        val hosts = new HostsOnVtepTunnelZone()
+        val ctx = new BridgeWithTwoPortsOnOneHost(mac1, mac2, hosts.host.getId)
 
         // Pre populate the mac port map with some VM macs
         ctx.macPortMap.put(mac1, ctx.port1.getId)
@@ -321,13 +321,13 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         // bind the network to a VTEP
         Given("two VTEPs")
-        val vteps = new TwoVtepsOn(host.tzId)
+        val vteps = new TwoVtepsOn(hosts.tzId)
 
         When("a VxLAN port appears on a Network")
         // The API would do both vxlan port creation + binding creation
         val vxPort1 = dataClient.bridgeCreateVxLanPort(ctx.nwId, vteps.ip1,
                                                        VTEP_PORT, vni1,
-                                                       vteps.tunIp1, host.tzId)
+                                                       vteps.tunIp1, hosts.tzId)
         dataClient.vtepAddBinding(vteps.ip1, "eth0", 10, ctx.nwId)
         dataClient.vtepAddBinding(vteps.ip1, "eth0", 66, ctx.nwId)
         dataClient.vtepAddBinding(vteps.ip1, "eth1", 66, ctx.nwId)
@@ -356,9 +356,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         vtep1MacRemotes.getOnErrorEvents shouldBe empty
         vtep1MacRemotes.getOnCompletedEvents shouldBe empty
         vtep1MacRemotes.getOnNextEvents should contain only (
-            MacLocation(mac1, mgr.lsName, host.ip),
-            MacLocation(mac2, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, mgr.lsName, host.ip)
+            MacLocation(mac1, mgr.lsName, hosts.ip),
+            MacLocation(mac2, mgr.lsName, hosts.ip),
+            MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip)
             // the last one is duplicated because we emit the initial flooding
             // proxy twice: first because it's the first subscription to the tz,
             // another on the VTEP preseed, both race, so we just emit both.
@@ -385,7 +385,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         When("a second VTEP is bound to the same neutron network (same VNI)")
         val vxPort2 = dataClient.bridgeCreateVxLanPort(ctx.nwId, vteps.ip2,
                                                        VTEP_PORT, vni1,
-                                                       vteps.tunIp2, host.tzId)
+                                                       vteps.tunIp2, hosts.tzId)
         dataClient.vtepAddBinding(vteps.ip2, "eth0", 10, ctx.nwId)
         dataClient.vtepAddBinding(vteps.ip2, "eth1", 43, ctx.nwId)
 
@@ -406,9 +406,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnNextEvents should contain only (
-            MacLocation(mac1, mgr.lsName, host.ip),
-            MacLocation(mac2, mgr.lsName, host.ip),
-            MacLocation(UNKNOWN_DST, mgr.lsName, host.ip),
+            MacLocation(mac1, mgr.lsName, hosts.ip),
+            MacLocation(mac2, mgr.lsName, hosts.ip),
+            MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip),
             // the one coming from the other VTEP
             ml,
             // The default one is the same as was emitted from the vtep just
@@ -431,9 +431,9 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         eventually {
             vtep1MacRemotes.getOnNextEvents should have size 6
             vtep1MacRemotes.getOnNextEvents should contain only (
-                MacLocation(mac1, mgr.lsName, host.ip),
-                MacLocation(mac2, mgr.lsName, host.ip),
-                MacLocation(UNKNOWN_DST, mgr.lsName, host.ip), // x2
+                MacLocation(mac1, mgr.lsName, hosts.ip),
+                MacLocation(mac2, mgr.lsName, hosts.ip),
+                MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip), // x2
                 // it saw the unknown-dst for the other VTEP
                 MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp2),
                 // and the movement of macOnVtep to the other VTEP
@@ -487,6 +487,6 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         }
 
         ctx.delete()
-        host.delete()
+        hosts.delete()
     }
 }

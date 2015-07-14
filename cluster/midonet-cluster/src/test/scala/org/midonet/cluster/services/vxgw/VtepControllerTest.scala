@@ -17,7 +17,9 @@
 package org.midonet.cluster.services.vxgw
 
 import java.util.concurrent.TimeUnit.SECONDS
+import java.util.concurrent.TimeoutException
 import java.util.{Random, UUID}
+import scala.concurrent.duration._
 
 import com.google.inject.{Guice, Injector}
 import org.junit.Assert.assertNotNull
@@ -25,8 +27,10 @@ import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, GivenWhenThen, Matchers}
+import rx.observers.TestObserver
 
 import org.midonet.cluster.ClusterTestUtils._
+import org.midonet.cluster.services.vxgw.TunnelZoneState.{FloodingProxyOp, FloodingProxyEvent}
 import org.midonet.cluster.southbound.vtep.VtepConstants
 import org.midonet.cluster.util.TestZkTools
 import org.midonet.cluster.DataClient
@@ -35,6 +39,7 @@ import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state.Directory
 import org.midonet.packets.{IPv4Addr, MAC}
+import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
 class VtepControllerTest extends FlatSpec with Matchers
@@ -44,6 +49,8 @@ class VtepControllerTest extends FlatSpec with Matchers
 
     override var dataClient: DataClient = _
     override var hostManager: HostZkManager = _
+
+    val timeout = 5 seconds
 
     var injector: Injector = _
 
@@ -58,7 +65,7 @@ class VtepControllerTest extends FlatSpec with Matchers
     var hostState: HostStatePublisher = _
 
     var vteps: TwoVtepsOn = _
-    var host: HostOnVtepTunnelZone = _
+    var hosts: HostsOnVtepTunnelZone = _
 
     def randomIp = { someIp = someIp.next ; someIp }
     def randomMacLocation() = MacLocation(VtepMAC.fromMac(MAC.random()),
@@ -81,15 +88,15 @@ class VtepControllerTest extends FlatSpec with Matchers
         tzState = new TunnelZoneStatePublisher(dataClient, zkConnWatcher,
                                                hostState, new Random)
 
-        host = new HostOnVtepTunnelZone(10)
-        vteps = new TwoVtepsOn(host.tzId)
+        hosts = new HostsOnVtepTunnelZone()
+        vteps = new TwoVtepsOn(hosts.tzId)
     }
 
     after {
         tzState.dispose()
         hostState.dispose()
         vteps.delete()
-        host.delete()
+        hosts.delete()
     }
 
     "A VTEP peer" should "be able to participate in a logical switch" in {
@@ -128,7 +135,7 @@ class VtepControllerTest extends FlatSpec with Matchers
         }
         //
         vtepOvsdb.updatesToVtep.getOnNextEvents should contain theSameElementsInOrderAs
-            preseed :+ MacLocation(VtepMAC.UNKNOWN_DST, null, lsName, host.ip)
+            preseed :+ MacLocation(VtepMAC.UNKNOWN_DST, null, lsName, hosts.ip)
 
         And("it has emitted its own snapshot")
         eventually {
@@ -180,6 +187,111 @@ class VtepControllerTest extends FlatSpec with Matchers
 
         vtepOvsdb.updatesToVtep.getOnNextEvents should have size 11
         tapOnBus.getOnNextEvents should have size 21 // +5 when we emitted them
+
+    }
+
+    "A VTEP controller" should "manage flooding proxies properly" in {
+        val vtepOvsdb = new MockVtepConfig(vteps.ip1, vteps.vtepPort,
+                             vteps.tunIp1, List.empty)
+        val tzStateObserver = new TestObserver[FloodingProxyEvent] with
+                                  AwaitableObserver[FloodingProxyEvent]
+
+        tzState.get(hosts.tzId)
+               .getFloodingProxyObservable
+               .subscribe(tzStateObserver)
+
+        val host1 = hosts.host.getId
+        tzStateObserver.awaitOnNext(1, timeout) shouldBe true
+        tzStateObserver.getOnNextEvents.get(0).hostConfig.id shouldBe host1
+        tzStateObserver.getOnNextEvents.get(0).operation shouldBe FloodingProxyOp.SET
+        tzState.get(hosts.tzId).getFloodingProxy.id shouldBe host1
+
+        // A tap in the Logical Switch bus
+        val tapOnBus = observer[MacLocation](0, 0, 0)
+        val ls = new VxlanGateway(nwId)
+        ls.vni = 111
+        ls.observable.subscribe(tapOnBus)
+
+        // The VTEP PEER under test
+        Given("a VTEP peer")
+        val peer = new VtepController(vtepOvsdb, dataClient, zkConnWatcher,
+                                      tzState)
+        When("the VTEP is told to join the Logical Switch")
+        peer.join(ls, List.empty)
+
+        Then("The flooding proxy is detected and written to the VTEP")
+        eventually {
+            vtepOvsdb.macRemoteUpdater.getOnNextEvents.get(0)
+                                      .vxlanTunnelEndpoint shouldBe hosts.ip
+        }
+
+        When("Another host comes in, the flooding proxy is re-evaluated")
+        val host2 = hosts.addHost() // will have default flooding proxy weight
+
+        Then("The event might be emitted and change the flooding proxy")
+        var next = 1
+        val (primary, failback) = try {
+            tzStateObserver.awaitOnNext(next + 1, timeout)
+            tzStateObserver.getOnNextEvents
+                           .get(next).operation shouldBe FloodingProxyOp.SET
+            tzStateObserver.getOnNextEvents
+                           .get(next).hostConfig.id shouldBe host2
+            vtepOvsdb.macRemoteUpdater.getOnNextEvents.get(next)
+                                      .vxlanTunnelEndpoint shouldBe host2
+            next = next + 1
+            (host2, host1)
+        } catch { case t: TimeoutException =>
+            // ok, this is not bad, it just means that the flooding proxy did
+            // not change, so there are no events emitted
+            (host1, host2)
+        }
+
+        When("Veto the current flooding proxy (set weight to -1)")
+        dataClient.hostsSetFloodingProxyWeight(primary, -1)
+
+        Then("The event is emitted, and the VTEP reassigns the flooding proxy")
+        tzStateObserver.awaitOnNext(next + 1, timeout) shouldBe true
+        tzStateObserver.getOnNextEvents.get(next).operation shouldBe FloodingProxyOp.SET
+        tzStateObserver.getOnNextEvents.get(next).hostConfig.id shouldBe failback
+        vtepOvsdb.macRemoteUpdater
+                 .getOnNextEvents.get(next)
+                 .vxlanTunnelEndpoint shouldBe hosts.all(failback)._2
+
+        next = next + 1
+
+        When("The veto is removed from the former flooding proxy")
+        dataClient.hostsSetFloodingProxyWeight(primary, 10000)
+
+        Then("The flooding proxy may change")
+        val (primary2, failback2) = try {
+            tzStateObserver.awaitOnNext(next + 1, timeout)
+            tzStateObserver.getOnNextEvents.get(next).operation shouldBe FloodingProxyOp.SET
+            tzStateObserver.getOnNextEvents.get(next).hostConfig.id shouldBe primary
+            vtepOvsdb.macRemoteUpdater.getOnNextEvents.get(next)
+                     .vxlanTunnelEndpoint shouldBe hosts.all(primary)._2
+            next = next + 1
+            (primary, failback)
+        } catch { case t: TimeoutException =>
+            // ok, since election is not fully deterministic this might happen
+            (failback, primary)
+        }
+
+        When("The current flooding proxy goes down")
+        hostManager.makeNotAlive(primary2)
+
+        Then("The flooding proxy is updated to the failback host")
+        tzStateObserver.awaitOnNext(next + 1, timeout)
+        tzStateObserver.getOnNextEvents.get(next).operation shouldBe FloodingProxyOp.SET
+        tzStateObserver.getOnNextEvents.get(next).hostConfig.id shouldBe failback2
+        vtepOvsdb.macRemoteUpdater.getOnNextEvents.get(next)
+            .vxlanTunnelEndpoint shouldBe hosts.all(failback2)._2
+
+        next = next + 1
+
+        When("The other host goes down")
+        hostManager.makeNotAlive(failback2)
+        tzStateObserver.awaitOnNext(next + 1, timeout)
+        tzStateObserver.getOnNextEvents.get(next).operation shouldBe FloodingProxyOp.CLEAR
 
     }
 
