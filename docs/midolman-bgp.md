@@ -92,7 +92,7 @@ communication (TCP:179) and other for the Vty connection (TCP:2605).
 Network namespaces only provide isolation for networking. Filesystems, CPU,
 memory and I/O are shared. Two processes in two different network namespaces
 won't be able to talk to each other via network, unless the wiring is done (i.e.
-veth interfaces), but the can see exactly the same files and they will compete
+veth interfaces), but they can see exactly the same files and they will compete
 for the CPU time.
 
 Network namespaces are a subset of Linux Containers (LXC). In fact Linux

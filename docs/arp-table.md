@@ -46,10 +46,10 @@ tell whether any of their peers are already emitting ARPs for the same address.
 We mitigate the risk of extra packets on the network by:
 
  * Adding a random jitter to ARP entry staleness and ARP request retry intervals.
- Only in one case will a broker ARP inmediately wihtout added jitter: when it gets
+ Only in one case will a broker ARP immediately without added jitter: when it gets
  asked about a MAC for the 1st time and this mac is missing from the cache.
- * Brokers will only write to the underlying cache if the learned MAC was unkown
- or stale. Thus, no extra writes to ZooKeeper will be incurred.
+ * Brokers will only write to the underlying cache if the learned MAC was
+ unknown or stale. Thus, no extra writes to ZooKeeper will be incurred.
  
 Moreover, it's extremely unlikely that two MidoNet nodes will race to write the same
 cache entry (although it would be harmless): the ARP replies for the same MAC will arrive
