@@ -636,8 +636,10 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     }
 
     protected def createSubnet(taskId: Int, subnetId: UUID,
-                               networkId: UUID, cidr: String): Unit = {
-        val json = subnetJson(subnetId, networkId, cidr = cidr).toString
+                               networkId: UUID, cidr: String,
+                               gatewayIp: String = null): Unit = {
+        val json = subnetJson(subnetId, networkId, cidr = cidr,
+                              gatewayIp = gatewayIp).toString
         insertCreateTask(taskId, SubnetType, json, subnetId)
     }
 

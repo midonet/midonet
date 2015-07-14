@@ -17,12 +17,13 @@
 package org.midonet.cluster.services.c3po.translators
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
+import scala.collection.{breakOut, mutable}
+
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRoute, NeutronSubnet}
 import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
-import org.midonet.cluster.models.Topology.{Dhcp, Network}
+import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
 import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
 import org.midonet.cluster.services.c3po.neutron
@@ -74,13 +75,15 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
             throw new TranslationException(  // Doesn't handle IPv6 yet.
                     neutron.Update(ns), msg = "Cannot handle an IPv6 Subnet.")
 
-        val origDhcp = storage.get(classOf[Dhcp], ns.getId).await()
-        val newDhcp = origDhcp.toBuilder
-            .setDefaultGateway(ns.getGatewayIp)
+        val oldDhcp = storage.get(classOf[Dhcp], ns.getId).await()
+        val newDhcp = oldDhcp.toBuilder
             .setEnabled(ns.getEnableDhcp)
             .setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
             .clearDnsServerAddress()
             .clearOpt121Routes()
+
+        if (!ns.hasGatewayIp) newDhcp.clearDefaultGateway()
+        else newDhcp.setDefaultGateway(ns.getGatewayIp)
 
         for (addr <- ns.getDnsNameserversList.asScala)
             newDhcp.addDnsServerAddress(addr)
@@ -91,8 +94,13 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
             newDhcp.addOpt121Routes(
                 opt121FromHostRoute(RouteManager.META_DATA_SRVC, ip))})
 
+        val routeUpdateOps = updateRouteNextHopIps(
+            if (oldDhcp.hasDefaultGateway) oldDhcp.getDefaultGateway else null,
+            if (newDhcp.hasDefaultGateway) newDhcp.getDefaultGateway else null,
+            oldDhcp.getGatewayRouteIdsList.asScala)
+
         // TODO: connect to provider router if external
-        List(Update(newDhcp.build))
+        Update(newDhcp.build()) +: routeUpdateOps
     }
 
     private def addHostRoutes(dhcp: Dhcp.Builder,
@@ -130,5 +138,21 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
     private def isOnUplinkNetwork(ns: NeutronSubnet): Boolean = {
         val nn = storage.get(classOf[NeutronNetwork], ns.getNetworkId).await()
         NetworkTranslator.isUplinkNetwork(nn)
+    }
+
+    /**
+     * Update the next hop gateway of any routes using this subnet as a gateway.
+     */
+    private def updateRouteNextHopIps(oldGwIp: IPAddress, newGwIp: IPAddress,
+                                      routeIds: Seq[UUID])
+    : MidoOpList = {
+        if (oldGwIp == newGwIp) return List()
+        val routes = storage.getAll(classOf[Route], routeIds).await()
+        routes.map { r =>
+            val bldr = r.toBuilder
+            if (newGwIp == null) bldr.clearNextHopGateway()
+            else bldr.setNextHopGateway(newGwIp)
+            Update(bldr.build())
+        }(breakOut)
     }
 }
