@@ -22,6 +22,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+
+import javax.ws.rs.core.UriBuilder;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,14 +38,23 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
+import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPortGroup;
 import org.midonet.client.dto.DtoRule;
 import org.midonet.client.dto.DtoRule.DtoNatTarget;
 import org.midonet.client.dto.DtoRuleChain;
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.Chain;
+import org.midonet.cluster.data.rules.LiteralRule;
 import org.midonet.cluster.rest_api.models.Rule;
 import org.midonet.cluster.rest_api.validation.MessageProperty;
+import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.packets.ARP;
+import org.midonet.packets.IPv4;
+import org.midonet.packets.IPv6;
+import org.midonet.packets.LLDP;
 import org.midonet.packets.Unsigned;
 
 import static org.junit.Assert.assertEquals;
@@ -112,12 +124,12 @@ public class TestRule {
             // Null type
             DtoRule nullType = new DtoRule();
             nullType.setType(null);
-            params.add(new Object[] { nullType, "type" });
+            params.add(new Object[]{nullType, "type"});
 
             // Invalid type
             DtoRule invalidType = new DtoRule();
             invalidType.setType("badType");
-            params.add(new Object[] { invalidType, "type" });
+            params.add(new Object[]{invalidType, "type"});
 
             return params;
         }
@@ -303,6 +315,49 @@ public class TestRule {
             rule.setNatTargets(new DtoNatTarget[]{
                     new DtoNatTarget("10.10.10.10", "10.10.10.10", 0, 0)});
             return rule;
+        }
+    }
+
+    @RunWith(Parameterized.class)
+    public static class TestEtherType extends TestRuleBase {
+
+        private short etherType;
+
+        public TestEtherType(short etherType) {
+            this.etherType = etherType;
+        }
+
+        @Parameterized.Parameters
+        public static Collection<Object[]> data() {
+            return Arrays.asList(new Object[][] {
+                {ARP.ETHERTYPE}, {IPv4.ETHERTYPE}, {IPv6.ETHERTYPE},
+                {LLDP.ETHERTYPE}});
+        }
+
+        @Test
+        public void testNegativeEtherType() throws Exception {
+            DataClient dataClient =
+                FuncTest._injector.getInstance(DataClient.class);
+            DtoApplication app = topology.getApplication();
+
+            UUID chainId = dataClient.chainsCreate(new Chain());
+
+            Condition condition = new Condition();
+            condition.etherType = (int) etherType;
+
+            LiteralRule rule = new LiteralRule(condition);
+            rule.setAction(RuleResult.Action.ACCEPT);
+            rule.setPosition(1);
+            rule.setChainId(chainId);
+
+            UUID ruleId = dataClient.rulesCreate(rule);
+
+            URI ruleUri = UriBuilder.fromUri(
+                app.getRuleTemplate().replace("{id}", ruleId.toString())).build();
+            DtoRule outRule = dtoResource.getAndVerifyOk(
+                ruleUri, APPLICATION_RULE_JSON_V2, DtoRule.class);
+            assertEquals(outRule.getDlType().intValue(),
+                         Unsigned.unsign(etherType));
         }
     }
 

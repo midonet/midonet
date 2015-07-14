@@ -188,7 +188,7 @@ public class ConditionDataConverter {
         dto.portGroup = c.portGroup;
         dto.ipAddrGroupDst = c.ipAddrGroupIdDst;
         dto.ipAddrGroupSrc = c.ipAddrGroupIdSrc;
-        dto.dlType = c.etherType;
+        dto.dlType = org.midonet.midolman.rules.Condition.unsignShort(c.etherType);
         if (null != c.ethSrc) {
             dto.dlSrc = c.ethSrc.toString();
         }

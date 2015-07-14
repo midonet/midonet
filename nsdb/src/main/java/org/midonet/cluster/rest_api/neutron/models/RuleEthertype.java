@@ -21,18 +21,19 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.models.Commons;
+import org.midonet.packets.Unsigned;
 
 @ZoomEnum(clazz = Commons.EtherType.class)
 public enum RuleEthertype {
 
     @ZoomEnumValue("ARP")
-    ARP("arp", org.midonet.packets.ARP.ETHERTYPE),
+    ARP("arp", Unsigned.unsign(org.midonet.packets.ARP.ETHERTYPE)),
 
     @ZoomEnumValue("IPV4")
-    IPv4("ipv4", org.midonet.packets.IPv4.ETHERTYPE),
+    IPv4("ipv4", Unsigned.unsign(org.midonet.packets.IPv4.ETHERTYPE)),
 
     @ZoomEnumValue("IPV6")
-    IPv6("ipv6", org.midonet.packets.IPv6.ETHERTYPE);
+    IPv6("ipv6", Unsigned.unsign(org.midonet.packets.IPv6.ETHERTYPE));
 
     private final String value;
     private final int number;
