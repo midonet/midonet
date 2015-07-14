@@ -73,7 +73,7 @@ trait FlowController extends FlowIndexer with FlowTagIndexer
     }
 
     def tryAddFlow(context: PacketContext, expiration: Expiration): Boolean = {
-        val flowMatch = context.origMatch
+        val flowMatch = context.currentMatch
         val callbacks = context.flowRemovedCallbacks
         if (!dpFlows.containsKey(flowMatch)) {
             var flow = managedFlowPool.take

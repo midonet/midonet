@@ -93,7 +93,7 @@ class FlowProcessor(dpState: DatapathState,
     override def onEvent(event: PacketContextHolder, sequence: Long,
                          endOfBatch: Boolean): Boolean = {
         val context = event.flowCreateRef
-        val flowMatch = context.origMatch
+        val flowMatch = context.currentMatch
         event.flowCreateRef = null
         if (context.flow ne null) {
             try {

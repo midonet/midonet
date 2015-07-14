@@ -117,7 +117,7 @@ class FlowRecorderTest extends MidolmanSpec {
                     mapper.readValue(new String(data),
                                      classOf[JMap[String,Object]])
 
-                val origMatch = ctx.origMatch
+                val origMatch = ctx.currentMatch
                 result.get("flowMatch.networkSrc") should be (
                     BaseEncoding.base16.encode(origMatch.getNetworkSrcIP.toBytes))
                 result.get("flowMatch.networkDst") should be (

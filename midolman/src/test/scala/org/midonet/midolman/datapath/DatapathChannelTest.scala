@@ -103,7 +103,7 @@ class DatapathChannelTest extends MidolmanSpec {
             bb.getInt() should be (datapathId)
 
             attributeListShouldMatch(bb, OpenVSwitch.Packet.Attr.Key,
-                                     flowMatchParser, context.origMatch)
+                                     flowMatchParser, context.currentMatch)
             attributeListShouldMatch(bb, OpenVSwitch.Packet.Attr.Actions,
                                      FlowActions.reader.deserializeFrom, actions)
             val attrLen = bb.getShort
@@ -129,7 +129,7 @@ class DatapathChannelTest extends MidolmanSpec {
             bb.getInt() should be (datapathId)
 
             attributeListShouldMatch(bb, OpenVSwitch.Flow.Attr.Key,
-                                     flowMatchParser, context.origMatch)
+                                     flowMatchParser, context.currentMatch)
             attributeListShouldMatch(bb, OpenVSwitch.Flow.Attr.Actions,
                                      FlowActions.reader.deserializeFrom, actions)
         }
@@ -160,7 +160,7 @@ class DatapathChannelTest extends MidolmanSpec {
                                                new ArrayObjectPool(0, _ => null),
                                                new SpscArrayQueue(16))
             val managedFlow = new ManagedFlow(null)
-            managedFlow.flowMatch.reset(context.origMatch)
+            managedFlow.flowMatch.reset(context.currentMatch)
             flowDelete.reset(FlowOperation.DELETE, managedFlow, retries = 0)
             fp.tryEject(sequence = 1, datapathId, managedFlow.flowMatch,
                         flowDelete) should be (false)

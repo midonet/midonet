@@ -161,8 +161,8 @@ class PacketWorkflowTest extends MidolmanSpec with PacketTestHelper {
             isCleared(packetsSeen.drop(1).head)
 
             And("the modified flow match is not reset")
-            packetsSeen.head.wcmatch should not be packetsSeen.head.origMatch
-            packetsSeen.drop(1).head.wcmatch should not be packetsSeen.drop(1).head.origMatch
+            packetsSeen.head.wcmatch should not be packetsSeen.head.currentMatch
+            packetsSeen.drop(1).head.wcmatch should not be packetsSeen.drop(1).head.currentMatch
 
             And("packetsOut should be called with the correct number")
             packetsOut should be (3)
@@ -179,7 +179,7 @@ class PacketWorkflowTest extends MidolmanSpec with PacketTestHelper {
 
             Then("the packet context should be clear")
             isCleared(packetsSeen.head)
-            packetsSeen.head.origMatch should not be packetsSeen.head.wcmatch
+            packetsSeen.head.currentMatch should not be packetsSeen.head.wcmatch
 
             When("completing the packet")
             dda.complete(List(FlowActions.output(1)))
@@ -189,7 +189,7 @@ class PacketWorkflowTest extends MidolmanSpec with PacketTestHelper {
             packetsSeen.head.flowRemovedCallbacks should not be empty
             packetsSeen.head.packetActions should not be empty
             packetsSeen.head.flowActions should not be empty
-            packetsSeen.head.origMatch should not be packetsSeen.head.wcmatch
+            packetsSeen.head.currentMatch should not be packetsSeen.head.wcmatch
         }
 
         scenario("packet context is cleared when dropping") {
@@ -208,7 +208,7 @@ class PacketWorkflowTest extends MidolmanSpec with PacketTestHelper {
             packetsSeen.head.flowActions should be (empty)
 
             And("the modified flow match is not reset")
-            packetsSeen.head.wcmatch should not be packetsSeen.head.origMatch
+            packetsSeen.head.wcmatch should not be packetsSeen.head.currentMatch
 
             And("packetsOut should be called")
             packetsOut should be (1)

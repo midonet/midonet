@@ -61,8 +61,9 @@ public class MirrorRule extends Rule {
 
     @Override
     protected void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
+        pktCtx.jlog().debug("Mirroring the packet into the port {}", dstPortId);
+        pktCtx.applyMirroring(dstPortId);
         res.action = RuleResult.Action.MIRROR;
-        res.dstPortId = dstPortId;
         log.debug("Rule evaluation mirroring to port {}", dstPortId);
     }
 

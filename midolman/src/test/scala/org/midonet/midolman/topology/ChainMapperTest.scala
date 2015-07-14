@@ -534,9 +534,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             assertEquals(chain, updatedSimChain, List(updatedRule),
                          jumpChain = null,
                          Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc))
-            updatedSimChain.getRules.get(0)
+            updatedSimChain.rules.head
                 .getCondition.ipAddrGroupIdDst shouldBe null
-            updatedSimChain.getRules.get(0)
+            updatedSimChain.rules.head
                 .getCondition.ipAddrGroupDst shouldBe null
 
             And("When we change the source IPAddrGroup reference")
@@ -555,9 +555,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             assertEquals(chain, updatedSimChain, List(updatedRule),
                          jumpChain = null,
                          Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc))
-            updatedSimChain.getRules.get(0)
+            updatedSimChain.rules.head
                 .getCondition.ipAddrGroupIdDst shouldBe null
-            updatedSimChain.getRules.get(0)
+            updatedSimChain.rules.head
                 .getCondition.ipAddrGroupDst shouldBe null
 
             And("When we update the rule's IPAddrGroupIdSrc with the previous id")
@@ -581,7 +581,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         chain.getName shouldBe simChain.name
 
         // Checking rules
-        simChain.getRules should contain theSameElementsAs
+        simChain.rules should contain theSameElementsAs
             rules.map(ZoomConvert.fromProto(_, classOf[SimRule]))
 
         val jumpRules = rules.filter(_.getType == ProtoRule.Type.JUMP_RULE)
@@ -595,7 +595,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
         // Checking ipAddrGroups
         val ipAddrGroupIds = new mutable.HashSet[UUID]()
-        simChain.getRules.asScala.foreach(rule => {
+        simChain.rules.foreach { rule =>
             val cond = rule.getCondition
             if (cond.ipAddrGroupIdSrc ne null) {
                 ipAddrGroupIds += cond.ipAddrGroupIdSrc
@@ -607,7 +607,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                 cond.ipAddrGroupDst shouldBeDeviceOf
                     ipAddrGroups(cond.ipAddrGroupIdDst)
             }
-        })
+        }
         ipAddrGroupIds should have size ipAddrGroups.size
     }
 

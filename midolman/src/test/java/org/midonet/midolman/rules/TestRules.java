@@ -275,7 +275,6 @@ public class TestRules {
         pktCtx.inPortId_$eq(inPort);
         rule.process(pktCtx, res, ownerId, false);
         Assert.assertEquals(res.action, Action.MIRROR);
-        Assert.assertEquals(res.dstPortId, portId);
     }
 
     private Ethernet createTracePacket() {
@@ -444,13 +443,13 @@ public class TestRules {
         Assert.assertTrue(3366 <= newTpSrc);
         Assert.assertTrue(newTpSrc <= 3399);
         // Now verify that the rest of the packet hasn't changed.
-        FlowMatch expected = pktCtx.origMatch().clone();
+        FlowMatch expected = pktCtx.currentMatch().clone();
         expected.setNetworkSrc(newNwSrc);
         expected.setSrcPort(newTpSrc);
         Assert.assertEquals(expected, pktCtx.wcmatch());
         // Verify we get the same mapping if we re-process the original match.
         res = new RuleResult(null, null);
-        pktCtx.wcmatch().reset(pktCtx.origMatch());
+        pktCtx.wcmatch().reset(pktCtx.currentMatch());
         rule.process(pktCtx, res, ownerId, false);
         Assert.assertEquals(expected, pktCtx.wcmatch());
         // Now use the new ip/port in the return packet.
@@ -477,12 +476,12 @@ public class TestRules {
         RuleResult res = new RuleResult(null, null);
         rule.process(pktCtx, res, ownerId, false);
         Assert.assertEquals(res.action, null);
-        Assert.assertEquals(pktCtx.origMatch(), pktCtx.wcmatch());
+        Assert.assertEquals(pktCtx.currentMatch(), pktCtx.wcmatch());
         // We let the reverse dnat rule try reversing everything.
         Rule revRule = new ReverseNatRule(new Condition(), Action.ACCEPT, true);
         // If the condition doesn't match the result is not modified.
         Assert.assertEquals(res.action, null);
-        Assert.assertEquals(pktCtx.origMatch(), pktCtx.wcmatch());
+        Assert.assertEquals(pktCtx.currentMatch(), pktCtx.wcmatch());
         // Now get the Dnat rule to match.
         pktCtx.inPortId_$eq(inPort);
         rule.process(pktCtx, res, ownerId, false);
@@ -494,13 +493,13 @@ public class TestRules {
         Assert.assertTrue(1030 <= newTpDst);
         Assert.assertTrue(newTpDst <= 1050);
         // Now verify that the rest of the packet hasn't changed.
-        FlowMatch expected = pktCtx.origMatch().clone();
+        FlowMatch expected = pktCtx.currentMatch().clone();
         expected.setNetworkDst(IPv4Addr.fromInt(newNwDst));
         expected.setDstPort(newTpDst);
         Assert.assertEquals(pktCtx.wcmatch(), expected);
         // Verify we get the same mapping if we re-process the original match.
         res = new RuleResult(null, null);
-        pktCtx.wcmatch().reset(pktCtx.origMatch());
+        pktCtx.wcmatch().reset(pktCtx.currentMatch());
         rule.process(pktCtx, res, ownerId, false);
         Assert.assertEquals(pktCtx.wcmatch(), expected);
         // Now use the new ip/port in the return packet.
@@ -542,14 +541,14 @@ public class TestRules {
         Assert.assertTrue(firstTpDst <= 1050);
 
         // Now verify that the rest of the packet hasn't changed.
-        FlowMatch expected = pktCtx.origMatch().clone();
+        FlowMatch expected = pktCtx.currentMatch().clone();
         expected.setNetworkDst(IPv4Addr.fromInt(firstNwDst));
         expected.setDstPort(firstTpDst);
         Assert.assertEquals(pktCtx.wcmatch(), expected);
 
         // Verify we get the same mapping if we re-process the original match.
         res = new RuleResult(null, null);
-        pktCtx.wcmatch().reset(pktCtx.origMatch());
+        pktCtx.wcmatch().reset(pktCtx.currentMatch());
         rule.process(pktCtx, res, ownerId, false);
         int secondNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         int secondTpDst = pktCtx.wcmatch().getDstPort();
@@ -567,7 +566,7 @@ public class TestRules {
 
         // Verify we get a NEW mapping if we re-process the original match.
         res = new RuleResult(null, null);
-        pktCtx.wcmatch().reset(pktCtx.origMatch());
+        pktCtx.wcmatch().reset(pktCtx.currentMatch());
         rule.process(pktCtx, res, ownerId, false);
         int thirdNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         int thirdTpDst = pktCtx.wcmatch().getDstPort();

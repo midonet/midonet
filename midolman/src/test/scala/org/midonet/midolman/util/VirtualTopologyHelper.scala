@@ -219,8 +219,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         val r = force {
             flushTransactions(conntrackTx, natTx)
             pktCtx.clear()
-            pktCtx.wcmatch.reset(pktCtx.origMatch)
-            new Coordinator(pktCtx) simulate()
+            pktCtx.wcmatch.reset(pktCtx.currentMatch)
+            new Coordinator(pktCtx,
+                packetWorkflow().underlyingActor.translateActions) simulate()
         }
         commitTransactions(conntrackTx, natTx)
         flushTransactions(conntrackTx, natTx)

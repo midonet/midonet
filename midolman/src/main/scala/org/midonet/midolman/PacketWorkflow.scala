@@ -108,7 +108,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
 
     private def addActionsForTunnelPacket(context: PacketContext,
                                           forwardTo: DpPort): Unit = {
-        val origMatch = context.origMatch
+        val origMatch = context.currentMatch
         context.addFlowTag(FlowTagger.tagForTunnelKey(origMatch.getTunnelKey))
         context.addFlowTag(FlowTagger.tagForDpPort(forwardTo.getPortNo))
         context.addFlowTag(FlowTagger.tagForTunnelRoute(
@@ -121,7 +121,7 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
             context.enableTracingOnEgress()
             context.markUserspaceOnly()
         }
-        context.log.debug(s"Received packet matching ${context.origMatch}" +
+        context.log.debug(s"Received packet matching ${context.currentMatch}" +
                            " from underlay")
 
         val tunnelKey = context.wcmatch.getTunnelKey
@@ -390,7 +390,7 @@ class PacketWorkflow(
     protected def startWorkflow(context: PacketContext): Unit =
         try {
             MDC.put("cookie", context.cookieStr)
-            context.log.debug(s"New cookie for new match ${context.origMatch}")
+            context.log.debug(s"New cookie for new match ${context.currentMatch}")
             runWorkflow(context)
         } finally {
             if (context.ingressed)
@@ -454,18 +454,18 @@ class PacketWorkflow(
     }
 
     def runSimulation(context: PacketContext): SimulationResult =
-        new Coordinator(context).simulate()
+        new Coordinator(context, checkpointAction = translateActions).simulate()
 
     protected def addTranslatedFlow(context: PacketContext,
                                     expiration: Expiration): SimulationResult =
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
             resultLogger.debug("packet came up due to userspace dp action, " +
-                               s"match ${context.origMatch}")
+                               s"match ${context.currentMatch}")
             context.flowRemovedCallbacks.runAndClear()
             UserspaceFlow
         } else {
-            context.origMatch.propagateSeenFieldsFrom(context.wcmatch)
-            if (context.origMatch.userspaceFieldsSeen) {
+            context.currentMatch.propagateSeenFieldsFrom(context.wcmatch)
+            if (context.currentMatch.userspaceFieldsSeen) {
                 context.log.debug("Userspace fields seen; skipping flow creation")
                 context.flowRemovedCallbacks.runAndClear()
                 UserspaceFlow
@@ -483,15 +483,15 @@ class PacketWorkflow(
     }
 
     private def handlePacketIngress(context: PacketContext): SimulationResult = {
-        if (!context.origMatch.isUsed(Field.InputPortNumber)) {
+        if (!context.currentMatch.isUsed(Field.InputPortNumber)) {
             context.log.error("packet had no inPort number")
             processSimulationResult(context, ErrorDrop)
         }
 
-        val inPortNo = context.origMatch.getInputPortNumber
+        val inPortNo = context.currentMatch.getInputPortNumber
         context.flowTags.add(tagForDpPort(inPortNo))
 
-        if (context.origMatch.isFromTunnel) {
+        if (context.currentMatch.isFromTunnel) {
             handleFromTunnel(context, inPortNo)
         } else if (resolveVport(context, inPortNo)) {
             processSimulationResult(context, simulatePacketIn(context))
@@ -538,7 +538,7 @@ class PacketWorkflow(
                 addTranslatedFlow(context, FlowExpirationIndexer.FLOW_EXPIRATION)
         }
         resultLogger.debug(s"Simulation finished with result $res: " +
-                           s"match ${context.origMatch}, flow actions " +
+                           s"match ${context.currentMatch}, flow actions " +
                            s"${context.flowActions}, tags ${context.flowTags}")
         res
     }
@@ -574,7 +574,7 @@ class PacketWorkflow(
     }
 
     private def handleDHCP(context: PacketContext): Boolean = {
-        val fmatch = context.origMatch
+        val fmatch = context.currentMatch
         val isDhcp = fmatch.getEtherType == IPv4.ETHERTYPE &&
                      fmatch.getNetworkProto == UDP.PROTOCOL_NUMBER &&
                      fmatch.getSrcPort == 68 && fmatch.getDstPort == 67
@@ -591,7 +591,7 @@ class PacketWorkflow(
 
     private def processDhcp(context: PacketContext, inPort: Port,
                             dhcp: DHCP, mtu: Short): Boolean = {
-        val srcMac = context.origMatch.getEthSrc
+        val srcMac = context.currentMatch.getEthSrc
         val optMtu = Option(mtu)
         DhcpImpl(dhcpConfigProvider, inPort, dhcp, srcMac, optMtu, context.log) match {
             case Some(dhcpReply) =>

@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman._
 import org.midonet.midolman.flows.ManagedFlow
+import org.midonet.midolman.mirroring.PortMirroringContext
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.state.{ArpRequestBroker, FlowStatePackets}
 import org.midonet.midolman.rules.RuleResult
@@ -94,28 +95,28 @@ trait FlowContext extends Clearable { this: PacketContext =>
 
     def calculateActionsFromMatchDiff(): Unit = {
         wcmatch.doNotTrackSeenFields()
-        origMatch.doNotTrackSeenFields()
+        currentMatch.doNotTrackSeenFields()
         diffEthernet()
         diffIp()
         diffVlan()
         diffIcmp()
         diffL4()
         wcmatch.doTrackSeenFields()
-        origMatch.doTrackSeenFields()
+        currentMatch.doTrackSeenFields()
     }
 
     private def diffEthernet(): Unit =
-        if (!origMatch.getEthSrc.equals(wcmatch.getEthSrc) ||
-            !origMatch.getEthDst.equals(wcmatch.getEthDst)) {
+        if (!currentMatch.getEthSrc.equals(wcmatch.getEthSrc) ||
+            !currentMatch.getEthDst.equals(wcmatch.getEthDst)) {
             virtualFlowActions.add(setKey(FlowKeys.ethernet(
                 wcmatch.getEthSrc.getAddress,
                 wcmatch.getEthDst.getAddress)))
         }
 
     private def diffIp(): Unit =
-        if (origMatch.getNetworkSrcIP != wcmatch.getNetworkSrcIP ||
-            origMatch.getNetworkDstIP != wcmatch.getNetworkDstIP ||
-            origMatch.getNetworkTTL != wcmatch.getNetworkTTL) {
+        if (currentMatch.getNetworkSrcIP != wcmatch.getNetworkSrcIP ||
+            currentMatch.getNetworkDstIP != wcmatch.getNetworkDstIP ||
+            currentMatch.getNetworkTTL != wcmatch.getNetworkTTL) {
 
             virtualFlowActions.add(setKey(
                 wcmatch.getNetworkSrcIP match {
@@ -137,9 +138,9 @@ trait FlowContext extends Clearable { this: PacketContext =>
         }
 
     private def diffVlan(): Unit =
-        if (!origMatch.getVlanIds.equals(wcmatch.getVlanIds)) {
-            val vlansToRemove = origMatch.getVlanIds.diff(wcmatch.getVlanIds)
-            val vlansToAdd = wcmatch.getVlanIds.diff(origMatch.getVlanIds)
+        if (!currentMatch.getVlanIds.equals(wcmatch.getVlanIds)) {
+            val vlansToRemove = currentMatch.getVlanIds.diff(wcmatch.getVlanIds)
+            val vlansToAdd = wcmatch.getVlanIds.diff(currentMatch.getVlanIds)
             log.debug("Vlan tags to pop {}, vlan tags to push {}",
                 vlansToRemove, vlansToAdd)
 
@@ -159,7 +160,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
     private def diffIcmp(): Unit = {
         val icmpData = wcmatch.getIcmpData
         if ((icmpData ne null) &&
-            !Arrays.equals(icmpData, origMatch.getIcmpData)) {
+            !Arrays.equals(icmpData, currentMatch.getIcmpData)) {
 
             val icmpType = wcmatch.getSrcPort
             if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
@@ -176,8 +177,8 @@ trait FlowContext extends Clearable { this: PacketContext =>
     }
 
     private def diffL4(): Unit =
-        if (origMatch.getSrcPort != wcmatch.getSrcPort ||
-            origMatch.getDstPort != wcmatch.getDstPort) {
+        if (currentMatch.getSrcPort != wcmatch.getSrcPort ||
+            currentMatch.getDstPort != wcmatch.getDstPort) {
             wcmatch.getNetworkProto match {
                 case TCP.PROTOCOL_NUMBER =>
                     virtualFlowActions.add(setKey(FlowKeys.tcp(
@@ -219,9 +220,10 @@ trait RecordedContext extends Clearable {
  */
 class PacketContext(val cookie: Int,
                     val packet: Packet,
-                    val origMatch: FlowMatch,
+                    var currentMatch: FlowMatch,
                     val egressPort: UUID = null) extends Clearable
                                                  with FlowContext
+                                                 with PortMirroringContext
                                                  with RecordedContext
                                                  with StateContext {
     var log = PacketContext.defaultLog
@@ -237,7 +239,8 @@ class PacketContext(val cookie: Int,
     var outPortId: UUID = _
     val outPorts = new ArrayList[UUID]()
 
-    val wcmatch = origMatch.clone()
+    val origMatch = currentMatch
+    val wcmatch = currentMatch.clone()
 
     var inputPort: UUID = _
 
@@ -254,9 +257,13 @@ class PacketContext(val cookie: Int,
 
     def isGenerated = egressPort ne null
     def ingressed = egressPort eq null
-    def isStateMessage = origMatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
+    def isStateMessage = currentMatch.getTunnelKey == FlowStatePackets.TUNNEL_KEY
 
     def cookieStr = s"[cookie:$cookie]"
+
+    protected def createPacketMatchCheckpoint(): Unit = {
+        currentMatch.reset(wcmatch)
+    }
 
     def reset(packetEmitter: PacketEmitter, arpBroker: ArpRequestBroker): Unit = {
         this.packetEmitter = packetEmitter
@@ -271,7 +278,7 @@ class PacketContext(val cookie: Int,
     def prepareForSimulation() {
         idle = false
         runs += 1
-        wcmatch.reset(origMatch)
+        wcmatch.reset(currentMatch)
     }
 
     def prepareForDrop(): Unit = {

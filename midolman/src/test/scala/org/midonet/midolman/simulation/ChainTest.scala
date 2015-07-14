@@ -190,14 +190,15 @@ class ChainTest extends Suite
         val chainId = UUID.randomUUID
         val name = "Chain-" + chainId
         val innerAndOuterChain = new Chain(chainId,
-                                           List[Rule](rejectRule).asJava,
+                                           List[Rule](rejectRule),
                                            jumpTargetMap, name)
         val middleChain = makeChain(List(makeJumpRule(innerAndOuterChain),
                                          acceptRule),
                                     List(innerAndOuterChain))
 
         // Add a jump from innerAndOuterChain to middleChain.
-        innerAndOuterChain.getRules.add(0, makeJumpRule(middleChain))
+        innerAndOuterChain.rules =
+            makeJumpRule(middleChain) +: innerAndOuterChain.rules
         jumpTargetMap(middleChain.id) = middleChain
 
         applyChain(innerAndOuterChain).action should be (Action.ACCEPT)
@@ -216,14 +217,15 @@ class ChainTest extends Suite
         val chainId = UUID.randomUUID
         val name = "Chain-" + chainId
         val innerAndOuterChain = new Chain(chainId,
-                                           List[Rule](acceptRule).asJava,
+                                           List[Rule](acceptRule),
                                            jumpTargetMap, name)
         val middleChain = makeChain(List(makeJumpRule(innerAndOuterChain),
                                          rejectRule),
                                     List(innerAndOuterChain))
 
         // Add a jump from innerAndOuterChain to middleChain.
-        innerAndOuterChain.getRules.add(0, makeJumpRule(middleChain))
+        innerAndOuterChain.rules =
+            makeJumpRule(middleChain) +: innerAndOuterChain.rules
         jumpTargetMap(middleChain.id) = middleChain
 
         applyChain(innerAndOuterChain).action should be (Action.REJECT)
@@ -238,7 +240,7 @@ class ChainTest extends Suite
         val jumpTargetMap = jumpTargets.map(c => (c.id, c)).toMap
         val name = "Chain-" + chainId.toString
         rules.foreach(_.chainId = chainId)
-        new Chain(chainId, rules.asJava, jumpTargetMap, name)
+        new Chain(chainId, rules, jumpTargetMap, name)
     }
 
     private def makeJumpRule(target: Chain) =
