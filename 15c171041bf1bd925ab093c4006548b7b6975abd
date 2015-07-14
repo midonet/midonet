@@ -16,6 +16,23 @@
       "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b5eb21af",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/rules/PortMirroringTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-14T10:43:06Z",
+      "side": 1,
+      "message": "this assertion looks weak to me. We should assert on the actual actions.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
