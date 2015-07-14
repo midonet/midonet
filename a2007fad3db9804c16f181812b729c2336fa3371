@@ -191,6 +191,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_75cb591e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-14T11:29:29Z",
+      "side": 1,
+      "message": "This seems like it\u0027s overcomplicating things. Here\u0027s what you\u0027re really trying to do, as I understand it:\n\n1. If the ID hasn\u0027t changed, do nothing. Do not go on to steps 2 and 3, which assume a change.\n2. If the old ID was non-null, unsubscribe from that group.\n3. If the new ID is non-null, subscribe to that group.\n4. Return the new group (which will be null if the new ID is null).\n\nYou\u0027re unfolding the combinatorial table, but that\u0027s not necessary, and kind of obscures what\u0027s really going on. Unsubscribing from the old group and subscribing to the new group are completely independent. There\u0027s no need to treat A-and-not-B, B-and-not-A, and A-and-B as separate cases, because what you do for A-and-B is the same as what you do for B-and-not-A plus what you do for A-and-not-B.\n\nThat said, it\u0027s not that big a deal, so if you really don\u0027t like the version I suggested, this is fine, too.",
+      "parentUuid": "9ad9bd40_b2d5f7ba",
+      "range": {
+        "startLine": 303,
+        "startChar": 0,
+        "endLine": 314,
+        "endChar": 9
+      },
+      "revId": "a2007fad3db9804c16f181812b729c2336fa3371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2f834757",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
         "patchSetId": 3
