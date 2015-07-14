@@ -34,9 +34,9 @@ import org.apache.zookeeper.KeeperException.{BadVersionException, Code}
 import rx.Observable.OnSubscribe
 import rx._
 import rx.schedulers.Schedulers
-import rx.subjects.{BehaviorSubject, PublishSubject}
+import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.InMemoryStorage.{asObservable, copyObj, DefaultOwnerId}
+import org.midonet.cluster.data.storage.InMemoryStorage.{PrimedSubject, asObservable, copyObj, DefaultOwnerId}
 import org.midonet.cluster.data.storage.StateStorage.NoOwnerId
 import org.midonet.cluster.data.storage.TransactionManager._
 import org.midonet.cluster.data.storage.KeyType.KeyType
@@ -262,8 +262,9 @@ class InMemoryStorage extends Storage with StateStorage {
         private val ver = new AtomicInteger
         private val keys = new TrieMap[String, KeyNode]
 
-        private val streamInstance = BehaviorSubject.create[T](value)
-        private val obsInstance = streamInstance.observeOn(eventScheduler)
+        private val instanceSubject = new PrimedSubject(ref.get)
+        private val instanceObs = Observable.create(instanceSubject)
+                                            .observeOn(eventScheduler)
 
         private var instanceUpdate: Notification[T] = null
 
@@ -312,7 +313,7 @@ class InMemoryStorage extends Storage with StateStorage {
             if (ver.get != version) throw new BadVersionException
         }
 
-        def observable = obsInstance
+        def observable = instanceObs
 
         /* Lock free read, completion on the IO thread */
         def get: Future[T] = async { assertIoThread(); value }
@@ -325,7 +326,7 @@ class InMemoryStorage extends Storage with StateStorage {
         /* Emits the updates generated during the last transaction */
         def emitUpdates(): Unit = {
             if (instanceUpdate ne null) {
-                instanceUpdate.accept(streamInstance)
+                instanceUpdate.accept(instanceSubject)
                 instanceUpdate = null
             }
         }
@@ -365,8 +366,7 @@ class InMemoryStorage extends Storage with StateStorage {
                           keyType: KeyType) {
 
         private val values = new TrieMap[String, String]
-        private val subject =
-            BehaviorSubject.create[Map[String, String]](Map[String, String]())
+        private val subject = new PrimedSubject(values.readOnlySnapshot().toMap)
 
         def add(value: String): Observable[StateResult] = asObservable {
             if (keyType.isSingle) {
@@ -404,7 +404,7 @@ class InMemoryStorage extends Storage with StateStorage {
 
         def observable: Observable[StateKey] = {
             if (keyType.isSingle) {
-                subject.map[StateKey](makeFunc1(map => {
+                Observable.create(subject).map[StateKey](makeFunc1(map => {
                     map.headOption match {
                         case Some((_, value)) =>
                             SingleValueKey(key, Some(value), DefaultOwnerId)
@@ -413,7 +413,7 @@ class InMemoryStorage extends Storage with StateStorage {
                     }
                 })).observeOn(eventScheduler)
             } else {
-                subject.map[StateKey](makeFunc1(map => {
+                Observable.create(subject).map[StateKey](makeFunc1(map => {
                     MultiValueKey(key, map.keySet)
                 }))
             }
@@ -676,5 +676,47 @@ object InMemoryStorage {
                 })
             }
         })
+    }
+
+    private class PrimedSubject[T](f: => T)
+        extends OnSubscribe[T] with Observer[T] {
+
+        private val subject = PublishSubject.create[T]
+        private var emitting = true
+        private var error: Throwable = null
+
+        override def call(child: Subscriber[_ >: T]): Unit = {
+            this.synchronized {
+                if (emitting) {
+                    child onNext f
+                    subject subscribe child
+                } else if (error ne null) {
+                    child onError error
+                } else {
+                    child.onCompleted()
+                }
+            }
+        }
+
+        override def onNext(value: T): Unit = this.synchronized {
+            if (emitting) {
+                subject onNext value
+            }
+        }
+
+        override def onCompleted(): Unit = this.synchronized {
+            if (emitting) {
+                subject.onCompleted()
+                emitting = false
+            }
+        }
+
+        override def onError(e: Throwable) = this.synchronized {
+            if (emitting) {
+                subject onError e
+                emitting = false
+                error = e
+            }
+        }
     }
 }
