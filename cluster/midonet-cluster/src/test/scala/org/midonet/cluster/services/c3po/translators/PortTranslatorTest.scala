@@ -30,7 +30,7 @@ import org.midonet.cluster.data.Bridge
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronPort
-import org.midonet.cluster.models.Topology.{Chain, Port, Route, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Dhcp, Port, Route, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
@@ -1118,6 +1118,16 @@ class DhcpPortUpdateDeleteTranslationTest extends DhcpPortTranslationTest {
         midoOps should contain only(
             midonet.Delete(classOf[Port], portId),
             midonet.Update(mIpv4Dhcp),
+            midonet.Update(mIpv6Dhcp))
+    }
+
+    it should "ignore an already deleted subnet referenced by a fixed IP" in {
+        // The subnet has already been deleted.
+        bind(nIpv4Subnet1Id, null, classOf[Dhcp])
+        val midoOps = translator.translate(
+                neutron.Delete(classOf[NeutronPort], portId))
+        midoOps should contain only(
+            midonet.Delete(classOf[Port], portId),
             midonet.Update(mIpv6Dhcp))
     }
 }
