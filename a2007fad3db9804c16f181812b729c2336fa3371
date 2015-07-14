@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f5fda93c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 290,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-14T11:56:32Z",
+      "side": 1,
+      "message": "Probably a little. Keep in mind that this isn\u0027t on the fast path (code that gets executed every time a packet comes in), so as far as I know, there\u0027s no need to aggressively optimize here. It\u0027s also my understanding that short-lived allocations, like local Options, are pretty cheap because they don\u0027t need to be preserved across generations, though I\u0027m not an expert on that.\n\nMy inclination here would be to sacrifice a bit of performance for simpler code.",
+      "parentUuid": "9ad9bd40_f24f7fbc",
+      "range": {
+        "startLine": 276,
+        "startChar": 0,
+        "endLine": 290,
+        "endChar": 9
+      },
+      "revId": "a2007fad3db9804c16f181812b729c2336fa3371",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8c162154",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
         "patchSetId": 3
