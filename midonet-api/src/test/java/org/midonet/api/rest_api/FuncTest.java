@@ -85,7 +85,7 @@ public class FuncTest {
 
     /**
      * Choose the right Builder.  Defaults to the old midonet-api, but will
-     * return the new cluster-based midonet-api if the withVladimir env.
+     * return the new cluster-based midonet-api if the midonet.newStack env.
      * variable is set to "true".
      */
     public static WebAppDescriptor.Builder getBuilder() {
@@ -100,7 +100,7 @@ public class FuncTest {
      * Tells if we're testing against the Compat API.
      */
     public static boolean isCompatApiEnabled() {
-        return Boolean.parseBoolean(System.getenv("withVladimir"));
+        return Boolean.parseBoolean(System.getenv("midonet.newStack"));
     }
 
     private static WebAppDescriptor.Builder getBuilderForLegacyApi() {
