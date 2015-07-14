@@ -132,6 +132,7 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
     private def publishFloodingProxyTo(vxgw: VxlanGateway): Unit = {
         floodingProxy match {
             case None =>
+                log.info("No flooding proxy available :(")
             case Some(fp) =>
                 val ml = MacLocation.unknownAt(fp, vxgw.name)
                 vtepOvsdb.macRemoteUpdater.onNext(ml)

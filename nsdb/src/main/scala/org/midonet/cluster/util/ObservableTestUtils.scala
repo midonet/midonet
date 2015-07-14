@@ -20,39 +20,40 @@ import java.util.concurrent.CountDownLatch
 
 import rx.observers.TestObserver
 
+import org.midonet.util.reactivex.AwaitableObserver
+
 /** Some utilities for tests involving observables. */
 object ObservableTestUtils {
 
     /** Offers a TestObservable with 3 embedded latches, for onNext, onError
       * and onComplete events. */
-    def observer[T](nNexts: Int, nErrors: Int, nCompletes: Int) = {
-        new TestObserver[T]() {
-            var n = new CountDownLatch(nNexts)
-            var e = new CountDownLatch(nErrors)
-            var c = new CountDownLatch(nCompletes)
+    def observer[T](nNexts: Int, nErrors: Int,
+                    nCompletes: Int) = new TestObserver[T] {
+        var n = new CountDownLatch(nNexts)
+        var e = new CountDownLatch(nErrors)
+        var c = new CountDownLatch(nCompletes)
 
-            /** Reset the latches to the given value. It replaces the latch
-              * references, so make sure to use the properties directly. */
-            def reset(nNexts: Int, nErrors: Int, nCompletes: Int): Unit = {
-                n = new CountDownLatch(nNexts)
-                e = new CountDownLatch(nErrors)
-                c = new CountDownLatch(nCompletes)
-            }
+        /** Reset the latches to the given value. It replaces the latch
+          * references, so make sure to use the properties directly. */
+        def reset(nNexts: Int, nErrors: Int, nCompletes: Int): Unit = {
+            n = new CountDownLatch(nNexts)
+            e = new CountDownLatch(nErrors)
+            c = new CountDownLatch(nCompletes)
+        }
 
-            override def onCompleted(): Unit = {
-                super.onCompleted()
-                c.countDown()
-            }
+        override def onCompleted(): Unit = {
+            super.onCompleted()
+            c.countDown()
+        }
 
-            override def onError(t: Throwable): Unit = {
-                super.onError(t)
-                e.countDown()
-            }
+        override def onError(t: Throwable): Unit = {
+            super.onError(t)
+            e.countDown()
+        }
 
-            override def onNext(t: T): Unit = synchronized {
-                super.onNext(t)
-                n.countDown()
-            }
+        override def onNext(t: T): Unit = synchronized {
+            super.onNext(t)
+            n.countDown()
         }
     }
 }
