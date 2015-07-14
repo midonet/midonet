@@ -155,6 +155,57 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_084cb46f",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-14T14:26:36Z",
+      "side": 1,
+      "message": "shouldn\u0027t we do this regardless of whether dstPort is null?",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0863d4dc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-14T14:26:36Z",
+      "side": 1,
+      "message": "i don\u0027t understand why we use currentMatch here, it looks like this will be used as the match in the flow rule we install in the datapath. And that one should really be the real original match, otherwise packets will miss it.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_489cfcc0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-14T14:26:36Z",
+      "side": 1,
+      "message": "...or was inactive.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_15212dfb",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 2
@@ -166,6 +217,74 @@
       "writtenOn": "2015-07-14T11:04:34Z",
       "side": 1,
       "message": "can you explain this with a comment?",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_681620a9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-14T14:26:36Z",
+      "side": 1,
+      "message": "this line was less than 80 chars long, why break it?",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a85e6874",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-14T14:26:36Z",
+      "side": 1,
+      "message": "ditto, this is not our coding style.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4896bcf1",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-14T14:26:36Z",
+      "side": 1,
+      "message": "i think this name is unfortunate as \u0027current\u0027 is the actual meaning that \u0027wcmatch\u0027 had in our minds up until today.\n\nwcmatch was \"what the packet looks like at this point in the topology, ___currently___\".\n\nHowever you are using current as \"the current base match from which to calculate diffs for actions\".\n\nIn otherwords: moving from origMatch/wcmatch  towards currentMatch/wcmatch is actually misleading, let\u0027s try to find better names.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_288fb8cd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-14T14:26:36Z",
+      "side": 1,
+      "message": "I believe this should not be currentMatch but the real original match, because the simulation is being restarted from zero.",
       "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
