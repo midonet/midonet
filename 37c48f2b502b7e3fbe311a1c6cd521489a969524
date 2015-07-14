@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c1262716",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-14T23:27:27Z",
+      "side": 1,
+      "message": "I just wonder if insertCreateTask should just accept Json...",
+      "range": {
+        "startLine": 635,
+        "startChar": 49,
+        "endLine": 635,
+        "endChar": 58
+      },
+      "revId": "37c48f2b502b7e3fbe311a1c6cd521489a969524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
