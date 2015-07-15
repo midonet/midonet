@@ -25,6 +25,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_53466824",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VtepControllerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-15T08:48:33Z",
+      "side": 1,
+      "message": "To make the flooding proxy tests deterministic, you can pass a mock random variable here: see the old flooding proxy unit tests: https://github.com/midonet/midonet/blob/73cd2e61bfcbd84b4f303227107d46d60f2bfa78/brain/midonet-brain/src/test/java/org/midonet/brain/services/vxgw/VxLanFloodingProxyTest.java\n\nHowever, I\u0027m fine with the random approach too.",
+      "range": {
+        "startLine": 87,
+        "startChar": 58,
+        "endLine": 87,
+        "endChar": 68
+      },
+      "revId": "2a05d60836ad672659e2f0c0b37891ae7f09290a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f3277cb4",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VtepControllerTest.scala",
         "patchSetId": 1
