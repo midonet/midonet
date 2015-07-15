@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.client;
 
-import java.util.UUID;
+package org.midonet.cluster.client
 
-import org.midonet.packets.MAC;
-import org.midonet.util.functors.Callback3;
+import java.util.UUID
 
-public interface MacLearningTable {
-    UUID get(MAC mac);
+import rx.Observable
 
-    void add(MAC mac, UUID portID);
+import org.midonet.cluster.data.storage.StateTable.MacTableUpdate
+import org.midonet.packets.MAC
+import org.midonet.util.functors.Callback3
 
-    void remove(MAC mac, UUID portID);
-
-    void notify(Callback3<MAC, UUID, UUID> cb);
+trait MacLearningTable {
+    def add(key: MAC, portId: UUID): Unit
+    def get(key: MAC): UUID
+    def remove(mac: MAC, portID: UUID): Unit
+    def notify(cb: Callback3[MAC, UUID, UUID]): Unit
+    def observable(): Observable[MacTableUpdate]
+    def complete(): Unit
 }

@@ -20,7 +20,7 @@ import com.typesafe.config.Config
 
 import org.apache.curator.framework.CuratorFramework
 
-import org.midonet.cluster.data.storage.{InMemoryStorage, StateStorage, Storage}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.conf.MidoTestConfigurator
 
@@ -33,13 +33,20 @@ object MidonetBackendTest  {
 class MidonetTestBackend extends MidonetBackend {
 
     @Inject
-    var cfg: MidonetBackendConfig = _
+    var backendCfg: MidonetBackendConfig = _
 
+    @Inject
+    var kafkaCfg: KafkaConfig = _
+    
     private val inMemoryZoom = new InMemoryStorage()
-
+    private val stateTableStorage = new MergedMapStateTableStorage(
+        kafkaCfg, new InMemoryMergedMapBusBuilder()
+    )
+    
     override def store: Storage = inMemoryZoom
     override def stateStore: StateStorage = inMemoryZoom
-    override def isEnabled = cfg.useNewStack
+    override def stateTableStore: StateTableStorage = stateTableStorage
+    override def isEnabled = backendCfg.useNewStack
     override def curator: CuratorFramework = null
 
     override def doStart(): Unit = {
@@ -59,6 +66,15 @@ class MidonetBackendTestModule(cfg: Config = MidoTestConfigurator.forAgents())
     extends MidonetBackendModule(new MidonetBackendConfig(cfg)) {
 
     override protected def bindStorage(): Unit = {
+        
+        bind(classOf[KafkaConfig])
+            .toInstance(new KafkaConfig(cfg))
+        expose(classOf[KafkaConfig])
+
+        bind(classOf[MergedMapBusBuilder])
+            .to(classOf[InMemoryMergedMapBusBuilder])
+        expose(classOf[MergedMapBusBuilder])
+
         bind(classOf[MidonetBackend])
             .to(classOf[MidonetTestBackend])
             .asEagerSingleton()

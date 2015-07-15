@@ -35,7 +35,7 @@ import org.midonet.util.reactivex.AwaitableObserver
 
 object KafkaBusTest {
     type Opinion = (String, String, String)
-    type Update = MergedMap.MapUpdate[String, String]
+    type Update = MergedMap.Update[String, String]
 
     class OpinionEncoder() extends Serializer[Opinion] {
         val stringEncoder = new StringSerializer()
@@ -254,7 +254,8 @@ class KafkaBusTest extends KafkaTest[Opinion] {
     }
 
     private def createObserverAndSubscribe(map: MergedMap[String, String]) = {
-        val obs = new TestObserver[Update] with AwaitableObserver[Update]
+        val obs = new TestObserver[Update]
+                      with AwaitableObserver[Update]
         map.observable.subscribe(obs)
         obs
     }

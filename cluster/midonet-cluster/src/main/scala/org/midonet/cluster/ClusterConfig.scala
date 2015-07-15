@@ -17,15 +17,15 @@ package org.midonet.cluster
 
 import java.util.concurrent.TimeUnit
 
-import com.typesafe.config.{ConfigFactory, Config}
+import com.typesafe.config.{Config, ConfigFactory}
 
-import org.midonet.cluster.services.{ScheduledMinionConfig, MinionConfig}
 import org.midonet.cluster.services.c3po.C3POMinion
 import org.midonet.cluster.services.conf.ConfMinion
 import org.midonet.cluster.services.heartbeat.Heartbeat
 import org.midonet.cluster.services.topology.TopologyApiService
 import org.midonet.cluster.services.vxgw.VxlanGatewayService
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.services.{MinionConfig, ScheduledMinionConfig}
+import org.midonet.cluster.storage.{KafkaConfig, MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 
 object ClusterConfig {
@@ -53,6 +53,7 @@ class ClusterConfig(_conf: Config) {
 
     val auth = new AuthConfig(conf)
     val backend = new MidonetBackendConfig(conf)
+    val kafka = new KafkaConfig(conf)
     val embedding = new EmbeddedClusterNodeConfig(conf)
     val c3po = new C3POConfig(conf)
     val heartbeat = new HeartbeatConfig(conf)
