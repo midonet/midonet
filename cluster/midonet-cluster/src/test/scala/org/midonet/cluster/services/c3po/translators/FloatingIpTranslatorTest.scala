@@ -113,8 +113,8 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 nat_targets {
                     nw_start { $fipIpAddr }
                     nw_end { $fipIpAddr }
-                    tp_start: 1
-                    tp_end: 65535
+                    tp_start: 0
+                    tp_end: 0
                 }
                 dnat: false
             }
@@ -134,8 +134,8 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 nat_targets {
                     nw_start { $fixedIpAddr }
                     nw_end { $fixedIpAddr }
-                    tp_start: 1
-                    tp_end: 65535
+                    tp_start: 0
+                    tp_end: 0
                 }
                 dnat: true
             }

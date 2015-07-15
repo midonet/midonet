@@ -16,11 +16,11 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
-import org.midonet.cluster.models.Topology.{Chain, Route, Router, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Rule}
+import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state.PathBuilder
@@ -33,8 +33,8 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
                                               with RouteManager
                                               with RuleManager
                                               with BridgeStateTableManager {
-    import org.midonet.cluster.services.c3po.translators.RouteManager._
     import RouterTranslator.tenantGwPortId
+    import org.midonet.cluster.services.c3po.translators.RouteManager._
     implicit val storage: ReadOnlyStorage = readOnlyStorage
 
     override protected def translateCreate(fip: FloatingIp): MidoOpList = {
@@ -149,7 +149,8 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .setAction(Rule.Action.ACCEPT)
             .addOutPortIds(routerGwPortId)
             .setNwSrcIp(IPSubnetUtil.fromAddr(fip.getFixedIpAddress))
-            .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = false))
+            .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = false,
+                                        dynamic = false))
             .build()
         val dnatRule = Rule.newBuilder
             .setId(fipDnatRuleId(fip.getId))
@@ -158,7 +159,8 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .setAction(Rule.Action.ACCEPT)
             .addInPortIds(routerGwPortId)
             .setNwDstIp(IPSubnetUtil.fromAddr(fip.getFloatingIpAddress))
-            .setNatRuleData(natRuleData(fip.getFixedIpAddress, dnat = true))
+            .setNatRuleData(natRuleData(fip.getFixedIpAddress, dnat = true,
+                                        dynamic = false))
             .build()
 
         val inChain = storage.get(classOf[Chain], iChainId).await()
