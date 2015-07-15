@@ -301,6 +301,9 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
             store.delete(classOf[Proto.PoolMember], pm1.getId)
             obs.awaitOnNext(1, timeout) shouldBe true
 
+            // Need to remove VIP before Pool.
+            store.delete(classOf[Proto.Vip], vip.getId)
+
             // remove the pool
             store.delete(classOf[Proto.Pool], pool.getId)
 
@@ -549,8 +552,8 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
                                  poolId = Some(pool.getId))
             val poolUpdated = savedPool.setLoadBalancerId(lb2.getId)
             store.create(lb2)
-            store.create(vip2)
             store.update(poolUpdated)
+            store.create(vip2)
 
             // wait for an update (
             obs.awaitOnNext(1, timeout) shouldBe true

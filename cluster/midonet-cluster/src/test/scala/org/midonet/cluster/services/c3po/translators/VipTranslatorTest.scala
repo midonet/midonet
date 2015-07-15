@@ -154,7 +154,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
                 midonet.Create(midoVip(sourceIpSessionPersistence = true)))
     }
 
-    it should "associate Mido VIP with the Load Balancer as specified." in {
+    it should "associate Mido VIP with the LB Pool as specified." in {
         bindLb()
         bindVipNetwork(external = false)
         val midoOps = translator.translate(
@@ -209,7 +209,10 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
         initMockStorage()
         translator = new VipTranslator(storage, pathBldr)
         bind(pool2Id, midoPool(pool2Id, lb2Id))
-        bind(vipId, neutronVip())
+        bind(vipId, neutronVip(poolId = poolId))
+        bind(vipId, midoVip(sourceIpSessionPersistence = true,
+                            poolId = poolId,
+                            gwPortId = gwPortId))
     }
 
     protected val pool2Id = UUIDUtil.toProtoFromProtoStr("msb: 2 lsb: 2")
@@ -237,7 +240,8 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
     "Neutron VIP Update" should "update a Midonet VIP." in {
         val midoOps = translator.translate(neutron.Update(updatedNeutronVip))
 
-        midoOps should contain only (midonet.Update(updatedMidoVip))
+        midoOps should contain only midonet.Update(updatedMidoVip,
+                                                   VipUpdateValidator)
     }
 
     protected val vipWithDifferentIp = nVIPFromTxt(s"""
