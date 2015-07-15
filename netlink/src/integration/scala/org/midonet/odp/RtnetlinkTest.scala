@@ -135,6 +135,8 @@ class TestableRtnetlinkConnection(channel: NetlinkChannel,
         maxRequestSize, clock) {
     import RtnetlinkTest._
 
+    private val notificationReadBuf =
+        BytesUtil.instance.allocateDirect(NetlinkUtil.NETLINK_READ_BUF_SIZE)
     val testNotificationObserver: NotificationTestObserver =
         TestableNotificationObserver
     private val notificationChannel =

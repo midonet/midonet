@@ -34,6 +34,7 @@ class MidonetBackendConfig(val conf: Config) {
     def retryMs = conf.getDuration("zookeeper.base_retry", TimeUnit.MILLISECONDS)
     def useNewStack = conf.getBoolean("zookeeper.use_new_stack")
     def bufferSize = conf.getInt("zookeeper.buffer_size")
+    def kafka = new KafkaConfig(conf)
 }
 
 class CassandraConfig(val conf: Config) {
@@ -42,13 +43,22 @@ class CassandraConfig(val conf: Config) {
     def replication_factor = conf.getInt("cassandra.replication_factor")
 }
 
+/**
+ * This file defines configuration parameters for MidoNet's state tables
+ * (e.g., MAC and ARP tables) which rely on Kafka. These state tables
+ * are called Merged Maps.
+ */
 class KafkaConfig(val conf: Config) {
+    /* Returns true iff merged maps are enabled. */
+    def useMergedMaps = conf.getBoolean("kafka.use_merged_maps")
     /* List of Kafka brokers: host1:port1, host2:port2, host3:port3 */
     def brokers = conf.getString("kafka.brokers")
     /* Zookeeper connect string: host1:port1, host2: port2, host3: port3. */
     def zkHosts = conf.getString("kafka.zk_hosts")
     /* The number of replicas per topic. */
     def replicationFactor = conf.getInt("kafka.replication_factor")
-    /* The session timeout used by the consumer with ZooKeeper */
+    /* The connection timeout used by Kafka to connect to ZooKeeper. */
+    def zkConnectionTimeout = conf.getInt("kafka.zk_connection_timeout")
+    /* The session timeout used for ZooKeeper */
     def zkSessionTimeout = conf.getInt("kafka.zk_session_timeout")
 }

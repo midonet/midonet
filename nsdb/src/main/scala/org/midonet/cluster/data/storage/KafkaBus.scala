@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory
 import rx.Observer
 import rx.subjects.PublishSubject
 
+import org.midonet.cluster.data.storage.KafkaBus.Opinion
 import org.midonet.cluster.data.storage.MergedMap._
 import org.midonet.cluster.storage.KafkaConfig
 import org.midonet.util.functors.makeRunnable
@@ -51,13 +52,13 @@ trait KafkaSerialization[K, V >: Null <: AnyRef] {
      * Returns an encoder that is used to serialize a (key, value, owner)
      * triple into an array of bytes.
      */
-    def messageEncoder: Serializer[(K, V, String)]
+    def messageEncoder: Serializer[Opinion[K, V]]
 
     /**
      * Returns a decoder that is used to deserialize an array of bytes into
      * a (key, value, owner) triple.
      */
-    def messageDecoder: Deserializer[(K, V, String)]
+    def messageDecoder: Deserializer[Opinion[K, V]]
 }
 
 /**
@@ -72,12 +73,10 @@ trait KafkaSerialization[K, V >: Null <: AnyRef] {
  * class.
  */
 private[storage] class MultiTopicConsumer(config: KafkaConfig, owner: String) {
-    type MsgsType = ConsumerRecords[String, Array[Byte]]
-    type MsgType = ConsumerRecord[String, Array[Byte]]
-    type Opinion = (_, _ >: Null <: AnyRef, String)
+
+    import KafkaBus._
 
     private val POLL_TIMEOUT_MS = 1000
-
     private val log =
         Logger(LoggerFactory.getLogger("org.midonet.cluster.kafka"))
 
@@ -86,7 +85,7 @@ private[storage] class MultiTopicConsumer(config: KafkaConfig, owner: String) {
      * and publishes the resulting message to the corresponding
      * merged map observer.
      */
-    private class TopicSubscriber[T <: Opinion](topic: String,
+    private class TopicSubscriber[T <: GenericOpinion](topic: String,
         observer: Observer[T], deserializer: Deserializer[T]) {
 
         def onMessage(msgInBytes: Array[Byte]): Unit = {
@@ -99,7 +98,7 @@ private[storage] class MultiTopicConsumer(config: KafkaConfig, owner: String) {
     }
 
     private val consumer = createConsumer(config, owner)
-    private val observers = new TrieMap[String, TopicSubscriber[_ <: Opinion]]
+    private val observers = new TrieMap[String, TopicSubscriber[_ <: GenericOpinion]]
     private val running = new AtomicBoolean(true)
 
     private val consumerRunnable = makeRunnable({
@@ -169,9 +168,9 @@ private[storage] class MultiTopicConsumer(config: KafkaConfig, owner: String) {
      * called for a given topic if the consumer is already subscribed to
      * this topic.
      */
-    private[storage] def subscribe[K, V >: Null <: AnyRef]
-        (topic: String, observer: Observer[(K, V, String)],
-         deserializer: Deserializer[(K, V, String)]): Unit = {
+    private[storage] def subscribe[T <: GenericOpinion]
+        (topic: String, observer: Observer[T],
+         deserializer: Deserializer[T]): Unit = {
 
         if (!observers.contains(topic)) {
             val topicPartition = new TopicPartition(topic, 0 /*partition*/)
@@ -230,6 +229,11 @@ private[storage] class MultiTopicConsumer(config: KafkaConfig, owner: String) {
  * a single thread to pass through.
  */
 object KafkaBus {
+    type Opinion[K, V >: Null <: AnyRef] = (K, V, String)
+    type GenericOpinion = Opinion[_, _ >: Null <: AnyRef]
+    type MsgsType = ConsumerRecords[String, Array[Byte]]
+    type MsgType = ConsumerRecord[String, Array[Byte]]
+
     private var multiTopicConsumer: MultiTopicConsumer = _
     private var refCount = 0
 
@@ -248,10 +252,9 @@ object KafkaBus {
      * the specified deserializer and, once deserialized, the opinion will
      * be notified on the provided observer.
      */
-    private[storage] def subscribe[K, V >: Null <: AnyRef]
-        (topic: String, owner: String, config: KafkaConfig,
-         deserializer: Deserializer[(K, V, String)],
-         observer: Observer[(K, V, String)]): Unit = {
+    private[storage] def subscribe[T <: GenericOpinion](topic: String,
+        owner: String, config: KafkaConfig, deserializer: Deserializer[T],
+        observer: Observer[T]): Unit = {
 
         this.synchronized {
             val consumer = multiTopicConsumer(config, owner)
@@ -290,9 +293,7 @@ object KafkaBus {
 
     def newBus[K, V >: Null <: AnyRef](id: String, ownerId: String,
         config: KafkaConfig, zkClient: ZkClient,
-        kafkaIO: KafkaSerialization[K, V])(implicit crStrategy: Ordering[V])
-
-    : KafkaBus[K, V] = {
+        kafkaIO: KafkaSerialization[K, V]): KafkaBus[K, V] = {
 
         this.synchronized {
             if (!buses.contains(id)) {
@@ -319,19 +320,17 @@ object KafkaBus {
 //TODO: Garbage collect opinions of owners that have left.
 private[storage] class KafkaBus[K, V >: Null <: AnyRef]
     (id: String, ownerId: String, config: KafkaConfig, zkClient: ZkClient,
-     val kafkaIO: KafkaSerialization[K, V])(implicit crStrategy: Ordering[V])
+     val kafkaIO: KafkaSerialization[K, V])
     extends MergedMapBus[K, V] {
 
-    type Opinion = (K, V, String)
-    type MsgsType = ConsumerRecords[String, Array[Byte]]
-    type MsgType = ConsumerRecord[String, Array[Byte]]
+    import KafkaBus._
 
     private val log =
         Logger(LoggerFactory.getLogger(getClass.getName + "-" + mapId.toString))
 
-    private val opinionOutput = PublishSubject.create[Opinion]()
+    private val opinionOutput = PublishSubject.create[Opinion[K, V]]()
     private val opinionOutputBckPressure = opinionOutput.onBackpressureBuffer()
-    private val opinionInput = PublishSubject.create[Opinion]()
+    private val opinionInput = PublishSubject.create[Opinion[K, V]]()
     private val opinionInputBckPressure = opinionInput.onBackpressureBuffer()
 
     createTopicIfNeeded(config)
@@ -348,7 +347,7 @@ private[storage] class KafkaBus[K, V >: Null <: AnyRef]
         }
     }
 
-    def close(): Unit = {
+    override def close(): Unit = {
         if (closed.compareAndSet(false, true)) {
             producer.close()
             KafkaBus.unsubscribe(id)
@@ -356,7 +355,7 @@ private[storage] class KafkaBus[K, V >: Null <: AnyRef]
         }
     }
 
-    private val producerObserver = new Observer[Opinion] {
+    private val producerObserver = new Observer[Opinion[K, V]] {
         override def onCompleted(): Unit = {
             log.info("Kafka bus output completed, shutting down.")
             close()
@@ -365,13 +364,13 @@ private[storage] class KafkaBus[K, V >: Null <: AnyRef]
             log.warn("Error on output kafka bus, shutting down.", e)
             close()
         }
-        override def onNext(opinion: Opinion): Unit = {
+        override def onNext(opinion: Opinion[K, V]): Unit = {
             val msgKey = kafkaIO.keyAsString(opinion._1) + "-" + ownerId
             val msg =
-                new ProducerRecord[String, Opinion](mapId.toString /*topic*/,
-                                                    0 /*partition*/,
-                                                    msgKey /*key*/,
-                                                    opinion /*value*/)
+                new ProducerRecord[String, Opinion[K, V]](mapId.toString /*topic*/,
+                                                          0 /*partition*/,
+                                                          msgKey /*key*/,
+                                                          opinion /*value*/)
             producer.send(msg, sendCallBack)
         }
     }
@@ -400,7 +399,7 @@ private[storage] class KafkaBus[K, V >: Null <: AnyRef]
         Math.ceil((replicaCount + 1.0d) / 2.0d).asInstanceOf[Int]
 
     private def createProducer(config: KafkaConfig)
-    : KafkaProducer[String, Opinion] = {
+    : KafkaProducer[String, Opinion[K, V]] = {
         val prodProps = new Properties()
         prodProps.put("bootstrap.servers", config.brokers)
         /* This specifies that the producer must receive an acknowledgment
@@ -410,7 +409,7 @@ private[storage] class KafkaBus[K, V >: Null <: AnyRef]
         prodProps.put("key.serializer", classOf[StringSerializer].getName)
         prodProps.put("value.serializer",
                       kafkaIO.messageEncoder.getClass.getName)
-        new KafkaProducer[String, Opinion](prodProps)
+        new KafkaProducer[String, Opinion[K, V]](prodProps)
     }
 
     override def opinionObservable = opinionOutputBckPressure

@@ -23,9 +23,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 import akka.actor._
-
 import com.google.inject.Inject
-
 import rx.Subscription
 
 import org.midonet.cluster.data.storage.StateStorage
@@ -127,9 +125,9 @@ object RoutingManagerActor extends Referenceable {
 
 class RoutingManagerActor extends ReactiveActor[AnyRef]
                           with ActorLogWithoutPath {
-    import RoutingManagerActor._
-
     import context.system
+
+    import RoutingManagerActor._
 
     override def logSource = "org.midonet.routing.bgp"
 
