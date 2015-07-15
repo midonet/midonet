@@ -22,6 +22,30 @@
       "revId": "37c48f2b502b7e3fbe311a1c6cd521489a969524",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fc62eed6",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/C3POMinionTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 635,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-15T00:57:38Z",
+      "side": 1,
+      "message": "Oh yeah...good idea!\n\nLet me go through and do that in another patch. Because that\u0027s going to require changes in several dozen places.",
+      "parentUuid": "9ad9bd40_c1262716",
+      "range": {
+        "startLine": 635,
+        "startChar": 49,
+        "endLine": 635,
+        "endChar": 58
+      },
+      "revId": "37c48f2b502b7e3fbe311a1c6cd521489a969524",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
