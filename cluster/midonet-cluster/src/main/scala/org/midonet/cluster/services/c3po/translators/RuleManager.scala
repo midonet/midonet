@@ -59,10 +59,19 @@ trait RuleManager {
             .setAction(RETURN)
             .setFragmentPolicy(FragmentPolicy.ANY)
 
-    protected def natRuleData(addr: IPAddress, dnat: Boolean): NatRuleData = {
+    protected def natRuleData(addr: IPAddress, dnat: Boolean,
+                              dynamic: Boolean = true): NatRuleData = {
+        if (dynamic)
+            natRuleData(addr, dnat, 1, 0xffff)
+        else
+            natRuleData(addr, dnat, 0, 0)
+    }
+
+    protected def natRuleData(addr: IPAddress, dnat: Boolean, portStart: Int,
+                              portEnd: Int): NatRuleData = {
         val target = NatTarget.newBuilder
             .setNwStart(addr).setNwEnd(addr)
-            .setTpStart(1).setTpEnd(0xffff).build()
+            .setTpStart(portStart).setTpEnd(portEnd).build()
         NatRuleData.newBuilder
             .setDnat(dnat)
             .addNatTargets(target).build()
