@@ -20,8 +20,10 @@ import javax.inject.Named
 
 import com.google.inject.Inject
 import org.slf4j.{Logger, LoggerFactory}
+import rx.Observable
 
 import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable}
+import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.MacTableUpdate
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor
@@ -101,6 +103,11 @@ class BridgeBuilderStateFeeder {
                 }
             })
         }
+
+        override def complete(): Unit = map.stop()
+
+        override def observable(): Observable[MacTableUpdate] =
+            Observable.empty()
     }
 
     class OnUpdate(vlanId: Short, builder: BridgeBuilder)

@@ -23,6 +23,7 @@ import java.util.UUID;
 
 import scala.Option;
 
+import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;

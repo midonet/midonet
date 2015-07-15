@@ -25,8 +25,8 @@ import org.apache.curator.utils.ZKPaths
 
 import rx.Observable
 
-import org.midonet.cluster.data.storage.StateTable
-import org.midonet.cluster.data.storage.StateTable.Update
+import org.midonet.cluster.data.storage.MergedMap.Update
+import org.midonet.cluster.data.storage.state_table.StateTable
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.CallingThreadReactor
@@ -37,7 +37,7 @@ import org.midonet.util.eventloop.CallingThreadReactor
  */
 final class LegacyArpTable(bridgeId: UUID, curator: CuratorFramework,
                            paths: PathBuilder)
-    extends StateTable[IPv4Addr, MAC] {
+    extends StateTable[IPv4Addr, MAC, Update[IPv4Addr, MAC]] {
 
     private val reactor = new CallingThreadReactor
     private val curatorConnection = new CuratorZkConnection(curator, reactor)
@@ -86,7 +86,7 @@ final class LegacyArpTable(bridgeId: UUID, curator: CuratorFramework,
     def containsPersistent(address: IPv4Addr, mac: MAC): Boolean = ???
 
     /** Gets the MAC for the specified address. */
-    def get(address: IPv4Addr): Option[MAC] = ???
+    def get(address: IPv4Addr): MAC = ???
 
     /** Gets the set of addresses corresponding the specified MAC. */
     def getByValue(value: MAC): Set[IPv4Addr] = ???
@@ -99,6 +99,8 @@ final class LegacyArpTable(bridgeId: UUID, curator: CuratorFramework,
     /** Returns an observable that notifies the updates to the current state
       * table. */
     def observable: Observable[Update[IPv4Addr, MAC]] = ???
+
+    def close(): Unit = ???
 
     private def createDirectory(): Directory = {
         val directoryPath = paths.getBridgeIP4MacMapPath(bridgeId)

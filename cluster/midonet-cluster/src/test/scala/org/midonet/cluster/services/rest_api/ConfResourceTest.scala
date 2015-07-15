@@ -27,7 +27,8 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.data.storage.InMemoryMergedMapBusBuilder
+import org.midonet.cluster.storage.{KafkaConfig, MidonetBackendConfig}
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
 import org.midonet.cluster.auth.MockAuthService
 import org.midonet.cluster.services.MidonetBackendService
@@ -66,7 +67,9 @@ class ConfResourceTest extends FeatureSpec
         val context = ClusterNode.Context(HostIdGenerator.getHostId,
                                           embed = true)
         val backend = new MidonetBackendService(new MidonetBackendConfig(config),
-                                                zkClient, null)
+                                                new KafkaConfig(config),
+                                                new InMemoryMergedMapBusBuilder(),
+                                                zkClient, metricRegistry = null)
         api = new Vladimir(context, backend, zkClient,
                            new MockAuthService(config),
                            new ClusterConfig(config))

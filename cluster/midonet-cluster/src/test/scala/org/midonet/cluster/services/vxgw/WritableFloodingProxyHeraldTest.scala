@@ -31,6 +31,7 @@ import rx.Observable
 import rx.subjects.PublishSubject
 
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.data.storage.state_table.StateTableStorage
 import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.cluster.models.Topology.TunnelZone.Type
 import org.midonet.cluster.services.MidonetBackend
@@ -67,6 +68,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
         backend = new MidonetBackend { // Easier than mocking
             override def stateStore: StateStorage = _stateStore
             override def store: Storage = _store
+            override def deviceStateStore: StateTableStorage = ???
+            override def mergedMapEnabled = false
             override def curator: CuratorFramework = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
