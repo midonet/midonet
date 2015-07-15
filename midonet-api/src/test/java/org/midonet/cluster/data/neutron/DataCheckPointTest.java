@@ -41,6 +41,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.ZookeeperLockFactory;
 import org.midonet.cluster.config.ConfigProviderModule;
@@ -123,6 +124,9 @@ public class DataCheckPointTest {
         Config config = null;
 
         public TestDataClientModule(Config config) {
+            super(new ClusterConfig(
+                config.withFallback(MidoTestConfigurator.forAgents())).kafka()
+            );
             this.config = config.withFallback(MidoTestConfigurator.forAgents());
         }
 

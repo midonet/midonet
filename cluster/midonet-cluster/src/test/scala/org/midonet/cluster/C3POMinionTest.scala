@@ -279,7 +279,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                         expose(classOf[MidonetBackend])
                     }
                 },
-                new LegacyClusterModule()
+                new LegacyClusterModule(clusterCfg.kafka)
         )
         injector.injectMembers(this)
     }

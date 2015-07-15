@@ -32,6 +32,7 @@ import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 import org.midonet.midolman.cluster.LegacyClusterModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule
+import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.state.{StateAccessException, ZookeeperConnectionWatcher}
 import org.midonet.util.concurrent.toFutureOps
 
@@ -168,12 +169,13 @@ object MmCtl {
 
     def getInjector: Injector = {
         val configurator = MidoNodeConfigurator.apply(LegacyConfFilePath)
-        val config = new MidonetBackendConfig(configurator.runtimeConfig)
-        Guice.createInjector(new MidonetBackendModule(config),
+        val backendConfig = new MidonetBackendConfig(configurator.runtimeConfig)
+        val midolmanConfig = MidolmanConfigModule.createConfig(configurator)
+        Guice.createInjector(new MidonetBackendModule(backendConfig),
                              new ZookeeperConnectionModule(
                                  classOf[ZookeeperConnectionWatcher]),
                              new SerializationModule,
-                             new LegacyClusterModule)
+                             new LegacyClusterModule(midolmanConfig.kafka))
     }
 
     def getMutuallyExclusiveOptionGroup: OptionGroup = {

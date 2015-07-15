@@ -105,7 +105,7 @@ public abstract class ZookeeperTest {
                 new MidolmanConfigModule(config),
                 new MidonetBackendModule(config.zookeeper()),
                 new ZookeeperConnectionModule(SessionUnawareConnectionWatcher.class),
-                new LegacyClusterModule())
+                new LegacyClusterModule(config.kafka()))
         );
 
         modules.addAll(getExtraModules());

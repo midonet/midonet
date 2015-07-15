@@ -167,7 +167,7 @@ public class RestApiJerseyServletModule extends JerseyServletModule {
         // Install Zookeeper module until Cluster Client makes it unnecessary
         install(new ZookeeperConnectionModule(
             SessionUnawareConnectionWatcher.class));
-        install(new LegacyClusterModule());
+        install(new LegacyClusterModule(clusterConf.kafka()));
 
         // Install Neutron module;
         if (zkCfg.useNewStack()) {

@@ -24,11 +24,12 @@ import scala.collection.JavaConversions._
 import scala.collection.mutable
 
 import akka.actor.ActorRef
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.{VlanPortMap, BridgeBuilder, IpMacMap, MacLearningTable}
+import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, VlanPortMap}
 import org.midonet.cluster.data.Bridge
+import org.midonet.midolman.state.MacLearningTable
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.topology.{BridgeConfig, BridgeManager}
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger

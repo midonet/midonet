@@ -32,7 +32,7 @@ import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.Topology.Rule.{TraceRuleData, Action, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.state.StateTableStorage
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -47,7 +47,7 @@ import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, IPSubnet, MAC}
 
 class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
-                                                 legacyStorage: LegacyStorage)
+                                                 legacyStorage: StateTableStorage)
         extends VirtualConfigurationBuilders
         with TopologyBuilder {
     val tunnelKeys = new AtomicLong(0)

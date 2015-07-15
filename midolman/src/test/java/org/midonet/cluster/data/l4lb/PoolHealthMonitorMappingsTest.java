@@ -21,9 +21,9 @@ import java.util.UUID;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValueFactory;
+
 import org.apache.zookeeper.KeeperException;
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +38,7 @@ import org.midonet.midolman.Setup;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.Directory;
@@ -163,13 +164,14 @@ public class PoolHealthMonitorMappingsTest {
             SerializationException, StateAccessException,
             InterruptedException, KeeperException {
         Config conf = fillConfig(MidoTestConfigurator.forAgents());
+        MidolmanConfig midolmanConf = MidolmanConfigModule.createConfig(conf);
         injector = Guice.createInjector(
-                new SerializationModule(),
-                new MidolmanConfigModule(conf),
-                new MidonetBackendTestModule(conf),
-                new MockZookeeperConnectionModule(),
-                new LegacyClusterModule(),
-                new NeutronClusterModule()
+            new SerializationModule(),
+            new MidolmanConfigModule(conf),
+            new MidonetBackendTestModule(conf),
+            new MockZookeeperConnectionModule(),
+            new LegacyClusterModule(midolmanConf.kafka()),
+            new NeutronClusterModule()
         );
 
         injector.injectMembers(this);

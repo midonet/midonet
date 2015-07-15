@@ -26,6 +26,9 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
+import com.typesafe.config.Config;
+
+import org.I0Itec.zkclient.ZkClient;
 
 import org.midonet.cluster.BridgeBuilderStateFeeder;
 import org.midonet.cluster.Client;
@@ -45,8 +48,9 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.LocalClientImpl;
 import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.services.LegacyStorageService;
-import org.midonet.cluster.state.LegacyStorage;
+import org.midonet.cluster.state.StateTableStorage;
 import org.midonet.cluster.state.ZookeeperLegacyStorage;
+import org.midonet.cluster.storage.KafkaConfig;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
@@ -81,6 +85,7 @@ import org.midonet.midolman.state.zkManagers.VipZkManager;
 import org.midonet.midolman.state.zkManagers.VtepZkManager;
 import org.midonet.util.eventloop.Reactor;
 
+import kafka.utils.ZkUtils;
 import static org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider.DIRECTORY_REACTOR_TAG;
 
 /**
@@ -88,11 +93,18 @@ import static org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider.DIRECT
  */
 public class LegacyClusterModule extends PrivateModule {
 
+    private KafkaConfig conf;
+
+    public LegacyClusterModule(KafkaConfig conf) {
+        this.conf = conf;
+    }
+
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
 
         requireBinding(MidonetBackendConfig.class);
+        requireBinding(KafkaConfig.class);
         requireBinding(Directory.class);
         requireBinding(Key.get(Reactor.class,
                                Names.named(DIRECTORY_REACTOR_TAG)));
@@ -114,9 +126,12 @@ public class LegacyClusterModule extends PrivateModule {
                               .asEagerSingleton();
         expose(DataClient.class);
 
-        bind(LegacyStorage.class).to(ZookeeperLegacyStorage.class)
+        bind(KafkaConfig.class).toInstance(conf);
+        expose(KafkaConfig.class);
+
+        bind(StateTableStorage.class).to(ZookeeperLegacyStorage.class)
                                  .asEagerSingleton();
-        expose(LegacyStorage.class);
+        expose(StateTableStorage.class);
 
         // TODO: Move these out of LocalDataClientImpl so that they can be
         // installed in DataClusterClientModule instead.

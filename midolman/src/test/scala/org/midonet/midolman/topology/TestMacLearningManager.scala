@@ -15,20 +15,19 @@
  */
 
 import java.util.UUID
-import java.lang.{Short => JShort}
-import collection.mutable
+
+import scala.collection.mutable
 import scala.concurrent.duration._
 
 import akka.actor.ActorSystem
-import akka.event.Logging
 import com.typesafe.scalalogging.Logger
 import org.scalatest.{FunSuite, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.client.MacLearningTable
 import org.midonet.cluster.data.Bridge
-import org.midonet.midolman.topology.MacLearningManager
+import org.midonet.midolman.state.MacLearningTable
 import org.midonet.midolman.topology.BridgeManager.MacPortMapping
+import org.midonet.midolman.topology.MacLearningManager
 import org.midonet.packets.MAC
 import org.midonet.util.functors.Callback3
 
@@ -148,7 +147,15 @@ private class MockMacLearningTable(backend: mutable.Map[MAC, UUID])
         backend.remove(mac1)
     }
 
+    override def remove(mac1: MAC) = ???
+
     override def notify(cb: Callback3[MAC, UUID, UUID]) {
         // Not implemented
     }
+
+    override def complete(): Unit = {
+        // Nothing to do
+    }
+
+    override val observable = ???
 }

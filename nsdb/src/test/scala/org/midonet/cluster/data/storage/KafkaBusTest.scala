@@ -77,6 +77,8 @@ class KafkaBusTest extends KafkaTest[Opinion] {
 
     import KafkaBusTest._
 
+    type MapUpdate = MergedMap.MapUpdate[String, String]
+
     val timeout = 5 seconds
     val stringEncoder = new StringEncoder()
     val stringDecoder = new StringDecoder()
@@ -254,7 +256,8 @@ class KafkaBusTest extends KafkaTest[Opinion] {
     }
 
     private def createObserverAndSubscribe(map: MergedMap[String, String]) = {
-        val obs = new TestObserver[Update] with AwaitableObserver[Update]
+        val obs = new TestObserver[MapUpdate]
+                      with AwaitableObserver[MapUpdate]
         map.observable.subscribe(obs)
         obs
     }

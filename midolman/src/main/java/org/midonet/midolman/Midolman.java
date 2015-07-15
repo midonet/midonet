@@ -33,6 +33,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.LoggerLevelWatcher;
 import org.midonet.conf.MidoNodeConfigurator;
@@ -196,7 +197,7 @@ public class Midolman {
             new SerializationModule(),
             new HostModule(),
             new DatapathModule(),
-            new LegacyClusterModule(),
+            new LegacyClusterModule(config.kafka()),
             new MidolmanActorsModule(),
             new ResourceProtectionModule(),
             new MidolmanModule(),

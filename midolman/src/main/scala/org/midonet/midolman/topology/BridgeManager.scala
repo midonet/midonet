@@ -16,7 +16,6 @@
 package org.midonet.midolman.topology
 
 import java.lang.{Short => JShort}
-import java.util
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
@@ -28,10 +27,11 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client._
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.state.MacLearningTable
 import org.midonet.midolman.topology.BridgeManager.MacPortMapping
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.topology.builders.BridgeBuilderImpl
 import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.util.collection.Reducer
@@ -115,7 +115,7 @@ class BridgeManager(id: UUID, val clusterClient: Client,
                     val config: MidolmanConfig) extends DeviceWithChains {
     import context.system
 
-import org.midonet.midolman.topology.BridgeManager._
+    import org.midonet.midolman.topology.BridgeManager._
 
     override def logSource = s"org.midonet.devices.bridge.bridge-$id"
 

@@ -27,6 +27,7 @@ import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.state.MacLearningTable
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}

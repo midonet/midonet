@@ -17,17 +17,16 @@ package org.midonet.cluster;
 
 import java.util.{List, Map, Set, UUID}
 
+import org.apache.zookeeper.{CreateMode, Op, OpResult, Watcher}
 import rx.Observable
 
-import org.apache.zookeeper.{CreateMode, Op, OpResult, Watcher}
-
 import org.midonet.cluster.client._
-import org.midonet.cluster.state._
 import org.midonet.cluster.data._
 import org.midonet.cluster.data.dhcp.{Subnet, Subnet6, V6Host}
 import org.midonet.cluster.data.host.{Host, Interface, VirtualPortMapping}
 import org.midonet.cluster.data.l4lb.{HealthMonitor, LoadBalancer, Pool, PoolMember, VIP}
 import org.midonet.cluster.data.ports.{BridgePort, VlanMacPort, VxLanPort}
+import org.midonet.cluster.state._
 import org.midonet.midolman.host.state.HostDirectory
 import org.midonet.midolman.state._
 import org.midonet.midolman.state.l4lb.LBStatus
@@ -349,12 +348,12 @@ class ExplodingDataClient extends DataClient {
     override def getIp4MacMap(bridgeId: UUID): Ip4ToMacReplicatedMap = explode()
 }
 
-class ExplodingLegacyStorage extends LegacyStorage {
+class ExplodingLegacyStorage extends StateTableStorage {
     def explode() = throw new RuntimeException(
         "LegacyStorage shouldn't be used in new stack")
 
     override def bridgeMacTable(bridgeId: UUID, vlanId: Short,
-                                ephemeral: Boolean): MacPortMap = explode()
+                                ephemeral: Boolean, inMem: Boolean): MacLearningTable = explode()
     override def bridgeIp4MacMap(bridgeId: UUID): Ip4ToMacReplicatedMap = explode()
     override def routerRoutingTable(routerId: UUID): ReplicatedSet[org.midonet.midolman.layer3.Route] = explode()
     override def routerArpTable(routerId: UUID): ArpTable = explode()

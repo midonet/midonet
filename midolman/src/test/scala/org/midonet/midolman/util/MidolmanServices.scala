@@ -34,7 +34,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.data.dhcp.{Host,Subnet}
 
-import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.state.StateTableStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
 import org.midonet.midolman.flows.FlowTagIndexer
@@ -55,7 +55,7 @@ trait MidolmanServices {
         injector.getInstance(classOf[MidolmanConfig])
 
     def stateStorage =
-        injector.getInstance(classOf[LegacyStorage])
+        injector.getInstance(classOf[StateTableStorage])
 
     def virtConfBuilderImpl =
         injector.getInstance(classOf[VirtualConfigurationBuilders])

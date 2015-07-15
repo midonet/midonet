@@ -16,17 +16,15 @@
 package org.midonet.cluster.state
 
 import java.util.UUID
-
 import javax.annotation.Nonnull
 
-import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-
+import org.I0Itec.zkclient.ZkClient
 import org.apache.zookeeper.CreateMode.EPHEMERAL
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
@@ -34,23 +32,27 @@ import org.midonet.cluster.data.storage.StateResult
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.storage.{KafkaConfig, MidonetBackendConfig}
 import org.midonet.cluster.{ClusterRouterManager, DataClient}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.{SerializationException, Serializer}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
 import org.midonet.midolman.state._
+import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
 
 /**
- * An implementation of the [[LegacyStorage]] trait using the legacy ZooKeeper
- * managers as backend.
+ * An implementation of the [[StateTableStorage]] trait using the legacy ZooKeeper
+ * managers as backend and Merged Maps. This class represents a
+ * transitional implementation of the legacy [[org.midonet.cluster.DataClient]].
  */
-class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
+// TODO: Rename class?
+class ZookeeperLegacyStorage @Inject()(backendConfig: MidonetBackendConfig,
+                                       kafkaConfig: KafkaConfig,
+                                       //TODO: Inject here a component to either get an in-mem bus or Kafka bus?
                                        backend: MidonetBackend,
                                        dataClient: DataClient,
                                        @Named("directoryReactor") reactor: Reactor,
@@ -61,7 +63,7 @@ class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
                                        routerZkManager: RouterZkManager,
                                        routerManager: ClusterRouterManager,
                                        pathBuilder: PathBuilder)
-        extends LegacyStorage with MidolmanLogging {
+        extends StateTableStorage with MidolmanLogging {
 
 
     /**
@@ -99,12 +101,16 @@ class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
 
     @throws[StateAccessException]
     override def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short,
-                                ephemeral: Boolean): MacPortMap = {
-        ensureBridgePaths(bridgeId)
-        ensureBridgeVlanPaths(bridgeId, vlanId)
-        val map = dataClient.bridgeGetMacTable(bridgeId, vlanId, ephemeral)
-        map.setConnectionWatcher(connectionWatcher)
-        map
+                                ephemeral: Boolean, inMem: Boolean): MacLearningTable = {
+        if (kafkaConfig.useMergedMaps) {
+            new MacTableMergedMap(bridgeId, vlanId, kafkaConfig, inMem)
+        } else {
+            ensureBridgePaths(bridgeId)
+            ensureBridgeVlanPaths(bridgeId, vlanId)
+            val map = dataClient.bridgeGetMacTable(bridgeId, vlanId, ephemeral)
+            map.setConnectionWatcher(connectionWatcher)
+            new MacTableReplicatedMap(map, bridgeId, vlanId)
+        }
     }
 
     @throws[StateAccessException]
@@ -135,7 +141,7 @@ class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
 
     override def setPortLocalAndActive(portId: UUID, hostId: UUID,
                                        active: Boolean): Unit = runOnReactor {
-        if (!config.useNewStack) {
+        if (!backendConfig.useNewStack) {
             // Activate the port for legacy ZK storage.
             portZkManager.setActivePort(portId, hostId, active)
                 .observeOn(reactor.rxScheduler)

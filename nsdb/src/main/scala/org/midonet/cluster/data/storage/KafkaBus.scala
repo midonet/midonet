@@ -302,7 +302,7 @@ class KafkaBus[K, V >: Null <: AnyRef](id: String, ownerId: String,
                                        config: KafkaConfig,
                                        zkClient: ZkClient,
                                        val kafkaIO: KafkaSerialization[K, V])
-    (implicit crStrategy: Ordering[V]) extends MergedMapBus[K, V] {
+    extends MergedMapBus[K, V] {
 
     type Opinion = (K, V, String)
     type MsgsType = ConsumerRecords[String, Array[Byte]]
@@ -330,7 +330,7 @@ class KafkaBus[K, V >: Null <: AnyRef](id: String, ownerId: String,
         }
     }
 
-    def close(): Unit = {
+    override def close(): Unit = {
         if (closed.compareAndSet(false, true)) {
             producer.close()
             KafkaBus.unsubscribe(id)

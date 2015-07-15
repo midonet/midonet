@@ -63,7 +63,7 @@ public class LocalDataClientImplTestBase {
                 new MidonetBackendTestModule(conf),
                 new MidolmanConfigModule(conf),
                 new MockZookeeperConnectionModule(),
-                new LegacyClusterModule()
+                new LegacyClusterModule(MidolmanConfigModule.createConfig(conf).kafka())
         );
         injector.injectMembers(this);
         Setup.ensureZkDirectoryStructureExists(zkDir(), zkRoot);

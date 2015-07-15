@@ -83,7 +83,8 @@ public class ClusterTestUtils {
         modules.add(new MidolmanConfigModule(newConf));
         // Directory and Reactor
         modules.add(new MockZookeeperConnectionModule());
-        modules.add(new LegacyClusterModule());
+        ClusterConfig clusterConf = new ClusterConfig(newConf);
+        modules.add(new LegacyClusterModule(clusterConf.kafka()));
         return modules;
     }
 

@@ -29,7 +29,7 @@ import org.midonet.cluster.data.dhcp.{ExtraDhcpOpt, Host => DhcpHost, Opt121, Su
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.l4lb.{HealthMonitor, LoadBalancer, Pool, PoolMember, VIP}
 import org.midonet.cluster.data.rules.{ForwardNatRule, JumpRule, LiteralRule, ReverseNatRule, TraceRule}
-import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.state.StateTableStorage
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.RuleResult.Action
@@ -40,7 +40,7 @@ import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC, TCP}
 
 class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient,
-                                                   stateStorage: LegacyStorage,
+                                                   stateStorage: StateTableStorage,
                                                    hostZkMgr: HostZkManager)
     extends VirtualConfigurationBuilders {
 
