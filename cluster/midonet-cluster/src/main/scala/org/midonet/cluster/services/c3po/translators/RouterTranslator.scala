@@ -164,6 +164,10 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 
     private def gatewayPortUpdateOps(nr: NeutronRouter,
                                      r: Router): MidoOpList = {
+        // It is assumed that the gateway port may not be removed while there
+        // still is a VIP associated with it. Therefore we don't need to worry
+        // about cleaning up the ARP entry for the VIP associated with this
+        // Router via a corresponding Load Balancer.
         if (!nr.hasGwPortId) return List()
         val PortPair(nGwPort, extNwPort) = getPortPair(nr.getGwPortId)
 

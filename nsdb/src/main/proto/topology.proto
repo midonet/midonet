@@ -159,11 +159,13 @@ message LoadBalancer {
     // attached. Therefore, LoadBalancer does not have a reference to Router.
     optional UUID id = 1;
     optional bool admin_state_up = 2;
-    repeated UUID vip_ids = 3;
 
     // Backreference
     optional UUID router_id = 101;
     repeated UUID pool_ids = 102;
+    // Tentatively keep the backreference to VIPs in LB.
+    // TODO Remove this once the Agent side has been refactored.
+    repeated UUID vip_ids = 103;
 }
 
 message Network {
@@ -210,7 +212,9 @@ message Pool {
     optional LBStatus status = 7 [default = ACTIVE];
     optional PoolHealthMonitorMappingStatus mapping_status = 8;
 
+    // Backreferences
     repeated UUID pool_member_ids = 101;
+    repeated UUID vip_ids = 102;
 }
 
 message PoolMember {
@@ -437,9 +441,8 @@ message Vip {
     optional uint32 protocol_port = 5;
     optional SessionPersistence session_persistence = 6;
     optional UUID gateway_port_id = 7;
-
-    // Backreference
-    optional UUID load_balancer_id = 101;
+    // TODO Remove this once the Agent side has been refactored.
+    optional UUID load_balancer_id = 8;
 }
 
 message Vtep {
