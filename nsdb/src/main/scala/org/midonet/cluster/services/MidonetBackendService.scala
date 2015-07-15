@@ -28,7 +28,7 @@ import org.midonet.cluster.models.Neutron._
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.c3po.C3POState
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.storage.{KafkaConfig, MidonetBackendConfig}
 
 object MidonetBackend {
     final val AliveKey = "alive"
@@ -44,9 +44,11 @@ object MidonetBackend {
 abstract class MidonetBackend extends AbstractService {
     /** Indicates whether the new backend stack is active */
     def isEnabled = false
+    def mergedMapEnabled: Boolean
     /** Provides access to the Topology storage API */
     def store: Storage
     def stateStore: StateStorage
+    def stateTableStore: StateTableStorage
     def curator: CuratorFramework
 
     /** Configures a brand new ZOOM instance with all the classes and bindings
@@ -173,27 +175,34 @@ abstract class MidonetBackend extends AbstractService {
 
 /** Class responsible for providing services to access to the new Storage
   * services. */
-class MidonetBackendService @Inject() (cfg: MidonetBackendConfig,
+class MidonetBackendService @Inject() (backendCfg: MidonetBackendConfig,
+                                       kafkaCfg: KafkaConfig,
+                                       busBuilder: MergedMapBusBuilder,
                                        override val curator: CuratorFramework)
     extends MidonetBackend {
 
     private val log = getLogger("org.midonet.nsdb")
 
     private val zoom =
-        new ZookeeperObjectMapper(cfg.rootKey + "/zoom", curator)
-
+        new ZookeeperObjectMapper(backendCfg.rootKey + "/zoom", curator)
     override def store: Storage = zoom
     override def stateStore: StateStorage = zoom
-    override def isEnabled = cfg.useNewStack
+
+    private val stateTableStorage =
+        new MergedMapStateTableStorage(kafkaCfg, busBuilder)
+    override def stateTableStore: StateTableStorage = stateTableStorage
+
+    override def isEnabled = backendCfg.useNewStack
+    override def mergedMapEnabled = kafkaCfg.useMergedMaps
 
     protected override def doStart(): Unit = {
         log.info(s"Starting backend ${this} store: $store")
         try {
-            if ((cfg.curatorEnabled || cfg.useNewStack) &&
+            if ((backendCfg.curatorEnabled || backendCfg.useNewStack) &&
                 curator.getState != CuratorFrameworkState.STARTED) {
                 curator.start()
             }
-            if (cfg.useNewStack) {
+            if (backendCfg.useNewStack) {
                 log.info("Setting up storage bindings")
                 setupBindings()
             }

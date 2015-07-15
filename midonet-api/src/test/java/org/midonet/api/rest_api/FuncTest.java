@@ -43,11 +43,14 @@ import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
 import org.midonet.cluster.ClusterConfig;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.MockAuthService;
+import org.midonet.cluster.data.storage.InMemoryMergedMapBusBuilder;
+import org.midonet.cluster.data.storage.MergedMapBusBuilder;
 import org.midonet.cluster.rest_api.jaxrs.WildcardJacksonJaxbJsonProvider;
 import org.midonet.cluster.rest_api.serialization.MidonetObjectMapper;
 import org.midonet.cluster.rest_api.serialization.ObjectMapperProvider;
 import org.midonet.cluster.services.MidonetBackendService;
 import org.midonet.cluster.services.rest_api.Vladimir;
+import org.midonet.cluster.storage.KafkaConfig;
 import org.midonet.conf.HostIdGenerator;
 
 import static org.apache.curator.framework.CuratorFrameworkFactory.newClient;
@@ -191,8 +194,11 @@ public class FuncTest {
 
             AuthService authService = new MockAuthService(cfg.conf());
 
+            KafkaConfig kafkaCfg = cfg.kafka();
+            MergedMapBusBuilder busBuilder = new InMemoryMergedMapBusBuilder();
             MidonetBackendService backend =
-                new MidonetBackendService(cfg.backend(), curator);
+                new MidonetBackendService(cfg.backend(), kafkaCfg, busBuilder,
+                                          curator);
             backend.startAsync().awaitRunning();
 
             FuncTest._injector = Guice.createInjector(

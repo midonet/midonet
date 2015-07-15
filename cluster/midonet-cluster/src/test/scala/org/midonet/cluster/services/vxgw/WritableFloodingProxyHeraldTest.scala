@@ -67,6 +67,8 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
         backend = new MidonetBackend { // Easier than mocking
             override def stateStore: StateStorage = _stateStore
             override def store: Storage = _store
+            override def stateTableStore: StateTableStorage = ???
+            override def mergedMapEnabled = false
             override def curator: CuratorFramework = ???
             override def doStop(): Unit = ???
             override def doStart(): Unit = ???
