@@ -16,26 +16,25 @@
 
 package org.midonet.midolman.simulation
 
-import akka.actor.ActorSystem
-import akka.event.Logging
-import scala.collection.mutable
 import java.lang.{Short => JShort}
 import java.util.UUID
 
-import org.junit.runner.RunWith
-import org.midonet.midolman.PacketWorkflow.Drop
-import org.scalatest.{Matchers, BeforeAndAfterAll, Suite}
-import org.scalatest.junit.JUnitRunner
+import scala.collection.mutable
 
-import org.midonet.midolman.topology._
+import akka.actor.ActorSystem
+import akka.event.Logging
+import org.junit.runner.RunWith
+import org.scalatest.junit.JUnitRunner
+import org.scalatest.{BeforeAndAfterAll, Matchers, Suite}
+
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
-import org.midonet.cluster.data
+import org.midonet.cluster.{VlanPortMapImpl, data}
+import org.midonet.midolman.PacketWorkflow.Drop
+import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.devices.BridgePort
+import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback3}
-import org.midonet.cluster.VlanPortMapImpl
-import org.midonet.odp.{FlowMatch, Packet}
-
 
 @RunWith(classOf[JUnitRunner])
 class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
@@ -264,16 +263,23 @@ private class MockMacLearningTable(val table: mutable.Map[MAC, UUID])
 
     override def remove(mac: MAC, port: UUID) {
         removals += ((mac, port))
+        table.remove(mac)
     }
 
     override def notify(cb: Callback3[MAC, UUID, UUID]) {
         // Not implemented
     }
 
+    override def complete(): Unit = {
+        // Nothing to do
+    }
+
     def reset() {
         additions.clear()
         removals.clear()
     }
+
+    override val observable = ???
 }
 
 private class MockIpMacMap(val map: Map[IPv4Addr, MAC])

@@ -22,7 +22,7 @@ import com.typesafe.config.{ConfigException, ConfigFactory, Config}
 import com.typesafe.scalalogging.Logger
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.storage.{CassandraConfig,MidonetBackendConfig}
+import org.midonet.cluster.storage.{KafkaConfig, CassandraConfig, MidonetBackendConfig}
 import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
 
 object MidolmanConfig {
@@ -70,7 +70,6 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     def bgpKeepAlive = getDuration(s"$PREFIX.midolman.bgp_keepalive", TimeUnit.SECONDS).toInt
     def bgpHoldTime = getDuration(s"$PREFIX.midolman.bgp_holdtime", TimeUnit.SECONDS).toInt
     def bgpConnectRetry = getDuration(s"$PREFIX.midolman.bgp_connect_retry", TimeUnit.SECONDS).toInt
-
     def dhcpMtu: Short = getInt(s"$PREFIX.midolman.dhcp_mtu").toShort
     def simulationThreads = getInt(s"$PREFIX.midolman.simulation_threads")
     def outputChannels = getInt(s"$PREFIX.midolman.output_channels")
@@ -82,6 +81,7 @@ class MidolmanConfig(_conf: Config, val schema: Config = ConfigFactory.empty()) 
     val bridge = new BridgeConfig(conf, schema)
     val router = new RouterConfig(conf, schema)
     val zookeeper = new MidonetBackendConfig(conf)
+    val kafka = new KafkaConfig(conf)
     val cassandra = new CassandraConfig(conf)
     val datapath = new DatapathConfig(conf, schema)
     val arptable = new ArpTableConfig(conf, schema)

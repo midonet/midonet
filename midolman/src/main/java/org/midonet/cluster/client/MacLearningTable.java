@@ -17,6 +17,9 @@ package org.midonet.cluster.client;
 
 import java.util.UUID;
 
+import rx.Observable;
+
+import org.midonet.midolman.topology.BridgeMapper.MacTableUpdate;
 import org.midonet.packets.MAC;
 import org.midonet.util.functors.Callback3;
 
@@ -28,4 +31,13 @@ public interface MacLearningTable {
     void remove(MAC mac, UUID portID);
 
     void notify(Callback3<MAC, UUID, UUID> cb);
+
+    /** Stops the learning table. */
+    void complete();
+
+    /**
+     * Provides an observable that notifies its observers of
+     * mac table updates.
+     */
+    Observable<MacTableUpdate> observable();
 }

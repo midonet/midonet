@@ -20,19 +20,20 @@ import java.util.UUID
 import scala.concurrent.duration._
 
 import com.typesafe.config.{Config, ConfigFactory}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 import rx.observers.TestObserver
+import rx.subjects.ReplaySubject
 
-import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Network => TopologyBridge, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.state.MergedMapStateStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
+import org.midonet.midolman.state.MacPortMap
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.util.MidolmanSpec
@@ -50,6 +51,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
     private type BridgeObserver = TestObserver[SimulationBridge]
         with AwaitableObserver[SimulationBridge]
+    private type MergedMapUpdate = MergedMap.MapUpdate[MAC, PortTS]
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
@@ -1466,13 +1468,17 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForPort(peerPortId1),
                 tagForPort(peerPortId2))
 
-            Given("The MAC-port replicated map for the bridge")
-            val map = vt.state.bridgeMacTable(bridgeId, vlanId, ephemeral = true)
-            map.start()
+            Given("The MAC-port map for the bridge")
+            val map = new MacTableWrapper(bridgeId, vlanId,
+                                          vt.mergedMapState.isEnabled)
+            val mapObs = new TestObserver[MergedMapUpdate] with
+                             AwaitableObserver[MergedMapUpdate]
+            map.observable subscribe mapObs
 
             When("A first MAC is added to the MAC learning table")
             val otherMac1 = MAC.random
             map.put(otherMac1, portId1)
+            mapObs.awaitOnNext(1, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1485,6 +1491,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             When("A second MAC is added to the MAC learning table")
             val otherMac2 = MAC.random
             map.put(otherMac2, portId1)
+            mapObs.awaitOnNext(2, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1497,6 +1504,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             When("A MAC changes from one port to another")
             map.put(otherMac1, portId2)
+            mapObs.awaitOnNext(3, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1509,7 +1517,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForVlanPort(bridgeId, otherMac1, vlanId, portId1))
 
             When("A MAC is deleted")
-            map.removeIfOwner(otherMac2)
+            map.remove(otherMac2)
+            mapObs.awaitOnNext(4, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1717,6 +1726,40 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             And("The virtual topology should not have the chain")
             VirtualTopology.tryGet[Chain](chain.getId)
+        }
+    }
+
+    private class MacTableWrapper(bridgeId: UUID, vlanId: Short,
+                                  useMergedMap: Boolean) {
+
+        val dummyUpdate = MergedMap.MapUpdate[MAC, PortTS](null, null, null)
+        val subject = ReplaySubject.create[MergedMapUpdate]()
+        for (i <- 1 to 4) subject onNext dummyUpdate
+
+        private val replMap: MacPortMap = useMergedMap match {
+            case true => null
+            case false =>
+                vt.state.bridgeMacTable(bridgeId, vlanId, ephemeral = true)
+        }
+        private val mergedMap: MergedMap[MAC, PortTS] = useMergedMap match {
+            case true => vt.mergedMapState.bridgeMacMergedMap(bridgeId, vlanId)
+            case false => null
+        }
+        if (replMap ne null) {
+            replMap.start()
+        }
+
+        def put(mac: MAC, portId: UUID): Unit = useMergedMap match {
+            case true => mergedMap.putOpinion(mac, (portId, System.nanoTime()))
+            case false => replMap.put(mac, bridgeId)
+        }
+        def remove(mac: MAC): Unit = useMergedMap match {
+            case true => mergedMap.removeOpinion(mac)
+            case false => replMap.removeIfOwner(mac)
+        }
+        def observable(): Observable[MergedMapUpdate] = useMergedMap match {
+            case true => mergedMap.observable
+            case false => subject.asObservable()
         }
     }
 }

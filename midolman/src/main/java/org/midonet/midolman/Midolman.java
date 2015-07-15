@@ -33,6 +33,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+
+import org.midonet.cluster.state.MergedMapModule;
 import org.midonet.conf.HostIdGenerator;
 import org.midonet.conf.LoggerLevelWatcher;
 import org.midonet.conf.MidoNodeConfigurator;
@@ -192,6 +194,7 @@ public class Midolman {
         injector = Guice.createInjector(
             new MidolmanConfigModule(config),
             new MidonetBackendModule(config.zookeeper()),
+            new MergedMapModule(config.kafka()),
             new ZookeeperConnectionModule(ZookeeperConnectionWatcher.class),
             new SerializationModule(),
             new HostModule(),

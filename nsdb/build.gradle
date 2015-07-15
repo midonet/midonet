@@ -67,7 +67,8 @@ dependencies {
                 libraries.scalatest,
                 libraries.scala_async,
                 libraries.test_frameworks,
-                libraries.kafka_zkclient
+                libraries.kafka_zkclient,
+                libraries.scala_parser
 }
 
 cobertura {

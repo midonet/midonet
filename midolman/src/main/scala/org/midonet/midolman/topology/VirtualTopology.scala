@@ -16,7 +16,6 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
 import scala.concurrent.{Future, Promise}
@@ -25,13 +24,12 @@ import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-
 import rx.Observable
 import rx.schedulers.Schedulers
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.state.{LegacyStorage, MergedMapState}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
@@ -40,7 +38,7 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{BackChannelMessage, NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.functors.{makeRunnable, Predicate}
+import org.midonet.util.functors.{Predicate, makeRunnable}
 import org.midonet.util.reactivex._
 
 /**
@@ -165,6 +163,8 @@ object VirtualTopology extends MidolmanLogging {
 class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val config: MidolmanConfig,
                                  val state: LegacyStorage,
+                                 val mergedMapState: MergedMapState,
+                                 val dataClient: DataClient,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val simBackChannel: SimulationBackChannel,
                                  val actorsService: MidolmanActorsService,

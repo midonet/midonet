@@ -76,6 +76,8 @@ class KafkaBusTest extends KafkaTest[Opinion] {
 
     import KafkaBusTest._
 
+    type MapUpdate = MergedMap.MapUpdate[String, String]
+
     val timeout = 5 seconds
     val stringEncoder = new StringEncoder()
     val stringDecoder = new StringDecoder()
@@ -239,8 +241,8 @@ class KafkaBusTest extends KafkaTest[Opinion] {
     //      Test Kafka's log compaction feature?
 
     private def createObserverAndSubscribe(map: MergedMap[String, String]) = {
-        val obs = new TestObserver[(String, String)]
-                      with AwaitableObserver[(String, String)]
+        val obs = new TestObserver[MapUpdate]
+                      with AwaitableObserver[MapUpdate]
         map.observable.subscribe(obs)
         obs
     }

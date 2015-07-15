@@ -18,7 +18,6 @@ package org.midonet.midolman.topology
 import java.lang.{Boolean => JBoolean, Long => JLong}
 import java.util.UUID
 import java.util.concurrent.TimeUnit.MILLISECONDS
-
 import javax.annotation.Nullable
 
 import scala.collection.JavaConverters._
@@ -35,15 +34,18 @@ import rx.subjects.PublishSubject
 
 import org.midonet.cluster.VlanPortMapImpl
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
+import org.midonet.cluster.data.storage.MergedMap
+import org.midonet.cluster.data.storage.MergedMap.MapUpdate
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
+import org.midonet.cluster.state.MergedMapStateStorage.PortTS
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state.{ReplicatedMap, StateAccessException}
-import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
-import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
+import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort}
+import org.midonet.packets.{IPAddr, IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.collection.Reducer
 import org.midonet.util.concurrent.TimedExpirationMap
@@ -91,16 +93,72 @@ object BridgeMapper {
     }
 
     /**
-     * The implementation of a [[MacLearningTable]] for a bridge. During
-     * initialization the table creates an underlying [[ReplicatedMap]] for
-     * the given bridge and VLAN, and exposes an [[rx.Observable]] with
-     * notifications for MAC-port updates. A complete() methods stops watching
-     * the underlying [[ReplicatedMap]] and completes the exposed observable
-     * when the VLAN is no longer present on the bridge.
+     * The implementation of a [[MacLearningTable]] for a bridge based on
+     * a merged map. During initialization the table creates an underlying
+     * [[MergedMap]] for the given bridge and VLAN, and exposes an
+     * [[rx.Observable]] with notifications for MAC-port updates. A complete()
+     * methods stops watching the underlying [[MergedMap]] and completes
+     * the exposed observable when the VLAN is no longer present on the bridge.
+     */
+    private class MacTableMergedMap(vt: VirtualTopology, bridgeId: UUID,
+                                    vlanId: Short)
+        extends MacLearningTable with MidolmanLogging {
+
+        override def logSource =
+            s"org.midonet.devices.bridge.bridge-$bridgeId.mac-learning-table"
+
+        val map = vt.mergedMapState.bridgeMacMergedMap(bridgeId, vlanId)
+
+        override def add(mac: MAC, portId: UUID): Unit = {
+            map.putOpinion(mac, (portId, System.nanoTime()))
+            log.info("Added MAC {} VLAN {} to port {}", mac,
+                     Short.box(vlanId), portId)
+        }
+
+        /** Obsolete method. */
+        override def notify(cb: Callback3[MAC, UUID, UUID]): Unit = ???
+
+        override def get(mac: MAC): UUID = map.get(mac) match {
+            case null => null
+            case (portId, ts) => portId
+        }
+
+        override def remove(mac: MAC, portId: UUID): Unit = {
+            map.removeOpinion(mac)
+            log.info("Removed opinion for MAC {} and VLAN {}", mac,
+                     Short.box(vlanId))
+        }
+
+        override def observable = map.observable.map[MacTableUpdate](
+            makeFunc1((update: MapUpdate[MAC, PortTS]) => {
+                val mac = update.key
+                val oldPort = if (update.oldValue ne null) {
+                    update.oldValue._1
+                } else {
+                    null
+                }
+                val newPort = if (update.newValue ne null) {
+                    update.newValue._1
+                } else {
+                    null
+                }
+                MacTableUpdate(vlanId, mac, oldPort, newPort)
+            }))
+
+        override def complete(): Unit = map.close()
+    }
+
+    /**
+     * The implementation of a [[MacLearningTable]] for a bridge based on
+     * a replicated map. During initialization the table creates an underlying
+     * [[ReplicatedMap]] for the given bridge and VLAN, and exposes an
+     * [[rx.Observable]] with notifications for MAC-port updates. A complete()
+     * methods stops watching the underlying [[ReplicatedMap]] and completes
+     * the exposed observable when the VLAN is no longer present on the bridge.
      */
     @throws[StateAccessException]
-    private class BridgeMacLearningTable(vt: VirtualTopology, bridgeId: UUID,
-                                         vlanId: Short)
+    private class MacTableReplicatedMap(vt: VirtualTopology, bridgeId: UUID,
+                                        vlanId: Short)
         extends MacLearningTable with MidolmanLogging {
 
         override def logSource =
@@ -120,7 +178,7 @@ object BridgeMapper {
         map.addWatcher(watcher)
         map.start()
 
-        val observable = subject.asObservable
+        override def observable = subject.asObservable
 
         /** Gets the port for the specified MAC. */
         override def get(mac: MAC): UUID = map.get(mac)
@@ -140,18 +198,18 @@ object BridgeMapper {
         override def remove(mac: MAC, portId: UUID): Unit = {
             try {
                 map.removeIfOwnerAndValue(mac, portId)
-                log.info("Added MAC {} VLAN {} to port {}", mac, Short.box(vlanId),
-                         portId)
+                log.info("Removed MAC {} VLAN {} and port {}", mac,
+                         Short.box(vlanId), portId)
             } catch {
                 case NonFatal(e) =>
-                    log.error(s"Failed to remove MAC {} VLAN {} to port {}",
+                    log.error(s"Failed to remove MAC {} VLAN {} and port {}",
                               mac, Short.box(vlanId), portId)
             }
         }
         /** TODO: Obsolete method. */
         override def notify(cb: Callback3[MAC, UUID, UUID]): Unit = ???
         /** Stops the underlying replicated map and completes the observable. */
-        def complete(): Unit = {
+        override def complete(): Unit = {
             map.stop()
             subject.onCompleted()
         }
@@ -162,8 +220,8 @@ object BridgeMapper {
         override val toString = s"{vlan=$vlanId mac=$mac port=$portId}"
     }
     /** Represents a MAC table update */
-    private case class MacTableUpdate(vlanId: Short, mac: MAC, oldPort: UUID,
-                                      newPort: UUID) {
+    case class MacTableUpdate(vlanId: Short, mac: MAC, oldPort: UUID,
+                              newPort: UUID) {
         override val toString = s"{vlan=$vlanId mac=$mac oldPort=$oldPort " +
                                 s"newPort=$newPort}"
     }
@@ -174,7 +232,7 @@ object BridgeMapper {
      * guarantee the required happens-before relationship because all ZooKeeper
      * requests are served by a single threaded reactor.
      */
-    private class MacLearning(tables: CMap[Short, BridgeMacLearningTable],
+    private class MacLearning(tables: CMap[Short, MacLearningTable],
                               log: Logger, ttl: Duration) {
         private val map =
             new TimedExpirationMap[MacPortMapping, AnyRef](log, _ => ttl)
@@ -278,7 +336,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
     private val exteriorPorts = new mutable.HashSet[UUID]
     private var oldExteriorPorts = Set.empty[UUID]
     private var oldRouterMacPortMap = Map.empty[MAC, UUID]
-    private val macLearningTables = new TrieMap[Short, BridgeMacLearningTable]
+    private val macLearningTables = new TrieMap[Short, MacLearningTable]
     private val macLearning =
         new MacLearning(macLearningTables, log,
                         vt.config.bridge.macPortMappingExpiry millis)
@@ -749,7 +807,13 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
     private def createMacLearningTable(vlanId: Short): Unit = {
         log.debug("Create MAC learning table for VLAN {}", Short.box(vlanId))
         try {
-            val table = new BridgeMacLearningTable(vt, bridgeId, vlanId)
+            val table =
+                if (vt.mergedMapState.isEnabled) {
+                    new MacTableMergedMap(vt, bridgeId, vlanId)
+                } else {
+                    new MacTableReplicatedMap(vt, bridgeId, vlanId)
+                }.asInstanceOf[MacLearningTable]
+
             macLearningTables += vlanId -> table
             macUpdatesSubject onNext table.observable
         } catch {
