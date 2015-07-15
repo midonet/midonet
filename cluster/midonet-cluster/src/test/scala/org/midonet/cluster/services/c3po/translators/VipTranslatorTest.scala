@@ -72,7 +72,6 @@ class VipTranslatorTestBase extends TranslatorTestBase {
         )
     protected def midoVip(sourceIpSessionPersistence: Boolean = false,
                           poolId: UUID = null,
-                          lbId: UUID = null,
                           gwPortId: UUID = null) = mVIPFromTxt(
         vipCommonFlds + { if (sourceIpSessionPersistence) s"""
         session_persistence: SOURCE_IP
@@ -80,8 +79,6 @@ class VipTranslatorTestBase extends TranslatorTestBase {
         pool_id { $poolId }
         """ else "" } + { if (gwPortId != null) s"""
         gateway_port_id { $gwPortId }
-        """ else "" } + { if (lbId != null) s"""
-        load_balancer_id { $lbId }
         """ else "" }
         )
     protected def midoPool(poolId: UUID, loadBalancerId: UUID) = {
@@ -154,14 +151,14 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
                 midonet.Create(midoVip(sourceIpSessionPersistence = true)))
     }
 
-    it should "associate Mido VIP with the Load Balancer as specified." in {
+    it should "associate Mido VIP with the LB Pool as specified." in {
         bindLb()
         bindVipNetwork(external = false)
         val midoOps = translator.translate(
                 neutron.Create(neutronVip(poolId = poolId)))
 
         midoOps should contain only (
-                midonet.Create(midoVip(poolId = poolId, lbId = lbId)))
+                midonet.Create(midoVip(poolId = poolId)))
     }
 
     it should "add an ARP entry when it is associated with a Pool and is on " +
@@ -172,7 +169,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
                 neutron.Create(neutronVip(poolId = poolId)))
 
         midoOps should contain (midonet.Create(
-                midoVip(poolId = poolId, lbId = lbId, gwPortId = gwPortId)))
+                midoVip(poolId = poolId, gwPortId = gwPortId)))
         midoOps should contain (midonet.CreateNode(
                 arpEntryPath(networkId, vipIpAddr, gwPortMac), null))
     }
@@ -185,7 +182,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
                 neutron.Create(neutronVip(poolId = poolId)))
 
         midoOps should contain only (
-                midonet.Create(midoVip(poolId = poolId, lbId = lbId)))
+                midonet.Create(midoVip(poolId = poolId)))
     }
 
     it should "not add an ARP entry when the tenant Router does not have a " +
@@ -196,7 +193,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
                 neutron.Create(neutronVip(poolId = poolId)))
 
         midoOps should contain only (
-                midonet.Create(midoVip(poolId = poolId, lbId = lbId)))
+                midonet.Create(midoVip(poolId = poolId)))
     }
 }
 
@@ -209,7 +206,10 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
         initMockStorage()
         translator = new VipTranslator(storage, pathBldr)
         bind(pool2Id, midoPool(pool2Id, lb2Id))
-        bind(vipId, neutronVip())
+        bind(vipId, neutronVip(poolId = poolId))
+        bind(vipId, midoVip(sourceIpSessionPersistence = true,
+                            poolId = poolId,
+                            gwPortId = gwPortId))
     }
 
     protected val pool2Id = UUIDUtil.toProtoFromProtoStr("msb: 2 lsb: 2")
@@ -231,13 +231,13 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
     protected val updatedMidoVip = mVIPFromTxt(s"""
         $commonUpdatedFlds
         session_persistence: SOURCE_IP
-        load_balancer_id { $lb2Id }
         """)
 
     "Neutron VIP Update" should "update a Midonet VIP." in {
         val midoOps = translator.translate(neutron.Update(updatedNeutronVip))
 
-        midoOps should contain only (midonet.Update(updatedMidoVip))
+        midoOps should contain only midonet.Update(updatedMidoVip,
+                                                   VipUpdateValidator)
     }
 
     protected val vipWithDifferentIp = nVIPFromTxt(s"""
