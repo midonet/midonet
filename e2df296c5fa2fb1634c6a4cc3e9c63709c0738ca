@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5778158f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/ChainMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 288,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-15T05:19:55Z",
+      "side": 1,
+      "message": "Just commenting here but can this be a bit simplified?\n\n\n        val (previousSrcId, previosDstId) \u003d if (ruleState.previousRule eq null) {\n            (ruleState.previousRule.getCondition.ipAddrGroupIdSrc,\n             ruleState.previousRule.getCondition.ipAddrGroupIdDst)\n        } else { (null, null) }\n        handleIpAddrGroupSubscription(\n                previousSrcId, ruleState.currentRule.getCondition.ipAddrGroupIdSrc)\n                .foreach { ipAddrGroupStream onNext _}\n        handleIpAddrGroupSubscription(\n                previousDstId, ruleState.currentRule.getCondition.ipAddrGroupIdDst)\n                .foreach { ipAddrGroupStream onNext _}",
+      "range": {
+        "startLine": 268,
+        "startChar": 0,
+        "endLine": 288,
+        "endChar": 9
+      },
+      "revId": "e2df296c5fa2fb1634c6a4cc3e9c63709c0738ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_77a6f911",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 604,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-15T05:19:55Z",
+      "side": 1,
+      "message": "This \"assertEquals\" is confusing as it only checks id and name of the given chain. Looks like it\u0027s as if asserting the sim chain passed as the second argument is equivalent to chain1, which is not the case here.",
+      "range": {
+        "startLine": 604,
+        "startChar": 12,
+        "endLine": 604,
+        "endChar": 24
+      },
+      "revId": "e2df296c5fa2fb1634c6a4cc3e9c63709c0738ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
