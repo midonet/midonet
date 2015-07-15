@@ -60,8 +60,7 @@ class CassandraFlowTracingServiceTest extends FeatureSpec with Matchers
     val srcMAC = MAC.random
     val dstMAC = MAC.random
 
-    var insertStatement: PreparedStatement = _
-    var dataInsertStatement: PreparedStatement = _
+    var schema: FlowTracingSchema = _
 
     before {
         val confValues = s"""
@@ -89,10 +88,7 @@ class CassandraFlowTracingServiceTest extends FeatureSpec with Matchers
             throw new Exception("Failed to connect to cassandra")
         }
 
-        insertStatement = cass.session.prepare(
-            FlowTracingSchema.flowInsertCQL)
-        dataInsertStatement = cass.session.prepare(
-            FlowTracingSchema.dataInsertCQL)
+        schema = new FlowTracingSchema(cass.session)
     }
 
     feature("Reading trace data from cassandra") {
@@ -140,14 +136,14 @@ class CassandraFlowTracingServiceTest extends FeatureSpec with Matchers
     }
 
     private def insertData(count: Int): Unit = {
-        cass.session.execute(FlowTracingSchema.bindFlowInsertStatement(
-                                 insertStatement, traceRequestId, flowTraceId,
+        cass.session.execute(schema.bindFlowInsertStatement(
+                                 traceRequestId, flowTraceId,
                                  srcMAC.toString, dstMAC.toString,
                                  0, null, null, 0, 0, 0))
         for (i <- 0 until count) {
             cass.session.execute(
-                FlowTracingSchema.bindDataInsertStatement(
-                    dataInsertStatement, traceRequestId, flowTraceId,
+                schema.bindDataInsertStatement(
+                    traceRequestId, flowTraceId,
                     UUID.randomUUID, "testData " + count))
         }
     }
