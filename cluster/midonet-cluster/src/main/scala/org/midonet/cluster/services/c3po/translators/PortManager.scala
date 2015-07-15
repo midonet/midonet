@@ -17,13 +17,15 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.NotFoundException
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronPortOrBuilder}
 import org.midonet.cluster.models.Topology.{Host, Port, PortOrBuilder}
 import org.midonet.cluster.services.c3po.midonet.Update
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.packets.MAC
+import org.midonet.packets.{IPv4Subnet, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 /**
@@ -34,11 +36,12 @@ trait PortManager extends RouteManager {
 
     protected def newTenantRouterGWPort(id: UUID,
                                         routerId: UUID,
+                                        cidr: Commons.IPSubnet,
                                         gwIpAddr: IPAddress,
                                         mac: Option[String] = None,
                                         adminStateUp: Boolean = true): Port = {
         newRouterPortBldr(id, routerId, adminStateUp = adminStateUp)
-            .setPortSubnet(LL_CIDR)
+            .setPortSubnet(cidr)
             .setPortAddress(gwIpAddr)
             .setPortMac(mac.getOrElse(MAC.random().toString)).build()
     }
@@ -128,18 +131,6 @@ object PortManager {
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_INTERFACE
     def isRouterGatewayPort(nPort: NeutronPortOrBuilder) =
         nPort.hasDeviceOwner && nPort.getDeviceOwner == DeviceOwner.ROUTER_GATEWAY
-
-
-    /** Link-local CIDR */
-    val LL_CIDR = IPSubnet.newBuilder()
-                  .setAddress("169.254.255.0")
-                  .setPrefixLength(30)
-                  .setVersion(IPVersion.V4).build()
-
-    /** Link-local gateway IP */
-    val LL_GW_IP_1 = IPAddress.newBuilder()
-                     .setAddress("169.254.255.1")
-                     .setVersion(IPVersion.V4).build()
 
     /** ID of Router Interface port peer. */
     def routerInterfacePortPeerId(portId: UUID): UUID =
