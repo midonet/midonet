@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.data.storage
+package org.midonet.cluster.client
 
 import java.util.UUID
 
-import org.midonet.packets.{IPv4Addr, MAC}
+import rx.Observable
 
-/**
- * A trait that complements the [[Storage]] trait with support for high
- * performance state tables.
- */
-trait StateTableStorage {
+import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.MacTableUpdate
+import org.midonet.packets.MAC
+import org.midonet.util.functors.Callback3
 
-    /** Returns the IPv4 ARP table for the specified bridge. */
-    def bridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC]
-
+trait MacLearningTable {
+    def add(key: MAC, portId: UUID): Unit
+    def get(key: MAC): UUID
+    def remove(mac: MAC, portID: UUID): Unit
+    def notify(cb: Callback3[MAC, UUID, UUID]): Unit
+    def observable(): Observable[MacTableUpdate]
+    def complete(): Unit
 }

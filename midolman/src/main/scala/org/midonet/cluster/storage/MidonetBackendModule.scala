@@ -16,12 +16,13 @@
 
 package org.midonet.cluster.storage
 
-import com.google.inject.{Singleton, Inject, PrivateModule, Provider}
+import com.google.inject.{Inject, PrivateModule, Provider, Singleton}
 import com.typesafe.config.Config
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 
 import org.midonet.cluster.ZookeeperLockFactory
+import org.midonet.cluster.data.storage.{KafkaMergedMapBusBuilder, MergedMapBusBuilder}
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 
 /** This Guice module is dedicated to declare general-purpose dependencies that
@@ -50,6 +51,15 @@ class MidonetBackendModule(val conf: MidonetBackendConfig)
     }
 
     protected def bindStorage(): Unit = {
+        bind(classOf[KafkaConfig])
+            .toInstance(conf.kafka)
+        expose(classOf[KafkaConfig])
+
+        bind(classOf[MergedMapBusBuilder])
+            .to(classOf[KafkaMergedMapBusBuilder])
+            .in(classOf[Singleton])
+        expose(classOf[MergedMapBusBuilder])
+
         bind(classOf[MidonetBackend])
             .to(classOf[MidonetBackendService])
             .in(classOf[Singleton])

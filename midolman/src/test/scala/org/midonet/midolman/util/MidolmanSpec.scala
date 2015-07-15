@@ -113,6 +113,8 @@ trait MidolmanSpec extends FeatureSpecLike
         config.withFallback(ConfigFactory.parseString(defaults))
             .withValue("zookeeper.use_new_stack",
                        ConfigValueFactory.fromAnyRef(useNewStorageStack))
+            .withValue("kafka.use_merged_maps",
+                       ConfigValueFactory.fromAnyRef(useMergedMaps))
     }
 
     def awaitingImpl: Boolean = System.getProperty("midonet.awaitingImpl") != null

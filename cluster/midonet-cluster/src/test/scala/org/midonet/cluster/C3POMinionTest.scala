@@ -20,7 +20,6 @@ import java.io.PrintWriter
 import java.sql.{Connection, DriverManager, Statement}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
-
 import javax.sql.DataSource
 
 import org.midonet.cluster.models.Neutron.NeutronRoute
@@ -32,7 +31,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.JsonNodeFactory
 import com.google.inject.{Guice, Inject, Injector, PrivateModule}
 import com.typesafe.config.ConfigFactory
-
 import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
 import org.apache.curator.retry.ExponentialBackoffRetry
 import org.apache.curator.test.TestingServer
@@ -46,6 +44,7 @@ import org.midonet.cluster.ClusterNode.Context
 import org.midonet.cluster.data.neutron.NeutronResourceType.{AgentMembership => AgentMembershipType, Config => ConfigType, Network => NetworkType, Port => PortType, Router => RouterType, RouterInterface => RouterInterfaceType, Subnet => SubnetType}
 import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.data.neutron.{NeutronResourceType, TaskType}
+import org.midonet.cluster.data.storage.InMemoryMergedMapBusBuilder
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons._
 import org.midonet.cluster.models.Neutron.NeutronConfig.TunnelProtocol
@@ -314,7 +313,9 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         )
 
         pathBldr = new PathBuilder(backendCfg.rootKey)
-        backend = new MidonetBackendService(backendCfg, curator)
+        val busBuilder = new InMemoryMergedMapBusBuilder()
+        backend = new MidonetBackendService(backendCfg, backendCfg.kafka,
+                                            busBuilder, curator)
         backend.startAsync().awaitRunning()
         curator.blockUntilConnected()
 
