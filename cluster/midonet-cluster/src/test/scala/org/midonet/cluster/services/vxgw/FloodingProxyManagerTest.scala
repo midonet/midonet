@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.storage.SingleValueKey
+import org.midonet.cluster.data.storage.{InMemoryMergedMapBusBuilder, SingleValueKey}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend.{AliveKey, FloodingProxyKey}
@@ -32,7 +32,7 @@ import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.test.util.ZookeeperTestSuite
 import org.midonet.cluster.topology.TopologyBuilder
-import org.midonet.cluster.util.{UUIDUtil, IPAddressUtil}
+import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.packets.IPv4Addr
@@ -65,7 +65,9 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
     before {
         backendCfg = new MidonetBackendConfig(config)
         zkClient.create().creatingParentsIfNeeded().forPath(backendCfg.rootKey)
-        backend = new MidonetBackendService(backendCfg, zkClient)
+        val busBuilder = new InMemoryMergedMapBusBuilder()
+        backend = new MidonetBackendService(backendCfg, backendCfg.kafka,
+                                            busBuilder, zkClient)
         backend.setupBindings()
         fpManager = new FloodingProxyManager(backend)
     }
