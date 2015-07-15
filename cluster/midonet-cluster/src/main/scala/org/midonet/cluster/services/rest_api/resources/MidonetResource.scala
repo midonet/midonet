@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
+import org.midonet.cluster.data.storage.state_table.StateTableStorage
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList, AllowUpdate}
 import org.midonet.cluster.rest_api.models.UriResource
 import org.midonet.cluster.rest_api._

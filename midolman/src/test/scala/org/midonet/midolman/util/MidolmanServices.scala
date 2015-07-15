@@ -73,6 +73,8 @@ trait MidolmanServices {
         }
     }
 
+    def useMergedMaps: Boolean = System.getProperty("kafka.use_merged_maps") != null
+
     def mockDhcpConfig = new DhcpConfig() {
         override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = List()
         override def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String): Option[Host] = None

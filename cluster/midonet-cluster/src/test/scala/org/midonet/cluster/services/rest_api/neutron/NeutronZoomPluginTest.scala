@@ -28,7 +28,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.ZoomConvert.toProto
-import org.midonet.cluster.data.storage.{ObjectExistsException, NotFoundException}
+import org.midonet.cluster.data.storage.{InMemoryMergedMapBusBuilder, ObjectExistsException, NotFoundException}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRouter, NeutronRouterInterface, NeutronSubnet, SecurityGroup => NeutronSecurityGroup}
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.rest_api.{ConflictHttpException, BadRequestHttpException, NotFoundHttpException}
@@ -59,9 +59,10 @@ class NeutronZoomPluginTest extends FeatureSpec
         val cfg = new MidonetBackendConfig(ConfigFactory.parseString(s"""
            |zookeeper.zookeeper_hosts : "${zk.getConnectString}"
            |zookeeper.root_key : "$ZK_ROOT"
-        """.stripMargin)
-        )
-        backend = new MidonetBackendService(cfg, curator, metricRegistry = null)
+        """.stripMargin))
+        val busBuilder = new InMemoryMergedMapBusBuilder()
+        backend = new MidonetBackendService(cfg, cfg.kafka, busBuilder, curator,
+                                            metricRegistry = null)
         backend.setupBindings()
 
         val paths = new PathBuilder(ZK_ROOT)

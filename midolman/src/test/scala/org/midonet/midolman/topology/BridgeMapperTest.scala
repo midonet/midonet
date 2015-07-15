@@ -21,15 +21,20 @@ import scala.concurrent.duration._
 import scala.collection.mutable
 
 import com.typesafe.config.{Config, ConfigFactory}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 import rx.observers.TestObserver
 
+<<<<<<< HEAD
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge, Port => TopologyPort}
+=======
+import org.midonet.cluster.data.storage.state_table.{StateTable, MacTableMergedMap}
+import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.{MacTableUpdate, PortTS}
+import org.midonet.cluster.data.storage._
+import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Network => TopologyBridge, Port => TopologyPort}
+>>>>>>> ed884d1... MacTable based on a Merged Map
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
@@ -51,6 +56,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
     private type BridgeObserver = TestObserver[SimulationBridge]
         with AwaitableObserver[SimulationBridge]
+    private type MapUpdate = MergedMap.Update[MAC, PortTS]
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
@@ -71,6 +77,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
             s"""
               |agent.midolman.enable_bridge_arp : true
               |agent.bridge.mac_port_mapping_expire : "${macTtl.toMillis}ms"
+              |kafka.use_merged_maps : true
             """.stripMargin).withFallback(config))
     }
 
@@ -1467,13 +1474,20 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForPort(peerPortId1),
                 tagForPort(peerPortId2))
 
-            Given("The MAC-port replicated map for the bridge")
-            val map = vt.state.bridgeMacTable(bridgeId, vlanId, ephemeral = true)
-            map.start()
+            Given("The MAC-port map for the bridge")
+            val map = if (vt.backend.mergedMapEnabled) {
+                new BridgeMapper.MacTableMergedMap(vt.backend, bridgeId, vlanId)
+            } else {
+                new BridgeMapper.MacTableReplicatedMap(vt, bridgeId, vlanId)
+            }
+            val mapObs = new TestObserver[MacTableUpdate] with
+                             AwaitableObserver[MacTableUpdate]
+            map.observable subscribe mapObs
 
             When("A first MAC is added to the MAC learning table")
             val otherMac1 = MAC.random
-            map.put(otherMac1, portId1)
+            map.add(otherMac1, portId1)
+            mapObs.awaitOnNext(1, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1485,7 +1499,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             When("A second MAC is added to the MAC learning table")
             val otherMac2 = MAC.random
-            map.put(otherMac2, portId1)
+            map.add(otherMac2, portId1)
+            mapObs.awaitOnNext(2, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1497,7 +1512,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac2))
 
             When("A MAC changes from one port to another")
-            map.put(otherMac1, portId2)
+            map.add(otherMac1, portId2)
+            mapObs.awaitOnNext(3, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1510,7 +1526,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForVlanPort(bridgeId, otherMac1, vlanId, portId1))
 
             When("A MAC is deleted")
-            map.removeIfOwner(otherMac2)
+            map.remove(otherMac2, portId1)
+            mapObs.awaitOnNext(4, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
