@@ -20,22 +20,22 @@ import java.util.UUID
 import scala.concurrent.duration._
 
 import com.typesafe.config.{Config, ConfigFactory}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
-
 import rx.Observable
 import rx.observers.TestObserver
 
-import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
+import org.midonet.cluster.data.storage.StateTable.MacTableUpdate
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Network => TopologyBridge, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
-import TopologyTest.DeviceObserver
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain, BridgePort}
+import org.midonet.midolman.simulation.{Bridge => SimulationBridge, BridgePort, Chain}
+import org.midonet.midolman.state.MacTableMergedMap
+import MacTableMergedMap.PortTS
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForPort, tagForVlanPort}
@@ -51,6 +51,7 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
     private type BridgeObserver = TestObserver[SimulationBridge]
         with AwaitableObserver[SimulationBridge]
+    private type MapUpdate = MergedMap.Update[MAC, PortTS]
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
@@ -1467,13 +1468,16 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForPort(peerPortId1),
                 tagForPort(peerPortId2))
 
-            Given("The MAC-port replicated map for the bridge")
+            Given("The MAC-port map for the bridge")
             val map = vt.state.bridgeMacTable(bridgeId, vlanId, ephemeral = true)
-            map.start()
+            val mapObs = new TestObserver[MacTableUpdate] with
+                             AwaitableObserver[MacTableUpdate]
+            map.observable subscribe mapObs
 
             When("A first MAC is added to the MAC learning table")
             val otherMac1 = MAC.random
-            map.put(otherMac1, portId1)
+            map.add(otherMac1, portId1)
+            mapObs.awaitOnNext(1, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1485,7 +1489,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
 
             When("A second MAC is added to the MAC learning table")
             val otherMac2 = MAC.random
-            map.put(otherMac2, portId1)
+            map.add(otherMac2, portId1)
+            mapObs.awaitOnNext(2, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1497,7 +1502,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForFloodedFlowsByDstMac(bridgeId, vlanId, otherMac2))
 
             When("A MAC changes from one port to another")
-            map.put(otherMac1, portId2)
+            map.add(otherMac1, portId2)
+            mapObs.awaitOnNext(3, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (
@@ -1510,7 +1516,8 @@ class BridgeMapperTest extends MidolmanSpec with TopologyBuilder
                 tagForVlanPort(bridgeId, otherMac1, vlanId, portId1))
 
             When("A MAC is deleted")
-            map.removeIfOwner(otherMac2)
+            map.remove(otherMac2)
+            mapObs.awaitOnNext(4, timeout) shouldBe true
 
             Then("Flows should be invalidated")
             flowInvalidator should invalidate (

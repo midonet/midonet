@@ -111,7 +111,10 @@ trait MidolmanBenchmark extends MockMidolmanActors
                     expose(classOf[InterfaceScanner])
                 }
             },
-            new LegacyClusterModule(),
+            new LegacyClusterModule(
+                MidolmanConfigModule.createConfig(conf).kafka,
+                    true /* for testing */
+            ),
             new AbstractModule {
                 override def configure() {
                     bind(classOf[VirtualConfigurationBuilders])

@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.data.storage
 
+import java.util.Objects
 import java.util.concurrent.Executors
 import javax.annotation.Nonnull
 
@@ -70,7 +71,20 @@ trait MergedMapBus[K, V >: Null <: AnyRef] {
 }
 
 object MergedMap {
-    case class MapUpdate[K, V >: Null <: AnyRef](key: K, oldValue: V, newValue: V)
+    class Update[K, V](val key: K, val oldValue: V, val newValue: V) {
+        override def equals(obj: Any): Boolean = {
+            if (obj.isInstanceOf[Update[K, V]]) {
+                val update = obj.asInstanceOf[Update[K, V]]
+
+                Objects.equals(key, update.key) &&
+                Objects.equals(oldValue, update.oldValue) &&
+                Objects.equals(newValue, update.newValue)
+            } else {
+                false
+            }
+        }
+    }
+
     private[storage] val executor = Executors.newSingleThreadExecutor()
     
     /* Scheduler on which observer subscriptions and notifications are handled
@@ -103,8 +117,6 @@ class MergedMap[K, V >: Null <: AnyRef](opinionBus: MergedMapBus[K, V])
 
     import MergedMap._
 
-    type MapUpdate = MergedMap.MapUpdate[K, V]
-
     private val log = Logger(LoggerFactory.getLogger(
         s"org.midonet.cluster.MergedMap-${opinionBus.mapId}"))
 
@@ -125,16 +137,16 @@ class MergedMap[K, V >: Null <: AnyRef](opinionBus: MergedMapBus[K, V])
         new SerializedObserver[(K, V, String)](opinionBus.opinionObserver)
 
     /* The subject on which winning opinions are emitted. */
-    private val winnersSubject = PublishSubject.create[MapUpdate]()
+    private val winnersSubject = PublishSubject.create[Update[K, V]]()
 
     /* A snapshot of the winners map as an iterable of MapUpdates. For each
        MapUpdate, the previous value is null. */
-    private def winnersIterable: Iterable[MapUpdate] =
-        winners.toIterable.map(entry => MapUpdate(entry._1, null, entry._2))
+    private def winnersIterable: Iterable[Update[K, V]] =
+        winners.toIterable.map(entry => new Update(entry._1, null, entry._2))
 
     /* This is called when an observer subscribes to [[winningObservable]]. */
-    private val onSubscribe = new OnSubscribe[MapUpdate] {
-        override def call(s: Subscriber[_ >: MapUpdate]): Unit = {
+    private val onSubscribe = new OnSubscribe[Update[K, V]] {
+        override def call(s: Subscriber[_ >: Update[K, V]]): Unit = {
             winnersSubject.startWith(Observable.from(winnersIterable.asJava))
                           .subscribe(s)
         }
@@ -192,7 +204,8 @@ class MergedMap[K, V >: Null <: AnyRef](opinionBus: MergedMapBus[K, V])
         // is greater than the previous winner, emit the new winner.
         if (prevWinner.isEmpty || crStrategy.gt(value, prevWinner.get)) {
             winners.put(key, value)
-            winnersSubject onNext MapUpdate(key, prevWinner.getOrElse(null), value)
+            winnersSubject onNext new Update[K, V](key, prevWinner.getOrElse(null),
+                                                   value)
         }
     }
 
@@ -210,7 +223,8 @@ class MergedMap[K, V >: Null <: AnyRef](opinionBus: MergedMapBus[K, V])
                 } else {
                     winners.remove(key)
                 }
-                winnersSubject onNext MapUpdate(key, prevWinner.get, newWinner)
+                winnersSubject onNext new Update[K, V](key, prevWinner.get,
+                                                       newWinner)
             }
         })
     }
@@ -222,7 +236,7 @@ class MergedMap[K, V >: Null <: AnyRef](opinionBus: MergedMapBus[K, V])
      *         When newValue is null this indicates that the corresponding key
      *         has been removed.
      */
-    def observable: Observable[MapUpdate] = winnersObservable
+    def observable: Observable[Update[K, V]] = winnersObservable
 
     /**
      * @return The winning opinion associated to this key.

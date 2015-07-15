@@ -23,15 +23,18 @@ import scala.collection.{Map => ROMap}
 import akka.actor.ActorSystem
 
 import org.midonet.cluster.client._
+import org.midonet.cluster.data.storage.StateTable
+import org.midonet.cluster.data.storage.StateTable.MacTableUpdate
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, ErrorDrop}
+import org.midonet.midolman.PacketWorkflow.{Drop, ErrorDrop, NoOp, SimulationResult}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
+import org.midonet.midolman.state.MacLearningTable
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.packets._
-import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForBridge, tagForFloodedFlowsByDstMac, tagForVlanPort}
+import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridge, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForVlanPort}
 
 object Bridge {
     final val UntaggedVlanId: Short = 0
@@ -89,7 +92,7 @@ object Bridge {
 class Bridge(val id: UUID,
              val adminStateUp: Boolean,
              val tunnelKey: Long,
-             val vlanMacTableMap: ROMap[Short, MacLearningTable],
+             val vlanMacTableMap: ROMap[Short, StateTable[MAC, UUID, MacTableUpdate]],
              val ip4MacMap: IpMacMap[IPv4Addr],
              val flowCount: MacFlowCount,
              val inFilterId: Option[UUID],

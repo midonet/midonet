@@ -38,7 +38,6 @@ import org.junit.Test;
 
 import org.midonet.cluster.client.BridgeBuilder;
 import org.midonet.cluster.client.IpMacMap;
-import org.midonet.cluster.client.MacLearningTable;
 import org.midonet.cluster.client.RouterBuilder;
 import org.midonet.cluster.client.VlanPortMap;
 import org.midonet.cluster.storage.MidonetBackendTestModule;
@@ -53,6 +52,7 @@ import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.ArpCache;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.MacLearningTable;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.BridgeZkManager;
 import org.midonet.midolman.state.zkManagers.ChainZkManager;
@@ -112,7 +112,9 @@ public class LocalClientImplTest {
             new MidolmanConfigModule(conf),
             new MockZookeeperConnectionModule(),
             new MidonetBackendTestModule(conf),
-            new LegacyClusterModule()
+            new LegacyClusterModule(MidolmanConfigModule.createConfig(conf)
+                                                        .kafka(),
+                                    true /* for testing */)
         );
         injector.injectMembers(this);
 

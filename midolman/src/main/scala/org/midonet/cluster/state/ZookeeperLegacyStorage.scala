@@ -16,41 +16,50 @@
 package org.midonet.cluster.state
 
 import java.util.UUID
-
 import javax.annotation.Nonnull
 
-import scala.util.{Failure, Success}
 import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-
 import org.apache.zookeeper.CreateMode.EPHEMERAL
-
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.StateResult
+import org.midonet.midolman.state._
+import MacTableMergedMap.PortTS
+import org.midonet.cluster.data.storage.StateTable.MacTableUpdate
+import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
-import org.midonet.cluster.storage.MidonetBackendConfig
+import org.midonet.cluster.storage.{KafkaConfig, MidonetBackendConfig}
 import org.midonet.cluster.{ClusterRouterManager, DataClient}
+import org.midonet.conf.HostIdGenerator
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.serialization.{SerializationException, Serializer}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
 import org.midonet.midolman.state._
+import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors._
 import org.midonet.util.reactivex._
 
 /**
- * An implementation of the [[LegacyStorage]] trait using the legacy ZooKeeper
- * managers as backend.
+ * An implementation of the [[LegacyStorage]] and [[StateTableStorage]] traits.
+ * This class represents a transitional implementation of the legacy
+ * [[org.midonet.cluster.DataClient]]. Methods present in the [[LegacyStorage]]
+ * trait will gradually transition to the [[StateTableStorage]] trait.
+ * Once all methods are in trait [[StateTableStorage]], [[LegacyStorage]] will
+ * be removed.
  */
-class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
+// TODO: Rename this class once [[LegacyStorage]] is decommissioned.
+class ZookeeperLegacyStorage @Inject()(backendConfig: MidonetBackendConfig,
+                                       kafkaConfig: KafkaConfig,
+                                       busBuilder: MergedMapBusBuilder,
                                        backend: MidonetBackend,
                                        dataClient: DataClient,
                                        @Named("directoryReactor") reactor: Reactor,
@@ -61,8 +70,7 @@ class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
                                        routerZkManager: RouterZkManager,
                                        routerManager: ClusterRouterManager,
                                        pathBuilder: PathBuilder)
-        extends LegacyStorage with MidolmanLogging {
-
+    extends LegacyStorage with StateTableStorage with MidolmanLogging {
 
     /**
      * An implementation of a route replicated set.
@@ -97,14 +105,31 @@ class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
 
     override def logSource = "org.midonet.cluster.state"
 
+    // Returns the arp table of a bridge in the new architecture. Replaces
+    // method bridgeMacTable, to be implemented.
+    override def bridgeArpTable(bridgeId: UUID)
+    : StateTable[IPv4Addr, MAC, ArpUpdate] = ???
+
     @throws[StateAccessException]
     override def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short,
-                                ephemeral: Boolean): MacPortMap = {
-        ensureBridgePaths(bridgeId)
-        ensureBridgeVlanPaths(bridgeId, vlanId)
-        val map = dataClient.bridgeGetMacTable(bridgeId, vlanId, ephemeral)
-        map.setConnectionWatcher(connectionWatcher)
-        map
+                                ephemeral: Boolean)
+    : StateTable[MAC, UUID, MacTableUpdate] = {
+
+        if (kafkaConfig.useMergedMaps) {
+            val mapId = "MacTable-" + vlanId + "-" + bridgeId.toString
+            val ownerId = HostIdGenerator.getHostId.toString
+            val kafkaBus = busBuilder.newBus[MAC, PortTS](mapId,
+                                                          ownerId,
+                                                          TableType.MAC,
+                                                          kafkaConfig)
+            new MacTableMergedMap(bridgeId, vlanId, kafkaBus)
+        } else {
+            ensureBridgePaths(bridgeId)
+            ensureBridgeVlanPaths(bridgeId, vlanId)
+            val map = dataClient.bridgeGetMacTable(bridgeId, vlanId, ephemeral)
+            map.setConnectionWatcher(connectionWatcher)
+            new MacTableReplicatedMap(map, bridgeId, vlanId)
+        }
     }
 
     @throws[StateAccessException]
@@ -135,7 +160,7 @@ class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
 
     override def setPortLocalAndActive(portId: UUID, hostId: UUID,
                                        active: Boolean): Unit = runOnReactor {
-        if (!config.useNewStack) {
+        if (!backendConfig.useNewStack) {
             // Activate the port for legacy ZK storage.
             portZkManager.setActivePort(portId, hostId, active)
                 .observeOn(reactor.rxScheduler)

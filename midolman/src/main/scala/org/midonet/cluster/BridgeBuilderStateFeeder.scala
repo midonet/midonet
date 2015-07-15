@@ -21,7 +21,7 @@ import javax.inject.Named
 import com.google.inject.Inject
 import org.slf4j.{Logger, LoggerFactory}
 
-import org.midonet.cluster.client.{BridgeBuilder, IpMacMap, MacLearningTable}
+import org.midonet.cluster.client.{BridgeBuilder, IpMacMap}
 import org.midonet.midolman.state._
 import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.util.eventloop.Reactor

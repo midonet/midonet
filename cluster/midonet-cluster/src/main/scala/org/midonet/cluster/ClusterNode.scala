@@ -173,7 +173,8 @@ object ClusterNode extends App {
                 .asEagerSingleton()
 
             install(new SerializationModule)
-            install(new LegacyClusterModule)
+            install(new LegacyClusterModule(clusterConf.kafka,
+                                            true /* for testing */))
         }
     }
 

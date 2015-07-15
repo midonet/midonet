@@ -17,16 +17,25 @@
 package org.midonet.cluster.data.storage
 
 import java.util.UUID
+import javax.annotation.Nonnull
 
+import org.midonet.cluster.data.storage.MergedMap.Update
+import org.midonet.cluster.data.storage.StateTable.MacTableUpdate
 import org.midonet.packets.{IPv4Addr, MAC}
 
 /**
- * A trait that complements the [[Storage]] trait with support for high
- * performance state tables.
+ * A trait that complements the LegacyStorage trait with support for high
+ * performance state tables. As we transition to MidoNet v2, methods declared
+ * in LegacyStorage will transition to [[StateTableStorage]].
  */
 trait StateTableStorage {
 
-    /** Returns the IPv4 ARP table for the specified bridge. */
-    def bridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC]
+    type ArpUpdate = Update[IPv4Addr, MAC]
 
+    /** Gets the MAC-port table for the specified bridge. */
+    def bridgeMacTable(@Nonnull bridgeId: UUID, vlanId: Short,
+                       ephemeral: Boolean): StateTable[MAC, UUID, MacTableUpdate]
+
+    /** Returns the IPv4 ARP table for the specified bridge. */
+    def bridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC, ArpUpdate]
 }

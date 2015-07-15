@@ -33,19 +33,10 @@ import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, StateAcces
 case class LocalPortActive(portId: UUID, active: Boolean)
 
 /**
- * A trait defining the cluster state API. Currently, this trait represents a
+ * A trait defining NSDB's state table API. Currently, this trait represents a
  * transitional interface from the legacy [[org.midonet.cluster.DataClient]].
  */
 trait LegacyStorage {
-
-    /**
-     * Gets the MAC-port table for the specified bridge.
-     */
-    @throws[StateAccessException]
-    def bridgeMacTable(@Nonnull bridgeId: UUID,
-                       vlanId: Short, ephemeral: Boolean): MacPortMap
-
-
     /**
      * Gets the IP-MAC table for the specified bridge.
      */

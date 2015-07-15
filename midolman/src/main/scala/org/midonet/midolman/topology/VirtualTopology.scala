@@ -24,11 +24,12 @@ import scala.util.control.NonFatal
 
 import com.google.inject.Inject
 import com.google.inject.name.Named
-
 import rx.Observable
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 
+import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.storage.StateTableStorage
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.config.MidolmanConfig
@@ -39,7 +40,7 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{BackChannelMessage, NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.functors.{makeFunc1, makeRunnable, Predicate}
+import org.midonet.util.functors.{makeFunc1, Predicate, makeRunnable}
 import org.midonet.util.reactivex._
 
 /**
@@ -165,7 +166,8 @@ object VirtualTopology extends MidolmanLogging {
  */
 class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val config: MidolmanConfig,
-                                 val state: LegacyStorage,
+                                 val state: LegacyStorage with StateTableStorage,
+                                 val dataClient: DataClient,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val simBackChannel: SimulationBackChannel,
                                  val actorsService: MidolmanActorsService,

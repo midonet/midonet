@@ -16,14 +16,20 @@
 
 package org.midonet.cluster.data.storage
 
+import java.util.UUID
+
 import rx.Observable
 
-import org.midonet.cluster.data.storage.StateTable.Update
+import org.midonet.cluster.data.storage.MergedMap.Update
+import org.midonet.packets.MAC
 
 object StateTable {
-
-    case class Update[K, V](key: K, oldValue: V, newValue: V)
-
+    case class MacTableUpdate(vlanId: Short, mac: MAC, oldPort: UUID,
+                              newPort: UUID)
+    extends Update[MAC, UUID](mac, oldPort, newPort) {
+        override val toString = s"{vlan=$vlanId mac=$mac oldPort=$oldPort " +
+                                s"newPort=$newPort}"
+    }
 }
 
 /**
@@ -33,7 +39,7 @@ object StateTable {
  * between multiple concurrent writes (or opinions). Persistent entries take
  * precedence over learned entries, and cannot be overwritten by the latter.
  */
-trait StateTable[K, V] {
+trait StateTable[K, V, T <: Update[K, V]] {
 
     /** Adds an opinion key value pair to the state table. */
     def add(key: K, value: V): Unit
@@ -59,8 +65,9 @@ trait StateTable[K, V] {
     /** Returns whether the table contains the persistent key value pair. */
     def containsPersistent(key: K, value: V): Boolean
 
-    /** Gets the value for the specified key. */
-    def get(key: K): Option[V]
+    /** Gets the value for the specified key or null if the mapping does not
+        exist. */
+    def get(key: K): V
 
     /** Gets the set of keys corresponding the specified value. */
     def getByValue(value: V): Set[K]
@@ -70,6 +77,8 @@ trait StateTable[K, V] {
 
     /** Returns an observable that notifies the updates to the current state
       * table. */
-    def observable: Observable[Update[K, V]]
+    def observable: Observable[T]
 
+    /** Closes the map and completes its observable. */
+    def close(): Unit
 }

@@ -47,11 +47,15 @@ import org.midonet.cluster.LocalDataClientImpl;
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.state.LegacyStorage;
 import org.midonet.cluster.state.ZookeeperLegacyStorage;
+import org.midonet.cluster.storage.KafkaConfig;
 import org.midonet.cluster.storage.MidonetBackendConfig;
 import org.midonet.midolman.host.state.HostZkManager;
 import org.midonet.midolman.serialization.Serializer;
 import org.midonet.midolman.state.BaseZkManager;
 import org.midonet.midolman.state.Directory;
+import org.midonet.midolman.state.InMemoryMergedMapBusBuilder;
+import org.midonet.midolman.state.KafkaMergedMapBusBuilder;
+import org.midonet.midolman.state.MergedMapBusBuilder;
 import org.midonet.midolman.state.PathBuilder;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.PortGroupCache;
@@ -88,6 +92,14 @@ import static org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider.DIRECT
  */
 public class LegacyClusterModule extends PrivateModule {
 
+    private KafkaConfig conf;
+    private boolean forTesting;
+
+    public LegacyClusterModule(KafkaConfig conf, boolean forTesting) {
+        this.conf = conf;
+        this.forTesting = forTesting;
+    }
+
     @Override
     protected void configure() {
         binder().requireExplicitBindings();
@@ -113,6 +125,20 @@ public class LegacyClusterModule extends PrivateModule {
         bind(DataClient.class).to(LocalDataClientImpl.class)
                               .asEagerSingleton();
         expose(DataClient.class);
+
+        bind(KafkaConfig.class).toInstance(conf);
+        expose(KafkaConfig.class);
+
+        if (forTesting) {
+            bind(MergedMapBusBuilder.class)
+                .to(InMemoryMergedMapBusBuilder.class)
+                .asEagerSingleton();
+        } else {
+            bind(MergedMapBusBuilder.class)
+                .to(KafkaMergedMapBusBuilder.class)
+                .asEagerSingleton();
+        }
+        expose(MergedMapBusBuilder.class);
 
         bind(LegacyStorage.class).to(ZookeeperLegacyStorage.class)
                                  .asEagerSingleton();

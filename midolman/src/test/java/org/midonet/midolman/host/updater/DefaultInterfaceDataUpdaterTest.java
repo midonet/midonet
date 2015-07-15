@@ -41,6 +41,7 @@ import org.midonet.midolman.cluster.datapath.MockDatapathModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.host.guice.MockHostModule;
 import org.midonet.midolman.host.interfaces.InterfaceDescription;
@@ -66,7 +67,6 @@ import static org.hamcrest.core.IsEqual.equalTo;
 import static org.hamcrest.core.IsNull.notNullValue;
 import static org.midonet.midolman.host.state.HostDirectory.Interface;
 
-
 public class DefaultInterfaceDataUpdaterTest {
 
     InterfaceDataUpdater updater;
@@ -82,6 +82,7 @@ public class DefaultInterfaceDataUpdaterTest {
 
         final Config configuration = MidoTestConfigurator.forAgents().
                 withValue("zookeeper.root_key", ConfigValueFactory.fromAnyRef(""));
+        MidolmanConfig midolmanConf = MidolmanConfigModule.createConfig(configuration);
         final Directory cleanDirectory = new MockDirectory();
         pathManager = new ZkPathManager("");
         cleanDirectory.add("/hosts", null, CreateMode.PERSISTENT);
@@ -97,7 +98,7 @@ public class DefaultInterfaceDataUpdaterTest {
             new MockZookeeperConnectionModule(),
             new MockHostModule(),
             new MidonetBackendTestModule(configuration),
-            new LegacyClusterModule(),
+            new LegacyClusterModule(midolmanConf.kafka(), true /* for testing */),
             new MockMidolmanModule(),
             new MidolmanActorsModule() {
                 protected void configure() {
