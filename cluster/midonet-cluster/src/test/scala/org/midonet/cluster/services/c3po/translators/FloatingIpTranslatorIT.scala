@@ -266,8 +266,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             val snatTarget = snatRule.getNatTargets(0)
             snatTarget.getNwStart.getAddress shouldBe fipIp
             snatTarget.getNwEnd.getAddress shouldBe fipIp
-            snatTarget.getTpStart shouldBe 1
-            snatTarget.getTpEnd shouldBe 65535
+            snatTarget.getTpStart shouldBe 0
+            snatTarget.getTpEnd shouldBe 0
             // DNAT
             val dnat = storage.get(classOf[Rule], dnatRuleId).await()
             dnat.getChainId shouldBe inboundChainId
@@ -281,8 +281,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
             val dnatTarget = dnatRule.getNatTargets(0)
             dnatTarget.getNwStart.getAddress shouldBe fixedIp
             dnatTarget.getNwEnd.getAddress shouldBe fixedIp
-            dnatTarget.getTpStart shouldBe 1
-            dnatTarget.getTpEnd shouldBe 65535
+            dnatTarget.getTpStart shouldBe 0
+            dnatTarget.getTpEnd shouldBe 0
             // Test that the VIF port's been updated with the back reference.
             val vifPortWithFip = storage.get(classOf[NeutronPort],
                                              vifPortId).await()
