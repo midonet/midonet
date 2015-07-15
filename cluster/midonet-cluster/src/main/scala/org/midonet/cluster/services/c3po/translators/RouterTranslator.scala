@@ -16,6 +16,7 @@
 
 package org.midonet.cluster.services.c3po.translators
 
+import org.jboss.netty.handler.ipfilter.IpV4Subnet
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
@@ -26,7 +27,7 @@ import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.midolman.state.PathBuilder
-import org.midonet.packets.ICMP
+import org.midonet.packets.{IPv4Subnet, ICMP}
 import org.midonet.util.concurrent.toFutureOps
 
 class RouterTranslator(protected val storage: ReadOnlyStorage,
@@ -126,27 +127,34 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         // Neutron gateway port assumed to have one IP, namely the gateway IP.
         val gwIpAddr = nGwPort.getFixedIps(0).getIpAddress
 
+        val subnetId = nGwPort.getFixedIps(0).getSubnetId
+        val dhcp = storage.get(classOf[Dhcp], subnetId).await()
+
         // Create port on tenant router and link to the external network port.
         val trPortId = tenantGwPortId(nr.getGwPortId)
         val gwMac = if (nGwPort.hasMacAddress) Some(nGwPort.getMacAddress)
                     else None
-        val trPort = newTenantRouterGWPort(trPortId, nr.getId, gwIpAddr,
+        val trPort = newTenantRouterGWPort(trPortId, nr.getId,
+                                           dhcp.getSubnetAddress, gwIpAddr,
                                            mac = gwMac)
 
         val linkOps = linkPortOps(trPort, extNwPort)
 
-        val defaultRoute =
-            defaultGwRoute(nGwPort.getFixedIps(0).getSubnetId, trPortId)
+        val netRoute = newNextHopPortRoute(trPortId,
+                                           id = networkRouteId(trPortId),
+                                           dstSubnet = dhcp.getSubnetAddress)
+        val defaultRoute = defaultGwRoute(dhcp, trPortId)
 
         val snatOps = snatRuleCreateOps(nr, r, gwIpAddr, trPortId)
 
         val ops = new MidoOpListBuffer
         ops += Create(trPort)
         ops ++= linkOps
+        ops += Create(netRoute)
         ops += Create(defaultRoute)
         ops ++= snatOps
 
-        // Add gateway port IP/MAC address to the extenal network's ARP table.
+        // Add gateway port IP/MAC address to the external network's ARP table.
         gwMac foreach { mac =>
             val arpPath = arpEntryPath(
                     nGwPort.getNetworkId, gwIpAddr.getAddress, mac)
@@ -173,14 +181,14 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     }
 
     /** Create default route for gateway port. */
-    private def defaultGwRoute(dhcpId: UUID, portId: UUID): Route = {
-        val dhcp = storage.get(classOf[Dhcp], dhcpId).await()
+    private def defaultGwRoute(dhcp: Dhcp, portId: UUID): Route = {
         val nextHopIp = if (!dhcp.hasRouterGwPortId) null else {
             val gwPortFtr = storage.get(classOf[Port], dhcp.getRouterGwPortId)
             gwPortFtr.await().getPortAddress
         }
         newNextHopPortRoute(portId, id = gatewayRouteId(portId),
-                            gatewayDhcpId = dhcpId, nextHopGwIpAddr = nextHopIp)
+                            gatewayDhcpId = dhcp.getId,
+                            nextHopGwIpAddr = nextHopIp)
     }
 
     // Deterministically generate SNAT rule IDs so we can delete them without

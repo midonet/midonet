@@ -157,6 +157,12 @@ object RouteManager {
         gwPortId.xorWith(0x6ba5df84b8a44ab4L, 0x90adb3f665e7850dL)
 
     /**
+     * Deterministically derives an ID for a network route on a router, or
+     * vice-versa, using the next hop port ID. */
+    def networkRouteId(portId: UUID): UUID =
+        portId.xorWith(0xcabc4841093b4e81L, 0xb794dac757bcd523L)
+
+    /**
      * Deterministically derives an ID for a next-hop route to the subnet of the
      * router interface port using the router interface port ID. */
     def routerInterfaceRouteId(rifPortId: UUID): UUID =

@@ -154,7 +154,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         createRouterGatewayPort(13, extNwGwPortId, extNwId, tntRtrId,
                                 "10.0.1.3", "ab:cd:ef:00:00:03", extNwSubnetId)
         createRouter(14, tntRtrId, gwPortId = extNwGwPortId)
-        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3",
+        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24", "10.0.1.3",
                         "ab:cd:ef:00:00:03", "10.0.1.2", extNwArpTable)
 
         // Rename router to make sure update doesn't break anything.
@@ -165,8 +165,9 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             val tr = storage.get(classOf[Router], tntRtrId).await()
             tr.getName shouldBe "tr-renamed"
             tr.getPortIdsCount shouldBe 1
-            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.3",
-                            "ab:cd:ef:00:00:03", "10.0.1.2", extNwArpTable)
+            validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
+                            "10.0.1.3",  "ab:cd:ef:00:00:03", "10.0.1.2",
+                            extNwArpTable)
         }
 
         // Delete gateway.
@@ -188,7 +189,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val trAddGwJson = routerJson(tntRtrId, name = "tr-add-gw",
                                      gwPortId = extNwGwPortId).toString
         insertUpdateTask(18, RouterType, trAddGwJson, tntRtrId)
-        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.4",
+        validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24", "10.0.1.4",
                         "ab:cd:ef:00:00:04", "10.0.1.2", extNwArpTable)
         // Delete gateway and router.
         insertDeleteTask(19, PortType, extNwGwPortId)
@@ -209,8 +210,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
     }
 
     private def validateGateway(rtrId: UUID, nwGwPortId: UUID,
-                                trPortIpAddr: String, trPortMac: String,
-                                gwIpAddr: String,
+                                extSubnetCidr: String, trPortIpAddr: String,
+                                trPortMac: String, gwIpAddr: String,
                                 extNwArpTable: Ip4ToMacReplicatedMap): Unit = {
         // Tenant router should have gateway port and no routes.
         val trGwPortId = tenantGwPortId(nwGwPortId)
@@ -228,10 +229,11 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         // Get routes on router gateway port.
         val trLocalRtId = RouteManager.localRouteId(trGwPortId)
+        val trNetRtId = RouteManager.networkRouteId(trGwPortId)
         val trGwRtId = RouteManager.gatewayRouteId(trGwPortId)
 
-        val List(trLocalRt, trGwRt) =
-            List(trLocalRtId, trGwRtId)
+        val List(trLocalRt, trNetRt, trGwRt) =
+            List(trLocalRtId, trNetRtId, trGwRtId)
                 .map(storage.get(classOf[Route], _)).map(_.await())
 
         val List(nwGwPort, trGwPort) = portFs.await()
@@ -239,7 +241,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         // Check router port has correct router and route IDs.
         trGwPort.getRouterId shouldBe UUIDUtil.toProto(rtrId)
         trGwPort.getRouteIdsList.asScala should
-            contain only (trGwRtId, trLocalRtId)
+            contain only (trGwRtId, trNetRtId, trLocalRtId)
 
         // Network port has no routes.
         nwGwPort.getRouteIdsCount shouldBe 0
@@ -253,11 +255,23 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         validateLocalRoute(trLocalRt, trGwPort)
 
+        validateNetworkRoute(trNetRt, trGwPort, extSubnetCidr)
+
         trGwRt.getNextHop shouldBe NextHop.PORT
         trGwRt.getNextHopPortId shouldBe trGwPort.getId
         trGwRt.getDstSubnet shouldBe IPSubnetUtil.univSubnet4
         trGwRt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
         trGwRt.getNextHopGateway.getAddress shouldBe gwIpAddr
+    }
+
+    private def validateNetworkRoute(rt: Route, nextHopPort: Port,
+                                     cidr: String): Unit = {
+        rt.getNextHop shouldBe NextHop.PORT
+        rt.getNextHopPortId shouldBe nextHopPort.getId
+        rt.getDstSubnet shouldBe IPSubnetUtil.toProto(cidr)
+        rt.getSrcSubnet shouldBe IPSubnetUtil.univSubnet4
+        rt.hasNextHopGateway shouldBe false
+        rt.getWeight shouldBe RouteManager.DEFAULT_WEIGHT
     }
 
     private def validateLocalRoute(rt: Route, nextHopPort: Port): Unit = {
