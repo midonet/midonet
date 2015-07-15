@@ -22,7 +22,9 @@ import com.google.inject.Inject
 
 import org.apache.curator.framework.CuratorFramework
 
-import org.midonet.cluster.data.storage.{StateTable, StateTableStorage}
+import org.midonet.cluster.data.storage.MergedMap.Update
+import org.midonet.cluster.data.storage.state_table.MacTableMergedMap.MacTableUpdate
+import org.midonet.cluster.data.storage.state_table.{StateTable, StateTableStorage}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.{IPv4Addr, MAC}
 
@@ -35,8 +37,12 @@ final class LegacyStateTableStorage @Inject()(curator: CuratorFramework,
     extends StateTableStorage {
 
     /** Returns the IPv4 ARP table for the specified bridge. */
-    def bridgeArpTable(bridgeId: UUID): StateTable[IPv4Addr, MAC] = {
+    def bridgeArpTable(bridgeId: UUID)
+    : StateTable[IPv4Addr, MAC, Update[IPv4Addr, MAC]] = {
         new LegacyArpTable(bridgeId, curator, paths)
     }
 
+    /** Gets the MAC-port table for the specified device and owner. */
+    override def macTable(deviceId: UUID, vlanId: Option[Short],
+                          owner: String): StateTable[MAC, UUID, MacTableUpdate] = ???
 }

@@ -29,20 +29,20 @@ import com.google.inject.Injector;
 import com.sun.jna.LastErrorException;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigRenderOptions;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
-import org.midonet.conf.HostIdGenerator;
-import org.midonet.conf.LoggerLevelWatcher;
-import org.midonet.conf.MidoNodeConfigurator;
-import org.midonet.midolman.config.MidolmanConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.cluster.services.LegacyStorageService;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.storage.MidonetBackendModule;
+import org.midonet.conf.HostIdGenerator;
+import org.midonet.conf.LoggerLevelWatcher;
+import org.midonet.conf.MidoNodeConfigurator;
 import org.midonet.event.agent.ServiceEvent;
 import org.midonet.midolman.cluster.LegacyClusterModule;
 import org.midonet.midolman.cluster.MidolmanActorsModule;
@@ -52,12 +52,14 @@ import org.midonet.midolman.cluster.datapath.DatapathModule;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
 import org.midonet.midolman.cluster.state.FlowStateStorageModule;
 import org.midonet.midolman.cluster.zookeeper.ZookeeperConnectionModule;
+import org.midonet.midolman.config.MidolmanConfig;
 import org.midonet.midolman.guice.config.MidolmanConfigModule;
 import org.midonet.midolman.host.guice.HostModule;
 import org.midonet.midolman.services.MidolmanActorsService;
 import org.midonet.midolman.services.MidolmanService;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 import org.midonet.util.cLibrary;
+
 import scala.concurrent.Promise;
 import scala.concurrent.Promise$;
 
