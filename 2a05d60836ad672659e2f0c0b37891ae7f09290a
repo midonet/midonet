@@ -1,0 +1,165 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_330ba426",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VtepControllerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-15T08:30:30Z",
+      "side": 1,
+      "message": "TunnelZone? It seems easier to read.",
+      "range": {
+        "startLine": 66,
+        "startChar": 26,
+        "endLine": 66,
+        "endChar": 28
+      },
+      "revId": "2a05d60836ad672659e2f0c0b37891ae7f09290a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f3277cb4",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VtepControllerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 194,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-15T08:30:30Z",
+      "side": 1,
+      "message": "tunnelZone?",
+      "range": {
+        "startLine": 194,
+        "startChar": 12,
+        "endLine": 194,
+        "endChar": 14
+      },
+      "revId": "2a05d60836ad672659e2f0c0b37891ae7f09290a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_132b0083",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VtepControllerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-15T08:30:30Z",
+      "side": 1,
+      "message": "tunnelZone?",
+      "range": {
+        "startLine": 197,
+        "startChar": 8,
+        "endLine": 197,
+        "endChar": 10
+      },
+      "revId": "2a05d60836ad672659e2f0c0b37891ae7f09290a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_532588a9",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VtepControllerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 202,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-15T08:30:30Z",
+      "side": 1,
+      "message": "timeout?",
+      "range": {
+        "startLine": 202,
+        "startChar": 39,
+        "endLine": 202,
+        "endChar": 48
+      },
+      "revId": "2a05d60836ad672659e2f0c0b37891ae7f09290a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d330b8ea",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VtepControllerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 230,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-15T08:30:30Z",
+      "side": 1,
+      "message": "expectedEvents?",
+      "range": {
+        "startLine": 230,
+        "startChar": 12,
+        "endLine": 230,
+        "endChar": 16
+      },
+      "revId": "2a05d60836ad672659e2f0c0b37891ae7f09290a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b36334db",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VtepControllerTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 273,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-15T08:30:30Z",
+      "side": 1,
+      "message": "I don\u0027t understand this comment, are you using ZK for leader election?",
+      "range": {
+        "startLine": 273,
+        "startChar": 19,
+        "endLine": 273,
+        "endChar": 78
+      },
+      "revId": "2a05d60836ad672659e2f0c0b37891ae7f09290a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_93ab90d5",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VxlanGatewayTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 69,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-15T08:30:30Z",
+      "side": 1,
+      "message": "As commented before, this should perhaps be renamed to TunnelZone for clarity.",
+      "range": {
+        "startLine": 69,
+        "startChar": 21,
+        "endLine": 69,
+        "endChar": 23
+      },
+      "revId": "2a05d60836ad672659e2f0c0b37891ae7f09290a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
