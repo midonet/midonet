@@ -164,6 +164,9 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 
     private def gatewayPortUpdateOps(nr: NeutronRouter,
                                      r: Router): MidoOpList = {
+        // TODO If the gateway port of the Router may be removed together with
+        // the router interface. An ARP entry for the VIP associated with this
+        // Router via a corresponding Load Balancer needs to be updated.
         if (!nr.hasGwPortId) return List()
         val PortPair(nGwPort, extNwPort) = getPortPair(nr.getGwPortId)
 
