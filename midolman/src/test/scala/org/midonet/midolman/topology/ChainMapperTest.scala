@@ -42,6 +42,7 @@ import org.midonet.midolman.simulation.{Chain => SimChain}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPAddr
+import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
 class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
@@ -71,13 +72,12 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         scenario("A chain with one literal rule") {
             Given("A topology with one chain containing one rule")
             val chainId = UUID.randomUUID()
+            val chain = buildAndStoreChain(chainId, "test-chain")
             val rule1 = buildAndStoreLiteralRule(chainId,
                                                  ProtoRule.Action.ACCEPT)
-            val chain = buildAndStoreChain(chainId, "test-chain",
-                                           Set(rule1.getId))
 
             When("We subscribe to the chain")
-            val (subscription, obs) = subscribeToChain(count = 1, chainId)
+            val (_, obs) = subscribeToChain(count = 1, chainId)
 
             Then("We receive only one update with the chain with the rule")
             obs.awaitOnNext(1, timeout) shouldBe true
@@ -88,7 +88,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             And("When we add a 2nd rule to the chain")
             val rule2 = buildAndStoreLiteralRule(chainId,
                                                  ProtoRule.Action.REJECT)
-            var updatedChain = addRuleToChain(rule2, chain)
+            var updatedChain = getChain(chainId)
 
             Then("We receive the chain with the two rules")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -96,8 +96,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             var updatedSimChain = obs.getOnNextEvents.asScala.last
             assertEquals(updatedChain, updatedSimChain, List(rule1, rule2), null)
 
-            And("When we remove a rule")
-            updatedChain = removeRuleFromChain(rule2.getId, updatedChain)
+            And("When we delete a rule")
+            deleteRule(rule2.getId)
+            updatedChain = getChain(chainId)
 
             Then("We receive the chain with only 1 rule")
             obs.awaitOnNext(3, timeout) shouldBe true
@@ -106,7 +107,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             assertEquals(updatedChain, updatedSimChain, List(rule1), null)
 
             And("When we delete the last rule")
-            updatedChain = removeRuleFromChain(rule1.getId, updatedChain)
+            deleteRule(rule1.getId)
+            updatedChain = getChain(chainId)
 
             Then("We receive the chain with an empty list of rules")
             obs.awaitOnNext(4, timeout) shouldBe true
@@ -118,10 +120,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         scenario("Obtaining a chain with get") {
             Given("A topology with one chain containing one rule")
             val chainId = UUID.randomUUID()
+            val chain = buildAndStoreChain(chainId, "test-chain")
             val rule = buildAndStoreLiteralRule(chainId,
                                                 ProtoRule.Action.ACCEPT)
-            val chain = buildAndStoreChain(chainId, "test-chain",
-                                           Set(rule.getId))
 
             When("We ask for the chain with a get")
             val future = VirtualTopology.get[SimChain](chainId)
@@ -134,10 +135,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         scenario("Obtaining a chain with tryGet") {
             Given("A topology with one chain containing one rule")
             val chainId = UUID.randomUUID()
+            val chain = buildAndStoreChain(chainId, "test-chain")
             val rule = buildAndStoreLiteralRule(chainId,
                                                 ProtoRule.Action.ACCEPT)
-            val chain = buildAndStoreChain(chainId, "test-chain",
-                                           Set(rule.getId))
 
             When("We ask for the chain with tryGet")
             val nye = intercept[NotYetException] {
@@ -162,10 +162,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         scenario("Deleting a chain") {
             Given("A topology with one chain")
             val chainId = UUID.randomUUID()
-            val chain = buildAndStoreChain(chainId, "test-chain", Set.empty)
+            val chain = buildAndStoreChain(chainId, "test-chain")
 
             When("We subscribe to the chain")
-            val (subscription, obs) = subscribeToChain(count = 1, chainId)
+            val (_, obs) = subscribeToChain(count = 1, chainId)
 
             Then("We receive the chain")
             obs.awaitOnNext(1, timeout) shouldBe true
@@ -184,11 +184,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Given("A topology with one chain containing a jump rule")
             val chainId = UUID.randomUUID()
             val jumpChainId = UUID.randomUUID()
-            val jumpChain = buildAndStoreChain(jumpChainId, "jump-chain",
-                                               Set.empty)
+            val jumpChain = buildAndStoreChain(jumpChainId, "jump-chain")
+            val chain = buildAndStoreChain(chainId, "test-chain")
             val jumpRule = buildAndStoreJumpRule(chainId, jumpChainId)
-            val chain = buildAndStoreChain(chainId, "test-chain",
-                                           Set(jumpRule.getId))
 
             When("We subscribe to the chain")
             val (_, obs) = subscribeToChain(count = 1, chainId)
@@ -201,10 +199,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             And("When we make the jump rule point to another chain")
             val newJumpChainId = UUID.randomUUID()
-            val newJumpChain = buildAndStoreChain(newJumpChainId, "jump-chain2",
-                                                  Set.empty)
-            val updatedJumpRule = updateJumpRule(jumpRule, chainId,
-                                                 newJumpChain.getId)
+            val newJumpChain = buildAndStoreChain(newJumpChainId, "jump-chain2")
+            val updatedJumpRule = updateJumpRule(jumpRule, newJumpChain.getId)
 
             Then("We receive the chain with the new jump rule and associated chain")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -214,7 +210,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             And("When we modify the chain the jump rule points to")
             val updatedJumpChain = createChain(newJumpChainId,
-                                               Option("jump-chain3"), Set.empty)
+                                               Some("jump-chain3"))
             store.update(updatedJumpChain)
 
             Then("We receive the chain with the updated jump chain")
@@ -224,7 +220,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                          updatedJumpChain)
 
             And("When we remove the jump rule from the chain")
-            val updatedChain = removeRuleFromChain(jumpRule.getId, chain)
+            val updatedChain = removeRuleFromChain(jumpRule.getId,
+                                                   getChain(chainId))
 
             Then("We receive the chain without any rules")
             obs.awaitOnNext(4, timeout) shouldBe true
@@ -234,6 +231,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             And("When we update the jump rule and the chain")
             store.update(jumpRule.toBuilder
+                             .clearChainId()
                              .setInvDlDst(true)
                              .build())
             store.update(updatedChain.toBuilder
@@ -261,11 +259,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Given("A topology with one chain containing a jump rule")
             val chainId = UUID.randomUUID()
             val jumpChainId = UUID.randomUUID()
-            val jumpChain = buildAndStoreChain(jumpChainId, "jump-chain",
-                                               Set.empty)
+            val jumpChain = buildAndStoreChain(jumpChainId, "jump-chain")
+            val chain = buildAndStoreChain(chainId, "test-chain")
             val jumpRule1 = buildAndStoreJumpRule(chainId, jumpChainId)
-            val chain = buildAndStoreChain(chainId, "test-chain",
-                                           Set(jumpRule1.getId))
 
             When("We subscribe to the chain")
             val (_, obs) = subscribeToChain(count = 1, chainId)
@@ -277,7 +273,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             And("When we add a 2nd jump pointing to the same chain")
             val jumpRule2 = buildAndStoreJumpRule(chainId, jumpChainId)
-            var updatedChain = addRuleToChain(jumpRule2, chain)
+            var updatedChain = getChain(chainId)
 
             Then("We receive the chain with the two jump rules")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -285,8 +281,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             assertEquals(updatedChain, simChain, List(jumpRule1, jumpRule2),
                          jumpChain)
 
-            And("When we remove the 1st jump rule and update the jump chain")
-            updatedChain = removeRuleFromChain(jumpRule1.getId, updatedChain)
+            And("When we delete the 1st jump rule")
+            deleteRule(jumpRule1.getId)
+            updatedChain = getChain(chainId)
 
             Then("We receive the updated chain")
             obs.awaitOnNext(3, timeout) shouldBe true
@@ -306,7 +303,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                          updatedJumpChain)
 
             And("When we remove the 2nd jump rule")
-            updatedChain = removeRuleFromChain(jumpRule2.getId, updatedChain)
+            deleteRule(jumpRule2.getId)
+            updatedChain = getChain(chainId)
 
             Then("We receive the chain with no rules")
             obs.awaitOnNext(5, timeout) shouldBe true
@@ -333,11 +331,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                                           "ipAddrGroupSrc")
             val ipAddrGroupDst = buildAndStoreIPAddrGroup("192.168.0.2",
                                                           "ipAddrGroupDst")
+            val chain = buildAndStoreChain(chainId, "test-chain")
             val rule = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT,
                                                 Some(ipAddrGroupSrc.getId.asJava),
                                                 Some(ipAddrGroupDst.getId.asJava))
-            val chain = buildAndStoreChain(chainId, "test-chain",
-                                           Set(rule.getId.asJava))
 
             When("We subscribe to the chain")
             val (_, obs) = subscribeToChain(count = 1, chainId)
@@ -365,7 +362,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                              ipAddrGroupDst.getId.asJava -> ipAddrGroupDst))
 
             When("We remove the rule from the chain")
-            val updatedChain = removeRuleFromChain(rule.getId.asJava, chain)
+            val updatedChain = removeRuleFromChain(rule.getId,
+                                                   getChain(chainId))
 
             Then("We receive the chain with no rules")
             obs.awaitOnNext(3, timeout) shouldBe true
@@ -388,6 +386,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             When("We update the rule and the main chain")
             store.update(rule.toBuilder
+                             .clearChainId()
                              .setAction(ProtoRule.Action.CONTINUE)
                              .build())
             store.update(updatedChain.toBuilder
@@ -397,6 +396,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Then("We receive only one update")
             obs.awaitOnNext(5, timeout) shouldBe true
             obs.getOnNextEvents should have size 5
+            obs.getOnNextEvents.get(4).getRules shouldBe empty
         }
 
         scenario("A chain with two rules pointing to the same IPAddrGroup") {
@@ -405,13 +405,11 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             val ipAddrGroupSrc = buildAndStoreIPAddrGroup("192.168.0.1",
                                                           "ipAddrGroupSrc")
             val ipAddrGroupSrcId = ipAddrGroupSrc.getId.asJava
+            val chain = buildAndStoreChain(chainId, "test-chain")
             val rule1 = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT,
                                                  Some(ipAddrGroupSrc.getId.asJava))
             val rule2 = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT,
                                                  Some(ipAddrGroupSrc.getId.asJava))
-            val chain = buildAndStoreChain(chainId, "test-chain",
-                                           Set(rule1.getId.asJava,
-                                               rule2.getId.asJava))
 
             When("We subscribe to the chain")
             val (_, obs) = subscribeToChain(count = 1, chainId)
@@ -425,7 +423,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                          Map(ipAddrGroupSrcId -> ipAddrGroupSrc))
 
             When("We remove rule1 from the chain")
-            var updatedChain = removeRuleFromChain(rule1.getId, chain)
+            deleteRule(rule1.getId)
+            var updatedChain = getChain(chainId)
 
             Then("We receive the updated chain")
             obs.awaitOnNext(2, timeout) shouldBe true
@@ -447,7 +446,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                          Map(ipAddrGroupSrcId -> updatedIPAddrGrpSrc))
 
             When("We remove rule2 from the chain")
-            updatedChain = removeRuleFromChain(rule2.getId, updatedChain)
+            deleteRule(rule2.getId)
+            updatedChain = getChain(chainId)
 
             Then("We receive the updated chain")
             obs.awaitOnNext(4, timeout) shouldBe true
@@ -472,9 +472,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         scenario("A chain with a rule that changes its IPAddrGroup reference") {
             Given("A chain with one rule")
             val chainId = UUID.randomUUID()
+            val chain = buildAndStoreChain(chainId, "test-chain")
             val rule = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT)
-            val chain = buildAndStoreChain(chainId, "test-chain",
-                                           Set(rule.getId.asJava))
 
             When("We subscribe to the chain")
             val (_, obs) = subscribeToChain(count = 1, chainId)
@@ -579,11 +578,11 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                                           "ipAddrGroupSrc")
             val ipAddrGroupDst = buildAndStoreIPAddrGroup("192.168.0.2",
                                                           "ipAddrGroupDst")
+            buildAndStoreChain(chainId, "test-chain")
             val rule = buildAndStoreLiteralRule(chainId, ProtoRule.Action.ACCEPT,
                                                 Some(ipAddrGroupSrc.getId.asJava),
                                                 Some(ipAddrGroupDst.getId.asJava))
-            val chain1 = buildAndStoreChain(chainId, "test-chain",
-                                            Set(rule.getId.asJava))
+            val chain1 = getChain(chainId)
 
             When("We subscribe to the chain")
             val (_, obs) = subscribeToChain(count = 1, chainId)
@@ -596,20 +595,19 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                              ipAddrGroupDst.getId.asJava -> ipAddrGroupDst))
 
             When("Deleting the rule from the chain")
-            val chain2 = removeRuleFromChain(rule.getId, chain1)
-            store.update(chain2)
+            val chain2 = removeRuleFromChain(rule.getId, getChain(chainId))
 
             Then("The observer should receive the chain without a rule")
-            obs.awaitOnNext(3, timeout) shouldBe true
-            assertEquals(chain1, obs.getOnNextEvents.get(2), List.empty,
+            obs.awaitOnNext(2, timeout) shouldBe true
+            assertEquals(chain2, obs.getOnNextEvents.get(1), List.empty,
                          jumpChain = null)
 
             When("Adding the rule to the chain")
             store.update(chain1)
 
             Then("The observer should receive the chain with a rule")
-            obs.awaitOnNext(5, timeout) shouldBe true
-            assertEquals(chain1, obs.getOnNextEvents.get(4), List(rule),
+            obs.awaitOnNext(3, timeout) shouldBe true
+            assertEquals(chain1, obs.getOnNextEvents.get(2), List(rule),
                          jumpChain = null,
                          Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc,
                              ipAddrGroupDst.getId.asJava -> ipAddrGroupDst))
@@ -654,11 +652,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         ipAddrGroupIds should have size ipAddrGroups.size
     }
 
-    private def updateJumpRule(oldJmpRule: ProtoRule, chainId: Commons.UUID,
-                               newJmpChainId: Commons.UUID)
-    : ProtoRule = {
+    private def updateJumpRule(oldJmpRule: ProtoRule,
+                               newJmpChainId: Commons.UUID): ProtoRule = {
         val updatedJumpRule = oldJmpRule.toBuilder
-            .setChainId(chainId)
             .setJumpRuleData(JumpRuleData.newBuilder
                                  .setJumpTo(newJmpChainId)
                                  .build)
@@ -678,9 +674,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     private def buildAndStoreLiteralRule(chainId: UUID,
                                          action: ProtoRule.Action,
                                          ipAddrGroupIdSrc: Option[UUID] = None,
-                                         ipAddrGroupIdDst: Option[UUID] = None)
+                                         ipAddrGroupIdDst: Option[UUID] = None,
+                                         ruleId: Option[UUID] = None)
     : ProtoRule = {
-        val builder = createLiteralRuleBuilder(UUID.randomUUID(),
+        val builder = createLiteralRuleBuilder(ruleId.getOrElse(UUID.randomUUID()),
                                                chainId = Some(chainId),
                                                action = Some(action))
         val rule = setCondition(builder, ipAddrGroupIdSrc = ipAddrGroupIdSrc,
@@ -700,12 +697,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         jumpRule
     }
 
-    private def addRuleToChain(rule: ProtoRule, chain: ProtoChain): ProtoChain = {
-        val updatedChain = chain.toBuilder
-            .addRuleIds(rule.getId)
-            .build()
-        store.update(updatedChain)
-        updatedChain
+    private def getChain(chainId: UUID): ProtoChain = {
+        store.get(classOf[ProtoChain], chainId).await()
     }
 
     private def removeRuleFromChain(ruleId: UUID, chain: ProtoChain)
@@ -716,8 +709,13 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         updatedChain
     }
 
+    override def deleteRule(ruleId: UUID): Unit = {
+        store.delete(classOf[ProtoRule], ruleId)
+    }
+
     private def buildAndStoreChain(chainId: UUID, name: String,
-                                   ruleIds: Set[UUID]): ProtoChain = {
+                                   ruleIds: Set[UUID] = Set.empty)
+    : ProtoChain = {
         val chain = createChain(chainId, Some(name), ruleIds)
         store.create(chain)
         chain

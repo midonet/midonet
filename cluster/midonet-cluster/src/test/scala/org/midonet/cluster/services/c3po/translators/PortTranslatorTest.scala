@@ -31,8 +31,7 @@ import org.midonet.cluster.models.Neutron.NeutronPort
 import org.midonet.cluster.models.Topology.{Chain, Port, Rule}
 import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
-import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.UUIDUtil.randomUuidProto
+import org.midonet.cluster.util.UUIDUtil.{fromProto, randomUuidProto}
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
 import org.midonet.midolman.state.MacPortMap
 import org.midonet.packets.{ARP, MAC}
@@ -517,7 +516,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
 
         val antiSpoofChain = findChainOp(midoOps, OpType.Create, spoofChainId)
         antiSpoofChain should not be null
-        antiSpoofChain.getName shouldBe s"Anti Spoof Chain"
+        antiSpoofChain.getName shouldBe s"Anti-Spoof Chain"
         antiSpoofChain.getRuleIdsList.size shouldBe 0
     }
 
@@ -609,17 +608,17 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         val inChain = findChainOp(midoOps, OpType.Create, inboundChainId)
         inChain should not be null
         inChain.getName shouldBe s"OS_PORT_${portJUuid}_INBOUND"
-        inChain.getRuleIdsList.size shouldBe 5
+        inChain.getRuleIdsList.size shouldBe 0
 
         val outChain= findChainOp(midoOps, OpType.Create, outboundChainId)
         outChain should not be null
         outChain.getName shouldBe s"OS_PORT_${portJUuid}_OUTBOUND"
-        outChain.getRuleIdsList.size shouldBe 4
+        outChain.getRuleIdsList.size shouldBe 0
 
         val antiSpoofChain = findChainOp(midoOps, OpType.Create, spoofChainId)
         antiSpoofChain should not be null
-        antiSpoofChain.getName shouldBe s"Anti Spoof Chain"
-        antiSpoofChain.getRuleIdsList.size shouldBe 5
+        antiSpoofChain.getName shouldBe s"Anti-Spoof Chain"
+        antiSpoofChain.getRuleIdsList.size shouldBe 0
 
         midoOps should containOp[Message] (midonet.Create(revFlowRuleOutbound))
         midoOps should containOp[Message] (midonet.Create(revFlowRuleInbound))
@@ -864,21 +863,6 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         midoOps should containOp[Message] (midonet.Create(dropNonArpIn))
         midoOps should containOp[Message] (midonet.Create(dropNonArpOut))
 
-        val inChain = findChainOp(midoOps, OpType.Update, inboundChainId)
-        inChain should not be null
-        inChain.getName shouldBe s"OS_PORT_${portJUuid}_INBOUND"
-        inChain.getRuleIdsList.size shouldBe 5
-
-        val outChain= findChainOp(midoOps, OpType.Update, outboundChainId)
-        outChain should not be null
-        outChain.getName shouldBe s"OS_PORT_${portJUuid}_OUTBOUND"
-        outChain.getRuleIdsList.size shouldBe 4
-
-        val antiSpoofChain = findChainOp(midoOps, OpType.Update, spoofChainId)
-        antiSpoofChain should not be null
-        antiSpoofChain.getName shouldBe s"Anti Spoof Chain"
-        antiSpoofChain.getRuleIdsList.size shouldBe 4
-
         val ipAddrGrp1 = mIPAddrGroupFromTxt(s"""
             id { $sgId1 }
             ip_addr_ports {
@@ -916,18 +900,6 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         val midoOps = translator.translate(neutron.Delete(classOf[NeutronPort],
                                                           portId))
 
-        midoOps should contain (midonet.Update(mIpv4Dhcp))
-        midoOps should contain (midonet.Update(mIpv6Dhcp))
-        midoOps should contain (midonet.Delete(classOf[Rule], inChainRule1))
-        midoOps should contain (midonet.Delete(classOf[Rule], inChainRule2))
-        midoOps should contain (midonet.Delete(classOf[Rule], inChainRule3))
-        midoOps should contain (midonet.Delete(classOf[Rule], antiSpoofChainRule))
-        midoOps should contain (midonet.Delete(classOf[Chain], inboundChainId))
-        midoOps should contain (midonet.Delete(classOf[Chain], outboundChainId))
-        midoOps should contain (midonet.Delete(classOf[Chain], spoofChainId))
-        midoOps should contain (
-            midonet.DeleteNode(macEntryPath(networkId, mac, portId)))
-
         val ipAddrGrp1 = mIPAddrGroupFromTxt(s"""
             id { $sgId1 }
             inbound_chain_id { $ipAddrGroup1InChainId }
@@ -938,8 +910,17 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             inbound_chain_id { $ipAddrGroup2InChainId }
             outbound_chain_id { $ipAddrGroup2OutChainId }
             """)
-        midoOps should contain (midonet.Update(ipAddrGrp1))
-        midoOps should contain (midonet.Update(ipAddrGrp2))
+
+        midoOps should contain only(
+            midonet.Delete(classOf[Port], portId),
+            midonet.DeleteNode(macEntryPath(networkId, mac, portId)),
+            midonet.Update(mIpv4Dhcp),
+            midonet.Update(mIpv6Dhcp),
+            midonet.Delete(classOf[Chain], inboundChainId),
+            midonet.Delete(classOf[Chain], outboundChainId),
+            midonet.Delete(classOf[Chain], spoofChainId),
+            midonet.Update(ipAddrGrp1),
+            midonet.Update(ipAddrGrp2))
     }
 
     "DELETE VIF port with floating IPs attached" should "delete the ARP " +
@@ -1241,13 +1222,24 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
 
         bind(networkId, nNetworkBase)
         bind(portId, midoPortBaseUp)
-        bind(portId, routerGatewayPort)
+        bind(portId, nGatewayPort)
+        bind(mrGatewayPortId, mrGatewayPort)
+        bind(outSnatRuleId, null, classOf[Rule])
         bind(networkId, midoNetwork)
+
     }
 
-    private val routerGatewayPort = nPortFromTxt(portBaseUp + """
+    private val nGatewayPort = nPortFromTxt(portBaseUp + """
         device_owner: ROUTER_GATEWAY
         """)
+
+    private val routerId = randomUuidProto
+    private val mrGatewayPortId = RouterTranslator.tenantGwPortId(portId)
+    private val mrGatewayPort = mPortFromTxt(s"""
+        id: { $mrGatewayPortId }
+        router_id: { $routerId }
+        """)
+    private val outSnatRuleId = RouterTranslator.outSnatRuleId(routerId)
 
     "Router gateway port CREATE" should "produce Mido provider router port " +
     "CREATE" in {
@@ -1256,12 +1248,11 @@ class RouterGatewayPortTranslationTest extends PortTranslatorTest {
 
     "Router gateway port UPDATE" should "not update Port " +
     "CREATE" in {
-        val midoOps = translator.translate(neutron.Update(routerGatewayPort))
+        val midoOps = translator.translate(neutron.Update(nGatewayPort))
         midoOps shouldBe empty
     }
 
     "Router gateway port  DELETE" should "delete the MidoNet Port" in {
-        bind(portId, routerGatewayPort)
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain (midonet.Delete(classOf[Port], portId))
