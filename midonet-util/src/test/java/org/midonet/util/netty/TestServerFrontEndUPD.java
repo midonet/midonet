@@ -28,6 +28,8 @@ import java.util.concurrent.TimeoutException;
 
 import scala.concurrent.duration.Duration;
 
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
 import rx.Observer;
@@ -35,6 +37,7 @@ import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -45,6 +48,7 @@ public class TestServerFrontEndUPD {
 
     private static final Duration TIMEOUT = Duration.apply(5, TimeUnit.SECONDS);
     private static final String MSG = "hello";
+    private static final int RETRIES = 5;
     Random rand = new Random();
 
     static class TestMonitor<T> implements Observer<T> {
@@ -73,19 +77,45 @@ public class TestServerFrontEndUPD {
         }
     }
 
+    private Pair<ServerFrontEnd, Integer>
+    connect(ChannelInboundHandlerAdapter adapter, Integer bufSize)
+        throws Exception {
+        int port;
+        ServerFrontEnd srv = null;
+        int chances = RETRIES;
+        boolean ready = false;
+        do {
+            chances --;
+            port = rand.nextInt(10000) + 40000;
+            try {
+                if (bufSize == null)
+                    srv = ServerFrontEnd.udp(adapter, port);
+                else
+                    srv = ServerFrontEnd.udp(adapter, port, bufSize);
+                srv.startAsync().awaitRunning();
+                ready = true;
+            } catch (IllegalStateException e) {
+                if (chances <= 0)
+                    throw e;
+            }
+        } while (!ready);
+        return Pair.of(srv, port);
+    }
+
     @Test
     public void testUDPconnection() throws Exception {
         Subject<byte[], byte[]> sub = PublishSubject.create();
         SimpleChan simpleadapter = new SimpleChan(sub);
         TestMonitor<byte[]> monitor = new TestMonitor<>(1);
         sub.subscribe(monitor);
-        int port = rand.nextInt(100) + 8000;
-        ServerFrontEnd udpSrv = ServerFrontEnd.udp(simpleadapter, port);
-        udpSrv.startAsync().awaitRunning();
+        Pair<ServerFrontEnd, Integer> cnxn = connect(simpleadapter, null);
+        ServerFrontEnd udpSrv = cnxn.getLeft();
+        int port = cnxn.getRight();
         sendMSG(MSG.getBytes(), port);
         monitor.awaitOnNext(TIMEOUT);
         assertThat("msg was received", monitor.getOnNextEvents().get(0),
                    equalTo(MSG.getBytes()));
+        udpSrv.stopAsync().awaitTerminated();
     }
 
     @Test
@@ -94,15 +124,16 @@ public class TestServerFrontEndUPD {
         SimpleChan simpleadapter = new SimpleChan(sub);
         TestMonitor<byte[]> monitor = new TestMonitor<>(1);
         sub.subscribe(monitor);
-        int port = rand.nextInt(100) + 8000;
-        ServerFrontEnd udpSrv = ServerFrontEnd.udp(simpleadapter, port, 65536);
+        Pair<ServerFrontEnd, Integer> cnxn = connect(simpleadapter, 65535);
+        ServerFrontEnd udpSrv = cnxn.getLeft();
+        int port = cnxn.getRight();
         byte[] msg = new byte[65535 - 28]; // max payload size
         rand.nextBytes(msg);
-        udpSrv.startAsync().awaitRunning();
         sendMSG(msg, port);
         monitor.awaitOnNext(TIMEOUT);
         assertThat("msg was received", monitor.getOnNextEvents().get(0),
                    equalTo(msg));
+        udpSrv.stopAsync().awaitTerminated();
     }
 
     private DatagramPacket sendMSG(byte[] msg, int port) throws Exception {
@@ -131,6 +162,5 @@ public class TestServerFrontEndUPD {
             message.content().readBytes(bytes);
             obs.onNext(bytes);
         }
-
     }
 }
