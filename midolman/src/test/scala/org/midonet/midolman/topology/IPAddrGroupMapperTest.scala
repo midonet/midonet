@@ -152,13 +152,13 @@ class IPAddrGroupMapperTest extends MidolmanSpec with TopologyBuilder
                                    ip: String, ports: Set[UUID])
     : TopologyIPAddrGroup = {
         val updatedIpAddrGroup =
-            ipAddrGroup.addIPAddrPort(IPAddr.fromString(ip), ports)
+            ipAddrGroup.addIpAddrPort(IPAddr.fromString(ip), ports)
         store.update(updatedIpAddrGroup)
         updatedIpAddrGroup
     }
 
     private def buildAndStoreIpAddrGroup(): TopologyIPAddrGroup = {
-        val ipAddrGroup = createIPAddrGroup()
+        val ipAddrGroup = createIpAddrGroup()
         store.create(ipAddrGroup)
         ipAddrGroup
     }
