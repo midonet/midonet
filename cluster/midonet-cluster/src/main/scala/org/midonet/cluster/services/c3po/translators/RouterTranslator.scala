@@ -210,19 +210,21 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
 
         List(outRuleBuilder(outSnatRuleId(nr.getId))
                  .setType(Rule.Type.NAT_RULE)
+                 .setAction(Action.ACCEPT)
                  .setNatRuleData(natRuleData(gwIpAddr, dnat = false)),
              outRuleBuilder(outDropUnmatchedFragmentsRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)
-                 .setFragmentPolicy(FragmentPolicy.ANY)
-                 .setAction(Action.DROP),
+                 .setAction(Action.DROP)
+                 .setFragmentPolicy(FragmentPolicy.ANY),
              inRuleBuilder(inReverseSnatRuleId(nr.getId))
                  .setType(Rule.Type.NAT_RULE)
+                 .setAction(Action.ACCEPT)
                  .addInPortIds(tenantGwPortId)
                  .setNatRuleData(revNatRuleData(dnat = false)),
              inRuleBuilder(inDropWrongPortTrafficRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)
-                 .setNwProto(ICMP.PROTOCOL_NUMBER).setNwProtoInv(true)
                  .setAction(Action.DROP)
+                 .setNwProto(ICMP.PROTOCOL_NUMBER).setNwProtoInv(true)
         ).map(bldr => Create(bldr.build()))
     }
 
