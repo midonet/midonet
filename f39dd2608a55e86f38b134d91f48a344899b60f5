@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_42285034",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-16T10:24:25Z",
+      "side": 1,
+      "message": "not for now of course, but mental note that we should put the means to avoid this, I don\u0027t think it\u0027ll be doing anything good for keeping garbage under control",
+      "range": {
+        "startLine": 94,
+        "startChar": 45,
+        "endLine": 94,
+        "endChar": 73
+      },
+      "revId": "f39dd2608a55e86f38b134d91f48a344899b60f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8221784f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-16T10:24:25Z",
+      "side": 1,
+      "message": "+1 to messages with this format (object what)",
+      "range": {
+        "startLine": 108,
+        "startChar": 27,
+        "endLine": 108,
+        "endChar": 31
+      },
+      "revId": "f39dd2608a55e86f38b134d91f48a344899b60f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
