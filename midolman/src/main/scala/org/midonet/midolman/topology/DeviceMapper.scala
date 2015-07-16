@@ -178,10 +178,14 @@ abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
 
         // Create state for new devices, and publish their observables to the
         // aggregate observer.
+        val addedDevices = new mutable.MutableList[DeviceState[T]]
         for (id <- deviceIds if !devices.contains(id)) {
             val state = new DeviceState[T](id)
-            devices(id) = state
-            devicesObserver.onNext(state.observable)
+            devices += id -> state
+            addedDevices += state
+        }
+        for (deviceState <- addedDevices) {
+            devicesObserver onNext deviceState.observable
         }
     }
 }

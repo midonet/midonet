@@ -238,9 +238,9 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         observable.asInstanceOf[Observable[D]]
     }
 
-    private[topology] def invalidate(tag: FlowTag): Unit = toBackChannel(tag)
+    private[topology] def invalidate(tag: FlowTag): Unit = tellBackChannel(tag)
 
-    private[topology] def toBackChannel(msg: BackChannelMessage): Unit =
+    private[topology] def tellBackChannel(msg: BackChannelMessage): Unit =
         simBackChannel.tell(msg)
 
     /** Safely executes a task on the virtual topology thread. */
@@ -249,7 +249,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
             try {
                 task
             } catch {
-                case e: Throwable =>
+                case NonFatal(e) =>
                     log.error("Uncaught exception on topology thread.", e)
             }
         })
@@ -261,7 +261,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
             try {
                 task
             } catch {
-                case e: Throwable =>
+                case NonFatal(e) =>
                     log.error("Uncaught exception on topology IO thread.", e)
             }
         })

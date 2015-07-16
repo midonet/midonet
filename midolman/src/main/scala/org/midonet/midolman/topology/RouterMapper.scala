@@ -578,7 +578,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
         // Update the current routes.
         routes ++= routeUpdates.added
         routes --= routeUpdates.removed
-        vt.toBackChannel(RouterManager.InvalidateFlows(
+        vt.tellBackChannel(RouterManager.InvalidateFlows(
             id, routeUpdates.added, routeUpdates.removed))
         config
     }
@@ -623,7 +623,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
             tagManager,
             arpCache
             )
-        log.debug("Router ready: {} {}", device, routes)
+        log.debug("Build router: {} {}", device, routes)
 
         device
     }
