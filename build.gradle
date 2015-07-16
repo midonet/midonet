@@ -99,7 +99,7 @@ project.ext {
         hamcrest_lib: "org.hamcrest:hamcrest-library:${versions.hamcrest}",
         hamcrest_integration: "org.hamcrest:hamcrest-integration:${versions.hamcrest}",
 
-        zookeeper: dependencies.create("org.apache.zookeeper:zookeeper:3.4.6") {
+        zookeeper: dependencies.create("org.apache.zookeeper:zookeeper:3.4.7") {
             exclude group: 'jline', module: 'jline'
             exclude group: 'javax.jms', module: 'javax.jms'
             exclude group: 'com.sun.jdmk', module: 'jmxtools'
@@ -173,6 +173,9 @@ project.ext {
 
 buildscript {
     repositories {
+        maven {
+	url "https://repository.apache.org/content/groups/staging/"
+	}
         mavenCentral()
         jcenter()
         maven {
@@ -296,6 +299,9 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
     repositories {
         mavenCentral()
         mavenLocal()
+	maven {
+	url "https://repository.apache.org/content/groups/staging/"
+	}
         maven { url "http://jsch.sf.net/maven2/" }
         maven { url "http://maven.restlet.org" }
     }
@@ -462,6 +468,9 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
 
     repositories {
         mavenLocal()
+        maven {
+	url "https://repository.apache.org/content/groups/staging/"
+	}
         maven { url "http://repo.maven.apache.org/maven2" }
         maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
     }
@@ -469,6 +478,9 @@ configure(subprojects.findAll {it.name.contains('ovsdb')}) {
 
 configure(subprojects) {
     repositories {
+        maven {
+	url "https://repository.apache.org/content/groups/staging/"
+	}
         maven { url "http://nexus.opendaylight.org/content/repositories/opendaylight.release/" }
     }
 }
