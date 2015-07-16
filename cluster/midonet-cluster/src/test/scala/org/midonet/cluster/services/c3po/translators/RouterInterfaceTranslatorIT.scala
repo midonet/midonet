@@ -258,7 +258,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
                             macAddr = "ab:cd:ef:01:02:03",
                             fixedIps = List(IPAlloc("10.0.0.3", subnetId.toString)),
                             hostId = hostId, ifName = null)
-        insertCreateTask(6, PortType, json.toString, rifPortId)
+        insertCreateTask(6, PortType, json, rifPortId)
 
         // Creating a RouterInterface should result on a port being created on
         // the router and linked to the network port.

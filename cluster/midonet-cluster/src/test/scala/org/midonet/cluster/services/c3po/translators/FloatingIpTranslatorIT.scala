@@ -27,16 +27,13 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{FloatingIp => FloatingIpType, Network => NetworkType, Port => PortType, PortBinding => PortBindingType, Router => RouterType, Subnet => SubnetType}
-import org.midonet.cluster.data.neutron.TaskType.{Create, Delete, Update}
-import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort}
 import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort}
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
+import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil}
-import org.midonet.packets.IPv4Subnet
-import org.midonet.packets.MAC
 import org.midonet.packets.util.AddressConversions._
+import org.midonet.packets.{IPv4Subnet, MAC}
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -66,21 +63,17 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Create a private Network
         val privateNetworkId = UUID.randomUUID()
         val privateNetworkJson =
-            networkJson(privateNetworkId, "tenant1", "private net").toString
-        executeSqlStmts(insertTaskSql(
-                id = 2, Create, NetworkType, privateNetworkJson,
-                privateNetworkId, "tx2"))
+            networkJson(privateNetworkId, "tenant1", "private net")
+        insertCreateTask(2, NetworkType, privateNetworkJson, privateNetworkId)
 
         // Attach a subnet to the Network
         val privateSubnetId = UUID.randomUUID()
         val privateSubnetCidr = "10.0.0.0/24"
         val gatewayIp = "10.0.0.1"
         val snetJson = subnetJson(
-                privateSubnetId, privateNetworkId,
-                name = "private subnet", cidr = privateSubnetCidr,
-                gatewayIp = gatewayIp).toString
-        executeSqlStmts(insertTaskSql(
-                id = 3, Create, SubnetType, snetJson, privateSubnetId, "tx3"))
+                privateSubnetId, privateNetworkId, name = "private subnet",
+                cidr = privateSubnetCidr, gatewayIp = gatewayIp)
+        insertCreateTask(3, SubnetType, snetJson, privateSubnetId)
         eventually {
             val network = storage.get(classOf[Network], privateNetworkId)
                                  .await()
@@ -104,9 +97,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    macAddr = vifPortMac,
                                    fixedIps = List(IPAlloc(
                                            fixedIp, privateSubnetId.toString)),
-                                   deviceOwner = DeviceOwner.COMPUTE).toString
-        executeSqlStmts(insertTaskSql(
-                id = 4, Create, PortType, vifPortJson, vifPortId, "tx4"))
+                                   deviceOwner = DeviceOwner.COMPUTE)
+        insertCreateTask(4, PortType, vifPortJson, vifPortId)
         eventually {
             storage.exists(classOf[Port], vifPortId).await() shouldBe true
         }
@@ -114,19 +106,16 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         // Creates a Port Binding
         val bindingId = UUID.randomUUID()
         val interfaceName = "if1"
-        val bindingJson = portBindingJson(
-                bindingId, hostId, interfaceName, vifPortId).toString
-        executeSqlStmts(insertTaskSql(
-                id = 5, Create, PortBindingType, bindingJson, bindingId, "tx5"))
+        val bindingJson = portBindingJson(bindingId, hostId,
+                                          interfaceName, vifPortId)
+        insertCreateTask(5, PortBindingType, bindingJson, bindingId)
         eventually(checkPortBinding(hostId, vifPortId, interfaceName))
 
         // Create an external Network
         val extNetworkId = UUID.randomUUID()
-        val extNetworkJson = networkJson(
-                extNetworkId, "admin", "public", external = true).toString
-        executeSqlStmts(insertTaskSql(
-                id = 6, Create, NetworkType, extNetworkJson, extNetworkId,
-                "tx6"))
+        val extNetworkJson = networkJson(extNetworkId, "admin",
+                                         "public", external = true)
+        insertCreateTask(6, NetworkType, extNetworkJson, extNetworkId)
         eventually {
             storage.exists(classOf[Network], extNetworkId).await() shouldBe true
         }
@@ -138,10 +127,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val extSubnetGwIp = "172.24.4.1"
         val extSubnetJson = subnetJson(extSubnetId, extNetworkId,
                                        name = "subnet", cidr = extSubnetCidr,
-                                       gatewayIp = extSubnetGwIp).toString
-        executeSqlStmts(insertTaskSql(
-                id = 7, Create, SubnetType, extSubnetJson, extSubnetId,
-                "tx7"))
+                                       gatewayIp = extSubnetGwIp)
+        insertCreateTask(7, SubnetType, extSubnetJson, extSubnetId)
         eventually {
             storage.exists(classOf[Dhcp], extSubnetId).await() shouldBe true
         }
@@ -157,22 +144,19 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    fixedIps = List(IPAlloc(
                                            rgwIp, extSubnetId.toString)),
                                    deviceOwner = DeviceOwner.ROUTER_GATEWAY)
-                                   .toString
-        executeSqlStmts(insertTaskSql(
-                id = 8, Create, PortType, rgwPortJson, rgwPortId, "tx8"))
+        insertCreateTask(8, PortType, rgwPortJson, rgwPortId)
 
         // #9 Create a tenant Router.
         val tRouterId = UUID.randomUUID()
-        val tRouterJson = routerJson(tRouterId, gwPortId = rgwPortId).toString
-        executeSqlStmts(insertTaskSql(
-                id = 9, Create, RouterType, tRouterJson, tRouterId, "tx9"))
+        val tRouterJson = routerJson(tRouterId, gwPortId = rgwPortId)
+        insertCreateTask(9, RouterType, tRouterJson, tRouterId)
 
         // Tests that the tenant Router has been hooked up with Provider Router
         // via the above-created Router Gateway port.
         eventually {
             storage.exists(classOf[Router], tRouterId).await() shouldBe true
         }
-        var rgwPort = storage.get(classOf[Port], rgwPortId).await()
+        val rgwPort = storage.get(classOf[Port], rgwPortId).await()
         rgwPort.hasPeerId shouldBe true
         val rgwPortPeer = storage.get(classOf[Port], rgwPort.getPeerId).await()
         rgwPortPeer.hasRouterId shouldBe true
@@ -189,9 +173,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    fixedIps = List(IPAlloc(
                                            rifIp, privateSubnetId.toString)),
                                    deviceOwner = DeviceOwner.ROUTER_INTERFACE,
-                                   deviceId = tRouterId).toString
-        executeSqlStmts(insertTaskSql(
-                id = 10, Create, PortType, rifPortJson, rifPortUuid, "tx10"))
+                                   deviceId = tRouterId)
+        insertCreateTask(10, PortType, rifPortJson, rifPortUuid)
         eventually {
             storage.exists(classOf[Port], rifPortUuid).await() shouldBe true
         }
@@ -216,15 +199,13 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                            fipIp, extSubnetId.toString)),
                                    deviceOwner = DeviceOwner.ROUTER_GATEWAY,
                                    // Neutron sets FIP ID as device ID.
-                                   deviceId = fipId).toString
+                                   deviceId = fipId)
         val fipJson = floatingIpJson(id = fipId,
                                      floatingNetworkId = extNetworkId,
-                                     floatingIpAddress = fipIp).toString
+                                     floatingIpAddress = fipIp)
         // Floating IP is not assigned to any port yet.
-        executeSqlStmts(insertTaskSql(
-                id = 11, Create, PortType, fipPortJson, fipPortId, "tx11"),
-                        insertTaskSql(
-                id = 12, Create, FloatingIpType, fipJson, fipId, "tx11"))
+        insertCreateTask(11, PortType, fipPortJson, fipPortId)
+        insertCreateTask(12, FloatingIpType, fipJson, fipId)
 
         val fip = eventually(storage.get(classOf[FloatingIp], fipId).await())
         fip.getFloatingIpAddress shouldBe IPAddressUtil.toProto(fipIp)
@@ -237,7 +218,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                              floatingIpAddress = fipIp,
                                              routerId = tRouterId,
                                              portId = vifPortId,
-                                             fixedIpAddress = fixedIp).toString
+                                             fixedIpAddress = fixedIp)
         insertUpdateTask(13, FloatingIpType, assignedFipJson, fipId)
 
         val snatRuleId = RouteManager.fipSnatRuleId(fipId)
@@ -297,10 +278,8 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                 name = "port1Updated", id = vifPortId,
                 networkId = privateNetworkId, macAddr = vifPortMac,
                 fixedIps = List(IPAlloc(fixedIp, privateSubnetId.toString)),
-                deviceOwner = DeviceOwner.COMPUTE).toString
-        executeSqlStmts(insertTaskSql(
-                id = 14, Update, PortType, vifPortUpdatedJson, vifPortId,
-                "tx14"))
+                deviceOwner = DeviceOwner.COMPUTE)
+        insertUpdateTask(14, PortType, vifPortUpdatedJson, vifPortId)
         eventually {
             val updatedVifPort = storage.get(classOf[NeutronPort], vifPortId)
                                         .await()
@@ -311,8 +290,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         }
 
         // #15 Deleting a Floating IP should clear the NAT rules and ARP entry.
-        executeSqlStmts(insertTaskSql(
-                id = 15, Delete, FloatingIpType, json = "", fipId, "tx15"))
+        insertDeleteTask(15, FloatingIpType, fipId)
         eventually {
             storage.exists(classOf[FloatingIp], fipId).await() shouldBe false
             storage.exists(classOf[Rule], snatRuleId).await() shouldBe false
@@ -341,7 +319,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                 name = "vif_port2", id = vifPort2Id,
                 networkId = privateNetworkId, macAddr = vifPort2Mac,
                 fixedIps = List(IPAlloc(vifPort2FixedIp, extSubnetId.toString)),
-                deviceOwner = DeviceOwner.COMPUTE).toString
+                deviceOwner = DeviceOwner.COMPUTE)
         // #17 Create a Floating IP with the VIF port specified.
         val fip2Id = UUID.randomUUID()
         val fip2Address = "118.67.101.185"
@@ -351,19 +329,16 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                 floatingIpAddress = fip2Address,
                 routerId = tRouterId,
                 portId = vifPort2Id,
-                fixedIpAddress = vifPort2FixedIp).toString
-        executeSqlStmts(insertTaskSql(
-                id = 16, Create, PortType, vifPort2Json, vifPort2Id, "tx15"),
-                        insertTaskSql(
-                id = 17, Create, FloatingIpType, fip2Json, fip2Id, "tx16"))
+                fixedIpAddress = vifPort2FixedIp)
+        insertCreateTask(16, PortType, vifPort2Json, vifPort2Id)
+        insertCreateTask(17, FloatingIpType, fip2Json, fip2Id)
 
         eventually {
             arpTable.containsKey(fip2Address) shouldBe true
         }
 
         // #18 Delete the VIF port with which the Floating IP is associated.
-        executeSqlStmts(insertTaskSql(
-                id = 18, Delete, PortType, json = "", vifPort2Id, "tx17"))
+        insertDeleteTask(18, PortType, vifPort2Id)
         eventually {
             // The ARP table entry needs to be removed.
             arpTable.containsKey(fip2Address) shouldBe false

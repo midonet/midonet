@@ -24,12 +24,9 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Router => RouterType, Subnet => SubnetType}
-import org.midonet.cluster.data.neutron.TaskType.{Create, Delete, Update}
-import org.midonet.cluster.models.Neutron.NeutronPort.DeviceOwner
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
-import org.midonet.packets.IPv4Subnet
 import org.midonet.util.concurrent.toFutureOps
 
 /**
@@ -40,18 +37,16 @@ class PortTranslatorIT extends C3POMinionTestBase {
     "Port translator" should " handle port bindings" in {
         // Create a host, a network, and two ports, one bound to the host.
         val nw1Id = UUID.randomUUID()
-        val nw1Json = networkJson(nw1Id, "tenant", "network1").toString
+        val nw1Json = networkJson(nw1Id, "tenant", "network1")
         val h1Id = UUID.randomUUID()
         val (nw1p1Id, nw1p2Id) = (UUID.randomUUID(), UUID.randomUUID())
-        val nw1p1Json = portJson(nw1p1Id, nw1Id,
-                                 hostId = h1Id, ifName = "eth0").toString
-        val nw1p2Json = portJson(nw1p2Id, nw1Id).toString
+        val nw1p1Json = portJson(nw1p1Id, nw1Id, hostId = h1Id, ifName = "eth0")
+        val nw1p2Json = portJson(nw1p2Id, nw1Id)
 
         createHost(h1Id)
-        executeSqlStmts(
-            insertTaskSql(2, Create, NetworkType, nw1Json, nw1Id, "tx1"),
-            insertTaskSql(3, Create, PortType, nw1p1Json, nw1p1Id, "tx2"),
-            insertTaskSql(4, Create, PortType, nw1p2Json, nw1p2Id, "tx3"))
+        insertCreateTask(2, NetworkType, nw1Json, nw1Id)
+        insertCreateTask(3, PortType, nw1p1Json, nw1p1Id)
+        insertCreateTask(4, PortType, nw1p2Json, nw1p2Id)
 
         eventually {
             val h1Ftr = storage.get(classOf[Host], h1Id)
@@ -64,9 +59,8 @@ class PortTranslatorIT extends C3POMinionTestBase {
 
         // Bind the second port.
         val nw1p2JsonV2 = portJson(nw1p2Id, nw1Id,
-                                   hostId = h1Id, ifName = "eth1").toString
-        executeSqlStmts(
-            insertTaskSql(5, Update, PortType, nw1p2JsonV2, nw1p2Id, "tx4"))
+                                   hostId = h1Id, ifName = "eth1")
+        insertUpdateTask(5, PortType, nw1p2JsonV2, nw1p2Id)
         eventually {
             val h1Ftr = storage.get(classOf[Host], h1Id)
             val p2Ftr = storage.get(classOf[Port], nw1p2Id)
@@ -79,9 +73,8 @@ class PortTranslatorIT extends C3POMinionTestBase {
         }
 
         // Unbind the first port.
-        val nw1p1JsonV2 = portJson(nw1p1Id, nw1Id).toString
-        executeSqlStmts(
-            insertTaskSql(6, Update, PortType, nw1p1JsonV2, nw1p2Id, "tx5"))
+        val nw1p1JsonV2 = portJson(nw1p1Id, nw1Id)
+        insertUpdateTask(6, PortType, nw1p1JsonV2, nw1p2Id)
         eventually {
             val h1Ftr = storage.get(classOf[Host], h1Id)
             val p1Ftr = storage.get(classOf[Port], nw1p1Id)
@@ -92,9 +85,8 @@ class PortTranslatorIT extends C3POMinionTestBase {
         }
 
         // Rebind the first port and delete the second port.
-        executeSqlStmts(
-            insertTaskSql(7, Update, PortType, nw1p1Json, nw1p1Id, "tx6"),
-            insertTaskSql(8, Delete, PortType, "", nw1p2Id, "tx7"))
+        insertUpdateTask(7, PortType, nw1p1Json, nw1p1Id)
+        insertDeleteTask(8, PortType, nw1p2Id)
         eventually {
             val h1Ftr = storage.get(classOf[Host], h1Id)
             val p1Ftr = storage.get(classOf[Port], nw1p1Id)
