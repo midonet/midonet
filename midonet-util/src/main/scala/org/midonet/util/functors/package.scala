@@ -21,6 +21,9 @@ package object functors {
     def makeRunnable(fn: => Unit) = new Runnable {
         override def run(): Unit = fn
     }
+    def makeFunc0[R](fn: => R) = new Func0[R] {
+        override def call(): R = fn
+    }
     def makeFunc1[T1, R](fn: T1 => R) = new Func1[T1, R] {
         override def call(t1: T1): R = fn(t1)
     }
@@ -40,4 +43,9 @@ package object functors {
     def makeCallback0(fn: => Unit) = new Callback0 {
         override def call(): Unit = fn
     }
+
+    def makePredicate(fn: => Boolean) = new Predicate {
+        override def check(): Boolean = fn
+    }
+
 }

@@ -15,11 +15,18 @@
  */
 package org.midonet.midolman.cluster;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
 import com.google.inject.Provider;
 import com.google.inject.Scopes;
+import com.google.inject.name.Names;
 
 import org.midonet.cluster.Client;
 import org.midonet.midolman.ShardedSimulationBackChannel;
@@ -35,6 +42,8 @@ import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.state.NatBlockAllocator;
 import org.midonet.midolman.state.ZkNatBlockAllocator;
 import org.midonet.midolman.topology.VirtualTopology;
+import org.midonet.midolman.topology.VirtualTopology$;
+import org.midonet.util.functors.Predicate;
 
 /**
  * Main midolman configuration module
@@ -55,9 +64,7 @@ public class MidolmanModule extends PrivateModule {
         bindSimulationBackChannel();
         bindAllocator();
 
-        bind(VirtualTopology.class)
-            .asEagerSingleton();
-        expose(VirtualTopology.class);
+        bindVirtualTopology();
 
         bind(MetricRegistry.class).toInstance(new MetricRegistry());
         expose(MetricRegistry.class);
@@ -91,5 +98,45 @@ public class MidolmanModule extends PrivateModule {
         bind(NatBlockAllocator.class).to(ZkNatBlockAllocator.class)
             .in(Scopes.SINGLETON);
         expose(NatBlockAllocator.class);
+    }
+
+    protected void bindVirtualTopology() {
+        final AtomicLong vtThread = new AtomicLong(-1);
+        bind(ExecutorService.class)
+            .annotatedWith(Names.named(VirtualTopology$.MODULE$.VtExecutorName()))
+            .toInstance(Executors.newSingleThreadExecutor(
+                                new ThreadFactory() {
+                                    @Override
+                                    public Thread newThread(Runnable r) {
+                                        Thread thread = new Thread(r,
+                                                "devices-service");
+                                        vtThread.set(thread.getId());
+                                        return thread;
+                                    }
+                                }));
+        bind(Predicate.class)
+            .annotatedWith(Names.named(VirtualTopology$.MODULE$.VtExecutorCheckerName()))
+            .toInstance(new Predicate() {
+                    @Override
+                    public boolean check() {
+                        return vtThread.get() < 0
+                            || vtThread.get() == Thread.currentThread().getId();
+                    }
+                });
+        final AtomicInteger ioThreadIndex = new AtomicInteger(0);
+        bind(ExecutorService.class)
+            .annotatedWith(Names.named(VirtualTopology$.MODULE$.IoExecutorName()))
+            .toInstance(Executors.newCachedThreadPool(
+                                new ThreadFactory() {
+                                    @Override
+                                    public Thread newThread(Runnable r) {
+                                        return new Thread(r, "devices-io-" +
+                                                ioThreadIndex.getAndIncrement());
+                                    }
+                                }));
+
+        bind(VirtualTopology.class)
+            .asEagerSingleton();
+        expose(VirtualTopology.class);
     }
 }
