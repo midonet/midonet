@@ -41,6 +41,7 @@ public class Chain extends UriResource {
     public UUID id;
 
     @NotNull
+    @ZoomField(name = "tenant_id")
     public String tenantId;
 
     @NotNull

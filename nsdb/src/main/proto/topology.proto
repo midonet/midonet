@@ -67,6 +67,7 @@ message BgpRoute {
 message Chain {
     optional UUID id = 1;
     optional string name = 2;
+    optional string tenant_id = 3;
 
     // Backreferences
     repeated UUID rule_ids = 101;
