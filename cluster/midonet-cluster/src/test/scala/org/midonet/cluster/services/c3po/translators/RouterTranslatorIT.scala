@@ -20,7 +20,6 @@ import java.util.UUID
 import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, Router => RouterType, Subnet => SubnetType}
-import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
@@ -44,8 +43,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
     it should "handle router CRUD" in {
         val r1Id = UUID.randomUUID()
         val r1Json = routerJson(r1Id, name = "router1")
-        executeSqlStmts(insertTaskSql(2, Create, RouterType,
-                                      r1Json.toString, r1Id, "tx1"))
+        insertCreateTask(2, RouterType, r1Json, r1Id)
 
         val r1 = eventually(storage.get(classOf[Router], r1Id).await())
         UUIDUtil.fromProto(r1.getId) shouldBe r1Id
@@ -61,10 +59,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val r2Id = UUID.randomUUID()
         val r2Json = routerJson(r2Id, name = "router2", adminStateUp = false)
         val r1JsonV2 = routerJson(r1Id, tenantId = "new-tenant")
-        executeSqlStmts(insertTaskSql(3, Create, RouterType,
-                                      r2Json.toString, r2Id, "tx2"),
-                        insertTaskSql(4, Update, RouterType,
-                                      r1JsonV2.toString, r1Id, "tx2"))
+        insertCreateTask(3, RouterType, r2Json, r2Id)
+        insertUpdateTask(4, RouterType, r1JsonV2, r1Id)
 
         val r2 = eventually(storage.get(classOf[Router], r2Id).await())
         r2.getName shouldBe "router2"
@@ -78,9 +74,8 @@ class RouterTranslatorIT extends C3POMinionTestBase {
             r1v2.getOutboundFilterId shouldBe r1.getOutboundFilterId
         }
 
-        executeSqlStmts(
-            insertTaskSql(5, Delete, RouterType, null, r1Id, "tx3"),
-            insertTaskSql(6, Delete, RouterType, null, r2Id, "tx3"))
+        insertDeleteTask(5, RouterType, r1Id)
+        insertDeleteTask(6, RouterType, r2Id)
 
         eventually {
             storage.getAll(classOf[Router]).await().size shouldBe 0
@@ -164,7 +159,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         // Rename router to make sure update doesn't break anything.
         val trRenamedJson = routerJson(tntRtrId, name = "tr-renamed",
                                        gwPortId = extNwGwPortId,
-                                       enableSnat = true).toString
+                                       enableSnat = true)
         insertUpdateTask(15, RouterType, trRenamedJson, tntRtrId)
         eventually {
             val tr = storage.get(classOf[Router], tntRtrId).await()
@@ -194,7 +189,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
                                 "10.0.1.4", "ab:cd:ef:00:00:04", extNwSubnetId)
         val trAddGwJson = routerJson(tntRtrId, name = "tr-add-gw",
                                      gwPortId = extNwGwPortId,
-                                     enableSnat = true).toString
+                                     enableSnat = true)
         insertUpdateTask(18, RouterType, trAddGwJson, tntRtrId)
         eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
                                    "10.0.1.4", "ab:cd:ef:00:00:04", "10.0.1.2",
@@ -203,7 +198,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         // Disable SNAT.
         val trDisableSnatJson = routerJson(tntRtrId, name = "tr-disable-snat",
                                            gwPortId = extNwGwPortId,
-                                           enableSnat = false).toString
+                                           enableSnat = false)
         insertUpdateTask(19, RouterType, trDisableSnatJson, tntRtrId)
         eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
                                    "10.0.1.4", "ab:cd:ef:00:00:04", "10.0.1.2",
@@ -217,7 +212,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
 
         // Clear the default gateway on the subnet.
         val extNwSubnetNoGwJson =
-            subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24").toString
+            subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24")
         insertUpdateTask(21, SubnetType, extNwSubnetNoGwJson, extNwSubnetId)
         eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
                                    "10.0.1.4", "ab:cd:ef:00:00:04", null,
@@ -226,7 +221,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         // Readd the default gateway on the subnet.
         val extNwSubnetNewGwJson =
             subnetJson(extNwSubnetId, extNwId, cidr = "10.0.1.0/24",
-                       gatewayIp = "10.0.1.50").toString
+                       gatewayIp = "10.0.1.50")
         insertUpdateTask(22, SubnetType, extNwSubnetNewGwJson, extNwSubnetId)
         eventually(validateGateway(tntRtrId, extNwGwPortId, "10.0.1.0/24",
                                    "10.0.1.4", "ab:cd:ef:00:00:04",

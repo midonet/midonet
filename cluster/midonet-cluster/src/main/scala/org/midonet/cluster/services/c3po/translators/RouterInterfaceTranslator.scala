@@ -25,9 +25,9 @@ import org.midonet.cluster.models.Topology.{Network, Route}
 import org.midonet.cluster.services.c3po.midonet.{Create, MidoOp}
 import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.services.c3po.translators.PortManager.{isDhcpPort, routerInterfacePortPeerId}
+import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
 import org.midonet.util.concurrent.toFutureOps
 
 class RouterInterfaceTranslator(val storage: ReadOnlyStorage)
