@@ -603,6 +603,15 @@ public class TestCondition {
     }
 
     @Test
+    public void testShortEtherType() {
+        Condition cond = new Condition();
+        cond.etherType = (int)(short)0x86DD;
+        pktCtx.inPortId_$eq(UUID.randomUUID());
+        pktCtx.wcmatch().setEtherType((short)0x86DD);
+        Assert.assertTrue(cond.matches(pktCtx, false));
+    }
+
+    @Test
     public void testSerialization() throws IOException, ClassNotFoundException {
         Condition cond = new Condition();
         Set<UUID> ids = new HashSet<>();
