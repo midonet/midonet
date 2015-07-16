@@ -377,6 +377,7 @@ class RouterTranslatorIT extends C3POMinionTestBase {
     // addr == null for reverse NAT rule
     private def validateNatRule(r: Rule, dnat: Boolean, addr: String): Unit = {
         r.getType shouldBe Rule.Type.NAT_RULE
+        r.getAction shouldBe Rule.Action.ACCEPT
 
         val data = r.getNatRuleData
         data.getDnat shouldBe dnat
