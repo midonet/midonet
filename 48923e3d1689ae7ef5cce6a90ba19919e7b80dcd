@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2d525d13",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 232,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-16T12:44:31Z",
+      "side": 1,
+      "message": "What about storing etherType as a short and only doing the signed -\u003e unsigned conversion here and below?",
+      "range": {
+        "startLine": 232,
+        "startChar": 36,
+        "endLine": 232,
+        "endChar": 45
+      },
+      "revId": "48923e3d1689ae7ef5cce6a90ba19919e7b80dcd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
