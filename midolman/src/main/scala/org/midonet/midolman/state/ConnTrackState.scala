@@ -100,8 +100,9 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
     private var flowDirection: ConnTrackValue = _
     private var connKey: ConnTrackKey = _
 
-    override def clear(): Unit = {
+    abstract override def clear(): Unit = {
         super.clear()
+        conntrackTx.flush()
         connKey = null
         isConnectionTracked = false
     }

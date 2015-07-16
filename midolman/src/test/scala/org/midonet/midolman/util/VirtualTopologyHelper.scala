@@ -144,9 +144,9 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         new ArpRequestBroker(new PacketEmitter(emitter, actorSystem.deadLetters),
                              config, flowInvalidator, UnixClock.MOCK)
 
-    val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](null)
-    val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](null)
-    val NO_TRACE = new FlowStateTransaction[TraceKey, TraceContext](null)
+    val NO_CONNTRACK = new FlowStateTransaction[ConnTrackKey, ConnTrackValue](new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard())
+    val NO_NAT = new FlowStateTransaction[NatKey, NatBinding](new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard())
+    val NO_TRACE = new FlowStateTransaction[TraceKey, TraceContext](new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
 
     def packetContextFor(frame: Ethernet, inPort: UUID = null,
                          emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList,
@@ -301,6 +301,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                        peers: Map[UUID, UnderlayRoute] = Map.empty,
                        dpChannel: DatapathChannel = mockDpChannel,
                        packetCtxTrap: Queue[PacketContext] = new LinkedList[PacketContext](),
+                       workflowTrap: PacketContext => SimulationResult = null,
                        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue] = new ShardedFlowStateTable[ConnTrackKey, ConnTrackValue](clock).addShard(),
                        natTable: FlowStateTable[NatKey, NatBinding] = new ShardedFlowStateTable[NatKey, NatBinding](clock).addShard(),
                        traceTable: FlowStateTable[TraceKey, TraceContext] = new ShardedFlowStateTable[TraceKey, TraceContext](clock).addShard())
@@ -342,9 +343,17 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             _ => { }) {
 
             override def runWorkflow(pktCtx: PacketContext) = {
-                packetCtxTrap.add(pktCtx)
+                packetCtxTrap.offer(pktCtx)
                 super.runWorkflow(pktCtx)
             }
+
+            override def start(pktCtx: PacketContext): SimulationResult =
+                if (workflowTrap ne null) {
+                    pktCtx.prepareForSimulation()
+                    workflowTrap(pktCtx)
+                } else {
+                    super.start(pktCtx)
+                }
         }))
     }
 }
