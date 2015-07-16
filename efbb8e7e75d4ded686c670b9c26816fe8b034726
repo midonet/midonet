@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_bc4f81bc",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/RouterTranslatorIT.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 226,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-16T01:50:16Z",
+      "side": 1,
+      "message": "s/Readd/Re-add/ for readability?",
+      "range": {
+        "startLine": 226,
+        "startChar": 11,
+        "endLine": 226,
+        "endChar": 16
+      },
+      "revId": "efbb8e7e75d4ded686c670b9c26816fe8b034726",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
