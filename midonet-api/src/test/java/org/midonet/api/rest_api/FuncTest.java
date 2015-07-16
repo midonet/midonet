@@ -32,7 +32,6 @@ import org.midonet.api.auth.cors.CorsConfig;
 import org.midonet.api.serialization.ObjectMapperProvider;
 import org.midonet.api.serialization.WildCardJacksonJaxbJsonProvider;
 import org.midonet.api.servlet.JerseyGuiceTestServletContextListener;
-import org.midonet.api.version.VersionParser;
 import org.midonet.conf.HostIdGenerator;
 
 public class FuncTest {
@@ -92,8 +91,9 @@ public class FuncTest {
                               "org.midonet.cluster.auth.MockAuthService")
                 .contextParam(getConfigKey("zookeeper",
                                            "zookeeper_hosts"),
-                                           FuncTest.ZK_TEST_SERVER)
-                .contextParam(getConfigKey("zookeeper", "curator_enabled"), "true")
+                              FuncTest.ZK_TEST_SERVER)
+                .contextParam(getConfigKey("zookeeper", "curator_enabled"),
+                              "true")
                 .contextParam(getConfigKey("zookeeper", "midolman_root_key"), zkRoot)
                 .contextParam(getConfigKey("zookeeper", "root_key"), zkRoot)
                 .contextParam(getConfigKey("zookeeper", "use_new_stack"), "false")

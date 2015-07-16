@@ -18,11 +18,13 @@ package org.midonet.cluster.data.neutron;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonValue;
 
+import org.midonet.packets.Unsigned;
+
 public enum RuleEthertype {
 
-    ARP("arp", org.midonet.packets.ARP.ETHERTYPE),
-    IPv4("ipv4", org.midonet.packets.IPv4.ETHERTYPE),
-    IPv6("ipv6", org.midonet.packets.IPv6.ETHERTYPE);
+    ARP("arp", Unsigned.unsign(org.midonet.packets.ARP.ETHERTYPE)),
+    IPv4("ipv4", Unsigned.unsign(org.midonet.packets.IPv4.ETHERTYPE)),
+    IPv6("ipv6", Unsigned.unsign(org.midonet.packets.IPv6.ETHERTYPE));
 
     private final String value;
     private final int number;

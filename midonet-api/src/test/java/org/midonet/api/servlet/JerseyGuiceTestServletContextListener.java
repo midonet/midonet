@@ -34,7 +34,7 @@ public class JerseyGuiceTestServletContextListener extends
 
     private static final Logger log =
         LoggerFactory.getLogger(JerseyGuiceTestServletContextListener.class);
-    private static Injector _injector = null;
+    public static Injector _injector = null;
 
     private TestingServer testZk;
 

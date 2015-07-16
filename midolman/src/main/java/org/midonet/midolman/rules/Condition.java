@@ -183,7 +183,7 @@ public class Condition extends BaseConfig {
 
     public Condition(IPSubnet<?> subnet) {
         nwSrcIp = subnet;
-        etherType = (int) subnet.ethertype();
+        etherType = Unsigned.unsign(subnet.ethertype());
     }
 
     public boolean containsInPort(UUID portId) {
@@ -229,8 +229,8 @@ public class Condition extends BaseConfig {
             return conjunctionInv;
         if (!matchPort(this.outPortIds, outPortId, this.outPortInv))
             return conjunctionInv;
-        if (!matchField(etherType, Unsigned.unsign(pktMatch.getEtherType()),
-                        invDlType))
+        if (!matchField(unsignShort(etherType),
+                        Unsigned.unsign(pktMatch.getEtherType()), invDlType))
             return conjunctionInv;
         if (!matchMAC(ethSrc, pktMatch.getEthSrc(), ethSrcMask, invDlSrc))
             return conjunctionInv;
@@ -372,7 +372,7 @@ public class Condition extends BaseConfig {
         formatField(sb, invPortGroup, "port-group", portGroup);
         formatField(sb, invIpAddrGroupIdSrc, "ip-src-group", ipAddrGroupIdSrc);
         formatField(sb, invIpAddrGroupIdDst, "ip-dst-group", ipAddrGroupIdDst);
-        formatField(sb, invDlType, "ethertype", etherType);
+        formatField(sb, invDlType, "ethertype", unsignShort(etherType));
         formatField(sb, invDlSrc, "mac-src", (ethSrcMask != NO_MASK) ?
                 ethSrc.toString() + "/" + MAC.maskToString(ethSrcMask) :
                 ethSrc);
@@ -418,7 +418,7 @@ public class Condition extends BaseConfig {
                 Objects.equals(ipAddrGroupIdDst, c.ipAddrGroupIdDst) &&
                 Objects.equals(ipAddrGroupIdSrc, c.ipAddrGroupIdSrc) &&
                 Objects.equals(traversedDevice, c.traversedDevice) &&
-                Objects.equals(etherType, c.etherType) &&
+                Objects.equals(unsignShort(etherType), unsignShort(c.etherType)) &&
                 Objects.equals(ethSrc, c.ethSrc) &&
                 Objects.equals(ethDst, c.ethDst) &&
                 Objects.equals(nwTos, c.nwTos) &&
@@ -438,7 +438,13 @@ public class Condition extends BaseConfig {
                 invDlType, invDlSrc, invDlDst, ethSrcMask, dlDstMask,
                 nwTosInv, nwProtoInv, nwSrcInv, nwDstInv, tpSrcInv, tpDstInv,
                 inPortIds, outPortIds, portGroup,
-                ipAddrGroupIdDst, ipAddrGroupIdSrc, etherType, ethSrc, ethDst,
-                nwTos, nwProto, nwSrcIp, nwDstIp, tpSrc, tpDst, traversedDevice);
+                ipAddrGroupIdDst, ipAddrGroupIdSrc, unsignShort(etherType),
+                ethSrc, ethDst, nwTos, nwProto, nwSrcIp, nwDstIp, tpSrc, tpDst,
+                traversedDevice);
+    }
+
+    public static Integer unsignShort(Integer value) {
+        if (null == value) return null;
+        return Unsigned.unsign(value.shortValue());
     }
 }

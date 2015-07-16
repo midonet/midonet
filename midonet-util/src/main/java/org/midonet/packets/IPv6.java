@@ -17,8 +17,6 @@
 package org.midonet.packets;
 
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,13 +38,11 @@ public class IPv6 extends BasePacket {
     public final static short ETHERTYPE = (short)0x86dd;
 
     public final static int MIN_HEADER_LEN = 40;
-    //public final static int MAX_HEADER_LEN =
-    //public final static int MAX_PACKET_LEN =
 
     public static Map<Byte, Class<? extends IPacket>> nextHeaderClassMap;
 
     static {
-        nextHeaderClassMap = new HashMap<Byte, Class<? extends IPacket>>();
+        nextHeaderClassMap = new HashMap<>();
 
         nextHeaderClassMap.put(GRE.PROTOCOL_NUMBER, GRE.class);
         nextHeaderClassMap.put(ICMPv6.PROTOCOL_NUMBER, ICMPv6.class);
@@ -266,7 +262,7 @@ public class IPv6 extends BasePacket {
         bb.put((byte) (((this.trafficClass & 0x0f) << 4) |
                         ((this.flowLabel & 0x000f0000) << 4)));
         bb.putShort((short) ((this.flowLabel & 0x0000ffff) << 16));
-        this.payloadLength = (short)payloadData.length;
+        this.payloadLength = payloadData != null ? (short)payloadData.length : 0;
         bb.putShort(this.payloadLength);
         bb.put(this.nextHeader);
         bb.put(this.hopLimit);
@@ -289,7 +285,7 @@ public class IPv6 extends BasePacket {
         }
 
         byte byteField = bb.get();
-        short shortField = 0;
+        short shortField;
         this.version = (byte)((byteField & 0xf0) >> 4);
         this.trafficClass |= ((byteField & 0x0f) << 4);
         byteField = bb.get();
