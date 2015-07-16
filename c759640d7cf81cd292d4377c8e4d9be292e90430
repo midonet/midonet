@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_6272b4e6",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/RouterTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-16T12:09:30Z",
+      "side": 1,
+      "message": "not necessary in this patch, but should the setTYpe method throw an IllegalStateException if a type is set and the action is not an expected one?",
+      "range": {
+        "startLine": 213,
+        "startChar": 18,
+        "endLine": 213,
+        "endChar": 27
+      },
+      "revId": "c759640d7cf81cd292d4377c8e4d9be292e90430",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
