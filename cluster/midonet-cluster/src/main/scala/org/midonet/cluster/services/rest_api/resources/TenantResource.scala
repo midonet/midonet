@@ -38,7 +38,7 @@ class TenantResource @Inject()(authService: AuthService,
     @GET
     @Path("{id}")
     @Produces(Array(APPLICATION_TENANT_JSON))
-    def get(@PathParam("id") id: UUID): Tenant = {
+    def get(@PathParam("id") id: String): Tenant = {
         wrapException {
             authService.getTenant(id.toString)
         }

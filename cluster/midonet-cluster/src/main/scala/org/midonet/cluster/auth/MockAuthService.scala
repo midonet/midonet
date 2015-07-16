@@ -21,6 +21,7 @@ import java.util
 import javax.servlet.http.HttpServletRequest
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ListBuffer
 
 /**
  * An implementation of the [[AuthService]] that always returns the admin tenant
@@ -35,6 +36,17 @@ class MockAuthService extends AuthService {
 
     val adminToken = "00000000"
 
+    private val tenants = new util.HashMap[String, Tenant]()
+
+    // Allow tests to manipulate it
+    def addTenant(id: String, name: String): Unit = tenants.put (
+        id,
+        new Tenant {
+            override def getName: String = id
+            override def getId: String = name
+        }
+    )
+
     override def getUserIdentityByToken(token: String): UserIdentity = {
         val uid = new UserIdentity
         uid.setTenantId(mockAdminTenant.getId)
@@ -45,7 +57,7 @@ class MockAuthService extends AuthService {
     }
 
     override def getTenants(request: HttpServletRequest): util.List[Tenant] = {
-        List(mockAdminTenant)
+        tenants.values().toList
     }
 
     override def getTenant(id: String): Tenant = new Tenant {
