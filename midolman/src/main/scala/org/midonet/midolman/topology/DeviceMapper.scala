@@ -146,14 +146,7 @@ abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
      * during the initialization of the mapper.
      */
     @throws[DeviceMapperException]
-    @inline protected def assertThread(): Unit = {
-        if (vt.vtThreadId != Thread.currentThread.getId) {
-            throw new DeviceMapperException(
-                tag.runtimeClass, id,
-                s"Call expected on thread ${vt.vtThreadId} but received on " +
-                s"${Thread.currentThread().getId}")
-        }
-    }
+    @inline protected def assertThread(): Unit = vt.assertThread()
 
     /**
      * Synchronize devices with the new list of deviceIds. Complete and remove

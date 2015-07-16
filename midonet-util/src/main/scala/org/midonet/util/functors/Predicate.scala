@@ -13,21 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.data.storage
+package org.midonet.util.functors
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
-@RunWith(classOf[JUnitRunner])
-class InMemoryStorageTest extends StorageTest {
-
-    before {
-        val inMemoryStorage = new InMemoryStorage
-
-        storage = inMemoryStorage
-        assert = () => Unit
-        initAndBuildStorage(storage)
-    }
-
-    protected override def createStorage = new InMemoryStorage
+trait Predicate {
+    def check(): Boolean
 }

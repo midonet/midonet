@@ -17,10 +17,8 @@ package org.midonet.cluster.data.storage
 
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.atomic.{AtomicInteger, AtomicReference}
-import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.concurrent.{ExecutorService, ConcurrentHashMap, ThreadFactory}
 
-import scala.async.Async.async
 import scala.collection.JavaConversions._
 import scala.collection.concurrent.TrieMap
 import scala.collection.mutable
@@ -43,7 +41,6 @@ import org.midonet.cluster.data.storage.KeyType.KeyType
 import org.midonet.cluster.data.storage.ZookeeperObjectMapper._
 import org.midonet.cluster.data.{Obj, ObjId}
 import org.midonet.cluster.util.ParentDeletedException
-import org.midonet.util.concurrent.Locks.{withReadLock, withWriteLock}
 import org.midonet.util.concurrent._
 import org.midonet.util.functors._
 
@@ -57,7 +54,6 @@ class InMemoryStorage extends Storage with StateStorage {
 
         private val instances = new TrieMap[String, InstanceNode[T]]()
         private val stream = PublishSubject.create[Observable[T]]()
-        private val obs = stream.observeOn(eventScheduler)
 
         private val streamUpdates = new mutable.LinkedHashSet[InstanceNode[T]]
         private val instanceUpdates = new mutable.LinkedHashSet[InstanceNode[T]]
@@ -65,7 +61,6 @@ class InMemoryStorage extends Storage with StateStorage {
         /* Write synchronized by the transaction, call on IO thread */
         @throws[ObjectExistsException]
         def create(id: ObjId, obj: Obj): Unit = {
-            assertIoThread()
             val node = new InstanceNode(clazz, id, obj.asInstanceOf[T])
             instances.putIfAbsent(getIdString(clazz, id), node) match {
                 case Some(n) => throw new ObjectExistsException(clazz, id)
@@ -76,7 +71,6 @@ class InMemoryStorage extends Storage with StateStorage {
         /* Read synchronized by the transaction, call on IO thread */
         @throws[ObjectExistsException]
         def validateCreate(id: ObjId): Unit = {
-            assertIoThread()
             if (instances.contains(id.toString))
                 throw new ObjectExistsException(clazz, id)
         }
@@ -86,7 +80,6 @@ class InMemoryStorage extends Storage with StateStorage {
         @throws[BadVersionException]
         def update(id: ObjId, obj: Obj, version: Int)
         : Unit = {
-            assertIoThread()
             instances.get(getIdString(clazz, id)) match {
                 case Some(node) =>
                     instanceUpdates += node
@@ -100,7 +93,6 @@ class InMemoryStorage extends Storage with StateStorage {
         @throws[BadVersionException]
         def validateUpdate(id: ObjId, version: Int)
         : Unit = {
-            assertIoThread()
             instances.get(getIdString(clazz, id)) match {
                 case Some(node) => node.validateUpdate(version)
                 case None => throw new NotFoundException(clazz, id)
@@ -111,7 +103,6 @@ class InMemoryStorage extends Storage with StateStorage {
         @throws[NotFoundException]
         @throws[BadVersionException]
         def delete(id: ObjId, version: Int): T = {
-            assertIoThread()
             instances.remove(getIdString(clazz, id)) match {
                 case Some(node) =>
                     instanceUpdates += node
@@ -125,7 +116,6 @@ class InMemoryStorage extends Storage with StateStorage {
         @throws[BadVersionException]
         def validateDelete(id: ObjId, version: Int)
         : Unit = {
-            assertIoThread()
             instances.get(getIdString(clazz, id)) match {
                 case Some(node) => node.validateDelete(version)
                 case None => throw new NotFoundException(clazz, id)
@@ -140,21 +130,26 @@ class InMemoryStorage extends Storage with StateStorage {
         def get(id: ObjId): Future[T] = {
             instances.get(getIdString(clazz, id)) match {
                 case Some(node) => node.get
-                case None => async[T] {
-                    assertIoThread()
-                    throw new NotFoundException(clazz, id)
-                }
+                case None => Future.failed(new NotFoundException(clazz, id))
             }
         }
 
         /* Lock free read, synchronous completion */
         def getAll(ids: Seq[_ <: ObjId]): Future[Seq[T]] =
-            Future.sequence(ids.map(get))
+            try {
+                Future.successful(ids.map(get(_).await(5 seconds)))
+            } catch {
+                case e: Exception => Future.failed(e)
+            }
 
         /* Lock free read, completion on the implicit exec. ctx.: IO thread */
-        def getAll: Future[Seq[T]] = {
-            Future.sequence(instances.values.map(_.get).to[Seq])
-        }
+        def getAll: Future[Seq[T]] =
+            try {
+                Future.successful(
+                    instances.values.map(_.get.await(5 seconds)).to[Seq])
+            } catch {
+                case e: Exception => Future.failed(e)
+            }
 
         /* Uses read lock, synchronous completion */
         def getSnapshot(id: ObjId): ObjSnapshot = {
@@ -164,28 +159,24 @@ class InMemoryStorage extends Storage with StateStorage {
         }
 
         /* Lock free read, completion on the IO thread */
-        def exists(id: ObjId): Future[Boolean] = async {
-            assertIoThread()
-            instances.containsKey(getIdString(clazz, id))
-        }
+        def exists(id: ObjId): Future[Boolean] = Future.successful(
+            instances.containsKey(getIdString(clazz, id)))
 
         /* Lock free read, synchronous completion */
         def observable(id: ObjId): Observable[T] = {
             instances.get(getIdString(clazz, id)) match {
                 case Some(node) => node.observable
                 case None => Observable.error(new NotFoundException(clazz, id))
-                                       .observeOn(eventScheduler)
             }
         }
 
         /* Read lock while emitting current objects, synchronous completion */
         def observable: Observable[Observable[T]] = Observable.create(
             new OnSubscribe[Observable[T]] {
-                override def call(sub: Subscriber[_ >: Observable[T]]): Unit =
-                    async(readLock {
-                        instances.values.foreach { i => sub.onNext(i.observable) }
-                        sub.add(obs.unsafeSubscribe(sub))
-                    })(eventExecutionContext)
+                override def call(sub: Subscriber[_ >: Observable[T]]): Unit = {
+                    instances.values.foreach { i => sub.onNext(i.observable) }
+                    sub.add(stream.unsafeSubscribe(sub))
+                }
             }
         )
 
@@ -208,7 +199,6 @@ class InMemoryStorage extends Storage with StateStorage {
             instances.get(idStr) match {
                 case Some(instance) => instance.addValue(key, value, keyType)
                 case None => asObservable {
-                    assertIoThread()
                     throw new UnmodifiableStateException(
                         clazz.getSimpleName, idStr, key, value,
                         Code.NONODE.intValue)
@@ -223,7 +213,7 @@ class InMemoryStorage extends Storage with StateStorage {
             instances.get(idStr) match {
                 case Some(instance) => instance.removeValue(key, value, keyType)
                 case None => asObservable {
-                    assertIoThread(); StateResult(NoOwnerId)
+                    StateResult(NoOwnerId)
                 }
             }
         }
@@ -247,10 +237,9 @@ class InMemoryStorage extends Storage with StateStorage {
             instances.get(idStr) match {
                 case Some(instance) => instance.keyObservable(key, keyType)
                 case None if keyType.isSingle =>
-                    Observable.empty().observeOn(eventScheduler)
+                    Observable.empty()
                 case None =>
                     Observable.error(new ParentDeletedException(s"$clazz/$id"))
-                        .observeOn(eventScheduler)
             }
         }
 
@@ -264,7 +253,6 @@ class InMemoryStorage extends Storage with StateStorage {
 
         private val instanceSubject = new PrimedSubject(ref.get)
         private val instanceObs = Observable.create(instanceSubject)
-                                            .observeOn(eventScheduler)
 
         private var instanceUpdate: Notification[T] = null
 
@@ -276,7 +264,6 @@ class InMemoryStorage extends Storage with StateStorage {
         /* Write synchronized by transaction */
         @throws[BadVersionException]
         def update(value: T, version: Int): Unit = {
-            assertIoThread()
             if (!ver.compareAndSet(version, version + 1))
                 throw new BadVersionException
             val newValue = copyObj(value)
@@ -287,14 +274,12 @@ class InMemoryStorage extends Storage with StateStorage {
         /* Read synchronized by transaction */
         @throws[BadVersionException]
         def validateUpdate(version: Int): Unit = {
-            assertIoThread()
             if (ver.get != version) throw new BadVersionException
         }
 
         /* Write synchronized by transaction */
         @throws[BadVersionException]
         def delete(version: Int): T = {
-            assertIoThread()
             if (!ver.compareAndSet(version, version + 1))
                 throw new BadVersionException
 
@@ -309,19 +294,16 @@ class InMemoryStorage extends Storage with StateStorage {
         /* Read synchronized by transaction */
         @throws[BadVersionException]
         def validateDelete(version: Int): Unit = {
-            assertIoThread()
             if (ver.get != version) throw new BadVersionException
         }
 
         def observable = instanceObs
 
         /* Lock free read, completion on the IO thread */
-        def get: Future[T] = async { assertIoThread(); value }
+        def get: Future[T] = Future.successful(value)
 
         /* Requires read lock, synchronous completion */
-        def getSnapshot = readLock {
-            ObjSnapshot(value.asInstanceOf[Obj], version)
-        }
+        def getSnapshot = ObjSnapshot(value.asInstanceOf[Obj], version)
 
         /* Emits the updates generated during the last transaction */
         def emitUpdates(): Unit = {
@@ -411,7 +393,7 @@ class InMemoryStorage extends Storage with StateStorage {
                         case None =>
                             SingleValueKey(key, None, NoOwnerId)
                     }
-                })).observeOn(eventScheduler)
+                }))
             } else {
                 Observable.create(subject).map[StateKey](makeFunc1(map => {
                     MultiValueKey(key, map.keySet)
@@ -442,10 +424,7 @@ class InMemoryStorage extends Storage with StateStorage {
         }
 
         /* Write lock, execution on the IO thread */
-        override def commit(): Unit = async[Unit](writeLock {
-            // This write lock is used to synchronize atomic writes with
-            // concurrent reads of object snapshots, which cannot be lock-free.
-
+        override def commit(): Unit = {
             // Validate the transaction ops.
             for ((key, op) <- ops) {
                 val clazz = classes(key.clazz)
@@ -478,7 +457,7 @@ class InMemoryStorage extends Storage with StateStorage {
             for ((key, op) <- ops) {
                 classes(key.clazz).emitUpdates()
             }
-        }).await(InMemoryStorage.IOTimeout)
+        }
 
         /** Query the backend store to determine if a node exists at the
           * specified path. */
@@ -491,30 +470,7 @@ class InMemoryStorage extends Storage with StateStorage {
             throw new NotImplementedError()
     }
 
-    @volatile private var ioThreadId: Long = -1L
-    @volatile private var eventThreadId: Long = -1L
-    private val ioExecutor = newSingleThreadExecutor(
-        new ThreadFactory {
-            override def newThread(r: Runnable): Thread = {
-                val thread = new Thread(r, "storage-io")
-                ioThreadId = thread.getId
-                thread
-            }
-        })
-    private val eventExecutor = newSingleThreadExecutor(
-        new ThreadFactory {
-            override def newThread(r: Runnable): Thread = {
-                val thread = new Thread(r, "storage-event")
-                eventThreadId = thread.getId
-                thread
-            }
-        })
-    private implicit val ioExecutionContext = fromExecutorService(ioExecutor)
-    private val eventExecutionContext = fromExecutorService(eventExecutor)
-    private val eventScheduler = Schedulers.from(eventExecutor)
-
     private val classes = new ConcurrentHashMap[Class[_], ClassNode[_]]
-    private val lock = new ReentrantReadWriteLock()
 
     override def get[T](clazz: Class[T], id: ObjId): Future[T] = {
         assertBuilt()
@@ -640,19 +596,6 @@ class InMemoryStorage extends Storage with StateStorage {
     }
 
     override def ownerId = DefaultOwnerId
-
-    @inline
-    private[storage] def assertIoThread(): Unit = {
-        assert(ioThreadId == Thread.currentThread.getId)
-    }
-
-    @inline
-    private[storage] def assertEventThread(): Unit = {
-        assert(eventThreadId == Thread.currentThread.getId)
-    }
-
-    private def readLock[T](fn: => T) = withReadLock[T](lock)(fn)
-    private def writeLock[T](fn: => T) = withWriteLock[T](lock)(fn)
 }
 
 object InMemoryStorage {
@@ -663,17 +606,15 @@ object InMemoryStorage {
     private def copyObj[T](obj: T): T =
         deserialize(serialize(obj.asInstanceOf[Obj]), obj.getClass)
 
-    private def asObservable[T](f: => T)(implicit ec: ExecutorService)
+    private def asObservable[T](f: => T)
     : Observable[T] = {
         Observable.create(new OnSubscribe[T] {
             override def call(child: Subscriber[_ >: T]): Unit = {
-                ec.submit(makeRunnable {
-                    try {
-                        Observable.just(f).subscribe(child)
-                    } catch {
-                        case NonFatal(e) => child.onError(e)
-                    }
-                })
+                try {
+                    Observable.just(f).subscribe(child)
+                } catch {
+                    case NonFatal(e) => child.onError(e)
+                }
             }
         })
     }

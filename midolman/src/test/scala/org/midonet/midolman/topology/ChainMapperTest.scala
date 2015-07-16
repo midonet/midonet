@@ -558,17 +558,6 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                 .getCondition.ipAddrGroupIdDst shouldBe null
             updatedSimChain.getRules.get(0)
                 .getCondition.ipAddrGroupDst shouldBe null
-
-            And("When we update the rule's IPAddrGroupIdSrc with the previous id")
-            store.update(updatedRule)
-            And("We update the rule")
-            store.update(updatedRule.toBuilder
-                                    .setAction(ProtoRule.Action.CONTINUE)
-                                    .build())
-
-            Then("We receive a single notification")
-            obs.awaitOnNext(6, timeout) shouldBe true
-            obs.getOnNextEvents should have size 6
         }
 
         scenario("Re-add a rule with IP address groups to a chain") {
