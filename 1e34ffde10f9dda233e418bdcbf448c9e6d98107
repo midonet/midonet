@@ -140,6 +140,75 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_22cc2c35",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T11:55:22Z",
+      "side": 1,
+      "message": "Maybe we shouldn\u0027t use an observable if the observable is closed. The reason is that the future from a get will unsubscribe immediately, closing the observable. Hence, any subsequent get will go through the same loop of getting the old observable from the map, hitting the closed error, creating a new observable, closing it...",
+      "range": {
+        "startLine": 509,
+        "startChar": 8,
+        "endLine": 523,
+        "endChar": 29
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0262c83d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T11:55:22Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this at least be a volatile, since it is read from a different thread? Maybe you can even make it a val and initialize it here (the overhead would not be much compared with the zk I/O)",
+      "range": {
+        "startLine": 553,
+        "startChar": 8,
+        "endLine": 553,
+        "endChar": 22
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a2503c5f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T11:55:22Z",
+      "side": 1,
+      "message": "I think this was a bug in the previous code too: we should use:\n\n  nodeObservables.remove(key, observable)\n\nto make sure that we only remove the current instance. Otherwise, this may remove even a good observable from the map.",
+      "range": {
+        "startLine": 656,
+        "startChar": 16,
+        "endLine": 656,
+        "endChar": 43
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8297b88f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 6
@@ -202,6 +271,144 @@
         "startChar": 10,
         "endLine": 690,
         "endChar": 13
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c2e620b4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T11:55:22Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 162,
+        "startChar": 4,
+        "endLine": 163,
+        "endChar": 60
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_22f34c74",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T11:55:22Z",
+      "side": 1,
+      "message": "Could this be isStarted: to reflect the observable state, rather than that of a watcher (which is a concept private to the observable)?",
+      "range": {
+        "startLine": 269,
+        "startChar": 8,
+        "endLine": 269,
+        "endChar": 16
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_42ea1076",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T11:55:22Z",
+      "side": 1,
+      "message": "Hmmm.. maybe we should cache the object observables too?",
+      "range": {
+        "startLine": 75,
+        "startChar": 12,
+        "endLine": 76,
+        "endChar": 83
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_62ed548b",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T11:55:22Z",
+      "side": 1,
+      "message": "Should this be a different test?",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 24
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_828a58bd",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T11:55:22Z",
+      "side": 1,
+      "message": "subscribes",
+      "range": {
+        "startLine": 209,
+        "startChar": 35,
+        "endLine": 209,
+        "endChar": 46
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_02be4865",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T11:55:22Z",
+      "side": 1,
+      "message": "You should add more subscribers to the observables in this test.",
+      "range": {
+        "startLine": 374,
+        "startChar": 8,
+        "endLine": 374,
+        "endChar": 47
       },
       "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
