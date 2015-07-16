@@ -1,0 +1,211 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_67172652",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CuratorUtil.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T10:11:23Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this be a member of ZoomMetrics?",
+      "range": {
+        "startLine": 28,
+        "startChar": 16,
+        "endLine": 28,
+        "endChar": 26
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_870d0a41",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CuratorUtil.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T10:11:23Z",
+      "side": 1,
+      "message": "To discuss: does it make sense to create a metric for each type of ZK op?",
+      "range": {
+        "startLine": 32,
+        "startChar": 13,
+        "endLine": 32,
+        "endChar": 39
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a7084e2e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T10:11:23Z",
+      "side": 1,
+      "message": "node",
+      "range": {
+        "startLine": 152,
+        "startChar": 25,
+        "endLine": 152,
+        "endChar": 31
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0201e804",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T10:11:23Z",
+      "side": 1,
+      "message": "Should this be a Map[Class[_], Int]?",
+      "range": {
+        "startLine": 159,
+        "startChar": 56,
+        "endLine": 159,
+        "endChar": 62
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8242583c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T10:11:23Z",
+      "side": 1,
+      "message": "I think a for would be easier to understand here:\n\n  val map \u003d new mutable.HashMap[String, Int]\n  for ((key, obs) \u003c- nodeObservables if obs.isActive) {\n    map(key.clazz) \u003d map.getOrElse(key.clazz, 0) + 1\n  }",
+      "range": {
+        "startLine": 162,
+        "startChar": 11,
+        "endLine": 162,
+        "endChar": 68
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_22798c93",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T10:11:23Z",
+      "side": 1,
+      "message": "For this and the methods above/below: of they return strings for metric/logging purposes, I think the method name should reflect this better. classObservables here returning a String doesn\u0027t convey the method purpose.",
+      "range": {
+        "startLine": 173,
+        "startChar": 43,
+        "endLine": 173,
+        "endChar": 49
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8297b88f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T10:11:23Z",
+      "side": 1,
+      "message": "The name incObjectWatcherTriggeredObs is too mysterious: I\u0027m not sure what is trying to accomplish. Some ScalaDoc for the method could be useful. But also consider that doOnEach is called for every subscriber this observable has. Fox example:\n\n        scenario(\"Test\") {\n            val subject \u003d PublishSubject.create[Int]\n            val obs \u003d subject.doOnEach(makeAction1((value: Notification[_ \u003e: Int]) \u003d\u003e println(s\"On each $value\")))\n            obs.subscribe(makeAction1((value: Int) \u003d\u003e println(s\"Sub1: $value\")))\n            obs.subscribe(makeAction1((value: Int) \u003d\u003e println(s\"Sub2: $value\")))\n            subject onNext 1\n            subject onNext 2\n        }\n\nResults in:\n\nOn each [rx.Notification@d6747848 OnNext 1]\nSub1: 1\nOn each [rx.Notification@d6747848 OnNext 1]\nSub2: 1\nOn each [rx.Notification@d6747849 OnNext 2]\nSub1: 2\nOn each [rx.Notification@d6747849 OnNext 2]\nSub2: 2",
+      "range": {
+        "startLine": 663,
+        "startChar": 30,
+        "endLine": 663,
+        "endChar": 58
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_22a0acf3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T10:11:23Z",
+      "side": 1,
+      "message": "I\u0027m not 100% sure, but maybe you should put this before the onErrorResumeNext. Otherwise maybe when an error happens and recover on a observable(clazz, id) which already has a doOnEach. you apply here another doOnEach to it.",
+      "range": {
+        "startLine": 663,
+        "startChar": 8,
+        "endLine": 663,
+        "endChar": 64
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c26d409a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 690,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-16T10:11:23Z",
+      "side": 1,
+      "message": "The same comments as before for doOnEach and map.",
+      "range": {
+        "startLine": 687,
+        "startChar": 10,
+        "endLine": 690,
+        "endChar": 13
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
