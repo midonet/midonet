@@ -3,7 +3,7 @@ zookeeper1:
     file: $BASE/zookeeper.yml
     service: zookeeper
   hostname: zookeeper1
-  image: sandbox/zookeeper:3.4.5
+  image: sandbox/zookeeper:3.4.8-rc0
   labels:
       interface: mdts.services.zookeeper.ZookeeperHost
       type: zookeeper
@@ -16,7 +16,7 @@ zookeeper2:
   extends:
     file: $BASE/zookeeper.yml
     service: zookeeper
-  image: sandbox/zookeeper:3.4.5
+  image: sandbox/zookeeper:3.4.8-rc0
   hostname: zookeeper2
   labels:
       interface: mdts.services.zookeeper.ZookeeperHost
@@ -30,7 +30,7 @@ zookeeper3:
   extends:
     file: $BASE/zookeeper.yml
     service: zookeeper
-  image: sandbox/zookeeper:3.4.5
+  image: sandbox/zookeeper:3.4.8-rc0
   hostname: zookeeper3
   labels:
       interface: mdts.services.zookeeper.ZookeeperHost
