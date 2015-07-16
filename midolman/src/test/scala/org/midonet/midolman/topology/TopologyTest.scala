@@ -26,20 +26,7 @@ import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
 object TopologyTest {
 
     class DeviceObserver[D <: Device](vt: VirtualTopology)
-        extends TestObserver[D] with AwaitableObserver[D]
-                with AssertableObserver[D] {
-
-        val threadId = Thread.currentThread().getId
-
-        override def assert() = {
-            val currentThreadId = Thread.currentThread().getId
-            if ((currentThreadId != threadId) &&
-                (currentThreadId != vt.vtThreadId)) {
-                throw new TestFailedException(
-                    s"Call on thread $currentThreadId but expected on test " +
-                    s"thread $threadId or VT thread ${vt.vtThreadId}", 0)
-            }
-        }
+        extends TestObserver[D] with AwaitableObserver[D] {
     }
 
 }

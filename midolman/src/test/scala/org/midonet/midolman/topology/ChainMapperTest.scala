@@ -567,8 +567,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                                     .build())
 
             Then("We receive a single notification")
-            obs.awaitOnNext(6, timeout) shouldBe true
-            obs.getOnNextEvents should have size 6
+            obs.awaitOnNext(7, timeout) shouldBe true
+            obs.getOnNextEvents should have size 7
         }
 
         scenario("Re-add a rule with IP address groups to a chain") {

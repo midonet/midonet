@@ -52,10 +52,6 @@ class PoolHealthMonitorMapperTest extends MidolmanSpec
         store = injector.getInstance(classOf[MidonetBackend]).store
     }
 
-    private def assertThread(): Unit = {
-        assert(vt.vtThreadId == Thread.currentThread.getId)
-    }
-
     feature("The mapper emits pool health monitor maps") {
         scenario("The mapper emits an empty map") {
             Given("A pool health monitor mapper")

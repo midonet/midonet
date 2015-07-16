@@ -41,10 +41,6 @@ class BgpMapperTest extends MidolmanSpec with TopologyBuilder
     private def createObserver() = {
         new TestObserver[BgpUpdate]
         with AwaitableObserver[BgpUpdate]
-        with AssertableObserver[BgpUpdate] {
-            override def assert() =
-                BgpMapperTest.this.assert(vt.vtThreadId == Thread.currentThread.getId)
-        }
     }
 
     private def createPort(): Port = {

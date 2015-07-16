@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Midokura SARL
+ * Copyright 2014 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.data.storage
+package org.midonet.util.functors
 
-import org.junit.runner.RunWith
-import org.scalatest.junit.JUnitRunner
-
-@RunWith(classOf[JUnitRunner])
-class InMemoryStorageTest extends StorageTest {
-
-    before {
-        val inMemoryStorage = new InMemoryStorage
-
-        storage = inMemoryStorage
-        assert = () => Unit
-        initAndBuildStorage(storage)
-    }
-
-    protected override def createStorage = new InMemoryStorage
+trait Predicate {
+    def check(): Boolean
 }

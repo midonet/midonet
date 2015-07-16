@@ -17,11 +17,18 @@
 package org.midonet.midolman.util.guice
 
 import java.util.LinkedList
+import java.util.concurrent.ExecutorService
+
+import com.google.common.util.concurrent.MoreExecutors
+import com.google.inject.name.Names
 
 import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel, ShardedSimulationBackChannel}
 import org.midonet.midolman.cluster.MidolmanModule
 import org.midonet.midolman.state.{MockNatBlockAllocator, NatBlockAllocator}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.util.collection.IPv4InvalidationArray
+import org.midonet.util.concurrent.SameThreadButAfterExecutorService
+import org.midonet.util.functors.{makePredicate, Predicate}
 
 class MockMidolmanModule extends MidolmanModule {
     protected override def bindSimulationBackChannel(): Unit = {
@@ -48,4 +55,22 @@ class MockMidolmanModule extends MidolmanModule {
         bind(classOf[NatBlockAllocator]).toInstance(new MockNatBlockAllocator)
         expose(classOf[NatBlockAllocator])
     }
+
+    protected override def bindVirtualTopology() {
+        bind(classOf[ExecutorService])
+            .annotatedWith(Names.named(VirtualTopology.VtExecutorName))
+            .toInstance(new SameThreadButAfterExecutorService())
+        bind(classOf[Predicate])
+            .annotatedWith(Names.named(VirtualTopology.VtExecutorCheckerName))
+            .toInstance(makePredicate({ true }))
+        bind(classOf[ExecutorService])
+            .annotatedWith(Names.named(VirtualTopology.IoExecutorName))
+            .toInstance(new SameThreadButAfterExecutorService())
+
+        bind(classOf[VirtualTopology])
+            .asEagerSingleton()
+        expose(classOf[VirtualTopology])
+    }
+
 }
+
