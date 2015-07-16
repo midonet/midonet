@@ -36,8 +36,9 @@ object VirtualConfigurationBuilders {
 trait VirtualConfigurationBuilders {
 
     def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID
-    def newHost(name: String, id: UUID): UUID
-    def newHost(name: String): UUID
+    final def newHost(name: String, id: UUID): UUID = newHost(name, id, Set.empty)
+    final def newHost(name: String): UUID = newHost(name, UUID.randomUUID)
+
     def isHostAlive(id: UUID): Boolean
     def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit
 
@@ -48,8 +49,12 @@ trait VirtualConfigurationBuilders {
     def newChain(name: String, id: Option[UUID] = None): UUID
     def newOutboundChainOnPort(name: String, port: UUID, id: UUID): UUID
     def newInboundChainOnPort(name: String, port: UUID, id: UUID): UUID
-    def newOutboundChainOnPort(name: String, port: UUID): UUID
-    def newInboundChainOnPort(name: String, port: UUID): UUID
+
+    final def newOutboundChainOnPort(name: String, port: UUID): UUID =
+        newOutboundChainOnPort(name, port, UUID.randomUUID)
+    final def newInboundChainOnPort(name: String, port: UUID): UUID =
+        newInboundChainOnPort(name, port, UUID.randomUUID)
+
     def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                               action: Action): UUID
     def newTraceRuleOnChain(chain: UUID, pos: Int, condition: Condition,
@@ -104,7 +109,10 @@ trait VirtualConfigurationBuilders {
 
     def newRouterPort(router: UUID, mac: MAC, portAddr: String,
                       nwAddr: String, nwLen: Int): UUID
-    def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): UUID
+    final def newRouterPort(routerId: UUID, mac: MAC, portAddr: IPv4Subnet): UUID = {
+        newRouterPort(routerId, mac, portAddr.toUnicastString,
+            portAddr.toNetworkAddress.toString, portAddr.getPrefixLen)
+    }
 
     def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
                      vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID
@@ -144,8 +152,10 @@ trait VirtualConfigurationBuilders {
     def deleteLoadBalancer(id: UUID): Unit
     def setLoadBalancerOnRouter(loadBalancer: UUID, router: UUID): Unit
     def setLoadBalancerDown(loadBalancer: UUID): Unit
-    def newVip(pool: UUID): UUID
+
+    final def newVip(pool: UUID): UUID = newVip(pool, "10.10.10.10", 10)
     def newVip(pool: UUID, address: String, port: Int): UUID
+
     def deleteVip(vip: UUID): Unit
     def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean
 
@@ -173,7 +183,8 @@ trait VirtualConfigurationBuilders {
     def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit
     def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit
     def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit
-    def newPoolMember(pool: UUID): UUID
+
+    final def newPoolMember(pool: UUID): UUID = newPoolMember(pool, "10.10.10.10", 10)
     def newPoolMember(pool: UUID, address: String, port: Int,
                          weight: Int = 1): UUID
     def updatePoolMember(poolMember: UUID,
@@ -182,10 +193,14 @@ trait VirtualConfigurationBuilders {
                          weight: Option[Integer] = None,
                          status: Option[LBStatus] = None): Unit
     def deletePoolMember(poolMember: UUID): Unit
-    def setPoolMemberAdminStateUp(poolMember: UUID,
-                                  adminStateUp: Boolean): Unit
-    def setPoolMemberHealth(poolMember: UUID,
-                            status: LBStatus): Unit
+
+    final def setPoolMemberAdminStateUp(poolMember: UUID,
+                                        adminStateUp: Boolean) =
+        updatePoolMember(poolMember, adminStateUp = Some(adminStateUp))
+
+    final def setPoolMemberHealth(poolMember: UUID,
+                                     status: LBStatus) =
+        updatePoolMember(poolMember, status = Some(status))
 
     import VirtualConfigurationBuilders.TraceDeviceType
     def newTraceRequest(device: UUID,
@@ -206,10 +221,6 @@ trait ForwardingVirtualConfigurationBuilders
 
     override def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID =
         virtConfBuilderImpl.newHost(name, id, tunnelZones)
-    override def newHost(name: String, id: UUID): UUID =
-        virtConfBuilderImpl.newHost(name, id)
-    override def newHost(name: String): UUID =
-        virtConfBuilderImpl.newHost(name)
     override def isHostAlive(id: UUID): Boolean =
         virtConfBuilderImpl.isHostAlive(id)
     override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit =
@@ -229,10 +240,6 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.newOutboundChainOnPort(name, port, id)
     override def newInboundChainOnPort(name: String, port: UUID, id: UUID): UUID =
         virtConfBuilderImpl.newInboundChainOnPort(name, port, id)
-    override def newOutboundChainOnPort(name: String, port: UUID): UUID =
-        virtConfBuilderImpl.newOutboundChainOnPort(name, port)
-    override def newInboundChainOnPort(name: String, port: UUID): UUID =
-        virtConfBuilderImpl.newInboundChainOnPort(name, port)
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                        action: Action): UUID =
         virtConfBuilderImpl.newLiteralRuleOnChain(chain, pos, condition, action)
@@ -317,8 +324,6 @@ trait ForwardingVirtualConfigurationBuilders
     override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
                                nwAddr: String, nwLen: Int): UUID =
         virtConfBuilderImpl.newRouterPort(router, mac, portAddr, nwAddr, nwLen)
-    override def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): UUID =
-        virtConfBuilderImpl.newRouterPort(router, mac, portAddr)
 
     def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
                      vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID =
@@ -379,8 +384,6 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.setLoadBalancerOnRouter(loadBalancer, router)
     override def setLoadBalancerDown(loadBalancer: UUID): Unit =
         virtConfBuilderImpl.setLoadBalancerDown(loadBalancer)
-    override def newVip(pool: UUID): UUID =
-        virtConfBuilderImpl.newVip(pool)
     override def newVip(pool: UUID, address: String, port: Int): UUID =
         virtConfBuilderImpl.newVip(pool, address, port)
     override def deleteVip(vip: UUID): Unit =
@@ -428,8 +431,6 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.setPoolLbMethod(pool, lbMethod)
     override def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit =
         virtConfBuilderImpl.setPoolMapStatus(pool, status)
-    override def newPoolMember(pool: UUID): UUID =
-        virtConfBuilderImpl.newPoolMember(pool)
     override def newPoolMember(pool: UUID, address: String, port: Int,
                                weight: Int = 1): UUID =
         virtConfBuilderImpl.newPoolMember(pool, address, port, weight)
@@ -442,12 +443,6 @@ trait ForwardingVirtualConfigurationBuilders
                                weight, status)
     override def deletePoolMember(poolMember: UUID): Unit =
         virtConfBuilderImpl.deletePoolMember(poolMember)
-    override def setPoolMemberAdminStateUp(poolMember: UUID,
-                                           adminStateUp: Boolean): Unit =
-        virtConfBuilderImpl.setPoolMemberAdminStateUp(poolMember, adminStateUp)
-    override def setPoolMemberHealth(poolMember: UUID,
-                                     status: LBStatus): Unit =
-        virtConfBuilderImpl.setPoolMemberHealth(poolMember, status)
 
     import VirtualConfigurationBuilders.TraceDeviceType
     override def newTraceRequest(device: UUID,
