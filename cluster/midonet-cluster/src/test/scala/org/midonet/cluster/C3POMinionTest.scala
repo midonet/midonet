@@ -183,7 +183,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         }
     }
 
-    protected def executeSqlStmts(sqls: String*): Unit = withStatement { stmt =>
+    private def executeSqlStmts(sqls: String*): Unit = withStatement { stmt =>
         for (sql <- sqls) eventually(stmt.executeUpdate(sql))
     }
 
@@ -216,29 +216,30 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         }
     }
 
-    protected def insertTaskSql(id: Int, taskType: TaskType,
-                                dataType: NeutronResourceType[_],
-                                json: String, resourceId: UUID,
-                                txnId: String): String = {
+    private def insertTaskSql(id: Int, taskType: TaskType,
+                              dataType: NeutronResourceType[_],
+                              json: JsonNode, resourceId: UUID,
+                              txnId: String): String = {
         val taskTypeStr = if (taskType != null) s"'${taskType.id}'" else "NULL"
         val dataTypeStr = if (dataType != null) s"'${dataType.id}'" else "NULL"
         val rsrcIdStr = if (resourceId != null) s"'$resourceId'" else "NULL"
+        val jsonStr = if (json != null) json.toString else ""
 
         "INSERT INTO midonet_tasks values(" +
-        s"$id, $taskTypeStr, $dataTypeStr, '$json', $rsrcIdStr, '$txnId', " +
+        s"$id, $taskTypeStr, $dataTypeStr, '$jsonStr', $rsrcIdStr, '$txnId', " +
         "datetime('now'))"
     }
 
     protected def insertCreateTask(taskId: Int,
                                    rsrcType: NeutronResourceType[_],
-                                   json: String, rsrcId: UUID): Unit = {
+                                   json: JsonNode, rsrcId: UUID): Unit = {
         executeSqlStmts(insertTaskSql(
             taskId, Create, rsrcType, json, rsrcId, "txn-" + taskId))
     }
 
     protected def insertUpdateTask(taskId: Int,
                                    rsrcType: NeutronResourceType[_],
-                                   json: String, rsrcId: UUID): Unit = {
+                                   json: JsonNode, rsrcId: UUID): Unit = {
         executeSqlStmts(insertTaskSql(
             taskId, Update, rsrcType, json, rsrcId, "txn-" + taskId))
     }
@@ -247,7 +248,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                    rsrcType: NeutronResourceType[_],
                                    rsrcId: UUID): Unit = {
         executeSqlStmts(insertTaskSql(
-            taskId, Delete, rsrcType, "", rsrcId, "txn-" + taskId))
+            taskId, Delete, rsrcType, null, rsrcId, "txn-" + taskId))
     }
 
     protected var curator: CuratorFramework = _
@@ -616,14 +617,13 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def createTenantNetwork(taskId: Int, nwId: UUID,
                                       external: Boolean = false): Unit = {
         val json = networkJson(nwId, name = "tenant-network-" + nwId,
-                               tenantId = "tenant",
-                               external = external).toString
+                               tenantId = "tenant", external = external)
         insertCreateTask(taskId, NetworkType, json, nwId)
     }
 
     protected def createUplinkNetwork(taskId: Int, nwId: UUID): Unit = {
         val json = networkJson(nwId, name = "uplink-network-" + nwId,
-                               uplink = true).toString
+                               uplink = true)
         insertCreateTask(taskId, NetworkType, json, nwId)
     }
 
@@ -632,14 +632,14 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                enableSnat: Boolean = false): Unit = {
         val json = routerJson(routerId, name = "router-" + routerId,
                               gwPortId = gwPortId, enableSnat = enableSnat)
-        insertCreateTask(taskId, RouterType, json.toString, routerId)
+        insertCreateTask(taskId, RouterType, json, routerId)
     }
 
     protected def createSubnet(taskId: Int, subnetId: UUID,
                                networkId: UUID, cidr: String,
                                gatewayIp: String = null): Unit = {
         val json = subnetJson(subnetId, networkId, cidr = cidr,
-                              gatewayIp = gatewayIp).toString
+                              gatewayIp = gatewayIp)
         insertCreateTask(taskId, SubnetType, json, subnetId)
     }
 
@@ -647,7 +647,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                  subnetId: UUID, ipAddr: String): Unit = {
         val json = portJson(portId, networkId, deviceOwner = DeviceOwner.DHCP,
                             fixedIps = List(IPAlloc(ipAddr, subnetId.toString)))
-        insertCreateTask(taskId, PortType, json.toString, portId)
+        insertCreateTask(taskId, PortType, json, portId)
     }
 
     protected def createRouterGatewayPort(taskId: Int, portId: UUID,
@@ -658,7 +658,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         val json = portJson(portId, networkId, fixedIps = List(gwIpAlloc),
                             deviceId = routerId, macAddr = macAddr,
                             deviceOwner = DeviceOwner.ROUTER_GATEWAY)
-        insertCreateTask(taskId, PortType, json.toString, portId)
+        insertCreateTask(taskId, PortType, json, portId)
     }
 
     protected def createRouterInterfacePort(taskId: Int, portId: UUID,
@@ -670,12 +670,12 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                             deviceOwner = DeviceOwner.ROUTER_INTERFACE, macAddr = macAddr,
                             fixedIps = List(IPAlloc(ipAddr, subnetId.toString)),
                             hostId = hostId, ifName = ifName)
-        insertCreateTask(taskId, PortType, json.toString, portId)
+        insertCreateTask(taskId, PortType, json, portId)
     }
 
     protected def createRouterInterface(taskId: Int, routerId: UUID,
                                         portId: UUID, subnetId: UUID): Unit = {
-        val json = routerInterfaceJson(routerId, portId, subnetId).toString
+        val json = routerInterfaceJson(routerId, portId, subnetId)
         insertCreateTask(taskId, RouterInterfaceType, json, routerId)
     }
 
@@ -688,9 +688,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Creates Network 1.
         val network1Uuid = UUID.randomUUID()
         val network1Json = networkJson(network1Uuid, "tenant1", "private-net")
-        executeSqlStmts(insertTaskSql(
-                id = 2, Create, NetworkType, network1Json.toString,
-                network1Uuid, "tx1"))
+        insertCreateTask(2, NetworkType, network1Json, network1Uuid)
 
         val vifPortUuid = UUID.randomUUID()
         val vifPortId = toProto(vifPortUuid)
@@ -701,10 +699,8 @@ class C3POMinionTest extends C3POMinionTestBase {
         // Creates a VIF port.
         val portMac = MAC.random().toString
         val vifPortJson = portJson(name = "port1", id = vifPortUuid,
-                                   networkId = network1Uuid,
-                                   macAddr = portMac).toString
-        executeSqlStmts(insertTaskSql(
-                id = 3, Create, PortType, vifPortJson, vifPortUuid, "tx2"))
+                                   networkId = network1Uuid, macAddr = portMac)
+        insertCreateTask(3, PortType, vifPortJson, vifPortUuid)
 
         val vifPort = eventually(storage.get(classOf[Port], vifPortId).await())
         vifPort.getId should be (vifPortId)
@@ -722,9 +718,8 @@ class C3POMinionTest extends C3POMinionTestBase {
         val portMac2 = MAC.random().toString
         val vifPortUpdate = portJson(id = vifPortUuid, networkId = network1Uuid,
                                      adminStateUp = false,      // Down now.
-                                     macAddr = portMac2).toString
-        executeSqlStmts(insertTaskSql(
-                id = 4, Update, PortType, vifPortUpdate, vifPortUuid, "tx3"))
+                                     macAddr = portMac2)
+        insertUpdateTask(4, PortType, vifPortUpdate, vifPortUuid)
 
         eventually {
             val updatedVifPort = storage.get(classOf[Port], vifPortId).await()
@@ -737,8 +732,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         }
 
         // Delete the VIF port.
-        executeSqlStmts(insertTaskSql(
-                id = 5, Delete, PortType, json = null, vifPortUuid, "tx4"))
+        insertDeleteTask(5, PortType, vifPortUuid)
 
         eventually {
             storage.exists(classOf[Port], vifPortId).await() shouldBe false
@@ -770,10 +764,8 @@ class C3POMinionTest extends C3POMinionTestBase {
                                cidr = cidr.toString, gatewayIp = gatewayIp,
                                dnsNameservers = nameServers,
                                hostRoutes = hostRoutes)
-        executeSqlStmts(insertTaskSql(2, Create, NetworkType,
-                                      nJson.toString, nId, "tx1"),
-                        insertTaskSql(3, Create, SubnetType,
-                                      sJson.toString, sId, "tx2"))
+        insertCreateTask(2, NetworkType, nJson, nId)
+        insertCreateTask(3, SubnetType, sJson, sId)
 
         // Verify the created subnet
         val dhcp = eventually(storage.get(classOf[Dhcp], sId).await())
@@ -797,9 +789,8 @@ class C3POMinionTest extends C3POMinionTestBase {
         val dhcpPortIp = "10.0.0.7"
         val pJson = portJson(id = portId, networkId = nId,
             adminStateUp = true, deviceOwner = DeviceOwner.DHCP,
-            fixedIps = List(IPAlloc(dhcpPortIp, sId.toString))).toString
-        executeSqlStmts(insertTaskSql(id = 4, Create, PortType, pJson,
-                                      portId, "tx3"))
+            fixedIps = List(IPAlloc(dhcpPortIp, sId.toString)))
+        insertCreateTask(4, PortType, pJson, portId)
 
         // Update the subnet
         val cidr2 = IPv4Subnet.fromCidr("10.0.1.0/24")
@@ -808,8 +799,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         val sJson2 = subnetJson(sId, nId, name = "test sub2",
                                 cidr = cidr2.toString, gatewayIp = gatewayIp2,
                                 dnsNameservers = dnss)
-        executeSqlStmts(insertTaskSql(5, Update, SubnetType,
-                                      sJson2.toString, sId, "tx4"))
+        insertUpdateTask(5, SubnetType, sJson2, sId)
 
         // Verify the updated subnet
         eventually {
@@ -828,7 +818,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         }
 
         // Delete the subnet
-        executeSqlStmts(insertTaskSql(6, Delete, SubnetType, null, sId, "tx5"))
+        insertDeleteTask(6, SubnetType, sId)
 
         // Verify deletion
         eventually {
@@ -839,8 +829,7 @@ class C3POMinionTest extends C3POMinionTestBase {
     it should "handle Config / AgentMembership Create" in {
         val cId = UUID.randomUUID()
         val cJson = configJson(cId, TunnelProtocol.VXLAN)
-        executeSqlStmts(insertTaskSql(2, Create, ConfigType,
-                                      cJson.toString, cId, "tx1"))
+        insertCreateTask(2, ConfigType, cJson, cId)
 
         // Verify the created default tunnel zone
         val tz = eventually(storage.get(classOf[TunnelZone], cId).await())
@@ -855,8 +844,7 @@ class C3POMinionTest extends C3POMinionTestBase {
 
         val ipAddress = "192.168.0.1"
         val amJson = agentMembershipJson(hostId, ipAddress)
-        executeSqlStmts(insertTaskSql(3, Create, AgentMembershipType,
-                                      amJson.toString, hostId, "tx2"))
+        insertCreateTask(3, AgentMembershipType, amJson, hostId)
 
         eventually {
             val tz1 = storage.get(classOf[TunnelZone], cId).await()
@@ -870,8 +858,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         hostWithTz.getTunnelZoneIdsCount shouldBe 1
         hostWithTz.getTunnelZoneIds(0) shouldBe toProto(cId)
 
-        executeSqlStmts(insertTaskSql(4, Delete, AgentMembershipType,
-                                      "", hostId, "tx3"))
+        insertDeleteTask(4, AgentMembershipType, hostId)
         eventually {
             val tz2 = storage.get(classOf[TunnelZone], cId).await()
             tz2.getHostsList.size shouldBe 0

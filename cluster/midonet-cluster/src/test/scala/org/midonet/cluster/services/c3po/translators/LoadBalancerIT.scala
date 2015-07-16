@@ -38,8 +38,8 @@ class LoadBalancerIT extends C3POMinionTestBase {
     override protected val useLegacyDataClient = true
 
     private def lbPoolJson(id: UUID,
-                           adminStateUp: Boolean,
                            routerId: UUID,
+                           adminStateUp: Boolean = true,
                            healthMonitors: List[UUID] = null): JsonNode = {
         val pool = nodeFactory.objectNode
         pool.put("id", id.toString)
@@ -142,12 +142,12 @@ class LoadBalancerIT extends C3POMinionTestBase {
 
         // Create a Router.
         val routerId = UUID.randomUUID()
-        val rtrJson = routerJson(routerId, name = "router").toString
+        val rtrJson = routerJson(routerId, name = "router")
         insertCreateTask(4, RouterType, rtrJson, routerId)
 
         // Create a Load Balancer Pool
         val poolId = UUID.randomUUID()
-        val poolJson = lbPoolJson(poolId, true, routerId).toString
+        val poolJson = lbPoolJson(poolId, routerId)
         insertCreateTask(5, PoolType, poolJson, poolId)
 
         val lb = eventually(
@@ -170,7 +170,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val hmId = UUID.randomUUID()
         val hmJson = healthMonitorJson(id = hmId, adminStateUp = true,
                                        maxRetries = 10, delay = 2,
-                                       timeout = 30, hmType = "foo").toString
+                                       timeout = 30, hmType = "foo")
         insertCreateTask(6, HealthMonitorType, hmJson, hmId)
 
         val hm = eventually(storage.get(classOf[HealthMonitor], hmId).await())
@@ -184,7 +184,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
 
         // Associate the Health Monitor with the Pool
         val poolWithHmJson =
-            lbPoolJson(poolId, true, routerId, List(hmId)).toString
+            lbPoolJson(poolId, routerId, healthMonitors = List(hmId))
         insertUpdateTask(7, PoolType, poolWithHmJson, poolId)
         eventually {
             val poolFtr = storage.get(classOf[Pool], poolId)
@@ -204,7 +204,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         // value are passed down and the translator does not check.
         val updatedHmJson = healthMonitorJson(id = hmId,
                 adminStateUp = false, maxRetries = 5, delay = 3, timeout = 20,
-                pools = List(HmPool(poolId, "status", "desc"))).toString
+                pools = List(HmPool(poolId, "status", "desc")))
         insertUpdateTask(8, HealthMonitorType, updatedHmJson, hmId)
 
         eventually {
@@ -222,7 +222,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val vipId = UUID.randomUUID()
         val vJson = vipJson(vipId, address = "10.0.0.2", poolId = poolId,
                             subnetId = subnetId)
-        insertCreateTask(9, VIPType, vJson.toString, vipId)
+        insertCreateTask(9, VIPType, vJson, vipId)
         val vip = eventually(storage.get(classOf[Vip], vipId).await())
         vip.getLoadBalancerId shouldBe lb.getId
         vip.getAdminStateUp shouldBe true
@@ -240,7 +240,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val memberId = UUID.randomUUID()
         val poolMemberAddress = "10.10.0.3"
         val poolMemberJson =
-            memberJson(memberId, poolId, poolMemberAddress).toString
+            memberJson(memberId, poolId, poolMemberAddress)
         insertCreateTask(10, PoolMemberType, poolMemberJson, memberId)
         val member =
             eventually(storage.get(classOf[PoolMember], memberId).await())
@@ -261,7 +261,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val member2Id = UUID.randomUUID()
         val poolMember2Address = "10.10.0.4"
         val poolMember2Json =
-            memberJson(member2Id, poolId, poolMember2Address).toString
+            memberJson(member2Id, poolId, poolMember2Address)
         insertCreateTask(12, PoolMemberType, poolMember2Json, member2Id)
         val member2 =
             eventually(storage.get(classOf[PoolMember], member2Id).await())
@@ -306,20 +306,19 @@ class LoadBalancerIT extends C3POMinionTestBase {
 
         // Create a Router.
         val routerId = UUID.randomUUID()
-        val rtrJson = routerJson(routerId, name = "router").toString
+        val rtrJson = routerJson(routerId, name = "router")
         insertCreateTask(4, RouterType, rtrJson, routerId)
 
         // Create a Health Monitor.
         val hmId = UUID.randomUUID()
         val hmJson = healthMonitorJson(id = hmId, adminStateUp = true,
-                                       maxRetries = 10, delay = 2,
-                                       timeout = 30).toString
+                                       maxRetries = 10, delay = 2, timeout = 30)
         insertCreateTask(5, HealthMonitorType, hmJson, hmId)
 
         // Create a Load Balancer Pool with HM already associated.
         val poolId = UUID.randomUUID()
-        val poolWithHmJson = lbPoolJson(poolId, true, routerId,
-                                        healthMonitors = List(hmId)).toString
+        val poolWithHmJson = lbPoolJson(poolId, routerId,
+                                        healthMonitors = List(hmId))
         insertCreateTask(6, PoolType, poolWithHmJson, poolId)
         val pool = eventually(storage.get(classOf[Pool], poolId).await())
         pool.hasHealthMonitorId shouldBe true
@@ -333,7 +332,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val memberId = UUID.randomUUID()
         val poolMemberAddress = "10.10.0.3"
         val poolMemberJson =
-            memberJson(memberId, poolId = null, poolMemberAddress).toString
+            memberJson(memberId, poolId = null, poolMemberAddress)
         insertCreateTask(7, PoolMemberType, poolMemberJson, memberId)
         val member =
             eventually(storage.get(classOf[PoolMember], memberId).await())
@@ -345,10 +344,9 @@ class LoadBalancerIT extends C3POMinionTestBase {
 
         // Update a Pool Member with Pool ID and other properties.
         val memberAddress2 = "10.10.0.4"
-        val updatedMemberJson =
-            memberJson(memberId, poolId, memberAddress2,
-                       adminStateUp = false, protocolPort = 23456, weight = 200,
-                       status = "status2").toString
+        val updatedMemberJson = memberJson(
+            memberId, poolId, memberAddress2, adminStateUp = false,
+            protocolPort = 23456, weight = 200, status = "status2")
         insertUpdateTask(8, PoolMemberType, updatedMemberJson, memberId)
         eventually {
             val updatedMember =
@@ -368,17 +366,17 @@ class LoadBalancerIT extends C3POMinionTestBase {
 
         // Create a 2nd Router and Pool.
         val router2Id = UUID.randomUUID()
-        val rtr2Json = routerJson(router2Id, name = "router2").toString
+        val rtr2Json = routerJson(router2Id, name = "router2")
         insertCreateTask(9, RouterType, rtr2Json, router2Id)
         val pool2Id = UUID.randomUUID()
-        val pool2Json = lbPoolJson(pool2Id, true, router2Id).toString
+        val pool2Json = lbPoolJson(pool2Id, router2Id)
         insertCreateTask(10, PoolType, pool2Json, pool2Id)
         val pool2 = eventually(storage.get(classOf[Pool], pool2Id).await())
         pool2.getPoolMemberIdsList.isEmpty shouldBe true
 
         // Re-attach the Pool Member to Pool2.
         val movedMemberJson =
-            memberJson(memberId, pool2Id, memberAddress2).toString
+            memberJson(memberId, pool2Id, memberAddress2)
         insertUpdateTask(11, PoolMemberType, movedMemberJson, memberId)
         eventually {
             val movedMember =
@@ -394,7 +392,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
 
         // Detach the Pool Member from Pool2.
         val detachedMemberJson =
-            memberJson(memberId, poolId = null, memberAddress2).toString
+            memberJson(memberId, poolId = null, memberAddress2)
         insertUpdateTask(12, PoolMemberType, detachedMemberJson, memberId)
         eventually {
             val detachedMember =
@@ -405,7 +403,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         }
 
         // Remove the Health Monitor from the Pool
-        val poolWithNoHmJson = lbPoolJson(poolId, true, routerId).toString
+        val poolWithNoHmJson = lbPoolJson(poolId, routerId)
         insertUpdateTask(13, PoolType, poolWithNoHmJson, poolId)
         eventually {
             val pool = storage.get(classOf[Pool], poolId).await()
@@ -418,7 +416,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val vipId = UUID.randomUUID()
         val vJson = vipJson(vipId, address = "10.10.0.2", poolId = poolId,
                             subnetId = subnetId)
-        insertCreateTask(14, VIPType, vJson.toString, vipId)
+        insertCreateTask(14, VIPType, vJson, vipId)
         val vip = eventually(storage.get(classOf[Vip], vipId).await())
         vip.getLoadBalancerId shouldBe lb.getId
         vip.getAdminStateUp shouldBe true
@@ -436,7 +434,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
                                      adminStateUp = false,
                                      address = "10.10.0.2", // IP cannot change.
                                      subnetId = subnetId,
-                                     protocolPort = 54321).toString
+                                     protocolPort = 54321)
         insertUpdateTask(15, VIPType, updatedVipJson, vipId)
         eventually {
             val updatedVip = storage.get(classOf[Vip], vipId).await()
@@ -486,7 +484,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         createRouter(5, tntRtr1Id, rtrGwPortId)
 
         // Create a Load Balancer Pool on the tenant Router.
-        val poolJson = lbPoolJson(poolId, true, tntRtr1Id).toString
+        val poolJson = lbPoolJson(poolId, tntRtr1Id)
         insertCreateTask(6, PoolType, poolJson, poolId)
 
         val lb = eventually(
@@ -501,7 +499,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val vipAddress = "10.0.1.10"
         val vJson = vipJson(vip1Id, address = vipAddress, portId = vipPortId,
                             poolId = poolId, subnetId = subnetId)
-        insertCreateTask(7, VIPType, vJson.toString, vip1Id)
+        insertCreateTask(7, VIPType, vJson, vip1Id)
         val vip = eventually(storage.get(classOf[Vip], vip1Id).await())
         vip.getPoolId shouldBe toProto(poolId)
         vip.getLoadBalancerId shouldBe toProto(tntRtr1Id)
@@ -519,7 +517,7 @@ class LoadBalancerIT extends C3POMinionTestBase {
         val vip2Address = "10.0.1.20"
         val v2Json = vipJson(vip2Id, address = vip2Address, portId = vip2PortId,
                              poolId = poolId, subnetId = subnetId)
-        insertCreateTask(8, VIPType, v2Json.toString, vip2Id)
+        insertCreateTask(8, VIPType, v2Json, vip2Id)
         val vip2 = eventually(storage.get(classOf[Vip], vip2Id).await())
         vip2.getAddress.getAddress shouldBe vip2Address
         vip2.getPoolId shouldBe toProto(poolId)
