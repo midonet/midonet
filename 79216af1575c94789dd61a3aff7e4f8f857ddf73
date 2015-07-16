@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_089747ed",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-16T18:04:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_3af65ed8",
+      "range": {
+        "startLine": 59,
+        "startChar": 8,
+        "endLine": 61,
+        "endChar": 23
+      },
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1a727a7c",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
         "patchSetId": 15
@@ -36,6 +60,24 @@
       "writtenOn": "2015-07-02T08:23:37Z",
       "side": 1,
       "message": "Can you do something like the following?\n\n\nval ftrs \u003d List(lsTable, psTable, portTable, locSetTable,\n                     locTable, uLocalTable, uRemoteTable,\n                     mLocalTable, mRemoteTable)\n\nFuture.sequcne(ftrs.map(_.ready)).map(_.forall(_))",
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e802230a",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-16T18:04:30Z",
+      "side": 1,
+      "message": "Awesome! thanks!",
+      "parentUuid": "9ad9bd40_1a727a7c",
       "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -65,6 +107,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9c1e3862",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-16T18:04:30Z",
+      "side": 1,
+      "message": "No, it is not.\nA timeout here means that something is very broken, so I\u0027ll replace the Inf with a conservative value...\n(Probably it would be better if the timeout value was configurable...)",
+      "parentUuid": "9ad9bd40_3a1d7e10",
+      "range": {
+        "startLine": 124,
+        "startChar": 41,
+        "endLine": 124,
+        "endChar": 53
+      },
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_fae23602",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
         "patchSetId": 15
@@ -76,6 +142,24 @@
       "writtenOn": "2015-07-02T08:23:37Z",
       "side": 1,
       "message": "I don\u0027t think you need this. If you want to call a member of an instance of MacRemoteUpdater, you can call \"this\" something like \"MacRemoteUpdata.this\"",
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_bc193c7b",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-16T18:04:30Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_fae23602",
       "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -105,6 +189,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7c3df4ba",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 198,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-16T18:04:30Z",
+      "side": 1,
+      "message": "Not sure... The intention here was directly throwing an exception if ready was false (meaning that the VTEP is not supporting one of the necessary tables, and therefore and updater cannot be returned). I prefer the Exception to the Option because the interface I\u0027m implementing does not expect options (but I have no strong opinion about that... I could be convinced otherwise :-)",
+      "parentUuid": "9ad9bd40_3ddad878",
+      "range": {
+        "startLine": 198,
+        "startChar": 14,
+        "endLine": 198,
+        "endChar": 21
+      },
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5ae7a240",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/VtepTableMonitor.scala",
         "patchSetId": 15
@@ -122,6 +230,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9c6398db",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/VtepTableMonitor.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-16T18:04:30Z",
+      "side": 1,
+      "message": "An update is represented by the implicit VtepEntryUpdate.apply(old, new) method: it contains the old value and the new value; the \u0027addition\u0027 and \u0027removal\u0027 methods are simply shortcuts for the case where one of the value is null",
+      "parentUuid": "9ad9bd40_5ae7a240",
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1add1a71",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
         "patchSetId": 15
@@ -133,6 +259,24 @@
       "writtenOn": "2015-07-02T08:23:37Z",
       "side": 1,
       "message": "Two things.\n- Shouldn\u0027t we catch NonFatal instead of Throwable?\n- Shouldn\u0027t we log at least warn instead of squashing the exception as it\u0027s not really expected to happen, right?",
+      "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3c81ac4a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-16T18:04:30Z",
+      "side": 1,
+      "message": "Yes to the first (done)\n\nAbout the second, the exception may happen if the vtep contains logical switches not created by midonet (which is probably not recommended, but not forbidden neither). I\u0027ve added code to capture the possible exceptions if the ls name does not match the expected format, and logged a warn message if another exception occurs.",
+      "parentUuid": "9ad9bd40_1add1a71",
       "revId": "79216af1575c94789dd61a3aff7e4f8f857ddf73",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
