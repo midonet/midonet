@@ -22,7 +22,7 @@ import com.google.protobuf.MessageOrBuilder
 import org.scalatest.Matchers
 
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
-import org.midonet.cluster.models.Topology.{Bgp => TopologyBgp, BgpRoute => TopologyBgpRoute, Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIpAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
+import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIpAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -34,7 +34,6 @@ import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer
 import org.midonet.midolman.state.l4lb
 import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
 import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort, _}
-import org.midonet.midolman.topology.routing.{BgpRoute, Bgp}
 import org.midonet.packets.{IPv4Addr, MAC}
 
 object TopologyMatchers {
@@ -81,8 +80,6 @@ object TopologyMatchers {
                 p.getPortAddress.asIPv4Address else null)
             port.portMac shouldBe (if (p.hasPortMac)
                 MAC.fromString(p.getPortMac) else null)
-            port.bgpId shouldBe (if (p.hasBgpId)
-                p.getBgpId.asJava else null)
         }
     }
 
@@ -336,30 +333,6 @@ object TopologyMatchers {
         }
     }
 
-    class BgpMatcher(bgp: Bgp) extends Matchers
-                                       with DeviceMatcher[TopologyBgp] {
-        override def shouldBeDeviceOf(b: TopologyBgp): Unit = {
-            bgp.id shouldBe b.getId.asJava
-            bgp.localAs shouldBe b.getLocalAs
-            bgp.peerAs shouldBe b.getPeerAs
-            bgp.peerAddress shouldBe (if (b.hasPeerAddress)
-                b.getPeerAddress.asIPv4Address else null)
-            bgp.portId shouldBe (if (b.hasPortId)
-                b.getPortId.asJava else null)
-            bgp.bgpRouteIds should contain theSameElementsAs
-                b.getBgpRouteIdsList.asScala.map(_.asJava)
-        }
-    }
-
-    class BgpRouteMatcher(route: BgpRoute)
-        extends Matchers with DeviceMatcher[TopologyBgpRoute] {
-
-        override def shouldBeDeviceOf(r: TopologyBgpRoute): Unit = {
-            route.id shouldBe r.getId.asJava
-            route.subnet shouldBe r.getSubnet.asJava
-            route.bgpId shouldBe r.getBgpId.asJava
-        }
-    }
 }
 
 trait TopologyMatchers {
@@ -423,11 +396,5 @@ trait TopologyMatchers {
 
     implicit def asMatcher(healthMonitor: HealthMonitor): HealthMonitorMatcher =
         new HealthMonitorMatcher(healthMonitor)
-
-    implicit def asMatcher(bgp: Bgp): BgpMatcher =
-        new BgpMatcher(bgp)
-
-    implicit def asMatcher(route: BgpRoute): BgpRouteMatcher =
-        new BgpRouteMatcher(route)
 
 }
