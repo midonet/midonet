@@ -21,8 +21,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.TaskType._
-import org.midonet.cluster.data.neutron.NeutronResourceType.{ Network => NetworkType }
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType}
 import org.midonet.cluster.data.storage.CreateNodeOp
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil._
@@ -49,9 +48,7 @@ class NetworkIT extends C3POMinionTestBase {
         // Create a private Network
         val network1Name = "private-network"
         val network1Json = networkJson(network1Uuid, "tenant1", network1Name)
-        executeSqlStmts(insertTaskSql(2, Create, NetworkType,
-                                      network1Json.toString,
-                                      network1Uuid, "tx1"))
+        insertCreateTask(2, NetworkType, network1Json, network1Uuid)
         val network1 = eventually(
             storage.get(classOf[Network], network1Uuid).await())
 
@@ -105,11 +102,8 @@ class NetworkIT extends C3POMinionTestBase {
         val network1Json2 = networkJson(network1Uuid, "tenant1", network1Name2,
                                        external = true, adminStateUp = false)
 
-        executeSqlStmts(
-                insertTaskSql(id = 3, Create, NetworkType,
-                              network2Json.toString, network2Uuid, "tx2"),
-                insertTaskSql(id = 4, Update, NetworkType,
-                              network1Json2.toString, network1Uuid, "tx2"))
+        insertCreateTask(3, NetworkType, network2Json, network2Uuid)
+        insertUpdateTask(4, NetworkType, network1Json2, network1Uuid)
 
         val network2 = eventually(
             storage.get(classOf[Network], network2Uuid).await())
@@ -126,8 +120,7 @@ class NetworkIT extends C3POMinionTestBase {
         }
 
         // Deletes Network 1
-        executeSqlStmts(insertTaskSql(
-                id = 5, Delete, NetworkType, json = "", network1Uuid, "tx3"))
+        insertDeleteTask(5, NetworkType, network1Uuid)
         eventually {
             storage.exists(classOf[Network], network1Uuid).await() shouldBe false
             getLastProcessedIdFromTable shouldBe Some(5)

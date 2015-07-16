@@ -53,10 +53,8 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val sg1Json = sgJson(name = "sg1", id = sgId, desc = "Security group",
                              tenantId = "tenant", rules = List(existRule))
 
-        insertCreateTask(2, SecurityGroupType, sg1Json.toString, sgId)
-
-        insertCreateTask(3, SecurityGroupRuleType, newRuleJson.toString,
-                         newRuleId)
+        insertCreateTask(2, SecurityGroupType, sg1Json, sgId)
+        insertCreateTask(3, SecurityGroupRuleType, newRuleJson, newRuleId)
 
         eventually {
             // check that the chain has the right rule
@@ -86,8 +84,7 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val sg1Json = sgJson(name = "sg1", id = sgId, desc = "Security group",
                              tenantId = "tenant", rules = List(existRule))
 
-        insertCreateTask(2, SecurityGroupType, sg1Json.toString, sgId)
-
+        insertCreateTask(2, SecurityGroupType, sg1Json, sgId)
         insertDeleteTask(3, SecurityGroupRuleType, existRuleId)
 
         eventually {
@@ -117,8 +114,8 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
                              rules = List(rule1Json, rule2Json))
         val sg2Json = sgJson(name ="sg2", id = sg2Id, tenantId = "tenant",
                              rules = List())
-        insertCreateTask(2, SecurityGroupType, sg1Json.toString, sg1Id)
-        insertCreateTask(3, SecurityGroupType, sg2Json.toString, sg2Id)
+        insertCreateTask(2, SecurityGroupType, sg1Json, sg1Id)
+        insertCreateTask(3, SecurityGroupType, sg2Json, sg2Id)
 
         val ipg1 = eventually(storage.get(classOf[IPAddrGroup], sg1Id).await())
         val ChainPair(inChain1, outChain1) = getChains(ipg1)
@@ -145,7 +142,7 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val sg1aJson = sgJson(name = "sg1-updated", id = sg1Id,
                               desc = "Security group", tenantId = "tenant",
                               rules = List(rule1aJson, rule3Json))
-        insertUpdateTask(4, SecurityGroupType, sg1aJson.toString, sg1Id)
+        insertUpdateTask(4, SecurityGroupType, sg1aJson, sg1Id)
         insertDeleteTask(5, SecurityGroupType, sg2Id)
         eventually {
             val ipg1a = storage.get(classOf[IPAddrGroup], sg1Id).await()

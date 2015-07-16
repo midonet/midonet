@@ -23,9 +23,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, PortBinding => PortBindingType}
-import org.midonet.cluster.data.neutron.TaskType._
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])
@@ -34,17 +32,13 @@ class PortBindingTranslatorIT extends C3POMinionTestBase {
         // Creates a Network.
         val network1Uuid = UUID.randomUUID()
         val network1Json = networkJson(network1Uuid, "tenant1", "private-net")
-        executeSqlStmts(insertTaskSql(
-                id = 2, Create, NetworkType, network1Json.toString,
-                network1Uuid, "tx1"))
+        insertCreateTask(2, NetworkType, network1Json, network1Uuid)
 
         // Creates a VIF port.
         val vifPortUuid = UUID.randomUUID()
-        val vifPortId = toProto(vifPortUuid)
         val vifPortJson = portJson(name = "port1", id = vifPortUuid,
-                                   networkId = network1Uuid).toString
-        executeSqlStmts(insertTaskSql(
-                id = 3, Create, PortType, vifPortJson, vifPortUuid, "tx2"))
+                                   networkId = network1Uuid)
+        insertCreateTask(3, PortType, vifPortJson, vifPortUuid)
 
         val vifPort = eventually(storage.get(classOf[Port], vifPortUuid).await())
         vifPort.hasHostId shouldBe false
@@ -53,7 +47,7 @@ class PortBindingTranslatorIT extends C3POMinionTestBase {
         // Sets up a host. Needs to do this directly via Zoom as the Host info
         // is to be created by the Agent.
         val hostId = UUID.randomUUID()
-        val host = createHost(hostId)
+        createHost(hostId)
 
         // Creates a Port Binding
         val bindingUuid = UUID.randomUUID()
@@ -61,17 +55,14 @@ class PortBindingTranslatorIT extends C3POMinionTestBase {
         val bindingJson = portBindingJson(bindingUuid,
                                           hostId,
                                           interfaceName,
-                                          vifPortUuid).toString
-        executeSqlStmts(insertTaskSql(
-                id = 4, Create, PortBindingType, bindingJson, bindingUuid,
-                "tx3"))
+                                          vifPortUuid)
+        insertCreateTask(4, PortBindingType, bindingJson, bindingUuid)
 
         // Tests that the host now has the binding to the port / interface.
         eventually(checkPortBinding(hostId, vifPortUuid, interfaceName))
 
         // Deletes the Port Binding
-        executeSqlStmts(insertTaskSql(
-                id = 5, Delete, PortBindingType, json = "", bindingUuid, "tx4"))
+        insertDeleteTask(5, PortBindingType, bindingUuid)
         eventually {
             val hostFtr = storage.get(classOf[Host], hostId)
             val portFtr = storage.get(classOf[Port], vifPortUuid)
