@@ -34,7 +34,7 @@ import org.midonet.cluster.services.c3po.NeutronDeserializer.toMessage
 import org.midonet.cluster.services.c3po.translators._
 import org.midonet.cluster.services.{ClusterService, MidonetBackend, ScheduledMinion}
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.util.{SequenceDispenser, UUIDUtil}
 import org.midonet.cluster.{C3POConfig, ClusterConfig, ClusterNode}
 import org.midonet.midolman.state.PathBuilder
 
@@ -59,13 +59,16 @@ class C3POMinion @Inject()(nodeContext: ClusterNode.Context,
 
     private val log = LoggerFactory.getLogger(classOf[C3POMinion])
 
-    private val dataMgr = C3POMinion.initDataManager(backend.store,
-                                                     backendCfg)
-
     private val neutronImporter = new SqlNeutronImporter(dataSrc)
     private val dataStateUpdater = new DataStateUpdater(dataSrc)
 
-    private val LEADER_LATCH_PATH = "/leader-latch"
+    private val pathManager = new PathBuilder(backendCfg.rootKey)
+    private val seqDispenser = new SequenceDispenser(curator, backendCfg)
+    private val dataMgr = C3POMinion.initDataManager(backend.store,
+                                                     seqDispenser,
+                                                     pathManager)
+
+    private val LEADER_LATCH_PATH = backendCfg.rootKey + "/leader-latch"
     private val leaderLatch = new LeaderLatch(curator, LEADER_LATCH_PATH,
                                               nodeContext.nodeId.toString)
 
@@ -181,11 +184,10 @@ object C3POMinion {
                 InvalidCnxnStrErrMsg.format(cnxnStr))
     }
 
-    def initDataManager(storage: Storage, backendCfg: MidonetBackendConfig)
-    : C3POStorageManager = {
+    def initDataManager(storage: Storage,
+                        seqDispenser: SequenceDispenser,
+                        pathBldr: PathBuilder): C3POStorageManager = {
         val dataMgr = new C3POStorageManager(storage)
-        val pathBldr = new PathBuilder(backendCfg.rootKey)
-
         List(classOf[AgentMembership] -> new AgentMembershipTranslator(storage),
              classOf[FloatingIp] -> new FloatingIpTranslator(storage, pathBldr),
              classOf[NeutronConfig] -> new ConfigTranslator(storage),
@@ -200,7 +202,8 @@ object C3POMinion {
              classOf[NeutronRouterInterface] ->
              new RouterInterfaceTranslator(storage),
              classOf[NeutronSubnet] -> new SubnetTranslator(storage),
-             classOf[NeutronPort] -> new PortTranslator(storage, pathBldr),
+             classOf[NeutronPort] -> new PortTranslator(storage, pathBldr,
+                                                        seqDispenser),
              classOf[NeutronVIP] -> new VipTranslator(storage, pathBldr),
              classOf[PortBinding] -> new PortBindingTranslator(storage),
              classOf[SecurityGroup] -> new SecurityGroupTranslator(storage),

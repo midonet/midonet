@@ -27,7 +27,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{GivenWhenThen, Matchers, FeatureSpecLike}
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.SequenceType.AgentTunnelKeys
+import org.midonet.cluster.util.SequenceType.OverlayTunnelKey
 import org.midonet.util.concurrent.toFutureOps
 import scala.concurrent.duration._
 
@@ -59,8 +59,8 @@ class SequenceDispenserTest extends FeatureSpecLike
             val sequencer = new SequenceDispenser(curator, conf)
             SequenceType.values.foreach { t =>
                 sequencer.current(t).await(timeout) shouldBe 0
-                sequencer.next(t).await(timeout).get shouldBe 1
-                sequencer.next(t).await(timeout).get shouldBe 2
+                sequencer.next(t).await(timeout) shouldBe 1
+                sequencer.next(t).await(timeout) shouldBe 2
 
                 // Make sure we're storing things in the right place
                 curator.checkExists().forPath(ZK_ROOT + "/" + t)
@@ -72,13 +72,13 @@ class SequenceDispenserTest extends FeatureSpecLike
         scenario("Get for supported sequences fails") {
             intercept[KeeperException.ConnectionLossException] {
                 val sequencer = new SequenceDispenser(illCurator, conf)
-                sequencer.current(AgentTunnelKeys).await(timeout)
+                sequencer.current(OverlayTunnelKey).await(timeout)
             }
         }
         scenario("Next for supported sequences fails") {
             intercept[KeeperException.ConnectionLossException] {
                 val sequencer = new SequenceDispenser(illCurator, conf)
-                sequencer.next(AgentTunnelKeys).await(timeout)
+                sequencer.next(OverlayTunnelKey).await(timeout)
             }
         }
     }
