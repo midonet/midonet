@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_47594235",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/PortTranslatorTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 1115,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-16T05:39:03Z",
+      "side": 1,
+      "message": "This can be done as follows:\n\n\nbindAll(List.empty, null, classOf[Route])",
+      "range": {
+        "startLine": 1114,
+        "startChar": 8,
+        "endLine": 1115,
+        "endChar": 54
+      },
+      "revId": "563f8634deee05f9cbbe7de94231c3d4a28d2c1f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
