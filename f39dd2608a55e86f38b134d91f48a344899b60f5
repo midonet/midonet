@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_42b690fb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BridgeMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 740,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-16T10:32:49Z",
+      "side": 1,
+      "message": "nit-pick: built?",
+      "range": {
+        "startLine": 740,
+        "startChar": 19,
+        "endLine": 740,
+        "endChar": 24
+      },
+      "revId": "f39dd2608a55e86f38b134d91f48a344899b60f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_42285034",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
         "patchSetId": 1
@@ -41,6 +64,29 @@
         "startChar": 27,
         "endLine": 108,
         "endChar": 31
+      },
+      "revId": "f39dd2608a55e86f38b134d91f48a344899b60f5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_42adb09b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/HostMapper.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 142,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-16T10:32:49Z",
+      "side": 1,
+      "message": "Built",
+      "range": {
+        "startLine": 142,
+        "startChar": 19,
+        "endLine": 142,
+        "endChar": 24
       },
       "revId": "f39dd2608a55e86f38b134d91f48a344899b60f5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
