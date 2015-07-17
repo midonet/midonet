@@ -55,7 +55,7 @@ message BgpNetwork {
 message BgpPeer {
     optional UUID id = 1;
     optional int32 as_number = 2;
-    optional IPAddress peer_address = 3;
+    optional IPAddress address = 3;
     optional int32 keep_alive = 4;
     optional int32 hold_time = 5;
     optional int32 connect_retry = 6;
