@@ -60,62 +60,83 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit = ???
 
     override def newInboundChainOnBridge(name: String, bridge: UUID): UUID = {
-        val chain = UUID.randomUUID
-        store.create(createChain(chain, Some(name)))
-
-        store.update(store.observable(classOf[Network], bridge)
-                         .map[Network](makeFunc1[Network,Network]{
-                                           Network.newBuilder().mergeFrom(_)
-                                               .setInboundFilterId(chain.asProto)
-                                               .build()
-                                       }).toBlocking.first)
+        val chain = newChain(name)
+        store.observable(classOf[Network], bridge).take(1)
+            .map[Network](makeFunc1[Network,Network]{
+                              Network.newBuilder().mergeFrom(_)
+                                  .setInboundFilterId(chain.asProto)
+                                  .build()
+                          })
+            .subscribe(makeAction1[Network]({ store.update(_) }))
         chain
     }
     override def newOutboundChainOnBridge(name: String, bridge: UUID): UUID = {
-        val chain = UUID.randomUUID
-        store.create(createChain(chain, Some(name)))
-
-        store.update(store.observable(classOf[Network], bridge)
-                         .map[Network](makeFunc1[Network,Network]{
-                                           Network.newBuilder().mergeFrom(_)
-                                               .setOutboundFilterId(chain.asProto)
-                                               .build()
-                                       }).toBlocking.first)
+        val chain = newChain(name)
+        store.observable(classOf[Network], bridge).take(1)
+            .map[Network](makeFunc1[Network,Network]{
+                              Network.newBuilder().mergeFrom(_)
+                                  .setOutboundFilterId(chain.asProto)
+                                  .build()
+                          })
+            .subscribe(makeAction1[Network]({ store.update(_) }))
         chain
     }
     override def newInboundChainOnRouter(name: String, router: UUID): UUID = {
-        val chain = UUID.randomUUID
-        store.create(createChain(chain, Some(name)))
+        val chain = newChain(name)
+        store.observable(classOf[Router], router).take(1)
+            .map[Router](makeFunc1[Router,Router]{
+                             Router.newBuilder().mergeFrom(_)
+                                 .setInboundFilterId(chain.asProto)
+                                 .build()
+                         })
+            .subscribe(makeAction1[Router]({ store.update(_) }))
 
-        store.update(store.observable(classOf[Router], router)
-                         .map[Router](makeFunc1[Router,Router]{
-                                          Router.newBuilder().mergeFrom(_)
-                                              .setInboundFilterId(chain.asProto)
-                                              .build()
-                                      }).toBlocking.first)
         chain
     }
     override def newOutboundChainOnRouter(name: String, router: UUID): UUID =  {
-        val chain = UUID.randomUUID
-        store.create(createChain(chain, Some(name)))
-
-        store.update(store.observable(classOf[Router], router)
-                         .map[Router](makeFunc1[Router,Router]{
-                                          Router.newBuilder().mergeFrom(_)
-                                              .setOutboundFilterId(chain.asProto)
-                                              .build()
-                                      }).toBlocking.first)
+        val chain = newChain(name)
+        store.observable(classOf[Router], router).take(1)
+            .map[Router](makeFunc1[Router,Router]{
+                             Router.newBuilder().mergeFrom(_)
+                                 .setOutboundFilterId(chain.asProto)
+                                 .build()
+                         })
+            .subscribe(makeAction1[Router]({ store.update(_) }))
         chain
     }
-    override def newChain(name: String, id: Option[UUID] = None): UUID = ???
-    override def newOutboundChainOnPort(name: String, port: UUID, id: UUID): UUID = ???
-    override def newInboundChainOnPort(name: String, port: UUID, id: UUID): UUID = ???
+
+    override def newChain(name: String, id: Option[UUID] = None): UUID = {
+        val chain = id.getOrElse(UUID.randomUUID)
+        store.create(createChain(chain, Some(name)))
+        chain
+    }
+
+    override def newOutboundChainOnPort(name: String, port: UUID, id: UUID): UUID = {
+        val chain = newChain(name)
+        store.observable(classOf[Port], port).take(1)
+            .map[Port](makeFunc1[Port,Port]{
+                           Port.newBuilder().mergeFrom(_)
+                               .setOutboundFilterId(chain.asProto)
+                               .build()
+                       })
+            .subscribe(makeAction1[Port]({ store.update(_) }))
+        chain
+    }
+
+    override def newInboundChainOnPort(name: String, port: UUID, id: UUID): UUID = {
+        val chain = newChain(name)
+        store.observable(classOf[Port], port).take(1)
+            .map[Port](makeFunc1[Port,Port]{
+                           Port.newBuilder().mergeFrom(_)
+                               .setInboundFilterId(chain.asProto)
+                               .build()
+                       })
+            .subscribe(makeAction1[Port]({ store.update(_) }))
+        chain
+    }
 
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: rules.Condition,
                                        action: RuleResult.Action): UUID = {
-        val devObserver = new TestAwaitableObserver[SimChain]
-        VirtualTopology.observable[SimChain](chain).subscribe(devObserver)
-
         val rule = UUID.randomUUID
         val builder = createLiteralRuleBuilder(rule, Some(chain), Some(action))
         store.create(setConditionFromCondition(builder, condition).build())
@@ -125,65 +146,112 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newTraceRuleOnChain(chain: UUID, pos: Int,
                                      condition: rules.Condition,
                                      requestId: UUID): UUID = ???
-    override def newTcpDstRuleOnChain(
-            chain: UUID, pos: Int, dstPort: Int, action: RuleResult.Action,
-            fragmentPolicy: rules.FragmentPolicy = rules.FragmentPolicy.UNFRAGMENTED): UUID = ???
-    override def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int,
-                                           action: RuleResult.Action,
-                                           ipAddrGroupIdDst: Option[UUID],
-                                           ipAddrGroupIdSrc: Option[UUID]): UUID = ???
+
     override def newForwardNatRuleOnChain(chain: UUID, pos: Int,
                                           condition: rules.Condition,
                                           action: RuleResult.Action, targets: Set[rules.NatTarget],
                                           isDnat: Boolean) : UUID = {
-        val devObserver = new TestAwaitableObserver[SimChain]
-        VirtualTopology.observable[SimChain](chain).subscribe(devObserver)
-
         val id = UUID.randomUUID
         val builder = createNatRuleBuilder(id, Some(chain), Option(isDnat),
                                            None, targets)
-        store.create(setConditionFromCondition(builder, condition).build)
+        store.create(setConditionFromCondition(builder, condition).build())
         id
-
     }
+
     override def newReverseNatRuleOnChain(chain: UUID, pos: Int,
                                           condition: rules.Condition,
-                                          action: RuleResult.Action, isDnat: Boolean) : UUID = ???
-    override def removeRuleFromBridge(bridge: UUID): Unit = ???
+                                          action: RuleResult.Action, isDnat: Boolean) : UUID = {
+        val id = UUID.randomUUID
+        val builder = createNatRuleBuilder(id, Some(chain), Option(isDnat),
+                                           None, reverse=true)
+        store.create(setConditionFromCondition(builder, condition).build())
+        id
+    }
+
+    override def removeRuleFromBridge(bridge: UUID): Unit = {
+        store.observable(classOf[Network], bridge).take(1)
+            .map[Network](makeFunc1[Network,Network]{
+                              Network.newBuilder().mergeFrom(_)
+                                  .clearInboundFilterId()
+                                  .build()
+                          })
+            .subscribe(makeAction1[Network]({ store.update(_) }))
+    }
+
     override def newJumpRuleOnChain(chain: UUID, pos: Int,
                                     condition: rules.Condition,
-                                    jumpToChainID: UUID): UUID = ???
-    override def newFragmentRuleOnChain(chain: UUID, pos: Int,
-                                        fragmentPolicy: rules.FragmentPolicy,
-                                        action: RuleResult.Action): UUID = ???
-    override def deleteRule(id: UUID): Unit = ???
-    override def newIpAddrGroup(): UUID = ???
-    override def newIpAddrGroup(id: UUID): UUID = ???
-    override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = ???
-    override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit = ???
-    override def deleteIpAddrGroup(id: UUID): Unit = ???
+                                    jumpToChainID: UUID): UUID = {
+        val id = UUID.randomUUID
+        val builder = createJumpRuleBuilder(id, Some(chain), Some(jumpToChainID))
+        store.create(setConditionFromCondition(builder, condition).build())
+        id
+    }
+
+    override def deleteRule(id: UUID): Unit = {
+        store.delete(classOf[Rule], id)
+    }
+
+    override def newIpAddrGroup(id: UUID): UUID = {
+        store.create(createIPAddrGroup(id))
+        id
+    }
+
+    override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = {
+        store.observable(classOf[IPAddrGroup], id).take(1)
+            .map[IPAddrGroup](makeFunc1[IPAddrGroup, IPAddrGroup](
+                                  g => {
+                                      IPAddrGroup.newBuilder().mergeFrom(g)
+                                          .addIpAddrPorts(IPAddrGroup.IPAddrPorts.newBuilder()
+                                                              .setIpAddress(IPv4Addr(addr).asProto)
+                                                              .build())
+                                          .build()
+                                  }))
+            .subscribe(makeAction1[IPAddrGroup]({ store.update(_) }))
+    }
+
+    override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit = {
+        store.observable(classOf[IPAddrGroup], id).take(1)
+            .map[IPAddrGroup](makeFunc1[IPAddrGroup, IPAddrGroup](
+                                  g => {
+                                      val ports = g.getIpAddrPortsList.asScala
+                                          .filter(_.getIpAddress != IPv4Addr(addr).asProto)
+                                          .asJava
+                                      IPAddrGroup.newBuilder().mergeFrom(g)
+                                          .clearIpAddrPorts()
+                                          .addAllIpAddrPorts(ports)
+                                          .build()
+                                  }))
+            .subscribe(makeAction1[IPAddrGroup]({ store.update(_) }))
+
+    }
+
+    override def deleteIpAddrGroup(id: UUID): Unit = {
+        store.delete(classOf[IPAddrGroup], id)
+    }
+
     override def greTunnelZone(name: String, id: Option[UUID] = None): UUID = {
         val idToUse = id.getOrElse(UUID.randomUUID)
         store.create(createTunnelZone(idToUse, TunnelZone.Type.GRE,
                                       Some(name), Map[UUID, IPAddr]()))
         idToUse
     }
-    override def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit = {
-        val addHost = makeFunc1[TunnelZone,TunnelZone](
-            (tz: TunnelZone) => {
-                val b = TunnelZone.newBuilder().mergeFrom(tz)
-                val hosts = new ArrayList[HostToIp]
-                hosts.addAll(tz.getHostsList())
-                hosts.add(HostToIp.newBuilder()
-                              .setHostId(host.asProto)
-                              .setIp(ip.asProto).build())
-                b.build()
-            }
-        )
 
-        store.update(store.observable(classOf[TunnelZone], tz)
-                         .map[TunnelZone](addHost).toBlocking.first)
+    override def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit = {
+        store.observable(classOf[TunnelZone], tz).take(1)
+            .map[TunnelZone](makeFunc1[TunnelZone,TunnelZone](
+                                 (tz: TunnelZone) => {
+                                     val b = TunnelZone.newBuilder().mergeFrom(tz)
+                                     val hosts = new ArrayList[HostToIp]
+                                     hosts.addAll(tz.getHostsList())
+                                     hosts.add(HostToIp.newBuilder()
+                                                   .setHostId(host.asProto)
+                                                   .setIp(ip.asProto).build())
+                                     b.build()
+                                 }
+                             ))
+            .subscribe(makeAction1[TunnelZone]({ store.update(_) }))
     }
+
     override def deleteTunnelZoneMember(tz: UUID, host: UUID): Unit = ???
 
     override def newBridge(name: String, tenant: Option[String] = None): UUID = {
@@ -298,17 +366,6 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         stateStorage.setPortLocalAndActive(port, hostId, true)
     }
 
-    override def newCondition(
-            nwProto: Option[Byte] = None,
-            tpDst: Option[Int] = None,
-            tpSrc: Option[Int] = None,
-            ipAddrGroupIdDst: Option[UUID] = None,
-            ipAddrGroupIdSrc: Option[UUID] = None,
-            fragmentPolicy: rules.FragmentPolicy = rules.FragmentPolicy.UNFRAGMENTED)
-            : rules.Condition = ???
-    override def newIPAddrGroup(id: Option[UUID]): UUID = ???
-    override def addAddrToIpAddrGroup(id: UUID, addr: String): Unit = ???
-    override def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit = ???
     override def newLoadBalancer(id: UUID = UUID.randomUUID): UUID = ???
     override def deleteLoadBalancer(id: UUID): Unit = ???
     override def setLoadBalancerOnRouter(loadBalancer: UUID, router: UUID): Unit = ???

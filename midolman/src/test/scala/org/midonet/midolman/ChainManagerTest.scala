@@ -17,6 +17,8 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import scala.collection.mutable
+
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
 import org.junit.runner.RunWith
@@ -71,7 +73,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("it returns the first version of the chain")
             expectMsgType[Chain]
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             And("a new rule is added")
             newTcpDstRuleOnChain(chain, 2, 81, Action.ACCEPT)
@@ -83,7 +85,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             checkTcpDstRule(c.getRules.get(1), 81, Action.ACCEPT)
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear() should contain (flowInvalidationMsg(c.id))
+            vta.getAndClearBC() should contain (flowInvalidationMsg(c.id))
         }
     }
 
@@ -117,7 +119,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("it returns the first version of the first chain")
             expectMsgType[Chain]
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             And("a second jump rule to a third chain is added")
             val chain3 = newChain("chain3")
@@ -133,7 +135,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             c1.getJumpTarget(chain3) should not be null
 
             And("the VTA should receive a flow invalidation for the first chain")
-            vta.getAndClear() should contain (flowInvalidationMsg(c1.id))
+            vta.getAndClearBC() should contain (flowInvalidationMsg(c1.id))
         }
 
         scenario("Add a jump to a third chain on the second chain") {
@@ -147,7 +149,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("it returns the first version of the chain")
             expectMsgType[Chain]
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             And("a jump to a third chain is added to the second chain")
             val chain3 = newChain("chain3")
@@ -169,7 +171,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("the VTA should receive flow invalidations " +
                 "for the first two chains")
-            val msgs = vta.getAndClear()
+            val msgs = vta.getAndClearBC()
             msgs should contain (flowInvalidationMsg(c1.id))
             msgs should contain (flowInvalidationMsg(c2.id))
         }
@@ -201,7 +203,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             checkTcpDstRule(c3.getRules.get(0), 80, Action.DROP)
 
             And("the VTA should receive flow invalidations for all three chains")
-            val msgs = vta.getAndClear()
+            val msgs = vta.getAndClearBC()
             msgs.contains(flowInvalidationMsg(c1.id))
             msgs.contains(flowInvalidationMsg(c2.id))
             msgs.contains(flowInvalidationMsg(c3.id))
@@ -213,7 +215,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Given("a chain with a rule with one IPAddrGroup")
             val ipAddrGroup = newIpAddrGroup()
             val addr = "10.0.1.1"
-            addAddrToIpAddrGroup(ipAddrGroup, addr)
+            addIpAddrToIpAddrGroup(ipAddrGroup, addr)
 
             val chain = newChain("chain1")
             newIpAddrGroupRuleOnChain(chain, 1, Action.DROP,
@@ -233,7 +235,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Given("a chain with a rule with one IPAddrGroup")
             val ipAddrGroup = newIpAddrGroup()
             val addr = "10.0.1.1"
-            addAddrToIpAddrGroup(ipAddrGroup, addr)
+            addIpAddrToIpAddrGroup(ipAddrGroup, addr)
 
             val chain = newChain("chain1")
             val rule = newIpAddrGroupRuleOnChain(
@@ -251,8 +253,15 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             When("The rule is removed and the IP group is modified")
             deleteRule(rule)
             removeIpAddrFromIpAddrGroup(ipAddrGroup, addr)
-            c = expectMsgType[Chain]
-            c.getRules.size() should be (0)
+
+            /** In the new stack we only get notified on the chain
+              * when the rule is deleted. Once the rule is deleted, there's
+              * no relationship between the chain and the ipaddr group, so it
+              * does get notified when the ipaddr group is changed */
+            if (!useNewStorageStack) {
+                c = expectMsgType[Chain]
+                c.getRules.size() should be (0)
+            }
             c = expectMsgType[Chain]
             c.getRules.size() should be (0)
 
@@ -266,7 +275,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Given("A chain with a rule with one IPAddrGroup")
             val ipAddrGroup = newIpAddrGroup()
             val addr1 = "10.0.1.1"
-            addAddrToIpAddrGroup(ipAddrGroup, addr1)
+            addIpAddrToIpAddrGroup(ipAddrGroup, addr1)
 
             val chain = newChain("chain1")
             newIpAddrGroupRuleOnChain(chain, 1, Action.DROP,
@@ -277,11 +286,11 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("it returns the first version of the chain")
             expectMsgType[Chain]
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             And("a second address is added to the IPAddrGroup")
             val addr2 = "10.0.1.2"
-            addAddrToIpAddrGroup(ipAddrGroup, addr2)
+            addIpAddrToIpAddrGroup(ipAddrGroup, addr2)
 
             Then("the VTA should send an update")
             val c = expectMsgType[Chain]
@@ -291,7 +300,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                                  null, null)
 
             And("the VTA should receive a flow invalidation for the chain")
-            vta.getAndClear() should contain (flowInvalidationMsg(c.id))
+            vta.getAndClearBC() should contain (flowInvalidationMsg(c.id))
         }
 
         scenario("Remove an address from an IPAddrGroup") {
@@ -299,8 +308,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             val ipAddrGroup = newIpAddrGroup()
             val addr1 = "10.0.1.1"
             val addr2 = "10.0.1.2"
-            addAddrToIpAddrGroup(ipAddrGroup, addr1)
-            addAddrToIpAddrGroup(ipAddrGroup, addr2)
+            addIpAddrToIpAddrGroup(ipAddrGroup, addr1)
+            addIpAddrToIpAddrGroup(ipAddrGroup, addr2)
 
             val chain = newChain("chain1")
             newIpAddrGroupRuleOnChain(chain, 1, Action.DROP,
@@ -313,10 +322,10 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             val c1 = expectMsgType[Chain]
             checkIpAddrGroupRule(c1.getRules.get(0), Action.DROP, null, null,
                                  ipAddrGroup, Set(addr1, addr2))
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             And("an address is removed from the IPAddrGroup")
-            removeAddrFromIpAddrGroup(ipAddrGroup, addr1)
+            removeIpAddrFromIpAddrGroup(ipAddrGroup, addr1)
 
             Then("the VTA should send an update")
             val c2 = expectMsgType[Chain]
@@ -325,7 +334,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                                  ipAddrGroup, Set(addr2))
 
             And("the VTA should receive a flow invalidation for the chain")
-            vta.getAndClear() should contain (flowInvalidationMsg(c2.id))
+            vta.getAndClearBC() should contain (flowInvalidationMsg(c2.id))
         }
     }
 
@@ -370,8 +379,18 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
         jr1.jumpToChainID shouldEqual jumpToId
     }
 
-    def flowInvalidationMsg(id: UUID) =
-        InvalidateFlowsByTag(FlowTagger.tagForChain(id))
+    def flowInvalidationMsg(id: UUID) = FlowTagger.tagForChain(id)
 }
 
-class TestableVTA extends VirtualTopologyActor with MessageAccumulator
+class TestableVTA extends VirtualTopologyActor with MessageAccumulator {
+    def getAndClearBC(): mutable.Buffer[BackChannelMessage] = {
+        val messages = mutable.Buffer[BackChannelMessage]()
+        backChannel.process(
+            new BackChannelHandler() {
+                override def handle(message: BackChannelMessage): Unit = {
+                    messages += message
+                }
+            })
+        messages
+    }
+}
