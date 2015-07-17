@@ -24,6 +24,7 @@ import scala.concurrent.duration._
 import com.google.inject.Inject
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.models.Topology
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone
@@ -140,14 +141,35 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newForwardNatRuleOnChain(chain: UUID, pos: Int,
                                           condition: rules.Condition,
                                           action: RuleResult.Action, targets: Set[rules.NatTarget],
-                                          isDnat: Boolean) : UUID = ???
+                                          isDnat: Boolean) : UUID = {
+        val devObserver = new TestAwaitableObserver[SimChain]
+        VirtualTopology.observable[SimChain](chain).subscribe(devObserver)
+
+        val rule = UUID.randomUUID
+        val builder = createNatRuleBuilder(
+            rule, Some(chain), Some(isDnat), Some(true),
+            targets.map(_.toProto(classOf[Topology.Rule.NatTarget])))
+
+        createZoomRule(rule, chain, condition, builder, devObserver)
+        rule
+    }
     override def newReverseNatRuleOnChain(chain: UUID, pos: Int,
                                           condition: rules.Condition,
                                           action: RuleResult.Action, isDnat: Boolean) : UUID = ???
     override def removeRuleFromBridge(bridge: UUID): Unit = ???
     override def newJumpRuleOnChain(chain: UUID, pos: Int,
                                     condition: rules.Condition,
-                                    jumpToChainID: UUID): UUID = ???
+                                    jumpToChainID: UUID): UUID = {
+        val devObserver = new TestAwaitableObserver[SimChain]
+        VirtualTopology.observable[SimChain](chain).subscribe(devObserver)
+
+        val rule = UUID.randomUUID
+        val builder =
+            createJumpRuleBuilder(rule, Some(chain), Some(jumpToChainID))
+
+        createZoomRule(rule, chain, condition, builder, devObserver)
+        rule
+    }
     override
     def newMirrorRuleOnChain(chain: UUID, pos: Int, condition: rules.Condition,
                              dstPortId: UUID): UUID = {

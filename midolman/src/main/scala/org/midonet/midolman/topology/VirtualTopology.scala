@@ -34,6 +34,7 @@ import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.services.MidolmanActorsService
+import org.midonet.midolman.simulation.Coordinator.CPAction
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
@@ -54,6 +55,10 @@ object VirtualTopology extends MidolmanLogging {
 
     trait VirtualDevice extends Device {
         def deviceTag: FlowTag
+    }
+
+    trait FilterableDevice extends Device {
+        var checkpointAction: CPAction
     }
 
     type DeviceFactory = UUID => DeviceMapper[_]

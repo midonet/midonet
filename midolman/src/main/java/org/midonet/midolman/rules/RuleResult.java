@@ -56,16 +56,10 @@ public class RuleResult {
 
     public Action action;
     public UUID jumpToChain;
-    public UUID dstPortId;
 
     public RuleResult(Action action, UUID jumpToChain) {
-        this(action, jumpToChain, null);
-    }
-
-    public RuleResult(Action action, UUID jumpToChain, UUID dstPortId) {
         this.action = action;
         this.jumpToChain = jumpToChain;
-        this.dstPortId = dstPortId;
     }
 
     @Override

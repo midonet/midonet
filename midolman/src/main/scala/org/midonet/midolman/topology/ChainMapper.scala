@@ -340,7 +340,7 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
             }
         }
         val chain = new SimChain(chainId,
-                                 ruleIds.map(rules(_).currentRule).asJava,
+                                 ruleIds.map(rules(_).currentRule),
                                  currentChains, chainProto.getName)
         log.debug("Emitting {}", chain)
         chain

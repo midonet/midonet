@@ -44,6 +44,32 @@ object Coordinator {
     // materialized ports and to the logical port that connects it to the VAB
     case class ForkAction(actions: Seq[SimulationResult]) extends ForwardAction
 
+    /**
+     * A CPAction, CheckPoint Action, is given to Coordinator when it's
+     * instantiated and passed down to virtual devices to create simulation
+     * checkpoints, where PacketContext can be mutated.
+     *
+     * In the current implementation rule applications are squashed into a
+     * PacketContext instance and the PacketContext is handed off to the Netlink
+     * output channel. Rule applications are added as the virtual flow actions
+     * and translated into OpenFlow actions in the way the number of actions to
+     * be added is minimized. However, in some case this is not preferred.
+     *
+     * For instance, for the port mirroring, where packets are copied and sent
+     * to another port, we want to add an action to emit packets to a target
+     * port with the modifications made by rules before the mirror rule. In this
+     * case we need to translate the virtual actions at the point the mirror
+     * rule is applied, so PacketWorkflow sets its translateActions method to
+     * Coordinator and starts the simulation.
+     */
+    type CPAction = (PacketContext) => Unit
+
+    /**
+     * NO_CHECKPOINT does nothing at each checkpont. This is the default
+     * behaviour of the checkpoint action.
+     */
+    val NO_CHECKPOINT: CPAction = (context: PacketContext) => Unit
+
     trait Device {
 
         /**
@@ -66,10 +92,10 @@ object Coordinator {
 /**
  * Coordinator object to simulate one packet traversing the virtual network.
  */
-class Coordinator(context: PacketContext)
+class Coordinator(context: PacketContext,
+                  checkpointAction: Coordinator.CPAction = Coordinator.NO_CHECKPOINT)
                  (implicit val actorSystem: ActorSystem) {
-
-    import org.midonet.midolman.simulation.Coordinator._
+    import Coordinator._
 
     implicit val logPktCtx: PacketContext = context
     implicit val log = context.log
@@ -110,9 +136,9 @@ class Coordinator(context: PacketContext)
     def simulate(): SimulationResult = {
         log.debug("Simulating a packet")
         if (context.ingressed) {
-            packetIngressesPort(context.inputPort, getPortGroups = true)
+            packetIngressesPort(context.inputPort, true)
         } else {
-            packetEgressesPort(context.egressPort)
+            packetEgressesPort(context.egressPort, checkpointAction)
         }
     }
 
@@ -122,6 +148,7 @@ class Coordinator(context: PacketContext)
             case _: VxLanPort => tryAsk[Bridge](port.deviceId)
             case _: RouterPort => tryAsk[Router](port.deviceId)
         }
+        device.checkpointAction = checkpointAction
         numDevicesSimulated += 1
         log.debug(s"packet ingresses port: ${port.id} at device ${port.deviceId}")
         handleAction(device.process(context))
@@ -168,30 +195,30 @@ class Coordinator(context: PacketContext)
                 // original WMatch at that point in time
                 // Will fail if run in parallel because of side-effects
 
-                val originalMatch = context.origMatch.clone()
+                val originalMatch = context.baseMatch.clone()
                 try {
                     // TODO: maybe replace with some other alternative that
                     // spares iterating the entire if we find the break cond
                     val results = acts map { a =>
-                        context.origMatch.reset(context.wcmatch)
+                        context.baseMatch.reset(context.wcmatch)
                         handleAction(a)
                     }
                     results reduceLeft mergeSimulationResults
                 } finally {
-                    context.origMatch.reset(originalMatch)
+                    context.baseMatch.reset(originalMatch)
                 }
 
             case FloodBridgeAction(brId, ports) =>
                 floodBridge(brId, ports)
 
             case ToPortAction(outPortID) =>
-                packetEgressesPort(outPortID)
+                packetEgressesPort(outPortID, checkpointAction)
 
             case _ => simRes
         }
 
-    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean)
-    : SimulationResult =
+    private def packetIngressesPort(portID: UUID,
+                                    getPortGroups: Boolean): SimulationResult =
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
             ErrorDrop
@@ -218,7 +245,8 @@ class Coordinator(context: PacketContext)
             return thunk(port)
 
         val chain = tryAsk[Chain](filterID)
-        val result = Chain.apply(chain, context, port.id, true)
+        val result =
+            Chain.apply(chain, context, port.id, true, checkpointAction)
         result.action match {
             case RuleResult.Action.ACCEPT =>
                 thunk(port)
@@ -235,7 +263,9 @@ class Coordinator(context: PacketContext)
      * Simulate the packet egressing a virtual port. This is NOT intended
      * for flooding bridges
      */
-    private def packetEgressesPort(portID: UUID): SimulationResult = {
+    private
+    def packetEgressesPort(portID: UUID,
+                           checkpointAction: CPAction): SimulationResult = {
         val port = tryAsk[Port](portID)
         context.addFlowTag(port.deviceTag)
         context.addFlowTag(port.txTag)
@@ -278,7 +308,8 @@ class Coordinator(context: PacketContext)
             if (port.outboundFilter ne null) {
                 context.outPortId = portId
                 val chain = tryAsk[Chain](port.outboundFilter)
-                val result = Chain.apply(chain, context, port.id, true)
+                val result =
+                    Chain.apply(chain, context, port.id, true, checkpointAction)
                 log.debug(s"Chain ${chain.id} on port ${port.id} returned ${result.action}")
                 result.action == RuleResult.Action.ACCEPT
             } else {

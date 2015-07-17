@@ -26,7 +26,7 @@ import org.midonet.midolman.routingprotocols.RoutingWorkflow
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp._
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
-import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
+import org.midonet.midolman.topology.VirtualTopology.{FilterableDevice, VirtualDevice}
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.FlowMatch
@@ -46,7 +46,10 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                                         val routerMgrTagger: TagManager)
                                        (implicit system: ActorSystem,
                                         icmpErrors: IcmpErrorSender[IP])
-    extends Coordinator.Device with RoutingWorkflow with VirtualDevice {
+    extends Coordinator.Device
+    with RoutingWorkflow
+    with VirtualDevice
+    with FilterableDevice {
 
     import org.midonet.midolman.simulation.Coordinator._
 
@@ -156,8 +159,8 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 val inFilter = if (cfg.inboundFilter == null) null
                                else tryAsk[Chain](cfg.inboundFilter)
                 handlePreRoutingResult(
-                    Chain.apply(inFilter, context, id, false), inPort
-                )
+                    Chain.apply(inFilter, context, id, false, checkpointAction),
+                    inPort)
             case res => // Skip the inFilter / ingress chain
                 handlePreRoutingResult(res, inPort)
         }
@@ -297,7 +300,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 // Continue to outFilter / egress chain
                 val outFilter = if (cfg.outboundFilter == null) null
                                 else tryAsk[Chain](cfg.outboundFilter)
-                Chain.apply(outFilter, context, id, false)
+                Chain.apply(outFilter, context, id, false, checkpointAction)
             case res => res // Skip outFilter / egress chain
         }
 

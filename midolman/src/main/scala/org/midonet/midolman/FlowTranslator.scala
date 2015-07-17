@@ -81,6 +81,7 @@ trait FlowTranslator {
             }
             i += 1
         }
+        context.virtualFlowActions.clear()
 
         context.log.debug(s"Translated actions to: ${context.flowActions}")
     }
@@ -237,11 +238,12 @@ trait FlowTranslator {
                     case p: VxLanPort => // Always exterior
                         outputActionsToVtep(p.vtepVni, p.vtepTunnelIp,
                                             p.vtepTunnelZoneId, context)
-                    case p: Port if p.isExterior =>
+                    case p: Port if p.isExterior && p.isActive =>
                         context.outPorts.add(port)
                         outputActionsToPeer(p.tunnelKey, p.hostId, context)
                     case _ =>
-                        context.log.warn("Port {} was not exterior", port)
+                        context.log.warn(
+                            "Port {} was not exterior or inactive", port)
                 }
             case portNum =>
                 context.outPorts.add(port)
