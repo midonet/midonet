@@ -24,6 +24,7 @@ import scala.concurrent.duration._
 import com.google.inject.Inject
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone
@@ -135,11 +136,26 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         chain
     }
 
+    def insertRuleFunc(pos: Int, rule: UUID) =
+        makeFunc1[Chain,Chain](c => {
+                                   val rules = new ArrayList[Commons.UUID]
+                                   rules.addAll(c.getRuleIdsList())
+                                   rules.add(pos-1, rule.asProto)
+                                   Chain.newBuilder().mergeFrom(c)
+                                       .clearRuleIds()
+                                       .addAllRuleIds(rules)
+                                       .build()
+                               })
+
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: rules.Condition,
                                        action: RuleResult.Action): UUID = {
         val rule = UUID.randomUUID
-        val builder = createLiteralRuleBuilder(rule, Some(chain), Some(action))
+        val builder = createLiteralRuleBuilder(rule, None, Some(action))
         store.create(setConditionFromCondition(builder, condition).build())
+
+        store.observable(classOf[Chain], chain).take(1)
+            .map[Chain](insertRuleFunc(pos, rule))
+            .subscribe(makeAction1[Chain]({ store.update(_) }))
         rule
     }
 
@@ -152,9 +168,12 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                           action: RuleResult.Action, targets: Set[rules.NatTarget],
                                           isDnat: Boolean) : UUID = {
         val id = UUID.randomUUID
-        val builder = createNatRuleBuilder(id, Some(chain), Option(isDnat),
+        val builder = createNatRuleBuilder(id, None, Option(isDnat),
                                            None, targets)
         store.create(setConditionFromCondition(builder, condition).build())
+        store.observable(classOf[Chain], chain).take(1)
+            .map[Chain](insertRuleFunc(pos, id))
+            .subscribe(makeAction1[Chain]({ store.update(_) }))
         id
     }
 
@@ -162,9 +181,12 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                           condition: rules.Condition,
                                           action: RuleResult.Action, isDnat: Boolean) : UUID = {
         val id = UUID.randomUUID
-        val builder = createNatRuleBuilder(id, Some(chain), Option(isDnat),
+        val builder = createNatRuleBuilder(id, None, Option(isDnat),
                                            None, reverse=true)
         store.create(setConditionFromCondition(builder, condition).build())
+        store.observable(classOf[Chain], chain).take(1)
+            .map[Chain](insertRuleFunc(pos, id))
+            .subscribe(makeAction1[Chain]({ store.update(_) }))
         id
     }
 
@@ -182,8 +204,12 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                     condition: rules.Condition,
                                     jumpToChainID: UUID): UUID = {
         val id = UUID.randomUUID
-        val builder = createJumpRuleBuilder(id, Some(chain), Some(jumpToChainID))
+        val builder = createJumpRuleBuilder(id, None, Some(jumpToChainID))
         store.create(setConditionFromCondition(builder, condition).build())
+        store.observable(classOf[Chain], chain).take(1)
+            .map[Chain](insertRuleFunc(pos, id))
+            .subscribe(makeAction1[Chain]({ store.update(_) }))
+
         id
     }
 
@@ -268,7 +294,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                interface: Option[String] = None): UUID = {
         val id = UUID.randomUUID
         store.create(createBridgePort(id, bridgeId=Some(bridge),
-                                      hostId=host, interfaceName=interface))
+                                      hostId=host, interfaceName=interface,
+                                      adminStateUp=true))
         id
     }
 
@@ -301,7 +328,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         store.create(createRouterPort(id, routerId=Some(router),
                                       portMac=mac,
                                       portAddress=addr,
-                                      portSubnet=toSubnet(nwAddr, nwLen)))
+                                      portSubnet=toSubnet(nwAddr, nwLen),
+                                      adminStateUp=true))
 
         store.create(createRoute(srcNetwork=new IPv4Subnet(0,0),
                                  dstNetwork=new IPv4Subnet(addr, 32),
@@ -360,7 +388,6 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                          .map[Port](makeFunc1[Port, Port](
                                         Port.newBuilder.mergeFrom(_)
                                             .setHostId(hostId.asProto)
-                                            .setAdminStateUp(true)
                                             .setInterfaceName(portName).build()))
                          .toBlocking.first())
         stateStorage.setPortLocalAndActive(port, hostId, true)
