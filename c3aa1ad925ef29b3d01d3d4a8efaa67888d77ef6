@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6b40c8a5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 64,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-17T14:55:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8b918c54",
+      "range": {
+        "startLine": 64,
+        "startChar": 3,
+        "endLine": 64,
+        "endChar": 21
+      },
+      "revId": "c3aa1ad925ef29b3d01d3d4a8efaa67888d77ef6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4b87840f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-17T14:15:34Z",
       "side": 1,
       "message": "Does it make sense to make this a case class, spelling out what is each argument?",
+      "range": {
+        "startLine": 116,
+        "startChar": 55,
+        "endLine": 116,
+        "endChar": 64
+      },
+      "revId": "c3aa1ad925ef29b3d01d3d4a8efaa67888d77ef6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cb4554b4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 116,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-17T14:55:06Z",
+      "side": 1,
+      "message": "Good idea!",
+      "parentUuid": "9ad9bd40_4b87840f",
       "range": {
         "startLine": 116,
         "startChar": 55,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2b5c007e",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 118,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-17T14:55:06Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_cb9b9470",
+      "range": {
+        "startLine": 118,
+        "startChar": 31,
+        "endLine": 118,
+        "endChar": 33
+      },
+      "revId": "c3aa1ad925ef29b3d01d3d4a8efaa67888d77ef6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ebde9810",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 1
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ebef7885",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-17T14:55:06Z",
+      "side": 1,
+      "message": "Here value cannot be null. An opinion with a null value encodes an opinion removal. However, I added @Nonnull annotations to putOpinion and removeOpinion.",
+      "parentUuid": "9ad9bd40_ebde9810",
+      "range": {
+        "startLine": 173,
+        "startChar": 42,
+        "endLine": 173,
+        "endChar": 50
+      },
+      "revId": "c3aa1ad925ef29b3d01d3d4a8efaa67888d77ef6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_cb72b448",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
         "patchSetId": 1
@@ -105,6 +201,30 @@
       "writtenOn": "2015-07-17T14:15:34Z",
       "side": 1,
       "message": "replace with !\u003d",
+      "range": {
+        "startLine": 195,
+        "startChar": 54,
+        "endLine": 195,
+        "endChar": 62
+      },
+      "revId": "c3aa1ad925ef29b3d01d3d4a8efaa67888d77ef6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0bf3bc73",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-17T14:55:06Z",
+      "side": 1,
+      "message": "Since V can be a java class I thought of using equals thinking that \u003d\u003d and !\u003d would perform reference comparison.",
+      "parentUuid": "9ad9bd40_cb72b448",
       "range": {
         "startLine": 195,
         "startChar": 54,
