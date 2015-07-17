@@ -24,6 +24,11 @@ public class InternalServerErrorHttpException extends WebApplicationException {
 
     static final long serialVersionUID = 1L;
 
+    public InternalServerErrorHttpException(Throwable cause, String message) {
+        super(cause, buildErrorResponse(INTERNAL_SERVER_ERROR.getStatusCode(),
+                                        message));
+    }
+
     public InternalServerErrorHttpException(String message) {
         super(buildErrorResponse(INTERNAL_SERVER_ERROR.getStatusCode(),
                                  message));
