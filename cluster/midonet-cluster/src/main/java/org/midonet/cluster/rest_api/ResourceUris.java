@@ -25,9 +25,9 @@ import org.midonet.packets.MAC;
  * REST API.
  */
 public final class ResourceUris {
-    public static final String AD_ROUTES = "ad_routes";
     public static final String ARP_TABLE = "arp_table";
-    public static final String BGP = "bgps";
+    public static final String BGP_NETWORKS = "bgp_networks";
+    public static final String BGP_PEERS = "bgp_peers";
     public static final String BINDINGS = "bindings";
     public static final String BRIDGES = "bridges";
     public static final String CHAINS = "chains";

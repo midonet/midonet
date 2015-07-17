@@ -19,20 +19,17 @@ package org.midonet.cluster.rest_api.models;
 import java.net.URI;
 
 import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.rest_api.neutron.NeutronUriBuilder;
 import org.midonet.cluster.rest_api.version.Version;
 
-@XmlRootElement
 public class Application {
 
-    @XmlTransient
+    @JsonIgnore
     private final URI root;
 
     public Application(URI root)  {
@@ -51,202 +48,202 @@ public class Application {
         return root;
     }
 
-    @XmlElement(name = "version")
+    @JsonProperty("version")
     public String getVersion() {
         return Version.CURRENT;
     }
 
-    @XmlElement(name = "bridges")
+    @JsonProperty("bridges")
     public URI getBridges() {
         return uriFor(ResourceUris.BRIDGES);
     }
 
-    @XmlElement(name = "routers")
+    @JsonProperty("routers")
     public URI getRouters() {
         return uriFor(ResourceUris.ROUTERS);
     }
 
-    @XmlElement(name = "systemState")
+    @JsonProperty("systemState")
     public URI getSystemState() {
         return uriFor(ResourceUris.SYSTEM_STATE);
     }
 
-    @XmlElement(name = "hosts")
+    @JsonProperty("hosts")
     public URI getHosts() {
         return uriFor(ResourceUris.HOSTS);
     }
 
-    @XmlElement(name = "tenants")
+    @JsonProperty("tenants")
     public URI getTenants() {
         return uriFor(ResourceUris.TENANTS);
     }
 
-    @XmlElement(name = "tunnelZones")
+    @JsonProperty("tunnelZones")
     public URI getTunnelZones() {
         return uriFor(ResourceUris.TUNNEL_ZONES);
     }
 
-    @XmlElement(name = "loadBalancers")
+    @JsonProperty("loadBalancers")
     public URI getLoadBalancers() {
         return uriFor(ResourceUris.LOAD_BALANCERS);
     }
 
-    @XmlElement(name = "healthMonitors")
+    @JsonProperty("healthMonitors")
     public URI getHealthMonitors() {
         return uriFor(ResourceUris.HEALTH_MONITORS);
     }
 
-    @XmlElement(name = "neutron")
+    @JsonProperty("neutron")
     public URI getNeutron() {
         return uriFor(NeutronUriBuilder.NEUTRON);
     }
 
-    @XmlElement(name = "poolMembers")
+    @JsonProperty("poolMembers")
     public URI getPoolMembers() {
         return uriFor(ResourceUris.POOL_MEMBERS);
     }
 
-    @XmlElement(name = "pools")
+    @JsonProperty("pools")
     public URI getPools() {
         return uriFor(ResourceUris.POOLS);
     }
 
-    @XmlElement(name = "ports")
+    @JsonProperty("ports")
     public URI getPorts() {
         return uriFor(ResourceUris.PORTS);
     }
 
-    @XmlElement(name = "vips")
+    @JsonProperty("vips")
     public URI getVips() {
         return uriFor(ResourceUris.VIPS);
     }
 
-    @XmlElement(name = "chains")
+    @JsonProperty("chains")
     public URI getChains() {
         return uriFor(ResourceUris.CHAINS);
     }
 
-    @XmlElement(name = "portGroups")
+    @JsonProperty("portGroups")
     public URI getPortGroups() {
         return uriFor(ResourceUris.PORT_GROUPS);
     }
 
-    @XmlElement(name = "ipAddrGroups")
+    @JsonProperty("ipAddrGroups")
     public URI getIpAddrGroups() {
         return uriFor(ResourceUris.IP_ADDR_GROUPS);
     }
 
-    @XmlElement(name = "vteps")
+    @JsonProperty("vteps")
     public URI getVteps() {
         return uriFor(ResourceUris.VTEPS);
     }
 
-    @XmlElement(name = "bridgeTemplate")
+    @JsonProperty("bridgeTemplate")
     public String getBridgeTemplate() {
         return templateFor(ResourceUris.BRIDGES);
     }
 
-    @XmlElement(name = "portTemplate")
+    @JsonProperty("portTemplate")
     public String getPortTemplate() {
         return templateFor(ResourceUris.PORTS);
     }
 
-    @XmlElement(name = "hostTemplate")
+    @JsonProperty("hostTemplate")
     public String getHostTemplate() {
         return templateFor(ResourceUris.HOSTS);
     }
 
-    @XmlElement(name = "tunnelZoneTemplate")
+    @JsonProperty("tunnelZoneTemplate")
     public String getTunnelZoneTemplate() {
         return templateFor(ResourceUris.TUNNEL_ZONES);
     }
 
-    @XmlElement(name = "adRouteTemplate")
-    public String getAdRouteTemplate() {
-        return templateFor(ResourceUris.AD_ROUTES);
+    @JsonProperty("bgpNetworkTemplate")
+    public String getBgpNetworkTemplate() {
+        return templateFor(ResourceUris.BGP_NETWORKS);
     }
 
-    @XmlElement(name = "bgpTemplate")
-    public String getBgpTemplate() {
-        return templateFor(ResourceUris.BGP);
+    @JsonProperty("bgpPeerTemplate")
+    public String getBgpPeerTemplate() {
+        return templateFor(ResourceUris.BGP_PEERS);
     }
 
-    @XmlElement(name = "healthMonitorTemplate")
+    @JsonProperty("healthMonitorTemplate")
     public String getHealthMonitorTemplate() {
         return templateFor(ResourceUris.HEALTH_MONITORS);
     }
 
-    @XmlElement(name = "loadBalancerTemplate")
+    @JsonProperty("loadBalancerTemplate")
     public String getLoadBalancerTemplate() {
         return templateFor(ResourceUris.LOAD_BALANCERS);
     }
 
-    @XmlElement(name = "poolMemberTemplate")
+    @JsonProperty("poolMemberTemplate")
     public String getPoolMemberTemplate() {
         return templateFor(ResourceUris.POOL_MEMBERS);
     }
 
-    @XmlElement(name = "poolTemplate")
+    @JsonProperty("poolTemplate")
     public String getPoolTemplate() {
         return templateFor(ResourceUris.POOLS);
     }
 
-    @XmlElement(name = "vipTemplate")
+    @JsonProperty("vipTemplate")
     public String getVipTemplate() {
         return templateFor(ResourceUris.VIPS);
     }
 
-    @XmlElement(name = "chainTemplate")
+    @JsonProperty("chainTemplate")
     public String getChainTemplate() {
         return templateFor(ResourceUris.CHAINS);
     }
 
-    @XmlElement(name = "portGroupTemplate")
+    @JsonProperty("portGroupTemplate")
     public String getPortGroupTemplate() {
         return templateFor(ResourceUris.PORT_GROUPS);
     }
 
-    @XmlElement(name = "ipAddrGroupTemplate")
+    @JsonProperty("ipAddrGroupTemplate")
     public String getIpAddrGroupTemplate() {
         return templateFor(ResourceUris.IP_ADDR_GROUPS);
     }
 
-    @XmlElement(name = "routeTemplate")
+    @JsonProperty("routeTemplate")
     public String getRouteTemplate() {
         return templateFor(ResourceUris.ROUTES);
     }
 
-    @XmlElement(name = "routerTemplate")
+    @JsonProperty("routerTemplate")
     public String getRouterTemplate() {
         return templateFor(ResourceUris.ROUTERS);
     }
 
-    @XmlElement(name = "ruleTemplate")
+    @JsonProperty("ruleTemplate")
     public String getRuleTemplate() {
         return templateFor(ResourceUris.RULES);
     }
 
-    @XmlElement(name = "tenantTemplate")
+    @JsonProperty("tenantTemplate")
     public String getTenantTemplate() {
         return templateFor(ResourceUris.TENANTS);
     }
 
-    @XmlElement(name = "vtepTemplate")
+    @JsonProperty("vtepTemplate")
     public String getVtepTemplate() {
         return templateFor(ResourceUris.VTEPS);
     }
 
-    @XmlElement(name = "writeVersion")
+    @JsonProperty("writeVersion")
     public URI getWriteVersion() {
         return uriFor(ResourceUris.WRITE_VERSION);
     }
 
-    @XmlElement(name = "hostVersions")
+    @JsonProperty("hostVersions")
     public URI getHostVersions() {
         return uriFor(ResourceUris.HOSTS);
     }
 
-    @XmlElement(name = "traceRequests")
+    @JsonProperty("traceRequests")
     public URI getTraceRequests() {
         return uriFor(ResourceUris.TRACE_REQUESTS);
     }

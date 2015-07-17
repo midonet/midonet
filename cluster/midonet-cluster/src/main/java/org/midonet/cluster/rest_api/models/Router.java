@@ -63,6 +63,18 @@ public class Router extends UriResource {
     @ZoomField(name = "route_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> routeIds;
 
+    @Since("3")
+    @ZoomField(name = "as_number")
+    public int asNumber;
+
+    @JsonIgnore
+    @ZoomField(name = "bgp_network_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> bgpNetworkIds;
+
+    @JsonIgnore
+    @ZoomField(name = "bgp_peer_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> bgpPeerIds;
+
     public Router() {
         adminStateUp = true;
     }
@@ -102,6 +114,16 @@ public class Router extends UriResource {
         return absoluteUri(ResourceUris.LOAD_BALANCERS, loadBalancerId);
     }
 
+    @Since("3")
+    public URI getBgpNetworks() {
+        return relativeUri(ResourceUris.BGP_NETWORKS);
+    }
+
+    @Since("3")
+    public URI getBgpPeers() {
+        return relativeUri(ResourceUris.BGP_PEERS);
+    }
+
     @JsonIgnore
     @Override
     public void create() {
@@ -115,6 +137,8 @@ public class Router extends UriResource {
         this.id = from.id;
         portIds = from.portIds;
         routeIds = from.routeIds;
+        bgpNetworkIds = from.bgpNetworkIds;
+        bgpPeerIds = from.bgpPeerIds;
     }
 
 }
