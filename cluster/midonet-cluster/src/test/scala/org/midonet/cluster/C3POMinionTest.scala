@@ -183,7 +183,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         }
     }
 
-    private def executeSqlStmts(sqls: String*): Unit = withStatement { stmt =>
+    protected def executeSqlStmts(sqls: String*): Unit = withStatement { stmt =>
         for (sql <- sqls) eventually(stmt.executeUpdate(sql))
     }
 
@@ -216,7 +216,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         }
     }
 
-    private def insertTaskSql(id: Int, taskType: TaskType,
+    protected def insertTaskSql(id: Int, taskType: TaskType,
                               dataType: NeutronResourceType[_],
                               json: JsonNode, resourceId: UUID,
                               txnId: String): String = {
