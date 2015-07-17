@@ -268,36 +268,44 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
     }
 
     feature("putOpinion/removeOpinion") {
-        scenario("Invalid opinions complete the opinion observable") {
+        scenario("Opinion with null key completes the opinion observable") {
             Given("One observer")
-            val obs1 = createObserverAndSubscribe()
+            val obs = createObserverAndSubscribe()
 
             When("We insert an opinion for a null key")
             putOpinion(null, "myValue", "owner1")
 
             Then("The observable completes")
-            obs1.awaitCompletion(timeout)
-            obs1.getOnCompletedEvents should have size 1
+            obs.awaitCompletion(timeout)
+            obs.getOnCompletedEvents should have size 1
+        }
 
-            And("When we insert an opinion with a null owner")
-            val obs2 = createObserverAndSubscribe()
+        scenario("Opinion with null owner completes the opinion observable") {
+            Given("One observer")
+            val obs = createObserverAndSubscribe()
             putOpinion("myKey", "myValue", null)
 
             Then("The observable completes")
-            obs2.awaitCompletion(timeout)
-            obs2.getOnCompletedEvents should have size 1
+            obs.awaitCompletion(timeout)
+            obs.getOnCompletedEvents should have size 1
         }
 
         scenario("Remove non-existing opinion") {
             Given("One observer")
             val obs = createObserverAndSubscribe()
 
-            When("We add an opinion and remove it twice")
+            When("We add an opinion")
             putOpinion("someKey", "someValue", "owner1")
+
+            Then("We get notified")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            obs.getOnNextEvents should have size 1
+
+            And("When we remove this opinion twice")
             removeOpinion("someKey", "owner1")
             removeOpinion("someKey", "owner1")
 
-            Then("We receive only two notifications")
+            Then("We receive only one notification")
             obs.awaitOnNext(2, timeout) shouldBe true
             obs.getOnNextEvents should have size 2
 
@@ -502,7 +510,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
             outputSubj subscribe opinionObs
 
             When("When an exception is thrown")
-            inputSubj.onError(new Exception)
+            inputSubj.onError(new Exception())
 
             Then("The map observable completes")
             val obs = createObserverAndSubscribe()
