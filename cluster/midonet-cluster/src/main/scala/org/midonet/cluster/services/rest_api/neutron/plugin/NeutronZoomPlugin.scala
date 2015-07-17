@@ -83,14 +83,19 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     private def tryStorageOp[T](f: => T): T = {
         try f catch {
             case e: NotFoundException =>
+                log.error("Could not perform Neutron operation.", e)
                 throw new NotFoundHttpException(e.getMessage)
             case e: ObjectExistsException =>
+                log.error("Could not perform Neutron operation.", e)
                 throw new ConflictHttpException(e.getMessage)
             case e: ReferenceConflictException =>
+                log.error("Could not perform Neutron operation.", e)
                 throw new ConflictHttpException(e.getMessage)
             case e: ObjectReferencedException =>
+                log.error("Could not perform Neutron operation.", e)
                 throw new ConflictHttpException(e.getMessage)
             case e: StorageException =>
+                log.error("Could not perform Neutron operation.", e)
                 throw new InternalServerErrorHttpException(e.getMessage)
         }
     }
