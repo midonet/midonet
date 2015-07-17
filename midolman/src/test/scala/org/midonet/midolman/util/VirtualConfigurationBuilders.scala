@@ -22,7 +22,7 @@ import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, FragmentPolicy, NatTarget}
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC, TCP}
 
 object VirtualConfigurationBuilders {
     case class DhcpOpt121Route(gw: IPv4Addr, subnet: IPv4Subnet)
@@ -59,12 +59,24 @@ trait VirtualConfigurationBuilders {
                               action: Action): UUID
     def newTraceRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                             requestId: UUID): UUID
-    def newTcpDstRuleOnChain(
+
+    final def newTcpDstRuleOnChain(
             chain: UUID, pos: Int, dstPort: Int, action: Action,
-            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED): UUID
-    def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
+            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED): UUID = {
+        val condition = newCondition(nwProto = Some(TCP.PROTOCOL_NUMBER),
+                                     tpDst = Some(dstPort),
+                                     fragmentPolicy = fragmentPolicy)
+        newLiteralRuleOnChain(chain, pos, condition, action)
+    }
+
+    final def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
                                   ipAddrGroupIdDst: Option[UUID],
-                                  ipAddrGroupIdSrc: Option[UUID]): UUID
+                                  ipAddrGroupIdSrc: Option[UUID]): UUID = {
+        val condition = newCondition(ipAddrGroupIdDst = ipAddrGroupIdDst,
+                                     ipAddrGroupIdSrc = ipAddrGroupIdSrc)
+        newLiteralRuleOnChain(chain, pos, condition, action)
+    }
+
     def newForwardNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                  action: Action, targets: Set[NatTarget],
                                  isDnat: Boolean) : UUID
@@ -72,12 +84,16 @@ trait VirtualConfigurationBuilders {
                          action: Action, isDnat: Boolean) : UUID
     def removeRuleFromBridge(bridge: UUID): Unit
     def newJumpRuleOnChain(chain: UUID, pos: Int, condition: Condition,
-                              jumpToChainID: UUID): UUID
-    def newFragmentRuleOnChain(chain: UUID, pos: Int,
-                               fragmentPolicy: FragmentPolicy,
-                               action: Action): UUID
+                           jumpToChainID: UUID): UUID
+    final def newFragmentRuleOnChain(chain: UUID, pos: Int,
+                                        fragmentPolicy: FragmentPolicy,
+                                        action: Action): UUID = {
+        val condition = newCondition(fragmentPolicy = fragmentPolicy)
+        newLiteralRuleOnChain(chain, pos, condition, action)
+    }
+
     def deleteRule(id: UUID): Unit
-    def newIpAddrGroup(): UUID
+    final def newIpAddrGroup(): UUID = newIpAddrGroup(UUID.randomUUID())
     def newIpAddrGroup(id: UUID): UUID
     def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit
     def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit
@@ -136,17 +152,28 @@ trait VirtualConfigurationBuilders {
     def linkPorts(port: UUID, peerPort: UUID): Unit
     def unlinkPorts(port: UUID): Unit
     def materializePort(port: UUID, hostId: UUID, portName: String): Unit
-    def newCondition(
+    final def newCondition(
             nwProto: Option[Byte] = None,
             tpDst: Option[Int] = None,
             tpSrc: Option[Int] = None,
             ipAddrGroupIdDst: Option[UUID] = None,
             ipAddrGroupIdSrc: Option[UUID] = None,
             fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
-            : Condition
-    def newIPAddrGroup(id: Option[UUID]): UUID
-    def addAddrToIpAddrGroup(id: UUID, addr: String): Unit
-    def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit
+            : Condition = {
+        val c = new Condition()
+        if (ipAddrGroupIdDst.isDefined)
+            c.ipAddrGroupIdDst = ipAddrGroupIdDst.get
+        if (ipAddrGroupIdSrc.isDefined)
+            c.ipAddrGroupIdSrc = ipAddrGroupIdSrc.get
+        if (nwProto.isDefined)
+            c.nwProto = Byte.box(nwProto.get)
+        if (tpDst.isDefined)
+            c.tpDst = new org.midonet.util.Range(Int.box(tpDst.get))
+        if (tpSrc.isDefined)
+            c.tpSrc = new org.midonet.util.Range(Int.box(tpSrc.get))
+        c.fragmentPolicy = fragmentPolicy
+        c
+    }
 
     def newLoadBalancer(id: UUID = UUID.randomUUID): UUID
     def deleteLoadBalancer(id: UUID): Unit
@@ -246,14 +273,7 @@ trait ForwardingVirtualConfigurationBuilders
     override def newTraceRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                      requestId: UUID): UUID =
         virtConfBuilderImpl.newTraceRuleOnChain(chain, pos, condition, requestId)
-    override def newTcpDstRuleOnChain(
-            chain: UUID, pos: Int, dstPort: Int, action: Action,
-            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED): UUID =
-        virtConfBuilderImpl.newTcpDstRuleOnChain(chain, pos, dstPort, action, fragmentPolicy)
-    override def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
-                                           ipAddrGroupIdDst: Option[UUID],
-                                           ipAddrGroupIdSrc: Option[UUID]): UUID =
-        virtConfBuilderImpl.newIpAddrGroupRuleOnChain(chain, pos, action, ipAddrGroupIdDst, ipAddrGroupIdSrc)
+
     override def newForwardNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                           action: Action, targets: Set[NatTarget],
                                           isDnat: Boolean) : UUID =
@@ -266,12 +286,9 @@ trait ForwardingVirtualConfigurationBuilders
     override def newJumpRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                     jumpToChainID: UUID): UUID =
         virtConfBuilderImpl.newJumpRuleOnChain(chain, pos, condition, jumpToChainID)
-    override def newFragmentRuleOnChain(chain: UUID, pos: Int,
-                                        fragmentPolicy: FragmentPolicy,
-                                        action: Action): UUID =
-        virtConfBuilderImpl.newFragmentRuleOnChain(chain, pos, fragmentPolicy, action)
+
     override def deleteRule(id: UUID): Unit = virtConfBuilderImpl.deleteRule(id)
-    override def newIpAddrGroup(): UUID = virtConfBuilderImpl.newIpAddrGroup()
+
     override def newIpAddrGroup(id: UUID): UUID = virtConfBuilderImpl.newIpAddrGroup(id)
     override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = virtConfBuilderImpl.addIpAddrToIpAddrGroup(id, addr)
     override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
@@ -360,22 +377,6 @@ trait ForwardingVirtualConfigurationBuilders
 
     override def materializePort(port: UUID, hostId: UUID, portName: String): Unit =
         virtConfBuilderImpl.materializePort(port, hostId, portName)
-    override def newCondition(
-            nwProto: Option[Byte] = None,
-            tpDst: Option[Int] = None,
-            tpSrc: Option[Int] = None,
-            ipAddrGroupIdDst: Option[UUID] = None,
-            ipAddrGroupIdSrc: Option[UUID] = None,
-            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
-            : Condition =
-        virtConfBuilderImpl.newCondition(nwProto, tpDst, tpSrc, ipAddrGroupIdDst,
-                           ipAddrGroupIdSrc, fragmentPolicy)
-    override def newIPAddrGroup(id: Option[UUID]): UUID =
-        virtConfBuilderImpl.newIPAddrGroup(id)
-    override def addAddrToIpAddrGroup(id: UUID, addr: String): Unit =
-        virtConfBuilderImpl.addAddrToIpAddrGroup(id, addr)
-    override def removeAddrFromIpAddrGroup(id: UUID, addr: String): Unit =
-        virtConfBuilderImpl.removeAddrFromIpAddrGroup(id, addr)
     override def newLoadBalancer(id: UUID = UUID.randomUUID): UUID =
         virtConfBuilderImpl.newLoadBalancer(id)
     override def deleteLoadBalancer(id: UUID): Unit =
