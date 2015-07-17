@@ -96,6 +96,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f061253a",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-17T10:14:59Z",
+      "side": 1,
+      "message": "yes",
+      "parentUuid": "9ad9bd40_10304955",
+      "range": {
+        "startLine": 562,
+        "startChar": 12,
+        "endLine": 571,
+        "endChar": 50
+      },
+      "revId": "7e5f591da7cb1cd55fdd98f2f12f20762f2c1f07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_509e5157",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/guice/MockMidolmanModule.scala",
         "patchSetId": 1
@@ -131,6 +155,30 @@
       "side": 1,
       "message": "The tests are now single threaded, so the check is meaningless. I can add a check that it\u0027s the same thread as the binder thread.",
       "parentUuid": "9ad9bd40_509e5157",
+      "range": {
+        "startLine": 65,
+        "startChar": 40,
+        "endLine": 65,
+        "endChar": 44
+      },
+      "revId": "7e5f591da7cb1cd55fdd98f2f12f20762f2c1f07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_305c6d7e",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/guice/MockMidolmanModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-17T10:14:59Z",
+      "side": 1,
+      "message": "Yes, that\u0027d be good.",
+      "parentUuid": "9ad9bd40_d0eee1b3",
       "range": {
         "startLine": 65,
         "startChar": 40,
