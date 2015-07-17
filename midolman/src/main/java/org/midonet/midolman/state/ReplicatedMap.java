@@ -383,7 +383,8 @@ public abstract class ReplicatedMap<K, V> {
      */
     public void put(final K key, final V value) {
         String path = this.createsEphemeralNode ? encodePath(key, value)
-                : encodeFullPath(key.toString(), value.toString(), 1);
+                : encodeFullPath(key.toString(), value.toString(),
+                                 Integer.MAX_VALUE);
         CreateMode mode = this.createsEphemeralNode ?
                 CreateMode.EPHEMERAL_SEQUENTIAL : CreateMode.PERSISTENT;
 

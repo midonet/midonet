@@ -161,12 +161,12 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
             // Subscribe to the bus, filtering out MacLocations on our own VTEP
             val bus = vxgw.observable.startWith(preseed.asJava)
             val myTunnelIp = vtepOvsdb.vxlanTunnelIp.getOrElse {
-                                log.warn(s"No tunnel IP, assume management IP")
-                                mgmtIp
-                             }
+                log.warn(s"No tunnel IP, assume management IP")
+                mgmtIp
+            }
             newSub.fromBus = bus.filter ( makeFunc1 { ml =>
-                                   !myTunnelIp.equals(ml.vxlanTunnelEndpoint)
-                               }).subscribe(vtepOvsdb.macRemoteUpdater)
+                !myTunnelIp.equals(ml.vxlanTunnelEndpoint)
+            }).subscribe(vtepOvsdb.macRemoteUpdater)
 
             // Push the our current snapshot to our peers
             val snapshot = vtepOvsdb.currentMacLocal(lsUUID)
@@ -174,11 +174,9 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
             snapshot foreach vxgw.observer.onNext
 
             // Subscribe the bus to our stream so peers get our MAC-port updates
-            newSub.toBus = vtepOvsdb.macLocalUpdates
-                         .filter(makeFunc1 { ml =>
-                            myLogicalSwitchNames.contains(ml.logicalSwitchName)
-                         })
-                         .subscribe(vxgw.observer)
+            newSub.toBus = vtepOvsdb.macLocalUpdates.filter(makeFunc1 { ml =>
+                myLogicalSwitchNames.contains(ml.logicalSwitchName)
+            }).subscribe(vxgw.observer)
 
             // Tell our VTEP to send flooded traffic to MidoNet's flooding proxy
             publishFloodingProxyTo(vxgw)
