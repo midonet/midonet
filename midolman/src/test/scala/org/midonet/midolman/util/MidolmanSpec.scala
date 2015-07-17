@@ -116,6 +116,8 @@ trait MidolmanSpec extends FeatureSpecLike
     }
 
     def useNewStorageStack: Boolean = System.getProperty("midonet.newStack") != null
+    def awaitingImpl: Boolean = System.getProperty("midonet.awaitingImpl") != null
+
     protected def getModules = {
         val conf = MidoTestConfigurator.forAgents(fillConfig())
         val modules = List(
