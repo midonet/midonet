@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_30370d50",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-17T10:06:09Z",
+      "side": 1,
+      "message": "done.",
+      "parentUuid": "9ad9bd40_d0726148",
+      "range": {
+        "startLine": 269,
+        "startChar": 58,
+        "endLine": 269,
+        "endChar": 60
+      },
+      "revId": "7e5f591da7cb1cd55fdd98f2f12f20762f2c1f07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f0904545",
         "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
         "patchSetId": 1
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-17T09:56:11Z",
       "side": 1,
       "message": "If the chain mapper does not discard \"fake\" rule updates, then you can\u0027t just remove this altogether. After all I\u0027m not expecting zoom clients to update the same object twice with the same content.",
+      "range": {
+        "startLine": 562,
+        "startChar": 12,
+        "endLine": 571,
+        "endChar": 50
+      },
+      "revId": "7e5f591da7cb1cd55fdd98f2f12f20762f2c1f07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_10304955",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/ChainMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 571,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-17T10:06:09Z",
+      "side": 1,
+      "message": "I assume you mean \"can\" instead of \"can\u0027t\"",
+      "parentUuid": "9ad9bd40_f0904545",
       "range": {
         "startLine": 562,
         "startChar": 12,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d0eee1b3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/guice/MockMidolmanModule.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 65,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-17T10:06:09Z",
+      "side": 1,
+      "message": "The tests are now single threaded, so the check is meaningless. I can add a check that it\u0027s the same thread as the binder thread.",
+      "parentUuid": "9ad9bd40_509e5157",
+      "range": {
+        "startLine": 65,
+        "startChar": 40,
+        "endLine": 65,
+        "endChar": 44
+      },
+      "revId": "7e5f591da7cb1cd55fdd98f2f12f20762f2c1f07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_3000ed66",
         "filename": "midonet-util/src/main/scala/org/midonet/util/functors/Predicate.scala",
         "patchSetId": 1
@@ -82,6 +154,30 @@
       "writtenOn": "2015-07-17T09:56:11Z",
       "side": 1,
       "message": "2015",
+      "range": {
+        "startLine": 2,
+        "startChar": 13,
+        "endLine": 2,
+        "endChar": 17
+      },
+      "revId": "7e5f591da7cb1cd55fdd98f2f12f20762f2c1f07",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f02cc504",
+        "filename": "midonet-util/src/main/scala/org/midonet/util/functors/Predicate.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-17T10:06:09Z",
+      "side": 1,
+      "message": "will fix.",
+      "parentUuid": "9ad9bd40_3000ed66",
       "range": {
         "startLine": 2,
         "startChar": 13,
