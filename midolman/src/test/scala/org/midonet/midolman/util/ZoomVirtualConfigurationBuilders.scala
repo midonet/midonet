@@ -341,7 +341,18 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
 
     def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
-                     vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID = ???
+                     vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID = {
+        val id = UUID.randomUUID
+        val vtepId = UUID.randomUUID
+        store.create(Vtep.newBuilder().setId(vtepId.asProto)
+                        .setManagementIp(mgmtIp.asProto)
+                        .setManagementPort(mgmtPort)
+                        .setTunnelZoneId(tunnelZone.asProto)
+                        .addTunnelIps(tunnelIp.toString()).build())
+        store.create(createVxLanPort(id, bridgeId=Some(bridge),
+                                     tunnelKey=vni))
+        id
+    }
 
     override def newRoute(router: UUID,
                           srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
