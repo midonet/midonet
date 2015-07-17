@@ -35,6 +35,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
                                         with GivenWhenThen {
 
     type Opinion = (String, String, String)
+    type MapUpdate = (String, String, String)
 
     private val timeout = 5 seconds
 
@@ -51,6 +52,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
         override def owner = ownerId
         override def opinionObservable: Observable[Opinion] = inputSubj
         override def opinionObserver: Observer[Opinion] = outputSubj
+        override def close(): Unit = inputSubj.onCompleted()
     }
 
     private def putOpinion(key: String, value: String, owner: String): Unit =
@@ -318,8 +320,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
 
         scenario("putOpinion publishes the opinion on the output subject") {
             Given("An observer subscribed to the output subject")
-            val obs = new TestObserver[(String, String, String)]
-                          with AwaitableObserver[(String, String, String)]
+            val obs = new TestObserver[Opinion] with AwaitableObserver[Opinion]
             outputSubj subscribe obs
 
             When("We put an opinion")
@@ -333,8 +334,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
 
         scenario("removeOpinion publishes the opinion on the output subject") {
             Given("An observer subscribed to the output subject")
-            val obs = new TestObserver[(String, String, String)]
-                          with AwaitableObserver[(String, String, String)]
+            val obs = new TestObserver[Opinion] with AwaitableObserver[Opinion]
             outputSubj subscribe obs
 
             When("We put an opinion")
@@ -358,16 +358,16 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
             obs.awaitOnNext(2, timeout) shouldBe true
 
             Then("We obtain the content of the map")
-            obs.getOnNextEvents should contain only(("myKey1", "myValue1"),
-                ("myKey2", "myValue2"))
+            obs.getOnNextEvents should contain only(("myKey1", null, "myValue1"),
+                ("myKey2", null, "myValue2"))
 
             And("When a second observer subscribes to the merged map")
             val obs2 = createObserverAndSubscribe()
             obs2.awaitOnNext(2, timeout) shouldBe true
 
             Then("This observer also receives the content of the map")
-            obs2.getOnNextEvents should contain only(("myKey1", "myValue1"),
-                ("myKey2", "myValue2"))
+            obs2.getOnNextEvents should contain only(("myKey1", null, "myValue1"),
+                ("myKey2", null, "myValue2"))
 
             And("The 1st observer does not receive anything else")
             obs.getOnNextEvents should have size 2
@@ -382,7 +382,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
 
             Then("The observer receives the update")
             obs.awaitOnNext(1, timeout) shouldBe true
-            obs.getOnNextEvents.get(0) shouldBe ("myKey", "myValue")
+            obs.getOnNextEvents.get(0) shouldBe ("myKey", null, "myValue")
             obs.getOnNextEvents should have size 1
 
             And("When we put a superseding opinion from the 2nd owner")
@@ -390,7 +390,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
 
             Then("The observer gets notified")
             obs.awaitOnNext(2, timeout) shouldBe true
-            obs.getOnNextEvents.get(1) shouldBe ("myKey", "myValue2")
+            obs.getOnNextEvents.get(1) shouldBe ("myKey", "myValue", "myValue2")
             obs.getOnNextEvents should have size 2
 
             And("When we put a non-winning opinion from the 1st owner")
@@ -401,7 +401,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
 
             Then("We receive a single notification")
             obs.awaitOnNext(3, timeout) shouldBe true
-            obs.getOnNextEvents.get(2) shouldBe ("dummy", "dummyValue")
+            obs.getOnNextEvents.get(2) shouldBe ("dummy", null, "dummyValue")
             obs.getOnNextEvents should have size 3
 
             And("When we remove the winning opinion from the 2nd owner")
@@ -409,7 +409,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
 
             Then("The opinion from the 1st owner is emitted")
             obs.awaitOnNext(4, timeout) shouldBe true
-            obs.getOnNextEvents.get(3) shouldBe ("myKey", "myVal")
+            obs.getOnNextEvents.get(3) shouldBe ("myKey", "myValue2", "myVal")
             obs.getOnNextEvents should have size 4
 
             And("When we remove the opinion from the 1st owner")
@@ -417,7 +417,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
 
             Then("A null value for the corresponding key is emitted")
             obs.awaitOnNext(5, timeout) shouldBe true
-            obs.getOnNextEvents.get(4) shouldBe ("myKey", null)
+            obs.getOnNextEvents.get(4) shouldBe ("myKey", "myVal", null)
             obs.getOnNextEvents should have size 5
 
             And("When remove the dummy opinion from the 2nd owner")
@@ -425,7 +425,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
 
             Then("A null value for the dummy key is emitted")
             obs.awaitOnNext(6, timeout) shouldBe true
-            obs.getOnNextEvents.get(5) shouldBe ("dummy", null)
+            obs.getOnNextEvents.get(5) shouldBe ("dummy", "dummyValue", null)
             obs.getOnNextEvents should have size 6
 
             And("We insert an opinion from a 3rd owner")
@@ -433,7 +433,7 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
 
             Then("We receive a notification")
             obs.awaitOnNext(7, timeout) shouldBe true
-            obs.getOnNextEvents.get(6) shouldBe ("myKey3", "tata")
+            obs.getOnNextEvents.get(6) shouldBe ("myKey3", null, "tata")
             obs.getOnNextEvents should have size 7
         }
 
@@ -519,9 +519,32 @@ class MergedMapTest extends FeatureSpec with BeforeAndAfter
         }
     }
 
+    feature("Close") {
+        scenario("The map is closed") {
+            Given("An observer")
+            val obs = createObserverAndSubscribe()
+
+            When("We insert an opinion in the map")
+            putOpinion("myKey", "myValue", "owner")
+
+            Then("We get notified of the new opinion")
+            obs.awaitOnNext(1, timeout) shouldBe true
+            map.get("myKey") shouldBe "myValue"
+
+            And("When we close the map")
+            map.close()
+
+            Then("Its observable is completed")
+            obs.awaitCompletion(timeout)
+
+            And("The map is cleared")
+            map.size shouldBe 0
+        }
+    }
+
     private def createObserverAndSubscribe() = {
-        val obs = new TestObserver[(String, String)]
-                      with AwaitableObserver[(String, String)]
+        val obs = new TestObserver[MapUpdate]
+                      with AwaitableObserver[MapUpdate]
         map.observable.subscribe(obs)
         obs
     }
