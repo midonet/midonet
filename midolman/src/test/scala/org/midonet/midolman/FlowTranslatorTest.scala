@@ -191,6 +191,7 @@ class FlowTranslatorTest extends MidolmanSpec {
     }
 
     feature("FlowActionOutputToVrnBridge is translated") {
+        if (!awaitingImpl) {
         translationScenario("The bridge has local ports, from VTEP") { ctx =>
             val vtep = new VtepDef(IPv4Addr("192.167.34.1"),
                                    IPv4Addr("102.32.2.1"),
@@ -214,6 +215,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx verify (List(output(2), output(3)),
             Set(FlowTagger.tagForDpPort(2),
                 FlowTagger.tagForDpPort(3)))
+        }
         }
 
         translationScenario("The bridge has local ports") { ctx =>
@@ -261,6 +263,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                             FlowTagger.tagForTunnelRoute(3, 4)))
         }
 
+        if (!awaitingImpl) {
         translationScenario("The bridge has vxlan ports") { ctx =>
             val hostIp = IPv4Addr("172.167.3.3")
             val hostTunIp = IPv4Addr("10.0.2.1")
@@ -317,6 +320,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                     FlowTagger.tagForDpPort(8)
                 )
             )
+        }
         }
 
         translationScenario("Local and remote ports are translated") { ctx =>
