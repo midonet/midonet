@@ -115,7 +115,7 @@ trait ConnTrackState extends FlowState { this: PacketContext =>
                 false
             } else {
                 isConnectionTracked = true
-                connKey = ConnTrackKey(origMatch, fetchIngressDevice())
+                connKey = ConnTrackKey(baseMatch, fetchIngressDevice())
                 addFlowTag(connKey)
                 flowDirection = conntrackTx.get(connKey)
                 val res = flowDirection ne RETURN_FLOW

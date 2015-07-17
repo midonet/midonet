@@ -17,6 +17,7 @@ package org.midonet.midolman.simulation
 
 import java.util.UUID
 
+import org.midonet.midolman.simulation.Coordinator.CPAction
 import org.midonet.sdn.flows.FlowTagger
 
 import scala.concurrent.ExecutionContext
@@ -73,7 +74,8 @@ class Router(override val id: UUID,
              override val cfg: Config,
              override val rTable: RoutingTable,
              override val routerMgrTagger: TagManager,
-             val arpCache: ArpCache)
+             val arpCache: ArpCache,
+             override var checkpointAction: CPAction = Coordinator.NO_CHECKPOINT)
             (implicit system: ActorSystem)
         extends RouterBase[IPv4Addr](id, cfg, rTable, routerMgrTagger) {
 
@@ -391,8 +393,8 @@ class Router(override val id: UUID,
                     val outFilter = if (cfg.outboundFilter == null) null
                                     else tryAsk[Chain](cfg.outboundFilter)
 
-                    val postRoutingResult =
-                        Chain.apply(outFilter, egrPktContext, id, false)
+                    val postRoutingResult = Chain.apply(outFilter,
+                        egrPktContext, id, false, checkpointAction)
 
                     _applyPostActions(eth, postRoutingResult, egrPktContext)
                     postRoutingResult.action match {

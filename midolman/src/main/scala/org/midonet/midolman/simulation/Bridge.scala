@@ -27,7 +27,8 @@ import org.midonet.midolman.NotYetException
 import org.midonet.midolman.PacketWorkflow.{Drop, NoOp, SimulationResult, ErrorDrop}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
+import org.midonet.midolman.simulation.Coordinator.CPAction
+import org.midonet.midolman.topology.VirtualTopology.{FilterableDevice, VirtualDevice}
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
@@ -103,9 +104,11 @@ class Bridge(val id: UUID,
              val ipToMac: ROMap[IPAddr, MAC],
              val vlanToPort: VlanPortMap,
              val exteriorPorts: List[UUID],
-             val subnetIds: List[UUID])
+             val subnetIds: List[UUID],
+             override var checkpointAction: Coordinator.CPAction = Coordinator.NO_CHECKPOINT)
             (implicit val actorSystem: ActorSystem) extends Coordinator.Device
-                                                    with VirtualDevice {
+                                                    with VirtualDevice
+                                                    with FilterableDevice {
 
     import org.midonet.midolman.simulation.Coordinator._
 
@@ -144,8 +147,7 @@ class Bridge(val id: UUID,
 
     @throws[NotYetException]
     def normalProcess()(implicit context: PacketContext,
-                                 actorSystem: ActorSystem)
-    : SimulationResult = {
+                        actorSystem: ActorSystem) : SimulationResult = {
         context.addFlowTag(deviceTag)
 
         if (!adminStateUp) {
@@ -162,7 +164,7 @@ class Bridge(val id: UUID,
                     case Some(filterId) => tryAsk[Chain](filterId)
                     case None => null
                 },
-                context, id, false)
+                context, id, false, checkpointAction)
             context.log.debug("Ingress chain returned {}", preBridgeResult)
 
             preBridgeResult.action match {
@@ -499,8 +501,7 @@ class Bridge(val id: UUID,
                 case Some(filterId) => tryAsk[Chain](filterId)
                 case None => null
             },
-            context, id, false
-        )
+            context, id, false, checkpointAction)
         postBridgeResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
                 context.log.debug("Forwarding the packet with action {}", act)
