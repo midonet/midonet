@@ -826,7 +826,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         }
 
         // Delete the DHCP Port, whose fixed IP points to the deleted subnet.
-        executeSqlStmts(insertTaskSql(7, Delete, PortType, null, portId, "tx6"))
+        insertDeleteTask(7, PortType, portId)
         eventually {
             storage.exists(classOf[Port], portId).await() shouldBe false
         }
