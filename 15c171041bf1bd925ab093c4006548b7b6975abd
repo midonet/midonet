@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_97a37d4e",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "IntelliJ converted it because apply is a sort of reserved method name. It inherits the name defined in Java class but it\u0027s not an appropriate name in Scala.",
+      "parentUuid": "9ad9bd40_d53fc523",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b5396143",
         "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
         "patchSetId": 2
@@ -81,6 +99,24 @@
       "writtenOn": "2015-07-14T11:04:34Z",
       "side": 1,
       "message": "we can stop using \u0027jlog\u0027 now that it\u0027s in Scala.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_37bd5169",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_354551b3",
       "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -138,6 +174,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_77b7d986",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 145,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_b51081a9",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_d526e515",
         "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
         "patchSetId": 2
@@ -149,6 +203,24 @@
       "writtenOn": "2015-07-14T11:04:34Z",
       "side": 1,
       "message": "typo: checkpoint.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f74929d1",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 146,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_d526e515",
       "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -172,6 +244,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_77ffd967",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_084cb46f",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_e87230e2",
         "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
         "patchSetId": 2
@@ -183,6 +273,24 @@
       "writtenOn": "2015-07-14T14:30:53Z",
       "side": 1,
       "message": "I\u0027m really not understanding why checkpointAction is needed, can you explain? (I also followed up on the email thread, please check that out).\n\nAlso, I don\u0027t understand why MirrorRule calls pktContext.applyMirrorring() and yet we need special code and this checkpoing here. I think i\u0027m missing something, but it looks to me that if the rule itself is calling into the packet context to apply the mirroring, there should be nothing at all left to do out here.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_57081591",
+        "filename": "midolman/src/main/java/org/midonet/midolman/simulation/Chain.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Right, it\u0027s ideal if MirrorRule::apply could handle everything. However, PacketContext doesn\u0027t know about how virtual actions are translated and it shouldn\u0027t. FlowTranslator knows it and the virtual devices don\u0027t depend on the actual logic.",
+      "parentUuid": "9ad9bd40_e87230e2",
       "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -223,6 +331,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_3cb7f6d9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/FlowTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_489cfcc0",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_15212dfb",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 2
@@ -234,6 +360,24 @@
       "writtenOn": "2015-07-14T11:04:34Z",
       "side": 1,
       "message": "can you explain this with a comment?",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_dc68ca23",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_15212dfb",
       "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -257,6 +401,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_bcca264d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Originally I was trying to add a new argument checkpointAction to the related methods but they\u0027re many and spread out, so I deleted that. It makes this line exceeded 80 chars and I put private above the line. But it\u0027s no longer true and I\u0027ll make it back.",
+      "parentUuid": "9ad9bd40_681620a9",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a85e6874",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 2
@@ -268,6 +430,24 @@
       "writtenOn": "2015-07-14T14:26:36Z",
       "side": 1,
       "message": "ditto, this is not our coding style.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fc774e00",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_a85e6874",
       "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -308,6 +488,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_3c61b639",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 281,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_288fb8cd",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_15c5ad3b",
         "filename": "midolman/src/test/scala/org/midonet/midolman/rules/PortMirroringTest.scala",
         "patchSetId": 2
@@ -325,6 +523,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9c5e4275",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/rules/PortMirroringTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_15c5ad3b",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_b5eb21af",
         "filename": "midolman/src/test/scala/org/midonet/midolman/rules/PortMirroringTest.scala",
         "patchSetId": 2
@@ -336,6 +552,24 @@
       "writtenOn": "2015-07-14T10:43:06Z",
       "side": 1,
       "message": "this assertion looks weak to me. We should assert on the actual actions.",
+      "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_bc54e654",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/rules/PortMirroringTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-17T07:12:48Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_b5eb21af",
       "revId": "15c171041bf1bd925ab093c4006548b7b6975abd",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
