@@ -105,5 +105,5 @@ Devstack Integration
 DevStack executes DevMido's scripts to set up the MidoNet environment.  To run
 DevStack, refer to:
 
-    https://github.com/stackforge/networking-midonet/blob/master/devstack/README.rst
+    https://github.com/openstack/networking-midonet/blob/master/devstack/README.rst
 
