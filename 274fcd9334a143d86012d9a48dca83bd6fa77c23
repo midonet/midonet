@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b4830855",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/southbound/vtep/VtepBroker.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 282,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-20T16:24:31Z",
+      "side": 1,
+      "message": "wrong, should be ml.mac()",
+      "range": {
+        "startLine": 282,
+        "startChar": 47,
+        "endLine": 282,
+        "endChar": 69
+      },
+      "revId": "274fcd9334a143d86012d9a48dca83bd6fa77c23",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
