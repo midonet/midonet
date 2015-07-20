@@ -69,6 +69,30 @@
       "revId": "100a34ffa8b6b68d9b98916bf6309f1421dd030a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ee1ce179",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/ZoomTopologyBackdoor.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-20T12:33:40Z",
+      "side": 1,
+      "message": "Ah true, it shouldn\u0027t affect the test, but better to have them symmetric.",
+      "parentUuid": "9ad9bd40_6e21b1b3",
+      "range": {
+        "startLine": 239,
+        "startChar": 17,
+        "endLine": 239,
+        "endChar": 28
+      },
+      "revId": "100a34ffa8b6b68d9b98916bf6309f1421dd030a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
