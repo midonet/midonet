@@ -42,6 +42,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
         vta = VirtualTopologyActor.as[TestableVTA]
     }
 
+    if (!awaitingImpl) {
     feature("LoadBalancerManager handles loadBalancer's VIPs") {
         scenario("Load loadBalancer with two VIPs") {
             Given("a loadBalancer with two VIPs")
@@ -222,7 +223,7 @@ class LoadBalancerManagerTest extends TestKit(ActorSystem("LoadBalancerManagerTe
             vtaMessages.contains(poolFlowInvalidationMsg(pool)) shouldBe true
         }
     }
-
+    }
     def poolReqMsg(id: UUID) =
         PoolRequest(id)
 

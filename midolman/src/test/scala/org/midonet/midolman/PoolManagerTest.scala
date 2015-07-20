@@ -60,7 +60,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             p2.activePoolMembers.map(v => v.id).toSet shouldEqual poolMemberIds
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
+            vta.getAndClearBC().contains(flowInvalidationMsg(p2.id)) shouldBe true
         }
 
         scenario("Receive update when a PoolMember is added") {
@@ -76,7 +76,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             val p2 = expectMsgType[Pool]
             p2.id shouldEqual pool
             p2.activePoolMembers.length shouldBe 1
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             And("a new PoolMember is added")
             val secondPoolMember = newPoolMember(pool)
@@ -88,7 +88,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             p3.activePoolMembers.map(v => v.id).toSet shouldEqual Set(firstPoolMember, secondPoolMember)
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
+            vta.getAndClearBC().contains(flowInvalidationMsg(p2.id)) shouldBe true
         }
 
         scenario("Receive update when a PoolMember is removed") {
@@ -104,7 +104,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             val p1 = expectMsgType[Pool]
             p1.id shouldEqual pool
             p1.activePoolMembers.length shouldBe 1
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             And("the existing PoolMember is removed")
             deletePoolMember(firstPoolMember)
@@ -115,7 +115,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             p2.activePoolMembers.length shouldBe 0
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
+            vta.getAndClearBC().contains(flowInvalidationMsg(p2.id)) shouldBe true
         }
 
         scenario("Receive update when a PoolMember is changed") {
@@ -134,7 +134,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             p1.id shouldEqual pool
             p1.activePoolMembers.length shouldBe 1
             val pm1 = p1.activePoolMembers.toSeq(0)
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             And("the PoolMember is changed, set to adminState down")
             setPoolMemberAdminStateUp(firstPoolMember, false)
@@ -145,7 +145,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             p2.activePoolMembers.length shouldBe 0
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClear().contains(flowInvalidationMsg(p2.id)) shouldBe true
+            vta.getAndClearBC().contains(flowInvalidationMsg(p2.id)) shouldBe true
         }
     }
 
@@ -183,13 +183,13 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             vta.self ! PoolRequest(pool, update = true)
             val simPool1 = expectMsgType[Pool]
             simPool1.adminStateUp shouldBe false
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             When("the pool's adminStateUp property is set to true")
             setPoolAdminStateUp(pool, true)
 
             Then("the VTA should receive a flow invalidation message")
-            vta.getAndClear().contains(flowInvalidationMsg(pool))
+            vta.getAndClearBC().contains(flowInvalidationMsg(pool))
 
             And("send an updated Pool")
             val simPool2 = expectMsgType[Pool]
@@ -199,7 +199,7 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             setPoolAdminStateUp(pool, false)
 
             Then("the VTA should receive a flow invalidation message")
-            vta.getAndClear().contains(flowInvalidationMsg(pool))
+            vta.getAndClearBC().contains(flowInvalidationMsg(pool))
 
             And("send an updated Pool")
             val simPool3 = expectMsgType[Pool]
@@ -228,13 +228,13 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
             vta.self ! PoolRequest(pool, update = true)
             val simPool1 = expectMsgType[Pool]
             simPool1.lbMethod shouldBe PoolLBMethod.ROUND_ROBIN
-            vta.getAndClear()
+            vta.getAndClearBC()
 
             When("the pool's lbMethod property is set to a different value")
             setPoolLbMethod(pool, null)
 
             Then("the VTA should receive a flow invalidation message")
-            vta.getAndClear().contains(flowInvalidationMsg(pool))
+            vta.getAndClearBC().contains(flowInvalidationMsg(pool))
 
             And("send an updated Pool")
             val simPool2 = expectMsgType[Pool]
@@ -242,6 +242,5 @@ class PoolManagerTest extends TestKit(ActorSystem("PoolManagerTest"))
         }
     }
 
-    def flowInvalidationMsg(id: UUID) =
-        InvalidateFlowsByTag(FlowTagger.tagForPool(id))
+    def flowInvalidationMsg(id: UUID) = FlowTagger.tagForPool(id)
 }

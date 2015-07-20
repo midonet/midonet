@@ -29,4 +29,8 @@ public enum PoolLBMethod {
     public static PoolLBMethod fromProto(Pool.PoolLBMethod proto) {
         return PoolLBMethod.valueOf(proto.toString());
     }
+
+    public Pool.PoolLBMethod toProto() {
+        return Pool.PoolLBMethod.valueOf(toString());
+    }
 }

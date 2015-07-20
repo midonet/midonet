@@ -465,7 +465,8 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createVip(adminStateUp: Option[Boolean] = None,
+    protected def createVip(id: UUID = UUID.randomUUID,
+                            adminStateUp: Option[Boolean] = None,
                             loadBalancerId: Option[UUID] = None,
                             poolId: Option[UUID] = None,
                             address: Option[IPAddr] = None,
@@ -474,7 +475,7 @@ trait TopologyBuilder {
                                 : Option[Vip.SessionPersistence] = None) = {
 
         val builder = Vip.newBuilder
-            .setId(UUID.randomUUID().asProto)
+            .setId(id.asProto)
         if (adminStateUp.isDefined)
             builder.setAdminStateUp(adminStateUp.get)
         if (loadBalancerId.isDefined)
