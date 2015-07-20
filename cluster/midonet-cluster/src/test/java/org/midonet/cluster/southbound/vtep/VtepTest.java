@@ -151,9 +151,13 @@ public class VtepTest {
         final UUID locatorId = UUID.randomUUID();
         final UUID lsId = UUID.randomUUID();
         new Expectations() {{
-            vtepDataClient.listMcastMacsRemote();
-            times = 1; result = Collections.singletonList(
-                McastMac.apply(lsId, VtepMAC.UNKNOWN_DST(), macIp1, locatorId));
+            vtepDataClient.deleteAllMcastMacRemote(lsName,
+                                                   VtepMAC.UNKNOWN_DST());
+            times = 1; result = new Status(StatusCode.SUCCESS);
+
+            vtepDataClient.addMcastMacRemote(lsName, VtepMAC.UNKNOWN_DST(),
+                                             midoVxTunIp);
+            times = 1; result = new Status(StatusCode.SUCCESS);
         }};
         vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST(), macIp1, lsName,
                                          midoVxTunIp));
@@ -161,15 +165,17 @@ public class VtepTest {
 
     @Test
     public void testBrokerDoesntDupeMcastWithoutIp() throws Exception {
-        final UUID locatorId = UUID.randomUUID();
-        final UUID lsId = UUID.randomUUID();
         new Expectations() {{
-            vtepDataClient.listMcastMacsRemote();
-            times = 1; result = Collections.singletonList(
-                McastMac.apply(lsId, VtepMAC.UNKNOWN_DST(), locatorId));
+            vtepDataClient.deleteAllMcastMacRemote(lsName,
+                                                   VtepMAC.UNKNOWN_DST());
+            times = 1; result = new Status(StatusCode.SUCCESS);
+
+            vtepDataClient.addMcastMacRemote(lsName, VtepMAC.UNKNOWN_DST(),
+                                             vxTunEndpoint);
+            times = 1; result = new Status(StatusCode.SUCCESS);
         }};
         vtepBroker.apply(new MacLocation(VtepMAC.UNKNOWN_DST(), null, lsName,
-                                         midoVxTunIp));
+                                         vxTunEndpoint));
     }
 
     @Test

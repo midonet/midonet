@@ -273,8 +273,16 @@ class VxlanGatewayManager(networkId: UUID,
     }
 
     /** Get a snapshot of flood MacLocation entries pointing at all the VTEPs
-      * involved in this VxLAN Gateway. */
+      * involved in this VxLAN Gateway.
+      *
+      * We don't publish VTEP tunnel IPs as flood locations because some
+      * switches don't support physical locator sets with multiple entries.
+      * Instead, MidoNet will forward the packets among VTEPs. Leaving code here
+      * for reference.
+      */
     private def vtepFloodLocations: Seq[MacLocation] = {
+        Seq.empty[MacLocation]
+        /*
         vxlanPorts.values().foldLeft(Seq.empty[MacLocation])((mls, vxPort) => {
             if (vxPort.getTunnelIp == null) {
                 log.info("Unknown tunnel IP for VTEP at {}:{}",
@@ -284,7 +292,8 @@ class VxlanGatewayManager(networkId: UUID,
                 mls :+ MacLocation.unknownAt(vxPort.getTunnelIp, lsName)
             }
         }
-    )}
+        */
+    }
 
     /** Initialize the various processes required to manage the VxLAN gateway
       * for the given Neutron Network.  This includes setting up watchers on the
