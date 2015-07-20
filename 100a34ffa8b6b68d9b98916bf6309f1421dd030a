@@ -46,6 +46,29 @@
       "revId": "100a34ffa8b6b68d9b98916bf6309f1421dd030a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6e21b1b3",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/ZoomTopologyBackdoor.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 239,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-20T12:28:20Z",
+      "side": 1,
+      "message": "Shouldn\u0027t the type be set to \u0027LITERAL_RULE\u0027 here? The DataClient version creates a Literal Rule, but there is no default value for the Type in the protobuf file (so it will be set to null)",
+      "range": {
+        "startLine": 239,
+        "startChar": 17,
+        "endLine": 239,
+        "endChar": 28
+      },
+      "revId": "100a34ffa8b6b68d9b98916bf6309f1421dd030a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
