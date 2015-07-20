@@ -22,6 +22,30 @@
       "revId": "496be2f720e07460549c37680604133dac5a2716",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f9ff4965",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/MergedMap.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-20T14:42:07Z",
+      "side": 1,
+      "message": "The cache is not thread-safe and may be concurrently accessed from within the executor.",
+      "parentUuid": "9ad9bd40_19814d4a",
+      "range": {
+        "startLine": 270,
+        "startChar": 8,
+        "endLine": 270,
+        "endChar": 52
+      },
+      "revId": "496be2f720e07460549c37680604133dac5a2716",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
