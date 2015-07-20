@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman.util
 
-import java.util.{ArrayList, UUID}
+import java.util.{ArrayList, Random, UUID}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -404,50 +404,215 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         stateStorage.setPortLocalAndActive(port, hostId, true)
     }
 
-    override def newLoadBalancer(id: UUID = UUID.randomUUID): UUID = ???
-    override def deleteLoadBalancer(id: UUID): Unit = ???
-    override def setLoadBalancerOnRouter(loadBalancer: UUID, router: UUID): Unit = ???
-    override def setLoadBalancerDown(loadBalancer: UUID): Unit = ???
+    override def newLoadBalancer(id: UUID = UUID.randomUUID): UUID = {
+        store.create(createLoadBalancer(id, Some(true)))
+        id
+    }
 
-    override def newVip(pool: UUID, address: String, port: Int): UUID = ???
+    override def deleteLoadBalancer(id: UUID): Unit = {
+        store.delete(classOf[LoadBalancer], id)
+    }
 
-    override def deleteVip(vip: UUID): Unit = ???
-    override def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean = ???
+    override def setLoadBalancerOnRouter(loadBalancer: UUID,
+                                         router: UUID): Unit = {
+        store.observable(classOf[Router], router).take(1)
+            .map[Router](makeFunc1[Router,Router](
+                             Router.newBuilder().mergeFrom(_)
+                                 .setLoadBalancerId(loadBalancer.asProto)
+                                 .build()))
+            .subscribe(makeAction1[Router]({ store.update(_) }))
+    }
 
-    override def newRandomVip(pool: UUID): UUID = ???
+    override def setLoadBalancerDown(loadBalancer: UUID): Unit = {
+        store.observable(classOf[LoadBalancer], loadBalancer).take(1)
+            .map[LoadBalancer](makeFunc1[LoadBalancer,LoadBalancer](
+                                   LoadBalancer.newBuilder().mergeFrom(_)
+                                       .setAdminStateUp(false)
+                                       .build()))
+            .subscribe(makeAction1[LoadBalancer]({ store.update(_) }))
+    }
 
-    override def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit = ???
-    override def vipEnableStickySourceIP(vip: UUID): Unit = ???
-    override def vipDisableStickySourceIP(vip: UUID): Unit = ???
+    override def newVip(pool: UUID, address: String, port: Int): UUID = {
+        val id = UUID.randomUUID
+        store.create(createVip(id, poolId=Some(pool),
+                               adminStateUp=Some(true),
+                               address=Some(IPv4Addr.fromString(address)),
+                               protocolPort=Some(port)))
+        id
+    }
+
+    override def deleteVip(vip: UUID): Unit = {
+        store.delete(classOf[Vip], vip)
+    }
+
+    override def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean = {
+        val other = store.observable(classOf[Vip], vip).toBlocking.first
+        other.getAddress.equals(address.asProto) && other.getProtocolPort == protocolPort
+    }
+
+    override def newRandomVip(pool: UUID): UUID = {
+        val rand = new Random()
+        val id = UUID.randomUUID
+        val address = IPv4Addr.fromString("10.10.10." + Integer.toString(rand.nextInt(200) +1))
+        store.create(createVip(id,
+                               address=Some(address),
+                               protocolPort=Some(rand.nextInt(1000)+1),
+                               poolId=Some(pool)))
+        id
+    }
+
+    override def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit = {
+        store.observable(classOf[Vip], vip).take(1)
+            .map[Vip](makeFunc1[Vip,Vip](Vip.newBuilder().mergeFrom(_)
+                                             .setAdminStateUp(adminStateUp)
+                                             .build()))
+            .subscribe(makeAction1[Vip]({ store.update(_) }))
+    }
+
+    override def vipEnableStickySourceIP(vip: UUID): Unit = {
+        store.observable(classOf[Vip], vip).take(1)
+            .map[Vip](makeFunc1[Vip,Vip](Vip.newBuilder().mergeFrom(_)
+                                             .setSessionPersistence(Vip.SessionPersistence.SOURCE_IP)
+                                             .build()))
+            .subscribe(makeAction1[Vip]({ store.update(_) }))
+    }
+
+    override def vipDisableStickySourceIP(vip: UUID): Unit = {
+        store.observable(classOf[Vip], vip).take(1)
+            .map[Vip](makeFunc1[Vip,Vip](Vip.newBuilder().mergeFrom(_)
+                                             .clearSessionPersistence()
+                                             .build()))
+            .subscribe(makeAction1[Vip]({ store.update(_) }))
+    }
+
     override def newHealthMonitor(id: UUID = UUID.randomUUID(),
                                   adminStateUp: Boolean = true,
                                   delay: Int = 2,
                                   maxRetries: Int = 2,
-                                  timeout: Int = 2): UUID = ???
+                                  timeout: Int = 2): UUID = {
+        store.create(createHealthMonitor(id, adminStateUp,
+                                         delay=Some(delay), timeout=Some(timeout),
+                                         maxRetries=Some(maxRetries)))
+        id
+    }
+
     override def matchHealthMonitor(id: UUID, adminStateUp: Boolean,
-                                    delay: Int, timeout: Int, maxRetries: Int): Boolean = ???
+                                    delay: Int, timeout: Int,
+                                    maxRetries: Int): Boolean = {
+        val hm = store.observable(classOf[HealthMonitor], id).toBlocking.first
+        hm.getAdminStateUp == adminStateUp && hm.getDelay == delay &&
+            hm.getTimeout == timeout && hm.getMaxRetries == maxRetries
+    }
+
     override def newRandomHealthMonitor
-        (id: UUID = UUID.randomUUID()): UUID = ???
-    override def setHealthMonitorDelay(hm: UUID, delay: Int): Unit = ???
-    override def deleteHealthMonitor(hm: UUID): Unit = ???
+        (id: UUID = UUID.randomUUID()): UUID = {
+        val rand = new Random
+        store.create(createHealthMonitor(id, true,
+                                         delay=Some(rand.nextInt(100) + 1),
+                                         timeout=Some(rand.nextInt(100) + 1),
+                                         maxRetries=Some(rand.nextInt(100) + 1)))
+        id
+    }
+
+    override def setHealthMonitorDelay(hm: UUID, delay: Int): Unit = {
+        store.observable(classOf[HealthMonitor], hm).take(1)
+            .map[HealthMonitor](makeFunc1[HealthMonitor,HealthMonitor](
+                                    HealthMonitor.newBuilder().mergeFrom(_)
+                                        .setDelay(delay)
+                                        .build()))
+            .subscribe(makeAction1[HealthMonitor]({ store.update(_) }))
+    }
+
+    override def deleteHealthMonitor(hm: UUID): Unit = {
+        store.delete(classOf[HealthMonitor], hm)
+    }
+
     override def newPool(loadBalancer: UUID,
                          id: UUID = UUID.randomUUID,
                          adminStateUp: Boolean = true,
                          lbMethod: PoolLBMethod = PoolLBMethod.ROUND_ROBIN,
-                         hmId: UUID = null): UUID = ???
-    override def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit = ???
-    override def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit = ???
-    override def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit = ???
-    override def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit = ???
+                         hmId: UUID = null): UUID = {
+        store.create(createPool(id, healthMonitorId=Option(hmId),
+                                loadBalancerId=Some(loadBalancer),
+                                adminStateUp=Some(adminStateUp),
+                                lbMethod=lbMethod))
+        id
+    }
+
+    override def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit = {
+        store.observable(classOf[Pool], pool).take(1)
+            .map[Pool](makeFunc1[Pool,Pool](
+                           Pool.newBuilder().mergeFrom(_)
+                               .setHealthMonitorId(hmId.asProto)
+                               .build()))
+            .subscribe(makeAction1[Pool]({ store.update(_) }))
+    }
+
+    override def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit = {
+        store.observable(classOf[Pool], pool).take(1)
+            .map[Pool](makeFunc1[Pool,Pool](
+                           Pool.newBuilder().mergeFrom(_)
+                               .setAdminStateUp(adminStateUp)
+                               .build()))
+            .subscribe(makeAction1[Pool]({ store.update(_) }))
+    }
+
+    override def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit = {
+        store.observable(classOf[Pool], pool).take(1)
+            .map[Pool](makeFunc1[Pool,Pool](
+                           (p: Pool) => {
+                               val builder = Pool.newBuilder().mergeFrom(p)
+                               if (lbMethod.isDefined) {
+                                   builder.setLbMethod(lbMethod.get)
+                               } else {
+                                   builder.clearLbMethod()
+                               }
+                               builder.build()
+                           }))
+            .subscribe(makeAction1[Pool]({ store.update(_) }))
+    }
+
+    override def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit = {
+        store.observable(classOf[Pool], pool).take(1)
+            .map[Pool](makeFunc1[Pool,Pool](
+                           Pool.newBuilder().mergeFrom(_)
+                               .setMappingStatus(status)
+                               .build()))
+            .subscribe(makeAction1[Pool]({ store.update(_) }))
+    }
 
     override def newPoolMember(pool: UUID, address: String, port: Int,
-                               weight: Int = 1): UUID = ???
+                               weight: Int = 1): UUID = {
+        val id = UUID.randomUUID
+        store.create(createPoolMember(id, adminStateUp=Some(true),
+                                      poolId=Some(pool),
+                                      address=Some(IPv4Addr.fromString(address)),
+                                      protocolPort=Some(port),
+                                      weight=Some(weight)))
+        id
+    }
+
     override def updatePoolMember(poolMember: UUID,
                                   poolId: Option[UUID] = None,
                                   adminStateUp: Option[Boolean] = None,
                                   weight: Option[Integer] = None,
-                                  status: Option[LBStatus] = None): Unit = ???
-    override def deletePoolMember(poolMember: UUID): Unit = ???
+                                  status: Option[LBStatus] = None): Unit = {
+        def updateMember(old: PoolMember): PoolMember = {
+            val builder = PoolMember.newBuilder().mergeFrom(old)
+            poolId.foreach((id: UUID) => builder.setPoolId(id.asProto))
+            adminStateUp.foreach(builder.setAdminStateUp(_))
+            weight.foreach(builder.setWeight(_))
+            status.foreach(builder.setStatus(_))
+            builder.build()
+        }
+        store.observable(classOf[PoolMember], poolMember).take(1)
+            .map[PoolMember](makeFunc1[PoolMember,PoolMember](updateMember))
+            .subscribe(makeAction1[PoolMember]({ store.update(_) }))
+    }
+
+    override def deletePoolMember(poolMember: UUID): Unit = {
+        store.delete(classOf[PoolMember], poolMember)
+    }
 
     import VirtualConfigurationBuilders.TraceDeviceType
     override def newTraceRequest(device: UUID,
@@ -487,6 +652,36 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     implicit def convertNatTargets(from: Set[rules.NatTarget]): Set[NatTarget] = {
         from.map(f => createNatTarget(f.nwStart.asProto, f.nwEnd.asProto,
                                       f.tpStart, f.tpEnd))
+    }
+
+    implicit def convertLbMethod(from: PoolLBMethod): Option[Pool.PoolLBMethod] = {
+        from match {
+            case PoolLBMethod.ROUND_ROBIN => Some(Pool.PoolLBMethod.ROUND_ROBIN)
+            case _ => None
+        }
+    }
+
+    implicit def convertLbStatus(from: LBStatus): Commons.LBStatus = {
+        from match {
+            case LBStatus.ACTIVE => Commons.LBStatus.ACTIVE
+            case LBStatus.INACTIVE => Commons.LBStatus.INACTIVE
+        }
+    }
+    implicit def convertHmStatus(from: PoolHealthMonitorMappingStatus): Pool.PoolHealthMonitorMappingStatus = {
+        from match {
+            case PoolHealthMonitorMappingStatus.ACTIVE =>
+                Pool.PoolHealthMonitorMappingStatus.ACTIVE
+            case PoolHealthMonitorMappingStatus.INACTIVE =>
+                Pool.PoolHealthMonitorMappingStatus.INACTIVE
+            case PoolHealthMonitorMappingStatus.PENDING_CREATE =>
+                Pool.PoolHealthMonitorMappingStatus.PENDING_CREATE
+            case PoolHealthMonitorMappingStatus.PENDING_UPDATE =>
+                Pool.PoolHealthMonitorMappingStatus.PENDING_UPDATE
+            case PoolHealthMonitorMappingStatus.PENDING_DELETE =>
+                Pool.PoolHealthMonitorMappingStatus.PENDING_DELETE
+            case PoolHealthMonitorMappingStatus.ERROR =>
+                Pool.PoolHealthMonitorMappingStatus.ERROR
+        }
     }
 
     def setConditionFromCondition(rule: Rule.Builder,
