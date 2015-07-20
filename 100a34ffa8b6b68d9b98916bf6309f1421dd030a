@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ce4b9d85",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/ZoomTopologyBackdoor.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-20T12:03:56Z",
+      "side": 1,
+      "message": "Compared to before, you don\u0027t set the rule\u0027s position, is that fine?",
+      "range": {
+        "startLine": 238,
+        "startChar": 12,
+        "endLine": 238,
+        "endChar": 27
+      },
+      "revId": "100a34ffa8b6b68d9b98916bf6309f1421dd030a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
