@@ -213,7 +213,7 @@ public class TestChain extends JerseyTest {
         return ruleChain;
     }
 
-    private DtoRule getStockRule(UUID jumpChain, String jumpChainName) {
+    private DtoRule getStockJumpRule(UUID jumpChain, String jumpChainName) {
         DtoRule rule = new DtoRule();
         rule.setId(UUID.randomUUID());
         rule.setFlowAction("jump");
@@ -263,18 +263,18 @@ public class TestChain extends JerseyTest {
                 DtoRouterPort.class);
 
         URI rulesUri = ruleChain2.getRules();
-        DtoRule rule
-                = dtoResource.postAndVerifyCreated(rulesUri,
-                APPLICATION_RULE_JSON_V2,
-                getStockRule(ruleChain1.getId(), ruleChain1.getName()),
-                DtoRule.class);
+        dtoResource.postAndVerifyCreated(rulesUri,
+                                         APPLICATION_RULE_JSON_V2,
+                                         getStockJumpRule(ruleChain1.getId(),
+                                                          ruleChain1.getName()),
+                                         DtoRule.class);
 
         DtoRule[] rules = dtoResource.getAndVerifyOk(rulesUri,
                 APPLICATION_RULE_COLLECTION_JSON_V2, DtoRule[].class);
         assertEquals(1, rules.length);
 
         dtoResource.deleteAndVerifyNoContent(ruleChain1.getUri(),
-                APPLICATION_CHAIN_JSON);
+                                             APPLICATION_CHAIN_JSON);
 
         // The Rule should have been deleted.
         rules = dtoResource.getAndVerifyOk(rulesUri,

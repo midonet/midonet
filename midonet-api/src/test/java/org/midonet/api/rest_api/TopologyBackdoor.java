@@ -20,6 +20,7 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.UUID;
 
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -63,4 +64,9 @@ public interface TopologyBackdoor {
     void delVirtualPortMapping(UUID hostId, UUID portId);
 
     void setHostVersion(UUID hostId);
+
+    UUID createChain();
+
+    UUID createRule(UUID chainId, short ethertype);
+
 }

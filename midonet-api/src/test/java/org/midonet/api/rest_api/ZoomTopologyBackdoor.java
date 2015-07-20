@@ -40,6 +40,8 @@ import org.midonet.cluster.models.State;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.models.Topology.Host;
 import org.midonet.cluster.services.MidonetBackend;
+import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -189,7 +191,6 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
             backend.store().update(port);
         } catch (Exception e) {
             throw new RuntimeException("Failed to add vrn port mapping");
-
         }
     }
 
@@ -207,12 +208,44 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
             backend.store().update(port);
         } catch (Exception e) {
             throw new RuntimeException("Failed to remove vrn port mapping");
-
         }
     }
 
     @Override
     public void setHostVersion(UUID hostId) {
         throw new NotImplementedException();
+    }
+
+    @Override
+    public UUID createChain() {
+        try {
+            UUID randId = UUID.randomUUID();
+            Topology.Chain c = Topology.Chain.getDefaultInstance()
+                                             .toBuilder()
+                                             .setId(UUIDUtil.toProto(randId))
+                                             .build();
+            backend.store().create(c);
+            return randId;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create chain");
+        }
+    }
+
+    @Override
+    public UUID createRule(UUID chainId, short ethertype) {
+        try {
+            UUID randId = UUID.randomUUID();
+            Topology.Rule r = Topology.Rule.getDefaultInstance()
+                .toBuilder()
+                .setId(UUIDUtil.toProto(randId))
+                .setAction(Topology.Rule.Action.ACCEPT)
+                .setChainId(UUIDUtil.toProto(chainId))
+                .setDlType(ethertype)
+                .build();
+            backend.store().create(r);
+            return randId;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create chain");
+        }
     }
 }

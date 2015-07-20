@@ -26,6 +26,8 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.google.inject.Inject;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.api.rest_api.FuncTest;
 import org.midonet.api.rest_api.RestApiTestBase;
 import org.midonet.api.rest_api.Topology;
+import org.midonet.api.rest_api.TopologyBackdoor;
 import org.midonet.client.dto.DtoApplication;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoPortGroup;
@@ -323,6 +326,9 @@ public class TestRule {
 
         private short etherType;
 
+        public TopologyBackdoor topologyBackdoor = FuncTest._injector
+            .getInstance(TopologyBackdoor.class);
+
         public TestEtherType(short etherType) {
             this.etherType = etherType;
         }
@@ -336,21 +342,10 @@ public class TestRule {
 
         @Test
         public void testNegativeEtherType() throws Exception {
-            DataClient dataClient =
-                FuncTest._injector.getInstance(DataClient.class);
+            UUID chainId = topologyBackdoor.createChain();
+
             DtoApplication app = topology.getApplication();
-
-            UUID chainId = dataClient.chainsCreate(new Chain());
-
-            Condition condition = new Condition();
-            condition.etherType = (int) etherType;
-
-            LiteralRule rule = new LiteralRule(condition);
-            rule.setAction(RuleResult.Action.ACCEPT);
-            rule.setPosition(1);
-            rule.setChainId(chainId);
-
-            UUID ruleId = dataClient.rulesCreate(rule);
+            UUID ruleId = topologyBackdoor.createRule(chainId, etherType);
 
             URI ruleUri = UriBuilder.fromUri(
                 app.getRuleTemplate().replace("{id}", ruleId.toString())).build();
