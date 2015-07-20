@@ -217,7 +217,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("a new VTEP joins the Vxlan Gateway")
         eventually {
-            vtep2MacRemotes.getOnNextEvents should have size 6
+            vtep2MacRemotes.getOnNextEvents should have size 5
         }
         vtep2.memberships should have size 1
         vtep2.memberships.head.name shouldBe mgr.lsName
@@ -227,18 +227,16 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             MacLocation(mac1, mgr.lsName, hosts.ip),
             MacLocation(mac2, mgr.lsName, hosts.ip),
             MacLocation(mac3, mgr.lsName, hosts.ip),
-            MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip), // x2
-            MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp1)
+            MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip) // x2
         )
 
-        And("the first VTEP just saw an extra update with vtep2's unknown-dst")
-        vtep1MacRemotes.getOnNextEvents should have size 6
+        And("the first VTEP saw the same updates ")
+        vtep1MacRemotes.getOnNextEvents should have size 5
         vtep1MacRemotes.getOnNextEvents should contain only (
             MacLocation(mac1, mgr.lsName, hosts.ip),
             MacLocation(mac2, mgr.lsName, hosts.ip),
             MacLocation(mac3, mgr.lsName, hosts.ip),
-            MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip), // x2
-            MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp2)
+            MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip) // x2
         )
 
         When("a new IP appears on a MidoNet port")
@@ -248,10 +246,11 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         Then("both VTEPs should see the update")
         eventually {
             val newMl = MacLocation(mac2, newIp, mgr.lsName, hosts.ip)
-            vtep1MacRemotes.getOnNextEvents.get(6) shouldBe newMl
-            vtep2MacRemotes.getOnNextEvents.get(6) shouldBe newMl
+            vtep1MacRemotes.getOnNextEvents.get(5) shouldBe newMl
+            vtep2MacRemotes.getOnNextEvents.get(5) shouldBe newMl
         }
 
+        val oldElementsAt1 = vtep1MacRemotes.getOnNextEvents
         When("the VxLAN port corresponding to the first VTEP is deleted")
         dataClient.bridgeDeleteVxLanPort(vxPort1)
 
@@ -269,18 +268,18 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         Then("the first VTEP won't receive any more updates")
         eventually {
             // we see an update and deletion
-            vtep1MacRemotes.getOnNextEvents should have size 7
+            vtep1MacRemotes.getOnNextEvents shouldBe oldElementsAt1
             vtep1MacRemotes.getOnErrorEvents shouldBe empty
             vtep1MacRemotes.getOnCompletedEvents shouldBe empty
         }
 
-        And("the second VTEP will receive the new one")
+        And(s"the second VTEP will receive the new one: $mac1 on ${hosts.ip}")
         eventually {
             vtep2MacRemotes.getOnErrorEvents shouldBe empty
             vtep2MacRemotes.getOnCompletedEvents shouldBe empty
-            vtep2MacRemotes.getOnNextEvents should have size 9
-            vtep2MacRemotes.getOnNextEvents.get(8) shouldBe
-            MacLocation(mac1, mgr.lsName, hosts.ip)
+            vtep2MacRemotes.getOnNextEvents should have size 8
+            vtep2MacRemotes.getOnNextEvents.get(7) shouldBe
+                MacLocation(mac1, mgr.lsName, hosts.ip)
         }
 
         // Yes, this last MacLocation was redundant, but for now we have no way
@@ -296,12 +295,12 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         }
 
         And("the second VTEP should see updates removing the MACs")
-        vtep2MacRemotes.getOnNextEvents should have size 9
+        vtep2MacRemotes.getOnNextEvents should have size 8
         vtep2MacRemotes.getOnCompletedEvents shouldBe empty
         vtep2MacRemotes.getOnErrorEvents shouldBe empty
 
         And("the first subscriber didn't see anything at all")
-        vtep1MacRemotes.getOnNextEvents should have size 7
+        vtep1MacRemotes.getOnNextEvents shouldBe oldElementsAt1
         vtep1MacRemotes.getOnCompletedEvents shouldBe empty
         vtep1MacRemotes.getOnErrorEvents shouldBe empty
 
@@ -350,19 +349,16 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         vtep1.memberships should have size 1
         vtep1.memberships.head.name shouldBe mgr.lsName
 
-        eventually {    // the initial state reaches the VTEP
-           vtep1MacRemotes.getOnNextEvents should have size 4
+        eventually {
+            // the initial state reaches the VTEP
+            vtep1MacRemotes.getOnErrorEvents shouldBe empty
+            vtep1MacRemotes.getOnCompletedEvents shouldBe empty
+            vtep1MacRemotes.getOnNextEvents should contain only (
+                MacLocation(mac1, mgr.lsName, hosts.ip),
+                MacLocation(mac2, mgr.lsName, hosts.ip),
+                MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip) // may be x2
+            )
         }
-        vtep1MacRemotes.getOnErrorEvents shouldBe empty
-        vtep1MacRemotes.getOnCompletedEvents shouldBe empty
-        vtep1MacRemotes.getOnNextEvents should contain only (
-            MacLocation(mac1, mgr.lsName, hosts.ip),
-            MacLocation(mac2, mgr.lsName, hosts.ip),
-            MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip)
-            // the last one is duplicated because we emit the initial flooding
-            // proxy twice: first because it's the first subscription to the tz,
-            // another on the VTEP preseed, both race, so we just emit both.
-        )
 
         When("the VTEP reports a new MAC")
         val macOnVtep = MAC.fromString("aa:aa:bb:bb:cc:cc")
@@ -398,7 +394,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         And("the second VTEP gets primed as expected")
         val vtep2MacRemotes = vtepConfigs(1).macRemoteUpdater
         eventually { // see below to understand the extra entries
-             assert(vtep2MacRemotes.getOnNextEvents.size() >= 6)
+             assert(vtep2MacRemotes.getOnNextEvents.size() >= 5)
              // Could be 6 or 7, depends on a race betwee the flooding proxy
              // watcher and the joining. We do check the right contents below.
         }
@@ -415,10 +411,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
             // before but this has an IP, so the VxGW Manager also injects
             // another without just to get anything addressed to that MAC sent
             // to the right VTEP
-            MacLocation(ml.mac, mgr.lsName, ml.vxlanTunnelEndpoint),
-            // Also, we expect that the VTEP gets an unknown destination entry
-            // that points at the other VTEP
-            MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp1)
+            MacLocation(ml.mac, mgr.lsName, ml.vxlanTunnelEndpoint)
         )
         val vtep2RemotesSnapshot = new java.util.ArrayList[MacLocation]()
         vtep2RemotesSnapshot.addAll(vtep2MacRemotes.getOnNextEvents)
@@ -429,14 +422,11 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("the MAC is seen by both the first VTEP and MidoNet")
         eventually {
-            vtep1MacRemotes.getOnNextEvents should have size 6
             vtep1MacRemotes.getOnNextEvents should contain only (
                 MacLocation(mac1, mgr.lsName, hosts.ip),
                 MacLocation(mac2, mgr.lsName, hosts.ip),
                 MacLocation(UNKNOWN_DST, mgr.lsName, hosts.ip), // x2
-                // it saw the unknown-dst for the other VTEP
-                MacLocation(UNKNOWN_DST, mgr.lsName, vteps.tunIp2),
-                // and the movement of macOnVtep to the other VTEP
+                // it saw the movement of macOnVtep to the other VTEP
                 ml
             )
         }
