@@ -22,6 +22,30 @@
       "revId": "100a34ffa8b6b68d9b98916bf6309f1421dd030a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8e59955c",
+        "filename": "midonet-api/src/test/java/org/midonet/api/rest_api/ZoomTopologyBackdoor.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 238,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-20T12:18:43Z",
+      "side": 1,
+      "message": "Oh man, that mess. Positions before were treated a bit awkwardly, they were set in the Rule, but then when returned the value in ZK was ignored, and the one based on the real position in the chain injected (that is: the stored position was worthless).\n\nIn V2 we do the latter. The position is read from the chain, set in the DTO. But it\u0027s not stored in ZK.",
+      "parentUuid": "9ad9bd40_ce4b9d85",
+      "range": {
+        "startLine": 238,
+        "startChar": 12,
+        "endLine": 238,
+        "endChar": 27
+      },
+      "revId": "100a34ffa8b6b68d9b98916bf6309f1421dd030a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
