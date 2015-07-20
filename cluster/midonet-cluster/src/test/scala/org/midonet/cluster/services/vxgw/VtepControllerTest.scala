@@ -139,11 +139,10 @@ class VtepControllerTest extends FlatSpec with Matchers
 
         And("it has emitted its own snapshot")
         eventually {
-            tapOnBus.getOnNextEvents should have size 6
+            tapOnBus.getOnNextEvents should have size 5
         }
         tapOnBus.getOnNextEvents should contain theSameElementsInOrderAs
-            initialVtepSnapshot :+
-            MacLocation(VtepMAC.UNKNOWN_DST, null, lsName, vteps.tunIp1)
+            initialVtepSnapshot
 
         // ----- Updates flow from VTEP -> Peers
 
@@ -155,9 +154,9 @@ class VtepControllerTest extends FlatSpec with Matchers
         Then("a peer subscribed to the bus should have seen them")
         assert(tapOnBus.n.await(1, SECONDS))
 
-        tapOnBus.getOnNextEvents should have size 11
+        tapOnBus.getOnNextEvents should have size 10
         tapOnBus.getOnNextEvents
-                .subList(6, 11) should contain theSameElementsInOrderAs fromVtep
+                .subList(5, 10) should contain theSameElementsInOrderAs fromVtep
 
         And("the VTEP filtered out those updates since they came from itself")
         vtepOvsdb.updatesToVtep.getOnNextEvents should have size 6
@@ -175,7 +174,7 @@ class VtepControllerTest extends FlatSpec with Matchers
 
         And("the VTEP has not reported the updates back to the bus")
         // +5 for the updates into the bus, but they won't come back
-        tapOnBus.getOnNextEvents should have size 16
+        tapOnBus.getOnNextEvents should have size 15
 
         // ------ Abandon the Logical Switch
 
@@ -186,7 +185,7 @@ class VtepControllerTest extends FlatSpec with Matchers
         missed foreach ls.observer.onNext
 
         vtepOvsdb.updatesToVtep.getOnNextEvents should have size 11
-        tapOnBus.getOnNextEvents should have size 21 // +5 when we emitted them
+        tapOnBus.getOnNextEvents should have size 20 // +5 when we emitted them
 
     }
 
