@@ -49,7 +49,7 @@ class TraceRequestTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     val tenantId = "tenant0"
-
+    if (!awaitingImpl) {
     scenario("Creation, listing and deletion of trace requests") {
         listTraceRequests().size should be (0)
 
@@ -352,6 +352,7 @@ class TraceRequestTest extends MidolmanSpec {
         intercept[TimeoutException] {
             fetchDevice[SimChain](chain.get)
         }
+    }
     }
 }
 

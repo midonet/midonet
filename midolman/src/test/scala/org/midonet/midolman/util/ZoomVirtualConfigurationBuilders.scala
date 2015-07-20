@@ -161,7 +161,17 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def newTraceRuleOnChain(chain: UUID, pos: Int,
                                      condition: rules.Condition,
-                                     requestId: UUID): UUID = ???
+                                     requestId: UUID): UUID = {
+        val rule = UUID.randomUUID
+        val builder = createTraceRuleBuilder(rule)
+        // builder.setTraceRequestId(requestId)
+
+        store.create(setConditionFromCondition(builder, condition).build())
+        store.observable(classOf[Chain], chain).take(1)
+            .map[Chain](insertRuleFunc(pos, rule))
+            .subscribe(makeAction1[Chain]({ store.update(_) }))
+        rule
+    }
 
     override def newForwardNatRuleOnChain(chain: UUID, pos: Int,
                                           condition: rules.Condition,
