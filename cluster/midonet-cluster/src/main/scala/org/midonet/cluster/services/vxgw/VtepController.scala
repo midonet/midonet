@@ -182,13 +182,28 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
             // Tell our VTEP to send flooded traffic to MidoNet's flooding proxy
             publishFloodingProxyTo(vxgw)
 
-            // Ask all peers to send us their flooded traffic
-            log.info("Advertise unknown-dst to receive flooded traffic " +
-                     MacLocation.unknownAt(tunIp, vxgw.name))
-            vxgw.observer.onNext(MacLocation.unknownAt(tunIp, vxgw.name))
+
+            // This line below was an optimisation whereby we'd ask VTEPs
+            // to tunnel Mcast traffic to all other VTEPs, instead of having
+            // MidoNet proxy for it.  This optimisation relies on adding an
+            // Mcast entry with a physical locator set that contains all VTEP
+            // tunnel IPs.  Unfortunately, even though the OVSDB schema does
+            // support multiple entries in the Mcast Mac Remote table, the
+            // switch vendor may chose not to implement head-end replication.
+            //
+            // In this case, they will typically chose one of the IPs from the
+            // locator set which they will consider as a Service Node (our
+            // Flooding Proxy), and tunnel the Mcast there.  Unfortunately this
+            // will render our optimisation pointless, it's not a problem anyway
+            // since Midolman will be able to relay the Mcast to the other VTEPs
+            // when simulating the Mcast and triggering an ordinary Flood.
+            //
+            // log.info("Advertise unknown-dst to receive flooded traffic " +
+            //       MacLocation.unknownAt(tunIp, vxgw.name))
+            // vxgw.observer.onNext(MacLocation.unknownAt(tunIp, vxgw.name))
 
         } match {
-            // Prettify this, just return the Try
+            // TODO: Prettify this, just return the Try
             case Failure(e) => throw e
             case Success(_) =>
         }
@@ -206,9 +221,9 @@ class VtepController(vtepOvsdb: VtepConfig, midoDb: DataClient,
             return
         }
         log.info(s"No more bindings to $vxgw")
-        myLogicalSwitchNames.remove(vxgw.name)
         curr.fromBus.unsubscribe()
         curr.toBus.unsubscribe()
+        myLogicalSwitchNames.remove(vxgw.name)
         try {
             vtepOvsdb.removeLogicalSwitch(vxgw.name)
             log.info(s"Unbound from $vxgw")

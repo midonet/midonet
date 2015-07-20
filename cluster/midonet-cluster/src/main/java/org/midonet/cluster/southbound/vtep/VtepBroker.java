@@ -39,14 +39,13 @@ import rx.functions.Func1;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
+import org.midonet.cluster.data.VtepBinding;
 import org.midonet.cluster.services.vxgw.MacLocation;
 import org.midonet.cluster.services.vxgw.VxLanPeer;
 import org.midonet.cluster.services.vxgw.VxLanPeerConsolidationException;
 import org.midonet.cluster.services.vxgw.VxLanPeerSyncException;
 import org.midonet.cluster.southbound.vtep.model.LogicalSwitch;
-import org.midonet.cluster.southbound.vtep.model.McastMac;
 import org.midonet.cluster.southbound.vtep.model.UcastMac;
-import org.midonet.cluster.data.VtepBinding;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.MAC;
 
@@ -266,26 +265,20 @@ public class VtepBroker implements VxLanPeer {
     }
 
     /**
-     * Applies the addition of a multicast MAC location.
+     * Applies the addition of a multicast MAC location.  Note that here we
+     * only support adding a single Mcast entry: support for multiple service
+     * nodes is not implemented in all VTEPs, so we're playing on the safe
+     * side and just publishing one.  When many VTEPs are bound to a given
+     * Neutron network, MidoNet will forward traffic among the VTEPs.
      */
     private void applyMcastAddition(MacLocation ml) {
         log.debug("Adding MCAST remote MAC to the VTEP: " + ml);
-        List<McastMac> mcasts = null;
-        try {
-            mcasts = vtepDataClient.listMcastMacsRemote();
-        } catch (VtepNotConnectedException e) {
-            log.error("VTEP is not connected", e);
-            return;
-        }
-        for (McastMac mc : mcasts) {
-            if (mc.mac.equals(ml.mac().toString())) {
-                log.debug("MCAST remote MAC already in vtep");
-                return;
-            }
-        }
-        Status st = vtepDataClient.addMcastMacRemote(ml.logicalSwitchName(),
-                                                     ml.mac(),
-                                                     ml.vxlanTunnelEndpoint());
+        Status st;
+        vtepDataClient.deleteAllMcastMacRemote(ml.logicalSwitchName(),
+                                               ml.mac());
+        st = vtepDataClient.addMcastMacRemote(ml.logicalSwitchName(),
+                                              ml.mac(),
+                                              ml.vxlanTunnelEndpoint());
         if (!st.isSuccess() ) {
             if (st.getCode().equals(StatusCode.CONFLICT)) {
                 log.info("Conflict writing {}, not expected", ml);
