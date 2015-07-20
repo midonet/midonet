@@ -18,6 +18,7 @@ package org.midonet.cluster.services.vxgw
 
 import java.util.UUID
 
+import scala.collection.mutable
 import scala.util.{Success, Try}
 
 import org.slf4j.LoggerFactory
@@ -27,7 +28,7 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Bridge.UNTAGGED_VLAN_ID
 import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.ports.BridgePort
-import org.midonet.cluster.data.vtep.model.{MacLocation, LogicalSwitch}
+import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation}
 import org.midonet.cluster.data.{Bridge, TunnelZone, VTEP}
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
@@ -65,28 +66,40 @@ trait VxlanGatewayTest {
         }
     }
 
-    class HostOnVtepTunnelZone(floodingProxyWeight: Int) {
+    class HostsOnVtepTunnelZone() {
 
-        val ip = IPv4Addr.random
-        val host = new Host()
-        host.setName("Test")
-        host.setFloodingProxyWeight(floodingProxyWeight)
-        val id = dataClient.hostsCreate(UUID.randomUUID(), host)
-
-        val tz = new TunnelZone()
-        tz.setName("test")
-        tz.setType(TunnelZone.Type.vtep)
+        val all = mutable.Map.empty[UUID, (Host, IPv4Addr)]
+        val tz = new TunnelZone().setName("test")
+                                 .setType(TunnelZone.Type.vtep)
         val tzId = dataClient.tunnelZonesCreate(tz)
-        val zoneHost = new TunnelZone.HostConfig(id)
-        zoneHost.setIp(ip)
-        dataClient.tunnelZonesAddMembership(tzId, zoneHost)
 
-        hostManager.makeAlive(id)
+        addHost()
 
-        def delete(): Unit = {
-            hostManager.makeNotAlive(id)
+        /* For convenience, when only one host is used */
+        def host: Host = all.values.head._1
+
+        /* For convenience, when only one host is used */
+        def ip: IPv4Addr = all.values.head._2
+
+        def delete(): Unit = all.keys foreach { id =>
+            if (hostManager.isAlive(id)) {
+                hostManager.makeNotAlive(id)
+            }
             dataClient.hostsDelete(id)
             dataClient.tunnelZonesDelete(tzId)
+        }
+
+        def addHost(): UUID = {
+            val h = new Host().setName("Test")
+            val id = dataClient.hostsCreate(UUID.randomUUID(), h)
+            val zoneHost = new TunnelZone.HostConfig(id)
+            val ip = IPv4Addr.random
+            zoneHost.setIp(ip)
+            dataClient.tunnelZonesAddMembership(tzId, zoneHost)
+            hostManager.makeAlive(id)
+            h.setId(id)
+            all += id -> (h, ip)
+            id
         }
     }
 

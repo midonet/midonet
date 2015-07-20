@@ -130,7 +130,7 @@ class VxlanGatewayServiceTest extends FlatSpec with Matchers
         vx.awaitTerminated(100, TimeUnit.SECONDS)
     }
 
-    // Test below verifids that initialization with a large number of bridges
+    // Test below verifies that initialization with a large number of bridges
     // over the configured buffer DOES saturate the service and alerts the
     // operator.
 
