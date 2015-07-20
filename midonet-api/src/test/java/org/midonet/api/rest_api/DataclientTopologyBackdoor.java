@@ -23,9 +23,15 @@ import java.util.UUID;
 
 import com.google.inject.Inject;
 
+import org.midonet.cluster.DataClient;
+import org.midonet.cluster.data.Chain;
+import org.midonet.cluster.data.Rule;
+import org.midonet.cluster.data.rules.LiteralRule;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.host.state.HostDirectory.VirtualPortMapping;
 import org.midonet.midolman.host.state.HostZkManager;
+import org.midonet.midolman.rules.Condition;
+import org.midonet.midolman.rules.RuleResult;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.ArpCacheEntry;
 import org.midonet.midolman.state.ArpTable;
@@ -41,6 +47,9 @@ public class DataclientTopologyBackdoor implements TopologyBackdoor {
 
     @Inject
     RouterZkManager routerZkManager;
+
+    @Inject
+    DataClient dataClient;
 
     @Override
     public void addArpTableEntryToRouter(UUID routerId, IPv4Addr ip, MAC mac) {
@@ -145,6 +154,34 @@ public class DataclientTopologyBackdoor implements TopologyBackdoor {
             hostZkManager.setHostVersion(hostId);
         } catch (StateAccessException e) {
             throw new RuntimeException("Cannot set host version", e);
+        }
+    }
+
+    @Override
+    public UUID createChain() {
+        try {
+            return dataClient.chainsCreate(new Chain());
+        } catch (StateAccessException | SerializationException e) {
+            throw new RuntimeException("Cannot create chain", e);
+        }
+    }
+
+    @Override
+    public UUID createRule(UUID chainId, short ethertype) {
+
+        try {
+            Condition condition = new Condition();
+            condition.etherType = (int) ethertype;
+
+            LiteralRule rule = new LiteralRule(condition);
+            rule.setAction(RuleResult.Action.ACCEPT);
+            rule.setPosition(1);
+            rule.setChainId(chainId);
+            return dataClient.rulesCreate(rule);
+        } catch (Rule.RuleIndexOutOfBoundsException |
+                 StateAccessException |
+                 SerializationException e) {
+            throw new RuntimeException("Cannot create rule", e);
         }
     }
 }
