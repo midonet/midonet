@@ -198,6 +198,7 @@ class PoolTest extends MidolmanSpec {
         natTx = new FlowStateTransaction(natTable)
     }
 
+    if (!awaitingImpl) {
     feature("When loadbalancer is admin state down, behaves as if no loadbalancer present") {
         scenario("Packets to unknown IPs get dropped") {
             Given("loadbalancer set to admin state down")
@@ -592,7 +593,7 @@ class PoolTest extends MidolmanSpec {
             destIpSet.size shouldBe 1
         }
     }
-
+    }
     private def clientToVipPkt(srcTpPort: Short): Ethernet =
         { eth src macClientSide dst fetchDevice[RouterPort](exteriorClientPort).portMac } <<
                 { ip4 src ipClientSide.toUnicastString dst vipIp.toUnicastString } <<

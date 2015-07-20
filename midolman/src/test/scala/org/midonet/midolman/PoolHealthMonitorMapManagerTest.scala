@@ -64,6 +64,7 @@ class PoolHealthMonitorMapManagerTest
         matchVip(vip, mapVip.address, mapVip.protocolPort)
     }
 
+    if (!awaitingImpl) {
     feature("PoolHealthMonitorMapManager handles associations") {
         scenario("PoolHealthMonitorMap with two associations") {
             Given("two pools using the same health monitor")
@@ -240,5 +241,6 @@ class PoolHealthMonitorMapManagerTest
             vipShouldEqual(map3.mappings(pool).vips.head, vip)
             map3.mappings.size shouldBe 1
         }
+    }
     }
 }
