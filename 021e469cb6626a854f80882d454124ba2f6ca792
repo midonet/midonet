@@ -16,6 +16,24 @@
       "revId": "021e469cb6626a854f80882d454124ba2f6ca792",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4f9dbd65",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-21T00:54:23Z",
+      "side": 1,
+      "message": "For now the only one who would enable it is those running devmido to develop the tasks-based Neutron-MidoNet integration.  And since that\u0027s a bit further down the line, I disabled it by default.  Let me know if that answered your question.",
+      "parentUuid": "9ad9bd40_138a01bf",
+      "revId": "021e469cb6626a854f80882d454124ba2f6ca792",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
