@@ -45,6 +45,30 @@
       "revId": "99f1c5f2b5c26db78a500f26ea2cc87b483a8468",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ce9c6612",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-21T13:23:21Z",
+      "side": 1,
+      "message": "I\u0027m in favor of adding the concept of FIP to internal models, because FIP is static NAT, not dynamic, and having the FIP concept makes that clear.\n\nI\u0027m against having this FIP backref here if we don\u0027t actually do the above. ....unless there are extremely good reasons like it being part of a peace agreement for the middle east.",
+      "parentUuid": "9ad9bd40_2eddd2e0",
+      "range": {
+        "startLine": 264,
+        "startChar": 4,
+        "endLine": 264,
+        "endChar": 40
+      },
+      "revId": "99f1c5f2b5c26db78a500f26ea2cc87b483a8468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
