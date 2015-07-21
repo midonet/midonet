@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_510b9729",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 442,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-21T15:20:29Z",
+      "side": 1,
+      "message": "someOrNone(foo)  is equivalent to Option(foo)",
+      "revId": "31255c7e097c888ab2284fc8714aeb065b60fd00",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
