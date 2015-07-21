@@ -21,6 +21,7 @@ import java.util.ArrayDeque
 import scala.concurrent.duration._
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.state.FlowState
 
 object FlowExpirationIndexer {
     sealed abstract class Expiration {
@@ -36,7 +37,7 @@ object FlowExpirationIndexer {
         val typeId = 1
     }
     object STATEFUL_FLOW_EXPIRATION extends Expiration {
-        val value = (1 minute).toNanos
+        val value = FlowState.DEFAULT_EXPIRATION.toNanos / 2
         val typeId = 2
     }
     object TUNNEL_FLOW_EXPIRATION extends Expiration {
