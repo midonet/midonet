@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2eddd2e0",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 1
+      },
+      "lineNbr": 264,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-21T13:17:54Z",
+      "side": 1,
+      "message": "I\u0027m not too sure about adding this to the low level model given that FIP isn\u0027t a concept that belongs to MidoNet itself.\n\nBut it might make sense to add it as a conveniency method as other integrations could implement FIP following this pattern. @Guillermo?",
+      "range": {
+        "startLine": 264,
+        "startChar": 4,
+        "endLine": 264,
+        "endChar": 40
+      },
+      "revId": "99f1c5f2b5c26db78a500f26ea2cc87b483a8468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
