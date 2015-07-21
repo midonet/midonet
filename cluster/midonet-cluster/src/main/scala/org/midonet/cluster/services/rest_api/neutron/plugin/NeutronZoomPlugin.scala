@@ -83,15 +83,15 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     private def tryStorageOp[T](f: => T): T = {
         try f catch {
             case e: NotFoundException =>
-                throw new NotFoundHttpException(e.getMessage)
+                throw new NotFoundHttpException(e, e.getMessage)
             case e: ObjectExistsException =>
-                throw new ConflictHttpException(e.getMessage)
+                throw new ConflictHttpException(e, e.getMessage)
             case e: ReferenceConflictException =>
-                throw new ConflictHttpException(e.getMessage)
+                throw new ConflictHttpException(e, e.getMessage)
             case e: ObjectReferencedException =>
-                throw new ConflictHttpException(e.getMessage)
+                throw new ConflictHttpException(e, e.getMessage)
             case e: StorageException =>
-                throw new InternalServerErrorHttpException(e.getMessage)
+                throw new InternalServerErrorHttpException(e, e.getMessage)
         }
     }
 
