@@ -127,25 +127,28 @@ object BridgeMapper {
         /** Adds a new MAC-port mapping to the MAC learning table. */
         override def add(mac: MAC, portId: UUID): Unit = {
             try {
+                log.info("Mapping MAC {}, VLAN {} to port {}",
+                         mac, Short.box(vlanId), portId)
                 map.put(mac, portId)
-                log.info("Added MAC {} VLAN {} to port {}", mac,
-                         Short.box(vlanId), portId)
             } catch {
                 case NonFatal(e) =>
-                    log.error(s"Failed to add MAC {} VLAN {} to port {}",
+                    log.error(s"Failed to map MAC {}, VLAN {} to port {}",
                               mac, Short.box(vlanId), portId)
             }
         }
         /** Removes a MAC-port mapping from the MAC learning table. */
         override def remove(mac: MAC, portId: UUID): Unit = {
+            val vlanIdObj = Short.box(vlanId)
+            log.debug("Removing mapping from MAC {}, VLAN {} to port {}",
+                      mac, vlanIdObj, portId)
             try {
-                map.removeIfOwnerAndValue(mac, portId)
-                log.info("Added MAC {} VLAN {} to port {}", mac, Short.box(vlanId),
-                         portId)
+                if (map.removeIfOwnerAndValue(mac, portId) == null)
+                    log.error("No mapping from MAC {}, VLAN {} to port {} " +
+                              "owned by this node.", mac, vlanIdObj, portId)
             } catch {
-                case NonFatal(e) =>
-                    log.error(s"Failed to remove MAC {} VLAN {} to port {}",
-                              mac, Short.box(vlanId), portId)
+                case NonFatal(t) =>
+                    log.error("Failed to remove mapping from MAC {}, VLAN {} " +
+                              "to port {}", mac, vlanIdObj, portId, t)
             }
         }
         /** TODO: Obsolete method. */
