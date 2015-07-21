@@ -109,11 +109,6 @@ class PortResource @Inject()(resContext: ResourceContext)
         new PortPortGroupResource(id, resContext)
     }
 
-    @Path("{id}/bgps")
-    def bgps(@PathParam("id") id: UUID): PortBgpResource = {
-        new PortBgpResource(id, resContext)
-    }
-
     // The final is not totally required, but it just helps confirming that
     // nobody is overriding the tunnelKey check below
     protected final override def updateFilter = (to: Port, from: Port) => {

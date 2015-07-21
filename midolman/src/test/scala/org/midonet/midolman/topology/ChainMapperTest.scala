@@ -434,7 +434,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
                          Map(ipAddrGroupSrcId -> ipAddrGroupSrc))
 
             When("We update IPAddrGroupSrc")
-            val updatedIPAddrGrpSrc = ipAddrGroupSrc.addIPAddrPort(
+            val updatedIPAddrGrpSrc = ipAddrGroupSrc.addIpAddrPort(
                 IPAddr.fromString("192.168.0.2"), Set(UUID.randomUUID))
             store.update(updatedIPAddrGrpSrc)
 
@@ -654,8 +654,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
     private def buildAndStoreIPAddrGroup(ip: String, name: String)
     : ProtoIPAddrGroup = {
-        val ipAddrGroup = createIPAddrGroup(name = Some(name))
-            .addIPAddrPort(IPAddr.fromString(ip), Set(UUID.randomUUID))
+        val ipAddrGroup = createIpAddrGroup(name = Some(name))
+            .addIpAddrPort(IPAddr.fromString(ip), Set(UUID.randomUUID))
         store.create(ipAddrGroup)
         ipAddrGroup
     }
