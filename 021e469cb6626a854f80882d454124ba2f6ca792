@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_12fbdac1",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-21T01:27:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_3240de33",
+      "range": {
+        "startLine": 9,
+        "startChar": 33,
+        "endLine": 9,
+        "endChar": 39
+      },
+      "revId": "021e469cb6626a854f80882d454124ba2f6ca792",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_138a01bf",
         "filename": "/COMMIT_MSG",
         "patchSetId": 2
@@ -72,6 +96,24 @@
       "side": 1,
       "message": "i\u0027m not sure if i get it.\nis it common to run the cluster without the importer?\n\nanyway it\u0027s merely a curious question, rather than an objection.",
       "parentUuid": "9ad9bd40_4f9dbd65",
+      "revId": "021e469cb6626a854f80882d454124ba2f6ca792",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_32f8dec2",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-21T01:27:43Z",
+      "side": 1,
+      "message": "Yes, importer right now does not work;  it needs the neutron side to create and populate the tasks table, which is still under development.  The design itself still needs more refinement.  So currently, we never use the importer, but by starting it, it creates a lot of noise in the log because it periodically polls the tasks table of Neutron which is always empty.",
+      "parentUuid": "9ad9bd40_12df5a6a",
       "revId": "021e469cb6626a854f80882d454124ba2f6ca792",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
