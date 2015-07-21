@@ -358,7 +358,7 @@ class DatapathController @Inject() (val driver: DatapathStateDriver,
                                 isActive: Boolean): Unit = {
         log.info(s"Port ${port.getPortNo}/${port.getName}/$vport " +
                  s"became ${if (isActive) "active" else "inactive"}")
-        VirtualToPhysicalMapper ! LocalPortActive(vport, isActive)
+        system.eventStream.publish(LocalPortActive(vport, isActive))
         invalidateTunnelKeyFlows(port, tunnelKey, isActive)
         if (isActive)
             increaseMtu(vport)
