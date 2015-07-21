@@ -16,6 +16,24 @@
       "revId": "3235534d8e7ebed6b9f93abc24a95694a1576595",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_78e320a4",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-21T08:09:56Z",
+      "side": 1,
+      "message": "Look at that indentation!",
+      "parentUuid": "9ad9bd40_642d40a8",
+      "revId": "3235534d8e7ebed6b9f93abc24a95694a1576595",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
