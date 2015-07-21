@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_3240de33",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 9,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-21T01:25:00Z",
+      "side": 1,
+      "message": "typo: cluster",
+      "range": {
+        "startLine": 9,
+        "startChar": 33,
+        "endLine": 9,
+        "endChar": 39
+      },
+      "revId": "021e469cb6626a854f80882d454124ba2f6ca792",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_138a01bf",
         "filename": "/COMMIT_MSG",
         "patchSetId": 2
@@ -31,6 +54,24 @@
       "side": 1,
       "message": "For now the only one who would enable it is those running devmido to develop the tasks-based Neutron-MidoNet integration.  And since that\u0027s a bit further down the line, I disabled it by default.  Let me know if that answered your question.",
       "parentUuid": "9ad9bd40_138a01bf",
+      "revId": "021e469cb6626a854f80882d454124ba2f6ca792",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_12df5a6a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 17,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-21T01:25:00Z",
+      "side": 1,
+      "message": "i\u0027m not sure if i get it.\nis it common to run the cluster without the importer?\n\nanyway it\u0027s merely a curious question, rather than an objection.",
+      "parentUuid": "9ad9bd40_4f9dbd65",
       "revId": "021e469cb6626a854f80882d454124ba2f6ca792",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
