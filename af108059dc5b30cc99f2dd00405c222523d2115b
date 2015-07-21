@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_bbb842c9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BridgeMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 47,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-21T10:28:59Z",
+      "side": 1,
+      "message": "For an unknown reason 1 tests fails if I use replicated maps....",
+      "range": {
+        "startLine": 47,
+        "startChar": 6,
+        "endLine": 47,
+        "endChar": 22
+      },
+      "revId": "af108059dc5b30cc99f2dd00405c222523d2115b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
