@@ -34,6 +34,24 @@
       "revId": "131c0812747b80b2242408e0a3ceb5f0779cffac",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_699d1966",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/neutron/plugin/NeutronZoomPlugin.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-21T05:23:37Z",
+      "side": 1,
+      "message": "I thought we didn\u0027t want to do that because it would expose the internal exception to users?",
+      "parentUuid": "9ad9bd40_126f5a2c",
+      "revId": "131c0812747b80b2242408e0a3ceb5f0779cffac",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
