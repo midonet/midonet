@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2e9872bf",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepController.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-21T12:21:00Z",
+      "side": 1,
+      "message": "This refers to \"Ask all peers to send us their flooded traffic\"? Could you make more precise what this optimization is? (I know I\u0027m not familiar with this area of the code but perhaps a comment can simplify the understanding).",
+      "range": {
+        "startLine": 187,
+        "startChar": 31,
+        "endLine": 187,
+        "endChar": 48
+      },
+      "revId": "cd44801c22e1c95f21016ca7c7c0c9ac5a89ca79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4e95b685",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-21T12:21:00Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 278,
+        "startChar": 59,
+        "endLine": 278,
+        "endChar": 60
+      },
+      "revId": "cd44801c22e1c95f21016ca7c7c0c9ac5a89ca79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6e8efa7a",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayManager.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 279,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-21T12:21:00Z",
+      "side": 1,
+      "message": ".",
+      "range": {
+        "startLine": 279,
+        "startChar": 65,
+        "endLine": 279,
+        "endChar": 66
+      },
+      "revId": "cd44801c22e1c95f21016ca7c7c0c9ac5a89ca79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8e8b3e67",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VxlanGatewayManagerTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 429,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-21T12:21:00Z",
+      "side": 1,
+      "message": "moving?",
+      "range": {
+        "startLine": 429,
+        "startChar": 30,
+        "endLine": 429,
+        "endChar": 38
+      },
+      "revId": "cd44801c22e1c95f21016ca7c7c0c9ac5a89ca79",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
