@@ -240,4 +240,10 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
 
         state = ST_CONNECTED;
     }
+
+    @Override
+    protected void implCloseSelectableChannel() throws IOException {
+        super.implCloseSelectableChannel();
+        selector.close();
+    }
 }
