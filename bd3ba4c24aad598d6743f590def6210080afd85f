@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b176a3a2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/RouterMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 160,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-21T13:58:30Z",
+      "side": 1,
+      "message": "It just crossed my mind then instead of having these short-lived maps, we could have a statically allocated map to take care of this. It\u0027s just a thought maybe the advantage brought is not worth it...",
+      "range": {
+        "startLine": 160,
+        "startChar": 30,
+        "endLine": 160,
+        "endChar": 65
+      },
+      "revId": "bd3ba4c24aad598d6743f590def6210080afd85f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
