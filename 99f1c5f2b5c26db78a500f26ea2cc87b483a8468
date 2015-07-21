@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_2e56b25c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 148,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-21T13:18:27Z",
+      "side": 1,
+      "message": "Moving this to previous line.",
+      "range": {
+        "startLine": 148,
+        "startChar": 4,
+        "endLine": 148,
+        "endChar": 14
+      },
+      "revId": "99f1c5f2b5c26db78a500f26ea2cc87b483a8468",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2eddd2e0",
         "filename": "nsdb/src/main/proto/topology.proto",
         "patchSetId": 1
