@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_642d40a8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VtepController.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 0,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-21T07:04:01Z",
+      "side": 1,
+      "message": "This file doesn\u0027t require changes.",
+      "revId": "3235534d8e7ebed6b9f93abc24a95694a1576595",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
