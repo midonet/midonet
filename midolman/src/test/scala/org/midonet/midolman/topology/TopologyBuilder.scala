@@ -589,7 +589,7 @@ trait TopologyBuilder {
         if (asNumber.isDefined)
             builder.setAsNumber(asNumber.get)
         if (peerAddress.isDefined)
-            builder.setPeerAddress(peerAddress.get.asProto)
+            builder.setAddress(peerAddress.get.asProto)
         if (routerId.isDefined)
             builder.setRouterId(routerId.get.asProto)
         builder.build()
@@ -899,7 +899,7 @@ object TopologyBuilder {
         def setPeerAs(asNumber: Int): BgpPeer =
             bgpPeer.toBuilder.setAsNumber(asNumber).build()
         def setPeerAddress(address: IPAddr): BgpPeer =
-            bgpPeer.toBuilder.setPeerAddress(address.asProto).build()
+            bgpPeer.toBuilder.setAddress(address.asProto).build()
         def setRouterId(routerId: UUID): BgpPeer =
             bgpPeer.toBuilder.setRouterId(routerId.asProto).build()
     }

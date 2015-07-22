@@ -20,29 +20,31 @@ import java.util.UUID
 
 import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
-import javax.ws.rs.core.UriInfo
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Router
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 
 @RequestScoped
 @AllowGet(Array(APPLICATION_ROUTER_JSON,
                 APPLICATION_ROUTER_JSON_V2,
+                APPLICATION_ROUTER_JSON_V3,
                 APPLICATION_JSON))
 @AllowList(Array(APPLICATION_ROUTER_COLLECTION_JSON,
                  APPLICATION_ROUTER_COLLECTION_JSON_V2,
+                 APPLICATION_ROUTER_COLLECTION_JSON_V3,
                  APPLICATION_JSON))
 @AllowCreate(Array(APPLICATION_ROUTER_JSON,
                    APPLICATION_ROUTER_JSON_V2,
+                   APPLICATION_ROUTER_JSON_V3,
                    APPLICATION_JSON))
 @AllowUpdate(Array(APPLICATION_ROUTER_JSON,
                    APPLICATION_ROUTER_JSON_V2,
+                   APPLICATION_ROUTER_JSON_V3,
                    APPLICATION_JSON))
 @AllowDelete
 class RouterResource @Inject()(resContext: ResourceContext)
@@ -56,6 +58,16 @@ class RouterResource @Inject()(resContext: ResourceContext)
     @Path("{id}/routes")
     def routes(@PathParam("id") id: UUID): RouterRouteResource = {
         new RouterRouteResource(id, resContext)
+    }
+
+    @Path("{id}/bgp_networks")
+    def bgpNetworks(@PathParam("id") id: UUID): RouterBgpNetworkResource = {
+        new RouterBgpNetworkResource(id, resContext)
+    }
+
+    @Path("{id}/bgp_peers")
+    def bgpPeers(@PathParam("id") id: UUID): RouterBgpPeerResource = {
+        new RouterBgpPeerResource(id, resContext)
     }
 
     protected override def listFilter: (Router) => Boolean = {

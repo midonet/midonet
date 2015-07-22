@@ -30,6 +30,8 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 @RequestScoped
 @Path("/")
 class ApplicationResource @Inject()(resContext: ResourceContext,
+                                    bgpNetworkResource: BgpNetworkResource,
+                                    bgpPeerResource: BgpPeerResource,
                                     bridgeResource: BridgeResource,
                                     chainResource: ChainResource,
                                     healthMonitorResource: HealthMonitorResource,
@@ -59,6 +61,12 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
                   s"${resContext.uriInfo.getAbsolutePath}")
         new Application(resContext.uriInfo.getAbsolutePathBuilder.build())
     }
+
+    @Path("bgp_networks")
+    def bgpNetworks = bgpNetworkResource
+
+    @Path("bgp_peers")
+    def bgpPeers = bgpPeerResource
 
     @Path("bridges")
     def bridges = bridgeResource
