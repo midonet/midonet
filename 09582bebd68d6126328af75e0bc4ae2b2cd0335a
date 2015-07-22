@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_208a316a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 2
+      },
+      "lineNbr": 12,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-22T12:57:16Z",
+      "side": 1,
+      "message": "Managers don\u0027t rely on zoom, isn\u0027t it? So why disabling them?",
+      "range": {
+        "startLine": 10,
+        "startChar": 24,
+        "endLine": 12,
+        "endChar": 54
+      },
+      "revId": "09582bebd68d6126328af75e0bc4ae2b2cd0335a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a0ae41e4",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 436,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-22T12:57:16Z",
+      "side": 1,
+      "message": "This is not needed since createVip assigns a random id  to the VIP if none is specified.",
+      "range": {
+        "startLine": 436,
+        "startChar": 8,
+        "endLine": 436,
+        "endChar": 32
+      },
+      "revId": "09582bebd68d6126328af75e0bc4ae2b2cd0335a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_00852d59",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-22T12:57:16Z",
+      "side": 1,
+      "message": "IPv4Addr.randomTo(...)?",
+      "range": {
+        "startLine": 456,
+        "startChar": 22,
+        "endLine": 456,
+        "endChar": 93
+      },
+      "revId": "09582bebd68d6126328af75e0bc4ae2b2cd0335a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_00ec4d29",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-22T12:57:16Z",
+      "side": 1,
+      "message": "This could be done with ZoomConvert.toProto(...)",
+      "range": {
+        "startLine": 657,
+        "startChar": 4,
+        "endLine": 670,
+        "endChar": 32
+      },
+      "revId": "09582bebd68d6126328af75e0bc4ae2b2cd0335a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
