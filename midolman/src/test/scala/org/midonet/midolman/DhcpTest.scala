@@ -188,6 +188,7 @@ class DhcpTest extends MidolmanSpec {
         dhcpReplyForVm2.getServerIPAddress should be (routerIp3.getIntAddress)
     }
 
+    if (!awaitingImpl) {
     scenario("Dhcp Extra Option") {
         val hostNameOption = (DHCPOption.Code.HOST_NAME.value.toString, "foobar")
         val extraDhcpOpts = Map(hostNameOption)
@@ -435,7 +436,7 @@ class DhcpTest extends MidolmanSpec {
         dhcpReply.getOptions.contains(
             classlessRoutesDhcpOption.get) should be (true)
     }
-
+    }
     scenario("Interface MTU") {
         val returnPkt = injectDhcpDiscover(bridgePort1, bridgePortNumber1, vm1Mac)
         val dhcpReply = extractDhcpReply(returnPkt)

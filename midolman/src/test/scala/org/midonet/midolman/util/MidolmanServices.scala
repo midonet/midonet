@@ -60,6 +60,8 @@ trait MidolmanServices {
     def virtConfBuilderImpl =
         injector.getInstance(classOf[VirtualConfigurationBuilders])
 
+    def useNewStorageStack: Boolean = System.getProperty("midonet.newStack") != null
+
     def mockDhcpConfig = new DhcpConfig() {
         override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = List()
         override def dhcpHost(deviceId: UUID, subnet: Subnet, srcMac: String): Option[Host] = None
