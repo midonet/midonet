@@ -187,6 +187,30 @@
       "revId": "09582bebd68d6126328af75e0bc4ae2b2cd0335a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a0948143",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-22T13:39:07Z",
+      "side": 1,
+      "message": "toProto only takes a protobuf Message as a parameter, not a enum, so I can\u0027t use it here.",
+      "parentUuid": "9ad9bd40_00ec4d29",
+      "range": {
+        "startLine": 657,
+        "startChar": 4,
+        "endLine": 670,
+        "endChar": 32
+      },
+      "revId": "09582bebd68d6126328af75e0bc4ae2b2cd0335a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
