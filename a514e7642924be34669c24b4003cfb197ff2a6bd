@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_4a11145c",
+        "filename": "nsdb/src/main/scala/org/midonet/conf/MidoConfTool.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 551,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-22T09:42:12Z",
+      "side": 1,
+      "message": "double negative?",
+      "revId": "a514e7642924be34669c24b4003cfb197ff2a6bd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
