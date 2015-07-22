@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ea010807",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/auth/UserIdentity.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-22T09:45:10Z",
+      "side": 1,
+      "message": "My understanding is that the compiler optimizes this as using a StringBuilder.",
+      "parentUuid": "9ad9bd40_caa8c422",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 57,
+        "endChar": 62
+      },
+      "revId": "f149392f6adef16316e691aaf1caef5d8788117a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_eaa58847",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/auth/AdminOnlyAuthFilter.java",
         "patchSetId": 5
