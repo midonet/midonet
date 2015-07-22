@@ -59,8 +59,7 @@ class PortGroupTest extends MidolmanSpec
     }
 
     private def interceptPortGroup(): SimPortGroup = {
-        val simGroup = VTA.getAndClear().filter(_.isInstanceOf[SimPortGroup]).head
-        simGroup.asInstanceOf[SimPortGroup]
+        VirtualTopologyActor.tryAsk[SimPortGroup](portGroup)
     }
 
     feature("midolman tracks port groups in the cluster correctly") {

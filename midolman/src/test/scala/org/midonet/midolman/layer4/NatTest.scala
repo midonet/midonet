@@ -307,6 +307,7 @@ class NatTest extends MidolmanSpec {
         vmPorts foreach { id => fetchPorts(id) }
 
         pktWkfl = packetWorkflow(portMap, natTable = natTable)
+        pktWkfl.underlyingActor.process()
 
         mockDpChannel.packetsExecuteSubscribe(
             (packet, actions) => packetOutQueue.add((packet,actions)) )
@@ -412,6 +413,7 @@ class NatTest extends MidolmanSpec {
     }
 
     def testSnat() {
+        pktWkfl.underlyingActor.process()
         log.info("Sending a tcp packet that should be SNAT'ed")
         injectTcp(vmPorts.head, vmMacs.head, vmIps.head, 30501,
             routerMac, IPv4Addr("62.72.82.1"), 22,
