@@ -278,6 +278,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_aac9c05a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T08:41:45Z",
+      "side": 1,
+      "message": "I miss errors, do you think it makes sense in onError hooks?",
+      "range": {
+        "startLine": 27,
+        "startChar": 6,
+        "endLine": 27,
+        "endChar": 17
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c2e620b4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 6
