@@ -211,6 +211,30 @@
       "revId": "09582bebd68d6126328af75e0bc4ae2b2cd0335a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e36773b5",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-22T15:23:43Z",
+      "side": 1,
+      "message": "Yes, ZoomConvert cannot be used to convert enums (or other non ZoomObject types directly). What I did in the past was to add conversion methods to enums directly. See org.midonet.midolman.state.l4lb.LBStatus.fromProto",
+      "parentUuid": "9ad9bd40_a0948143",
+      "range": {
+        "startLine": 657,
+        "startChar": 4,
+        "endLine": 670,
+        "endChar": 32
+      },
+      "revId": "09582bebd68d6126328af75e0bc4ae2b2cd0335a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
