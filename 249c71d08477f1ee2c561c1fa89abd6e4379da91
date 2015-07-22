@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_16b3b80a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Rule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 120,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-22T07:23:42Z",
+      "side": 1,
+      "message": "Extra space.",
+      "range": {
+        "startLine": 120,
+        "startChar": 36,
+        "endLine": 120,
+        "endChar": 37
+      },
+      "revId": "249c71d08477f1ee2c561c1fa89abd6e4379da91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_96c6e866",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/rules/PortMirroringTest.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-22T07:23:42Z",
+      "side": 1,
+      "message": "Not used.",
+      "range": {
+        "startLine": 57,
+        "startChar": 12,
+        "endLine": 57,
+        "endChar": 29
+      },
+      "revId": "249c71d08477f1ee2c561c1fa89abd6e4379da91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_76940443",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 102,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-22T07:23:42Z",
+      "side": 1,
+      "message": "Preferred style in Scala is to omit empty parentheses on no-argument functions with no side effects.",
+      "range": {
+        "startLine": 102,
+        "startChar": 36,
+        "endLine": 102,
+        "endChar": 38
+      },
+      "revId": "249c71d08477f1ee2c561c1fa89abd6e4379da91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_969d0869",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 10
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-22T07:23:42Z",
+      "side": 1,
+      "message": "Here, too.",
+      "range": {
+        "startLine": 106,
+        "startChar": 23,
+        "endLine": 106,
+        "endChar": 25
+      },
+      "revId": "249c71d08477f1ee2c561c1fa89abd6e4379da91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b62a0c8e",
+        "filename": "midonet-api/src/test/java/org/midonet/api/filter/TestRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-22T07:23:42Z",
+      "side": 1,
+      "message": "?",
+      "range": {
+        "startLine": 197,
+        "startChar": 8,
+        "endLine": 197,
+        "endChar": 15
+      },
+      "revId": "249c71d08477f1ee2c561c1fa89abd6e4379da91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_760b242a",
+        "filename": "midonet-api/src/test/java/org/midonet/api/filter/TestRule.java",
+        "patchSetId": 10
+      },
+      "lineNbr": 211,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-22T07:23:42Z",
+      "side": 1,
+      "message": "I\u0027m not sure what happens if you try to create a mirror rule with the action set to something other than MIRROR.I think it silently ignores the action and just sets it to MIRROR on conversion to and from (or just from?) protobuf, but I\u0027m not sure. That would be a good thing to test. And if we do just silently ignore it, is that okay?",
+      "revId": "249c71d08477f1ee2c561c1fa89abd6e4379da91",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
