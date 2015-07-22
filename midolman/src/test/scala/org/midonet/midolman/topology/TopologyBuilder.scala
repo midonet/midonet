@@ -166,6 +166,8 @@ trait TopologyBuilder {
                              defaultGw: IPAddr = IPv4Addr.random,
                              serverAddr: IPAddr = IPv4Addr.random,
                              subnetAddr: IPSubnet[_] = IPv4Addr.random.subnet(24),
+                             dns: List[IPv4Addr] = List(),
+                             opt121routes: List[Dhcp.Opt121Route] = List(),
                              enabled: Boolean = true,
                              mtu: Int = 1024): Dhcp = {
         val builder = Dhcp.newBuilder()
@@ -176,6 +178,8 @@ trait TopologyBuilder {
             .setInterfaceMtu(mtu)
             .setSubnetAddress(subnetAddr.asProto)
             .setServerAddress(serverAddr.asProto)
+            .addAllDnsServerAddress(dns.map(_.asProto).asJava)
+            .addAllOpt121Routes(opt121routes.asJavaCollection)
         builder.build()
     }
 
