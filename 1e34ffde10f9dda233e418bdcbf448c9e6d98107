@@ -117,6 +117,29 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_aaf7008a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T08:52:11Z",
+      "side": 1,
+      "message": "I think Alex\u0027s comment on 159 goes in the same line: it\u0027s odd that this class does output formatting. I think it\u0027s better if we return the raw map here, and let the reporter format the data as is appropriate (e.g.; json, xml, plain text...) rather than impose it here.",
+      "range": {
+        "startLine": 168,
+        "startChar": 8,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_22798c93",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 6
@@ -128,6 +151,30 @@
       "writtenOn": "2015-07-16T10:11:23Z",
       "side": 1,
       "message": "For this and the methods above/below: of they return strings for metric/logging purposes, I think the method name should reflect this better. classObservables here returning a String doesn\u0027t convey the method purpose.",
+      "range": {
+        "startLine": 173,
+        "startChar": 43,
+        "endLine": 173,
+        "endChar": 49
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_caf0c493",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T08:52:11Z",
+      "side": 1,
+      "message": "Ditto re. formatting output.",
+      "parentUuid": "9ad9bd40_22798c93",
       "range": {
         "startLine": 173,
         "startChar": 43,
