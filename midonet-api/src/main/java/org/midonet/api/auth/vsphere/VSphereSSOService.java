@@ -228,14 +228,10 @@ public class VSphereSSOService implements AuthService {
 
     private UserIdentity getUserIdentity(String username, String token,
                                          String userRole) {
-        UserIdentity userIdentity = new UserIdentity();
-
-        userIdentity.setTenantId(globalTenantId);
-        userIdentity.setTenantName(globalTenantId);
-        userIdentity.setToken(token);
-        userIdentity.setUserId(username);
+        UserIdentity userIdentity = new UserIdentity(globalTenantId,
+                                                     globalTenantId,
+                                                     username, token);
         userIdentity.addRole(userRole);
-
         return userIdentity;
     }
 

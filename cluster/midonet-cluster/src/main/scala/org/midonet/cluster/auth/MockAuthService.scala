@@ -17,17 +17,18 @@
 package org.midonet.cluster.auth
 
 import java.util
-
 import javax.servlet.http.HttpServletRequest
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
+
+import com.google.inject.Inject
+import com.typesafe.config.Config
 
 /**
  * An implementation of the [[AuthService]] that always returns the admin tenant
  * regardless of the credentials. This is primarily for testing purposes.
  */
-class MockAuthService extends AuthService {
+class MockAuthService @Inject()(conf: Config) extends AuthService {
 
     val mockAdminTenant = new Tenant {
         override def getName: String = "admin"
@@ -48,11 +49,13 @@ class MockAuthService extends AuthService {
     )
 
     override def getUserIdentityByToken(token: String): UserIdentity = {
-        val uid = new UserIdentity
-        uid.setTenantId(mockAdminTenant.getId)
-        uid.setToken(token)
-        uid.setTenantName(mockAdminTenant.getName)
-        uid.setUserId(mockAdminTenant.getId + "-user")
+        val uid = new UserIdentity(
+            mockAdminTenant.getId,
+            mockAdminTenant.getName,
+            mockAdminTenant.getId + "-user",
+            token
+        )
+        uid.addRole(AuthRole.ADMIN)
         uid
     }
 

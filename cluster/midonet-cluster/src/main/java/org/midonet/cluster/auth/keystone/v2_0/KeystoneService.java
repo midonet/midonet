@@ -30,8 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.auth.AuthService;
 import org.midonet.cluster.auth.InvalidCredentialsException;
 import org.midonet.cluster.auth.KeystoneAccess;
@@ -92,11 +92,11 @@ public class KeystoneService implements AuthService {
                     "Tenant information is missing from this access object.");
         }
 
-        UserIdentity userIdentity = new UserIdentity();
-        userIdentity.setTenantId(access.getToken().getTenant().getId());
-        userIdentity.setTenantName(access.getToken().getTenant().getName());
-        userIdentity.setToken(access.getToken().getId());
-        userIdentity.setUserId(access.getUser().getId());
+        UserIdentity userIdentity = new UserIdentity(
+            access.getToken().getTenant().getId(),
+            access.getToken().getTenant().getName(),
+            access.getUser().getId(),
+            access.getToken().getId());
 
         String r;
         for(KeystoneAccess.Access.User.Role role : access.getUser().getRoles()){

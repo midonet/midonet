@@ -19,6 +19,7 @@ package org.midonet.cluster.services.rest_api
 import javax.servlet._
 import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
 
+import com.google.inject.Singleton
 import com.sun.jersey.spi.container.{ContainerRequest, ContainerResponse, ContainerResponseFilter}
 import org.slf4j.LoggerFactory
 
@@ -49,6 +50,7 @@ object CorsFilter {
   *     Access-Control-Allow-Origin:* has no influence in REST Web Service
   *     </a>
   */
+@Singleton
 class CorsFilter extends ContainerResponseFilter with Filter {
 
     import CorsFilter._

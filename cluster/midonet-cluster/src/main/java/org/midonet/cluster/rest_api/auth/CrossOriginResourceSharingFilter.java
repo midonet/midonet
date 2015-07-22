@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.midonet.cluster.auth;
+package org.midonet.cluster.rest_api.auth;
 
 import java.io.IOException;
 

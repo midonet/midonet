@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster.auth;
+package org.midonet.cluster.rest_api.auth;
 
 import java.io.IOException;
 
@@ -35,6 +35,9 @@ import org.jasypt.contrib.org.apache.commons.codec_1_3.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.midonet.cluster.auth.AuthException;
+import org.midonet.cluster.auth.AuthService;
+import org.midonet.cluster.auth.Token;
 import org.midonet.cluster.rest_api.ResponseUtils;
 import org.midonet.util.http.HttpSupport;
 

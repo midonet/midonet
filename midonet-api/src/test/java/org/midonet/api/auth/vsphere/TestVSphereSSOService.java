@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,13 +60,13 @@ public class TestVSphereSSOService {
 
     private String sessionId = "1234-abcd-5678-efgh";
     private String username = "root";
-    private String datacenterName = "datacenter-1";
     private int roleId = -1;
 
     @Before
     public void setUp() throws MalformedURLException, RemoteException {
         MockitoAnnotations.initMocks(this);
 
+        String datacenterName = "datacenter-1";
         when(mockVSphereConfig.getServiceDCId()).thenReturn(datacenterName);
 
         when(mockVSphereClient.loginWithCredentials("root", "root"))
@@ -115,19 +115,19 @@ public class TestVSphereSSOService {
             throws AuthException, RemoteException {
         when(mockVSphereServerInstance.getPrivilegesForRole(roleId))
                 .thenReturn(Optional.of(new String[]{
-                        "Network.Config",
-                        "Network.Delete",
-                        "Network.Move",
-                        "Network.Assign"
+                    "Network.Config",
+                    "Network.Delete",
+                    "Network.Move",
+                    "Network.Assign"
                 }));
 
         UserIdentity userIdentity =
                 vSphereSSOService.getUserIdentityByToken(sessionId);
 
-        assertEquals("Datacenter Admin", userIdentity.getTenantId());
-        assertEquals("Datacenter Admin", userIdentity.getTenantName());
-        assertEquals(sessionId, userIdentity.getToken());
-        assertEquals(username, userIdentity.getUserId());
+        assertEquals("Datacenter Admin", userIdentity.tenantId);
+        assertEquals("Datacenter Admin", userIdentity.tenantName);
+        assertEquals(sessionId, userIdentity.token);
+        assertEquals(username, userIdentity.userId);
         assertTrue(userIdentity.hasRole(AuthRole.ADMIN));
     }
 
@@ -176,7 +176,7 @@ public class TestVSphereSSOService {
                 vSphereSSOService.getUserIdentityByToken(adminToken);
 
         assertTrue(userIdentity.hasRole(AuthRole.ADMIN));
-        assertEquals("admin", userIdentity.getUserId());
-        assertEquals(adminToken, userIdentity.getToken());
+        assertEquals("admin", userIdentity.userId);
+        assertEquals(adminToken, userIdentity.token);
     }
 }

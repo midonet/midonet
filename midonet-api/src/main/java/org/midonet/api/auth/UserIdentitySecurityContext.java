@@ -39,7 +39,7 @@ public class UserIdentitySecurityContext implements SecurityContext {
             principal = new Principal() {
                 @Override
                 public String getName() {
-                    return userIdentity.getTenantId();
+                    return userIdentity.tenantId;
                 }
             };
         }
