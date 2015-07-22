@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,10 @@ import scala.concurrent.duration._
 
 import com.google.inject.Inject
 
-import org.midonet.cluster.data.storage.{NotFoundException, Storage}
+import org.midonet.cluster.data.storage.{NotFoundException, Storage, StateKey}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget}
-import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
@@ -39,72 +38,72 @@ import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules
 import org.midonet.midolman.rules.RuleResult
-import org.midonet.midolman.simulation.{Chain => SimChain}
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
 import org.midonet.midolman.topology.{TopologyBuilder, VirtualTopology}
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, IPSubnet, MAC}
-import org.midonet.util.functors._
-import org.midonet.util.reactivex.{AwaitableObserver, TestAwaitableObserver}
 
 class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
-                                                 stateStorage: LegacyStorage)
+                                                 legacyStorage: LegacyStorage)
         extends VirtualConfigurationBuilders
         with TopologyBuilder {
 
     val store = backend.store
+    val stateStore = backend.stateStore
+
+    val awaitTimeout = 5 seconds
 
     override def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID = {
         store.create(createHost(id, tunnelZoneIds=tunnelZones))
         id
     }
 
+    // don't implement, only used by VirtualToPhysicalMapperTest which is legacy only
     override def isHostAlive(id: UUID): Boolean = ???
-    override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit = ???
+    override def makeHostAlive(id: UUID): Unit = {
+        stateStore.addValue(classOf[Host], id,
+                            MidonetBackend.AliveKey,
+                            MidonetBackend.AliveKey).toBlocking.first
+    }
+
+    override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit = {
+        val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
+        store.update(p.toBuilder()
+                         .setHostId(host.asProto)
+                         .setInterfaceName(iface)
+                         .build())
+    }
 
     override def newInboundChainOnBridge(name: String, bridge: UUID): UUID = {
         val chain = newChain(name)
-        store.observable(classOf[Network], bridge).take(1)
-            .map[Network](makeFunc1[Network,Network]{
-                              Network.newBuilder().mergeFrom(_)
-                                  .setInboundFilterId(chain.asProto)
-                                  .build()
-                          })
-            .subscribe(makeAction1[Network]({ store.update(_) }))
+        val n = Await.result(store.get(classOf[Network], bridge), awaitTimeout)
+        store.update(n.toBuilder()
+                         .setInboundFilterId(chain.asProto)
+                         .build())
         chain
     }
     override def newOutboundChainOnBridge(name: String, bridge: UUID): UUID = {
         val chain = newChain(name)
-        store.observable(classOf[Network], bridge).take(1)
-            .map[Network](makeFunc1[Network,Network]{
-                              Network.newBuilder().mergeFrom(_)
-                                  .setOutboundFilterId(chain.asProto)
-                                  .build()
-                          })
-            .subscribe(makeAction1[Network]({ store.update(_) }))
+        val n = Await.result(store.get(classOf[Network], bridge), awaitTimeout)
+        store.update(n.toBuilder()
+                         .setOutboundFilterId(chain.asProto)
+                         .build())
         chain
     }
     override def newInboundChainOnRouter(name: String, router: UUID): UUID = {
         val chain = newChain(name)
-        store.observable(classOf[Router], router).take(1)
-            .map[Router](makeFunc1[Router,Router]{
-                             Router.newBuilder().mergeFrom(_)
-                                 .setInboundFilterId(chain.asProto)
-                                 .build()
-                         })
-            .subscribe(makeAction1[Router]({ store.update(_) }))
-
+        val r = Await.result(store.get(classOf[Router], router), awaitTimeout)
+        store.update(r.toBuilder()
+                         .setInboundFilterId(chain.asProto)
+                         .build())
         chain
     }
     override def newOutboundChainOnRouter(name: String, router: UUID): UUID =  {
         val chain = newChain(name)
-        store.observable(classOf[Router], router).take(1)
-            .map[Router](makeFunc1[Router,Router]{
-                             Router.newBuilder().mergeFrom(_)
-                                 .setOutboundFilterId(chain.asProto)
-                                 .build()
-                         })
-            .subscribe(makeAction1[Router]({ store.update(_) }))
+        val r = Await.result(store.get(classOf[Router], router), awaitTimeout)
+        store.update(r.toBuilder()
+                         .setOutboundFilterId(chain.asProto)
+                         .build())
         chain
     }
 
@@ -116,48 +115,39 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def newOutboundChainOnPort(name: String, port: UUID, id: UUID): UUID = {
         val chain = newChain(name)
-        store.observable(classOf[Port], port).take(1)
-            .map[Port](makeFunc1[Port,Port]{
-                           Port.newBuilder().mergeFrom(_)
-                               .setOutboundFilterId(chain.asProto)
-                               .build()
-                       })
-            .subscribe(makeAction1[Port]({ store.update(_) }))
+        val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
+        store.update(p.toBuilder()
+                         .setOutboundFilterId(chain.asProto)
+                         .build())
         chain
     }
 
     override def newInboundChainOnPort(name: String, port: UUID, id: UUID): UUID = {
         val chain = newChain(name)
-        store.observable(classOf[Port], port).take(1)
-            .map[Port](makeFunc1[Port,Port]{
-                           Port.newBuilder().mergeFrom(_)
-                               .setInboundFilterId(chain.asProto)
-                               .build()
-                       })
-            .subscribe(makeAction1[Port]({ store.update(_) }))
+        val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
+        store.update(p.toBuilder()
+                         .setInboundFilterId(chain.asProto)
+                         .build())
         chain
     }
 
-    def insertRuleFunc(pos: Int, rule: UUID) =
-        makeFunc1[Chain,Chain](c => {
-                                   val rules = new ArrayList[Commons.UUID]
-                                   rules.addAll(c.getRuleIdsList())
-                                   rules.add(pos-1, rule.asProto)
-                                   Chain.newBuilder().mergeFrom(c)
-                                       .clearRuleIds()
-                                       .addAllRuleIds(rules)
-                                       .build()
-                               })
+    def insertRule(c: Chain, pos: Int, rule: UUID): Chain = {
+        val rules = new ArrayList[Commons.UUID]
+        rules.addAll(c.getRuleIdsList())
+        rules.add(pos-1, rule.asProto)
+        c.toBuilder()
+            .clearRuleIds()
+            .addAllRuleIds(rules)
+            .build()
+    }
 
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: rules.Condition,
                                        action: RuleResult.Action): UUID = {
         val rule = UUID.randomUUID
         val builder = createLiteralRuleBuilder(rule, None, Some(action))
         store.create(setConditionFromCondition(builder, condition).build())
-
-        store.observable(classOf[Chain], chain).take(1)
-            .map[Chain](insertRuleFunc(pos, rule))
-            .subscribe(makeAction1[Chain]({ store.update(_) }))
+        val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
+        store.update(insertRule(c, pos, rule))
         rule
     }
 
@@ -169,9 +159,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         // builder.setTraceRequestId(requestId)
 
         store.create(setConditionFromCondition(builder, condition).build())
-        store.observable(classOf[Chain], chain).take(1)
-            .map[Chain](insertRuleFunc(pos, rule))
-            .subscribe(makeAction1[Chain]({ store.update(_) }))
+        val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
+        store.update(insertRule(c, pos, rule))
         rule
     }
 
@@ -183,9 +172,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val builder = createNatRuleBuilder(id, None, Option(isDnat),
                                            None, targets)
         store.create(setConditionFromCondition(builder, condition).build())
-        store.observable(classOf[Chain], chain).take(1)
-            .map[Chain](insertRuleFunc(pos, id))
-            .subscribe(makeAction1[Chain]({ store.update(_) }))
+        val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
+        store.update(insertRule(c, pos, id))
         id
     }
 
@@ -196,20 +184,14 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val builder = createNatRuleBuilder(id, None, Option(isDnat),
                                            None, reverse=true)
         store.create(setConditionFromCondition(builder, condition).build())
-        store.observable(classOf[Chain], chain).take(1)
-            .map[Chain](insertRuleFunc(pos, id))
-            .subscribe(makeAction1[Chain]({ store.update(_) }))
+        val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
+        store.update(insertRule(c, pos, id))
         id
     }
 
     override def removeRuleFromBridge(bridge: UUID): Unit = {
-        store.observable(classOf[Network], bridge).take(1)
-            .map[Network](makeFunc1[Network,Network]{
-                              Network.newBuilder().mergeFrom(_)
-                                  .clearInboundFilterId()
-                                  .build()
-                          })
-            .subscribe(makeAction1[Network]({ store.update(_) }))
+        val b = Await.result(store.get(classOf[Network], bridge), awaitTimeout)
+        store.update(b.toBuilder().clearInboundFilterId().build())
     }
 
     override def newJumpRuleOnChain(chain: UUID, pos: Int,
@@ -218,10 +200,8 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val id = UUID.randomUUID
         val builder = createJumpRuleBuilder(id, None, Some(jumpToChainID))
         store.create(setConditionFromCondition(builder, condition).build())
-        store.observable(classOf[Chain], chain).take(1)
-            .map[Chain](insertRuleFunc(pos, id))
-            .subscribe(makeAction1[Chain]({ store.update(_) }))
-
+        val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
+        store.update(insertRule(c, pos, id))
         id
     }
 
@@ -235,32 +215,23 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
 
     override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = {
-        store.observable(classOf[IPAddrGroup], id).take(1)
-            .map[IPAddrGroup](makeFunc1[IPAddrGroup, IPAddrGroup](
-                                  g => {
-                                      IPAddrGroup.newBuilder().mergeFrom(g)
-                                          .addIpAddrPorts(IPAddrGroup.IPAddrPorts.newBuilder()
-                                                              .setIpAddress(IPv4Addr(addr).asProto)
-                                                              .build())
-                                          .build()
-                                  }))
-            .subscribe(makeAction1[IPAddrGroup]({ store.update(_) }))
+        val g = Await.result(store.get(classOf[IPAddrGroup], id), awaitTimeout)
+        store.update(g.toBuilder()
+                         .addIpAddrPorts(IPAddrGroup.IPAddrPorts.newBuilder()
+                                             .setIpAddress(IPv4Addr(addr).asProto)
+                                             .build())
+                         .build())
     }
 
     override def removeIpAddrFromIpAddrGroup(id: UUID, addr: String): Unit = {
-        store.observable(classOf[IPAddrGroup], id).take(1)
-            .map[IPAddrGroup](makeFunc1[IPAddrGroup, IPAddrGroup](
-                                  g => {
-                                      val ports = g.getIpAddrPortsList.asScala
-                                          .filter(_.getIpAddress != IPv4Addr(addr).asProto)
-                                          .asJava
-                                      IPAddrGroup.newBuilder().mergeFrom(g)
-                                          .clearIpAddrPorts()
-                                          .addAllIpAddrPorts(ports)
-                                          .build()
-                                  }))
-            .subscribe(makeAction1[IPAddrGroup]({ store.update(_) }))
-
+        val g = Await.result(store.get(classOf[IPAddrGroup], id), awaitTimeout)
+        val ports = g.getIpAddrPortsList.asScala
+            .filter(_.getIpAddress != IPv4Addr(addr).asProto)
+            .asJava
+        store.update(g.toBuilder()
+                         .clearIpAddrPorts()
+                         .addAllIpAddrPorts(ports)
+                         .build())
     }
 
     override def deleteIpAddrGroup(id: UUID): Unit = {
@@ -275,31 +246,48 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
 
     override def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit = {
-        store.observable(classOf[TunnelZone], tz).take(1)
-            .map[TunnelZone](makeFunc1[TunnelZone,TunnelZone](
-                                 (tz: TunnelZone) => {
-                                     val b = TunnelZone.newBuilder().mergeFrom(tz)
-                                     val hosts = new ArrayList[HostToIp]
-                                     hosts.addAll(tz.getHostsList())
-                                     hosts.add(HostToIp.newBuilder()
-                                                   .setHostId(host.asProto)
-                                                   .setIp(ip.asProto).build())
-                                     b.build()
-                                 }
-                             ))
-            .subscribe(makeAction1[TunnelZone]({ store.update(_) }))
+        val tzone = Await.result(store.get(classOf[TunnelZone], tz), awaitTimeout)
+        store.update(tzone.toBuilder()
+                         .addHosts(HostToIp.newBuilder()
+                                       .setHostId(host.asProto)
+                                       .setIp(ip.asProto).build())
+                         .addHostIds(host.asProto)
+                         .build())
     }
 
-    override def deleteTunnelZoneMember(tz: UUID, host: UUID): Unit = ???
+    override def deleteTunnelZoneMember(tz: UUID, host: UUID): Unit = {
+        val tzone = Await.result(store.get(classOf[TunnelZone], tz), awaitTimeout)
+        val hosts = tzone.getHostsList().asScala
+            .filter(_.getHostId != host.asProto)
+            .asJava
+        val hostIds = tzone.getHostIdsList().asScala
+            .filter(_ != host.asProto)
+            .asJava
+
+        store.update(tzone.toBuilder()
+                         .clearHosts()
+                         .clearHostIds()
+                         .addAllHosts(hosts)
+                         .addAllHostIds(hostIds)
+                         .build())
+    }
 
     override def newBridge(name: String, tenant: Option[String] = None): UUID = {
         val id = UUID.randomUUID
         store.create(createBridge(id, tenant, Some(name), adminStateUp=true))
         id
     }
-    override def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit = ???
+    override def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit = {
+        val n = Await.result(store.get(classOf[Network], bridge), awaitTimeout)
+        store.update(n.toBuilder()
+                         .setAdminStateUp(state)
+                         .build())
+    }
+
     override def feedBridgeIp4Mac(bridge: UUID, ip: IPv4Addr, mac: MAC): Unit = ???
-    override def deleteBridge(bridge: UUID): Unit = ???
+    override def deleteBridge(bridge: UUID): Unit = {
+        store.delete(classOf[Network], bridge)
+    }
 
     override def newBridgePort(bridge: UUID,
                                host: Option[UUID] = None,
@@ -311,27 +299,62 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         id
     }
 
-    override def setPortAdminStateUp(port: UUID, state: Boolean): Unit = ???
+    override def setPortAdminStateUp(port: UUID, state: Boolean): Unit = {
+        val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
+        store.update(p.toBuilder()
+                         .setAdminStateUp(state)
+                         .build())
+    }
 
     override def deletePort(port: UUID): Unit = {
-        val devObserver = new TestAwaitableObserver[VirtualTopology.Device]
-        VirtualTopology.observable[VirtualTopology.Device](port).subscribe(devObserver)
         store.delete(classOf[Port], port)
-        devObserver.awaitCompletion(5 seconds)
     }
-    override def deletePort(port: UUID, hostId: UUID): Unit = ???
-    override def newPortGroup(name: String, stateful: Boolean = false): UUID = ???
-    override def setPortGroupStateful(id: UUID, stateful: Boolean): Unit = ???
-    override def newPortGroupMember(pgId: UUID, portId: UUID): Unit = ???
-    override def deletePortGroupMember(pgId: UUID, portId: UUID): Unit = ???
+
+    override def deletePort(port: UUID, hostId: UUID): Unit = {
+        store.delete(classOf[Port], port)
+    }
+
+    override def newPortGroup(name: String, stateful: Boolean = false): UUID = {
+        var id = UUID.randomUUID
+        store.create(createPortGroup(id, Some(name), stateful=Some(stateful)))
+        id
+    }
+
+    override def setPortGroupStateful(id: UUID, stateful: Boolean): Unit = {
+        val pg = Await.result(store.get(classOf[PortGroup], id), awaitTimeout)
+        store.update(pg.toBuilder().setStateful(stateful).build())
+    }
+
+    override def newPortGroupMember(pgId: UUID, portId: UUID): Unit = {
+        val pg = Await.result(store.get(classOf[PortGroup], pgId), awaitTimeout)
+        store.update(pg.toBuilder()
+                         .addPortIds(portId.asProto).build())
+    }
+
+    override def deletePortGroupMember(pgId: UUID, portId: UUID): Unit = {
+        val pg = Await.result(store.get(classOf[PortGroup], pgId), awaitTimeout)
+        store.update(pg.toBuilder()
+                         .clearPortIds()
+                         .addAllPortIds(pg.getPortIdsList().asScala
+                                            .filter({ _ != portId.asProto }).asJava)
+                         .build())
+    }
 
     override def newRouter(name: String): UUID = {
         val id  = UUID.randomUUID
         store.create(createRouter(id, name=Some(name), adminStateUp=true))
         id
     }
-    override def setRouterAdminStateUp(router: UUID, state: Boolean): Unit = ???
-    override def deleteRouter(router: UUID): Unit = ???
+    override def setRouterAdminStateUp(router: UUID, state: Boolean): Unit = {
+        val r = Await.result(store.get(classOf[Router], router), awaitTimeout)
+        store.update(r.toBuilder()
+                         .setAdminStateUp(state)
+                         .build())
+    }
+
+    override def deleteRouter(router: UUID): Unit = {
+        store.delete(classOf[Router], router)
+    }
 
     override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
                                nwAddr: String, nwLen: Int): UUID = {
@@ -414,7 +437,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                              hostMac: MAC, hostIp: IPv4Addr): MAC = {
         val id = UUID.randomUUID
         val dhcpId = subnet2Id.get(subnet).get
-        val dhcp = Await.result(store.get(classOf[Dhcp], dhcpId), 5 seconds)
+        val dhcp = Await.result(store.get(classOf[Dhcp], dhcpId), awaitTimeout)
         store.update(dhcp.toBuilder()
                          .addHosts(Dhcp.Host.newBuilder()
                                        .setMac(hostMac.toString)
@@ -432,14 +455,14 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                     options: Map[String, String]): Unit = ???
 
     override def linkPorts(port: UUID, peerPort: UUID): Unit = {
-        val p = Await.result(store.get(classOf[Port], port), 5 seconds)
+        val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
         store.update(p.toBuilder()
                          .setPeerId(peerPort.asProto)
                          .build())
     }
 
     override def unlinkPorts(port: UUID): Unit = {
-        val p = Await.result(store.get(classOf[Port], port), 5 seconds)
+        val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
         store.update(p.toBuilder()
                          .clearPeerId()
                          .build())
@@ -447,18 +470,16 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def materializePort(port: UUID, hostId: UUID, portName: String): Unit = {
         try {
-            store.observable(classOf[Host], hostId).toBlocking.first
+            Await.result(store.get(classOf[Host], hostId), awaitTimeout)
         } catch {
             case e: NotFoundException => newHost("default", hostId)
         }
 
-        store.update(store.observable(classOf[Port], port)
-                         .map[Port](makeFunc1[Port, Port](
-                                        Port.newBuilder.mergeFrom(_)
-                                            .setHostId(hostId.asProto)
-                                            .setInterfaceName(portName).build()))
-                         .toBlocking.first())
-        stateStorage.setPortLocalAndActive(port, hostId, true)
+        val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
+        store.update(p.toBuilder()
+                         .setHostId(hostId.asProto)
+                         .setInterfaceName(portName).build())
+        legacyStorage.setPortLocalAndActive(port, hostId, true)
     }
 
     override def newLoadBalancer(id: UUID = UUID.randomUUID): UUID = {
@@ -472,21 +493,19 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def setLoadBalancerOnRouter(loadBalancer: UUID,
                                          router: UUID): Unit = {
-        store.observable(classOf[Router], router).take(1)
-            .map[Router](makeFunc1[Router,Router](
-                             Router.newBuilder().mergeFrom(_)
-                                 .setLoadBalancerId(loadBalancer.asProto)
-                                 .build()))
-            .subscribe(makeAction1[Router]({ store.update(_) }))
+        val r = Await.result(store.get(classOf[Router], router), awaitTimeout)
+        val b = r.toBuilder()
+        if (loadBalancer != null) {
+            b.setLoadBalancerId(loadBalancer.asProto)
+        } else {
+            b.clearLoadBalancerId()
+        }
+        store.update(b.build())
     }
 
     override def setLoadBalancerDown(loadBalancer: UUID): Unit = {
-        store.observable(classOf[LoadBalancer], loadBalancer).take(1)
-            .map[LoadBalancer](makeFunc1[LoadBalancer,LoadBalancer](
-                                   LoadBalancer.newBuilder().mergeFrom(_)
-                                       .setAdminStateUp(false)
-                                       .build()))
-            .subscribe(makeAction1[LoadBalancer]({ store.update(_) }))
+        val lb = Await.result(store.get(classOf[LoadBalancer], loadBalancer), awaitTimeout)
+        store.update(lb.toBuilder().setAdminStateUp(false).build())
     }
 
     override def newVip(pool: UUID, address: String, port: Int): UUID = {
@@ -519,27 +538,24 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
 
     override def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit = {
-        store.observable(classOf[Vip], vip).take(1)
-            .map[Vip](makeFunc1[Vip,Vip](Vip.newBuilder().mergeFrom(_)
-                                             .setAdminStateUp(adminStateUp)
-                                             .build()))
-            .subscribe(makeAction1[Vip]({ store.update(_) }))
+        val v = Await.result(store.get(classOf[Vip], vip), awaitTimeout)
+        store.update(v.toBuilder()
+                         .setAdminStateUp(adminStateUp)
+                         .build())
     }
 
     override def vipEnableStickySourceIP(vip: UUID): Unit = {
-        store.observable(classOf[Vip], vip).take(1)
-            .map[Vip](makeFunc1[Vip,Vip](Vip.newBuilder().mergeFrom(_)
-                                             .setSessionPersistence(Vip.SessionPersistence.SOURCE_IP)
-                                             .build()))
-            .subscribe(makeAction1[Vip]({ store.update(_) }))
+        val v = Await.result(store.get(classOf[Vip], vip), awaitTimeout)
+        store.update(v.toBuilder()
+                         .setSessionPersistence(Vip.SessionPersistence.SOURCE_IP)
+                         .build())
     }
 
     override def vipDisableStickySourceIP(vip: UUID): Unit = {
-        store.observable(classOf[Vip], vip).take(1)
-            .map[Vip](makeFunc1[Vip,Vip](Vip.newBuilder().mergeFrom(_)
-                                             .clearSessionPersistence()
-                                             .build()))
-            .subscribe(makeAction1[Vip]({ store.update(_) }))
+        val v = Await.result(store.get(classOf[Vip], vip), awaitTimeout)
+        store.update(v.toBuilder()
+                         .clearSessionPersistence()
+                         .build())
     }
 
     override def newHealthMonitor(id: UUID = UUID.randomUUID(),
@@ -556,7 +572,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def matchHealthMonitor(id: UUID, adminStateUp: Boolean,
                                     delay: Int, timeout: Int,
                                     maxRetries: Int): Boolean = {
-        val hm = store.observable(classOf[HealthMonitor], id).toBlocking.first
+        val hm = Await.result(store.get(classOf[HealthMonitor], id), awaitTimeout)
         hm.getAdminStateUp == adminStateUp && hm.getDelay == delay &&
             hm.getTimeout == timeout && hm.getMaxRetries == maxRetries
     }
@@ -571,13 +587,11 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         id
     }
 
-    override def setHealthMonitorDelay(hm: UUID, delay: Int): Unit = {
-        store.observable(classOf[HealthMonitor], hm).take(1)
-            .map[HealthMonitor](makeFunc1[HealthMonitor,HealthMonitor](
-                                    HealthMonitor.newBuilder().mergeFrom(_)
-                                        .setDelay(delay)
-                                        .build()))
-            .subscribe(makeAction1[HealthMonitor]({ store.update(_) }))
+    override def setHealthMonitorDelay(id: UUID, delay: Int): Unit = {
+        val hm = Await.result(store.get(classOf[HealthMonitor], id), awaitTimeout)
+        store.update(hm.toBuilder()
+                         .setDelay(delay)
+                         .build())
     }
 
     override def deleteHealthMonitor(hm: UUID): Unit = {
@@ -597,45 +611,36 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
 
     override def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit = {
-        store.observable(classOf[Pool], pool).take(1)
-            .map[Pool](makeFunc1[Pool,Pool](
-                           Pool.newBuilder().mergeFrom(_)
-                               .setHealthMonitorId(hmId.asProto)
-                               .build()))
-            .subscribe(makeAction1[Pool]({ store.update(_) }))
+        val p = Await.result(store.get(classOf[Pool], pool), awaitTimeout)
+        store.update(p.toBuilder()
+                         .setHealthMonitorId(hmId.asProto)
+                         .build())
     }
 
     override def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit = {
-        store.observable(classOf[Pool], pool).take(1)
-            .map[Pool](makeFunc1[Pool,Pool](
-                           Pool.newBuilder().mergeFrom(_)
-                               .setAdminStateUp(adminStateUp)
-                               .build()))
-            .subscribe(makeAction1[Pool]({ store.update(_) }))
+        val p = Await.result(store.get(classOf[Pool], pool), awaitTimeout)
+        store.update(p.toBuilder()
+                         .setAdminStateUp(adminStateUp)
+                         .build())
     }
 
     override def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit = {
-        store.observable(classOf[Pool], pool).take(1)
-            .map[Pool](makeFunc1[Pool,Pool](
-                           (p: Pool) => {
-                               val builder = Pool.newBuilder().mergeFrom(p)
-                               if (lbMethod.isDefined) {
-                                   builder.setLbMethod(lbMethod.get)
-                               } else {
-                                   builder.clearLbMethod()
-                               }
-                               builder.build()
-                           }))
-            .subscribe(makeAction1[Pool]({ store.update(_) }))
+        val p = Await.result(store.get(classOf[Pool], pool), awaitTimeout)
+
+        val builder = p.toBuilder()
+        if (lbMethod.isDefined) {
+            builder.setLbMethod(lbMethod.get)
+        } else {
+            builder.clearLbMethod()
+        }
+        store.update(builder.build())
     }
 
     override def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit = {
-        store.observable(classOf[Pool], pool).take(1)
-            .map[Pool](makeFunc1[Pool,Pool](
-                           Pool.newBuilder().mergeFrom(_)
-                               .setMappingStatus(status)
-                               .build()))
-            .subscribe(makeAction1[Pool]({ store.update(_) }))
+        val p = Await.result(store.get(classOf[Pool], pool), awaitTimeout)
+        store.update(p.toBuilder()
+                         .setMappingStatus(status)
+                         .build())
     }
 
     override def newPoolMember(pool: UUID, address: String, port: Int,
@@ -654,17 +659,13 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                   adminStateUp: Option[Boolean] = None,
                                   weight: Option[Integer] = None,
                                   status: Option[LBStatus] = None): Unit = {
-        def updateMember(old: PoolMember): PoolMember = {
-            val builder = PoolMember.newBuilder().mergeFrom(old)
-            poolId.foreach((id: UUID) => builder.setPoolId(id.asProto))
-            adminStateUp.foreach(builder.setAdminStateUp(_))
-            weight.foreach(builder.setWeight(_))
-            status.foreach(builder.setStatus(_))
-            builder.build()
-        }
-        store.observable(classOf[PoolMember], poolMember).take(1)
-            .map[PoolMember](makeFunc1[PoolMember,PoolMember](updateMember))
-            .subscribe(makeAction1[PoolMember]({ store.update(_) }))
+        val pm = Await.result(store.get(classOf[PoolMember], poolMember), awaitTimeout)
+        val builder = pm.toBuilder()
+        poolId.foreach((id: UUID) => builder.setPoolId(id.asProto))
+        adminStateUp.foreach(builder.setAdminStateUp(_))
+        weight.foreach(builder.setWeight(_))
+        status.foreach(builder.setStatus(_))
+        store.update(builder.build())
     }
 
     override def deletePoolMember(poolMember: UUID): Unit = {
