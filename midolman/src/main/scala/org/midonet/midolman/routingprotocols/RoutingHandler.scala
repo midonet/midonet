@@ -397,7 +397,7 @@ abstract class RoutingHandler(var rport: RouterPort, val bgpIdx: Int,
         checkBgpdHealth().andThen { case _ =>
             try {
                 if (bgpd.isAlive) {
-                    status = bgpd.vty.showGeneric("nei").
+                    status = bgpd.vty.showGeneric("show ip bgp nei").
                         filterNot(_.startsWith("bgpd#")).
                         filterNot(_.startsWith("show ip bgp nei")).
                         foldRight("")((a, b) => s"$a\n$b")
