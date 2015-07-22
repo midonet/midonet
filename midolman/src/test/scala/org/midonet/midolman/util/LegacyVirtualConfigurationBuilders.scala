@@ -142,22 +142,6 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
      * Convenience method for creating a rule that accepts or drops TCP
      * packets addressed to a specific port.
      */
-    override def newTcpDstRuleOnChain(
-            chain: UUID, pos: Int, dstPort: Int, action: Action,
-            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED): UUID = {
-        val condition = newCondition(nwProto = Some(TCP.PROTOCOL_NUMBER),
-                                     tpDst = Some(dstPort),
-                                     fragmentPolicy = fragmentPolicy)
-        newLiteralRuleOnChain(chain, pos, condition, action)
-    }
-
-    override def newIpAddrGroupRuleOnChain(chain: UUID, pos: Int, action: Action,
-                                  ipAddrGroupIdDst: Option[UUID],
-                                  ipAddrGroupIdSrc: Option[UUID]): UUID = {
-        val condition = newCondition(ipAddrGroupIdDst = ipAddrGroupIdDst,
-                                     ipAddrGroupIdSrc = ipAddrGroupIdSrc)
-        newLiteralRuleOnChain(chain, pos, condition, action)
-    }
 
     override def newForwardNatRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                                  action: Action, targets: Set[NatTarget],
@@ -196,18 +180,9 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         id
     }
 
-    override def newFragmentRuleOnChain(chain: UUID, pos: Int,
-                               fragmentPolicy: FragmentPolicy,
-                               action: Action): UUID = {
-        val condition = newCondition(fragmentPolicy = fragmentPolicy)
-        newLiteralRuleOnChain(chain, pos, condition, action)
-    }
-
     override def deleteRule(id: UUID) {
         clusterDataClient.rulesDelete(id)
     }
-
-    override def newIpAddrGroup(): UUID = newIpAddrGroup(UUID.randomUUID())
 
     override def newIpAddrGroup(id: UUID): UUID = {
         val ipAddrGroup = new IpAddrGroup(id, new IpAddrGroup.Data())
@@ -427,45 +402,6 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
             hostId, port, portName)
 
         stateStorage.setPortLocalAndActive(port, hostId, true)
-    }
-
-    override def newCondition(
-            nwProto: Option[Byte] = None,
-            tpDst: Option[Int] = None,
-            tpSrc: Option[Int] = None,
-            ipAddrGroupIdDst: Option[UUID] = None,
-            ipAddrGroupIdSrc: Option[UUID] = None,
-            fragmentPolicy: FragmentPolicy = FragmentPolicy.UNFRAGMENTED)
-            : Condition = {
-        val c = new Condition()
-        if (ipAddrGroupIdDst.isDefined)
-            c.ipAddrGroupIdDst = ipAddrGroupIdDst.get
-        if (ipAddrGroupIdSrc.isDefined)
-            c.ipAddrGroupIdSrc = ipAddrGroupIdSrc.get
-        if (nwProto.isDefined)
-            c.nwProto = Byte.box(nwProto.get)
-        if (tpDst.isDefined)
-            c.tpDst = new org.midonet.util.Range(Int.box(tpDst.get))
-        if (tpSrc.isDefined)
-            c.tpSrc = new org.midonet.util.Range(Int.box(tpSrc.get))
-        c.fragmentPolicy = fragmentPolicy
-        c
-    }
-
-    override def newIPAddrGroup(id: Option[UUID]): UUID = {
-        val ipAddrGroup = id match {
-            case None => new IpAddrGroup()
-            case Some(id) => new IpAddrGroup(id)
-        }
-        clusterDataClient.ipAddrGroupsCreate(ipAddrGroup)
-    }
-
-    override def addAddrToIpAddrGroup(id: UUID, addr: String) {
-        clusterDataClient.ipAddrGroupAddAddr(id, addr)
-    }
-
-    override def removeAddrFromIpAddrGroup(id: UUID, addr: String) {
-        clusterDataClient.ipAddrGroupRemoveAddr(id, addr)
     }
 
     // L4LB

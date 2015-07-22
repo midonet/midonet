@@ -415,18 +415,22 @@ trait TopologyBuilder {
                                        chainId: Option[UUID] = None,
                                        dnat: Option[Boolean] = None,
                                        matchFwdFlow: Option[Boolean] = None,
-                                       targets: Set[NatTarget] = Set.empty)
+                                       targets: Set[NatTarget] = Set.empty,
+                                       reverse: Boolean = false)
     : Rule.Builder = {
         val builder = createRuleBuilder(id, chainId, Option(Action.CONTINUE))
             .setType(Rule.Type.NAT_RULE)
-            .setNatRuleData(NatRuleData.newBuilder
-                .addAllNatTargets(targets.asJava)
-                .build())
+        val ruleData = NatRuleData.newBuilder
+        if (reverse) {
+            ruleData.setReverse(true)
+        } else {
+            ruleData.addAllNatTargets(targets.asJava)
+        }
 
         if (dnat.isDefined)
-            builder.getNatRuleDataBuilder
-                .setDnat(dnat.get)
-                .build()
+            ruleData.setDnat(dnat.get)
+
+        builder.setNatRuleData(ruleData.build())
 
         if (matchFwdFlow.isDefined) {
             builder.setMatchForwardFlow(matchFwdFlow.get)

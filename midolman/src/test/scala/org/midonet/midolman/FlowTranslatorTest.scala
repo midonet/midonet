@@ -51,6 +51,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                    VirtualToPhysicalMapper -> (() => new VirtualToPhysicalMapper))
 
     override def beforeTest(): Unit = {
+        newHost("self", hostId)
     }
 
     trait TranslationContext {
@@ -145,7 +146,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
 
         translationScenario("The port is remote") { ctx =>
-            val remoteHost = UUID.randomUUID()
+            val remoteHost = newHost("remoteHost")
             val port = makePort(remoteHost, interface=Some("if"))
             ctx grePort 1342
             ctx peer remoteHost -> (1, 2)
@@ -157,7 +158,7 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
 
         translationScenario("The port is remote but interior") { ctx =>
-            val remoteHost = UUID.randomUUID()
+            val remoteHost = newHost("remoteHost")
             val port = makePort(remoteHost) // makes isExterior be false
 
             ctx grePort 1342
@@ -181,7 +182,6 @@ class FlowTranslatorTest extends MidolmanSpec {
     def makeHost(bindings: Map[UUID, String] = Map(),
                  hostIp: IPv4Addr = IPv4Addr("102.32.2.2"),
                  zones: Map[UUID, IPv4Addr] = Map()) = {
-        newHost("vanderlay", hostId)
         (Map(UUID.randomUUID() -> hostIp) ++ zones) foreach { case (id, ip) =>
             greTunnelZone(ip.toString, id=Some(id))
             addTunnelZoneMember(id, hostId, ip)
@@ -239,9 +239,9 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         translationScenario("The bridge has remote ports") { ctx =>
             val inPort = UUID.randomUUID()
-            val remoteHost0 = UUID.randomUUID()
+            val remoteHost0 = newHost("remoteHost0")
             val port0 = makePort(remoteHost0, interface=Some("if"))
-            val remoteHost1 = UUID.randomUUID()
+            val remoteHost1 = newHost("remoteHost1")
             val port1 = makePort(remoteHost1, interface=Some("if"))
             val bridge = newBridge("floodBridge")
             makeHost()
@@ -320,9 +320,9 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
 
         translationScenario("Local and remote ports are translated") { ctx =>
-            val remoteHost0 = UUID.randomUUID()
+            val remoteHost0 = newHost("remoteHost0")
             val rport0 = makePort(remoteHost0, interface=Some("if"))
-            val remoteHost1 = UUID.randomUUID()
+            val remoteHost1 = newHost("remoteHost1")
             val rport1 = makePort(remoteHost1, interface=Some("if"))
             val bridge = newBridge("floodBridge")
             val lport0 = makePort(hostId, bridge=Some(bridge)) // code assumes that they
@@ -424,7 +424,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         translationScenario("Multiple actions of the same type are translated") { ctx =>
             val port0 = UUID.randomUUID()
-            val remoteHost = UUID.randomUUID()
+            val remoteHost = newHost("remoteHost")
             val port1 = makePort(remoteHost, interface=Some("if"))
 
             ctx local port0 -> 3
