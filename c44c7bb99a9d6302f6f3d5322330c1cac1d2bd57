@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a33f063",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/auth/AuthModule.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 40,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-22T08:58:35Z",
+      "side": 1,
+      "message": "I think the method above will throw a NoSuchMethodException rather than returning null when a constructor taking a Config as argument does not exist (see Class.getConstructor0). Hence, here it won\u0027t fallback on the default constructor.\n\nIf that\u0027s not needed, maybe you can remove this.",
+      "range": {
+        "startLine": 40,
+        "startChar": 12,
+        "endLine": 40,
+        "endChar": 38
+      },
+      "revId": "c44c7bb99a9d6302f6f3d5322330c1cac1d2bd57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
