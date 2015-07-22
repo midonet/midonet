@@ -173,4 +173,11 @@ public class NetlinkChannel extends UnixChannel<Netlink.Address> {
 
         state = ST_CONNECTED;
     }
+
+    @Override
+    protected void implCloseSelectableChannel() throws IOException {
+        if (selector != null)
+            selector.close();
+        super.implCloseSelectableChannel();
+    }
 }
