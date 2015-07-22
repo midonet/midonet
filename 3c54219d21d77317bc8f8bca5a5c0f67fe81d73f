@@ -1,0 +1,136 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_d0beb864",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslator.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-22T02:31:23Z",
+      "side": 1,
+      "message": "Remove?",
+      "range": {
+        "startLine": 124,
+        "startChar": 56,
+        "endLine": 124,
+        "endChar": 66
+      },
+      "revId": "3c54219d21d77317bc8f8bca5a5c0f67fe81d73f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3b13450e",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-22T02:31:23Z",
+      "side": 1,
+      "message": "Do we also want to test the following?\n\n\ncheckNeutronPortBackref(vifPort2Id, fipId)",
+      "range": {
+        "startLine": 263,
+        "startChar": 12,
+        "endLine": 263,
+        "endChar": 52
+      },
+      "revId": "3c54219d21d77317bc8f8bca5a5c0f67fe81d73f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5ba569a0",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 270,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-22T02:31:23Z",
+      "side": 1,
+      "message": "Similarly, do we want to test the following?\n\n\ncheckNeutronPortBackref(vifPort2Id, null)",
+      "revId": "3c54219d21d77317bc8f8bca5a5c0f67fe81d73f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1b984169",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 295,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-22T02:31:23Z",
+      "side": 1,
+      "message": "It\u0027s already tested inside the above \"checkFipDisassociated\".",
+      "range": {
+        "startLine": 294,
+        "startChar": 12,
+        "endLine": 295,
+        "endChar": 60
+      },
+      "revId": "3c54219d21d77317bc8f8bca5a5c0f67fe81d73f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_db3979a5",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/FloatingIpTranslatorIT.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 357,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-22T02:31:23Z",
+      "side": 1,
+      "message": "Perhaps better to include \"Fip\" in the method name?",
+      "range": {
+        "startLine": 357,
+        "startChar": 16,
+        "endLine": 357,
+        "endChar": 39
+      },
+      "revId": "3c54219d21d77317bc8f8bca5a5c0f67fe81d73f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b044d4b7",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 2
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-07-22T02:31:23Z",
+      "side": 1,
+      "message": "s/implementin/implement/",
+      "range": {
+        "startLine": 263,
+        "startChar": 22,
+        "endLine": 263,
+        "endChar": 33
+      },
+      "revId": "3c54219d21d77317bc8f8bca5a5c0f67fe81d73f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
