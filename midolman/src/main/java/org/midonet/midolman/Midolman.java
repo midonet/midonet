@@ -219,7 +219,7 @@ public class Midolman {
                     setOriginComments(false).
                     setFormatted(true);
         Config conf = injector.getInstance(MidolmanConfig.class).conf();
-        log.info("Loaded configuration: {}", conf.root().render(renderOpts));
+        log.info("Loaded configuration: {}", configurator.dropSchema(conf).root().render(renderOpts));
 
         configurator.observableRuntimeConfig(HostIdGenerator.getHostId()).
                 subscribe(new LoggerLevelWatcher(scala.Option.apply("agent")));
