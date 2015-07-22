@@ -218,7 +218,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
 
     override def newIpAddrGroup(id: UUID): UUID = {
-        store.create(createIPAddrGroup(id))
+        store.create(createIpAddrGroup(id))
         id
     }
 
