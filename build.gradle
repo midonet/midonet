@@ -20,6 +20,10 @@ project.ext {
     maintainer = "MidoNet user list <midonet-user@midonet.org>"
     url = "http://midonet.org"
 
+    if (!rootProject.hasProperty('rhelTarget')) {
+        rhelTarget = "7"
+    }
+
     jdkBootstrap = "${rootDir}/midonet-jdk-bootstrap/build/classes/main:${System.properties['java.home']}/lib/rt.jar"
     ideaJdkBootstrap = "-Xbootclasspath/p:${rootDir}/idea/out/midonet-jdk-bootstrap"
     scalaLangLevel = 'Scala 2.11.2'
@@ -165,7 +169,7 @@ project.ext {
                                 replaceAll(/^.*(hf\d*)$/, "1.0.\$1").
                                 replaceAll(/^.*SNAPSHOT$/, "0.0.${timestamp}.${gitrev}").
                                 replaceAll(/^.*-(.*)$/, "0.1.\$1")
-    rpmRelease = "${rpmRelease}.el7"
+    rpmRelease = "${rpmRelease}.el${project.rhelTarget}"
 
 }
 
