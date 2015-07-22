@@ -22,6 +22,30 @@
       "revId": "3a72e5e870dc39544839e3c00b5f4f487161fda4",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8a6f9c2a",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/auth/AuthFilter.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T09:12:58Z",
+      "side": 1,
+      "message": "Not sure, the . will remove the rest_api in the log output as we restrict it to the last segment. I wanted to keep it visible that this is within the REST API. But I can change it if you think it\u0027s better.",
+      "parentUuid": "9ad9bd40_35ff11ac",
+      "range": {
+        "startLine": 45,
+        "startChar": 69,
+        "endLine": 45,
+        "endChar": 70
+      },
+      "revId": "3a72e5e870dc39544839e3c00b5f4f487161fda4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
