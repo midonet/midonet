@@ -34,6 +34,24 @@
       "revId": "31255c7e097c888ab2284fc8714aeb065b60fd00",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8ab15c49",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 442,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-22T07:57:29Z",
+      "side": 1,
+      "message": "Not for java.lang.Byte, java.lang.Integer, etc. If these are null, then when scala tries to coerce them into a scala type before passing to Option() we\u0027ll get a NPE.",
+      "parentUuid": "9ad9bd40_510b9729",
+      "revId": "31255c7e097c888ab2284fc8714aeb065b60fd00",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
