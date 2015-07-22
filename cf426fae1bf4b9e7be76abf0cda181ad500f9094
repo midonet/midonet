@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_6d80b246",
+        "filename": "nsdb/build.gradle",
+        "patchSetId": 10
+      },
+      "lineNbr": 87,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-22T10:11:22Z",
+      "side": 1,
+      "message": "Just curious: will this require running a gradlew assemble before using it from IntelliJ each time we change the xml file (as we do for changes in the protobuf files)?",
+      "range": {
+        "startLine": 87,
+        "startChar": 0,
+        "endLine": 87,
+        "endChar": 29
+      },
+      "revId": "cf426fae1bf4b9e7be76abf0cda181ad500f9094",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
