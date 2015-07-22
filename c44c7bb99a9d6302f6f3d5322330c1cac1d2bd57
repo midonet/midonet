@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_23db1b51",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/auth/AdminOnlyAuthFilter.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T15:39:26Z",
+      "side": 1,
+      "message": "Sure, it makes sense. But seems to be worth of its own patch? (Incidentally, there is a JIRA issue to provide unified filters).",
+      "parentUuid": "9ad9bd40_8afa3c73",
+      "range": {
+        "startLine": 44,
+        "startChar": 50,
+        "endLine": 44,
+        "endChar": 56
+      },
+      "revId": "c44c7bb99a9d6302f6f3d5322330c1cac1d2bd57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0a2e2cfb",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/auth/AuthFilter.java",
         "patchSetId": 4
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-22T09:13:38Z",
       "side": 1,
       "message": "As mentioned for the AdminOnlyAuth... wouldn\u0027t it be useful to separate the authentication logic from the servlet?",
+      "range": {
+        "startLine": 85,
+        "startChar": 8,
+        "endLine": 106,
+        "endChar": 9
+      },
+      "revId": "c44c7bb99a9d6302f6f3d5322330c1cac1d2bd57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_43dc9f46",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/auth/AuthFilter.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T15:39:26Z",
+      "side": 1,
+      "message": "Ditto",
+      "parentUuid": "9ad9bd40_0a2e2cfb",
       "range": {
         "startLine": 85,
         "startChar": 8,
@@ -118,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_83e947e8",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/auth/MockAuthService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 62,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T15:39:26Z",
+      "side": 1,
+      "message": "Yes, this should be generalised along with the other points re. unifying the filter.",
+      "parentUuid": "9ad9bd40_eae02898",
+      "range": {
+        "startLine": 62,
+        "startChar": 28,
+        "endLine": 62,
+        "endChar": 35
+      },
+      "revId": "c44c7bb99a9d6302f6f3d5322330c1cac1d2bd57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0af1cc6a",
         "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/auth/MockAuthService.scala",
         "patchSetId": 4
@@ -129,6 +201,30 @@
       "writtenOn": "2015-07-22T09:13:38Z",
       "side": 1,
       "message": "See above",
+      "range": {
+        "startLine": 72,
+        "startChar": 32,
+        "endLine": 72,
+        "endChar": 50
+      },
+      "revId": "c44c7bb99a9d6302f6f3d5322330c1cac1d2bd57",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a3e64b13",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/auth/MockAuthService.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T15:39:26Z",
+      "side": 1,
+      "message": "ditto",
+      "parentUuid": "9ad9bd40_0af1cc6a",
       "range": {
         "startLine": 72,
         "startChar": 32,
