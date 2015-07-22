@@ -30,6 +30,7 @@ import org.midonet.cluster.data.host.Host
 import org.midonet.cluster.data.l4lb.{HealthMonitor, LoadBalancer, Pool, PoolMember, VIP}
 import org.midonet.cluster.data.rules.{ForwardNatRule, JumpRule, LiteralRule, ReverseNatRule, TraceRule}
 import org.midonet.cluster.state.LegacyStorage
+import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, FragmentPolicy, NatTarget}
@@ -39,7 +40,8 @@ import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC, TCP}
 
 class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient,
-                                                   stateStorage: LegacyStorage)
+                                                   stateStorage: LegacyStorage,
+                                                   hostZkMgr: HostZkManager)
     extends VirtualConfigurationBuilders {
 
     override def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID = {
@@ -49,6 +51,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
     }
 
     override def isHostAlive(id: UUID): Boolean = clusterDataClient.hostsGet(id).getIsAlive
+    override def makeHostAlive(id: UUID): Unit = hostZkMgr.makeAlive(id)
 
     override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit =
         clusterDataClient.hostsAddVrnPortMapping(host, port, iface)
