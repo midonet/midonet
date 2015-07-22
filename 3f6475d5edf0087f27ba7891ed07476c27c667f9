@@ -22,6 +22,30 @@
       "revId": "3f6475d5edf0087f27ba7891ed07476c27c667f9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_aa5d4049",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BgpPeerResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-22T09:34:47Z",
+      "side": 1,
+      "message": "True: I wasn\u0027t sure whether it\u0027s possible to change the behavior of the old API when using the PMC. Testing with the PMC, and if possible, I will remove manually setting the parent resources.",
+      "parentUuid": "9ad9bd40_8a223c50",
+      "range": {
+        "startLine": 58,
+        "startChar": 4,
+        "endLine": 60,
+        "endChar": 5
+      },
+      "revId": "3f6475d5edf0087f27ba7891ed07476c27c667f9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
