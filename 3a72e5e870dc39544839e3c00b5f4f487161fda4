@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_35ff11ac",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/auth/AuthFilter.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-22T08:58:35Z",
+      "side": 1,
+      "message": "Dot instead of dash?",
+      "range": {
+        "startLine": 45,
+        "startChar": 69,
+        "endLine": 45,
+        "endChar": 70
+      },
+      "revId": "3a72e5e870dc39544839e3c00b5f4f487161fda4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
