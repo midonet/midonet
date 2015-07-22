@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a071e177",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/auth/UserIdentity.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 57,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T13:13:30Z",
+      "side": 1,
+      "message": "Yes, the compiler is clever enough now (as Intellij pesters you about, endlessly)",
+      "parentUuid": "9ad9bd40_ea010807",
+      "range": {
+        "startLine": 53,
+        "startChar": 8,
+        "endLine": 57,
+        "endChar": 62
+      },
+      "revId": "f149392f6adef16316e691aaf1caef5d8788117a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_eaa58847",
         "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/auth/AdminOnlyAuthFilter.java",
         "patchSetId": 5
@@ -60,6 +84,30 @@
       "writtenOn": "2015-07-22T09:32:51Z",
       "side": 1,
       "message": "Maybe the question is out of scope but wouldn\u0027t be better to use https?",
+      "range": {
+        "startLine": 66,
+        "startChar": 66,
+        "endLine": 66,
+        "endChar": 77
+      },
+      "revId": "f149392f6adef16316e691aaf1caef5d8788117a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_200dd1e9",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/auth/AdminOnlyAuthFilter.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-22T13:13:30Z",
+      "side": 1,
+      "message": "This depends on how Keystone is installed, but I agree, ideally it should be installed only with https and this should be adapted. Its out of scope, since this is just a file being moved.",
+      "parentUuid": "9ad9bd40_eaa58847",
       "range": {
         "startLine": 66,
         "startChar": 66,
