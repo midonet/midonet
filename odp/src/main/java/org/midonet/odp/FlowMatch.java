@@ -769,8 +769,7 @@ public class FlowMatch {
         int index = vlanIds.indexOf(vlanId);
         if (index != -1)
             vlanIds.remove(index);
-        if (vlanIds.isEmpty())
-            fieldUnused(Field.VlanId);
+        fieldSeen(Field.VlanId);
         return this;
     }
 
@@ -792,6 +791,15 @@ public class FlowMatch {
 
     public boolean hasEthernetPcp() {
         return vlanIds.size() == 1 && vlanIds.get(0) == 0;
+    }
+
+    public boolean stripEthernetPcp() {
+        if (hasEthernetPcp()) {
+            removeVlanId((short) 0);
+            return true;
+        } else {
+            return false;
+        }
     }
 
     // TODO(duarte): enhance as needed
