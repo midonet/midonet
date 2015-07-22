@@ -223,6 +223,7 @@ debian.doFirst {
     project.packaging.fpmOpts = project.packaging.fpmOpts.clone()
     project.packaging.fpmOpts.addAll([
         '-d', 'python',
+        '-d', 'python-setproctitle',
         '-d', 'quagga (>= 0.99.21)',
         '-d', 'java7-runtime-headless',
         '-d', 'iproute (>= 20111117-1ubuntu2.1)',
@@ -250,6 +251,7 @@ rpm.doFirst {
             '--before-install', "${project.projectDir}/src/rhel7/control/preinst",
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
+            '--depends', 'python-setproctitle',
             '--depends', 'java-1.7.0'])
     } else {
         project.packaging.fpmOpts.addAll([

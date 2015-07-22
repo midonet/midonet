@@ -303,7 +303,8 @@ def usage():
     sys.exit(1)
 
 def main():
-    argv.pop(0)
+    program_name = argv.pop(0)
+
     if len(argv) < 3:
         usage()
 
@@ -322,6 +323,12 @@ def main():
         argv.pop(0)
     except ValueError:
         usage()
+
+    try:
+        import setproctitle
+        setproctitle.setproctitle(program_name)
+    except ImportError:
+        pass
 
     ProcMon(timeout, dump_path, argv).run()
 
