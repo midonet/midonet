@@ -38,8 +38,8 @@ trait VirtualConfigurationBuilders {
     def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID
     final def newHost(name: String, id: UUID): UUID = newHost(name, id, Set.empty)
     final def newHost(name: String): UUID = newHost(name, UUID.randomUUID)
-
     def isHostAlive(id: UUID): Boolean
+    def makeHostAlive(id: UUID): Unit
     def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit
 
     def newInboundChainOnBridge(name: String, bridge: UUID): UUID
@@ -250,6 +250,9 @@ trait ForwardingVirtualConfigurationBuilders
         virtConfBuilderImpl.newHost(name, id, tunnelZones)
     override def isHostAlive(id: UUID): Boolean =
         virtConfBuilderImpl.isHostAlive(id)
+    override def makeHostAlive(id: UUID): Unit =
+        virtConfBuilderImpl.makeHostAlive(id)
+
     override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit =
         virtConfBuilderImpl.addHostVrnPortMapping(host, port, iface)
 
