@@ -1,0 +1,225 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_8356a75a",
+        "filename": "/COMMIT_MSG",
+        "patchSetId": 8
+      },
+      "lineNbr": 14,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "This really needs to be broken down into smaller patches. Also, it\u0027s probably big enough to deserve some documentation in the doc/ directory.",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_23f6bb63",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/Condition.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 235,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "TODO.",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8304e74a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/RuleResult.java",
+        "patchSetId": 8
+      },
+      "lineNbr": 72,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "remove.",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_838b07c2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 228,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "use a while() loop unless the inner closure is kept in a static val and not instantiated for each packet.",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e3f77357",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "missing space: \u0027if (\"",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c3fa6f42",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "why don\u0027t we apply filters?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e38e93cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 283,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "If we really want to keep the old field around. Please initialize the list of filters when the port is created, otherwise we are building the same list over and over again for each packet that traverses the port.",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a301eb39",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 298,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "so what is it intended for, can you elaborate?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_63d523b8",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 1,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "can you post a link to the documentation/discussion for the model?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e34933b8",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 229,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "remove?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_03ca971a",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 263,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "what are insertions vs srv_insertions?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_83ddc7e2",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 380,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "wouldn\u0027t vlan \u003d\u003d 0, or field not present, be enough to mark \u0027no vlan\u0027?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c3e34fa2",
+        "filename": "nsdb/src/main/proto/topology.proto",
+        "patchSetId": 8
+      },
+      "lineNbr": 384,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-22T17:00:37Z",
+      "side": 1,
+      "message": "can we do it the right way? :-)   Can you elaborate on what was needed?",
+      "revId": "3db38c9933a03f8c79ad26dd3f0878ef1b61863c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
