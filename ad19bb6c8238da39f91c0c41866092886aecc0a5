@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_36719ce0",
+        "filename": "build.gradle",
+        "patchSetId": 1
+      },
+      "lineNbr": 18,
+      "author": {
+        "id": 1002732
+      },
+      "writtenOn": "2015-07-22T07:04:12Z",
+      "side": 1,
+      "message": "Haven\u0027t we changed the release cycle to 3 months?\nI thought next would be like 09.  JF?",
+      "range": {
+        "startLine": 18,
+        "startChar": 27,
+        "endLine": 18,
+        "endChar": 29
+      },
+      "revId": "ad19bb6c8238da39f91c0c41866092886aecc0a5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
