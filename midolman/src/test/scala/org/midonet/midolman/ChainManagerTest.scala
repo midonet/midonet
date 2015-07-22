@@ -31,7 +31,7 @@ import org.midonet.midolman.simulation.{Chain, CustomMatchers}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{InvalidateFlowsByTag, ChainRequest}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.midolman.util.mock.{BackChannelAccessor, MessageAccumulator}
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
@@ -382,15 +382,6 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
     def flowInvalidationMsg(id: UUID) = FlowTagger.tagForChain(id)
 }
 
-class TestableVTA extends VirtualTopologyActor with MessageAccumulator {
-    def getAndClearBC(): mutable.Buffer[BackChannelMessage] = {
-        val messages = mutable.Buffer[BackChannelMessage]()
-        backChannel.process(
-            new BackChannelHandler() {
-                override def handle(message: BackChannelMessage): Unit = {
-                    messages += message
-                }
-            })
-        messages
-    }
+class TestableVTA extends VirtualTopologyActor
+        with MessageAccumulator with BackChannelAccessor {
 }

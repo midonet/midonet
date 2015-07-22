@@ -62,10 +62,6 @@ class IcmpThroughNatTest extends MidolmanSpec {
     var clusterBridge: UUID = null
     var clusterRouter: UUID = null
 
-    private def setActive(id: UUID) {
-        stateStorage.setPortLocalAndActive(id, hostId, true)
-    }
-
     private def buildTopology() {
         val host = newHost("myself",
             injector.getInstance(classOf[HostIdProviderService]).hostId)
@@ -82,8 +78,10 @@ class IcmpThroughNatTest extends MidolmanSpec {
         rtLeftPort = newRouterPort(clusterRouter, rtLeftMac, rtLeftIp)
         rtRightPort = newRouterPort(clusterRouter, rtRightMac, rtRightIp)
 
-        val ports = List(leftPort, rightPort, rtLeftPort, rtRightPort)
-        ports foreach setActive
+        materializePort(rtLeftPort, hostId, "eth0")
+        materializePort(rtRightPort, hostId, "eth1")
+        materializePort(leftPort, hostId, "eth2")
+        materializePort(rightPort, hostId, "eth3")
 
         fetchPorts(leftPort, rightPort, rtLeftPort, rtRightPort)
         fetchDevice[Bridge](clusterBridge)
