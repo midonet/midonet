@@ -31,7 +31,6 @@ import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
-import org.midonet.odp.flows.FlowActions
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger
 
@@ -75,10 +74,8 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
             return Drop
         }
 
-        if (context.wcmatch.hasEthernetPcp) {
+        if (context.wcmatch.stripEthernetPcp())
             context.log.debug("Stripping off VLAN 0 tag")
-            context.addVirtualAction(FlowActions.popVLAN())
-        }
 
         if (!isValidEthertype(context.wcmatch.getEtherType)) {
             context.log.debug(s"Dropping unsupported EtherType ${context.wcmatch.getEtherType}")
