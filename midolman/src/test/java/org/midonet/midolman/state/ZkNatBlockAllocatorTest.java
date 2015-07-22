@@ -33,6 +33,7 @@ import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
 import org.midonet.packets.IPv4Addr;
+import org.midonet.util.MockUnixClock;
 import org.midonet.util.eventloop.CallingThreadReactor;
 import org.midonet.util.functors.Callback;
 
@@ -42,6 +43,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.hamcrest.number.OrderingComparison.lessThanOrEqualTo;
 
@@ -51,6 +53,8 @@ public class ZkNatBlockAllocatorTest {
     private ZkConnection zk;
     private ZkNatBlockAllocator allocator;
     private PathBuilder paths;
+    private MockUnixClock clock;
+    private ZkNatBlockRecycler recycler;
 
     @Before
     public void setup() throws Exception {
@@ -58,7 +62,9 @@ public class ZkNatBlockAllocatorTest {
         zk = new ZkConnection(server.getConnectString(), Integer.MAX_VALUE, null);
         zk.open();
         paths = new PathBuilder("/midolman");
-        allocator = new ZkNatBlockAllocator(zk, paths,  new CallingThreadReactor());
+        clock = new MockUnixClock();
+        allocator = new ZkNatBlockAllocator(zk, paths,  new CallingThreadReactor(), clock);
+        recycler = new ZkNatBlockRecycler(zk.getZooKeeper(), paths, clock);
 
         zk.getZooKeeper().create(paths.getBasePath(), null,
                                  Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -247,7 +253,7 @@ public class ZkNatBlockAllocatorTest {
                         server.getConnectString(), Integer.MAX_VALUE, null);
         otherZk.open();
         ZkNatBlockAllocator otherAllocator = new ZkNatBlockAllocator(
-                        otherZk, paths, new CallingThreadReactor());
+                        otherZk, paths, new CallingThreadReactor(), clock);
 
         NatBlock result = allocateBlock(request, otherAllocator);
         assertThat(result.tpPortStart, is(0));
@@ -277,7 +283,7 @@ public class ZkNatBlockAllocatorTest {
             conns[i] = otherZk;
             otherZk.open();
             ZkNatBlockAllocator otherAllocator = new ZkNatBlockAllocator(
-                    otherZk, paths, new CallingThreadReactor());
+                    otherZk, paths, new CallingThreadReactor(), clock);
 
             results[i] = allocateBlock(request, otherAllocator);
         }
@@ -292,5 +298,93 @@ public class ZkNatBlockAllocatorTest {
         result = allocateBlock(request);
         assertThat(result.tpPortStart, is(results[0].tpPortStart));
         assertThat(result.tpPortEnd, is(results[0].tpPortEnd));
+    }
+
+    @Test
+    public void testBlocksAreGCed() throws Exception {
+        IPv4Addr ip = IPv4Addr.random();
+        UUID device = UUID.randomUUID();
+        NatRange request = new NatRange(device, ip, 0, 1);
+
+        allocateBlock(request);
+        String path = paths.getNatBlockOwnershipPath(device, ip, 0);
+        Stat s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(notNullValue()));
+
+        freeBlock(new NatBlock(device, ip, 0));
+        s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(nullValue()));
+
+        clock.time_$eq(System.currentTimeMillis() + (60 * 60 * 1000) + 1);
+        assertThat(recycler.recycle(), is(NatBlock.TOTAL_BLOCKS));
+    }
+
+    @Test
+    public void testRouterEntryIsGCed() throws Exception {
+        IPv4Addr ip = IPv4Addr.random();
+        UUID device = UUID.randomUUID();
+        NatRange request = new NatRange(device, ip, 0, 1);
+
+        allocateBlock(request);
+        String path = paths.getNatBlockOwnershipPath(device, ip, 0);
+        Stat s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(notNullValue()));
+
+        freeBlock(new NatBlock(device, ip, 0));
+        s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(nullValue()));
+
+        clock.time_$eq(System.currentTimeMillis() + (60 * 60 * 1000) + 1);
+        assertThat(recycler.recycle(), is(NatBlock.TOTAL_BLOCKS));
+
+        assertThat(recycler.recycle(), is(0));
+        s = zk.getZooKeeper().exists(paths.getNatDevicePath(device), false);
+        assertThat(s, is(nullValue()));
+    }
+
+    @Test
+    public void testBlocksAreGCedForMultipleIps() throws Exception {
+        IPv4Addr ip = IPv4Addr.random();
+        UUID device = UUID.randomUUID();
+        NatRange request = new NatRange(device, ip, 0, 1);
+
+        allocateBlock(request);
+        String path = paths.getNatBlockOwnershipPath(device, ip, 0);
+        Stat s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(notNullValue()));
+
+        freeBlock(new NatBlock(device, ip, 0));
+        s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(nullValue()));
+
+        ip = IPv4Addr.random();
+        request = new NatRange(device, ip, 0, 1);
+
+        allocateBlock(request);
+        path = paths.getNatBlockOwnershipPath(device, ip, 0);
+        s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(notNullValue()));
+
+        freeBlock(new NatBlock(device, ip, 0));
+        s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(nullValue()));
+
+        clock.time_$eq(System.currentTimeMillis() + (60 * 60 * 1000) + 1);
+        assertThat(recycler.recycle(), is(NatBlock.TOTAL_BLOCKS * 2));
+    }
+
+    @Test
+    public void testBlocksAreNotGCedIfOneIsTaken() throws Exception {
+        IPv4Addr ip = IPv4Addr.random();
+        UUID device = UUID.randomUUID();
+        NatRange request = new NatRange(device, ip, 0, 1);
+
+        allocateBlock(request);
+        String path = paths.getNatBlockOwnershipPath(device, ip, 0);
+        Stat s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(notNullValue()));
+
+        clock.time_$eq(System.currentTimeMillis() + (60 * 60 * 1000) + 1);
+        assertThat(recycler.recycle(), is(0));
     }
 }
