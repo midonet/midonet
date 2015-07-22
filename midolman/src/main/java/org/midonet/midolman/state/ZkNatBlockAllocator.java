@@ -19,6 +19,7 @@ package org.midonet.midolman.state;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -28,12 +29,14 @@ import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import org.apache.zookeeper.ZooDefs.Ids;
+import org.apache.zookeeper.ZooKeeper;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
+import org.midonet.util.UnixClock;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback;
 
@@ -51,20 +54,31 @@ import org.midonet.util.functors.Callback;
 public class ZkNatBlockAllocator implements NatBlockAllocator {
     private static final List<ACL> acl = Ids.OPEN_ACL_UNSAFE;
 
-    protected static final Logger log = LoggerFactory
+    private static final Logger log = LoggerFactory
             .getLogger(ZkNatBlockAllocator.class);
 
-    private final ZkConnection zk;
+    private final ZooKeeper zk;
     private final PathBuilder paths;
     // TODO: Until ZK 3.5, which supports async multi operations
     private final Reactor reactor;
 
     @Inject
     public ZkNatBlockAllocator(ZkConnection zk, PathBuilder paths,
-                               @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG) Reactor reactor) {
-        this.zk = zk;
+                               @Named(ZkConnectionProvider.DIRECTORY_REACTOR_TAG) Reactor reactor,
+                               UnixClock clock) {
+        this.zk = zk.getZooKeeper();
         this.paths = paths;
         this.reactor = reactor;
+        final ZkNatBlockRecycler recycler = new ZkNatBlockRecycler(this.zk, paths, clock);
+        Runnable recycleBlocks = new Runnable() {
+            @Override
+            public void run() {
+                recycler.recycle();
+                ZkNatBlockAllocator.this.reactor.schedule(this, 5, TimeUnit.HOURS);
+            }
+        };
+        int factor = ThreadLocalRandom.current().nextInt(5) + 1;
+        reactor.schedule(recycleBlocks, factor, TimeUnit.HOURS);
     }
 
     @Override
@@ -103,7 +117,7 @@ public class ZkNatBlockAllocator implements NatBlockAllocator {
         Stat stat = new Stat();
         for (int i = startBlock; i <= endBlock; ++i) {
             String path = paths.getNatBlockPath(natRange.deviceId, natRange.ip, i);
-            zk.getZooKeeper().getData(path, false, stat);
+            zk.getData(path, false, stat);
             if (stat.getNumChildren() == 0) {
                 // Pzxid is the (undocumented) zxid of the last modified child
                 long pzxid = stat.getPzxid();
@@ -133,7 +147,7 @@ public class ZkNatBlockAllocator implements NatBlockAllocator {
         log.debug("Trying to claim block {} for {}", block, natRange);
         String path = paths.getNatBlockOwnershipPath(
             natRange.deviceId, natRange.ip, block);
-        zk.getZooKeeper().create(path, null, acl, CreateMode.EPHEMERAL);
+        zk.create(path, null, acl, CreateMode.EPHEMERAL);
         callback.onSuccess(new NatBlock(natRange.deviceId, natRange.ip, block));
     }
 
@@ -146,7 +160,7 @@ public class ZkNatBlockAllocator implements NatBlockAllocator {
         log.debug("Freeing {} ({} retries left)", natBlock, retries);
         String path = paths.getNatBlockOwnershipPath(
             natBlock.deviceId, natBlock.ip, natBlock.blockIndex);
-        zk.getZooKeeper().delete(path, -1, new AsyncCallback.VoidCallback() {
+        zk.delete(path, -1, new AsyncCallback.VoidCallback() {
             @Override
             public void processResult(int rc, String path, Object ctx) {
                 if (rc != KeeperException.Code.OK.intValue() &&
@@ -161,20 +175,21 @@ public class ZkNatBlockAllocator implements NatBlockAllocator {
 
     private void ensureDevicePath(final NatRange natRange,
                                   final Callback<NatBlock, Exception> callback) {
-        zk.getZooKeeper().create(paths.getNatDevicePath(natRange.deviceId), null,
-                                 acl, CreateMode.PERSISTENT,
-                                 new AsyncCallback.StringCallback() {
-            @Override
-            public void processResult(int rc, String path, Object ctx, String name) {
-                if (rc == KeeperException.Code.OK.intValue() ||
-                    rc == KeeperException.Code.NODEEXISTS.intValue()) {
-                    ensureIpPath(natRange, callback);
-                } else {
-                    callback.onError(KeeperException.create(
-                        KeeperException.Code.get(rc), path));
-                }
-            }
-        }, null);
+        zk.create(paths.getNatDevicePath(natRange.deviceId), null,
+                  acl, CreateMode.PERSISTENT,
+                  new AsyncCallback.StringCallback() {
+                      @Override
+                      public void processResult(int rc, String path, Object ctx,
+                                                String name) {
+                          if (rc == KeeperException.Code.OK.intValue() ||
+                              rc == KeeperException.Code.NODEEXISTS.intValue()) {
+                              ensureIpPath(natRange, callback);
+                          } else {
+                              callback.onError(KeeperException.create(
+                                  KeeperException.Code.get(rc), path));
+                          }
+                      }
+                  }, null);
     }
 
     private void ensureIpPath(final NatRange natRange,
@@ -187,7 +202,7 @@ public class ZkNatBlockAllocator implements NatBlockAllocator {
             @Override
             public void run() {
                 try {
-                    zk.getZooKeeper().multi(dirs);
+                    zk.multi(dirs);
                     allocateBlockInRange(natRange, callback);
                 } catch (InterruptedException ignored) {
                 } catch (KeeperException e) {
