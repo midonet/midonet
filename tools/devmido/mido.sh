@@ -267,7 +267,7 @@ sudo $DEVMIDO_DIR/install_mn_scripts.sh
 cp  $TOP_DIR/midolman/src/test/resources/logback-test.xml  \
     $TOP_DIR/midolman/build/classes/main/logback.xml
 
-if [[ "$ENABLE_CLUSTER" = "True" ]]; then
+if [[ "$USE_NEW_STACK" = "True" ]]; then
     # MidoNet Cluster
     # ---------------
 
@@ -279,7 +279,7 @@ if [[ "$ENABLE_CLUSTER" = "True" ]]; then
 
     # Configure the cluster using mn-conf
     configure_mn "cluster.zookeeper.use_new_stack" "true"
-    configure_mn "cluster.rest_api.http_port" $CLUSTER_API_PORT
+    configure_mn "cluster.rest_api.http_port" $API_PORT
     configure_mn "cluster.topology_api.enabled" "true"
     configure_mn "cluster.topology_api.port" $TOPOLOGY_API_PORT
     if [[ "$ENABLE_TASKS_IMPORTER" = "True" ]]; then
@@ -292,23 +292,19 @@ if [[ "$ENABLE_CLUSTER" = "True" ]]; then
     cp $CLUSTER_LOG.dev $TOP_DIR/cluster/midonet-cluster/build/resources/main/logback.xml
 
     run_process midonet-cluster "cd $TOP_DIR && ./gradlew :cluster:midonet-cluster:run"
-fi
 
-if [[ "$ENABLE_API" = "True" ]]; then
+else
+
     # MidoNet API
     # -----------
 
     # MidoNet API starts this service so disable it for the cluster if API is
     # enabled
+    configure_mn "cluster.zookeeper.use_new_stack" "false"
     configure_mn "cluster.conf_api.enabled" "false"
 
     API_CFG=$TOP_DIR/midonet-api/src/main/webapp/WEB-INF/web.xml
-    if [[ "$USE_NEW_STACK" = "True" ]]; then
-        sed ':begin;$!N;/zookeeper-use_new_stack/s/false/true/;tbegin;' $API_CFG.dev > $API_CFG
-    else
-        cp $API_CFG.dev $API_CFG
-    fi
-
+    cp $API_CFG.dev $API_CFG
     cp $TOP_DIR/midonet-api/conf/logback.xml.dev $TOP_DIR/midonet-api/build/classes/main/logback.xml
 
     run_process midonet-api "./gradlew :midonet-api:jettyRun -Pport=$API_PORT -PwebXml=$API_CFG"
@@ -329,7 +325,6 @@ else
 fi
 
 run_process midolman "./gradlew -a :midolman:runWithSudo"
-
 
 # MidoNet Client
 # --------------
