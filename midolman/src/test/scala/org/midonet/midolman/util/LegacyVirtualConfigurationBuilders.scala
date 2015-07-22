@@ -48,9 +48,8 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         id
     }
 
-    override def newHost(name: String, id: UUID): UUID = newHost(name, id, Set.empty)
-    override def newHost(name: String): UUID = newHost(name, UUID.randomUUID())
     override def isHostAlive(id: UUID): Boolean = clusterDataClient.hostsGet(id).getIsAlive
+
     override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit =
         clusterDataClient.hostsAddVrnPortMapping(host, port, iface)
 
@@ -121,12 +120,6 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         Thread.sleep(50)
         chain.getId
     }
-
-    override def newOutboundChainOnPort(name: String, port: UUID): UUID =
-        newOutboundChainOnPort(name, port, UUID.randomUUID)
-
-    override def newInboundChainOnPort(name: String, port: UUID): UUID =
-        newInboundChainOnPort(name, port, UUID.randomUUID)
 
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: Condition,
                               action: Action): UUID = {
@@ -362,12 +355,6 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         uuid
     }
 
-    override def newRouterPort(routerId: UUID, mac: MAC,
-                               portAddr: IPv4Subnet): UUID = {
-        newRouterPort(routerId, mac, portAddr.toUnicastString,
-            portAddr.toNetworkAddress.toString, portAddr.getPrefixLen)
-    }
-
     override def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
                               vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID = {
         clusterDataClient.bridgeCreateVxLanPort(bridge, mgmtIp, mgmtPort,
@@ -510,8 +497,6 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         loadBalancer.setAdminStateUp(false)
         clusterDataClient.loadBalancerUpdate(loadBalancer)
     }
-
-    override def newVip(pool: UUID): UUID = newVip(pool, "10.10.10.10", 10)
 
     override def newVip(poolId: UUID, address: String, port: Int): UUID = {
         val pool = clusterDataClient.poolGet(poolId)
@@ -663,10 +648,6 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient.poolSetMapStatus(pool, status)
     }
 
-    override def newPoolMember(pool: UUID): UUID = {
-        newPoolMember(pool, "10.10.10.10", 10)
-    }
-
     override def newPoolMember(pool: UUID, address: String, port: Int,
                                weight: Int = 1) : UUID = {
         val poolMember = new PoolMember()
@@ -697,14 +678,6 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
 
     override def deletePoolMember(poolMember: UUID): Unit =
         clusterDataClient.poolMemberDelete(poolMember)
-
-    override def setPoolMemberAdminStateUp(poolMember: UUID,
-                                           adminStateUp: Boolean) =
-        updatePoolMember(poolMember, adminStateUp = Some(adminStateUp))
-
-    override def setPoolMemberHealth(poolMember: UUID,
-                                     status: LBStatus) =
-        updatePoolMember(poolMember, status = Some(status))
 
     import VirtualConfigurationBuilders.TraceDeviceType
     override def newTraceRequest(device: UUID,

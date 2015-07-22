@@ -40,7 +40,7 @@ import org.midonet.midolman.simulation.{Chain => SimChain}
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
 import org.midonet.midolman.topology.{TopologyBuilder, VirtualTopology}
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, IPSubnet, MAC}
 import org.midonet.util.functors._
 import org.midonet.util.reactivex.{AwaitableObserver, TestAwaitableObserver}
 
@@ -54,12 +54,6 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newHost(name: String, id: UUID, tunnelZones: Set[UUID]): UUID = {
         store.create(createHost(id, tunnelZoneIds=tunnelZones))
         id
-    }
-    override def newHost(name: String, id: UUID): UUID = {
-        newHost(name, id, Set.empty)
-    }
-    override def newHost(name: String): UUID = {
-        newHost(name, UUID.randomUUID)
     }
 
     override def isHostAlive(id: UUID): Boolean = ???
@@ -89,13 +83,34 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                        }).toBlocking.first)
         chain
     }
-    override def newInboundChainOnRouter(name: String, router: UUID): UUID = ???
-    override def newOutboundChainOnRouter(name: String, router: UUID): UUID = ???
+    override def newInboundChainOnRouter(name: String, router: UUID): UUID = {
+        val chain = UUID.randomUUID
+        store.create(createChain(chain, Some(name)))
+
+        store.update(store.observable(classOf[Router], router)
+                         .map[Router](makeFunc1[Router,Router]{
+                                          Router.newBuilder().mergeFrom(_)
+                                              .setInboundFilterId(chain.asProto)
+                                              .build()
+                                      }).toBlocking.first)
+        chain
+    }
+    override def newOutboundChainOnRouter(name: String, router: UUID): UUID =  {
+        val chain = UUID.randomUUID
+        store.create(createChain(chain, Some(name)))
+
+        store.update(store.observable(classOf[Router], router)
+                         .map[Router](makeFunc1[Router,Router]{
+                                          Router.newBuilder().mergeFrom(_)
+                                              .setOutboundFilterId(chain.asProto)
+                                              .build()
+                                      }).toBlocking.first)
+        chain
+    }
     override def newChain(name: String, id: Option[UUID] = None): UUID = ???
     override def newOutboundChainOnPort(name: String, port: UUID, id: UUID): UUID = ???
     override def newInboundChainOnPort(name: String, port: UUID, id: UUID): UUID = ???
-    override def newOutboundChainOnPort(name: String, port: UUID): UUID = ???
-    override def newInboundChainOnPort(name: String, port: UUID): UUID = ???
+
     override def newLiteralRuleOnChain(chain: UUID, pos: Int, condition: rules.Condition,
                                        action: RuleResult.Action): UUID = {
         val devObserver = new TestAwaitableObserver[SimChain]
@@ -104,13 +119,6 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val rule = UUID.randomUUID
         val builder = createLiteralRuleBuilder(rule, Some(chain), Some(action))
         store.create(setConditionFromCondition(builder, condition).build())
-        store.update(store.observable(classOf[Chain], chain)
-                         .map[Chain](makeFunc1[Chain,Chain]{
-                                         Chain.newBuilder().mergeFrom(_)
-                                             .addRuleIds(rule.asProto)
-                                             .build()
-                                         }).toBlocking.first)
-        devObserver.awaitOnNext(2, 5 seconds)
         rule
     }
 
@@ -127,7 +135,17 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newForwardNatRuleOnChain(chain: UUID, pos: Int,
                                           condition: rules.Condition,
                                           action: RuleResult.Action, targets: Set[rules.NatTarget],
-                                          isDnat: Boolean) : UUID = ???
+                                          isDnat: Boolean) : UUID = {
+        val devObserver = new TestAwaitableObserver[SimChain]
+        VirtualTopology.observable[SimChain](chain).subscribe(devObserver)
+
+        val id = UUID.randomUUID
+        val builder = createNatRuleBuilder(id, Some(chain), Option(isDnat),
+                                           None, targets)
+        store.create(setConditionFromCondition(builder, condition).build)
+        id
+
+    }
     override def newReverseNatRuleOnChain(chain: UUID, pos: Int,
                                           condition: rules.Condition,
                                           action: RuleResult.Action, isDnat: Boolean) : UUID = ???
@@ -188,20 +206,43 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def setPortAdminStateUp(port: UUID, state: Boolean): Unit = ???
 
-    override def deletePort(port: UUID): Unit = ???
+    override def deletePort(port: UUID): Unit = {
+        val devObserver = new TestAwaitableObserver[VirtualTopology.Device]
+        VirtualTopology.observable[VirtualTopology.Device](port).subscribe(devObserver)
+        store.delete(classOf[Port], port)
+        devObserver.awaitCompletion(5 seconds)
+    }
     override def deletePort(port: UUID, hostId: UUID): Unit = ???
     override def newPortGroup(name: String, stateful: Boolean = false): UUID = ???
     override def setPortGroupStateful(id: UUID, stateful: Boolean): Unit = ???
     override def newPortGroupMember(pgId: UUID, portId: UUID): Unit = ???
     override def deletePortGroupMember(pgId: UUID, portId: UUID): Unit = ???
 
-    override def newRouter(name: String): UUID = ???
+    override def newRouter(name: String): UUID = {
+        val id  = UUID.randomUUID
+        store.create(createRouter(id, name=Some(name), adminStateUp=true))
+        id
+    }
     override def setRouterAdminStateUp(router: UUID, state: Boolean): Unit = ???
     override def deleteRouter(router: UUID): Unit = ???
 
     override def newRouterPort(router: UUID, mac: MAC, portAddr: String,
-                               nwAddr: String, nwLen: Int): UUID = ???
-    override def newRouterPort(router: UUID, mac: MAC, portAddr: IPv4Subnet): UUID = ???
+                               nwAddr: String, nwLen: Int): UUID = {
+        val id = UUID.randomUUID
+        val addr = IPv4Addr.fromString(portAddr)
+        store.create(createRouterPort(id, routerId=Some(router),
+                                      portMac=mac,
+                                      portAddress=addr,
+                                      portSubnet=toSubnet(nwAddr, nwLen)))
+
+        store.create(createRoute(srcNetwork=new IPv4Subnet(0,0),
+                                 dstNetwork=new IPv4Subnet(addr, 32),
+                                 nextHop=NextHop.LOCAL,
+                                 nextHopPortId=Some(id),
+                                 nextHopGateway=None,
+                                 weight=Some(0)))
+        id
+    }
 
     def newVxLanPort(bridge: UUID, mgmtIp: IPv4Addr, mgmtPort: Int,
                      vni: Int, tunnelIp: IPv4Addr, tunnelZone: UUID): UUID = ???
@@ -209,8 +250,22 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newRoute(router: UUID,
                           srcNw: String, srcNwLen: Int, dstNw: String, dstNwLen: Int,
                           nextHop: NextHop, nextHopPort: UUID, nextHopGateway: String,
-                          weight: Int): UUID = ???
-    override def deleteRoute(routeId: UUID): Unit = ???
+                          weight: Int): UUID = {
+        val id = UUID.randomUUID
+        val routerId = nextHop match {
+            case NextHop.PORT => None
+            case _ => Some(router)
+        }
+        store.create(createRoute(id, toSubnet(srcNw, srcNwLen),
+                                 toSubnet(dstNw, dstNwLen), nextHop,
+                                 Option(nextHopPort), Option(nextHopGateway),
+                                 Option(weight), routerId=routerId))
+        id
+    }
+
+    override def deleteRoute(routeId: UUID): Unit = {
+        store.delete(classOf[Route], routeId)
+    }
 
     override def addDhcpSubnet(bridge: UUID,
                                subnet: IPv4Subnet,
@@ -227,10 +282,17 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def unlinkPorts(port: UUID): Unit = ???
 
     override def materializePort(port: UUID, hostId: UUID, portName: String): Unit = {
+        try {
+            store.observable(classOf[Host], hostId).toBlocking.first
+        } catch {
+            case e: NotFoundException => newHost("default", hostId)
+        }
+
         store.update(store.observable(classOf[Port], port)
                          .map[Port](makeFunc1[Port, Port](
                                         Port.newBuilder.mergeFrom(_)
                                             .setHostId(hostId.asProto)
+                                            .setAdminStateUp(true)
                                             .setInterfaceName(portName).build()))
                          .toBlocking.first())
         stateStorage.setPortLocalAndActive(port, hostId, true)
@@ -251,8 +313,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def deleteLoadBalancer(id: UUID): Unit = ???
     override def setLoadBalancerOnRouter(loadBalancer: UUID, router: UUID): Unit = ???
     override def setLoadBalancerDown(loadBalancer: UUID): Unit = ???
-    override def newVip(pool: UUID): UUID = ???
+
     override def newVip(pool: UUID, address: String, port: Int): UUID = ???
+
     override def deleteVip(vip: UUID): Unit = ???
     override def matchVip(vip: UUID, address: IPAddr, protocolPort: Int): Boolean = ???
 
@@ -281,7 +344,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit = ???
     override def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit = ???
     override def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit = ???
-    override def newPoolMember(pool: UUID): UUID = ???
+
     override def newPoolMember(pool: UUID, address: String, port: Int,
                                weight: Int = 1): UUID = ???
     override def updatePoolMember(poolMember: UUID,
@@ -290,10 +353,6 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                   weight: Option[Integer] = None,
                                   status: Option[LBStatus] = None): Unit = ???
     override def deletePoolMember(poolMember: UUID): Unit = ???
-    override def setPoolMemberAdminStateUp(poolMember: UUID,
-                                           adminStateUp: Boolean): Unit = ???
-    override def setPoolMemberHealth(poolMember: UUID,
-                                     status: LBStatus): Unit = ???
 
     import VirtualConfigurationBuilders.TraceDeviceType
     override def newTraceRequest(device: UUID,
@@ -306,6 +365,18 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def disableTraceRequest(tr: UUID): Unit = ???
     override def isTraceRequestEnabled(tr: UUID): Boolean = ???
 
+    def toSubnet(network: String, length: Int): IPSubnet[_] = {
+        IPSubnet.fromString(s"${network}/${length}")
+    }
+
+    implicit def convertNextHop(from: NextHop): Route.NextHop = {
+        from match {
+            case NextHop.BLACKHOLE => Route.NextHop.BLACKHOLE
+            case NextHop.REJECT => Route.NextHop.REJECT
+            case NextHop.PORT => Route.NextHop.PORT
+            case NextHop.LOCAL => Route.NextHop.LOCAL
+        }
+    }
 
     implicit def convertAction(from: RuleResult.Action): Action = {
         from match {
@@ -316,6 +387,11 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
             case RuleResult.Action.REJECT => Action.REJECT
             case RuleResult.Action.RETURN => Action.RETURN
         }
+    }
+
+    implicit def convertNatTargets(from: Set[rules.NatTarget]): Set[NatTarget] = {
+        from.map(f => createNatTarget(f.nwStart.asProto, f.nwEnd.asProto,
+                                      f.tpStart, f.tpEnd))
     }
 
     def setConditionFromCondition(rule: Rule.Builder,
@@ -338,7 +414,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                      Option(condition.invIpAddrGroupIdSrc),
                      Option(condition.ipAddrGroupIdDst),
                      Option(condition.invIpAddrGroupIdDst),
-                     Option(condition.etherType),
+                     someOrNone(condition.etherType),
                      Option(condition.invDlType),
                      Option(condition.ethSrc),
                      Option(condition.ethSrcMask),
@@ -346,9 +422,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                      Option(condition.ethDst),
                      Option(condition.dlDstMask),
                      Option(condition.invDlDst),
-                     Option(condition.nwTos),
+                     someOrNone(condition.nwTos),
                      Option(condition.nwTosInv),
-                     Option(condition.nwProto),
+                     someOrNone(condition.nwProto),
                      Option(condition.nwProtoInv),
                      Option(condition.nwSrcIp),
                      Option(condition.nwDstIp),
@@ -361,6 +437,22 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                      Option(condition.traversedDevice),
                      Option(condition.traversedDeviceInv),
                      Option(condition.fragmentPolicy))
+    }
+
+    def someOrNone(ref: java.lang.Integer): Option[Int] = {
+        if (ref != null) {
+            Some(ref)
+        } else {
+            None
+        }
+    }
+
+    def someOrNone(ref: java.lang.Byte): Option[Byte] = {
+        if (ref != null) {
+            Some(ref)
+        } else {
+            None
+        }
     }
 
 }
