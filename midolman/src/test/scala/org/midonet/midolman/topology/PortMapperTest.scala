@@ -183,6 +183,16 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             device2 shouldBeDeviceOf port2
             device2.adminStateUp shouldBe true
             device2.isActive shouldBe false
+
+            When("The port is updated again restoring the admin status")
+            store.update(port1)
+
+            Then("The observer should receive the update")
+            obs.awaitOnNext(3, timeout) shouldBe true
+            val device3 = obs.getOnNextEvents.get(2).asInstanceOf[BridgePort]
+            device3 shouldBeDeviceOf port1
+            device3.adminStateUp shouldBe false
+            device3.isActive shouldBe false
         }
 
         scenario("The mapper emits new device on port owner update") {
