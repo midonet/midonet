@@ -2,6 +2,29 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_6a809846",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 96,
+      "author": {
+        "id": 1002821
+      },
+      "writtenOn": "2015-07-22T08:07:15Z",
+      "side": 1,
+      "message": "This seems unnecessarily complicated. Why not:\n\nval c \u003d store.get(classOf[Chain], chain).await()\nstore.update(c.toBuilder.setInboundFilterId(chain.asProto).build())\n\nYou\u0027ll need to import org.midonet.util.concurrent.toFutureOps to use .await()",
+      "range": {
+        "startLine": 90,
+        "startChar": 0,
+        "endLine": 96,
+        "endChar": 13
+      },
+      "revId": "31255c7e097c888ab2284fc8714aeb065b60fd00",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_510b9729",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
         "patchSetId": 3
