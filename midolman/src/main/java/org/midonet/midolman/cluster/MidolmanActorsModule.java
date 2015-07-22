@@ -48,6 +48,8 @@ import org.midonet.midolman.state.FlowStateStorageFactory;
 import org.midonet.midolman.topology.VirtualToPhysicalMapper;
 import org.midonet.midolman.topology.VirtualTopologyActor;
 import org.midonet.netlink.NetlinkChannelFactory;
+import org.midonet.util.UnixClock;
+import org.midonet.util.UnixClock$;
 import org.midonet.util.concurrent.NanoClock;
 import org.midonet.util.concurrent.NanoClock$;
 import org.midonet.util.eventloop.SelectLoop;
@@ -89,6 +91,10 @@ public class MidolmanActorsModule extends PrivateModule {
 
         bindMidolmanActorsService();
         expose(MidolmanActorsService.class);
+        bind(NanoClock.class).toInstance(NanoClock$.MODULE$.DEFAULT());
+        expose(NanoClock.class);
+        bind(UnixClock.class).toInstance(UnixClock$.MODULE$.DEFAULT());
+        expose(UnixClock.class);
 
         /* NOTE(guillermo) In midolman's architecture these actors are all
          * singletons. However this constraint is enforced by
@@ -112,7 +118,6 @@ public class MidolmanActorsModule extends PrivateModule {
     }
 
     protected void bindMidolmanActorsService() {
-        bind(NanoClock.class).toInstance(NanoClock$.MODULE$.DEFAULT());
         bind(MidolmanActorsService.class).in(Singleton.class);
     }
 
