@@ -40,6 +40,7 @@ import org.midonet.midolman.simulation.Coordinator.Device
 import org.midonet.midolman.simulation.{Bridge => SimBridge,
                                         Chain => SimChain, Coordinator,
                                         DhcpConfigFromDataclient,
+                                        DhcpConfigFromZoom,
                                         IPAddrGroup => SimIPAddrGroup,
                                         PacketContext, PacketEmitter,
                                         Router => SimRouter, Pool, LoadBalancer}
@@ -53,7 +54,7 @@ import org.midonet.midolman.topology.devices.{Host, Port => SimPort,
                                               BridgePort => SimBridgePort,
                                               RouterPort => SimRouterPort,
                                               VxLanPort}
-import org.midonet.midolman.topology.{VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.midolman.topology.{VirtualTopology, VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, BridgeRequest, ChainRequest, IPAddrGroupRequest,
                                                            PortRequest, RouterRequest, PoolRequest, LoadBalancerRequest}
 import org.midonet.odp._
@@ -323,6 +324,12 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
                 (dpPortToVport map (_.swap) toMap) get vportId map Integer.valueOf orNull
         }
 
+        val dhcpConfig = if (useNewStorageStack) {
+            new DhcpConfigFromZoom(injector.getInstance(classOf[VirtualTopology]))
+        } else {
+            new DhcpConfigFromDataclient(injector.getInstance(classOf[DataClient]))
+        }
+
         TestActorRef[PacketWorkflow](Props(new PacketWorkflow(
             config,
             hostId,
@@ -330,7 +337,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             new CookieGenerator(0, 1),
             clock,
             dpChannel,
-            new DhcpConfigFromDataclient(injector.getInstance(classOf[DataClient])),
+            dhcpConfig,
             simBackChannel,
             flowProcessor,
             conntrackTable,

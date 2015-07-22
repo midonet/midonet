@@ -17,8 +17,10 @@ package org.midonet.midolman.util
 
 import java.util.{ArrayList, Random, UUID}
 
+import scala.collection.mutable
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import com.google.inject.Inject
@@ -384,19 +386,64 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         store.delete(classOf[Route], routeId)
     }
 
+    val subnet2Id = mutable.Map[IPv4Subnet,UUID]()
     override def addDhcpSubnet(bridge: UUID,
                                subnet: IPv4Subnet,
                                gw: IPv4Addr,
                                dns: List[IPv4Addr],
-                               opt121routes: List[VirtualConfigurationBuilders.DhcpOpt121Route]): IPv4Subnet = ???
+                               opt121routes: List[VirtualConfigurationBuilders.DhcpOpt121Route]): IPv4Subnet = {
+        val id = UUID.randomUUID
+        val dhcp = createDhcp(bridge, id,
+                              gw, gw, subnetAddr=subnet,
+                              dns=dns,
+                              mtu=1450,
+                              opt121routes=opt121routes.map(
+                                  o => {
+                                      Dhcp.Opt121Route.newBuilder()
+                                          .setDstSubnet(o.subnet.asProto)
+                                          .setGateway(o.gw.asProto)
+                                          .build()
+                                  }))
+        store.create(dhcp)
+        subnet2Id += (subnet -> id)
+        subnet
+    }
+
+    val mac2id = mutable.Map[MAC,UUID]()
     override def addDhcpHost(bridge: UUID, subnet: IPv4Subnet,
-                             hostMac: MAC, hostIp: IPv4Addr): MAC = ???
+                             hostMac: MAC, hostIp: IPv4Addr): MAC = {
+        val id = UUID.randomUUID
+        val dhcpId = subnet2Id.get(subnet).get
+        val dhcp = Await.result(store.get(classOf[Dhcp], dhcpId), 5 seconds)
+        store.update(dhcp.toBuilder()
+                         .addHosts(Dhcp.Host.newBuilder()
+                                       .setMac(hostMac.toString)
+                                       .setIpAddress(hostIp.asProto)
+                                       .setName("host"+hostIp.toString
+                                                    .replace(".", "_"))
+                                       .build())
+                         .build())
+        mac2id += (hostMac -> id)
+        hostMac
+    }
+
     override def setDhcpHostOptions(bridge: UUID,
                                     subnet: IPv4Subnet, host: MAC,
                                     options: Map[String, String]): Unit = ???
 
-    override def linkPorts(port: UUID, peerPort: UUID): Unit = ???
-    override def unlinkPorts(port: UUID): Unit = ???
+    override def linkPorts(port: UUID, peerPort: UUID): Unit = {
+        val p = Await.result(store.get(classOf[Port], port), 5 seconds)
+        store.update(p.toBuilder()
+                         .setPeerId(peerPort.asProto)
+                         .build())
+    }
+
+    override def unlinkPorts(port: UUID): Unit = {
+        val p = Await.result(store.get(classOf[Port], port), 5 seconds)
+        store.update(p.toBuilder()
+                         .clearPeerId()
+                         .build())
+    }
 
     override def materializePort(port: UUID, hostId: UUID, portName: String): Unit = {
         try {
