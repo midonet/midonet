@@ -69,6 +69,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
         feedMacTable(simBridge, mac1, port1)
     }
 
+    if (!awaitingImpl) {
     feature("The bridge is not flooded") {
         scenario ("The bridge generates an ARP reply") {
 
@@ -112,5 +113,6 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
             bridgeId should be (bridge)
             outputPorts should contain theSameElementsAs List(port1, port3)
         }
+    }
     }
 }

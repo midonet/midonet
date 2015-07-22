@@ -290,6 +290,7 @@ class AdminStateTest extends MidolmanSpec {
             assertExpectedIcmpProhibitPacket(interiorRouterPort, flow._2)
         }
 
+        if (!awaitingImpl) {
         scenario("a down interior router port egressing packets sends an ICMP" +
                  " prohibited error from the ingressing port") {
             Given("a down router port")
@@ -310,6 +311,7 @@ class AdminStateTest extends MidolmanSpec {
                     "ingressing port")
 
             assertExpectedIcmpProhibitPacket(exteriorRouterPort, flow._2)
+        }
         }
 
         scenario("a down interior router port ingressing packets sends an " +
@@ -333,6 +335,7 @@ class AdminStateTest extends MidolmanSpec {
             assertExpectedIcmpProhibitPacket(interiorRouterPort, flow._2)
         }
 
+        if (!awaitingImpl) {
         scenario("a down exterior router port egressing packets sends an " +
                  "ICMP prohibited error from the ingressing port") {
             Given("a down router port")
@@ -353,6 +356,7 @@ class AdminStateTest extends MidolmanSpec {
                 "ingressing port")
 
             assertExpectedIcmpProhibitPacket(interiorRouterPort, flow._2)
+        }
         }
 
         scenario("a down exterior router port ingressing packets sends an " +
