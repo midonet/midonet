@@ -246,8 +246,10 @@ public class Midolman {
             lockMemory();
 
         initializationPromise.success(true);
-        log.info("main finish");
         serviceEvent.start();
+        log.info("main finish");
+
+        injector.getInstance(MidolmanService.class).awaitTerminated();
     }
 
     private void doServicesCleanup() {
