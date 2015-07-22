@@ -20,6 +20,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,13 +33,19 @@ import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
+import org.midonet.midolman.services.HostIdProviderService;
 import org.midonet.packets.IPv4Addr;
+import org.midonet.util.MockUnixClock;
 import org.midonet.util.eventloop.CallingThreadReactor;
 import org.midonet.util.functors.Callback;
+
+import scala.concurrent.Await;
+import scala.concurrent.duration.Duration;
 
 import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.CoreMatchers.either;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -51,6 +58,9 @@ public class ZkNatBlockAllocatorTest {
     private ZkConnection zk;
     private ZkNatBlockAllocator allocator;
     private PathBuilder paths;
+    private MockUnixClock clock;
+    private ZkNatBlockRecycler recycler;
+    private HostIdProviderService p;
 
     @Before
     public void setup() throws Exception {
@@ -58,7 +68,17 @@ public class ZkNatBlockAllocatorTest {
         zk = new ZkConnection(server.getConnectString(), Integer.MAX_VALUE, null);
         zk.open();
         paths = new PathBuilder("/midolman");
-        allocator = new ZkNatBlockAllocator(zk, paths,  new CallingThreadReactor());
+        clock = new MockUnixClock();
+        p = new HostIdProviderService() {
+            @Override
+            public UUID hostId() {
+                return UUID.randomUUID();
+            }
+        };
+        allocator = new ZkNatBlockAllocator(zk, paths, new CallingThreadReactor(),
+                                            p, clock);
+        recycler = new ZkNatBlockRecycler(zk.getZooKeeper(), paths,
+                                          new CallingThreadReactor(), p, clock);
 
         zk.getZooKeeper().create(paths.getBasePath(), null,
                                  Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
@@ -247,7 +267,7 @@ public class ZkNatBlockAllocatorTest {
                         server.getConnectString(), Integer.MAX_VALUE, null);
         otherZk.open();
         ZkNatBlockAllocator otherAllocator = new ZkNatBlockAllocator(
-                        otherZk, paths, new CallingThreadReactor());
+                        otherZk, paths, new CallingThreadReactor(), p, clock);
 
         NatBlock result = allocateBlock(request, otherAllocator);
         assertThat(result.tpPortStart, is(0));
@@ -277,7 +297,7 @@ public class ZkNatBlockAllocatorTest {
             conns[i] = otherZk;
             otherZk.open();
             ZkNatBlockAllocator otherAllocator = new ZkNatBlockAllocator(
-                    otherZk, paths, new CallingThreadReactor());
+                    otherZk, paths, new CallingThreadReactor(), p, clock);
 
             results[i] = allocateBlock(request, otherAllocator);
         }
@@ -292,5 +312,114 @@ public class ZkNatBlockAllocatorTest {
         result = allocateBlock(request);
         assertThat(result.tpPortStart, is(results[0].tpPortStart));
         assertThat(result.tpPortEnd, is(results[0].tpPortEnd));
+    }
+
+    @Test
+    public void testBlocksAreGCed() throws Exception {
+        UUID device = UUID.randomUUID();
+        IPv4Addr ip = IPv4Addr.random();
+
+        allocateAndFree(device, ip);
+
+        clock.time_$eq(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1) + 1);
+        int blocks = Await.result(recycler.recycle(), Duration.apply(3, TimeUnit.HOURS));
+        assertThat(blocks, is(NatBlock.TOTAL_BLOCKS));
+        Stat s = zk.getZooKeeper().exists(paths.getNatIpPath(device, ip), false);
+        assertThat(s, is(nullValue()));
+    }
+
+    @Test
+    public void testRouterEntryIsGCed() throws Exception {
+        UUID device = UUID.randomUUID();
+        IPv4Addr ip = IPv4Addr.random();
+
+        allocateAndFree(device, ip);
+
+        clock.time_$eq(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1) + 1);
+        int blocks = Await.result(recycler.recycle(), Duration.apply(3, TimeUnit.MINUTES));
+        assertThat(blocks, is(NatBlock.TOTAL_BLOCKS));
+        Stat s = zk.getZooKeeper().exists(paths.getNatIpPath(device, ip), false);
+        assertThat(s, is(nullValue()));
+        s = zk.getZooKeeper().exists(paths.getNatDevicePath(device), false);
+        assertThat(s, is(not(nullValue())));
+
+        blocks = Await.result(recycler.recycle(), Duration.apply(3, TimeUnit.MINUTES));
+        assertThat(blocks, is(0));
+        s = zk.getZooKeeper().exists(paths.getNatDevicePath(device), false);
+        assertThat(s, is(nullValue()));
+    }
+
+    @Test
+    public void testBlocksAreGCedForMultipleIps() throws Exception {
+        UUID device = UUID.randomUUID();
+        IPv4Addr ip = IPv4Addr.random();
+        IPv4Addr otherIp = IPv4Addr.random();
+
+        allocateAndFree(device, ip);
+        allocateAndFree(device, otherIp);
+
+        clock.time_$eq(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1) + 1);
+        int blocks = Await.result(recycler.recycle(), Duration.apply(3, TimeUnit.MINUTES));
+        assertThat(blocks, is(NatBlock.TOTAL_BLOCKS * 2));
+        Stat s = zk.getZooKeeper().exists(paths.getNatIpPath(device, ip), false);
+        assertThat(s, is(nullValue()));
+        s = zk.getZooKeeper().exists(paths.getNatIpPath(device, otherIp), false);
+        assertThat(s, is(nullValue()));
+    }
+
+    @Test
+    public void testBlocksAreGCedForMultipleDevices() throws Exception {
+        UUID device = UUID.randomUUID();
+        UUID otherDevice = UUID.randomUUID();
+        IPv4Addr ip = IPv4Addr.random();
+        IPv4Addr otherIp = IPv4Addr.random();
+
+        allocateAndFree(device, ip);
+        allocateAndFree(device, otherIp);
+        allocateAndFree(otherDevice, ip);
+        allocateAndFree(otherDevice, otherIp);
+
+        clock.time_$eq(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1) + 1);
+        int blocks = Await.result(recycler.recycle(), Duration.apply(3, TimeUnit.MINUTES));
+        assertThat(blocks, is(NatBlock.TOTAL_BLOCKS * 4));
+        Stat s = zk.getZooKeeper().exists(paths.getNatIpPath(device, ip), false);
+        assertThat(s, is(nullValue()));
+        s = zk.getZooKeeper().exists(paths.getNatIpPath(device, otherIp), false);
+        assertThat(s, is(nullValue()));
+    }
+
+    @Test
+    public void testBlocksAreNotGCedIfOneIsTaken() throws Exception {
+        UUID device = UUID.randomUUID();
+        IPv4Addr ip = IPv4Addr.random();
+
+        allocate(device, ip);
+
+        clock.time_$eq(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1) + 1);
+        int blocks = Await.result(recycler.recycle(), Duration.apply(3, TimeUnit.MINUTES));
+        assertThat(blocks, is(0));
+        Stat s = zk.getZooKeeper().exists(paths.getNatIpPath(device, ip), false);
+        assertThat(s, is(not(nullValue())));
+    }
+
+    private void allocateAndFree(UUID device, IPv4Addr ip) throws Exception {
+        allocate(device, ip);
+        free(device, ip);
+    }
+
+    private void allocate(UUID device, IPv4Addr ip) throws Exception {
+        NatRange request = new NatRange(device, ip, 0, 1);
+
+        allocateBlock(request);
+        String path = paths.getNatBlockOwnershipPath(device, ip, 0);
+        Stat s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(notNullValue()));
+    }
+
+    private void free(UUID device, IPv4Addr ip) throws Exception {
+        String path = paths.getNatBlockOwnershipPath(device, ip, 0);
+        freeBlock(new NatBlock(device, ip, 0));
+        Stat s = zk.getZooKeeper().exists(path, false);
+        assertThat(s, is(nullValue()));
     }
 }
