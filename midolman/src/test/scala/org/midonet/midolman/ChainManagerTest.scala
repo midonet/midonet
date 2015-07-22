@@ -31,7 +31,7 @@ import org.midonet.midolman.simulation.{Chain, CustomMatchers}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.{InvalidateFlowsByTag, ChainRequest}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.mock.MessageAccumulator
+import org.midonet.midolman.util.mock.{BackChannelAccessor, MessageAccumulator}
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])
@@ -85,7 +85,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             checkTcpDstRule(c.getRules.get(1), 81, Action.ACCEPT)
 
             And("the VTA should receive a flow invalidation")
-            vta.getAndClearBC() should contain (flowInvalidationMsg(c.id))
+            vta.getAndClearBC() should contain (flowInvalidationTag(c.id))
         }
     }
 
@@ -135,7 +135,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             c1.getJumpTarget(chain3) should not be null
 
             And("the VTA should receive a flow invalidation for the first chain")
-            vta.getAndClearBC() should contain (flowInvalidationMsg(c1.id))
+            vta.getAndClearBC() should contain (flowInvalidationTag(c1.id))
         }
 
         scenario("Add a jump to a third chain on the second chain") {
@@ -172,8 +172,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             And("the VTA should receive flow invalidations " +
                 "for the first two chains")
             val msgs = vta.getAndClearBC()
-            msgs should contain (flowInvalidationMsg(c1.id))
-            msgs should contain (flowInvalidationMsg(c2.id))
+            msgs should contain (flowInvalidationTag(c1.id))
+            msgs should contain (flowInvalidationTag(c2.id))
         }
 
         scenario("Add a rule to a jump target chain") {
@@ -204,9 +204,9 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("the VTA should receive flow invalidations for all three chains")
             val msgs = vta.getAndClearBC()
-            msgs.contains(flowInvalidationMsg(c1.id))
-            msgs.contains(flowInvalidationMsg(c2.id))
-            msgs.contains(flowInvalidationMsg(c3.id))
+            msgs.contains(flowInvalidationTag(c1.id))
+            msgs.contains(flowInvalidationTag(c2.id))
+            msgs.contains(flowInvalidationTag(c3.id))
         }
     }
 
@@ -300,7 +300,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                                  null, null)
 
             And("the VTA should receive a flow invalidation for the chain")
-            vta.getAndClearBC() should contain (flowInvalidationMsg(c.id))
+            vta.getAndClearBC() should contain (flowInvalidationTag(c.id))
         }
 
         scenario("Remove an address from an IPAddrGroup") {
@@ -334,7 +334,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                                  ipAddrGroup, Set(addr2))
 
             And("the VTA should receive a flow invalidation for the chain")
-            vta.getAndClearBC() should contain (flowInvalidationMsg(c2.id))
+            vta.getAndClearBC() should contain (flowInvalidationTag(c2.id))
         }
     }
 
@@ -379,18 +379,9 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
         jr1.jumpToChainID shouldEqual jumpToId
     }
 
-    def flowInvalidationMsg(id: UUID) = FlowTagger.tagForChain(id)
+    def flowInvalidationTag(id: UUID) = FlowTagger.tagForChain(id)
 }
 
-class TestableVTA extends VirtualTopologyActor with MessageAccumulator {
-    def getAndClearBC(): mutable.Buffer[BackChannelMessage] = {
-        val messages = mutable.Buffer[BackChannelMessage]()
-        backChannel.process(
-            new BackChannelHandler() {
-                override def handle(message: BackChannelMessage): Unit = {
-                    messages += message
-                }
-            })
-        messages
-    }
+class TestableVTA extends VirtualTopologyActor
+        with MessageAccumulator with BackChannelAccessor {
 }

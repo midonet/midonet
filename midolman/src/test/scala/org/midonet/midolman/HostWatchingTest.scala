@@ -40,18 +40,15 @@ class HostWatchingTest extends MidolmanSpec
 
     registerActors(VTPM -> (() => new VTPM with MessageAccumulator))
 
-    var hostMgr: HostZkManager = _
     val hostToWatch = UUID.randomUUID()
     val hostName = "foo"
 
     override def beforeTest() {
-        hostMgr = injector.getInstance(classOf[HostZkManager])
         newHost(hostName, hostToWatch)
     }
 
     private def interceptHost(): Host = {
-        val h = VTPM.getAndClear().filter(_.isInstanceOf[Host]).head
-        h.asInstanceOf[Host]
+        VTPM.tryAsk(VTPM.HostRequest(hostToWatch, true))
     }
 
     feature("midolman tracks hosts in the cluster correctly") {
@@ -62,7 +59,7 @@ class HostWatchingTest extends MidolmanSpec
             host.id should equal (hostToWatch)
             host should not be ('alive)
 
-            hostMgr.makeAlive(hostToWatch)
+            makeHostAlive(hostToWatch)
             eventually { interceptHost() should be ('alive) }
         }
     }
