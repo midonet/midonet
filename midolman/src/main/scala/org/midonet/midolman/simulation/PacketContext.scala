@@ -94,28 +94,28 @@ trait FlowContext extends Clearable { this: PacketContext =>
 
     def calculateActionsFromMatchDiff(): Unit = {
         wcmatch.doNotTrackSeenFields()
-        origMatch.doNotTrackSeenFields()
         diffEthernet()
         diffIp()
         diffVlan()
         diffIcmp()
         diffL4()
         wcmatch.doTrackSeenFields()
-        origMatch.doTrackSeenFields()
+        diffBaseMatch.reset(wcmatch)
+        diffBaseMatch.doTrackSeenFields()
     }
 
     private def diffEthernet(): Unit =
-        if (!origMatch.getEthSrc.equals(wcmatch.getEthSrc) ||
-            !origMatch.getEthDst.equals(wcmatch.getEthDst)) {
+        if (!diffBaseMatch.getEthSrc.equals(wcmatch.getEthSrc) ||
+            !diffBaseMatch.getEthDst.equals(wcmatch.getEthDst)) {
             virtualFlowActions.add(setKey(FlowKeys.ethernet(
                 wcmatch.getEthSrc.getAddress,
                 wcmatch.getEthDst.getAddress)))
         }
 
     private def diffIp(): Unit =
-        if (origMatch.getNetworkSrcIP != wcmatch.getNetworkSrcIP ||
-            origMatch.getNetworkDstIP != wcmatch.getNetworkDstIP ||
-            origMatch.getNetworkTTL != wcmatch.getNetworkTTL) {
+        if (diffBaseMatch.getNetworkSrcIP != wcmatch.getNetworkSrcIP ||
+            diffBaseMatch.getNetworkDstIP != wcmatch.getNetworkDstIP ||
+            diffBaseMatch.getNetworkTTL != wcmatch.getNetworkTTL) {
 
             virtualFlowActions.add(setKey(
                 wcmatch.getNetworkSrcIP match {
@@ -137,9 +137,9 @@ trait FlowContext extends Clearable { this: PacketContext =>
         }
 
     private def diffVlan(): Unit =
-        if (!origMatch.getVlanIds.equals(wcmatch.getVlanIds)) {
-            val vlansToRemove = origMatch.getVlanIds.diff(wcmatch.getVlanIds)
-            val vlansToAdd = wcmatch.getVlanIds.diff(origMatch.getVlanIds)
+        if (!diffBaseMatch.getVlanIds.equals(wcmatch.getVlanIds)) {
+            val vlansToRemove = diffBaseMatch.getVlanIds.diff(wcmatch.getVlanIds)
+            val vlansToAdd = wcmatch.getVlanIds.diff(diffBaseMatch.getVlanIds)
             log.debug("Vlan tags to pop {}, vlan tags to push {}",
                 vlansToRemove, vlansToAdd)
 
@@ -159,7 +159,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
     private def diffIcmp(): Unit = {
         val icmpData = wcmatch.getIcmpData
         if ((icmpData ne null) &&
-            !Arrays.equals(icmpData, origMatch.getIcmpData)) {
+            !Arrays.equals(icmpData, diffBaseMatch.getIcmpData)) {
 
             val icmpType = wcmatch.getSrcPort
             if (icmpType == ICMP.TYPE_PARAMETER_PROBLEM ||
@@ -176,8 +176,8 @@ trait FlowContext extends Clearable { this: PacketContext =>
     }
 
     private def diffL4(): Unit =
-        if (origMatch.getSrcPort != wcmatch.getSrcPort ||
-            origMatch.getDstPort != wcmatch.getDstPort) {
+        if (diffBaseMatch.getSrcPort != wcmatch.getSrcPort ||
+            diffBaseMatch.getDstPort != wcmatch.getDstPort) {
             wcmatch.getNetworkProto match {
                 case TCP.PROTOCOL_NUMBER =>
                     virtualFlowActions.add(setKey(FlowKeys.tcp(
@@ -238,6 +238,7 @@ class PacketContext(val cookie: Int,
     val outPorts = new ArrayList[UUID]()
 
     val wcmatch = origMatch.clone()
+    val diffBaseMatch = origMatch.clone()
 
     var inputPort: UUID = _
 
@@ -272,6 +273,7 @@ class PacketContext(val cookie: Int,
         idle = false
         runs += 1
         wcmatch.reset(origMatch)
+        diffBaseMatch.reset(origMatch)
     }
 
     def prepareForDrop(): Unit = {
