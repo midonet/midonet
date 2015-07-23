@@ -25,8 +25,10 @@ import scala.concurrent.duration.DurationInt
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 
 import org.midonet.cluster.data.ZoomConvert
@@ -35,12 +37,12 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.Rule.JumpRuleData
 import org.midonet.cluster.models.Topology.{Chain => ProtoChain, IPAddrGroup => ProtoIPAddrGroup, Rule => ProtoRule}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.{Rule => SimRule}
 import org.midonet.midolman.simulation.{Chain => SimChain}
-import TopologyTest.DeviceObserver
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPAddr
 import org.midonet.util.concurrent.toFutureOps

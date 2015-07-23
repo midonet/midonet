@@ -22,16 +22,17 @@ import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 
 import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons.LBStatus
-import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.models.{Topology => Proto}
-import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.topology.TopologyBuilder._
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import TopologyBuilder._
 import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr

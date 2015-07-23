@@ -33,11 +33,11 @@ import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Port => Topo
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.state.RoutingTableStorage._
-import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.simulation.{Chain, Router => SimulationRouter}
-import TopologyTest.DeviceObserver
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
