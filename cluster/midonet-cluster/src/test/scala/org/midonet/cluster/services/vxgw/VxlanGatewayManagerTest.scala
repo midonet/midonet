@@ -19,8 +19,6 @@ package org.midonet.cluster.services.vxgw
 import java.util.concurrent.CountDownLatch
 import java.util.{Random, UUID}
 
-import scala.collection.mutable.ListBuffer
-
 import com.google.inject.{Guice, Injector}
 import org.junit.Assert._
 import org.junit.runner.RunWith
@@ -60,9 +58,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
     var vni1 = 1111
     var vni2 = 2222
 
-    val vtepConfigs = ListBuffer[MockVtepConfig]()
-
-    var vtepPool: VtepPool = _
+    var vtepPool: MockVtepPool = _
 
     val zkConnWatcher = TestZkTools.instantZkConnWatcher
 
@@ -94,22 +90,12 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         // WATCH OUT: this factory assumes that VxlanGatewayTest.TwoVtepsOn
         // generates the tunnel ip as the next to management ip.
-        vtepPool = new VtepPool(nodeId, dataClient, zkConnWatcher, tzState,
-                                null) {
-            override def create(ip: IPv4Addr, port: Int): Vtep = {
-                val mockConfig = new MockVtepConfig(ip, port, ip.next,
-                                                    Seq.empty)
-                vtepConfigs += mockConfig
-                new VtepController(mockConfig, dataClient, zkConnWatcher,
-                                   tzState)
-            }
-        }
+        vtepPool = new MockVtepPool(nodeId, dataClient, zkConnWatcher, tzState)
     }
 
     after {
         tzState.dispose()
         hostState.dispose()
-        vtepConfigs.clear()
     }
 
     "Initialization" should "generate the right logical switch name" in {
@@ -158,13 +144,13 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("the VTEP joins the Vxlan Gateway")
         eventually {    // the ovsdb link to the first VTEP is stablished
-            vtepConfigs should have size 1
+            vtepPool.vteps should have size 1
         }
 
         val vtep1 = eventually {
             vtepPool.fishIfExists(vteps.ip1, vteps.vtepPort).get
         }
-        val vtep1MacRemotes = vtepConfigs.head.macRemoteUpdater
+        val vtep1MacRemotes = vtepPool.vteps.head.macRemoteUpdater
         vtep1.memberships should have size 1
         vtep1.memberships.head.name shouldBe mgr.lsName
 
@@ -207,13 +193,13 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         dataClient.vtepAddBinding(vteps.ip2, "eth1", 43, ctx.nwId)
 
         eventually {
-            vtepConfigs should have size 2
+            vtepPool.vteps should have size 2
         }
 
         val vtep2 = eventually {
             vtepPool.fishIfExists(vteps.ip2, vteps.vtepPort).get
         }
-        val vtep2MacRemotes = vtepConfigs(1).macRemoteUpdater
+        val vtep2MacRemotes = vtepPool.vteps(1).macRemoteUpdater
 
         Then("a new VTEP joins the Vxlan Gateway")
         eventually {
@@ -256,7 +242,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         eventually {
             vtep1.memberships shouldBe empty
-            vtepConfigs.head
+            vtepPool.vteps.head
                        .removedLogicalSwitches should contain only mgr.lsName
         }
 
@@ -291,7 +277,8 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         And("the second VTEP abandoned the VxLAN Gateway")
         eventually {
             vtep2.memberships shouldBe empty
-            vtepConfigs(1).removedLogicalSwitches should contain only mgr.lsName
+            vtepPool.vteps(1)
+                    .removedLogicalSwitches should contain only mgr.lsName
         }
 
         And("the second VTEP should see updates removing the MACs")
@@ -339,13 +326,13 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("the VTEP joins the Vxlan Gateway")
         eventually {    // the ovsdb link to the first VTEP is stablished
-            vtepConfigs should have size 1
+            vtepPool.vteps should have size 1
         }
 
         val vtep1 = eventually {
             vtepPool.fishIfExists(vteps.ip1, vteps.vtepPort).get
         }
-        val vtep1MacRemotes = vtepConfigs.head.macRemoteUpdater
+        val vtep1MacRemotes = vtepPool.vteps.head.macRemoteUpdater
         vtep1.memberships should have size 1
         vtep1.memberships.head.name shouldBe mgr.lsName
 
@@ -364,7 +351,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         val macOnVtep = MAC.fromString("aa:aa:bb:bb:cc:cc")
         val ipOnVtep = IPv4Addr.random
         var ml = MacLocation(macOnVtep, ipOnVtep, mgr.lsName, vteps.tunIp1)
-        vtepConfigs.head.macLocalUpdates.onNext(ml)
+        vtepPool.vteps.head.macLocalUpdates.onNext(ml)
 
         Then("the MAC sent from the hardware VTEP should reach MidoNet")
         eventually {
@@ -387,12 +374,12 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         Then("the second VTEP gets a new controller")
         val vtep2 = eventually {
-            vtepConfigs should have size 2
+            vtepPool.vteps should have size 2
             vtepPool.fishIfExists(vteps.ip2, vteps.vtepPort).get
         }
 
         And("the second VTEP gets primed as expected")
-        val vtep2MacRemotes = vtepConfigs(1).macRemoteUpdater
+        val vtep2MacRemotes = vtepPool.vteps(1).macRemoteUpdater
         eventually { // see below to understand the extra entries
              assert(vtep2MacRemotes.getOnNextEvents.size() >= 5)
              // Could be 6 or 7, depends on a race betwee the flooding proxy
@@ -418,7 +405,7 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
 
         When("the MAC moves from the first to the second VTEP")
         ml = MacLocation(macOnVtep, ipOnVtep, mgr.lsName, vteps.tunIp2)
-        vtepConfigs(1).macLocalUpdates.onNext(ml)
+        vtepPool.vteps(1).macLocalUpdates.onNext(ml)
 
         Then("the MAC is seen by both the first VTEP and MidoNet")
         eventually {
