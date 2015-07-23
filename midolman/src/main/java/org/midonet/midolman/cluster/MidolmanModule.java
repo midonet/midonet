@@ -21,6 +21,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.Nonnull;
+
 import com.codahale.metrics.MetricRegistry;
 import com.google.inject.Inject;
 import com.google.inject.PrivateModule;
@@ -105,35 +107,34 @@ public class MidolmanModule extends PrivateModule {
         bind(ExecutorService.class)
             .annotatedWith(Names.named(VirtualTopology$.MODULE$.VtExecutorName()))
             .toInstance(Executors.newSingleThreadExecutor(
-                                new ThreadFactory() {
-                                    @Override
-                                    public Thread newThread(Runnable r) {
-                                        Thread thread = new Thread(r,
-                                                "devices-service");
-                                        vtThread.set(thread.getId());
-                                        return thread;
-                                    }
-                                }));
+                new ThreadFactory() {
+                    @Override
+                    public Thread newThread(@Nonnull Runnable r) {
+                        Thread thread = new Thread(r, "devices-service");
+                        vtThread.set(thread.getId());
+                        return thread;
+                    }
+                }));
         bind(Predicate.class)
             .annotatedWith(Names.named(VirtualTopology$.MODULE$.VtExecutorCheckerName()))
             .toInstance(new Predicate() {
-                    @Override
-                    public boolean check() {
-                        return vtThread.get() < 0
-                            || vtThread.get() == Thread.currentThread().getId();
-                    }
-                });
+                @Override
+                public boolean check() {
+                    return vtThread.get() < 0
+                           || vtThread.get() == Thread.currentThread().getId();
+                }
+            });
         final AtomicInteger ioThreadIndex = new AtomicInteger(0);
         bind(ExecutorService.class)
             .annotatedWith(Names.named(VirtualTopology$.MODULE$.IoExecutorName()))
             .toInstance(Executors.newCachedThreadPool(
-                                new ThreadFactory() {
-                                    @Override
-                                    public Thread newThread(Runnable r) {
-                                        return new Thread(r, "devices-io-" +
-                                                ioThreadIndex.getAndIncrement());
-                                    }
-                                }));
+                new ThreadFactory() {
+                    @Override
+                    public Thread newThread(@Nonnull Runnable r) {
+                        return new Thread(r, "devices-io-" +
+                                             ioThreadIndex.getAndIncrement());
+                    }
+                }));
 
         bind(VirtualTopology.class)
             .asEagerSingleton();
