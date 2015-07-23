@@ -1565,6 +1565,52 @@ class Bgp(ObjectType):
     def type_name(self):
         return "bgp"
 
+
+class BgpNetwork(ObjectType):
+    def __init__(self, obj):
+        super(BgpNetwork, self).__init__(obj)
+        self.put_attr(CidrPair(name='net',
+                               value_type=StringType(),
+                               addr_getter='get_subnet_address',
+                               mask_getter='get_subnet_prefix',
+                               addr_setter='subnet_address',
+                               mask_setter='subnet_prefix'))
+
+    def type_name(self):
+        return "bgp-network"
+
+
+class BgpPeer(ObjectType):
+    def __init__(self, obj):
+        super(BgpPeer, self).__init__(obj)
+        self.put_attr(SingleAttr(name='asn',
+                                 value_type=StringType(),
+                                 getter='get_asn',
+                                 setter='asn'))
+        self.put_attr(SingleAttr(name='address',
+                                 value_type=IPv4Address(),
+                                 getter='get_address',
+                                 setter='address'))
+        self.put_attr(SingleAttr(name='keep-alive',
+                                 value_type=StringType(),
+                                 getter='get_keep_alive',
+                                 setter='keep_alive',
+                                 optional=True))
+        self.put_attr(SingleAttr(name='hold-time',
+                                 value_type=StringType(),
+                                 getter='get_hold_time',
+                                 setter='hold_time',
+                                 optional=True))
+        self.put_attr(SingleAttr(name='connect-retry',
+                                 value_type=StringType(),
+                                 getter="get_connect_retry",
+                                 setter="connect_retry",
+                                 optional=True))
+
+    def type_name(self):
+        return "bgp-peer"
+
+
 class AdRoute(ObjectType):
     def type_name(self):
         return "ad-route"
@@ -1619,6 +1665,20 @@ class Router(ObjectType):
                                  setter = 'load_balancer_id',
                                  unsetter = 'load_balancer_id',
                                  optional = True))
+        self.put_attr(SingleAttr(name='asn',
+                                 value_type=StringType(),
+                                 getter='get_asn',
+                                 setter='asn'))
+        self.put_attr(Collection(name='bgp-network',
+                                 element_type=BgpNetwork,
+                                 list_method='get_bgp_networks',
+                                 getter='get_bgp_network',
+                                 factory_method='add_bgp_network'))
+        self.put_attr(Collection(name='bgp-peer',
+                                 element_type=BgpPeer,
+                                 list_method='get_bgp_peers',
+                                 getter='get_bgp_peer',
+                                 factory_method='add_bgp_peer'))
 
     def type_name(self):
         return "router"
@@ -2400,8 +2460,8 @@ class Midonet(ObjectType):
                                  list_with_tenant = True,
                                  factory_method = 'add_bridge'))
         # A port can be a RouterPort OR a BridgePort, so we can't specify the
-        # class in element_type. Hence a function dipatches the appropriate
-        # class dependingg on the type of the port, is passed to element_type,
+        # class in element_type. Hence a function dispatches the appropriate
+        # class depending on the type of the port, is passed to element_type,
         # which is _port_resolver.
         self.put_attr(Collection(name = 'port',
                                  element_type = _port_resolver,

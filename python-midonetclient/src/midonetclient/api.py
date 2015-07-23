@@ -253,6 +253,22 @@ class MidonetApi(object):
         self._ensure_application()
         return self.app.get_bgp(id_)
 
+    def delete_bgp_network(self, id_):
+        self._ensure_application()
+        return self.app.delete_bgp_network(id_)
+
+    def get_bgp_network(self, id_):
+        self._ensure_application()
+        return self.app.get_bgp_network(id_)
+
+    def delete_bgp_peer(self, id_):
+        self._ensure_application()
+        return self.app.delete_bgp_peer(id_)
+
+    def get_bgp_peer(self, id_):
+        self._ensure_application()
+        return self.app.get_bgp_peer(id_)
+
     def get_bridge(self, id_):
         self._ensure_application()
         return self.app.get_bridge(id_)

@@ -19,6 +19,10 @@ package org.midonet.cluster.rest_api.models;
 import java.net.URI;
 import java.util.UUID;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.protobuf.Message;
 
@@ -44,9 +48,12 @@ public class BgpNetwork extends UriResource {
     @ZoomField(name = "router_id", converter = UUIDUtil.Converter.class)
     public UUID routerId;
 
-    public String nwPrefix;
+    @NotNull
+    public String subnetAddress;
 
-    public byte prefixLength;
+    @Min(0)
+    @Max(32)
+    public byte subnetPrefix;
 
     @Override
     public URI getUri() {
@@ -60,15 +67,15 @@ public class BgpNetwork extends UriResource {
     @Override
     @JsonIgnore
     public void afterFromProto(Message proto) {
-        nwPrefix = subnet != null ? subnet.getAddress().toString() : null;
-        prefixLength = subnet != null ? (byte)subnet.getPrefixLen() : 0;
+        subnetAddress = subnet != null ? subnet.getAddress().toString() : null;
+        subnetPrefix = subnet != null ? (byte)subnet.getPrefixLen() : 0;
     }
 
     @Override
     @JsonIgnore
     public void beforeToProto() {
-        subnet = nwPrefix != null ?
-                 IPSubnet.fromString(nwPrefix + "/" + prefixLength) : null;
+        subnet = subnetAddress != null ?
+                 IPSubnet.fromString(subnetAddress + "/" + subnetPrefix) : null;
     }
 
     @Override
