@@ -21,9 +21,9 @@ APPLICATION_ERROR_JSON = "application/vnd.org.midonet.Error-v1+json"
 APPLICATION_TENANT_JSON = "application/vnd.org.midonet.Tenant-v1+json"
 APPLICATION_TENANT_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Tenant-v1+json"
-APPLICATION_ROUTER_JSON = "application/vnd.org.midonet.Router-v2+json"
+APPLICATION_ROUTER_JSON = "application/vnd.org.midonet.Router-v3+json"
 APPLICATION_ROUTER_COLLECTION_JSON = \
-    "application/vnd.org.midonet.collection.Router-v2+json"
+    "application/vnd.org.midonet.collection.Router-v3+json"
 APPLICATION_BRIDGE_JSON = "application/vnd.org.midonet.Bridge-v3+json"
 APPLICATION_BRIDGE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Bridge-v3+json"
@@ -62,6 +62,13 @@ APPLICATION_BGP_COLLECTION_JSON = \
 APPLICATION_AD_ROUTE_JSON = "application/vnd.org.midonet.AdRoute-v1+json"
 APPLICATION_AD_ROUTE_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.AdRoute-v1+json"
+APPLICATION_BGP_NETWORK_JSON = "application/vnd.org.midonet.BgpNetwork-v1+json"
+APPLICATION_BGP_NETWORK_COLLECTION_JSON =\
+    "application/vnd.org.midonet.collection.BgpNetwork-v1+json"
+APPLICATION_BGP_PEER_JSON = "application/vnd.org.midonet.BgpPeer-v1+json"
+APPLICATION_BGP_PEER_COLLECTION_JSON =\
+    "application/vnd.org.midonet.collection.BgpPeer-v1+json"
+
 APPLICATION_VPN_JSON = "application/vnd.org.midonet.Vpn-v1+json"
 APPLICATION_VPN_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.Vpn-v1+json"

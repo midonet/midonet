@@ -17,6 +17,8 @@
 
 from midonetclient import ad_route
 from midonetclient import bgp
+from midonetclient import bgp_network
+from midonetclient import bgp_peer
 from midonetclient import bridge
 from midonetclient import chain
 from midonetclient import health_monitor
@@ -56,6 +58,12 @@ class Application(resource_base.ResourceBase):
 
     def get_bgp_template(self):
         return self.dto['bgpTemplate']
+
+    def get_bgp_network_template(self):
+        return self.dto['bgpNetworkTemplate']
+
+    def get_bgp_peer_template(self):
+        return self.dto['bgpPeerTemplate']
 
     def get_bridge_template(self):
         return self.dto['bridgeTemplate']
@@ -213,6 +221,20 @@ class Application(resource_base.ResourceBase):
     def get_bgp(self, id_):
         return self._get_resource_by_id(bgp.Bgp, None, self.get_bgp_template(),
                                         id_)
+
+    def delete_bgp_network(self, id_):
+        return self._delete_resource_by_id(self.get_bgp_network_template(), id_)
+
+    def get_bgp_network(self, id_):
+        return self._get_resource_by_id(bgp_network.BgpNetwork, None,
+                                        self.get_bgp_network_template(), id_)
+
+    def delete_bgp_peer(self, id_):
+        return self._delete_resource_by_id(self.get_bgp_peer_template(), id_)
+
+    def get_bgp_peer(self, id_):
+        return self._get_resource_by_id(bgp_peer.BgpPeer, None,
+                                        self.get_bgp_peer_template(), id_)
 
     def delete_bridge(self, id_):
         return self._delete_resource_by_id(self.get_bridge_template(), id_)
