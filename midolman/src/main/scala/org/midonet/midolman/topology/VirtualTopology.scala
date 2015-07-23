@@ -16,7 +16,6 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
 import scala.concurrent.{Future, Promise}
@@ -27,9 +26,9 @@ import com.google.inject.Inject
 import com.google.inject.name.Named
 
 import rx.Observable
+import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
 
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.config.MidolmanConfig
@@ -40,7 +39,7 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{BackChannelMessage, NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.functors.{makeRunnable, Predicate}
+import org.midonet.util.functors.{makeFunc1, makeRunnable, Predicate}
 import org.midonet.util.reactivex._
 
 /**
@@ -60,7 +59,9 @@ object VirtualTopology extends MidolmanLogging {
         def deviceTag: FlowTag
     }
 
-    type DeviceFactory = UUID => DeviceMapper[_]
+    type DeviceFactory = UUID => OnSubscribe[_]
+
+    case class Key(tag: ClassTag[_], id: UUID)
 
     private[topology] var self: VirtualTopology = null
 
@@ -77,7 +78,7 @@ object VirtualTopology extends MidolmanLogging {
                            (implicit tag: ClassTag[D]): D = {
         val device = self.devices.get(id).asInstanceOf[D]
         if (device eq null) {
-            throw new NotYetException(self.observableOf(id, tag).asFuture,
+            throw new NotYetException(self.observableOf(Key(tag, id)).asFuture,
                                       s"Device $id not yet available")
         }
         device
@@ -92,7 +93,7 @@ object VirtualTopology extends MidolmanLogging {
                         (implicit tag: ClassTag[D]): Future[D] = {
         val device = self.devices.get(id).asInstanceOf[D]
         if (device eq null) {
-            self.observableOf(id, tag).asFuture
+            self.observableOf(Key(tag, id)).asFuture
         } else {
             Promise[D]().success(device).future
         }
@@ -106,7 +107,7 @@ object VirtualTopology extends MidolmanLogging {
      */
     def observable[D <: Device](id: UUID)
                                (implicit tag: ClassTag[D]): Observable[D] = {
-        self.observableOf(id, tag)
+        self.observableOf(Key(tag, id))
     }
 
     /**
@@ -168,9 +169,12 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val simBackChannel: SimulationBackChannel,
                                  val actorsService: MidolmanActorsService,
-                                 @Named(VirtualTopology.VtExecutorName) vtExecutor: ExecutorService,
-                                 @Named(VirtualTopology.VtExecutorCheckerName) vtExecutorCheck: Predicate,
-                                 @Named(VirtualTopology.IoExecutorName) ioExecutor: ExecutorService)
+                                 @Named(VirtualTopology.VtExecutorName)
+                                 vtExecutor: ExecutorService,
+                                 @Named(VirtualTopology.VtExecutorCheckerName)
+                                 vtExecutorCheck: Predicate,
+                                 @Named(VirtualTopology.IoExecutorName)
+                                 ioExecutor: ExecutorService)
     extends MidolmanLogging {
 
     import VirtualTopology._
@@ -182,7 +186,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
     private[topology] val devices =
         new ConcurrentHashMap[UUID, Device]()
     private[topology] val observables =
-        new ConcurrentHashMap[UUID, Observable[_]]()
+        new ConcurrentHashMap[Key, Observable[_]]()
 
     private val factories = Map[ClassTag[_], DeviceFactory](
         classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system)),
@@ -207,19 +211,22 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
 
     def stateStore = backend.stateStore
 
-    private def observableOf[D <: Device](id: UUID,
-                                          tag: ClassTag[D]): Observable[D] = {
-
-        var observable = observables.get(id)
+    private def observableOf[D <: Device](key: Key): Observable[D] = {
+        var observable = observables get key
         if (observable eq null) {
-            observable = factories get tag match {
+            observable = factories get key.tag match {
                 case Some(factory) =>
-                    Observable.create(
-                        factory(id).asInstanceOf[DeviceMapper[D]])
+                    val obs = Observable.create(factory(key.id))
+                    obs.onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                        case DeviceMapper.MapperClosedException =>
+                            observables.remove(key, obs)
+                            observableOf(key)
+                        case e: Throwable => Observable.error(e)
+                    }))
                 case None =>
-                    throw new RuntimeException(s"Unknown factory for $tag")
+                    throw new RuntimeException(s"Unknown factory for ${key.tag}")
             }
-            observable = observables.putIfAbsent(id, observable) match {
+            observable = observables.putIfAbsent(key, observable) match {
                 case null => observable
                 case obs => obs
             }

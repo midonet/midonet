@@ -20,6 +20,7 @@ import java.util.UUID
 import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.reflect._
 
 import akka.actor.Props
 import akka.testkit.TestActorRef
@@ -34,11 +35,11 @@ import rx.observers.TestObserver
 
 import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
-import org.midonet.cluster.models.{Topology => Proto}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.simulation._
+import org.midonet.midolman.topology.VirtualTopology.Key
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.{BridgePort, PoolHealthMonitorMap, Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
@@ -173,7 +174,8 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             future.value.get.get.tunnelKey shouldBe 1
 
             When("The observer subscribers to the port observable")
-            vt.observables.get(portId).asInstanceOf[Observable[SimulationPort]]
+            vt.observables.get(Key(classTag[SimulationPort], portId))
+                .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(obs)
 
             And("The port is updated")
@@ -206,7 +208,7 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
 
             When("Deleting the port")
             val obs = new TestObserver[SimulationPort] with AwaitableObserver[SimulationPort]
-            vt.observables.get(portId)
+            vt.observables.get(Key(classTag[SimulationPort], portId))
                .asInstanceOf[Observable[SimulationPort]]
                .subscribe(obs)
 
@@ -312,7 +314,8 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             }
 
             When("The observer subscribers to the port observable")
-            vt.observables.get(portId).asInstanceOf[Observable[SimulationPort]]
+            vt.observables.get(Key(classTag[SimulationPort], portId))
+                .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(obs)
 
             And("The port is updated")
@@ -354,7 +357,8 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             }
 
             When("The observer subscribers to the port observable")
-            vt.observables.get(portId).asInstanceOf[Observable[SimulationPort]]
+            vt.observables.get(Key(classTag[SimulationPort], portId))
+                .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(obs)
 
             And("The port is updated")
@@ -397,7 +401,8 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             VirtualTopologyActor ! Unsubscribe(portId)
 
             And("The observer subscribers to the port observable")
-            vt.observables.get(portId).asInstanceOf[Observable[SimulationPort]]
+            vt.observables.get(Key(classTag[SimulationPort], portId))
+                .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(obs)
 
             And("The port is updated")
@@ -437,8 +442,9 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             }
 
             When("The observer subscribers to the port observable")
-            vt.observables.get(portId).asInstanceOf[Observable[SimulationPort]]
-            .subscribe(obs)
+            vt.observables.get(Key(classTag[SimulationPort], portId))
+                .asInstanceOf[Observable[SimulationPort]]
+                .subscribe(obs)
 
             And("The port is deleted")
             backend.store.delete(classOf[TopologyPort], portId)
@@ -468,7 +474,8 @@ class VirtualTopologyRedirectorTest extends MidolmanSpec with TopologyBuilder
             VirtualTopologyActor ! PortRequest(portId, update = false)
 
             And("The observer subscribes to the port observable")
-            vt.observables.get(portId).asInstanceOf[Observable[SimulationPort]]
+            vt.observables.get(Key(classTag[SimulationPort], portId))
+                .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(obs)
 
             And("Waiting for the port to update the topology")
