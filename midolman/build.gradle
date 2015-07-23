@@ -96,7 +96,6 @@ cobertura {
         '.*PacketWorkflow$AddVirtual.*',
 
         '.*Coordinator$ToPort.*',
-        '.*Coordinator$DoFlowAction.*',
         '.*Coordinator$ForkAction.*',
         '.*VirtualActions$.*',
 
