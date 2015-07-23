@@ -42,6 +42,7 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.auth.AuthRole;
+import org.midonet.cluster.data.Port;
 import org.midonet.cluster.data.host.VirtualPortMapping;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
@@ -54,6 +55,7 @@ import org.midonet.midolman.state.StateAccessException;
 import static org.midonet.cluster.rest_api.conversion.HostInterfacePortDataConverter.fromVirtualPortMapping;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_INTERFACE_IS_USED;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.HOST_IS_NOT_IN_ANY_TUNNEL_ZONE;
+import static org.midonet.cluster.rest_api.validation.MessageProperty.PORT_ALREADY_BOUND;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.PORT_ID_IS_INVALID;
 import static org.midonet.cluster.rest_api.validation.MessageProperty.getMessage;
 
@@ -92,7 +94,8 @@ public class HostInterfacePortResource extends AbstractResource {
             throw new BadRequestHttpException("Interface not provided");
         }
 
-        if (dataClient.portsGet(map.portId) == null) {
+        Port oldPort = dataClient.portsGet(map.portId);
+        if (oldPort == null) {
             throw new BadRequestHttpException(getMessage(PORT_ID_IS_INVALID));
         }
 
@@ -106,6 +109,11 @@ public class HostInterfacePortResource extends AbstractResource {
         if (!isInterfaceUnused(map)) {
             throw new BadRequestHttpException(getMessage
                                                   (HOST_INTERFACE_IS_USED));
+        }
+
+        if (oldPort.getInterfaceName() != null) {
+            throw new BadRequestHttpException(getMessage(PORT_ALREADY_BOUND,
+                                                         map.portId));
         }
 
         dataClient.hostsAddVrnPortMapping(hostId, map.portId,
