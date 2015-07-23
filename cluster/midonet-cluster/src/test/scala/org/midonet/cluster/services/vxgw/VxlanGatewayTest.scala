@@ -19,6 +19,7 @@ package org.midonet.cluster.services.vxgw
 import java.util.UUID
 
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.util.{Success, Try}
 
 import org.slf4j.LoggerFactory
@@ -32,6 +33,7 @@ import org.midonet.cluster.data.vtep.model.{LogicalSwitch, MacLocation}
 import org.midonet.cluster.data.{Bridge, TunnelZone, VTEP}
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
+import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.packets.{IPv4Addr, MAC}
 
 trait VxlanGatewayTest {
@@ -63,6 +65,22 @@ trait VxlanGatewayTest {
         override def removeLogicalSwitch(name: String): Try[Unit] = {
             removedLogicalSwitches += name
             Success(Unit)
+        }
+    }
+
+    class MockVtepPool(nodeId: UUID, dataClient: DataClient,
+                       zkConnWatcher: ZookeeperConnectionWatcher,
+                       tzState: TunnelZoneStatePublisher)
+        extends VtepPool(nodeId, dataClient, zkConnWatcher, tzState, null) {
+
+        val vteps = ListBuffer[MockVtepConfig]()
+
+        override def create(ip: IPv4Addr, port: Int): Vtep = {
+            val mockConfig = new MockVtepConfig(ip, port, ip.next,
+                                                Seq.empty)
+            vteps += mockConfig
+            new VtepController(mockConfig, dataClient, zkConnWatcher,
+                               tzState)
         }
     }
 

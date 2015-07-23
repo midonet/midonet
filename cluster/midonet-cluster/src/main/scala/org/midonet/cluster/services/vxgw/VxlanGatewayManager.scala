@@ -164,8 +164,12 @@ class VxlanGatewayManager(networkId: UUID,
      * manager if the bridge itself is removed. */
     private val bridgeWatcher = new DefaultTypedWatcher {
         override def pathDataChanged(path: String): Unit = {
-            log.info(s"Network update notification")
-            VxlanGateway.executor submit makeRunnable { updateBridge() }
+            // TODO: when the watcher is an Observable, this if won't be
+            // needed, but we can't cancel watchers..
+            if (!subscriptions.isUnsubscribed) {
+                log.info(s"Network update notification")
+                VxlanGateway.executor submit makeRunnable { updateBridge() }
+            }
         }
         override def pathDeleted(path: String): Unit = {
             log.info(s"Network deleted, stop monitoring")
