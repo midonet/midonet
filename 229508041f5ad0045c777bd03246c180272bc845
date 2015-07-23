@@ -1,0 +1,140 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ae3b8bcf",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-07-23T16:27:24Z",
+      "side": 1,
+      "message": "In the diagram, I don\u0027t understand why you\u0027ve chosen to use veth pairs. It\u0027s fine, it works, but you could just have use OVS \"internal\" ports, which expose an interface on the host to which an IP address can be assigned.\n\nOr was your intention to put the veth pair into a network namespace? In this case the metadata proxy would have to run separate from MN though...",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ce38cfd5",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-07-23T16:27:24Z",
+      "side": 1,
+      "message": "Re: \"Each server knows the network ID it\u0027s responsible for.” and \"It takes *that*...\"\n\nThis talks about a single network ID and therefore contradicts the statement made a few lines above:\n\"A single instance of the server serves all neutron networks on the host.”\n\nAlso: \"It takes that and the source IP of the metadata request to identify the instance (VM)”\nis misleading because the Network ID isn’t really used at this point.\n\nTherefore I suggest re-writing the bullet point as follows:\n\n\"Each server maps the source IP address of the incoming request to a specific VM instance ID. Further on we’ll see that MidoNet translates each VM’s private address to a uniquely selected address so that the address alone (without the Network ID) is sufficient to identify the VM.\"",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0e2f1789",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-07-23T16:27:24Z",
+      "side": 1,
+      "message": "Again, I\u0027d like to know the length of the network mask.",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ce3fefb2",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-07-23T16:27:24Z",
+      "side": 1,
+      "message": "I like it, but I\u0027d like some more details. What network address range will be the target of these translations? At first glance I would using the 169.254/16... but that might conflict with use of link-local addresses elsewhere on the hypervisor host.\n\nTherefore, what target address range? It probably should be configurable... if it\u0027s in the RFC1918 space. And how is the hypervisor host\u0027s routing set up such that it will emit reply packets from its 169.254.169.254 interface instead of its eth0/eth1... towards its default gateway.\n\nAlso, I\u0027d like more details about the datapath flows themselves:\n- I assume they\u0027re both for request and reply packets\n- do the flows only re-write IP addresses and then recirculate so that the MNA can do a simulation?\n- OR do they flows also re-write the MAC address of the packet so that it can be passed directly from VM port to MD Proxy port (or vice versa for return packets) without going through simulation?",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4e7bdf8b",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-07-23T16:27:24Z",
+      "side": 1,
+      "message": "Might as well just keep a map of target/rewritten IP to VM instance ID.\nNot a big deal but it\u0027s simpler for the purposes of re-writing the HTTP headers.",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ce944f8d",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-07-23T16:27:24Z",
+      "side": 1,
+      "message": "Not a big deal, but it doesn\u0027t really matter what MAC address you map this to because you just want the VM to seed its Neighbor table and get along to emitting the IP packets.\n\nThose IP packets are going to match a flow rule that knows exactly how to handle them, so the they don\u0027t really go through the bridge\u0027s mac-table, right?",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cedb6f7a",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-07-23T16:27:24Z",
+      "side": 1,
+      "message": "MidoNet already takes care of this case. The VM will ARP for the default gateway and it already gets an answer today. It then sends the IP packet which matches your pre-installed translation rules.",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4ed75f4b",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002773
+      },
+      "writtenOn": "2015-07-23T16:27:24Z",
+      "side": 1,
+      "message": "Shouldn\u0027t this issue handled by the section \"Host Route is injected in the VM\"? And therefore wouldn\u0027t it be better merged into that one?",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
