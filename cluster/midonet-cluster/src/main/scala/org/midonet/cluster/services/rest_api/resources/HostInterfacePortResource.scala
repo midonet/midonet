@@ -29,9 +29,12 @@ import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.models.{Host, HostInterfacePort, Port}
+import org.midonet.cluster.rest_api.validation.MessageProperty
+import org.midonet.cluster.rest_api.validation.MessageProperty.{HOST_INTERFACE_IS_USED, PORT_ALREADY_BOUND, getMessage}
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.util.UUIDUtil
 
 @RequestScoped
 class HostInterfacePortResource @Inject()(hostId: UUID,
@@ -78,15 +81,23 @@ class HostInterfacePortResource @Inject()(hostId: UUID,
                                               "to any tunnel zones")
         }
 
+        val oldP = store.get(classOf[Topology.Port], binding.portId).getOrThrow
+        if (oldP.hasInterfaceName) {
+            throw new BadRequestHttpException(
+                getMessage(PORT_ALREADY_BOUND, binding.portId))
+        }
+
         store.getAll(classOf[Topology.Port], h.getPortIdsList)
              .getOrThrow
-             .find ( _.getInterfaceName == binding.interfaceName ) match {
+             .find (
+                // of those ports in the host, see if any has the same ifc
+                _.getInterfaceName == binding.interfaceName
+            ) match {
                 case Some(conflictingPort) =>
                     throw new BadRequestHttpException(
-                        s"Interface ${binding.interfaceName} at host $hostId " +
-                        s"is already bound to port ${conflictingPort.getId}")
+                        getMessage(HOST_INTERFACE_IS_USED))
                 case _ =>
-        }
+            }
 
         getResource(classOf[Port], binding.portId).map(port => {
             binding.setBaseUri(resContext.uriInfo.getBaseUri)
