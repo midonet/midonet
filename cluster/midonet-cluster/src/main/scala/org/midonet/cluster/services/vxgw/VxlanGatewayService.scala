@@ -102,8 +102,9 @@ extends ClusterMinion(nodeCtx) {
                                      tzState, vtepDataClientFactory)
 
     // An observer that bootstraps a new VxLAN Gateway service whenever a
-    // neutron network that has bindings to hardware VTEP(s) is created or
-    // newly bound to its first VTEP.
+    // neutron network that has bindings to hardware VTEP(s) is created.
+    // Note that updates are handled by the `networkWatcher` placed on each
+    // individual network.
     private val bridgesWatcher = new Observer[EntityIdSetEvent[UUID]] {
         override def onCompleted(): Unit = {
             log.warn("Unexpected: networks watcher completed, this indicates " +
@@ -151,39 +152,32 @@ extends ClusterMinion(nodeCtx) {
     /** Create a watcher for changes on the given network that will detect
       * when it becomes part of a VxLAN Gateway and bootstrap the management
       * process. */
-    private def networkWatcher(id: UUID) = new DefaultTypedWatcher {
+    private def newNetworkWatcher(id: UUID) = new DefaultTypedWatcher {
         override def pathDataChanged(path: String): Unit = {
-            VxlanGateway.executor submit makeRunnable {
-                bootstrapIfInVxlanGateway(id)
-            }
+            executor submit makeRunnable { bootstrapIfInVxlanGateway(id) }
         }
-        override def pathDeleted(path: String): Unit = removeNetwork(id)
+        override def pathDeleted(path: String): Unit = networkDeleted(id)
     }
 
     /** Load the given network and bootstrap the VxGW Manager if it's now
       * part of a VxLAN Gateway.  Otherwise just keep watching updates on the
       * network just in case new bindings to a VTEP are added. */
     private def bootstrapIfInVxlanGateway(id: UUID): Unit = {
-        Try (
+        Try {
             // Load the bridge, setting up a watcher if it's the first time seen
-            if (networkUpdateMonitor.contains(id)) {
-                dataClient.bridgesGet(id)
+            val newWatcher = newNetworkWatcher(id)
+            val prevWatcher = networkUpdateMonitor.putIfAbsent(id, newWatcher)
+            if (prevWatcher == null) {
+                log.info(s"Network created $id")
+                networkCount.inc()
+                dataClient.bridgeGetAndWatch(id, newWatcher)
             } else {
-                val watcher = networkWatcher(id)
-                val prev = networkUpdateMonitor.putIfAbsent(id, watcher)
-                if (prev == null) {
-                    networkCount.inc()
-                    dataClient.bridgeGetAndWatch(id, watcher)
-                } else {
-                    dataClient.bridgesGet(id)
-                }
+                dataClient.bridgeGetAndWatch(id, prevWatcher)
             }
-        ) match {
-            case Success(b) if b.getVxLanPortIds == null
-                               || b.getVxLanPortIds.isEmpty =>
-                if (managers.remove(b.getId) != null) {
-                    vxgwCount.dec()
-                }
+        } match {
+            case Success(b) if b.getVxLanPortIds == null ||
+                               b.getVxLanPortIds.isEmpty =>
+                log.info("VxGW is no more")
                 if (log.isTraceEnabled) {
                     log.trace(s"Network ${b.getId} changed but isn't bound " +
                               s" to any VTEPs. Watching $numNetworks networks" +
@@ -204,23 +198,22 @@ extends ClusterMinion(nodeCtx) {
 
     /** React to the deletion of a network by cleaning any existing watcher as
       * well as the VxLAN Gateway manager, should one exist. */
-    private def removeNetwork(id: UUID): Unit = {
+    private def networkDeleted(id: UUID): Unit = {
         log.info(s"Network $id deleted, now watching $numNetworks")
         networkCount.dec()
         networkUpdateMonitor.remove(id)
-        val mgr = managers.remove(id)
-        if (mgr != null) {
-            log.info(s"Network: $id is no longer a VxLAN Gateway " +
-                     s"(total left: $numVxGWs)")
-            mgr.terminate()
-        }
+        // If the network is part of a vxgw, the manager will take care of the
+        // cleanup.
     }
 
     /** Create and run a new VxlanGatewayManager for the given network id */
     private def initVxlanGatewayManager(id: UUID) {
         val nw = new VxlanGatewayManager(id, dataClient, vteps,
                                          tzState, zkConnWatcher,
-                                         () => managers.remove(id))
+                                         () => {
+                                             managers.remove(id)
+                                             vxgwCount.dec()
+                                         })
         if (managers.putIfAbsent(id, nw) == null) {
             log.info(s"Network $id is a new VxLAN Gateway (total: $numVxGWs)")
             vxgwCount.inc()
