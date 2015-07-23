@@ -16,7 +16,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicReference}
+import java.util.concurrent.atomic.AtomicReference
 
 import javax.annotation.Nullable
 
@@ -29,13 +29,32 @@ import rx.subjects.{BehaviorSubject, PublishSubject}
 import rx.{Observable, Observer, Subscriber}
 
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.topology.DeviceMapper.DeviceState
-import org.midonet.midolman.topology.VirtualTopology.Device
+import org.midonet.midolman.topology.DeviceMapper.{MapperState, DeviceState}
+import org.midonet.midolman.topology.VirtualTopology.{Key, Device}
 import org.midonet.util.functors._
 
 object DeviceMapper {
-    protected[topology] val SubscriptionException =
-        new IllegalStateException("Device observable not connected")
+
+    final val MapperClosedException =
+        new IllegalStateException("Device mapper is closed")
+
+    /** The state of the mapper subscription to the underlying storage
+      * observables. */
+    private[topology] object MapperState extends Enumeration {
+        type MapperState = Value
+        /** The mapper is not subscribed to the storage observable. */
+        val Unsubscribed = Value
+        /** The mapper is subscribed and the observable is not in a terminal
+          * state. */
+        val Subscribed = Value
+        /** The observable has completed. */
+        val Completed = Value
+        /** The observable has emitted an error. */
+        val Error = Value
+        /** The mapper was closed, but it possible to create a new one for the
+          * same device. */
+        val Closed = Value
+    }
 
     /**
      * Stores the state for a device of type T.
@@ -86,12 +105,14 @@ abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
                                         (implicit tag: ClassTag[D])
     extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 
-    import DeviceMapper.SubscriptionException
+    import DeviceMapper.MapperClosedException
 
+    private final val key = Key(tag, id)
+    private final val state = new AtomicReference(MapperState.Unsubscribed)
     private final val cache = BehaviorSubject.create[D]()
     private final val subscriber = Subscribers.from(cache)
-    private final val subscribed = new AtomicBoolean(false)
-    protected final val error = new AtomicReference[Throwable](null)
+
+    @volatile private var error: Throwable = null
 
     /**
      * An implementing class must override this method, which is called
@@ -103,34 +124,48 @@ abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
      */
     protected def observable: Observable[D]
 
-    override final def call(s: Subscriber[_ >: D]) = {
-        if (subscribed.compareAndSet(false, true)) {
+    override final def call(child: Subscriber[_ >: D]): Unit = {
+        // If the mapper is in any terminal state, complete the child
+        // immediately and return.
+        if (state.get == MapperState.Completed) {
+            child.onCompleted()
+            return
+        }
+        if (state.get == MapperState.Error) {
+            child onError error
+            return
+        }
+        if (state.get == MapperState.Closed) {
+            child onError MapperClosedException
+            return
+        }
+
+        if (state.compareAndSet(MapperState.Unsubscribed,
+                                MapperState.Subscribed)) {
             observable.doOnEach(this).subscribe(subscriber)
         }
-        if (subscriber.isUnsubscribed) {
-            val e = error.get
-            throw if (null != e) e else SubscriptionException
-        }
-        cache.subscribe(s)
+        cache subscribe child
     }
 
     override final def onCompleted() = {
         log.debug("Device {}/{} deleted", tag, id)
+        state set MapperState.Completed
         vt.devices.remove(id) match {
             case device: D => onDeviceChanged(device)
             case _ =>
         }
-        vt.observables.remove(id)
+        vt.observables.remove(key)
     }
 
     override final def onError(e: Throwable) = {
         log.error("Device {}/{} error", tag, id, e)
-        error.set(e)
+        error = e
+        state set MapperState.Error
         vt.devices.remove(id) match {
             case device: D => onDeviceChanged(device)
             case _ =>
         }
-        vt.observables.remove(id)
+        vt.observables.remove(key)
     }
 
     override final def onNext(device: D) = {

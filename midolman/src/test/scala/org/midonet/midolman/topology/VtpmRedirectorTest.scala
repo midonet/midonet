@@ -23,6 +23,7 @@ import scala.collection.immutable.Map
 import scala.collection.mutable
 import scala.concurrent._
 import scala.concurrent.duration.DurationInt
+import scala.reflect._
 
 import akka.actor.ActorSystem
 import akka.testkit.{ImplicitSender, TestKit}
@@ -47,7 +48,8 @@ import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
-import org.midonet.midolman.topology.devices.{Host => SimulationHost}
+import org.midonet.midolman.topology.VirtualTopology.Key
+import org.midonet.midolman.topology.devices.{Host => SimulationHost, TunnelZone}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{IPAddr, IPv4Addr}
@@ -55,7 +57,7 @@ import org.midonet.util.reactivex._
 import org.midonet.util.reactivex.AwaitableObserver
 
 @RunWith(classOf[JUnitRunner])
-class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
+class VtpmRedirectorTest extends TestKit(ActorSystem("VtpmRedirectorTest"))
                          with MidolmanSpec
                          with ImplicitSender
                          with TopologyBuilder {
@@ -190,10 +192,10 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             expectMsg(ZoneMembers(tunnelId, OldTunnel.Type.vtep, hosts))
 
             When("We create an observer to the VT observable")
-            val observer = new TestObserver[SimulationHost]
-                               with AwaitableObserver[SimulationHost]
-            vt.observables(tunnelId.asJava)
-                .asInstanceOf[Observable[SimulationHost]]
+            val observer = new TestObserver[TunnelZone]
+                               with AwaitableObserver[TunnelZone]
+            vt.observables(Key(classTag[TunnelZone], tunnelId.asJava))
+                .asInstanceOf[Observable[TunnelZone]]
                 .subscribe(observer)
 
             And("When we update the tunnel zone")
@@ -344,7 +346,7 @@ class VTPMRedirectorTest extends TestKit(ActorSystem("VTPMRedirectorTest"))
             When("We create an observer to the VT observable")
             val observer = new TestObserver[SimulationHost]
                                with AwaitableObserver[SimulationHost]
-            vt.observables(protoHost.getId.asJava)
+            vt.observables(Key(classTag[SimulationHost], protoHost.getId.asJava))
                 .asInstanceOf[Observable[SimulationHost]]
                 .subscribe(observer)
 

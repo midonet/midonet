@@ -338,7 +338,7 @@ trait DeviceManagement {
  * </ul>
  */
 abstract class VirtualToPhysicalMapperBase
-    extends VTPMRedirector with SubscriberActor {
+    extends VtpmRedirector with SubscriberActor {
 
     val cluster: DataClient
 
