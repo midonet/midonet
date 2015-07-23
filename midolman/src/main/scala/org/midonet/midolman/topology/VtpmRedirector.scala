@@ -45,7 +45,7 @@ import org.midonet.midolman.topology.devices.{Host, TunnelZone}
  * section of the configuration will make the VTPMRedirector use the new storage
  * stack.  Otherwise, it'll use the old stack.
  */
-abstract class VTPMRedirector extends Actor with MidolmanLogging {
+abstract class VtpmRedirector extends Actor with MidolmanLogging {
 
     override def logSource = "org.midonet.devices.underlay"
 
