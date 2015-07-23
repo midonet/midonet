@@ -99,6 +99,7 @@ public class RouterResource extends AbstractResource {
     @Path("{id}")
     @Produces({ VendorMediaType.APPLICATION_ROUTER_JSON,
                 VendorMediaType.APPLICATION_ROUTER_JSON_V2,
+                VendorMediaType.APPLICATION_ROUTER_JSON_V3,
                 MediaType.APPLICATION_JSON })
     public Router get(@PathParam("id") UUID id) throws StateAccessException,
                                                        SerializationException {
@@ -159,6 +160,7 @@ public class RouterResource extends AbstractResource {
     @Path("{id}")
     @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
                 VendorMediaType.APPLICATION_ROUTER_JSON_V2,
+                VendorMediaType.APPLICATION_ROUTER_JSON_V3,
                 MediaType.APPLICATION_JSON })
     public void update(@PathParam("id") UUID id, Router router)
             throws StateAccessException, SerializationException {
@@ -184,6 +186,7 @@ public class RouterResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN, AuthRole.TENANT_ADMIN })
     @Consumes({ VendorMediaType.APPLICATION_ROUTER_JSON,
                 VendorMediaType.APPLICATION_ROUTER_JSON_V2,
+                VendorMediaType.APPLICATION_ROUTER_JSON_V3,
                 MediaType.APPLICATION_JSON })
     public Response create(Router router) throws StateAccessException,
                                                  SerializationException {
@@ -213,6 +216,7 @@ public class RouterResource extends AbstractResource {
     @RolesAllowed({ AuthRole.ADMIN })
     @Produces({ VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON,
                 VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON_V2,
+                VendorMediaType.APPLICATION_ROUTER_COLLECTION_JSON_V3,
                 MediaType.APPLICATION_JSON })
     public List<Router> list(@QueryParam("tenant_id") String tenantId)
             throws StateAccessException, SerializationException {
