@@ -105,8 +105,9 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
                                      tzState, vtepDataClientFactory)
 
     // An observer that bootstraps a new VxLAN Gateway service whenever a
-    // neutron network that has bindings to hardware VTEP(s) is created or
-    // newly bound to its first VTEP.
+    // neutron network that has bindings to hardware VTEP(s) is created.
+    // Note that updates are handled by the `networkWatcher` placed on each
+    // individual network.
     private val bridgesWatcher = new Observer[EntityIdSetEvent[UUID]] {
         override def onCompleted(): Unit = {
             log.warn("Unexpected: networks watcher completed, this indicates " +
@@ -154,7 +155,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     /** Create a watcher for changes on the given network that will detect
       * when it becomes part of a VxLAN Gateway and bootstrap the management
       * process. */
-    private def networkWatcher(id: UUID) = new DefaultTypedWatcher {
+    private def newNetworkWatcher(id: UUID) = new DefaultTypedWatcher {
         override def pathDataChanged(path: String): Unit = {
             VxlanGateway.executor submit makeRunnable {
                 bootstrapIfInVxlanGateway(id)
@@ -167,23 +168,22 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
       * part of a VxLAN Gateway.  Otherwise just keep watching updates on the
       * network just in case new bindings to a VTEP are added. */
     private def bootstrapIfInVxlanGateway(id: UUID): Unit = {
-        Try (
+        Try {
             // Load the bridge, setting up a watcher if it's the first time seen
-            if (networkUpdateMonitor.contains(id)) {
-                dataClient.bridgesGet(id)
-            } else {
-                val watcher = networkWatcher(id)
+            var watcher = networkUpdateMonitor.get(id)
+            if (watcher == null) {
+                watcher = newNetworkWatcher(id)
                 val prev = networkUpdateMonitor.putIfAbsent(id, watcher)
                 if (prev == null) {
                     networkCount.inc()
-                    dataClient.bridgeGetAndWatch(id, watcher)
                 } else {
-                    dataClient.bridgesGet(id)
+                    watcher = prev
                 }
             }
-        ) match {
-            case Success(b) if b.getVxLanPortIds == null
-                               || b.getVxLanPortIds.isEmpty =>
+            dataClient.bridgeGetAndWatch(id, watcher)
+        } match {
+            case Success(b) if b.getVxLanPortIds == null ||
+                               b.getVxLanPortIds.isEmpty =>
                 if (managers.remove(b.getId) != null) {
                     vxgwCount.dec()
                 }
