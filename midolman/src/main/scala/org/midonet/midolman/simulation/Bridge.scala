@@ -31,7 +31,6 @@ import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
-import org.midonet.odp.flows.FlowActions.popVLAN
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForBridge, tagForFloodedFlowsByDstMac, tagForVlanPort}
 
@@ -355,10 +354,7 @@ class Bridge(val id: UUID,
             case Some(vPId) if !context.inPortId.equals(vPId) =>
                 // This VUB is connected to a VAB: send there too
                 context.log.debug("Add vlan-aware bridge flood")
-                ForkAction(Vector(
-                    floodAction,
-                    ToPortAction(vPId)
-                ))
+                ForkAction(floodAction, ToPortAction(vPId))
             case None if !vlanToPort.isEmpty => // A vlan-aware bridge
                 context.log.debug("Vlan-aware flood")
                 multicastVlanAware(tryAsk[BridgePort](context.inPortId))
@@ -389,11 +385,7 @@ class Bridge(val id: UUID,
                     context.log.debug(
                         "Frame from trunk on vlan {}, send to trunks, POP, to port {}",
                         vlanId, vlanPort)
-                    ForkAction(Vector(
-                        floodAction,
-                        DoFlowAction(popVLAN()),
-                        ToPortAction(vlanPort))
-                    )
+                    ForkAction(floodAction, ToPortAction(vlanPort))
             }
         case p: BridgePort if p.isInterior =>
             vlanToPort.getVlan(context.inPortId) match {
@@ -473,27 +465,6 @@ class Bridge(val id: UUID,
             return act
         }
 
-        // Otherwise, apply egress (post-bridging) chain
-        act match {
-            case ToPortAction(port) =>
-                context.log.debug("To port: {}", port)
-                context.outPortId = port
-            case FloodBridgeAction(brid, ports) =>
-                context.log.debug("Flood bridge: {}", brid)
-            case ForkAction(acts) =>
-                context.log.debug("Fork, to port and flood")
-                // TODO (galo) check that we only want to apply to the first
-                // action
-                acts.head match {
-                    case ToPortAction(port) =>
-                        context.outPortId = port
-                    case FloodBridgeAction(brid, ports) =>
-                    case a =>
-                        context.log.warn("Unexpected forked action {}", a)
-                }
-            case a => context.log.warn("Unhandled Coordinator.Action {}", a)
-        }
-
         val postBridgeResult = Chain.apply(
             outFilterId match {
                 case Some(filterId) => tryAsk[Chain](filterId)
@@ -513,8 +484,6 @@ class Bridge(val id: UUID,
                 context.log.warn(
                     "PostBridging returned {} which was not ACCEPT, DROP, or REJECT.",
                     other)
-                // TODO(pino): decrement the mac-port reference count?
-                // TODO(pino): remove the flow tag?
                 ErrorDrop
         }
     }
