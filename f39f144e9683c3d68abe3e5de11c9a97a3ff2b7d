@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_cb87e1b3",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockAllocator.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "I already look for a NONODE exception in allocateBlockInRange, because first i try to claim the block without ensuring the directory exists (so i save a read on the common case).",
+      "parentUuid": "9ad9bd40_8b5dd97b",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_abcb7d51",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
         "patchSetId": 5
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_abb1bd90",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_abcb7d51",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6be5f5da",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
         "patchSetId": 5
@@ -47,6 +83,30 @@
       "writtenOn": "2015-07-23T15:07:25Z",
       "side": 1,
       "message": "Write the host id, so it\u0027s clear who was the last nodes to run.",
+      "range": {
+        "startLine": 84,
+        "startChar": 47,
+        "endLine": 84,
+        "endChar": 58
+      },
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_eba7454e",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_6be5f5da",
       "range": {
         "startLine": 84,
         "startChar": 47,
@@ -82,6 +142,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_eb9025ef",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_ebd82520",
+      "range": {
+        "startLine": 90,
+        "startChar": 32,
+        "endLine": 90,
+        "endChar": 37
+      },
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8bea39aa",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
         "patchSetId": 5
@@ -93,6 +177,24 @@
       "writtenOn": "2015-07-23T15:07:25Z",
       "side": 1,
       "message": "failing silently.",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0b8e29d0",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8bea39aa",
       "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -116,6 +218,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2b1a0d7d",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_cb7a8123",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_eb73c54b",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
         "patchSetId": 5
@@ -133,6 +253,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4b3831ef",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "either the version changed or it was concurrently deleted somehow. both are fine I think.",
+      "parentUuid": "9ad9bd40_eb73c54b",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2bb84dc7",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
         "patchSetId": 5
@@ -144,6 +282,24 @@
       "writtenOn": "2015-07-23T15:07:25Z",
       "side": 1,
       "message": "failing silently",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4b1f516c",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_2bb84dc7",
       "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -173,6 +329,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6b109559",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "I\u0027ll change, but all are bad. this is the one true way:\n\nif (...)\n{\n\n}",
+      "parentUuid": "9ad9bd40_aba45da6",
+      "range": {
+        "startLine": 172,
+        "startChar": 61,
+        "endLine": 172,
+        "endChar": 63
+      },
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0b4469b5",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
         "patchSetId": 5
@@ -184,6 +364,30 @@
       "writtenOn": "2015-07-23T15:07:25Z",
       "side": 1,
       "message": "Does this even work? You\u0027re calling a sync op from the zk event thread. This should deadlock.",
+      "range": {
+        "startLine": 187,
+        "startChar": 15,
+        "endLine": 187,
+        "endChar": 20
+      },
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8b15d94a",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-23T18:01:59Z",
+      "side": 1,
+      "message": "the tests pass. i\u0027d be surprised if they didn\u0027t have a pool. i can shove it off to the reactor though.",
+      "parentUuid": "9ad9bd40_0b4469b5",
       "range": {
         "startLine": 187,
         "startChar": 15,
