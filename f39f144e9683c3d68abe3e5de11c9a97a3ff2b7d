@@ -1,0 +1,198 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_8b5dd97b",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockAllocator.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "This can fail in non-exceptional circumstances now. It may be worth adding retry logic to getting a block.",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_abcb7d51",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 80,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "add info log. I should only happen once an hour, and will be informative to see why recycling isn\u0027t running.",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6be5f5da",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "Write the host id, so it\u0027s clear who was the last nodes to run.",
+      "range": {
+        "startLine": 84,
+        "startChar": 47,
+        "endLine": 84,
+        "endChar": 58
+      },
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ebd82520",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 90,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "info. You\u0027re not spamming logs with something that\u0027s once day.",
+      "range": {
+        "startLine": 90,
+        "startChar": 32,
+        "endLine": 90,
+        "endChar": 37
+      },
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8bea39aa",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "failing silently.",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cb7a8123",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 119,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "fail silently?",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_eb73c54b",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 130,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "Failing silently",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2bb84dc7",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "failing silently",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_aba45da6",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "this is scala style and makes larry ellison cry.\nhttp://www.oracle.com/technetwork/java/javase/documentation/codeconventions-136091.html#248\nBreak should be before the operator.",
+      "range": {
+        "startLine": 172,
+        "startChar": 61,
+        "endLine": 172,
+        "endChar": 63
+      },
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0b4469b5",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-23T15:07:25Z",
+      "side": 1,
+      "message": "Does this even work? You\u0027re calling a sync op from the zk event thread. This should deadlock.",
+      "range": {
+        "startLine": 187,
+        "startChar": 15,
+        "endLine": 187,
+        "endChar": 20
+      },
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
