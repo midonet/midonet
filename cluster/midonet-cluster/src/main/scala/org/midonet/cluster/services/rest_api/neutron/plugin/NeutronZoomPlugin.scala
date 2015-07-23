@@ -371,7 +371,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     : util.List[SecurityGroup] = listAll(classOf[SecurityGroup])
 
     override def deleteSecurityGroupRule(id: UUID): Unit = {
-        delete(id, classOf[SecurityGroup])
+        delete(id, classOf[SecurityGroupRule])
     }
 
     override def createSecurityGroup(dto: SecurityGroup): SecurityGroup =
