@@ -239,6 +239,40 @@ public class TestHostInterfacePort {
         }
 
         @Test
+        public void testCreateWhenAlreadyBound() {
+            DtoHost host = hostTopology.getHost(host1Id);
+            DtoBridgePort port1 = topology.getBridgePort(
+                "bridgePort1");
+
+            bindHostToTunnelZone(host1Id);
+
+            // List mappings.  There should be none.
+            DtoHostInterfacePort[] maps = dtoResource.getAndVerifyOk(
+                host.getPorts(),
+                APPLICATION_HOST_INTERFACE_PORT_COLLECTION_JSON,
+                DtoHostInterfacePort[].class);
+            Assert.assertEquals(0, maps.length);
+
+            DtoHostInterfacePort mapping = new DtoHostInterfacePort();
+            mapping.setPortId(port1.getId());
+            mapping.setInterfaceName("eth0");
+            dtoResource.postAndVerifyCreated(
+                host.getPorts(),
+                APPLICATION_HOST_INTERFACE_PORT_JSON,
+                mapping,
+                DtoHostInterfacePort.class);
+
+            mapping = new DtoHostInterfacePort();
+            mapping.setPortId(port1.getId());
+            mapping.setInterfaceName("eth1");
+            dtoResource.postAndVerifyBadRequest(
+                host.getPorts(),
+                APPLICATION_HOST_INTERFACE_PORT_JSON,
+                mapping);
+
+        }
+
+        @Test
         public void testClient() throws Exception {
             UUID hostId = UUID.randomUUID();
 
