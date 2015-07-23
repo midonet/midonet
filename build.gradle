@@ -301,6 +301,12 @@ configure(subprojects.findAll {!it.name.contains('ovsdb')}) {
 
         if (project.hasProperty('midonet.newStack')) {
             systemProperty "midonet.newStack", "true"
+
+            /**
+             * Some parts of zoom are not yet implemented
+             */
+            logger.warn("Some tests have been disabled pending implementation on the zoom side. These should all be implemented before a release")
+            systemProperty "midonet.awaitingImpl", "true"
         }
     }
 
