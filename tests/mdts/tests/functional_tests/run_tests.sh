@@ -121,4 +121,7 @@ then
     exit 1
 fi
 
+# Avoid masking the exit status of nose with the exit 0 of tee
+set -o pipefail
+
 sudo PYTHONPATH=$PDIR ./runner.py -c nose.cfg ${ATTR:+"-A $ATTR"} $TESTS $ARGS 2>&1 | tee nosetests.`date +%Y%m%d-%H%M`.log
