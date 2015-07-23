@@ -1,0 +1,73 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f4064785",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-23T07:21:45Z",
+      "side": 1,
+      "message": "\"is available\", as used above?",
+      "range": {
+        "startLine": 195,
+        "startChar": 58,
+        "endLine": 195,
+        "endChar": 73
+      },
+      "revId": "4fff609185970b2e867df72f4cc345f81a7a215d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d4d6a3f0",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 201,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-23T07:21:45Z",
+      "side": 1,
+      "message": "Nit: consistency Cluster or cluster",
+      "range": {
+        "startLine": 201,
+        "startChar": 63,
+        "endLine": 201,
+        "endChar": 64
+      },
+      "revId": "4fff609185970b2e867df72f4cc345f81a7a215d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_140c8ba4",
+        "filename": "cluster/midonet-cluster/src/main/resources/org/midonet/conf/schemas/cluster.conf",
+        "patchSetId": 11
+      },
+      "lineNbr": 205,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-23T07:21:45Z",
+      "side": 1,
+      "message": "Same",
+      "range": {
+        "startLine": 204,
+        "startChar": 67,
+        "endLine": 205,
+        "endChar": 18
+      },
+      "revId": "4fff609185970b2e867df72f4cc345f81a7a215d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
