@@ -20,6 +20,7 @@ import java.util.UUID
 import scala.concurrent.Await.{ready, result}
 import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.reflect._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -31,6 +32,7 @@ import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
+import org.midonet.midolman.topology.VirtualTopology.Key
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 
@@ -108,7 +110,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             And("Creating an observer to the VT observable")
             val observer = new DeviceObserver[SimulationPort](vt)
-            vt.observables.get(id)
+            vt.observables.get(Key(classTag[SimulationPort], id))
                 .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(observer)
 
@@ -146,7 +148,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Creating an observer to the VT observable")
             val observer = new DeviceObserver[SimulationPort](vt)
-            vt.observables.get(id)
+            vt.observables.get(Key(classTag[SimulationPort], id))
                 .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(observer)
 
@@ -180,7 +182,7 @@ class VirtualTopologyTest extends MidolmanSpec with TopologyBuilder {
 
             When("Creating an observer to the VT observable")
             val observer = new DeviceObserver[SimulationPort](vt)
-            vt.observables.get(id)
+            vt.observables.get(Key(classTag[SimulationPort], id))
                 .asInstanceOf[Observable[SimulationPort]]
                 .subscribe(observer)
             observer.awaitOnNext(1, timeout)

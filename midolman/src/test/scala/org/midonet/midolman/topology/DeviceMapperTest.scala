@@ -177,16 +177,18 @@ class DeviceMapperTest extends MidolmanSpec {
             And("The stream completed")
             stream.in.onCompleted()
 
+            Thread.sleep(1000)
+
             And("The observer subscribes")
             val subscription = observable subscribe observer
 
-            Then("The subscription should be the empty subscription")
-            subscription shouldBe Subscriptions.unsubscribed()
+            Then("The observer should be unsubscribed")
+            subscription.isUnsubscribed shouldBe true
 
-            And("The observer should have received an IllegalStateException")
+            And("The observer should have received the completed notification")
             observer.getOnNextEvents shouldBe empty
-            observer.getOnCompletedEvents shouldBe empty
-            observer.getOnErrorEvents should contain (DeviceMapper.SubscriptionException)
+            observer.getOnCompletedEvents should not be empty
+            observer.getOnErrorEvents shouldBe empty
         }
 
         scenario("Stream error notifies future subscribers") {
@@ -204,8 +206,8 @@ class DeviceMapperTest extends MidolmanSpec {
             And("The observer subscribes")
             val subscription = observable.subscribe(observer)
 
-            Then("The subscription should be the empty subscription")
-            subscription shouldBe Subscriptions.unsubscribed
+            Then("The observer should be unsubscribed")
+            subscription.isUnsubscribed shouldBe true
 
             And("The observer should have received the exception")
             observer.getOnErrorEvents should contain only e
@@ -517,7 +519,7 @@ class DeviceMapperTest extends MidolmanSpec {
             future.isCompleted shouldBe true
             future.value should not be None
             future.value.get.isFailure shouldBe true
-            future.value.get.failed.get shouldBe DeviceMapper.SubscriptionException
+            future.value.get.failed.get shouldBe RichObservable.CompletedException
         }
 
         scenario("The future completes async on error") {
