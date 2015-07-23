@@ -16,6 +16,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +31,8 @@ import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.util.version.Since;
 import org.midonet.util.version.Until;
+
+import static org.midonet.cluster.rest_api.ResourceUris.*;
 
 @ZoomClass(clazz = Topology.Network.class)
 public class Bridge extends UriResource {
@@ -74,50 +77,57 @@ public class Bridge extends UriResource {
 
     @Override
     public URI getUri() {
-        return absoluteUri(ResourceUris.BRIDGES, id);
+        return absoluteUri(BRIDGES, id);
     }
 
     public URI getInboundFilter() {
-        return absoluteUri(ResourceUris.CHAINS, inboundFilterId);
+        return absoluteUri(CHAINS, inboundFilterId);
     }
 
     public URI getOutboundFilter() {
-        return absoluteUri(ResourceUris.CHAINS, outboundFilterId);
+        return absoluteUri(CHAINS, outboundFilterId);
     }
 
     public URI getPorts() {
-        return relativeUri(ResourceUris.PORTS);
+        return relativeUri(PORTS);
     }
 
     public URI getPeerPorts() {
-        return relativeUri(ResourceUris.PEER_PORTS);
+        return relativeUri(PEER_PORTS);
     }
 
     @Since("3")
     public List<URI> getVxLanPorts() {
-        return absoluteUris(ResourceUris.VXLAN_PORTS, vxLanPortIds);
+        if (vxLanPortIds == null) {
+            return null;
+        }
+        List<URI> uris = new ArrayList<>(vxLanPortIds.size());
+        for (UUID id : vxLanPortIds) {
+            uris.add(absoluteUri(PORTS, id));
+        }
+        return uris;
     }
 
     @Since("2")
     @Until("3")
     public URI getVxLanPort() {
-        return absoluteUri(ResourceUris.PORTS, vxLanPortId);
+        return absoluteUri(PORTS, vxLanPortId);
     }
 
     public URI getMacTable() {
-        return relativeUri(ResourceUris.MAC_TABLE);
+        return relativeUri(MAC_TABLE);
     }
 
     public URI getArpTable() {
-        return relativeUri(ResourceUris.ARP_TABLE);
+        return relativeUri(ARP_TABLE);
     }
 
     public URI getDhcpSubnets() {
-        return relativeUri(ResourceUris.DHCP);
+        return relativeUri(DHCP);
     }
 
     public URI getDhcpSubnet6s() {
-        return relativeUri(ResourceUris.DHCPV6);
+        return relativeUri(DHCPV6);
     }
 
     public String getVlanMacTableTemplate() {
