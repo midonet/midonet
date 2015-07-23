@@ -70,6 +70,15 @@ class NeutronZoomPluginTest extends FeatureSpec
     }
 
     feature("The Plugin should be able to CRUD") {
+
+        def exists(clazz: Class[_], id: UUID) = {
+            backend.store.exists(clazz, id).await() shouldBe true
+        }
+
+        def doesNotExist(clazz: Class[_], id: UUID) = {
+            backend.store.exists(clazz, id).await() shouldBe false
+        }
+
         scenario("The plugin handles a Network") {
             val nwId = UUID.randomUUID()
             val nw = new Network(nwId, null, "original-nw", false)
@@ -94,6 +103,30 @@ class NeutronZoomPluginTest extends FeatureSpec
 
             backend.store.exists(classOf[Topology.Network], nwId)
                    .await(timeout) shouldBe false
+        }
+
+        scenario("The plugin handles a security group and rule") {
+            val sgId = UUID.randomUUID()
+            val sg = new SecurityGroup(sgId, "tenant", "sg1", "stargate 1",
+                                       List())
+
+            plugin.createSecurityGroup(sg)
+
+            exists(classOf[Topology.IPAddrGroup], sgId)
+
+            val sgrId = UUID.randomUUID()
+            val sgr = new SecurityGroupRule(sgrId, sgId, RuleDirection.EGRESS,
+                                            RuleEthertype.IPv4,
+                                            RuleProtocol.TCP)
+
+            plugin.createSecurityGroupRule(sgr)
+            exists(classOf[Topology.Rule], sgrId)
+
+            plugin.deleteSecurityGroupRule(sgrId)
+            doesNotExist(classOf[Topology.Rule], sgrId)
+
+            plugin.deleteSecurityGroup(sgId)
+            doesNotExist(classOf[Topology.IPAddrGroup], sgId)
         }
     }
 
