@@ -16,33 +16,34 @@
 
 package org.midonet.midolman.simulation
 
+import java.util
 import java.util.UUID
 
 import scala.collection.JavaConversions._
-
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.PacketWorkflow
+import org.midonet.midolman.PacketWorkflow.{SimulationResult => Result}
 import org.midonet.midolman.PacketWorkflow._
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort}
-import org.midonet.odp.flows._
+import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
 
 object Coordinator {
+    val MAX_DEVICES_TRAVERSED = 12
 
-    sealed trait ForwardAction extends SimulationResult
+    sealed trait ForwardAction extends Result
     case class ToPortAction(outPort: UUID) extends ForwardAction
     case class FloodBridgeAction(bridgeId: UUID, ports: List[UUID]) extends ForwardAction
-    case class DoFlowAction(action: FlowAction) extends ForwardAction
 
     // This action is used when one simulation has to return N forward actions
     // A good example is when a bridge that has a vlan id set receives a
     // broadcast from the virtual network. It will output it to all its
     // materialized ports and to the logical port that connects it to the VAB
-    case class ForkAction(actions: Seq[SimulationResult]) extends ForwardAction
+    case class ForkAction(first: Result, second: Result) extends ForwardAction
 
     trait Device {
 
@@ -59,7 +60,34 @@ object Coordinator {
          * @return An instance of Action that reflects what the device would do
          * after handling this packet (e.g. drop it, consume it, forward it).
          */
-        def process(pktContext: PacketContext): SimulationResult
+        def process(pktContext: PacketContext): Result
+    }
+
+    /* Keep a pool of MAX_DEVICES*2 FlowMatch instances to support that many
+     * nested simulation forks (sequential forks are unlimited) with no
+     * extra allocations.
+     *
+     * The number is generous enough that we'll simply assume the pool never is
+     * empty. Should it be not, the affected packet won't make it through.
+     */
+    private val flowMatchPool = new ThreadLocal[util.ArrayList[FlowMatch]] {
+        override def initialValue = {
+            val l = new util.ArrayList[FlowMatch](MAX_DEVICES_TRAVERSED*2)
+            for (i <- 1 to MAX_DEVICES_TRAVERSED*2) {
+                l.add(new FlowMatch())
+            }
+            l
+        }
+    }
+
+    private def matchPool = flowMatchPool.get()
+
+    private def popMatch(): FlowMatch = {
+        matchPool.remove(matchPool.size()-1)
+    }
+
+    private def pushMatch(m: FlowMatch): Unit = {
+        matchPool.add(m)
     }
 }
 
@@ -73,7 +101,6 @@ class Coordinator(context: PacketContext)
 
     implicit val logPktCtx: PacketContext = context
     implicit val log = context.log
-    private val MAX_DEVICES_TRAVERSED = 12
 
     // Used to detect loops: devices simulated (with duplicates).
     private var numDevicesSimulated = 0
@@ -107,7 +134,7 @@ class Coordinator(context: PacketContext)
      *
      * The resulting future is never in a failed state.
      */
-    def simulate(): SimulationResult = {
+    def simulate(): Result = {
         log.debug("Simulating a packet")
         if (context.ingressed) {
             packetIngressesPort(context.inputPort, getPortGroups = true)
@@ -116,7 +143,7 @@ class Coordinator(context: PacketContext)
         }
     }
 
-    private def packetIngressesDevice(port: Port): SimulationResult = {
+    private def packetIngressesDevice(port: Port): Result = {
         val device = port match {
             case _: BridgePort => tryAsk[Bridge](port.deviceId)
             case _: VxLanPort => tryAsk[Bridge](port.deviceId)
@@ -128,10 +155,8 @@ class Coordinator(context: PacketContext)
     }
 
 
-    private def mergeSimulationResults(first: SimulationResult,
-                                       second: SimulationResult)
-    : SimulationResult = {
-        val result = (first, second) match {
+    private def merge(a: Result, b: Result) : Result = {
+        val result = (a, b) match {
             case (PacketWorkflow.Drop, action) => action
             case (action, PacketWorkflow.Drop) => action
 
@@ -151,47 +176,25 @@ class Coordinator(context: PacketContext)
         result
     }
 
-    private def handleAction(simRes: SimulationResult): SimulationResult =
-        simRes match {
-            case DoFlowAction(act) => act match {
-                case b: FlowActionPopVLAN =>
-                    context.addVirtualAction(b)
-                    val vlanId = context.wcmatch.getVlanIds.get(0)
-                    context.wcmatch.removeVlanId(vlanId)
-                    AddVirtualWildcardFlow
-                case _ => NoOp
-            }
-
-            case ForkAction(acts) =>
-                // Our handler for each action consists on evaluating
-                // the Coordinator action and pairing it with the
-                // original WMatch at that point in time
-                // Will fail if run in parallel because of side-effects
-
-                val originalMatch = context.origMatch.clone()
-                try {
-                    // TODO: maybe replace with some other alternative that
-                    // spares iterating the entire if we find the break cond
-                    val results = acts map { a =>
-                        context.origMatch.reset(context.wcmatch)
-                        handleAction(a)
-                    }
-                    results reduceLeft mergeSimulationResults
-                } finally {
-                    context.origMatch.reset(originalMatch)
-                }
-
-            case FloodBridgeAction(brId, ports) =>
-                floodBridge(brId, ports)
-
-            case ToPortAction(outPortID) =>
-                packetEgressesPort(outPortID)
-
-            case _ => simRes
+    private def branch(result: Result): Result = {
+        val branchPoint = popMatch()
+        try {
+            branchPoint.reset(context.wcmatch)
+            handleAction(result)
+        } finally {
+            context.wcmatch.reset(branchPoint)
+            pushMatch(branchPoint)
         }
+    }
 
-    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean)
-    : SimulationResult =
+    private def handleAction(simRes: Result): Result = simRes match {
+        case ForkAction(first, second) =>      merge(branch(first), branch(second))
+        case FloodBridgeAction(brId, ports) => floodBridge(brId, ports)
+        case ToPortAction(outPortID) =>        packetEgressesPort(outPortID)
+        case res => res
+    }
+
+    private def packetIngressesPort(portID: UUID, getPortGroups: Boolean) : Result =
         // Avoid loops - simulate at most X devices.
         if (numDevicesSimulated >= MAX_DEVICES_TRAVERSED) {
             ErrorDrop
@@ -211,9 +214,7 @@ class Coordinator(context: PacketContext)
             }
         }
 
-    private def applyPortFilter(port: Port, filterID: UUID,
-                                thunk: (Port) => SimulationResult)
-    : SimulationResult = {
+    private def applyPortFilter(port: Port, filterID: UUID, thunk: (Port) => Result): Result = {
         if (filterID == null)
             return thunk(port)
 
@@ -231,11 +232,17 @@ class Coordinator(context: PacketContext)
         }
     }
 
+    private def handleVlanEgress(port: Port): Unit = port match {
+        case bp: BridgePort if bp.vlanId > 0 && context.wcmatch.isVlanTagged =>
+            context.wcmatch.removeVlanId(bp.vlanId)
+        case _ =>
+    }
+
     /**
      * Simulate the packet egressing a virtual port. This is NOT intended
      * for flooding bridges
      */
-    private def packetEgressesPort(portID: UUID): SimulationResult = {
+    private def packetEgressesPort(portID: UUID): Result = {
         val port = tryAsk[Port](portID)
         context.addFlowTag(port.deviceTag)
         context.addFlowTag(port.txTag)
@@ -244,6 +251,9 @@ class Coordinator(context: PacketContext)
             case p if !p.adminStateUp =>
                 processAdminStateDown(p, isIngress = false)
             case p =>
+                /* TODO(guillermo) the port itself should process the packet and
+                 * do both the filtering and VLAN (un)tagging. */
+                handleVlanEgress(p)
                 context.outPortId = p.id
                 applyPortFilter(p, p.outboundFilter, {
                     case p: Port if p.isExterior =>
@@ -257,7 +267,7 @@ class Coordinator(context: PacketContext)
         }
     }
 
-    private def emitFromPort(port: Port): SimulationResult = {
+    private def emitFromPort(port: Port): Result = {
         context.calculateActionsFromMatchDiff()
         log.debug("Emitting packet from vport {}", port.id)
         context.addVirtualAction(FlowActionOutputToVrnPort(port.id))
@@ -289,7 +299,7 @@ class Coordinator(context: PacketContext)
         }
     }
 
-    private def floodBridge(deviceId: UUID, ports: List[UUID]): SimulationResult = {
+    private def floodBridge(deviceId: UUID, ports: List[UUID]): Result = {
         context.calculateActionsFromMatchDiff()
         val filteredPorts = ports filter applyExteriorPortFilter
         if (filteredPorts.size > 0) {
@@ -302,14 +312,13 @@ class Coordinator(context: PacketContext)
         }
     }
 
-    private def emit(deviceId: UUID): SimulationResult = {
+    private def emit(deviceId: UUID): Result = {
         context.trackConnection(deviceId)
         context.addTraceKeysForEgress()
         AddVirtualWildcardFlow
     }
 
-    private[this] def processAdminStateDown(port: Port, isIngress: Boolean)
-    : SimulationResult = {
+    private[this] def processAdminStateDown(port: Port, isIngress: Boolean): Result = {
         port match {
             case p: RouterPort if isIngress =>
                 sendIcmpProhibited(p)
