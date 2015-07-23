@@ -189,14 +189,18 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val mPort = storage.get(classOf[Port], portId).await()
         val oldNPort = storage.get(classOf[NeutronPort], portId).await()
         if (portChanged(nPort, oldNPort)) {
-            // TODO: Is it okay not to check the port type? I assume Neutron
-            // won't tell us to do something we shouldn't.
             val bldr = mPort.toBuilder.setAdminStateUp(nPort.getAdminStateUp)
-            if (hasBinding(nPort)) {
-                bldr.setHostId(getHostIdByName(nPort.getHostId))
-                bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
-            } else {
-                bldr.clearHostId().clearInterfaceName()
+
+            // Neutron may specify binding information for router interface
+            // ports on edge routers. For VIF/DHCP ports, binding information
+            // is controlled by mm-ctl, and we shouldn't change it.
+            if (isRouterInterfacePort(nPort)) {
+                if (hasBinding(nPort)) {
+                    bldr.setHostId(getHostIdByName(nPort.getHostId))
+                    bldr.setInterfaceName(nPort.getProfile.getInterfaceName)
+                } else {
+                    bldr.clearHostId().clearInterfaceName()
+                }
             }
 
             midoOps += Update(bldr.build())
