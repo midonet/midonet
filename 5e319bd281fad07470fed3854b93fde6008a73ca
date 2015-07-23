@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4b33d1aa",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-23T14:11:58Z",
+      "side": 1,
+      "message": "no, that refers to MAX_DEVICES*2.",
+      "parentUuid": "9ad9bd40_2b392da4",
+      "range": {
+        "startLine": 66,
+        "startChar": 67,
+        "endLine": 66,
+        "endChar": 71
+      },
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_cb49a132",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 1
@@ -42,6 +66,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6bdb354f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-23T14:11:58Z",
+      "side": 1,
+      "message": "why?  conceptually everything between pop and push() should be protected.",
+      "parentUuid": "9ad9bd40_cb49a132",
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2b604da4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 1
@@ -53,6 +95,24 @@
       "writtenOn": "2015-07-23T13:58:08Z",
       "side": 1,
       "message": "so if the port is a vlan port and the packet is tagged, we remove the vlan id? shouldn\u0027t we pop on trunk ports, which i assume have no vlan id?",
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8b295939",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-23T14:11:58Z",
+      "side": 1,
+      "message": "no, it\u0027s the opposite.  A port with a vlan id expects untagged traffic on the outside of the device and tags it when it enters the device. Trunk ports do the opposite (thus \"trunk\"), they expect and emit tagged traffic outside of their device.",
+      "parentUuid": "9ad9bd40_2b604da4",
       "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -93,6 +153,24 @@
       "writtenOn": "2015-07-23T13:58:08Z",
       "side": 1,
       "message": "if we reset below, than this is not really needed i guess",
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_eb1745ec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 97,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-23T14:11:58Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8b5b19f5",
       "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
