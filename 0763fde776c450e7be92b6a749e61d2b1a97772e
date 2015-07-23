@@ -1,0 +1,67 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_2e979249",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 73,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-23T13:22:01Z",
+      "side": 1,
+      "message": "MultiTopicConsumer?",
+      "range": {
+        "startLine": 73,
+        "startChar": 23,
+        "endLine": 73,
+        "endChar": 38
+      },
+      "revId": "0763fde776c450e7be92b6a749e61d2b1a97772e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4e94d642",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-23T13:22:01Z",
+      "side": 1,
+      "message": "Is this specific to MergedMap? org.midonet.cluster.kafka seems enough otherwise",
+      "range": {
+        "startLine": 81,
+        "startChar": 35,
+        "endLine": 81,
+        "endChar": 44
+      },
+      "revId": "0763fde776c450e7be92b6a749e61d2b1a97772e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ce8f0629",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/KafkaBus.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-23T13:22:01Z",
+      "side": 1,
+      "message": "since the only function this is doing is transform the output why not model this as an operator?",
+      "revId": "0763fde776c450e7be92b6a749e61d2b1a97772e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
