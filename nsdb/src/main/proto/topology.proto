@@ -254,10 +254,13 @@ message Port {
     optional UUID vtep_id = 19;
 
     // Backreferences
-    repeated UUID rule_ids = 101;
+
     // For Router gateway port only. Back-references to VIPs that are associated
     // with this Router gateway port.
-    repeated UUID vip_ids = 102;
+    repeated UUID vip_ids = 101;
+
+    // NAT rules that implement FIP for this port.
+    repeated UUID fip_nat_rule_ids = 102;
 }
 
 message PortGroup {
@@ -376,6 +379,9 @@ message Rule {
     }
     optional FragmentPolicy fragment_policy = 40;
     // end of condition fields
+
+    // Port for which this rule implements floating IP NAT.
+    optional UUID fip_port_id = 41;
 
     message JumpRuleData {
         optional UUID jump_to = 1;

@@ -707,8 +707,6 @@ object TopologyBuilder {
             port.toBuilder.clearPortMac().build()
         def addRouteId(routeId: UUID): Port =
             port.toBuilder.addRouteIds(routeId.asProto).build()
-        def addRuleId(ruleId: UUID): Port =
-            port.toBuilder.addRuleIds(ruleId.asProto).build()
     }
 
     final class RichBridge(val bridge: Network) extends AnyVal {

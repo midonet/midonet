@@ -606,7 +606,7 @@ private[translators] object PortUpdateValidator extends UpdateValidator[Port] {
     override def validate(oldPort: Port, newPort: Port): Port = {
         newPort.toBuilder
             .addAllRouteIds(oldPort.getRouteIdsList)
-            .addAllRuleIds(oldPort.getRuleIdsList)
+            .addAllFipNatRuleIds(oldPort.getFipNatRuleIdsList)
             .build()
     }
 }

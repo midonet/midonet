@@ -97,7 +97,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
     protected val snatRuleId = RouteManager.fipSnatRuleId(fipId)
     protected val dnatRuleId = RouteManager.fipDnatRuleId(fipId)
 
-    protected def snatRule(gatewayPortId: UUID,
+    protected def snatRule(gatewayPortId: UUID, sourcePortId: UUID,
                            fixedIpSubnet: IPSubnet = fipFixedIpSubnet) =
         mRuleFromTxt(s"""
             id { $snatRuleId }
@@ -105,6 +105,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             action: ACCEPT
             out_port_ids { ${tenantGwPortId(gatewayPortId)} }
             nw_src_ip { $fixedIpSubnet }
+            fip_port_id { $sourcePortId }
             nat_rule_data {
                 nat_targets {
                     nw_start { $fipIpAddr }
@@ -115,9 +116,9 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 dnat: false
             }
         """)
-    protected val snat = snatRule(tntRouterGatewayPortId)
+    protected val snat = snatRule(tntRouterGatewayPortId, fipPortId)
 
-    protected def dnatRule(gatewayPortId: UUID,
+    protected def dnatRule(gatewayPortId: UUID, destPortId: UUID,
                            fixedIpAddr: IPAddress = fipFixedIpAddr) =
         mRuleFromTxt(s"""
             id { $dnatRuleId }
@@ -125,6 +126,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             action: ACCEPT
             in_port_ids { ${tenantGwPortId(gatewayPortId)} }
             nw_dst_ip { $fipIpSubnet }
+            fip_port_id { $destPortId }
             nat_rule_data {
                 nat_targets {
                     nw_start { $fixedIpAddr }
@@ -135,7 +137,7 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
                 dnat: true
             }
         """)
-    protected val dnat = dnatRule(tntRouterGatewayPortId)
+    protected val dnat = dnatRule(tntRouterGatewayPortId, fipPortId)
 
     protected val inChainDummyRuleIds = """
         rule_ids { msb: 1 lsb: 2 }
@@ -228,16 +230,16 @@ class FloatingIpTranslatorUpdateTest extends FloatingIpTranslatorTestBase {
     protected val fipMovedPort2 = fip(portId = fipPort2Id, fixedIp = fixedIp2)
     protected val fipMovedRtr2Port2 =
         fip(routerId = tntRouter2Id, portId = fipPort2Id, fixedIp = fixedIp2)
-    protected val snatRtr2 = snatRule(tntRouter2GwPortId)
-    protected val dnatRtr2 = dnatRule(tntRouter2GwPortId)
+    protected val snatRtr2 = snatRule(tntRouter2GwPortId, fipPortId)
+    protected val dnatRtr2 = dnatRule(tntRouter2GwPortId, fipPortId)
     protected val snatPort2 =
-        snatRule(tntRouterGatewayPortId, fixedIpSubnet2)
+        snatRule(tntRouterGatewayPortId, fipPort2Id, fixedIpSubnet2)
     protected val dnatPort2 =
-        dnatRule(tntRouterGatewayPortId, fixedIp2)
+        dnatRule(tntRouterGatewayPortId, fipPort2Id, fixedIp2)
     protected val snatRtr2Port2 =
-        snatRule(tntRouter2GwPortId, fixedIpSubnet2)
+        snatRule(tntRouter2GwPortId, fipPort2Id, fixedIpSubnet2)
     protected val dnatRtr2Port2 =
-        dnatRule(tntRouter2GwPortId, fixedIp2)
+        dnatRule(tntRouter2GwPortId, fipPort2Id, fixedIp2)
 
     protected val nTntRouter2 = nRouterFromTxt(s"""
         id { $tntRouter2Id }
