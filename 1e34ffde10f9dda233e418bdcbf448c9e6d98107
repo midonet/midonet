@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0652d312",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CuratorUtil.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_67172652",
+      "range": {
+        "startLine": 28,
+        "startChar": 16,
+        "endLine": 28,
+        "endChar": 26
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_870d0a41",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CuratorUtil.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-16T10:11:23Z",
       "side": 1,
       "message": "To discuss: does it make sense to create a metric for each type of ZK op?",
+      "range": {
+        "startLine": 32,
+        "startChar": 13,
+        "endLine": 32,
+        "endChar": 39
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6669dfbd",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/CuratorUtil.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "I\u0027m open to discussion. For now I thought that distinguishing between read and write operations would be enough, but perhaps not.",
+      "parentUuid": "9ad9bd40_870d0a41",
       "range": {
         "startLine": 32,
         "startChar": 13,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_462bfb2f",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 152,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "I kept it as is because I feel it\u0027s clearer to have object than node since either we have object or class observables. What do you think?",
+      "parentUuid": "9ad9bd40_a7084e2e",
+      "range": {
+        "startLine": 152,
+        "startChar": 25,
+        "endLine": 152,
+        "endChar": 31
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0201e804",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 6
@@ -82,6 +154,30 @@
       "writtenOn": "2015-07-16T10:11:23Z",
       "side": 1,
       "message": "Should this be a Map[Class[_], Int]?",
+      "range": {
+        "startLine": 159,
+        "startChar": 56,
+        "endLine": 159,
+        "endChar": 62
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_033a9798",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 159,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_0201e804",
       "range": {
         "startLine": 159,
         "startChar": 56,
@@ -117,6 +213,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_ce90fd45",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 162,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8242583c",
+      "range": {
+        "startLine": 162,
+        "startChar": 11,
+        "endLine": 162,
+        "endChar": 68
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_aaf7008a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 6
@@ -128,6 +248,30 @@
       "writtenOn": "2015-07-22T08:52:11Z",
       "side": 1,
       "message": "I think Alex\u0027s comment on 159 goes in the same line: it\u0027s odd that this class does output formatting. I think it\u0027s better if we return the raw map here, and let the reporter format the data as is appropriate (e.g.; json, xml, plain text...) rather than impose it here.",
+      "range": {
+        "startLine": 168,
+        "startChar": 8,
+        "endLine": 171,
+        "endChar": 20
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e3b93316",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_aaf7008a",
       "range": {
         "startLine": 168,
         "startChar": 8,
@@ -187,6 +331,54 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_83222750",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_caf0c493",
+      "range": {
+        "startLine": 173,
+        "startChar": 43,
+        "endLine": 173,
+        "endChar": 49
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ee93014d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 173,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "I renamed this method classObservableList and also added a comment. For objectObservableCountPerClass I couldn\u0027t find a better name without using too many characters.",
+      "parentUuid": "9ad9bd40_22798c93",
+      "range": {
+        "startLine": 173,
+        "startChar": 43,
+        "endLine": 173,
+        "endChar": 49
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_22cc2c35",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 6
@@ -198,6 +390,30 @@
       "writtenOn": "2015-07-16T11:55:22Z",
       "side": 1,
       "message": "Maybe we shouldn\u0027t use an observable if the observable is closed. The reason is that the future from a get will unsubscribe immediately, closing the observable. Hence, any subsequent get will go through the same loop of getting the old observable from the map, hitting the closed error, creating a new observable, closing it...",
+      "range": {
+        "startLine": 509,
+        "startChar": 8,
+        "endLine": 523,
+        "endChar": 29
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a0cd6187",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 523,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_22cc2c35",
       "range": {
         "startLine": 509,
         "startChar": 8,
@@ -233,6 +449,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4ecb0d53",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 553,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "I made it a val and initialized it here. It seems to me that it doesn\u0027t need to be volatile since it is guaranteed to be written before the other thread reads it. Also, it is written only once so there\u0027s no risk of the other thread getting a stale value.",
+      "parentUuid": "9ad9bd40_0262c83d",
+      "range": {
+        "startLine": 553,
+        "startChar": 8,
+        "endLine": 553,
+        "endChar": 22
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a2503c5f",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 6
@@ -244,6 +484,30 @@
       "writtenOn": "2015-07-16T11:55:22Z",
       "side": 1,
       "message": "I think this was a bug in the previous code too: we should use:\n\n  nodeObservables.remove(key, observable)\n\nto make sure that we only remove the current instance. Otherwise, this may remove even a good observable from the map.",
+      "range": {
+        "startLine": 656,
+        "startChar": 16,
+        "endLine": 656,
+        "endChar": 43
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_600d1937",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 656,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_a2503c5f",
       "range": {
         "startLine": 656,
         "startChar": 16,
@@ -302,6 +566,54 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_cede3d11",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "I verified using a test that what you described happens and changed the code accordingly.",
+      "parentUuid": "9ad9bd40_22a0acf3",
+      "range": {
+        "startLine": 663,
+        "startChar": 8,
+        "endLine": 663,
+        "endChar": 64
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b1014307",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 663,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "I now increment the count of object watchers triggered directly in OnSubscribeToNode.",
+      "parentUuid": "9ad9bd40_8297b88f",
+      "range": {
+        "startLine": 663,
+        "startChar": 30,
+        "endLine": 663,
+        "endChar": 58
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c26d409a",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
         "patchSetId": 6
@@ -313,6 +625,30 @@
       "writtenOn": "2015-07-16T10:11:23Z",
       "side": 1,
       "message": "The same comments as before for doOnEach and map.",
+      "range": {
+        "startLine": 687,
+        "startChar": 10,
+        "endLine": 690,
+        "endChar": 13
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f1074b16",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 690,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "I know increment the count of class watchers triggered directly in ObservablePathChildrenCache.",
+      "parentUuid": "9ad9bd40_c26d409a",
       "range": {
         "startLine": 687,
         "startChar": 10,
@@ -348,6 +684,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2b912d47",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 27,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Added count of:\nNoNode ZK exceptions\nNodeExists ZK Exceptions\nPremature closing of NodeObservable (when there are subscribers remaining)\nZK Connection lost exceptions",
+      "parentUuid": "9ad9bd40_aac9c05a",
+      "range": {
+        "startLine": 27,
+        "startChar": 6,
+        "endLine": 27,
+        "endChar": 17
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_c2e620b4",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
         "patchSetId": 6
@@ -359,6 +719,30 @@
       "writtenOn": "2015-07-16T11:55:22Z",
       "side": 1,
       "message": "Indent",
+      "range": {
+        "startLine": 162,
+        "startChar": 4,
+        "endLine": 163,
+        "endChar": 60
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ee35c1f7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 163,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_c2e620b4",
       "range": {
         "startLine": 162,
         "startChar": 4,
@@ -394,6 +778,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0e3d85de",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/NodeObservable.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 269,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_22f34c74",
+      "range": {
+        "startLine": 269,
+        "startChar": 8,
+        "endLine": 269,
+        "endChar": 16
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_42ea1076",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
         "patchSetId": 6
@@ -405,6 +813,30 @@
       "writtenOn": "2015-07-16T11:55:22Z",
       "side": 1,
       "message": "Hmmm.. maybe we should cache the object observables too?",
+      "range": {
+        "startLine": 75,
+        "startChar": 12,
+        "endLine": 76,
+        "endChar": 83
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0f07161a",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "That could be done but it complexifies the code quite a bit because we now need to maps for the two types of observable. If that\u0027s fine with you I leave as is for now.",
+      "parentUuid": "9ad9bd40_42ea1076",
       "range": {
         "startLine": 75,
         "startChar": 12,
@@ -440,6 +872,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_237cfb82",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 157,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "I placed this in a new file called ZoomMetricsTest",
+      "parentUuid": "9ad9bd40_62ed548b",
+      "range": {
+        "startLine": 157,
+        "startChar": 0,
+        "endLine": 157,
+        "endChar": 24
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_828a58bd",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
         "patchSetId": 6
@@ -463,6 +919,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8e30b502",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 209,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_828a58bd",
+      "range": {
+        "startLine": 209,
+        "startChar": 35,
+        "endLine": 209,
+        "endChar": 46
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_02be4865",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
         "patchSetId": 6
@@ -474,6 +954,30 @@
       "writtenOn": "2015-07-16T11:55:22Z",
       "side": 1,
       "message": "You should add more subscribers to the observables in this test.",
+      "range": {
+        "startLine": 374,
+        "startChar": 8,
+        "endLine": 374,
+        "endChar": 47
+      },
+      "revId": "1e34ffde10f9dda233e418bdcbf448c9e6d98107",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_e0712945",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapperTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 374,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-23T14:31:32Z",
+      "side": 1,
+      "message": "I added a test with multiple subscribers and an unsubscribe in between.",
+      "parentUuid": "9ad9bd40_02be4865",
       "range": {
         "startLine": 374,
         "startChar": 8,
