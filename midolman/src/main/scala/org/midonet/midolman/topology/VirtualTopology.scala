@@ -16,7 +16,6 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
 import scala.concurrent.{Future, Promise}
@@ -29,7 +28,6 @@ import com.google.inject.name.Named
 import rx.Observable
 import rx.schedulers.Schedulers
 
-import org.midonet.cluster.DataClient
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.config.MidolmanConfig
@@ -40,7 +38,7 @@ import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{BackChannelMessage, NotYetException, SimulationBackChannel}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.util.functors.{makeRunnable, Predicate}
+import org.midonet.util.functors.{makeFunc1, makeRunnable, Predicate}
 import org.midonet.util.reactivex._
 
 /**
@@ -168,9 +166,12 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
                                  val connectionWatcher: ZkConnectionAwareWatcher,
                                  val simBackChannel: SimulationBackChannel,
                                  val actorsService: MidolmanActorsService,
-                                 @Named(VirtualTopology.VtExecutorName) vtExecutor: ExecutorService,
-                                 @Named(VirtualTopology.VtExecutorCheckerName) vtExecutorCheck: Predicate,
-                                 @Named(VirtualTopology.IoExecutorName) ioExecutor: ExecutorService)
+                                 @Named(VirtualTopology.VtExecutorName)
+                                 vtExecutor: ExecutorService,
+                                 @Named(VirtualTopology.VtExecutorCheckerName)
+                                 vtExecutorCheck: Predicate,
+                                 @Named(VirtualTopology.IoExecutorName)
+                                 ioExecutor: ExecutorService)
     extends MidolmanLogging {
 
     import VirtualTopology._
@@ -214,8 +215,12 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         if (observable eq null) {
             observable = factories get tag match {
                 case Some(factory) =>
-                    Observable.create(
-                        factory(id).asInstanceOf[DeviceMapper[D]])
+                    Observable.create(factory(id).asInstanceOf[DeviceMapper[D]])
+                              .onErrorResumeNext(makeFunc1((t: Throwable) => t match {
+                        case DeviceMapper.MapperClosedException =>
+                            observableOf(id, tag)
+                        case e: Throwable => Observable.error(e)
+                    }))
                 case None =>
                     throw new RuntimeException(s"Unknown factory for $tag")
             }

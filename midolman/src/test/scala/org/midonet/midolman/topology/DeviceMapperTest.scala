@@ -186,7 +186,7 @@ class DeviceMapperTest extends MidolmanSpec {
             And("The observer should have received an IllegalStateException")
             observer.getOnNextEvents shouldBe empty
             observer.getOnCompletedEvents shouldBe empty
-            observer.getOnErrorEvents should contain (DeviceMapper.SubscriptionException)
+            observer.getOnErrorEvents should contain (DeviceMapper.MapperClosedException)
         }
 
         scenario("Stream error notifies future subscribers") {
@@ -517,7 +517,7 @@ class DeviceMapperTest extends MidolmanSpec {
             future.isCompleted shouldBe true
             future.value should not be None
             future.value.get.isFailure shouldBe true
-            future.value.get.failed.get shouldBe DeviceMapper.SubscriptionException
+            future.value.get.failed.get shouldBe DeviceMapper.MapperClosedException
         }
 
         scenario("The future completes async on error") {
