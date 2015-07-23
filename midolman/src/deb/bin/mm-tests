@@ -245,8 +245,8 @@ run_throughput_test() {
     ns=$2
     nsif=$3
     run_test "org.midonet.odp.test."$1 $2 $3
-    mm-dpctl --show-dp perftest
-    mm-dpctl --delete-dp perftest
+    mm-dpctl datapath --show perftest
+    mm-dpctl datapath --delete perftest
 }
 
 ovs_throughput() {
