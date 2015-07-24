@@ -33,7 +33,7 @@ import org.midonet.cluster.services.c3po.translators.PortManager.routerInterface
 import org.midonet.cluster.services.c3po.translators.RouteManager.{gatewayRouteId, localRouteId, metadataServiceRouteId, routerInterfaceRouteId}
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.IPSubnetUtil
-import org.midonet.cluster.util.UUIDUtil.asRichJavaUuid
+import org.midonet.cluster.util.UUIDUtil.RichJavaUuid
 import org.midonet.util.concurrent.toFutureOps
 
 @RunWith(classOf[JUnitRunner])

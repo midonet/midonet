@@ -16,6 +16,7 @@
 package org.midonet.cluster.util
 
 import java.lang.reflect.Type
+import java.nio.ByteBuffer
 import java.util.{UUID => JUUID}
 import javax.annotation.Nonnull
 
@@ -58,11 +59,19 @@ object UUIDUtil {
         new JUUID(uuid.getMsb, uuid.getLsb)
     }
 
-    implicit def asRichJavaUuid(uuid: JUUID): RichJavaUuid =
-        new RichJavaUuid(uuid)
-
-    class RichJavaUuid private[UUIDUtil](val uuid: JUUID) extends AnyVal {
+    implicit class RichJavaUuid(val uuid: JUUID) extends AnyVal {
         def asProto: PUUID = toProto(uuid)
+
+        def toBytes: Array[Byte] = {
+            val bs = new Array[Byte](16)
+            serializeTo(ByteBuffer.wrap(bs))
+            bs
+        }
+
+        def serializeTo(bb: ByteBuffer): Unit = {
+            bb.putLong(uuid.getMostSignificantBits())
+            bb.putLong(uuid.getLeastSignificantBits())
+        }
     }
 
     implicit def asRichProtoUuid(uuid: PUUID): RichProtoUuid =
