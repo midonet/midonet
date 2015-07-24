@@ -581,14 +581,14 @@ trait TopologyBuilder {
     }
 
     def createBgpPeer(id: UUID = UUID.randomUUID,
-                      asNumber: Option[Int] = None,
-                      peerAddress: Option[IPAddr] = None,
-                      routerId: Option[UUID] = None): BgpPeer = {
+                                asNumber: Option[Int] = None,
+                                address: Option[IPAddr] = None,
+                                routerId: Option[UUID] = None): BgpPeer = {
         val builder = BgpPeer.newBuilder().setId(id.asProto)
         if (asNumber.isDefined)
             builder.setAsNumber(asNumber.get)
-        if (peerAddress.isDefined)
-            builder.setAddress(peerAddress.get.asProto)
+        if (address.isDefined)
+            builder.setAddress(address.get.asProto)
         if (routerId.isDefined)
             builder.setRouterId(routerId.get.asProto)
         builder.build()
@@ -749,6 +749,8 @@ object TopologyBuilder {
             router.toBuilder.setOutboundFilterId(filterId.asProto).build()
         def setLoadBalancerId(loadBalancerId: UUID): Router =
             router.toBuilder.setLoadBalancerId(loadBalancerId.asProto).build()
+        def setAsNumber(asNumber: Int): Router =
+            router.toBuilder.setAsNumber(asNumber).build()
         def addPortId(portId: UUID): Router =
             router.toBuilder.addPortIds(portId.asProto).build()
         def addRouteId(routeId: UUID): Router =
@@ -889,15 +891,25 @@ object TopologyBuilder {
             bgpNetwork.toBuilder.setSubnet(subnet.asProto).build()
         def setRouterId(routerId: UUID): BgpNetwork =
             bgpNetwork.toBuilder.setRouterId(routerId.asProto).build()
+        def clearSubnet(): BgpNetwork =
+            bgpNetwork.toBuilder.clearSubnet().build()
+        def clearRouterId(): BgpNetwork =
+            bgpNetwork.toBuilder.clearRouterId().build()
     }
 
     final class RichBgpPeer(val bgpPeer: BgpPeer) extends AnyVal {
-        def setPeerAs(asNumber: Int): BgpPeer =
+        def setAsNumber(asNumber: Int): BgpPeer =
             bgpPeer.toBuilder.setAsNumber(asNumber).build()
-        def setPeerAddress(address: IPAddr): BgpPeer =
+        def setAddress(address: IPAddr): BgpPeer =
             bgpPeer.toBuilder.setAddress(address.asProto).build()
         def setRouterId(routerId: UUID): BgpPeer =
             bgpPeer.toBuilder.setRouterId(routerId.asProto).build()
+        def clearAsNumber(): BgpPeer =
+            bgpPeer.toBuilder.clearAsNumber().build()
+        def clearAddress(): BgpPeer =
+            bgpPeer.toBuilder.clearAddress().build()
+        def clearRouterId(): BgpPeer =
+            bgpPeer.toBuilder.clearRouterId().build()
     }
 
     private val random = new Random()
