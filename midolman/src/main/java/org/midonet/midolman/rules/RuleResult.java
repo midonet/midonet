@@ -50,6 +50,10 @@ public class RuleResult {
          * us to skip processing of any further rules.
          */
         public boolean isDecisive() { return decisive; }
+
+        public Topology.Rule.Action toProto() {
+            return Topology.Rule.Action.valueOf(toString());
+        }
     }
 
     public Action action;

@@ -154,7 +154,7 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
      * addition/removal of the pool members, and add/removes the corresponding
      * pool member observables.
      *                +---------------------+
-     * store[Pool]--->| onNext(poolUpdated) |---> Observable[TopologyBool]
+     * store[Pool]--->| onNext(poolUpdated) |---> Observable[TopologyPool]
      *                +---------------------+
      *                           |
      *          Add: poolMembersSubject onNext poolObservable
@@ -231,7 +231,7 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
         new SimulationPool(
             pool.getId,
             pool.getAdminStateUp,
-            PoolLBMethod.fromProto(pool.getLbMethod),
+            if (pool.hasLbMethod) PoolLBMethod.fromProto(pool.getLbMethod) else null,
             if (pool.hasHealthMonitorId) pool.getHealthMonitorId else null,
             if (pool.hasLoadBalancerId) pool.getLoadBalancerId else null,
             orderMembers(poolMembers),

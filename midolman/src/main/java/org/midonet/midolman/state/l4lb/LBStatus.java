@@ -30,4 +30,8 @@ public enum LBStatus {
     public static LBStatus fromProto(Commons.LBStatus proto) {
         return LBStatus.valueOf(proto.toString());
     }
+
+    public Commons.LBStatus toProto() {
+        return Commons.LBStatus.valueOf(toString());
+    }
 }

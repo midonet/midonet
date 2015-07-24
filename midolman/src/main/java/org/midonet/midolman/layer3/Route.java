@@ -56,6 +56,10 @@ public class Route extends ZoomObject implements Serializable {
         public boolean toPort() {
             return this.equals(PORT) || this.equals(LOCAL);
         }
+
+        public Topology.Route.NextHop toProto() {
+            return Topology.Route.NextHop.valueOf(toString());
+        }
     }
 
     @ZoomField(name = "src_subnet", converter = SubnetConverter.class)
