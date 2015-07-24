@@ -55,6 +55,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9a235da6",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockAllocator.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-24T09:49:17Z",
+      "side": 1,
+      "message": "If it\u0027s interrupted here, the thread will exit back to the thread pool and will terminate there. So I don\u0027t need to reset the interrupt status.\n\nI\u0027ll submit another patch to ensure the threadpoolreactor is daemon.",
+      "parentUuid": "9ad9bd40_9fa26f49",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8b5dd97b",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockAllocator.java",
         "patchSetId": 5
