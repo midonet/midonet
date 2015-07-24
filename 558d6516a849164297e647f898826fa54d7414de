@@ -22,6 +22,30 @@
       "revId": "558d6516a849164297e647f898826fa54d7414de",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5a2d5594",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 539,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-24T09:45:51Z",
+      "side": 1,
+      "message": "testament to how braindead the changes are :) ya, seconds.",
+      "parentUuid": "9ad9bd40_bf2653cc",
+      "range": {
+        "startLine": 539,
+        "startChar": 59,
+        "endLine": 539,
+        "endChar": 68
+      },
+      "revId": "558d6516a849164297e647f898826fa54d7414de",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
