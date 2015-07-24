@@ -46,6 +46,52 @@
       "revId": "4ae32cc05c8f4dfca58e4266b210ab84b294b479",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ffe29b9e",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VxlanGatewayManagerTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-24T08:51:39Z",
+      "side": 1,
+      "message": "What does that mean?",
+      "range": {
+        "startLine": 92,
+        "startChar": 35,
+        "endLine": 92,
+        "endChar": 49
+      },
+      "revId": "4ae32cc05c8f4dfca58e4266b210ab84b294b479",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5ff54755",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/vxgw/VxlanGatewayServiceTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-24T08:51:39Z",
+      "side": 1,
+      "message": "practise is the verb, here it should be written \u0027practice\u0027",
+      "range": {
+        "startLine": 109,
+        "startChar": 20,
+        "endLine": 109,
+        "endChar": 28
+      },
+      "revId": "4ae32cc05c8f4dfca58e4266b210ab84b294b479",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
