@@ -106,7 +106,7 @@ class VxlanGatewayServiceTest extends FlatSpec with Matchers
     private def vxgwService(conf: ClusterConfig): VxlanGatewayService = {
         // That null below will cause the VxlanGatewayManagers to throw NPE when
         // trying to contact the VtepController, but this has no effect on the
-        // test. In practise it just means that the manager wouldn't be able
+        // test. In practice it just means that the manager wouldn't be able
         // to push MACs to the VTEP.
         new VxlanGatewayService(new ClusterNode.Context(nodeId), dataClient,
                                 zkConnWatcher, null, curator, metrics, conf)

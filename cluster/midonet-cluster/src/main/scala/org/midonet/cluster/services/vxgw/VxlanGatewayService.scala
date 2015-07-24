@@ -18,10 +18,12 @@ package org.midonet.cluster.services.vxgw
 
 import java.util.concurrent.Executors.newSingleThreadExecutor
 import java.util.concurrent.TimeUnit.SECONDS
-import java.util.concurrent.{ConcurrentHashMap, RejectedExecutionException}
+import java.util.concurrent.{ExecutorService, ConcurrentHashMap, RejectedExecutionException}
 import java.util.{Random, UUID}
 
 import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
+import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
 import com.codahale.metrics.MetricRegistry
@@ -34,6 +36,7 @@ import rx.{Observer, Subscription}
 
 import org.midonet.cluster.EntityIdSetEvent.Type._
 import org.midonet.cluster._
+import org.midonet.cluster.services.vxgw.TunnelZoneState.FloodingProxyEvent
 import org.midonet.cluster.services.{ClusterService, Minion}
 import org.midonet.cluster.southbound.vtep.VtepDataClientFactory
 import org.midonet.midolman.state.Directory.DefaultTypedWatcher
@@ -103,6 +106,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
     // VTEP controllers
     private val vteps = new VtepPool(nodeCtx.nodeId, dataClient, zkConnWatcher,
                                      tzState, vtepDataClientFactory)
+
 
     // An observer that bootstraps a new VxLAN Gateway service whenever a
     // neutron network that has bindings to hardware VTEP(s) is created.
@@ -243,6 +247,9 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
 
     override def doStart(): Unit = {
         log.info("Starting service")
+        tzState.allFpEvents()
+               .subscribeOn(Schedulers.from(executor))
+               .doOnEach(new FloodingProxySnitch(tzState, dataClient))
         leaderLatch.addListener(latchListener)
         leaderLatch.start()
         notifyStarted()

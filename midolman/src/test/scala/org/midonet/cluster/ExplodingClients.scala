@@ -347,6 +347,7 @@ class ExplodingDataClient extends DataClient {
     override def vxLanPortIdsAsyncGet(
         callback: DirectoryCallback[Set[UUID]], watcher: Directory.TypedWatcher) = explode()
     override def getIp4MacMap(bridgeId: UUID): Ip4ToMacReplicatedMap = explode()
+    override def setFloodingProxy(tzId:UUID, hostId: UUID): Unit = explode()
 }
 
 class ExplodingLegacyStorage extends LegacyStorage {

@@ -1028,4 +1028,10 @@ public interface DataClient {
 
     Ip4ToMacReplicatedMap getIp4MacMap(UUID bridgeId)
         throws StateAccessException;
+
+    /**
+     * Announces that the current flooding proxy for this tunnel zone is at
+     * the given host.
+     */
+    void setFloodingProxy(UUID tzId, UUID fpHostId) throws StateAccessException;
 }

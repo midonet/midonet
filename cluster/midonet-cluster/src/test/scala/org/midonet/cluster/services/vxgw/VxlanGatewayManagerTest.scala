@@ -89,9 +89,8 @@ class VxlanGatewayManagerTest extends FlatSpec with Matchers
         mgrClosedLatch = new CountDownLatch(1)
         nodeId = UUID.randomUUID
 
-
         // WATCH OUT: this factory assumes that VxlanGatewayTest.TwoVtepsOn
-        // generates the tunnel ip as the next to management ip.
+        // generates the tunnel ip as managementIp.next()
         vtepPool = new MockVtepPool(nodeId, dataClient, zkConnWatcher, tzState)
     }
 

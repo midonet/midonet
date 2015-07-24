@@ -17,6 +17,8 @@ package org.midonet.midolman.state;
 
 import java.util.UUID;
 
+import javax.annotation.Nonnull;
+
 import com.google.inject.Inject;
 
 import org.midonet.midolman.config.MidolmanConfig;
@@ -30,6 +32,7 @@ public class PathBuilder extends ZkPathManager {
 
     public static final String TENANTS_PATH = "tenants";
     public static final String LICENSES_PATH = "licenses";
+    public static final String VXGW_PATH = "vxgw";
 
     @Inject
     public PathBuilder(MidolmanConfig config) {
@@ -123,5 +126,13 @@ public class PathBuilder extends ZkPathManager {
     private StringBuilder buildNatBlockOwnershipPath(UUID deviceId, IPv4Addr ip,
                                                      int blockIdx) {
         return buildNatBlockPath(deviceId, ip, blockIdx).append("/taken");
+    }
+
+    public String getVxGWBasePath() {
+        return basePath + "/" + VXGW_PATH;
+    }
+
+    public String getFloodingProxyIndexPath(final @Nonnull UUID tzId) {
+        return getVxGWBasePath() + "/flooding_proxies/" + tzId;
     }
 }

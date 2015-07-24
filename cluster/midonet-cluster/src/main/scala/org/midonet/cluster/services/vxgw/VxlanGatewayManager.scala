@@ -57,7 +57,7 @@ object VxlanGateway {
 /** Represents a Logical Switch spanning N VTEPs and a Neutron Network. This
   * class embeds a messaging bus that the components in charge of listening and
   * updating all participants (e.g., hardware VTEPs and MidoNet) can use to
-  * push updates from their backned, an subscribe to updates from the rest.
+  * push updates from their backend, an subscribe to updates from the rest.
   *
   * @param networkId id if the neutron network that is acting as VxLAN Gateway
   *                  by having bindings to port/vlan pairs in hardware VTEPs.

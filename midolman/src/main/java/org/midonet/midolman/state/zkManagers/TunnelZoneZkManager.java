@@ -27,6 +27,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeoutException;
 
+import javax.annotation.Nonnull;
+
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.Op;
 import com.google.common.util.concurrent.SettableFuture;
@@ -241,7 +243,7 @@ public class TunnelZoneZkManager
         createMulti.add(simpleCreateOp(zoneId, zone.getData()));
 
         createMulti.add(
-                zk.getPersistentCreateOp(
+            zk.getPersistentCreateOp(
                 paths.getTunnelZoneMembershipsPath(zoneId),
                 null
             )
@@ -339,5 +341,16 @@ public class TunnelZoneZkManager
     public List<UUID> getAndWatchMembershipsList(UUID zoneId, Runnable watcher)
         throws StateAccessException {
         return getUuidList(paths.getTunnelZoneMembershipsPath(zoneId), watcher);
+    }
+
+    public void announceFloodingProxy(@Nonnull final UUID tzId,
+                                      @Nonnull final UUID fpId)
+    throws StateAccessException {
+        String path = paths.getFloodingProxyIndexPath(tzId);
+        if (zk.exists(path)) {
+            zk.addEphemeral(path, fpId.toString().getBytes());
+        } else {
+            zk.update(path, fpId.toString().getBytes());
+        }
     }
 }

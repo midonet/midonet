@@ -242,14 +242,6 @@ public class TunnelZoneState {
     }
 
     /**
-     * Indicates whether this tunnel zone has a flooding proxy.
-     * @return True if the tunnel zone has a flooding proxy, false otherwise.
-     */
-    public boolean hasFloodingProxy() {
-        return floodingProxy != null;
-    }
-
-    /**
      * Gets the flooding proxy configuration for this tunnel zone.
      * @return The configuration of the host that has been selected as flooding
      *         proxy.
@@ -513,12 +505,10 @@ public class TunnelZoneState {
 
             } catch (StateAccessException e) {
                 log.warn("Cannot retrieve state for host {}. Skipping host for "
-                         + "tunnel zone {}",
-                         new Object[] { hostConfig.getId(), id }, e);
+                         + "tunnel zone {}", hostConfig.getId(), id, e);
             } catch (SerializationException e) {
                 log.error("Cannot deserialize state for host {}. Skipping host "
-                          + "for tunnel zone {}",
-                          new Object[] { hostConfig.getId(), id}, e);
+                          + "for tunnel zone {}", hostConfig.getId(), id, e);
             }
         }
 

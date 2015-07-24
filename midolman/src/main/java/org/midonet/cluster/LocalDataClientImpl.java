@@ -3735,4 +3735,10 @@ public class LocalDataClientImpl implements DataClient {
             bridgeZkManager.getIP4MacMapDirectory(bridgeId)
         );
     }
+
+    @Override
+    public void setFloodingProxy(UUID tzId, UUID fpId)
+        throws StateAccessException {
+        zonesZkManager.announceFloodingProxy(tzId, fpId);
+    }
 }

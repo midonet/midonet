@@ -25,13 +25,16 @@ import javax.annotation.Nonnull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rx.Observable;
 import rx.Subscription;
 import rx.functions.Action1;
+import rx.subjects.PublishSubject;
 
-import org.midonet.cluster.services.vxgw.monitor.DeviceMonitor;
-import org.midonet.cluster.services.vxgw.monitor.TunnelZoneMonitor;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.EntityIdSetEvent;
+import org.midonet.cluster.services.vxgw.TunnelZoneState.FloodingProxyEvent;
+import org.midonet.cluster.services.vxgw.monitor.DeviceMonitor;
+import org.midonet.cluster.services.vxgw.monitor.TunnelZoneMonitor;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.ZookeeperConnectionWatcher;
 
@@ -47,6 +50,7 @@ public class TunnelZoneStatePublisher {
     private static final Logger log =
         LoggerFactory.getLogger(TunnelZoneStatePublisher.class);
 
+    private final Random random;
     private final DataClient midoClient;
     private final ZookeeperConnectionWatcher zkConnWatcher;
     private final HostStatePublisher hostMonitor;
@@ -55,7 +59,7 @@ public class TunnelZoneStatePublisher {
 
     private final Subscription monitorSubscription;
 
-    private final Random random;
+    private final PublishSubject<FloodingProxyEvent> allUpdates = PublishSubject.create();
 
     /**
      * Creates a new tunnel zone monitor for the VXLAN gateway service.
@@ -101,9 +105,15 @@ public class TunnelZoneStatePublisher {
     }
 
     /**
-     * Returns the tunnel zone state for the specified tunnel zone identifier.
-     * @param tzoneId The tunnel zone identifier.
-     * @return The tunnel zone state.
+     * An observable that will emit every single update to all the tunnel zones
+     */
+    public Observable<FloodingProxyEvent> allFpEvents() {
+        return allUpdates.asObservable();
+    }
+
+    /**
+     * Returns the tunnel zone state for the specified tunnel zone identifier,
+     * or null if not monitored.
      */
     public TunnelZoneState get(UUID tzoneId) {
         return tunnelZones.get(tzoneId);
@@ -113,8 +123,6 @@ public class TunnelZoneStatePublisher {
      * Gets or tries to create a tunnel zone state for the specified tunnel
      * zone identifier. The method returns null, if there is no ZooKeeper data
      * for the specified tunnel zone.
-     * @param tzoneId The tunnel zone identifier.
-     * @return The tunnel zone state.
      */
     public TunnelZoneState getOrTryCreate(UUID tzoneId) {
         try {
@@ -136,7 +144,6 @@ public class TunnelZoneStatePublisher {
 
     /**
      * Handles the creation of a tunnel zone.
-     * @param id The tunnel zone identifier.
      */
     private void onTunnelZoneCreated(final UUID id) {
         try {
@@ -157,8 +164,6 @@ public class TunnelZoneStatePublisher {
 
     /**
      * Unsafe method to handle the creation of a tunnel zone.
-     * @param id The tunnel zone identifier.
-     * @return The tunnel zone state.
      */
     private TunnelZoneState onTunnelZoneCreatedUnsafe(UUID id)
         throws StateAccessException {
@@ -174,13 +179,13 @@ public class TunnelZoneStatePublisher {
 
         tunnelZone = new TunnelZoneState(id, midoClient, zkConnWatcher,
                                          hostMonitor, random);
+        tunnelZone.getFloodingProxyObservable().subscribe(allUpdates);
         tunnelZones.put(id, tunnelZone);
         return tunnelZone;
     }
 
     /**
      * Handles the deletion of a tunnel zone.
-     * @param id The tunnel zone identifier.
      */
     private void onTunnelZoneDeleted(UUID id) {
         TunnelZoneState tunnelZone = tunnelZones.remove(id);
