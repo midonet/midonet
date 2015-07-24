@@ -38,6 +38,7 @@ import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.devices._
 import org.midonet.midolman.{BackChannelMessage, NotYetException, SimulationBackChannel}
+import org.midonet.quagga.BgpdConfiguration.BgpRouter
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.util.functors.{makeFunc1, makeRunnable, Predicate}
 import org.midonet.util.reactivex._
@@ -189,6 +190,7 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         new ConcurrentHashMap[Key, Observable[_]]()
 
     private val factories = Map[ClassTag[_], DeviceFactory](
+        classTag[BgpRouter] -> (new BgpRouterMapper(_, this)),
         classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system)),
         classTag[BridgePort] -> (new PortMapper(_, this)),
         classTag[Chain] -> (new ChainMapper(_, this)),

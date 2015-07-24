@@ -16,6 +16,9 @@
 
 package org.midonet.quagga
 
+import java.util.UUID
+
+import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 
 import scala.annotation.tailrec
@@ -61,7 +64,9 @@ object BgpdConfiguration {
     case class BgpRouter(as: Int,
                          var id: IPv4Addr = IPv4Addr.fromString("0.0.0.0"),
                          var neighbors: Map[IPv4Addr, Neighbor] = Map.empty,
-                         var networks: Set[Network] = Set.empty) extends ConfigPiece {
+                         var neighborIds: Set[UUID] = Set.empty,
+                         var networks: Set[Network] = Set.empty)
+        extends ConfigPiece with Device {
         override val nested = true
 
         override def add(head: String, tail: List[String]): List[String] = {
