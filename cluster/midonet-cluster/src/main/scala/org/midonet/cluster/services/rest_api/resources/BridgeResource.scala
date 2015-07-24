@@ -79,6 +79,11 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         new DhcpSubnetResource(id, resContext)
     }
 
+    @Path("{id}/dhcpV6")
+    def dhcpsv6(@PathParam("id") id: UUID): DhcpV6SubnetResource = {
+        new DhcpV6SubnetResource(id, resContext)
+    }
+
     @POST
     @Path("{id}/mac_table")
     @Consumes(Array(APPLICATION_MAC_PORT_JSON,

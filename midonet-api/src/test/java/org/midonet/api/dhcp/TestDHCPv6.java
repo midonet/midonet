@@ -16,6 +16,8 @@
 
 package org.midonet.api.dhcp;
 
+import javax.ws.rs.core.Response;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.test.framework.JerseyTest;
 
@@ -219,23 +221,24 @@ public class TestDHCPv6 extends JerseyTest {
         subnet.setPrefix("abcd:abcd:abcd:dead:0:0:0:0");
         subnet.setPrefixLength(64);
         response = resource().uri(bridge.getDhcpSubnet6s())
-                .type(APPLICATION_DHCPV6_SUBNET_JSON)
-                .post(ClientResponse.class, subnet);
+                             .type(APPLICATION_DHCPV6_SUBNET_JSON)
+                             .post(ClientResponse.class, subnet);
         assertEquals(201, response.getStatus());
         subnet = resource().uri(response.getLocation())
-                .accept(APPLICATION_DHCPV6_SUBNET_JSON)
-                .get(DtoDhcpSubnet6.class);
+                           .accept(APPLICATION_DHCPV6_SUBNET_JSON)
+                           .get(DtoDhcpSubnet6.class);
 
         DtoDhcpV6Host host1 = new DtoDhcpV6Host();
         host1.setFixedAddress("abcd:abcd:abcd:dead:0:0:0:a");
         host1.setClientId("a:b:c");
         host1.setName("saturn");
-        response =resource().uri(subnet.getHosts())
-                .type(APPLICATION_DHCPV6_HOST_JSON)
-                .post(ClientResponse.class, host1);
+        response = resource().uri(subnet.getHosts())
+                             .type(APPLICATION_DHCPV6_HOST_JSON)
+                             .post(ClientResponse.class, host1);
         assertEquals(201, response.getStatus());
         host1 = resource().uri(response.getLocation())
-                .accept(APPLICATION_DHCPV6_HOST_JSON).get(DtoDhcpV6Host.class);
+                          .accept(APPLICATION_DHCPV6_HOST_JSON)
+                          .get(DtoDhcpV6Host.class);
         assertEquals("abcd:abcd:abcd:dead:0:0:0:a", host1.getFixedAddress());
         assertEquals("saturn", host1.getName());
 
@@ -243,18 +246,20 @@ public class TestDHCPv6 extends JerseyTest {
         host2.setFixedAddress("abcd:abcd:abcd:dead:0:0:0:b");
         host2.setClientId("b:c:d");
         host2.setName("jupiter");
-        response =resource().uri(subnet.getHosts())
-                .type(APPLICATION_DHCPV6_HOST_JSON).post(ClientResponse.class, host2);
+        response = resource().uri(subnet.getHosts())
+                             .type(APPLICATION_DHCPV6_HOST_JSON)
+                             .post(ClientResponse.class, host2);
         assertEquals(201, response.getStatus());
         host2 = resource().uri(response.getLocation())
-                .accept(APPLICATION_DHCPV6_HOST_JSON).get(DtoDhcpV6Host.class);
+                          .accept(APPLICATION_DHCPV6_HOST_JSON)
+                          .get(DtoDhcpV6Host.class);
         assertEquals("abcd:abcd:abcd:dead:0:0:0:b", host2.getFixedAddress());
         assertEquals("jupiter", host2.getName());
 
         // Now list all the host static assignments.
         response = resource().uri(subnet.getHosts())
-                .accept(APPLICATION_DHCPV6_HOST_COLLECTION_JSON)
-                .get(ClientResponse.class);
+                             .accept(APPLICATION_DHCPV6_HOST_COLLECTION_JSON)
+                             .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
 
         DtoDhcpV6Host[] hosts = response.getEntity(DtoDhcpV6Host[].class);
@@ -266,25 +271,26 @@ public class TestDHCPv6 extends JerseyTest {
         // fail.
         host1.setFixedAddress("abcd:abcd:abcd:dead:0:0:0:c");
         response =resource().uri(subnet.getHosts())
-                .type(APPLICATION_DHCPV6_HOST_JSON)
-                .post(ClientResponse.class, host1);
-        assertEquals(500, response.getStatus());
+                            .type(APPLICATION_DHCPV6_HOST_JSON)
+                            .post(ClientResponse.class, host1);
+        assertEquals(Response.Status.CONFLICT.getStatusCode(),
+                     response.getStatus());
 
         // Try again, this time using an UPDATE operation.
         response =resource().uri(host1.getUri())
-                .type(APPLICATION_DHCPV6_HOST_JSON)
-                .put(ClientResponse.class, host1);
-        assertEquals(200, response.getStatus());
+                            .type(APPLICATION_DHCPV6_HOST_JSON)
+                            .put(ClientResponse.class, host1);
+        assertEquals(204, response.getStatus());
         host1 = resource().uri(host1.getUri())
-                .accept(APPLICATION_DHCPV6_HOST_JSON)
-                .get(DtoDhcpV6Host.class);
+                          .accept(APPLICATION_DHCPV6_HOST_JSON)
+                          .get(DtoDhcpV6Host.class);
         assertEquals("abcd:abcd:abcd:dead:0:0:0:c", host1.getFixedAddress());
         assertEquals("saturn", host1.getName());
 
         // There should still be exactly 2 host assignments.
         response = resource().uri(subnet.getHosts())
-                .accept(APPLICATION_DHCPV6_HOST_COLLECTION_JSON)
-                .get(ClientResponse.class);
+                             .accept(APPLICATION_DHCPV6_HOST_COLLECTION_JSON)
+                             .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         hosts = response.getEntity(DtoDhcpV6Host[].class);
         assertThat("We expect 2 listed hosts.", hosts, arrayWithSize(2));
@@ -296,8 +302,8 @@ public class TestDHCPv6 extends JerseyTest {
         assertEquals(204, response.getStatus());
         // There should now be only 1 host assignment.
         response = resource().uri(subnet.getHosts())
-                .accept(APPLICATION_DHCPV6_HOST_COLLECTION_JSON)
-                .get(ClientResponse.class);
+                             .accept(APPLICATION_DHCPV6_HOST_COLLECTION_JSON)
+                             .get(ClientResponse.class);
         assertEquals(200, response.getStatus());
         hosts = response.getEntity(DtoDhcpV6Host[].class);
         assertThat("We expect 1 listed host after the delete",
