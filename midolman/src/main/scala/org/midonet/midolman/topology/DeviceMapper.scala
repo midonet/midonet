@@ -41,19 +41,19 @@ object DeviceMapper {
     /** The state of the mapper subscription to the underlying storage
       * observables. */
     private[topology] object MapperState extends Enumeration {
-        type MapperState = Value
+        class MapperState(val isTerminal: Boolean) extends Val
         /** The mapper is not subscribed to the storage observable. */
-        val Unsubscribed = Value
+        val Unsubscribed = new MapperState(false)
         /** The mapper is subscribed and the observable is not in a terminal
           * state. */
-        val Subscribed = Value
+        val Subscribed = new MapperState(false)
         /** The observable has completed. */
-        val Completed = Value
+        val Completed = new MapperState(true)
         /** The observable has emitted an error. */
-        val Error = Value
+        val Error = new MapperState(true)
         /** The mapper was closed, but it possible to create a new one for the
           * same device. */
-        val Closed = Value
+        val Closed = new MapperState(true)
     }
 
     /**
