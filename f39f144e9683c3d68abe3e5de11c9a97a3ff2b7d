@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_1fe01f95",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockAllocator.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-24T08:50:10Z",
+      "side": 1,
+      "message": "nobody should interrupt the reactor. in fact, we should never ever rely on interrupts for anything.",
+      "parentUuid": "9ad9bd40_bf273311",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8b5dd97b",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockAllocator.java",
         "patchSetId": 5
