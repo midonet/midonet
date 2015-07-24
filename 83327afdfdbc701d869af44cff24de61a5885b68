@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5f80e7bf",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 9
+      },
+      "lineNbr": 221,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-24T08:37:53Z",
+      "side": 1,
+      "message": "Thread.currentThread().interrupt()",
+      "revId": "83327afdfdbc701d869af44cff24de61a5885b68",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
