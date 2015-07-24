@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_5a7b958b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-24T10:01:41Z",
+      "side": 1,
+      "message": "ahh! shouldn\u0027t be \"this many\"?",
+      "parentUuid": "9ad9bd40_4b33d1aa",
+      "range": {
+        "startLine": 66,
+        "startChar": 67,
+        "endLine": 66,
+        "endChar": 71
+      },
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_cb49a132",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 1
@@ -84,6 +108,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7a6cd9d0",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-24T10:01:41Z",
+      "side": 1,
+      "message": "if you fail to reset, then conceptually, you shouldn\u0027t reset again, because you don\u0027t know what branchPoint might or might not contain. and if reset can fail, you need to protect that too in the finally",
+      "parentUuid": "9ad9bd40_6bdb354f",
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2b604da4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 1
@@ -113,6 +155,24 @@
       "side": 1,
       "message": "no, it\u0027s the opposite.  A port with a vlan id expects untagged traffic on the outside of the device and tags it when it enters the device. Trunk ports do the opposite (thus \"trunk\"), they expect and emit tagged traffic outside of their device.",
       "parentUuid": "9ad9bd40_2b604da4",
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3a9df1bc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 236,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-24T10:01:41Z",
+      "side": 1,
+      "message": "ahh!",
+      "parentUuid": "9ad9bd40_8b295939",
       "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
