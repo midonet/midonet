@@ -61,7 +61,8 @@ object BgpdConfiguration {
     case class BgpRouter(as: Int,
                          var id: IPv4Addr = IPv4Addr.fromString("0.0.0.0"),
                          var neighbors: Map[IPv4Addr, Neighbor] = Map.empty,
-                         var networks: Set[Network] = Set.empty) extends ConfigPiece {
+                         var networks: Set[Network] = Set.empty)
+        extends ConfigPiece {
         override val nested = true
 
         override def add(head: String, tail: List[String]): List[String] = {
