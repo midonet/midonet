@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_bf7d731e",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/VxlanGatewayService.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 183,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-24T08:02:26Z",
+      "side": 1,
+      "message": "To avoid fetching the bridge twice from ZK (once in the watcher, and once here), can this be:\n\n  dataClient.bridgeGetAndWatch(id, prev)\n\n?",
+      "range": {
+        "startLine": 183,
+        "startChar": 20,
+        "endLine": 183,
+        "endChar": 45
+      },
+      "revId": "4ae32cc05c8f4dfca58e4266b210ab84b294b479",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
