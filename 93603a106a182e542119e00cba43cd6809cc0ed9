@@ -22,6 +22,30 @@
       "revId": "93603a106a182e542119e00cba43cd6809cc0ed9",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7f420b69",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PoolManagerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-24T09:16:11Z",
+      "side": 1,
+      "message": "true. I\u0027ll add in a fixup patch though, because this patch is at the head of 6 patches, so I don\u0027t want to kill CI by changing this and resubmitting them all.",
+      "parentUuid": "9ad9bd40_df8797b3",
+      "range": {
+        "startLine": 245,
+        "startChar": 24,
+        "endLine": 245,
+        "endChar": 27
+      },
+      "revId": "93603a106a182e542119e00cba43cd6809cc0ed9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
