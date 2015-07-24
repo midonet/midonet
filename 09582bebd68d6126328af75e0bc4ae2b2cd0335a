@@ -143,6 +143,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_5f6aa7ee",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 456,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-07-24T09:08:52Z",
+      "side": 1,
+      "message": "ok!",
+      "parentUuid": "9ad9bd40_a0c3a187",
+      "range": {
+        "startLine": 456,
+        "startChar": 22,
+        "endLine": 456,
+        "endChar": 93
+      },
+      "revId": "09582bebd68d6126328af75e0bc4ae2b2cd0335a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_00ec4d29",
         "filename": "midolman/src/test/scala/org/midonet/midolman/util/ZoomVirtualConfigurationBuilders.scala",
         "patchSetId": 2
