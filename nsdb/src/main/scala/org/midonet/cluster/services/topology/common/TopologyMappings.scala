@@ -30,6 +30,7 @@ object TopologyMappings {
         Topology.Type.BGP_PEER -> classOf[Topology.BgpPeer],
         Topology.Type.CHAIN  -> classOf[Topology.Chain],
         Topology.Type.DHCP -> classOf[Topology.Dhcp],
+        Topology.Type.DHCP_V6 -> classOf[Topology.DhcpV6],
         Topology.Type.HEALTH_MONITOR -> classOf[Topology.HealthMonitor],
         Topology.Type.HOST -> classOf[Topology.Host],
         Topology.Type.IP_ADDR_GROUP -> classOf[Topology.IPAddrGroup],

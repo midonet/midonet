@@ -183,22 +183,23 @@ message Response {
             BgpPeer bgpPeer = 2;
             Chain chain = 3;
             Dhcp dhcp = 4;
-            HealthMonitor health_monitor = 5;
-            Host host = 6;
-            IPAddrGroup ip_addr_group = 7;
-            LoadBalancer load_balancer = 8;
-            Network network = 9;
-            Pool pool = 10;
-            PoolMember pool_member = 11;
-            Port port = 12;
-            PortGroup port_group = 13;
-            Route route = 14;
-            Router router = 15;
-            Rule rule = 16;
-            TunnelZone tunnel_zone = 17;
-            Vip vip = 18;
-            Vtep vtep = 19;
-            VtepBinding vtep_binding = 20;
+            DhcpV6 dhcpV6 = 5;
+            HealthMonitor health_monitor = 6;
+            Host host = 7;
+            IPAddrGroup ip_addr_group = 8;
+            LoadBalancer load_balancer = 9;
+            Network network = 10;
+            Pool pool = 11;
+            PoolMember pool_member = 12;
+            Port port = 13;
+            PortGroup port_group = 14;
+            Route route = 15;
+            Router router = 16;
+            Rule rule = 17;
+            TunnelZone tunnel_zone = 18;
+            Vip vip = 19;
+            Vtep vtep = 20;
+            VtepBinding vtep_binding = 21;
         }
     }
     message Snapshot {

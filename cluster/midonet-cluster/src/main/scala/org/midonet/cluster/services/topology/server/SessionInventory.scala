@@ -63,6 +63,7 @@ object SessionInventory {
             case h: BgpPeer => Update.newBuilder().setBgpPeer(h).build()
             case h: Chain => Update.newBuilder().setChain(h).build()
             case h: Dhcp => Update.newBuilder().setDhcp(h).build()
+            case h: DhcpV6 => Update.newBuilder().setDhcpV6(h).build()
             case h: HealthMonitor => Update.newBuilder().setHealthMonitor(h).build()
             case h: Host => Update.newBuilder().setHost(h).build()
             case h: IPAddrGroup => Update.newBuilder().setIpAddrGroup(h).build()
