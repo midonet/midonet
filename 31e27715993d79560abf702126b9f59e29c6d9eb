@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ff737b4b",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/validation/MessageProperty.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-24T08:06:40Z",
+      "side": 1,
+      "message": "Indent",
+      "revId": "31e27715993d79560abf702126b9f59e29c6d9eb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
