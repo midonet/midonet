@@ -81,11 +81,6 @@ public abstract class IPSubnet<T extends IPAddr> {
         return cidr.contains(".") ?
                IPv4Subnet.fromCidr(cidr) : IPv6Subnet.fromString(cidr);
     }
-    public static IPSubnet<?> fromInetAddress(InetAddress addr, int prefixLen) {
-        return addr instanceof Inet6Address ?
-               new IPv6Subnet(addr.getAddress(), prefixLen) :
-               new IPv4Subnet(addr.getAddress(), prefixLen);
-    }
 
     @Override
     public boolean equals(Object o) {

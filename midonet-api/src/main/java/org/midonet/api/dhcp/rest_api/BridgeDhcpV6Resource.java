@@ -114,8 +114,8 @@ public class BridgeDhcpV6Resource extends AbstractResource {
         return Response.created(
                 ResourceUriBuilder.getBridgeDhcpV6(
                     dhcpsUri,
-                    new IPv6Subnet(IPv6Addr.fromString(subnet.getPrefix()),
-                                       subnet.getPrefixLength()))).build();
+                    new IPv6Subnet(IPv6Addr.fromString(subnet.prefix),
+                                       subnet.prefixLength))).build();
     }
 
     /**
@@ -138,8 +138,8 @@ public class BridgeDhcpV6Resource extends AbstractResource {
                                       "update this bridge's dhcpv6 config.");
 
         // Make sure that the DhcpSubnet6 has the same IP address as the URI.
-        subnet.setPrefix(prefix.getAddress().toString());
-        subnet.setPrefixLength(prefix.getPrefixLen());
+        subnet.prefix = prefix.getAddress().toString();
+        subnet.prefixLength = prefix.getPrefixLen();
         dataClient.dhcpSubnet6Update(bridgeId, toData(subnet));
         return Response.ok().build();
     }

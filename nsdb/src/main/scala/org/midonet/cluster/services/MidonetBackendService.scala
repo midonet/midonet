@@ -59,6 +59,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[C3POState],
              classOf[Chain],
              classOf[Dhcp],
+             classOf[DhcpV6],
              classOf[FloatingIp],
              classOf[HealthMonitor],
              classOf[Host],
@@ -95,6 +96,8 @@ abstract class MidonetBackend extends AbstractService {
                              classOf[Port], "network_id", CLEAR)
         store.declareBinding(classOf[Network], "dhcp_ids", CASCADE,
                              classOf[Dhcp], "network_id", CLEAR)
+        store.declareBinding(classOf[Network], "dhcpv6_ids", CASCADE,
+                             classOf[DhcpV6], "network_id", CLEAR)
 
         store.declareBinding(classOf[Port], "peer_id", CLEAR,
                              classOf[Port], "peer_id", CLEAR)

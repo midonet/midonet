@@ -109,6 +109,20 @@ message Dhcp {
     repeated UUID gateway_route_ids = 102;
 }
 
+message DhcpV6 {
+    optional UUID id = 1;
+    optional UUID network_id = 2;
+    optional IPSubnet subnet_address = 3;
+
+    message Host {
+        optional string client_id = 1;
+        optional IPAddress ip_address = 2;
+        optional string name = 3;
+    }
+
+    repeated Host hosts = 4;
+}
+
 message HealthMonitor {
     enum HealthMonitorType { TCP = 1; }
 
@@ -185,6 +199,7 @@ message Network {
     repeated UUID port_ids = 101;
     repeated UUID vxlan_port_ids = 102;
     repeated UUID dhcp_ids = 103;
+    repeated UUID dhcpv6_ids = 104;
 }
 
 message Pool {
