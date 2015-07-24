@@ -18,6 +18,8 @@ package org.midonet.cluster.services.vxgw
 
 import java.util.UUID
 
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.util.{Success, Try}
 
 import org.opendaylight.ovsdb.lib.notation.{UUID => OdlUUID}
@@ -32,6 +34,7 @@ import org.midonet.cluster.data.ports.BridgePort
 import org.midonet.cluster.data.{Bridge, TunnelZone, VTEP}
 import org.midonet.cluster.util.ObservableTestUtils._
 import org.midonet.midolman.host.state.HostZkManager
+import org.midonet.midolman.state.ZookeeperConnectionWatcher
 import org.midonet.packets.{IPv4Addr, MAC}
 
 trait VxlanGatewayTest {
@@ -66,8 +69,23 @@ trait VxlanGatewayTest {
         }
     }
 
-    class HostOnVtepTunnelZone(floodingProxyWeight: Int) {
+    class MockVtepPool(nodeId: UUID, dataClient: DataClient,
+                       zkConnWatcher: ZookeeperConnectionWatcher,
+                       tzState: TunnelZoneStatePublisher)
+        extends VtepPool(nodeId, dataClient, zkConnWatcher, tzState, null) {
 
+        val vteps = ListBuffer[MockVtepConfig]()
+
+        override def create(ip: IPv4Addr, port: Int): Vtep = {
+            val mockConfig = new MockVtepConfig(ip, port, ip.next,
+                                                Seq.empty)
+            vteps += mockConfig
+            new VtepController(mockConfig, dataClient, zkConnWatcher,
+                               tzState)
+        }
+    }
+
+    class HostOnVtepTunnelZone(floodingProxyWeight: Int) {
         val ip = IPv4Addr.random
         val host = new Host()
         host.setName("Test")

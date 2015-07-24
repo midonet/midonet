@@ -17,14 +17,13 @@
 package org.midonet.cluster.services.vxgw
 
 import java.util.concurrent.{CountDownLatch, TimeUnit}
-import java.util.logging.Logger
 import java.util.{Random, UUID}
 
 import ch.qos.logback.classic.Level
 import com.codahale.metrics.MetricRegistry
 import com.google.common.util.concurrent.Service.State
 import com.google.inject.{Guice, Injector}
-import org.junit.Assert
+import org.junit.{Assume, Ignore, Assert}
 import org.junit.runner.RunWith
 import org.scalatest.concurrent.Eventually
 import org.scalatest.junit.JUnitRunner
@@ -32,12 +31,13 @@ import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.data.Bridge
-import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.cluster._
+import org.midonet.cluster.data.{Bridge, VTEP}
+import org.midonet.cluster.util.CuratorTestFramework
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.state.{Directory, ZookeeperConnectionWatcher}
+import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class VxlanGatewayServiceTest extends FlatSpec with Matchers
@@ -99,11 +99,15 @@ class VxlanGatewayServiceTest extends FlatSpec with Matchers
         curator.delete().deletingChildrenIfNeeded().forPath("/midonet/vxgw")
     }
 
-    private def makeBridges(n: Int): Unit = 0 until n map { i =>
+    private def makeBridges(n: Int): Seq[UUID]= 0 until n map { i =>
         dataClient.bridgesCreate(new Bridge())
     }
 
     private def vxgwService(conf: ClusterConfig): VxlanGatewayService = {
+        // That null below will cause the VxlanGatewayManagers to throw NPE when
+        // trying to contact the VtepController, but this has no effect on the
+        // test. In practise it just means that the manager wouldn't be able
+        // to push MACs to the VTEP.
         new VxlanGatewayService(new ClusterNode.Context(nodeId), dataClient,
                                 zkConnWatcher, null, curator, metrics, conf)
     }
@@ -130,7 +134,57 @@ class VxlanGatewayServiceTest extends FlatSpec with Matchers
         vx.awaitTerminated(100, TimeUnit.SECONDS)
     }
 
-    // Test below verifids that initialization with a large number of bridges
+    "The VxGW service" should "detect networks bound and unbound to VTEPs" in {
+        val conf = new ClusterConfig(MidoTestConfigurator.forClusters())
+        val vx = vxgwService(conf)
+
+        val bridges = makeBridges(2)
+
+        vx.startAsync()
+        vx.awaitRunning(100, TimeUnit.SECONDS)
+
+        // The operations we'll do require that the VTEP exists in ZK
+        val mgmtIp = IPv4Addr("192.168.1.1")
+        val mgmtPort = 6632
+        val vtep = new VTEP().setId(mgmtIp)
+                             .setMgmtPort(mgmtPort)
+                             .setTunnelIp(mgmtIp)
+                             .setTunnelZone(UUID.randomUUID())
+        dataClient.vtepCreate(vtep)
+
+        eventually {
+            vx.numNetworks shouldBe 2
+            vx.numVxGWs shouldBe 0
+        }
+
+        // Simulate binding the bridge to a VTEP
+        dataClient.bridgeCreateVxLanPort(bridges.head, mgmtIp, mgmtPort, 100,
+                                         mgmtIp, UUID.randomUUID())
+        eventually {
+            vx.numNetworks shouldBe 2
+            vx.numVxGWs shouldBe 1
+        }
+
+        // Unbind
+        dataClient.bridgeDeleteVxLanPort(bridges.head, mgmtIp)
+        eventually {
+            vx.numNetworks shouldBe 2
+            vx.numVxGWs shouldBe 0
+        }
+
+        // Rebind, and the VxGW should detect it
+        dataClient.bridgeCreateVxLanPort(bridges.head, mgmtIp, mgmtPort, 100,
+                                         mgmtIp, UUID.randomUUID())
+        eventually {
+            vx.numNetworks shouldBe 2
+            vx.numVxGWs shouldBe 1
+        }
+
+        vx.stopAsync()
+        vx.awaitTerminated(100, TimeUnit.SECONDS)
+    }
+
+    // Test below verifies that initialization with a large number of bridges
     // over the configured buffer DOES saturate the service and alerts the
     // operator.
 
