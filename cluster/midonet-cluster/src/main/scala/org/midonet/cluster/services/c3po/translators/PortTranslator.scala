@@ -86,7 +86,16 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             midoPortBldr.setOutboundFilterId(outChainId(portId))
 
             // Add MAC->port map entry.
-            midoOps += CreateNode(pathBldr.getBridgeMacPortEntryPath(nPort))
+            midoOps += CreateNode(macEntryPath(nPort.getNetworkId,
+                                               nPort.getMacAddress,
+                                               nPort.getId))
+            // Add an ARP entry.
+            if (nPort.getFixedIpsCount > 0) {
+                val fixedIp = nPort.getFixedIps(0).getIpAddress.getAddress
+                midoOps += CreateNode(arpEntryPath(nPort.getNetworkId,
+                                                   fixedIp,
+                                                   nPort.getMacAddress))
+            }
 
             // Add new DHCP host entries
             updateDhcpEntries(nPort,
@@ -127,13 +136,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             midoOps ++= deleteRouterSnatRulesOps(rPortId)
 
             // Delete the ARP entry in the external network if it exists.
-            if (nPort.getFixedIpsCount > 0 && nPort.hasMacAddress) {
-                val arpPath = arpEntryPath(
-                        nPort.getNetworkId,
-                        nPort.getFixedIps(0).getIpAddress.getAddress,
-                        nPort.getMacAddress)
-                midoOps += DeleteNode(arpPath)
-            }
+            midoOps ++= deleteArpEntry(nPort)
         } else if (isRouterInterfacePort(nPort)) {
             if (!isOnUplinkNw) {
                 // Update any routes using this port as a gateway.
@@ -158,7 +161,8 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                               delDhcpHost)
             deleteSecurityBindings(nPort, mPort, portContext)
             midoOps += DeleteNode(pathBldr.getBridgeMacPortEntryPath(nPort))
-
+            // Delete the ARP entry for this port.
+            midoOps ++= deleteArpEntry(nPort)
             // Delete the ARP entries for associated Floating IP.
             midoOps ++= deleteFloatingIpArpEntries(nPort)
         } else if (isDhcpPort(nPort)) {
@@ -572,6 +576,16 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                 ops += CreateNode(pathBldr.getBridgeMacPortEntryPath(newPort))
         }
         ops.toList
+    }
+
+    private def deleteArpEntry(nPort: NeutronPort) = {
+        if (nPort.getFixedIpsCount > 0) {
+            val arpPath = arpEntryPath(
+                    nPort.getNetworkId,
+                    nPort.getFixedIps(0).getIpAddress.getAddress,
+                    nPort.getMacAddress)
+            Some(DeleteNode(arpPath))
+        } else None
     }
 
     /* Returns a Buffer of DeleteNode ops */

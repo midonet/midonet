@@ -265,6 +265,8 @@ class VifPortTranslationTest extends PortTranslatorTest {
           subnet_id { $nIpv6Subnet1Id }
         }
         """)
+    protected val vifArpEntryPath = arpEntryPath(networkId, ipv4Addr1Txt, mac)
+    protected val vifMacEntryPath = macEntryPath(networkId, mac, portId)
 
     val vifPortWithFipsAndSgs = nPortFromTxt(s"""
         $vifPortWithFixedIps
@@ -659,8 +661,8 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         midoOps should containOp[Message] (midonet.Create(jumpRuleOut2))
         midoOps should containOp[Message] (midonet.Create(dropNonArpIn))
         midoOps should containOp[Message] (midonet.Create(dropNonArpOut))
-        midoOps should contain(
-            midonet.CreateNode(macEntryPath(networkId, mac, portId), null))
+        midoOps should contain (midonet.CreateNode(vifMacEntryPath))
+        midoOps should contain (midonet.CreateNode(vifArpEntryPath))
 
         // IP Address Groups.
         val ipAddrGrp1 = mIPAddrGroupFromTxt(s"""
@@ -919,8 +921,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronPort], portId))
         midoOps should contain (midonet.Delete(classOf[Port], portId))
-        midoOps should contain (
-            midonet.DeleteNode(macEntryPath(networkId, mac, portId)))
+        midoOps should contain (midonet.DeleteNode(vifMacEntryPath))
+        midoOps should contain (midonet.DeleteNode(vifArpEntryPath))
     }
 
     "DELETE VIF port with fixed IPs" should "delete DHCP host entries and " +
@@ -943,7 +945,8 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
 
         midoOps should contain only(
             midonet.Delete(classOf[Port], portId),
-            midonet.DeleteNode(macEntryPath(networkId, mac, portId)),
+            midonet.DeleteNode(vifMacEntryPath),
+            midonet.DeleteNode(vifArpEntryPath),
             midonet.Update(mIpv4Dhcp),
             midonet.Update(mIpv6Dhcp),
             midonet.Delete(classOf[Chain], inboundChainId),
