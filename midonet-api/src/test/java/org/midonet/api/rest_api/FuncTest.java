@@ -176,7 +176,8 @@ public class FuncTest {
                     "zookeeper.use_new_stack = true \n" +
                     "zookeeper.curator_enabled = true \n" +
                     "zookeeper.root_key = " + ZK_ROOT_MIDOLMAN + "\n" +
-                    "cluster.rest_api.root_uri = " + CONTEXT_PATH
+                    "cluster.rest_api.root_uri = " + CONTEXT_PATH + "\n" +
+                    "cluster.auth.provider_class = \"org.midonet.cluster.auth.MockAuthService\" "
                 )
             );
 
