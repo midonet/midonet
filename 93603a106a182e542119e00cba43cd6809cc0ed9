@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_df8797b3",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/PoolManagerTest.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 245,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-24T08:58:48Z",
+      "side": 1,
+      "message": "Tag?",
+      "range": {
+        "startLine": 245,
+        "startChar": 24,
+        "endLine": 245,
+        "endChar": 27
+      },
+      "revId": "93603a106a182e542119e00cba43cd6809cc0ed9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
