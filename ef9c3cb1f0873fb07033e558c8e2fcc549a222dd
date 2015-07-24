@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_7a5699cf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/monitoring/FlowRecorder.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-24T10:41:45Z",
+      "side": 1,
+      "message": "i don\u0027t this should be here. you might be generating another host id. see HostIdProviderService.",
+      "revId": "ef9c3cb1f0873fb07033e558c8e2fcc549a222dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_5a0c75ed",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/flowhistory/BinarySerialization.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 54,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-24T10:41:45Z",
+      "side": 1,
+      "message": "I think you can wrap a byte[] directly, and you can also re-use the direct buffer (not sure if it\u0027s a concern here).",
+      "revId": "ef9c3cb1f0873fb07033e558c8e2fcc549a222dd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
