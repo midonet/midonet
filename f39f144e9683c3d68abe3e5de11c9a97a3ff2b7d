@@ -2,6 +2,23 @@
   "comments": [
     {
       "key": {
+        "uuid": "9ad9bd40_bf273311",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockAllocator.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 93,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-24T08:35:22Z",
+      "side": 1,
+      "message": "Thread.currentThread().interrupt()",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8b5dd97b",
         "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockAllocator.java",
         "patchSetId": 5
@@ -31,6 +48,24 @@
       "side": 1,
       "message": "I already look for a NONODE exception in allocateBlockInRange, because first i try to claim the block without ensuring the directory exists (so i save a read on the common case).",
       "parentUuid": "9ad9bd40_8b5dd97b",
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ff1d3bbf",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockAllocator.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-24T08:35:22Z",
+      "side": 1,
+      "message": "Ah, hadn\u0027t seen that.",
+      "parentUuid": "9ad9bd40_cb87e1b3",
       "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -388,6 +423,30 @@
       "side": 1,
       "message": "the tests pass. i\u0027d be surprised if they didn\u0027t have a pool. i can shove it off to the reactor though.",
       "parentUuid": "9ad9bd40_0b4469b5",
+      "range": {
+        "startLine": 187,
+        "startChar": 15,
+        "endLine": 187,
+        "endChar": 20
+      },
+      "revId": "f39f144e9683c3d68abe3e5de11c9a97a3ff2b7d",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1f1bbfca",
+        "filename": "midolman/src/main/java/org/midonet/midolman/state/ZkNatBlockRecycler.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-24T08:35:22Z",
+      "side": 1,
+      "message": "Ya, it\u0027s strange that they do. I\u0027ve seen plenty of lockup caused by this type of thing, so i think it\u0027d be safer to throw it on the reactor.",
+      "parentUuid": "9ad9bd40_8b15d94a",
       "range": {
         "startLine": 187,
         "startChar": 15,
