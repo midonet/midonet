@@ -80,7 +80,7 @@ public class FlowMetadata implements AttributeHandler {
                 tcpFlags = buffer.get();
                 break;
 
-          case OpenVSwitch.Flow.Attr.Used:
+            case OpenVSwitch.Flow.Attr.Used:
                 lastUsedMillis = buffer.getLong();
                 break;
         }
