@@ -52,7 +52,9 @@ public class TryCatchReactor implements Reactor {
                 @Override
                 public Thread newThread(Runnable r) {
                     int thread_id = counter.incrementAndGet();
-                    return new Thread(r, identifier + "-" + thread_id);
+                    Thread t = new Thread(r, identifier + "-" + thread_id);
+                    t.setDaemon(true);
+                    return t;
                 }
             },
             new RejectedExecutionHandler() {
