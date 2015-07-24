@@ -24,9 +24,11 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
-import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType}
+import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Subnet => SubnetType}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
+import org.midonet.packets.MAC
+import org.midonet.packets.util.AddressConversions._
 import org.midonet.util.concurrent.toFutureOps
 
 /**
@@ -34,6 +36,9 @@ import org.midonet.util.concurrent.toFutureOps
  */
 @RunWith(classOf[JUnitRunner])
 class PortTranslatorIT extends C3POMinionTestBase {
+    /* Set up legacy Data Client for testing Replicated Map. */
+    override protected val useLegacyDataClient = true
+
     "Port translator" should " handle VIF port CRUD" in {
         // Create a network with two VIF ports.
         val nw1Id = UUID.randomUUID()
@@ -92,6 +97,41 @@ class PortTranslatorIT extends C3POMinionTestBase {
             p.hasHostId shouldBe false
             p.hasInterfaceName shouldBe false
             hf.await().getPortIdsCount shouldBe 0
+        }
+    }
+
+    it should "seed Network's ARP table." in {
+        val nw1Id = UUID.randomUUID()
+        val nw1Json = networkJson(nw1Id, "tenant", "network1")
+        val sn1Id = UUID.randomUUID()
+        val sn1Json = subnetJson(id = sn1Id, nw1Id, cidr = "10.0.2.0/24")
+        val vifPortId = UUID.randomUUID()
+        val vifPortMac = "ad:be:cf:03:14:25"
+        val vifPortIp = "10.0.2.5"
+        insertCreateTask(2, NetworkType, nw1Json, nw1Id)
+        insertCreateTask(3, SubnetType, sn1Json, sn1Id)
+
+        // Create a legacy ReplicatedMap for the Network ARP table.
+        val arpTable = dataClient.getIp4MacMap(nw1Id)
+        val nw1 = eventually(storage.get(classOf[Network], nw1Id).await())
+        nw1.getTenantId shouldBe "tenant"
+        eventually(arpTable.start())
+
+        arpTable.containsKey(vifPortIp) shouldBe false
+
+        val vifPortJson = portJson(
+                vifPortId, nw1Id, macAddr = vifPortMac,
+                fixedIps = List(IPAlloc(vifPortIp, sn1Id.toString)))
+        insertCreateTask(4, PortType, vifPortJson, vifPortId)
+        eventually{
+            arpTable.containsKey(vifPortIp) shouldBe true
+            arpTable.get(vifPortIp) shouldBe MAC.fromString(vifPortMac)
+        }
+
+        // Delete the VIF port.
+        insertDeleteTask(5, PortType, vifPortId)
+        eventually{
+            arpTable.containsKey(vifPortIp) shouldBe false
         }
     }
 
