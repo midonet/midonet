@@ -46,11 +46,14 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.data.dhcp.V6Host;
+import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.DhcpV6Host;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExceptionBase;
+import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv6Subnet;
 
 import static org.midonet.cluster.rest_api.conversion.DhcpHostDataConverter.fromData;
@@ -78,19 +81,23 @@ public class DhcpV6HostsResource extends AbstractResource {
     @POST
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Consumes({ VendorMediaType.APPLICATION_DHCPV6_HOST_JSON,
-            MediaType.APPLICATION_JSON })
-    public Response create(DhcpV6Host host)
-            throws StateAccessException, SerializationException {
+                MediaType.APPLICATION_JSON })
+    public Response create(DhcpV6Host host) throws StateAccessException,
+                                                   SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
                                       "configure DHCP for this bridge.");
 
-        dataClient.dhcpV6HostCreate(bridgeId, prefix, toData(host));
+        try {
+            dataClient.dhcpV6HostCreate(bridgeId, prefix, toData(host));
+        } catch (StatePathExistsException e) {
+            throw new ConflictHttpException("Host already exists");
+        }
+
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcpV6(getBaseUri(),
-                bridgeId, prefix);
+                                                         bridgeId, prefix);
         return Response.created(
-                ResourceUriBuilder.getDhcpV6Host(dhcpUri, host.clientId))
-                .build();
+            ResourceUriBuilder.getDhcpV6Host(dhcpUri, host.clientId)).build();
     }
 
     @GET
@@ -113,15 +120,18 @@ public class DhcpV6HostsResource extends AbstractResource {
                     "The requested resource was not found.");
         }
 
-        return fromData(hostConfig, bridgeId, prefix, getBaseUri());
+        return fromData(hostConfig,
+                        ResourceUriBuilder.getBridgeDhcpV6(getBaseUri(),
+                                                           bridgeId, prefix));
     }
 
     @PUT
     @RolesAllowed({AuthRole.ADMIN, AuthRole.TENANT_ADMIN})
     @Path("/{clientId}")
     @Consumes({ VendorMediaType.APPLICATION_DHCPV6_HOST_JSON,
-            MediaType.APPLICATION_JSON })
-    public Response update(@PathParam("clientId") String clientId, DhcpV6Host host)
+                MediaType.APPLICATION_JSON })
+    public Response update(@PathParam("clientId") String clientId,
+                           DhcpV6Host host)
             throws StateAccessException, SerializationException {
 
         authoriser.tryAuthoriseBridge(bridgeId,
@@ -131,7 +141,7 @@ public class DhcpV6HostsResource extends AbstractResource {
         // Make sure that the DHCPV6Host has the same clientId address as the URI.
         host.clientId = DhcpV6Host.clientIdFromUri(clientId);
         dataClient.dhcpV6HostUpdate(bridgeId, prefix, toData(host));
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     @DELETE
@@ -162,7 +172,10 @@ public class DhcpV6HostsResource extends AbstractResource {
                                                                      prefix);
         List<DhcpV6Host> hosts = new ArrayList<>();
         for (V6Host hostConfig : hostConfigs) {
-            hosts.add(fromData(hostConfig, bridgeId, prefix, getBaseUri()));
+            URI subnetUri = ResourceUriBuilder.getBridgeDhcpV6(getBaseUri(),
+                                                               bridgeId,
+                                                               prefix);
+            hosts.add(fromData(hostConfig, subnetUri));
         }
         return hosts;
     }

@@ -17,6 +17,7 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
+import java.util.List;
 import java.util.UUID;
 
 import javax.validation.constraints.Max;
@@ -27,14 +28,26 @@ import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.protobuf.Message;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
+import org.midonet.cluster.util.IPSubnetUtil;
+import org.midonet.cluster.util.UUIDUtil;
+import org.midonet.packets.IPSubnet;
 import org.midonet.packets.IPv6;
 import org.midonet.packets.IPv6Addr;
 import org.midonet.packets.IPv6Subnet;
 
 @XmlRootElement
+@ZoomClass(clazz = Topology.DhcpV6.class)
 public class DhcpSubnet6 extends UriResource {
+
+    @JsonIgnore
+    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
+    public UUID id;
 
     @NotNull
     @Pattern(regexp = IPv6.regex, message = "is an invalid IPv6 format")
@@ -45,26 +58,20 @@ public class DhcpSubnet6 extends UriResource {
     public int prefixLength;
 
     @JsonIgnore
+    @ZoomField(name = "network_id", converter = UUIDUtil.Converter.class)
     public UUID bridgeId;
+
+    @JsonIgnore
+    @ZoomField(name = "subnet_address",
+               converter = IPSubnetUtil.Converter.class)
+    public IPSubnet<?> subnetAddress;
+
+    @JsonIgnore
+    @ZoomField(name = "hosts")
+    public List<DhcpV6Host> dhcpHosts;
 
     /* Default constructor is needed for parsing/unparsing. */
     public DhcpSubnet6() { }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public void setPrefix(String prefix) {
-        this.prefix = prefix;
-    }
-
-    public int getPrefixLength() {
-        return prefixLength;
-    }
-
-    public void setPrefixLength(int prefixLength) {
-        this.prefixLength = prefixLength;
-    }
 
     public URI getHosts() {
         return UriBuilder.fromUri(getUri())
@@ -77,6 +84,35 @@ public class DhcpSubnet6 extends UriResource {
                                                prefixLength);
         return absoluteUri(ResourceUris.BRIDGES, bridgeId,
                            ResourceUris.DHCPV6, subnetAddr.toZkString());
+    }
+
+    @JsonIgnore
+    public void create(UUID bridgeId) {
+        if (null == id) {
+            id = UUID.randomUUID();
+        }
+        this.bridgeId = bridgeId;
+    }
+
+    @JsonIgnore
+    public void update(DhcpSubnet6 from) {
+        id = from.id;
+        subnetAddress = from.subnetAddress;
+        bridgeId = from.bridgeId;
+        dhcpHosts = from.dhcpHosts;
+    }
+
+    @JsonIgnore
+    @Override
+    public void afterFromProto(Message proto) {
+        prefixLength = subnetAddress.getPrefixLen();
+        prefix = subnetAddress.getAddress().toString();
+    }
+
+    @JsonIgnore
+    @Override
+    public void beforeToProto() {
+        subnetAddress = IPSubnet.fromString(prefix + "/" + prefixLength);
     }
 
 }

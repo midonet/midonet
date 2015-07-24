@@ -49,14 +49,15 @@ public class DhcpHostDataConverter {
                 .setExtraDhcpOpts(h.getExtraDhcpOpts());
     }
 
-    public static DhcpV6Host fromData(V6Host host, UUID bridgeId,
-                                      IPv6Subnet prefix, URI baseUri) {
+    /**
+     * The base uri is expected to be that of the subnet to which this host
+     * belongs.
+     */
+    public static DhcpV6Host fromData(V6Host host, URI baseUri) {
         DhcpV6Host v6Host = new DhcpV6Host();
         v6Host.fixedAddress = host.getFixedAddress().toString();
         v6Host.clientId = host.getClientId();
         v6Host.name = host.getName();
-        v6Host.bridgeId = bridgeId;
-        v6Host.prefix = prefix;
         v6Host.setBaseUri(baseUri);
         return v6Host;
     }
