@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0a7b7af5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-26T20:53:08Z",
+      "side": 1,
+      "message": "The \u0027payload\u0027 is the information describing a particular service (e.g. host and port where it is running). The type is used to parametrize the return value of \u0027getServerInfo\u0027 method and the serviceDiscovery instance in the constructor (if not present, type resolution goes a bit crazy)",
+      "parentUuid": "9ad9bd40_ebef45af",
+      "range": {
+        "startLine": 88,
+        "startChar": 33,
+        "endLine": 88,
+        "endChar": 40
+      },
+      "revId": "82faa75c402fff7fb4d21b445e7c384c4edc3263",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_cbcfe154",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 6
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-23T15:07:43Z",
       "side": 1,
       "message": "Isn\u0027t 42 to the answer to everything? ;-)",
+      "range": {
+        "startLine": 124,
+        "startChar": 33,
+        "endLine": 124,
+        "endChar": 35
+      },
+      "revId": "82faa75c402fff7fb4d21b445e7c384c4edc3263",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a803ebf",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 124,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-26T20:53:08Z",
+      "side": 1,
+      "message": "Yes, including life and universe.\nThis is why hashCode computations should be banned from the universe.\nBeing a prime number also has something to do with it ;-)",
+      "parentUuid": "9ad9bd40_cbcfe154",
       "range": {
         "startLine": 124,
         "startChar": 33,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4a8102c2",
+        "filename": "nsdb/src/test/java/org/midonet/cluster/services/discovery/TestJavaServiceDetails.java",
+        "patchSetId": 6
+      },
+      "lineNbr": 22,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-26T20:53:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_2b2dadfe",
+      "range": {
+        "startLine": 22,
+        "startChar": 47,
+        "endLine": 22,
+        "endChar": 51
+      },
+      "revId": "82faa75c402fff7fb4d21b445e7c384c4edc3263",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8b38793e",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
         "patchSetId": 6
@@ -94,6 +166,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6a86c6dc",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-26T20:53:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_8b38793e",
+      "range": {
+        "startLine": 32,
+        "startChar": 4,
+        "endLine": 32,
+        "endChar": 5
+      },
+      "revId": "82faa75c402fff7fb4d21b445e7c384c4edc3263",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2b620d3e",
         "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
         "patchSetId": 6
@@ -105,6 +201,30 @@
       "writtenOn": "2015-07-23T15:07:43Z",
       "side": 1,
       "message": "parameters",
+      "range": {
+        "startLine": 180,
+        "startChar": 7,
+        "endLine": 180,
+        "endChar": 15
+      },
+      "revId": "82faa75c402fff7fb4d21b445e7c384c4edc3263",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_aa6b6e1c",
+        "filename": "nsdb/src/test/scala/org/midonet/cluster/services/discovery/MidonetDiscoveryTest.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-26T20:53:08Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_2b620d3e",
       "range": {
         "startLine": 180,
         "startChar": 7,
