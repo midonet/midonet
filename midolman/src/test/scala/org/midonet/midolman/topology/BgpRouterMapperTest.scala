@@ -29,14 +29,14 @@ import rx.observers.TestObserver
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{BgpNetwork, BgpPeer, Router}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.DeviceMapper.MapperState
 import org.midonet.midolman.topology.devices.{BgpNeighbor, BgpRouter}
 import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.packets.{IPv4Addr, IPSubnet}
+import org.midonet.packets.{IPSubnet, IPv4Addr}
 import org.midonet.quagga.BgpdConfiguration.{Neighbor, Network}
 import org.midonet.util.MidonetEventually
 import org.midonet.util.reactivex.AwaitableObserver
