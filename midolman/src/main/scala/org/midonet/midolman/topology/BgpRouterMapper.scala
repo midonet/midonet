@@ -219,10 +219,10 @@ final class BgpRouterMapper(routerId: UUID,
         .observable(classOf[Router], routerId)
         .distinctUntilChanged()
         .observeOn(vt.vtScheduler)
+        .flatMap[BgpRouter](makeFunc1(routerUpdated))
         .doOnCompleted(makeAction0(routerDeleted()))
         .doOnError(makeAction1(routerError))
         .onErrorResumeNext(Observable.empty)
-        .flatMap[BgpRouter](makeFunc1(routerUpdated))
 
     private val networksSubject = PublishSubject.create[Observable[NetworkState]]
     private lazy val networksObservable = Observable
@@ -357,6 +357,9 @@ final class BgpRouterMapper(routerId: UUID,
       * triggers the completion of all observables, by completing the
       * corresponding subjects and states. */
     private def routerDeleted(): Unit = {
+        // Ignore notifications if the mapper is in a terminal state.
+        if (state.get.isTerminal) return
+
         log.debug("Router deleted")
         state.set(MapperState.Completed)
 
@@ -375,6 +378,9 @@ final class BgpRouterMapper(routerId: UUID,
 
     /** This method is called when the current router emits an error. */
     private def routerError(e: Throwable): Unit = {
+        // Ignore notifications if the mapper is in a terminal state.
+        if (state.get.isTerminal) return
+
         log.debug("Router error", e)
         error = e
         state.set(MapperState.Error)
@@ -401,8 +407,9 @@ final class BgpRouterMapper(routerId: UUID,
 
         val ready = (router ne null) &&
                     networks.forall(_._2.isReady) &&
-                    peers.forall(_._2.isReady)
-        log.debug("BGP ready: {}", Boolean.box(ready))
+                    peers.forall(_._2.isReady) &&
+                    !state.get.isTerminal
+        log.debug("BGP router ready: {}", Boolean.box(ready))
         ready
     }
 

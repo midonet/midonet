@@ -47,14 +47,12 @@ class BgpRouterMapperTest extends MidolmanSpec with TopologyBuilder
 
     private var store: Storage = _
     private var vt: VirtualTopology = _
-    private var threadId: Long = _
 
     private final val timeout = 5 seconds
 
     protected override def beforeTest(): Unit = {
         vt = injector.getInstance(classOf[VirtualTopology])
         store = injector.getInstance(classOf[MidonetBackend]).store
-        threadId = Thread.currentThread.getId
     }
 
     private def createObserver() = {
