@@ -27,7 +27,7 @@ import com.typesafe.scalalogging.Logger
 import org.jctools.queues.SpscLinkedQueue
 import org.slf4j.LoggerFactory
 
-import org.midonet.midolman.{SimulationBackChannel, NotYetException}
+import org.midonet.midolman.{CheckBackchannels, PacketsEntryPoint, SimulationBackChannel, NotYetException}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation._
@@ -212,6 +212,7 @@ class SingleRouterArpRequestBroker(id: UUID,
      */
     arpCache.observable.subscribe(makeAction1[ArpCacheUpdate] { u =>
         macsDiscovered.add(MacChange(u.ipAddr, u.oldMac, u.newMac))
+        PacketsEntryPoint ! CheckBackchannels
     })
 
     private val stalenessJitter: Long = {
