@@ -35,9 +35,8 @@ import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.state.RoutingTableStorage._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
-import org.midonet.midolman.simulation.{Chain, Router => SimulationRouter}
+import org.midonet.midolman.simulation.{Router => SimulationRouter, RouterPort, Chain}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
-import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.FlowMatch
 import org.midonet.packets._

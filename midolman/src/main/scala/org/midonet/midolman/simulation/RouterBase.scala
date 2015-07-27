@@ -28,7 +28,6 @@ import org.midonet.midolman.simulation.Icmp._
 import org.midonet.midolman.simulation.Router.{Config, RoutingTable, TagManager}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.packets._

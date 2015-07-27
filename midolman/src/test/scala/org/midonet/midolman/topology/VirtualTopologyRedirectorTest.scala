@@ -39,8 +39,9 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.simulation._
+import org.midonet.midolman.simulation.{Port => SimulationPort}
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.devices.{BridgePort, PoolHealthMonitorMap, Port => SimulationPort}
+import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{AwaitableActor, MessageAccumulator}
 import org.midonet.sdn.flows.FlowTagger

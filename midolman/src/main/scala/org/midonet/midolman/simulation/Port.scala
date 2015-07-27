@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.topology.devices
+
+package org.midonet.midolman.simulation
 
 import java.util.UUID
 import scala.collection.JavaConverters._
@@ -24,7 +25,6 @@ import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.util.{IPSubnetUtil, IPAddressUtil, UUIDUtil}
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
-import org.midonet.midolman.simulation.{Coordinator, Bridge, PacketContext}
 import org.midonet.midolman.state.PortConfig
 import org.midonet.midolman.state.PortDirectory.{BridgePortConfig, RouterPortConfig, VxLanPortConfig}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
@@ -165,29 +165,25 @@ trait Port extends VirtualDevice with Coordinator.Device with Cloneable {
     }
 }
 
-case class VxLanPort(override val id: UUID,
-                     override val inboundFilter: UUID = null,
-                     override val outboundFilter: UUID = null,
-                     override val tunnelKey: Long = 0,
-                     override val peerId: UUID = null,
-                     override val adminStateUp: Boolean = true,
-                     override val portGroups: Set[UUID] = Set.empty,
-                     vtepId: UUID,
-                     networkId: UUID,
-                     vtepMgmtIp: IPv4Addr = null,
-                     vtepMgmtPort: Int = 0,
-                     vtepTunnelIp: IPv4Addr = null,
-                     vtepTunnelZoneId: UUID = null,
-                     vtepVni: Int = 0) extends Port {
+object BridgePort {
+    def random = BridgePort(UUID.randomUUID, networkId = UUID.randomUUID)
+}
 
-    override def hostId = null
-    override def interfaceName = null
+case class BridgePort(override val id: UUID,
+                      override val inboundFilter: UUID = null,
+                      override val outboundFilter: UUID = null,
+                      override val tunnelKey: Long = 0,
+                      override val peerId: UUID = null,
+                      override val hostId: UUID = null,
+                      override val interfaceName: String = null,
+                      override val adminStateUp: Boolean = true,
+                      override val portGroups: Set[UUID] = Set.empty,
+                      override val isActive: Boolean = false,
+                      override val vlanId: Short = Bridge.UntaggedVlanId,
+                      networkId: UUID) extends Port {
+
+    override def toggleActive(active: Boolean) = copy(isActive = active)
     override def deviceId = networkId
-    override def isExterior = true
-    override def isInterior = false
-    override def isActive = true
-
-    override def toggleActive(active: Boolean) = this
 }
 
 case class RouterPort(override val id: UUID,
@@ -216,23 +212,27 @@ case class RouterPort(override val id: UUID,
     def nwSubnet = _portAddr
 }
 
-object BridgePort {
-    def random = BridgePort(UUID.randomUUID, networkId = UUID.randomUUID)
-}
-
-case class BridgePort(override val id: UUID,
+case class VxLanPort(override val id: UUID,
                      override val inboundFilter: UUID = null,
                      override val outboundFilter: UUID = null,
                      override val tunnelKey: Long = 0,
                      override val peerId: UUID = null,
-                     override val hostId: UUID = null,
-                     override val interfaceName: String = null,
                      override val adminStateUp: Boolean = true,
                      override val portGroups: Set[UUID] = Set.empty,
-                     override val isActive: Boolean = false,
-                     override val vlanId: Short = Bridge.UntaggedVlanId,
-                     networkId: UUID) extends Port {
+                     vtepId: UUID,
+                     networkId: UUID,
+                     vtepMgmtIp: IPv4Addr = null,
+                     vtepMgmtPort: Int = 0,
+                     vtepTunnelIp: IPv4Addr = null,
+                     vtepTunnelZoneId: UUID = null,
+                     vtepVni: Int = 0) extends Port {
 
-    override def toggleActive(active: Boolean) = copy(isActive = active)
+    override def hostId = null
+    override def interfaceName = null
     override def deviceId = networkId
+    override def isExterior = true
+    override def isInterior = false
+    override def isActive = true
+
+    override def toggleActive(active: Boolean) = this
 }
