@@ -16,15 +16,13 @@
 
 package org.midonet.midolman
 
-import java.util.{HashMap, ArrayList}
+import java.util.ArrayList
 
 import akka.actor.{Actor, ActorSystem}
 
 import org.jctools.queues.SpscArrayQueue
 
-import com.codahale.metrics.Gauge
 import org.midonet.ErrorCode
-
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.FlowProcessor
 import org.midonet.midolman.flows.{FlowLifecycle, FlowInvalidation}
@@ -34,7 +32,6 @@ import org.midonet.midolman.management.Metering
 import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics
 import org.midonet.midolman.monitoring.MeterRegistry
 import org.midonet.midolman.simulation.PacketContext
-import org.midonet.odp.FlowMatch
 import org.midonet.util.collection.{NoOpPool, ArrayObjectPool}
 import org.midonet.util.concurrent.{Backchannel, NanoClock}
 import org.midonet.util.concurrent.WakerUpper.Parkable
@@ -68,28 +65,16 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
     private val flowRemoveCommandsToRetry = new ArrayList[FlowOperation](
         flowProcessor.capacity)
 
-    private val dpFlows = new HashMap[FlowMatch, ManagedFlow](maxFlows)
-
-    metrics.currentDpFlowsMetric.register(new Gauge[Long] {
-        override def getValue = dpFlows.size()
-    }, id)
-
-    def tryAddFlow(context: PacketContext, expiration: Expiration): ManagedFlow = {
+    def addFlow(context: PacketContext, expiration: Expiration): ManagedFlow = {
         val flowMatch = context.origMatch
         val callbacks = context.flowRemovedCallbacks
-        if (!dpFlows.containsKey(flowMatch)) {
-            var flow = managedFlowPool.take
-            if (flow eq null)
-                flow = oversubscriptionManagedFlowPool.take
-            flow.reset(flowMatch, context.flowTags, callbacks, 0L, expiration, clock.tick)
-            registerFlow(flow)
-            context.log.debug(s"Added flow $flow")
-            flow
-        } else {
-            context.log.debug(s"Tried to add duplicate flow for $flowMatch")
-            callbacks.runAndClear()
-            null
-        }
+        var flow = managedFlowPool.take
+        if (flow eq null)
+            flow = oversubscriptionManagedFlowPool.take
+        flow.reset(flowMatch, context.flowTags, callbacks, 0L, expiration, clock.tick)
+        registerFlow(flow)
+        context.log.debug(s"Added flow $flow")
+        flow
     }
 
     override def shouldProcess() =
@@ -104,23 +89,20 @@ trait FlowController extends FlowLifecycle with FlowInvalidation
 
     override def registerFlow(flow: ManagedFlow): Unit = {
         super.registerFlow(flow)
-        dpFlows.put(flow.flowMatch, flow)
         meters.trackFlow(flow.flowMatch, flow.tags)
         metrics.dpFlowsMetric.mark()
         flow.ref()
     }
 
-    override def removeFlow(flow: ManagedFlow): Unit = {
-        val removedFlow = dpFlows.remove(flow.flowMatch)
-        if (removedFlow eq flow) {
+    override def removeFlow(flow: ManagedFlow): Unit =
+        if (!flow.removed) {
             super.removeFlow(flow)
             flow.callbacks.runAndClear()
+            flow.removed = true
             removeFlowFromDatapath(flow)
+            metrics.dpFlowsRemovedMetric.mark()
             flow.unref()
-        } else if (removedFlow ne null) {
-            dpFlows.put(removedFlow.flowMatch, removedFlow)
         }
-    }
 
     private def processCompletedFlowOperations(): Unit = {
         var req: FlowOperation = null

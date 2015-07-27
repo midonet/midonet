@@ -152,6 +152,7 @@ class FlowProcessor(families: OvsNetlinkFamilies,
         override def onNext(t: ByteBuffer): Unit = { }
     }
 
+
     val replies = new Thread("flow-processor-replies") {
         override def run(): Unit =
             while (channel.isOpen) {

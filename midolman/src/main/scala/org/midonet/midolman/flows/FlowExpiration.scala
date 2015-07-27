@@ -50,7 +50,10 @@ object FlowExpiration {
 
 /**
  * This trait deals with flow expiration. It registers all new flows and removes
- * them when the specified expiration time has elapsed.
+ * them when the specified expiration time has elapsed. Note that a flow may
+ * be removed from the kernel via another mechanism (such as flow invalidation),
+ * but it is still kept in these data structures until it expires. This is to
+ * avoid linear remove operations or smarter, more expensive data structures.
  */
 trait FlowExpiration extends FlowLifecycle {
     import FlowExpiration._
@@ -86,8 +89,7 @@ trait FlowExpiration extends FlowLifecycle {
             while (({ flow = queue.peekFirst(); flow } ne null) &&
                    now >= flow.absoluteExpirationNanos) {
                 log.debug(s"Removing flow $flow for hard expiration")
-                removeFlow(queue.pollFirst())
-                flow.unref()
+                maybeRemoveFlow(queue.pollFirst())
             }
             i += 1
         }
@@ -116,11 +118,15 @@ trait FlowExpiration extends FlowLifecycle {
             var flow: ManagedFlow = null
             while (evicted < numFlowsToEvict &&
                    ({ flow = queue.pollFirst(); flow } ne null)) {
-                removeFlow(flow)
-                flow.unref()
+                maybeRemoveFlow(flow)
                 evicted += 1
             }
             i += 1
         }
+    }
+
+    private def maybeRemoveFlow(flow: ManagedFlow): Unit = {
+        flow.unref()
+        removeFlow(flow)
     }
 }

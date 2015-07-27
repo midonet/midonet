@@ -79,35 +79,56 @@ class FlowControllerTest extends MidolmanSpec {
             flowController.metrics.currentDpFlowsMetric.getValue should be (0)
 
             And("The flow removal callback method was called")
-            flow.flowRemoved should be (true)
+            flow.callbackCalled should be (true)
         }
-
-        scenario("Addition of a duplicate flow") {
+        
+        scenario("A removed flow is not removed again") {
             Given("A flow in the flow controller")
-            val flow1 = new TestableFlow()
-            val flow2 = new TestableFlow()
-            flow1.add() should not be null
+            val flow = new TestableFlow()
+            val managedFlow = flow.add()
+            managedFlow should not be null
+            flowController.metrics.dpFlowsMetric.getCount should be (1)
 
-            When("The flow is added again to the flow controller")
-            val managedFlow = flow2.add()
+            // The flow is referenced by the FC and the expiration indexer
+            managedFlow.currentRefCount should be (2)
 
-            Then("It should be detected as a duplicate")
-            managedFlow should be (null)
+            When("The flow is removed from the flow controller")
+            flow.remove(managedFlow)
 
-            And("The flow removed callbacks should be called")
-            flow2.flowRemoved should be (true)
+            Then("The datapath flow metric should be set at the original value")
+            flowController.metrics.currentDpFlowsMetric.getValue should be (0)
+
+            And("The flow removal callback method was called")
+            flow.callbackCalled should be (true)
+            flow.callbackCalled = false
+
+            And("The flow was removed")
+            managedFlow.removed should be (true)
+
+            And("The flow is referenced by the in-progress deletion")
+            managedFlow.currentRefCount should be (2)
+
+            When("We expire the flow")
+            clock.time = FlowExpiration.FLOW_EXPIRATION.value + 1
+            flowController.checkFlowsExpiration(clock.tick)
+
+            Then("Nothing should happen")
+            flowController.metrics.currentDpFlowsMetric.getValue should be (0)
+            flow.callbackCalled should be (false)
+            managedFlow.removed should be (true)
+            managedFlow.currentRefCount should be (1)
         }
     }
 
-    final class TestableFlow {
-        var flowRemoved = false
+    final class TestableFlow(val fmatch: FlowMatch = new FlowMatch()) {
+        var callbackCalled = false
 
         def add(): ManagedFlow = {
             val pktCtx = new PacketContext(0, null, new FlowMatch())
             pktCtx addFlowRemovedCallback new Callback0 {
-                def call() = flowRemoved = true
+                def call() = callbackCalled = true
             }
-            flowController.tryAddFlow(pktCtx, FlowExpiration.FLOW_EXPIRATION)
+            flowController.addFlow(pktCtx, FlowExpiration.FLOW_EXPIRATION)
         }
 
         def remove(flow: ManagedFlow): Unit =

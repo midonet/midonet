@@ -262,7 +262,6 @@ object FlowRecordBuilder {
             case PacketWorkflow.UserspaceFlow =>
                 SimulationResult.USERSPACE_FLOW
             case PacketWorkflow.FlowCreated => SimulationResult.FLOW_CREATED
-            case PacketWorkflow.DuplicatedFlow => SimulationResult.DUPE_FLOW
             case PacketWorkflow.GeneratedPacket =>
                 SimulationResult.GENERATED_PACKET
             case _ =>

@@ -468,6 +468,11 @@ public class FlowMatch {
      * collection for the new used fields)
      */
     public void reset(FlowMatch that) {
+        setIcmpData(that.icmpData);
+        resetWithoutIcmpData(that);
+    }
+
+    public void resetWithoutIcmpData(FlowMatch that) {
         inputPortNumber = that.inputPortNumber;
         tunnelKey = that.tunnelKey;
         tunnelSrc = that.tunnelSrc;
@@ -486,10 +491,11 @@ public class FlowMatch {
         icmpId = that.icmpId;
         vlanIds.clear();
         vlanIds.addAll(that.vlanIds);
-        setIcmpData(that.icmpData);
+        icmpId = that.icmpId;
         usedFields = that.usedFields;
         trackSeenFields = that.trackSeenFields;
         seenFields = that.seenFields;
+
         keys.clear();
         keys.addAll(that.keys);
         invalidateHashCode();

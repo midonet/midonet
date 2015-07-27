@@ -453,7 +453,7 @@ class PacketWorkflow(
             context.flowRemovedCallbacks.runAndClear()
             UserspaceFlow
         } else {
-            val flow = tryAddFlow(context,expiration)
+            val flow = addFlow(context,expiration)
             if (flow ne null) {
                 val dpFlow = new Flow(context.origMatch, context.flowActions)
                 logResultNewFlow("Will create flow", context)

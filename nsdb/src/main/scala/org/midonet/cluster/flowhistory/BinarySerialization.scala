@@ -76,7 +76,6 @@ class BinarySerialization {
             case SbeSimResult.StateMessage => SimulationResult.STATE_MESSAGE
             case SbeSimResult.UserspaceFlow => SimulationResult.USERSPACE_FLOW
             case SbeSimResult.FlowCreated => SimulationResult.FLOW_CREATED
-            case SbeSimResult.DuplicatedFlow => SimulationResult.DUPE_FLOW
             case SbeSimResult.GeneratedPacket => SimulationResult.GENERATED_PACKET
             case _ => SimulationResult.UNKNOWN
         }

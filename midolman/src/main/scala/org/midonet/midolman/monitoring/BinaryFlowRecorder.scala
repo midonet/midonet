@@ -98,8 +98,6 @@ class BinaryFlowRecorder(val hostId: UUID, config: FlowHistoryConfig)
                                    => SbeSimResult.UserspaceFlow
                            case PacketWorkflow.FlowCreated
                                    => SbeSimResult.FlowCreated
-                           case PacketWorkflow.DuplicatedFlow
-                                   => SbeSimResult.DuplicatedFlow
                            case PacketWorkflow.GeneratedPacket
                                    => SbeSimResult.GeneratedPacket
                        })
