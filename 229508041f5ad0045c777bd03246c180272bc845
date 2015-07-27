@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8a030a41",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 84,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-27T00:00:46Z",
+      "side": 1,
+      "message": "i have no particlar reasons to prefer veth pairs.\ninternal ports can work as well.\n\nif it\u0027s ok to use the existing \"midonet\" internal port,\nit would make implementation simpler.\n\nthere are no plan to use netns.",
+      "parentUuid": "9ad9bd40_ae3b8bcf",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ce38cfd5",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 11
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-23T16:27:24Z",
       "side": 1,
       "message": "Re: \"Each server knows the network ID it\u0027s responsible for.” and \"It takes *that*...\"\n\nThis talks about a single network ID and therefore contradicts the statement made a few lines above:\n\"A single instance of the server serves all neutron networks on the host.”\n\nAlso: \"It takes that and the source IP of the metadata request to identify the instance (VM)”\nis misleading because the Network ID isn’t really used at this point.\n\nTherefore I suggest re-writing the bullet point as follows:\n\n\"Each server maps the source IP address of the incoming request to a specific VM instance ID. Further on we’ll see that MidoNet translates each VM’s private address to a uniquely selected address so that the address alone (without the Network ID) is sufficient to identify the VM.\"",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_aa00ce34",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 107,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-27T00:00:46Z",
+      "side": 1,
+      "message": "sure.  the sentence seems like a reminder from the earlier versions of the spec.  i\u0027ll update.",
+      "parentUuid": "9ad9bd40_ce38cfd5",
       "revId": "229508041f5ad0045c777bd03246c180272bc845",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_eaf6565c",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 113,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-27T00:00:46Z",
+      "side": 1,
+      "message": "/16.",
+      "parentUuid": "9ad9bd40_0e2f1789",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ce3fefb2",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 11
@@ -64,6 +118,24 @@
       "writtenOn": "2015-07-23T16:27:24Z",
       "side": 1,
       "message": "I like it, but I\u0027d like some more details. What network address range will be the target of these translations? At first glance I would using the 169.254/16... but that might conflict with use of link-local addresses elsewhere on the hypervisor host.\n\nTherefore, what target address range? It probably should be configurable... if it\u0027s in the RFC1918 space. And how is the hypervisor host\u0027s routing set up such that it will emit reply packets from its 169.254.169.254 interface instead of its eth0/eth1... towards its default gateway.\n\nAlso, I\u0027d like more details about the datapath flows themselves:\n- I assume they\u0027re both for request and reply packets\n- do the flows only re-write IP addresses and then recirculate so that the MNA can do a simulation?\n- OR do they flows also re-write the MAC address of the packet so that it can be passed directly from VM port to MD Proxy port (or vice versa for return packets) without going through simulation?",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8ab14a91",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-27T00:00:46Z",
+      "side": 1,
+      "message": "is there any existing use of 169.254/16 on midolman host?\notherwise i\u0027d go with the range at least for the first version of the implementation.\n\n/16 would allow us to use direct-mapping from/to dp port number, which makes implementation simpler.\n\nthere\u0027s an example of the datapath flows in L204-205.\nit entirely bypasses a simulation.",
+      "parentUuid": "9ad9bd40_ce3fefb2",
       "revId": "229508041f5ad0045c777bd03246c180272bc845",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -87,6 +159,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_aaae0e2c",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-27T00:00:46Z",
+      "side": 1,
+      "message": "sorry, i don\u0027t get what you mean here.\ncan you elaborate a bit?",
+      "parentUuid": "9ad9bd40_4e7bdf8b",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ce944f8d",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 11
@@ -98,6 +188,24 @@
       "writtenOn": "2015-07-23T16:27:24Z",
       "side": 1,
       "message": "Not a big deal, but it doesn\u0027t really matter what MAC address you map this to because you just want the VM to seed its Neighbor table and get along to emitting the IP packets.\n\nThose IP packets are going to match a flow rule that knows exactly how to handle them, so the they don\u0027t really go through the bridge\u0027s mac-table, right?",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_caa7d24e",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-27T00:00:46Z",
+      "side": 1,
+      "message": "right.",
+      "parentUuid": "9ad9bd40_ce944f8d",
       "revId": "229508041f5ad0045c777bd03246c180272bc845",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -121,6 +229,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4ab4a281",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 150,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-27T00:00:46Z",
+      "side": 1,
+      "message": "yes.",
+      "parentUuid": "9ad9bd40_cedb6f7a",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4ed75f4b",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 11
@@ -132,6 +258,24 @@
       "writtenOn": "2015-07-23T16:27:24Z",
       "side": 1,
       "message": "Shouldn\u0027t this issue handled by the section \"Host Route is injected in the VM\"? And therefore wouldn\u0027t it be better merged into that one?",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0abe1a65",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 161,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-27T00:00:46Z",
+      "side": 1,
+      "message": "probably.",
+      "parentUuid": "9ad9bd40_4ed75f4b",
       "revId": "229508041f5ad0045c777bd03246c180272bc845",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
