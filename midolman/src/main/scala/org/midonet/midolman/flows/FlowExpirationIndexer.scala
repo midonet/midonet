@@ -86,8 +86,7 @@ trait FlowExpirationIndexer extends FlowIndexer {
             while (({ flow = queue.peekFirst(); flow } ne null) &&
                    now >= flow.absoluteExpirationNanos) {
                 log.debug(s"Removing flow $flow for hard expiration")
-                removeFlow(queue.pollFirst())
-                flow.unref()
+                maybeRemoveFlow(queue.pollFirst())
             }
             i += 1
         }
@@ -116,11 +115,16 @@ trait FlowExpirationIndexer extends FlowIndexer {
             var flow: ManagedFlow = null
             while (evicted < numFlowsToEvict &&
                    ({ flow = queue.pollFirst(); flow } ne null)) {
-                removeFlow(flow)
-                flow.unref()
+                maybeRemoveFlow(flow)
                 evicted += 1
             }
             i += 1
         }
+    }
+
+    private def maybeRemoveFlow(flow: ManagedFlow): Unit = {
+        flow.unref()
+        if (flow.currentRefCount > 0)
+            removeFlow(flow)
     }
 }
