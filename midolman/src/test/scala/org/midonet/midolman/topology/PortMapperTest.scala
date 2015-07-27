@@ -31,7 +31,8 @@ import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
 import org.midonet.cluster.util.UUIDUtil._
 import TopologyTest.DeviceObserver
-import org.midonet.midolman.topology.devices.{BridgePort, Port => SimPort, RouterPort, VxLanPort}
+import org.midonet.midolman.simulation.{RouterPort, VxLanPort}
+import org.midonet.midolman.simulation.{BridgePort, Port => SimPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.util.reactivex._
 

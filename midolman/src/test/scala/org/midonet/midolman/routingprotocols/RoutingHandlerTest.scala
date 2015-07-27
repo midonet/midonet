@@ -18,6 +18,8 @@ package org.midonet.midolman.routingprotocols
 
 import java.util
 import java.util.UUID
+import org.midonet.midolman.simulation.RouterPort
+
 import scala.concurrent.Future
 
 import akka.actor._
@@ -34,7 +36,6 @@ import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.Route
 import org.midonet.midolman.BackChannelMessage
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.packets.{MAC, IPv4Addr, IPv4Subnet}
 import org.midonet.quagga.BgpdConfiguration.{Network, Neighbor, BgpRouter}
 import org.midonet.quagga.ZebraProtocol.RIBType

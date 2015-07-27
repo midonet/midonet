@@ -32,7 +32,7 @@ import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.midolman.NotYetException
 import TopologyTest.DeviceObserver
-import org.midonet.midolman.topology.devices.{Port => SimulationPort}
+import org.midonet.midolman.simulation.{Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 
 @RunWith(classOf[JUnitRunner])
