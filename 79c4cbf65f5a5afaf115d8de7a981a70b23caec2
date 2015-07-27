@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_0d9d54bc",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-27T08:19:31Z",
+      "side": 1,
+      "message": "This needs some way to notify that the service endpoint has changed.",
+      "revId": "79c4cbf65f5a5afaf115d8de7a981a70b23caec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4d6cbcd0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-27T08:19:31Z",
+      "side": 1,
+      "message": "guava already has a HostAndPort class which provides this.",
+      "revId": "79c4cbf65f5a5afaf115d8de7a981a70b23caec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
