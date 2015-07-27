@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,17 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.Guice;
+import com.typesafe.scalalogging.Logger$;
 
 import org.apache.zookeeper.CreateMode;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.slf4j.helpers.NOPLogger;
-import com.typesafe.scalalogging.Logger$;
 
 import org.midonet.midolman.TraceRequiredException;
 import org.midonet.midolman.cluster.serialization.SerializationModule;
@@ -342,7 +340,7 @@ public class TestRules {
         Rule rule = new TraceRule(requestId, cond, 10);
 
         Ethernet eth = createTracePacket();
-        PacketContext pktCtx = null;
+        PacketContext pktCtx;
         for (int i = 0; i < limit; i++) {
             pktCtx = new PacketContext(1, new Packet(eth, pktMatch),
                                        pktMatch, null);
@@ -390,25 +388,24 @@ public class TestRules {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionDrop() {
-        new ForwardNatRule(cond, Action.DROP, null, 0, false, nats);
+        new ForwardNatRule(cond, Action.DROP, null, false, nats);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionJump() {
-        new ForwardNatRule(cond, Action.JUMP, null, 0, false, nats);
+        new ForwardNatRule(cond, Action.JUMP, null, false, nats);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testSnatRuleActionReject() {
-        new ForwardNatRule(cond, Action.REJECT, null, 0, false, nats);
+        new ForwardNatRule(cond, Action.REJECT, null, false, nats);
     }
 
     @Test
     public void testSnatAndReverseRules() {
         Set<NatTarget> nats = new HashSet<>();
         nats.add(new NatTarget(0x0b000102, 0x0b00010a, 3366, 3399));
-        Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, 0, false,
-                nats);
+        Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, false, nats);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
         rule.process(pktCtx, res, ownerId, false);
@@ -457,8 +454,7 @@ public class TestRules {
     public void testDnatAndReverseRule() {
         Set<NatTarget> nats = new HashSet<>();
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, 1030, 1050));
-        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
-                nats);
+        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, true, nats);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
         rule.process(pktCtx, res, ownerId, false);
@@ -512,7 +508,7 @@ public class TestRules {
     public void testDnatAndReverseRuleDeleteMapping() {
         Set<NatTarget> nats = new HashSet<NatTarget>();
         nats.add(new NatTarget(0x0c000102, 0x0c00010a, 1030, 1050));
-        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true,
+        Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, true,
                 nats);
 
         // Now get the Dnat rule to match.
@@ -549,7 +545,7 @@ public class TestRules {
 
         Set<NatTarget> newNats = new HashSet<>();
         newNats.add(new NatTarget(0x0c00010b, 0x0c00010b, 1060, 1060));
-        rule = new ForwardNatRule(cond, Action.CONTINUE, null, 0, true, newNats);
+        rule = new ForwardNatRule(cond, Action.CONTINUE, null, true, newNats);
 
         // Verify we get a NEW mapping if we re-process the original match.
         res = new RuleResult(null, null);

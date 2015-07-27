@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,15 +37,15 @@ class ForwardNatRuleTest extends Suite with Matchers {
             val targets = new JSet[NatTarget]()
             targets.add(tgt)
             new ForwardNatRule(new Condition(), RuleResult.Action.ACCEPT,
-                               UUID.randomUUID(), 0, true, targets)
+                               UUID.randomUUID(), true, targets)
         }
 
-        new NatTarget(a1, a1, 0, 0).isFloatingIp should be (true)
-        new NatTarget(a1, a2, 0, 0).isFloatingIp should be (false)
-        new NatTarget(a1, a1, 10, 0).isFloatingIp should be (false)
-        new NatTarget(a1, a1, 0, 65535).isFloatingIp should be (false)
-        new NatTarget(a1, a1, 80, 80).isFloatingIp should be (false)
-        new NatTarget(a1, a1, 1024, 10000).isFloatingIp should be (false)
+        new NatTarget(a1, a1, 0, 0).isFloatingIp shouldBe true
+        new NatTarget(a1, a2, 0, 0).isFloatingIp shouldBe false
+        new NatTarget(a1, a1, 10, 0).isFloatingIp shouldBe false
+        new NatTarget(a1, a1, 0, 65535).isFloatingIp shouldBe false
+        new NatTarget(a1, a1, 80, 80).isFloatingIp shouldBe false
+        new NatTarget(a1, a1, 1024, 10000).isFloatingIp shouldBe false
     }
 
 }

@@ -15,34 +15,31 @@
  */
 package org.midonet.cluster.data
 
-import java.util.{List => JList, UUID}
 import java.util.concurrent.TimeoutException
+import java.util.{List => JList, UUID}
 import javax.inject.Singleton
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
 
-import com.google.inject.{AbstractModule, Guice}
 import com.google.inject.util.Modules
+import com.google.inject.{AbstractModule, Guice}
 import org.apache.zookeeper.{Op, OpResult}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.slf4j.LoggerFactory
-
 import org.midonet.cluster.DataClient
 import org.midonet.midolman.Setup
-import org.midonet.midolman.rules.TraceRule
-import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.config.MidolmanConfig
+import org.midonet.midolman.rules.RuleResult.Action
+import org.midonet.midolman.rules.TraceRule
 import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain}
-import org.midonet.midolman.state.{Directory, MockDirectory}
-import org.midonet.midolman.state.StateAccessException
-import org.midonet.midolman.util.MidolmanSpec
-import org.midonet.midolman.util.VirtualConfigurationBuilders.TraceDeviceType
+import org.midonet.midolman.state.{Directory, MockDirectory, StateAccessException}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.devices.{Port => SimPort}
-import org.midonet.packets.{MAC, IPv4Subnet}
+import org.midonet.midolman.util.MidolmanSpec
+import org.midonet.midolman.util.VirtualConfigurationBuilders.TraceDeviceType
+import org.midonet.packets.{IPv4Subnet, MAC}
 
 @RunWith(classOf[JUnitRunner])
 class TraceRequestTest extends MidolmanSpec {
@@ -174,39 +171,38 @@ class TraceRequestTest extends MidolmanSpec {
         val portId = newBridgePort(bridge)
 
         val port1 = fetchDevice[SimPort](portId)
-        port1.inboundFilter should be (null)
+        port1.inboundFilter shouldBe null
 
         val trace1 = newTraceRequest(portId, TraceDeviceType.PORT,
                                      newCondition(tpSrc = Some(5000)))
 
         val port2 = fetchDevice[SimPort](portId)
-        port2.inboundFilter should be (null)
+        port2.inboundFilter shouldBe null
 
         enableTraceRequest(trace1)
         val port3 = fetchDevice[SimPort](portId)
         port3.inboundFilter should not be (null)
 
-        var chainId = port3.inboundFilter
+        val chainId = port3.inboundFilter
         val chain = fetchDevice[SimChain](port3.inboundFilter)
         chain.name should startWith("TRACE_REQUEST_CHAIN")
 
-        val rules = chain.getRules()
+        val rules = chain.getRules
         rules.size shouldBe 1
 
         rules.get(0) match {
-            case t: TraceRule => {
+            case t: TraceRule =>
                 t.getRequestId should be (trace1)
-                t.getCondition.tpSrc.isInside(5000) should be (true)
+                t.getCondition.tpSrc.isInside(5000) shouldBe true
                 t.chainId should be (chainId)
-            }
             case _ => fail("Rule is of wrong type")
         }
-        disableTraceRequest(trace1);
+        disableTraceRequest(trace1)
 
         val port4 = fetchDevice[SimPort](portId)
         port4.inboundFilter should be (null)
 
-        VirtualTopologyActor.clearTopology
+        VirtualTopologyActor.clearTopology()
         intercept[TimeoutException] {
             fetchDevice[SimChain](chainId)
         }
@@ -217,7 +213,7 @@ class TraceRequestTest extends MidolmanSpec {
             enableTraceRequest(UUID.randomUUID)
             fail("Should throw an exception")
         } catch {
-            case e: IllegalStateException => { /* correct behaviour */ }
+            case e: IllegalStateException => /* correct behaviour */
             case _: Throwable => fail("Wrong exception thrown")
         }
 
@@ -225,7 +221,7 @@ class TraceRequestTest extends MidolmanSpec {
             disableTraceRequest(UUID.randomUUID)
             fail("Should throw an exception")
         } catch {
-            case e: IllegalStateException => { /* correct behaviour */ }
+            case e: IllegalStateException => /* correct behaviour */
             case _: Throwable => fail("Wrong exception thrown")
         }
     }
@@ -240,7 +236,7 @@ class TraceRequestTest extends MidolmanSpec {
         try {
             enableTraceRequest(trace1)
         } catch {
-            case e: IllegalStateException => { /* correct behaviour */ }
+            case e: IllegalStateException => /* correct behaviour */
             case _: Throwable => fail("Wrong exception thrown")
         }
     }
@@ -264,12 +260,8 @@ class TraceRequestTest extends MidolmanSpec {
         var rules = fetchDevice[SimChain](chainId).getRules
         rules.size() should be (2)
         rules.get(0) match {
-            case t: TraceRule => {
-                t.getRequestId should be (trace1)
-            }
-            case _ =>  {
-                fail("First rule should be the trace rule")
-            }
+            case t: TraceRule => t.getRequestId should be (trace1)
+            case _ => fail("First rule should be the trace rule")
         }
 
         // add another rule at the start
@@ -278,21 +270,17 @@ class TraceRequestTest extends MidolmanSpec {
         rules = fetchDevice[SimChain](chainId).getRules
         rules.size() should be (3)
         rules.get(0) match {
-            case t: TraceRule => {
-                fail("Shouldn't be first rule anymore")
-            }
-            case _ => { /* anything else is fine */ }
+            case t: TraceRule => fail("Shouldn't be first rule anymore")
+            case _ => /* anything else is fine */
         }
 
         disableTraceRequest(trace1)
         rules = fetchDevice[SimChain](chainId).getRules
         rules.size() should be (2)
-        rules.asScala foreach (x => x match {
-                                   case t: TraceRule => {
-                                       fail("There should be no trace rule")
-                                   }
-                                   case _ => { /* anything else is fine */ }
-                               })
+        rules.asScala foreach {
+            case t: TraceRule => fail("There should be no trace rule")
+            case _ => /* anything else is fine */
+        }
     }
 
     scenario("disable rule which is last on chain, but chain not trace chain") {
@@ -320,35 +308,35 @@ class TraceRequestTest extends MidolmanSpec {
     }
 
     scenario("Enable on creation, disabled on delete") {
-        var bridge = newBridge("bridge0", tenant=Some(tenantId))
+        val bridge = newBridge("bridge0", tenant=Some(tenantId))
 
         val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
                                      newCondition(tpSrc = Some(5000)),
                                      enabled=true)
         val chain = fetchDevice[SimBridge](bridge).inFilterId
-        chain.isDefined should be (true)
+        chain.isDefined shouldBe true
 
         val rules = fetchDevice[SimChain](chain.get).getRules
-        rules.size() should be (1)
+        rules.size() shouldBe 1
 
         deleteTraceRequest(trace1)
-        fetchDevice[SimBridge](bridge).inFilterId.isDefined should be (false)
+        fetchDevice[SimBridge](bridge).inFilterId.isDefined shouldBe false
     }
 
     scenario("Disable on device delete") {
-        var bridge = newBridge("bridge0", tenant=Some(tenantId))
+        val bridge = newBridge("bridge0", tenant=Some(tenantId))
 
         val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
                                      newCondition(tpSrc = Some(5000)),
                                      enabled=true)
         val chain = fetchDevice[SimBridge](bridge).inFilterId
-        chain.isDefined should be (true)
+        chain.isDefined shouldBe true
 
         val rules = fetchDevice[SimChain](chain.get).getRules
         rules.size() should be (1)
         deleteBridge(bridge)
 
-        VirtualTopologyActor.clearTopology
+        VirtualTopologyActor.clearTopology()
         intercept[TimeoutException] {
             fetchDevice[SimChain](chain.get)
         }

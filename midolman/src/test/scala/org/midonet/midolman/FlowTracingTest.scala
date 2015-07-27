@@ -92,13 +92,13 @@ class FlowTracingTest extends MidolmanSpec {
             newTraceRuleOnChain(chain, 1, newCondition(), requestId)
 
             val pktCtx = packetContextFor(makeFrame(1), port1)
-            pktCtx.tracingEnabled(requestId) should be (false)
+            pktCtx.tracingEnabled(requestId) shouldBe false
             try {
                 simulate(pktCtx)
                 fail("Should have thrown an exception")
             } catch {
                 case TraceRequiredException =>
-                    pktCtx.tracingEnabled(requestId) should be (true)
+                    pktCtx.tracingEnabled(requestId) shouldBe true
                     pktCtx.log should be (PacketContext.traceLog)
             }
             val (simRes, _) = simulate(pktCtx)
@@ -111,27 +111,27 @@ class FlowTracingTest extends MidolmanSpec {
                                 newCondition(tpDst = Some(500)), requestId)
 
             val pktCtx = packetContextFor(makeFrame(1), port1)
-            pktCtx.tracingEnabled(requestId) should be (false)
+            pktCtx.tracingEnabled(requestId) shouldBe false
             simulate(pktCtx)._1 should be (AddVirtualWildcardFlow)
-            pktCtx.tracingEnabled(requestId) should be (false)
+            pktCtx.tracingEnabled(requestId) shouldBe false
             pktCtx.log should not be PacketContext.traceLog
 
             val pktCtx2 = packetContextFor(makeFrame(500), port1)
-            pktCtx2.tracingEnabled(requestId) should be (false)
+            pktCtx2.tracingEnabled(requestId) shouldBe false
             try {
                 simulate(pktCtx2)
                 fail("Should have thrown an exception")
             } catch {
                 case TraceRequiredException =>
-                    pktCtx2.tracingEnabled(requestId) should be (true)
+                    pktCtx2.tracingEnabled(requestId) shouldBe true
                     pktCtx2.log should be (PacketContext.traceLog)
             }
             simulate(pktCtx2)._1 should be (AddVirtualWildcardFlow)
 
             val pktCtx3 = packetContextFor(makeFrame(1000), port1)
-            pktCtx3.tracingEnabled(requestId) should be (false)
+            pktCtx3.tracingEnabled(requestId) shouldBe false
             simulate(pktCtx3)._1 should be (AddVirtualWildcardFlow)
-            pktCtx3.tracingEnabled(requestId) should be (false)
+            pktCtx3.tracingEnabled(requestId) shouldBe false
             pktCtx3.log should not be PacketContext.traceLog
         }
 
@@ -144,29 +144,29 @@ class FlowTracingTest extends MidolmanSpec {
                                 newCondition(tpSrc = Some(1000)), requestId2)
 
             val pktCtx = packetContextFor(makeFrame(500), port1)
-            pktCtx.tracingEnabled(requestId1) should be (false)
-            pktCtx.tracingEnabled(requestId2) should be (false)
+            pktCtx.tracingEnabled(requestId1) shouldBe false
+            pktCtx.tracingEnabled(requestId2) shouldBe false
             try {
                 simulate(pktCtx)
                 fail("Should have thrown an exception")
             } catch {
                 case TraceRequiredException =>
                     pktCtx.log should be (PacketContext.traceLog)
-                    pktCtx.tracingEnabled(requestId1) should be (true)
-                    pktCtx.tracingEnabled(requestId2) should be (false)
+                    pktCtx.tracingEnabled(requestId1) shouldBe true
+                    pktCtx.tracingEnabled(requestId2) shouldBe false
             }
             simulate(pktCtx)._1 should be (AddVirtualWildcardFlow)
 
             val pktCtx2 = packetContextFor(makeFrame(500, 1000), port1)
-            pktCtx2.tracingEnabled(requestId1) should be (false)
+            pktCtx2.tracingEnabled(requestId1) shouldBe false
             try {
                 // should hit second rule
                 simulate(pktCtx2)
                 fail("Should have thrown an exception")
             } catch {
                 case TraceRequiredException =>
-                    pktCtx2.tracingEnabled(requestId2) should be (true)
-                    pktCtx2.tracingEnabled(requestId1) should be (false)
+                    pktCtx2.tracingEnabled(requestId2) shouldBe true
+                    pktCtx2.tracingEnabled(requestId1) shouldBe false
                     pktCtx2.log should be (PacketContext.traceLog)
             }
             try {
@@ -175,8 +175,8 @@ class FlowTracingTest extends MidolmanSpec {
                 fail("Should have thrown an exception")
             } catch {
                 case TraceRequiredException =>
-                    pktCtx2.tracingEnabled(requestId2) should be (true)
-                    pktCtx2.tracingEnabled(requestId1) should be (true)
+                    pktCtx2.tracingEnabled(requestId2) shouldBe true
+                    pktCtx2.tracingEnabled(requestId1) shouldBe true
                     pktCtx2.log should be (PacketContext.traceLog)
             }
             simulate(pktCtx2)._1 should be (AddVirtualWildcardFlow)
@@ -276,20 +276,20 @@ class FlowTracingTest extends MidolmanSpec {
                                 newCondition(tpDst = Some(500)), requestId1)
             val frame = makeFrame(500)
             val pktCtx = packetContextFor(frame, port1)
-            pktCtx.tracingEnabled(requestId1) should be (false)
+            pktCtx.tracingEnabled(requestId1) shouldBe false
             try {
                 simulate(pktCtx)
                 fail("Should have thrown an exception")
             } catch {
                 case TraceRequiredException =>
                     pktCtx.log should be (PacketContext.traceLog)
-                    pktCtx.tracingEnabled(requestId1) should be (true)
+                    pktCtx.tracingEnabled(requestId1) shouldBe true
             }
             val key = TraceKey.fromFlowMatch(
                 FlowMatches.fromEthernetPacket(frame))
             pktCtx.traceTx.get(key) should not be null
             pktCtx.traceTx.get(key)
-                .containsRequest(requestId1) should be (true)
+                .containsRequest(requestId1) shouldBe true
         }
 
         scenario("Trace gets enabled on egress host (no tunnel key hint)") {
@@ -307,7 +307,7 @@ class FlowTracingTest extends MidolmanSpec {
             table.putAndRef(key, context)
 
             val pktCtx = packetContextFor(frame, port1)
-            pktCtx.tracingEnabled(requestId1) should be (false)
+            pktCtx.tracingEnabled(requestId1) shouldBe false
 
             try {
                 simulate(pktCtx)
@@ -315,7 +315,7 @@ class FlowTracingTest extends MidolmanSpec {
             } catch {
                 case TraceRequiredException =>
                     pktCtx.log should be (PacketContext.traceLog)
-                    pktCtx.tracingEnabled(requestId1) should be (true)
+                    pktCtx.tracingEnabled(requestId1) shouldBe true
             }
             pktCtx.traceTx.size should be (0)
             pktCtx.traceFlowId should be (context.flowTraceId)
@@ -324,13 +324,13 @@ class FlowTracingTest extends MidolmanSpec {
             // shouldn't match
             val frame2 = makeFrame(500, 10001)
             val pktCtx2 = packetContextFor(frame2, port1)
-            pktCtx2.tracingEnabled(requestId1) should be (false)
+            pktCtx2.tracingEnabled(requestId1) shouldBe false
             try {
                 simulate(pktCtx2)
             } catch {
                 case TraceRequiredException =>
                     pktCtx2.log should be (PacketContext.traceLog)
-                    pktCtx2.tracingEnabled(requestId1) should be (true)
+                    pktCtx2.tracingEnabled(requestId1) shouldBe true
             }
             pktCtx2.traceTx.size should be (1)
             pktCtx2.traceFlowId should not be context.flowTraceId

@@ -29,7 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
-import org.midonet.packets.*;
+import org.midonet.packets.IPAddr;
+import org.midonet.packets.IPAddr$;
 
 public class ForwardNatRule extends NatRule {
     @ZoomField(name = "nat_targets")
@@ -47,8 +48,8 @@ public class ForwardNatRule extends NatRule {
     }
 
     public ForwardNatRule(Condition condition, Action action, UUID chainId,
-            int position, boolean dnat, Set<NatTarget> targets) {
-        super(condition, action, chainId, position, dnat);
+                          boolean dnat, Set<NatTarget> targets) {
+        super(condition, action, chainId, dnat);
         if (targets == null || targets.isEmpty())
             throw new IllegalArgumentException(
                     "A forward nat rule must have targets.");
