@@ -15,12 +15,12 @@
  */
 package org.midonet.cluster.data.rules;
 
+import java.util.Set;
+import java.util.UUID;
+
 import org.midonet.midolman.rules.Condition;
 import org.midonet.midolman.rules.NatTarget;
 import org.midonet.midolman.rules.RuleResult;
-
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * Basic abstraction for a forward NAT rule

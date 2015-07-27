@@ -45,7 +45,7 @@ class RuleConversionTest extends FeatureSpec with Matchers
     feature("Conversion for rule") {
         scenario("Conversion of a pojo rule to a proto buff is not supported") {
             val simRule = new LiteralRule(new Condition, RuleResult.Action.ACCEPT,
-                                          UUID.randomUUID() /* chainId */, 0)
+                                          UUID.randomUUID() /* chainId */)
 
             intercept[ZoomConvert.ConvertException] {
                 ZoomConvert.toProto(simRule, classOf[Rule])
@@ -183,7 +183,7 @@ class RuleConversionTest extends FeatureSpec with Matchers
                                              invIpAddrGroupIdSrc: Boolean = true,
                                              ipAddrGroupIdDst: UUID = UUID.randomUUID(),
                                              invIpAddrGroupIdDst: Boolean = true,
-                                             etherType: Int = random.nextInt,
+                                             etherType: Int = random.nextInt(),
                                              invDlType: Boolean = true,
                                              ethSrc: MAC = MAC.random,
                                              ethSrcMask: Long = Condition.NO_MASK,
@@ -255,7 +255,7 @@ class RuleConversionTest extends FeatureSpec with Matchers
 object RuleConversionTest {
     private val random = new Random()
 
-    def randomIPv4Subnet = new IPv4Subnet(random.nextInt, random.nextInt(32))
+    def randomIPv4Subnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
 
     def randomPortRange = {
         val start = random.nextInt(65535)

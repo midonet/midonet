@@ -55,8 +55,8 @@ public class TraceRule extends Rule {
     }
 
     public TraceRule(UUID requestId, Condition condition, long limit,
-                     UUID chainId, int position) {
-        super(condition, Action.CONTINUE, chainId, position);
+                     UUID chainId) {
+        super(condition, Action.CONTINUE, chainId);
         this.requestId = requestId;
         this.limit = limit;
         this.hits = 0;
