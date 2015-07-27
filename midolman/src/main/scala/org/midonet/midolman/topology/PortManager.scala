@@ -21,7 +21,7 @@ import org.midonet.cluster.Client
 import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.topology.builders.PortBuilderImpl
 import org.midonet.midolman.topology.PortManager.TriggerUpdate
-import org.midonet.midolman.topology.devices.Port
+import org.midonet.midolman.simulation.Port
 
 object PortManager{
     case class TriggerUpdate(port: Port)

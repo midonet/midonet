@@ -38,22 +38,18 @@ import org.midonet.midolman.monitoring.FlowRecorderFactory
 import org.midonet.midolman.simulation.Coordinator.Device
 
 import org.midonet.midolman.simulation.{Bridge => SimBridge,
-                                        Chain => SimChain, Coordinator,
-                                        DhcpConfigFromDataclient,
-                                        DhcpConfigFromZoom,
-                                        IPAddrGroup => SimIPAddrGroup,
-                                        PacketContext, PacketEmitter,
-                                        Router => SimRouter, Pool, LoadBalancer}
+                                        Chain => SimChain,
+                                        Router => SimRouter,
+                                        Port => SimPort,
+                                        BridgePort => SimBridgePort,
+                                        _}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.{ArpRequestBroker, HappyGoLuckyLeaser, MockStateStorage}
 
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.topology.devices.{Host, Port => SimPort,
-                                              BridgePort => SimBridgePort,
-                                              RouterPort => SimRouterPort,
-                                              VxLanPort}
+import org.midonet.midolman.topology.devices.Host
 import org.midonet.midolman.topology.{VirtualTopology, VirtualToPhysicalMapper, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.{DeviceRequest, BridgeRequest, ChainRequest, IPAddrGroupRequest,
                                                            PortRequest, RouterRequest, PoolRequest, LoadBalancerRequest}
@@ -84,7 +80,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     private val requestsFactory = Map[ClassTag[_], UUID => DeviceRequest](
         classTag[SimPort]              -> (new PortRequest(_)),
         classTag[SimBridgePort]        -> (new PortRequest(_)),
-        classTag[SimRouterPort]        -> (new PortRequest(_)),
+        classTag[RouterPort]        -> (new PortRequest(_)),
         classTag[VxLanPort]            -> (new PortRequest(_)),
         classTag[SimBridge]            -> (new BridgeRequest(_)),
         classTag[SimRouter]            -> (new RouterRequest(_)),

@@ -35,7 +35,6 @@ import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.state.ArpRequestBroker._
 import org.midonet.midolman.state._
-import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.ArpCacheHelper
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.odp.{FlowMatch, Packet}

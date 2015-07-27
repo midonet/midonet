@@ -30,7 +30,6 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.topology._
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.data
-import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.packets._
 import org.midonet.util.functors.{Callback0, Callback3}
 import org.midonet.cluster.VlanPortMapImpl

@@ -26,7 +26,7 @@ import scala.util.{Failure, Success, Try}
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 
-import org.midonet.midolman.topology.devices.{BridgePort, Port}
+import org.midonet.midolman.simulation.{BridgePort, Port}
 import org.midonet.midolman.topology.VirtualTopologyActor
 
 object MtuIncreaser  {

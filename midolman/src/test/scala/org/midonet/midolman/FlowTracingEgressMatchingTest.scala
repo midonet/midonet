@@ -36,8 +36,8 @@ import org.midonet.midolman.simulation.{Router => SimRouter}
 import org.midonet.midolman.state.FlowStatePackets
 import org.midonet.midolman.state.TraceState
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
+import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.{Flow, FlowMatches, Packet}

@@ -27,8 +27,9 @@ import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.state.ConnTrackState.ConnTrackKey
 import org.midonet.midolman.state.FlowStateStorage
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
+import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.{HostRequest, HostUnsubscribe}
-import org.midonet.midolman.topology.devices.{Host => DevicesHost, Port}
+import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.topology.rcu.{PortBinding, ResolvedHost}
 import org.midonet.midolman.topology.{VirtualToPhysicalMapper => VTPM, VirtualTopologyActor => VTA}
 import org.midonet.util.concurrent._

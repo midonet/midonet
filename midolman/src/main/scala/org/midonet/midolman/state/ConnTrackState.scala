@@ -21,9 +21,9 @@ import java.util.UUID
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.state.FlowState.FlowStateKey
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.devices.Port
 import org.midonet.odp.FlowMatch
 import org.midonet.packets.{ICMP, IPAddr, IPv4, TCP, UDP}
 import org.midonet.sdn.state.FlowStateTransaction

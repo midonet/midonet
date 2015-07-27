@@ -33,7 +33,8 @@ import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule,
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, VIP, _}
 import org.midonet.midolman.state.l4lb
 import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
-import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort, _}
+import org.midonet.midolman.topology.devices._
+import org.midonet.midolman.simulation.{BridgePort, Port, _}
 import org.midonet.packets.{IPv4Addr, MAC}
 
 object TopologyMatchers {

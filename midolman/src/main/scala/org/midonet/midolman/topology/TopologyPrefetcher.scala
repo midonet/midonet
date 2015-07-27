@@ -33,7 +33,6 @@ import org.midonet.midolman.topology.VirtualTopologyActor.IPAddrGroupRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.ChainRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.LoadBalancerRequest
-import org.midonet.midolman.topology.devices.Port
 
 /*
  * Implementers of this trait gain the ability to prefetch virtual devices

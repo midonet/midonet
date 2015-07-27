@@ -40,8 +40,8 @@ import org.midonet.midolman.state.{Directory, MockDirectory}
 import org.midonet.midolman.state.StateAccessException
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.VirtualConfigurationBuilders.TraceDeviceType
+import org.midonet.midolman.simulation.{Port => SimPort}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.devices.{Port => SimPort}
 import org.midonet.packets.{MAC, IPv4Subnet}
 
 @RunWith(classOf[JUnitRunner])

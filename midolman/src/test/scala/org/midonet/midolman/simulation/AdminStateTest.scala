@@ -35,7 +35,6 @@ import org.midonet.midolman._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.topology.VirtualTopologyActor.BridgeRequest
 import org.midonet.midolman.topology._
-import org.midonet.midolman.topology.devices.{BridgePort, RouterPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{BackChannelAccessor, MessageAccumulator}
 import org.midonet.odp.{Datapath, DpPort}

@@ -18,6 +18,8 @@ package org.midonet.midolman.topology
 
 import java.util.{Set => JSet, UUID}
 
+import org.midonet.midolman.simulation.VxLanPort
+
 import scala.concurrent.duration.{Duration, _}
 
 import akka.actor._
@@ -29,8 +31,8 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
+import org.midonet.midolman.simulation.{BridgePort, Port}
 import org.midonet.midolman.topology.VxLanPortMapper.VxLanPorts
-import org.midonet.midolman.topology.devices.{BridgePort, Port, VxLanPort}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.MidonetEventually
 
