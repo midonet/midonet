@@ -27,7 +27,7 @@ object SimulationResult extends Enumeration {
     type SimulationResult = Value
     val NOOP, DROP, ERROR_DROP, SHORT_DROP,
         SEND_PACKET, ADD_VIRTUAL_WILDCARD_FLOW,
-        STATE_MESSAGE, USERSPACE_FLOW, FLOW_CREATED, DUPE_FLOW,
+        STATE_MESSAGE, USERSPACE_FLOW, FLOW_CREATED,
         GENERATED_PACKET, UNKNOWN = Value
 }
 
@@ -153,7 +153,7 @@ object FlowRecord {
         import SimulationResult._
         val simRes = Arrays.asList(NOOP, DROP, ERROR_DROP, SHORT_DROP, SEND_PACKET,
                                    ADD_VIRTUAL_WILDCARD_FLOW, STATE_MESSAGE,
-                                   USERSPACE_FLOW, FLOW_CREATED, DUPE_FLOW,
+                                   USERSPACE_FLOW, FLOW_CREATED,
                                    GENERATED_PACKET)
         Collections.shuffle(simRes)
         FlowRecord(UUID.randomUUID, UUID.randomUUID, randomMatch(r),

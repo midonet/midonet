@@ -18,6 +18,7 @@ package org.midonet.midolman
 
 import akka.actor.Actor
 import akka.testkit.{TestActorRef, TestProbe}
+import org.midonet.sdn.flows.FlowTagger.FlowTag
 
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
@@ -81,33 +82,18 @@ class FlowControllerTest extends MidolmanSpec {
             And("The flow removal callback method was called")
             flow.flowRemoved should be (true)
         }
-
-        scenario("Addition of a duplicate flow") {
-            Given("A flow in the flow controller")
-            val flow1 = new TestableFlow()
-            val flow2 = new TestableFlow()
-            flow1.add() should not be null
-
-            When("The flow is added again to the flow controller")
-            val managedFlow = flow2.add()
-
-            Then("It should be detected as a duplicate")
-            managedFlow should be (null)
-
-            And("The flow removed callbacks should be called")
-            flow2.flowRemoved should be (true)
-        }
     }
 
-    final class TestableFlow {
+    final class TestableFlow(val fmatch: FlowMatch = new FlowMatch()) {
         var flowRemoved = false
 
-        def add(): ManagedFlow = {
-            val context = new PacketContext(0, null, new FlowMatch())
+        def add(tags: FlowTag*): ManagedFlow = {
+            val context = new PacketContext(0, null, fmatch)
+            tags foreach context.addFlowTag
             context addFlowRemovedCallback new Callback0 {
                 def call() = flowRemoved = true
             }
-            flowController.tryAddFlow(context, FlowExpirationIndexer.FLOW_EXPIRATION)
+            flowController.addFlow(context, FlowExpirationIndexer.FLOW_EXPIRATION)
             context.flow
         }
 
