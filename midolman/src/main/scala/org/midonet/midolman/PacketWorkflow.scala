@@ -185,7 +185,8 @@ class PacketWorkflow(
     protected val traceStateTx = new FlowStateTransaction(traceStateTable)
     protected var replicator: FlowStateReplicator = _
 
-    protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, flowInvalidator )
+    protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, flowInvalidator,
+                                                   () => self ! CheckBackchannels)
 
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {

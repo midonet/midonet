@@ -190,7 +190,7 @@ class ArpRequestBrokerTest extends Suite
                 invalidations.add(t)
             }
         }
-        arpBroker = new ArpRequestBroker(emitter, config, invalidator, clock)
+        arpBroker = new ArpRequestBroker(emitter, config, invalidator, () => { }, clock)
         router = new Router(routerId, null, null, null, arpCache)(actorSystem)
     }
 
