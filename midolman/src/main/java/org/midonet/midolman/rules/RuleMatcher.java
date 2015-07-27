@@ -135,4 +135,24 @@ public abstract class RuleMatcher implements Function<Rule, Boolean> {
                     new IPv4Subnet(addr, 32));
         }
     }
+
+    public static class ReverseDnatRuleMatcher extends RuleMatcher {
+
+        private final IPv4Addr addr;
+
+        public ReverseDnatRuleMatcher(IPv4Addr addr) {
+            this.addr = addr;
+        }
+
+        @Override
+        public Boolean apply(Rule rule) {
+            if (!rule.getClass().equals(ReverseNatRule.class))
+                return false;
+
+            ReverseNatRule r = (ReverseNatRule) rule;
+            Condition c = r.getCondition();
+            return r.dnat && Objects.equal(c.nwSrcIp,
+                    new IPv4Subnet(addr, 32));
+        }
+    }
 }

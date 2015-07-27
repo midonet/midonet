@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.midonet.midolman.rules.RuleMatcher.DefaultDropRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.DnatRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.DropFragmentRuleMatcher;
+import org.midonet.midolman.rules.RuleMatcher.ReverseDnatRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.ReverseSnatRuleMatcher;
 import org.midonet.midolman.rules.RuleMatcher.SnatRuleMatcher;
 import org.midonet.midolman.serialization.Serializer;
@@ -79,17 +80,34 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         return Rule.class;
     }
 
-    public void prepareRulesAppendToEndOfChain(List<Op> ops, UUID chainId,
-                                                   List<Rule> rules)
-            throws RuleIndexOutOfBoundsException, StateAccessException,
-            SerializationException {
-
+    public List<UUID> createAllRules(List<Op> ops, List<Rule> rules)
+        throws RuleIndexOutOfBoundsException, StateAccessException,
+                SerializationException {
         List<UUID> newRuleIds = new ArrayList<>();
         for (Rule r : rules) {
             UUID id = UUID.randomUUID();
             newRuleIds.add(id);
             ops.addAll(prepareRuleCreate(id, r));
         }
+
+        return newRuleIds;
+    }
+
+    public void prepareSetRuleChain(List<Op> ops, UUID chainId,
+                                    List<UUID> ruleIds, int version)
+        throws RuleIndexOutOfBoundsException, StateAccessException,
+                SerializationException {
+        String path = paths.getChainRulesPath(chainId);
+        ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
+                version));
+    }
+
+    public void prepareRulesAppendToEndOfChain(List<Op> ops, UUID chainId,
+                                                   List<Rule> rules)
+            throws RuleIndexOutOfBoundsException, StateAccessException,
+            SerializationException {
+
+        List<UUID> newRuleIds = createAllRules(ops, rules);
 
         // Get the ordered list of rules for this chain
         Map.Entry<RuleList, Integer> ruleListWithVersion =
@@ -99,9 +117,25 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
 
         ruleIds.addAll(newRuleIds);
 
-        String path = paths.getChainRulesPath(chainId);
-        ops.add(Op.setData(path, serializer.serialize(new RuleList(ruleIds)),
-            version));
+        prepareSetRuleChain(ops, chainId, ruleIds, version);
+    }
+
+    public void prepareRulesAppendToStartOfChain(List<Op> ops, UUID chainId,
+                                                 List<Rule> rules)
+            throws RuleIndexOutOfBoundsException, StateAccessException,
+            SerializationException {
+
+        List<UUID> newRuleIds = createAllRules(ops, rules);
+
+        // Get the ordered list of rules for this chain
+        Map.Entry<RuleList, Integer> ruleListWithVersion =
+                getRuleListWithVersion(chainId);
+        List<UUID> ruleIds = ruleListWithVersion.getKey().getRuleList();
+        int version = ruleListWithVersion.getValue();
+
+        newRuleIds.addAll(ruleIds);
+
+        prepareSetRuleChain(ops, chainId, newRuleIds, version);
     }
 
     public List<Op> prepareInsertPositionOrdering(UUID id, Rule ruleConfig,
@@ -459,7 +493,7 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             .toIp(matchIp)
             .destNat(new NatTarget(newTarget, 0, 0));
         return prepareReplaceRules(ops, chainId,
-            new DnatRuleMatcher(oldTarget), r);
+                new DnatRuleMatcher(oldTarget), r);
     }
 
     public UUID prepareReplaceSnatRules(List<Op> ops, UUID chainId, UUID portId,
@@ -474,23 +508,27 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
             new SnatRuleMatcher(oldTarget), r);
     }
 
-    public void prepareDeleteDnatRules(List<Op> ops, UUID chainId,
-                                       IPv4Addr target)
-            throws SerializationException, StateAccessException {
-        prepareDeleteRules(ops, chainId,
-            new DnatRuleMatcher(target));
-    }
+    public void prepareDeleteFipRules(List<Op> ops, UUID inboundFilterId,
+                                      UUID outboundFilterId,
+                                      IPv4Addr fixedIp,
+                                      IPv4Addr floatingIp)
+        throws SerializationException, StateAccessException,
+                RuleIndexOutOfBoundsException {
 
-    public void prepareDeleteSnatRules(List<Op> ops, UUID chainId,
-                                       IPv4Addr addr)
-            throws SerializationException, StateAccessException {
-        prepareDeleteRules(ops, chainId, new SnatRuleMatcher(addr));
-    }
+        RuleMatcher dnatMatcher = new DnatRuleMatcher(fixedIp);
+        RuleMatcher reverseSnatMatcher = new ReverseSnatRuleMatcher(fixedIp);
+        List<RuleMatcher> inboundMatchers = new ArrayList<>(2);
+        inboundMatchers.add(dnatMatcher);
+        inboundMatchers.add(reverseSnatMatcher);
+        prepareDeleteRules(ops, inboundFilterId, inboundMatchers);
 
-    public void prepareDeleteRules(List<Op> ops, UUID chainId,
-                                   Function<Rule, Boolean> matcher)
-            throws StateAccessException, SerializationException {
-        prepareReplaceRules(ops, chainId, matcher, null);
+        RuleMatcher snatMatcher = new SnatRuleMatcher(floatingIp);
+        RuleMatcher reverseDnatMatcher= new ReverseDnatRuleMatcher(floatingIp);
+        List<RuleMatcher> outboundMatchers = new ArrayList<>(2);
+        outboundMatchers.add(snatMatcher);
+        outboundMatchers.add(reverseDnatMatcher);
+        prepareDeleteRules(ops, outboundFilterId, outboundMatchers);
+
     }
 
     public boolean snatRuleExists(UUID chainId, IPv4Addr addr)
@@ -577,39 +615,6 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         return newId;
     }
 
-    private UUID prepareCreateRuleFirstPosition(List<Op> ops, Rule rule)
-            throws RuleIndexOutOfBoundsException, SerializationException,
-            StateAccessException {
-
-        UUID id = UUID.randomUUID();
-        ops.addAll(prepareInsertPositionOrdering(id, rule, 1));
-        return id;
-    }
-
-    public UUID prepareCreateStaticSnatRule(List<Op> ops, UUID chainId,
-                                            UUID portId, IPv4Addr matchIp,
-                                            IPv4Addr targetIp)
-            throws RuleIndexOutOfBoundsException, SerializationException,
-            StateAccessException {
-        Rule rule = new RuleBuilder(chainId)
-            .goingOutPort(portId)
-            .fromIp(matchIp)
-            .sourceNat(new NatTarget(targetIp, 0, 0));
-        return prepareCreateRuleFirstPosition(ops, rule);
-    }
-
-    public UUID prepareCreateStaticDnatRule(List<Op> ops, UUID chainId,
-                                            UUID portId, IPv4Addr matchIp,
-                                            IPv4Addr targetIp)
-            throws RuleIndexOutOfBoundsException, SerializationException,
-            StateAccessException {
-        Rule rule = new RuleBuilder(chainId)
-            .comingInPort(portId)
-            .toIp(matchIp)
-            .destNat(new NatTarget(targetIp, 0, 0));
-        return prepareCreateRuleFirstPosition(ops, rule);
-    }
-
     public void prepareCreateSourceNatRules(List<Op> ops, UUID inboundChainId,
                                             UUID outboundChainId, UUID portId,
                                             IPv4Addr addr)
@@ -643,6 +648,44 @@ public class RuleZkManager extends AbstractZkManager<UUID, Rule> {
         inboundRules.add(reverseSourceNat);
         inboundRules.add(dropSourceNat);
         prepareRulesAppendToEndOfChain(ops, inboundChainId, inboundRules);
+    }
+
+    public void prepareCreateFloatingIpNatRules(List<Op> ops,
+                                                UUID inboundChainId,
+                                                UUID outboundChainId,
+                                                UUID portId,
+                                                IPv4Addr floatingIp,
+                                                IPv4Addr fixedIp)
+            throws SerializationException, StateAccessException,
+            RuleIndexOutOfBoundsException {
+
+        Rule revDnatRule = new RuleBuilder(outboundChainId)
+                .goingOutPort(portId)
+                .fromIp(floatingIp)
+                .reverseDestNat();
+        Rule staticSnatRule = new RuleBuilder(outboundChainId)
+                .goingOutPort(portId)
+                .fromIp(fixedIp)
+                .sourceNat(new NatTarget(floatingIp, 0, 0));
+
+        ArrayList<Rule> outboundRules = new ArrayList<>(2);
+        outboundRules.add(revDnatRule);
+        outboundRules.add(staticSnatRule);
+        prepareRulesAppendToStartOfChain(ops, outboundChainId, outboundRules);
+
+        Rule revSnatRule = new RuleBuilder(inboundChainId)
+                .comingInPort(portId)
+                .toIp(fixedIp)
+                .reverseSourceNat();
+        Rule staticDnatRule = new RuleBuilder(inboundChainId)
+                .comingInPort(portId)
+                .toIp(floatingIp)
+                .destNat(new NatTarget(fixedIp, 0, 0));
+
+        ArrayList<Rule> inboundRules = new ArrayList<>(2);
+        inboundRules.add(revSnatRule);
+        inboundRules.add(staticDnatRule);
+        prepareRulesAppendToStartOfChain(ops, inboundChainId, inboundRules);
     }
 
     public void prepareDeleteSourceNatRules(List<Op> ops, UUID inboundChainId,

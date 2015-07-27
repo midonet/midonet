@@ -564,7 +564,8 @@ public class L3ZkManager extends BaseZkManager {
     }
 
     public void prepareDeleteFloatingIp(List<Op> ops, FloatingIp fip)
-        throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+        org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
         Preconditions.checkNotNull(fip);
         Port port = networkZkManager.getPort(fip.portId);
         if (port != null) {
@@ -575,7 +576,8 @@ public class L3ZkManager extends BaseZkManager {
     }
 
     public void prepareDeleteFloatingIp(List<Op> ops, UUID floatingIpId)
-        throws StateAccessException, SerializationException {
+        throws StateAccessException, SerializationException,
+        org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
         FloatingIp fip = getFloatingIp(floatingIpId);
         if (fip != null) {
             prepareDeleteFloatingIp(ops, fip);
@@ -648,14 +650,15 @@ public class L3ZkManager extends BaseZkManager {
 
         // Add NAT rules on tenant router
         RouterConfig rCfg = routerZkManager.get(fip.routerId);
-        ruleZkManager.prepareCreateStaticSnatRule(ops, rCfg.outboundFilter,
-            gwPort.id, fip.fixedIpv4Addr(), fip.floatingIpv4Addr());
-        ruleZkManager.prepareCreateStaticDnatRule(ops, rCfg.inboundFilter,
-            gwPort.id, fip.floatingIpv4Addr(), fip.fixedIpv4Addr());
+
+        ruleZkManager.prepareCreateFloatingIpNatRules(ops, rCfg.inboundFilter,
+            rCfg.outboundFilter, gwPort.id, fip.floatingIpv4Addr(),
+            fip.fixedIpv4Addr());
     }
 
     private void prepareDisassociateFloatingIp(List<Op> ops, FloatingIp fip)
-        throws SerializationException, StateAccessException {
+        throws SerializationException, StateAccessException,
+        org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
 
         UUID prId = providerRouterZkManager.getId();
 
@@ -668,11 +671,9 @@ public class L3ZkManager extends BaseZkManager {
 
         // Go through router chains and remove all the NAT rules
         RouterConfig rCfg = routerZkManager.get(fip.routerId);
-        ruleZkManager.prepareDeleteDnatRules(ops, rCfg.inboundFilter,
-                                             fip.fixedIpv4Addr());
-        ruleZkManager.prepareDeleteSnatRules(ops, rCfg.outboundFilter,
-                                             fip.floatingIpv4Addr());
-
+        ruleZkManager.prepareDeleteFipRules(
+            ops, rCfg.inboundFilter, rCfg.outboundFilter, fip.fixedIpv4Addr(),
+            fip.floatingIpv4Addr());
     }
 
     private void prepareUpdateNeutronFloatingIp(List<Op> ops, FloatingIp fip)
@@ -682,7 +683,8 @@ public class L3ZkManager extends BaseZkManager {
     }
 
     public void prepareDisassociateFloatingIp(List<Op> ops, Port port)
-            throws SerializationException, StateAccessException {
+            throws SerializationException, StateAccessException,
+            org.midonet.cluster.data.Rule.RuleIndexOutOfBoundsException {
 
         // TODO: Do something about this inefficiency
         FloatingIp fip = findFloatingIpByPort(port.id);

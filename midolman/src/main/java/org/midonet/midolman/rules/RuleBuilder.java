@@ -79,6 +79,12 @@ public class RuleBuilder {
         return r;
     }
 
+    public Rule reverseDestNat() {
+        r = new ReverseNatRule(c, RuleResult.Action.ACCEPT, true);
+        r.chainId = chainId;
+        return r;
+    }
+
     public RuleBuilder fromIp(IPv4Addr addr) {
         return fromSubnet(addr.subnet(32));
     }

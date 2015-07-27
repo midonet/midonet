@@ -23,6 +23,7 @@ import com.google.inject.Inject;
 
 import org.apache.zookeeper.Op;
 
+import org.midonet.cluster.data.Rule;
 import org.midonet.cluster.rest_api.neutron.models.IPAllocation;
 import org.midonet.cluster.rest_api.neutron.models.Network;
 import org.midonet.cluster.rest_api.neutron.models.Port;
@@ -106,7 +107,8 @@ public class ExternalNetZkManager extends BaseZkManager {
      * all the floating IPs allocated on this network should be deleted.
      */
     public void prepareDeleteExternalNetwork(List<Op> ops, Network net)
-            throws SerializationException, StateAccessException {
+            throws SerializationException, StateAccessException,
+            Rule.RuleIndexOutOfBoundsException {
 
         // Delete floating IPs belonging to the ports on this network
         List<Port> ports = networkZkManager.getPorts(net.id);

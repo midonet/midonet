@@ -119,17 +119,48 @@ public final class NeutronZkDataTest extends NeutronPluginTest {
                                               expectedMatchCnt);
     }
 
+    private void verifyFipRevSnatRule(int expectedMatchCnt) {
+
+        String rulesPath = pathBuilder.getRulesPath();
+
+        String fixedIpAddr = floatingIp.fixedIpAddress;
+
+        Map<String, Object> matches = new HashMap<>();
+        matches.put("type", "ReverseNat");
+        matches.put("condition.nwDstIp.address", fixedIpAddr);
+
+        dirVerifier.assertChildrenFieldsMatch(rulesPath, matches,
+                expectedMatchCnt);
+    }
+
+    private void verifyFipRevDnatRule(int expectedMatchCnt) {
+
+        String rulesPath = pathBuilder.getRulesPath();
+
+        String floatingIpAddr = floatingIp.floatingIpAddress;
+
+        Map<String, Object> matches = new HashMap<>();
+        matches.put("type", "ReverseNat");
+        matches.put("condition.nwSrcIp.address", floatingIpAddr);
+
+        dirVerifier.assertChildrenFieldsMatch(rulesPath, matches,
+                expectedMatchCnt);
+    }
+
     private void verifyFloatingIpRules() {
 
         verifyFipSnatRule(1);
+        verifyFipRevSnatRule(1);
         verifyFipDnatRule(1);
-
+        verifyFipRevDnatRule(1);
     }
 
     public void verifyNoFloatingIpRules() {
 
         verifyFipSnatRule(0);
+        verifyFipRevSnatRule(0);
         verifyFipDnatRule(0);
+        verifyFipRevDnatRule(0);
     }
 
     @Test
