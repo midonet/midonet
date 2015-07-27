@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,13 @@ public class LiteralRule extends Rule {
         super();
     }
 
-    public LiteralRule(Condition condition, Action action, UUID chainId,
-            int position) {
-        super(condition, action, chainId, position);
-        if (action != Action.ACCEPT && action != Action.DROP
-                && action != Action.REJECT && action != Action.RETURN)
+    public LiteralRule(Condition condition, Action action, UUID chainId) {
+        super(condition, action, chainId);
+        if (action != Action.ACCEPT && action != Action.DROP &&
+            action != Action.REJECT && action != Action.RETURN) {
             throw new IllegalArgumentException("A literal rule's action "
-                    + "must be one of: ACCEPT, DROP, REJECT or RETURN.");
+                       + "must be one of: ACCEPT, DROP, REJECT or RETURN.");
+        }
     }
 
     @Override

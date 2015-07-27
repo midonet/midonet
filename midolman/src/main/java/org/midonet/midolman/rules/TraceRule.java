@@ -19,20 +19,25 @@ package org.midonet.midolman.rules;
 import java.util.Objects;
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomOneOf;
+import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.TraceRequiredException;
 import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
+@ZoomClass(clazz = Topology.Rule.class, factory = TraceRule.RuleFactory.class)
+@ZoomOneOf(name = "trace_rule_data")
 public class TraceRule extends Rule {
 
-    private final static Logger log =
-        LoggerFactory.getLogger(TraceRule.class);
-
+    @ZoomField(name = "trace_request_id", converter = UUIDUtil.Converter.class)
     private UUID requestId;
+
+    @ZoomField(name = "limit")
     private long limit;
+
     private long hits;
 
     public TraceRule(UUID requestId, Condition condition, long limit) {
@@ -50,8 +55,8 @@ public class TraceRule extends Rule {
     }
 
     public TraceRule(UUID requestId, Condition condition, long limit,
-                     UUID chainId, int position) {
-        super(condition, Action.CONTINUE, chainId, position);
+                     UUID chainId) {
+        super(condition, Action.CONTINUE, chainId);
         this.requestId = requestId;
         this.limit = limit;
         this.hits = 0;

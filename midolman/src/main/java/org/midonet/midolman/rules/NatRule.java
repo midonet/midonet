@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,18 +34,20 @@ public abstract class NatRule extends Rule {
     public NatRule(Condition condition, Action action, boolean dnat) {
         super(condition, action);
         this.dnat = dnat;
-        if (!action.equals(Action.ACCEPT) && !action.equals(Action.CONTINUE)
-                && !action.equals(Action.RETURN))
+        if (!action.equals(Action.ACCEPT) &&
+            !action.equals(Action.CONTINUE)
+            && !action.equals(Action.RETURN)) {
             throw new IllegalArgumentException("A nat rule's action "
-                    + "must be one of: ACCEPT, CONTINUE, or RETURN.");
+                       + "must be one of: ACCEPT, CONTINUE, or RETURN.");
+        }
     }
 
     // Default constructor for the Jackson deserialization.
     public NatRule() { super(); }
 
     public NatRule(Condition condition, Action action, UUID chainId,
-            int position, boolean dnat) {
-        super(condition, action, chainId, position);
+                   boolean dnat) {
+        super(condition, action, chainId);
         this.dnat = dnat;
         if (!action.equals(Action.ACCEPT) && !action.equals(Action.CONTINUE)
                 && !action.equals(Action.RETURN))

@@ -15,33 +15,30 @@
  */
 package org.midonet.midolman
 
-import java.{util => ju}
 import java.util.UUID
-import scala.collection.JavaConverters._
+import java.{util => ju}
+
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 import akka.testkit.TestActorRef
 import com.google.common.collect.{BiMap, HashBiMap}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.UnderlayResolver.Route
-import org.midonet.midolman.layer3.{Route => L3Route}
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.simulation.{Bridge => SimBridge, PacketContext}
-import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.state.FlowStatePackets
-import org.midonet.midolman.state.TraceState
+import org.midonet.midolman.layer3.{Route => L3Route}
+import org.midonet.midolman.simulation.{Bridge => SimBridge, PacketContext, Router => SimRouter}
+import org.midonet.midolman.state.{FlowStatePackets, TraceState}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
-import org.midonet.odp.{Flow, FlowMatches, Packet}
 import org.midonet.odp.flows._
+import org.midonet.odp.{Flow, FlowMatches, Packet}
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
@@ -152,18 +149,12 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         feedMacTable(simBridge, vm2Mac, bridgeVm2Port)
 
         fetchPorts(uplinkPort, bridgeVm2Port) map {
-            _ match {
-                case p: Port =>
-                    portMapIngress.put(p.tunnelKey.toInt, p.id)
-                case _ =>
-            }
+            case p: Port => portMapIngress.put(p.tunnelKey.toInt, p.id)
+            case _ =>
         }
         fetchPorts(bridgeVm1Port) map {
-            _ match {
-                case p: Port =>
-                    portMapEgress.put(p.tunnelKey.toInt, p.id)
-                case _ =>
-            }
+            case p: Port => portMapEgress.put(p.tunnelKey.toInt, p.id)
+            case _ =>
         }
         fetchPorts(rtrIntPort, bridgeRtrPort)
         fetchChains(bridgeChain)
@@ -225,7 +216,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
             injectPacketVerifyTraced(inPortNum, frame)
         }
     }
-    }
+  }
     private def injectPacketVerifyTraced(inPortNum: Int,
                                          frame: Ethernet): Unit = {
         val packets = List(new Packet(frame,
@@ -241,21 +232,21 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         // should have executed flow with tunnel mask set
         val (packet, actions) = packetOutQueueIngress.remove()
-        TraceState.traceBitPresent(getTunnelId(actions)) should be (true)
+        TraceState.traceBitPresent(getTunnelId(actions)) shouldBe true
         getTunnelDst(actions) should be (egressHostIp)
 
         // should have created flow, but without tunnel mask set
         flowQueueIngress.size should be (1)
         val flow = flowQueueIngress.remove()
         TraceState.traceBitPresent(
-            getTunnelId(flow.getActions)) should be (false)
+            getTunnelId(flow.getActions)) shouldBe false
 
         packetCtxTrapIngress.size should be (2)
         val ingressCtx = packetCtxTrapIngress.remove()
         // should have the same packet context after the workflow restart
         ingressCtx should be (packetCtxTrapIngress.pop())
 
-        val egressFrame = applyPacketActions(packet.getEthernet(),
+        val egressFrame = applyPacketActions(packet.getEthernet,
                                              actions)
         val egressFrameFlowMatch =
             FlowMatches.fromEthernetPacket(egressFrame)

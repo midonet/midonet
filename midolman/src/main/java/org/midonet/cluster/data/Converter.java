@@ -34,15 +34,15 @@ import org.midonet.cluster.data.l4lb.LoadBalancer;
 import org.midonet.cluster.data.l4lb.Pool;
 import org.midonet.cluster.data.l4lb.PoolMember;
 import org.midonet.cluster.data.l4lb.VIP;
-import org.midonet.cluster.rest_api.neutron.models.ExtraDhcpOpt;
 import org.midonet.cluster.data.ports.BridgePort;
 import org.midonet.cluster.data.ports.RouterPort;
 import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.cluster.data.rules.ForwardNatRule;
 import org.midonet.cluster.data.rules.JumpRule;
 import org.midonet.cluster.data.rules.LiteralRule;
-import org.midonet.cluster.data.rules.TraceRule;
 import org.midonet.cluster.data.rules.ReverseNatRule;
+import org.midonet.cluster.data.rules.TraceRule;
+import org.midonet.cluster.rest_api.neutron.models.ExtraDhcpOpt;
 import org.midonet.midolman.host.state.HostDirectory;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortDirectory.BridgePortConfig;
@@ -534,7 +534,6 @@ public class Converter {
                     typedRule.getCondition(),
                     typedRule.getAction(),
                     typedRule.getChainId(),
-                    typedRule.getPosition(),
                     typedRule.isDnat(),
                     typedRule.getTargets()
             );
