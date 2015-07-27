@@ -68,7 +68,6 @@ object PacketWorkflow {
     case object StateMessage extends SimulationResult
     case object UserspaceFlow extends SimulationResult
     case object FlowCreated extends SimulationResult
-    case object DuplicatedFlow extends SimulationResult
     case object GeneratedPacket extends SimulationResult
 }
 
@@ -455,7 +454,7 @@ class PacketWorkflow(
                 context.flowRemovedCallbacks.runAndClear()
                 UserspaceFlow
             } else {
-                tryAddFlow(context, expiration)
+                addFlow(context, expiration)
                 FlowCreated
             }
         }

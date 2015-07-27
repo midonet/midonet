@@ -39,7 +39,7 @@ class MockFlowProcessor(val flowsTable: JMap[FlowMatch, Flow] = null)
                                                      new PortFamily(0),
                                                      new FlowFamily(0),
                                                      new PacketFamily(0), 0, 0),
-                              10, 1023, new MockNetlinkChannelFactory,
+                              10000, 1023, new MockNetlinkChannelFactory,
                               new MockClock) {
     var flowDelCb: Flow => Unit = _
 
