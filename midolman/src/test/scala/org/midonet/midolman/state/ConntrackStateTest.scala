@@ -56,9 +56,7 @@ class ConntrackStateTest extends MidolmanSpec {
     val connTrackTx = new FlowStateTransaction(connTrackStateTable)
 
     override def beforeTest(): Unit = {
-        val port = new BridgePort
-        port.id = portId
-        port.networkId = ingressDevice
+        val port = BridgePort(id = portId, networkId = ingressDevice)
         VirtualTopologyActor ! PortRequest(portId)
         VirtualTopologyActor ! port
     }

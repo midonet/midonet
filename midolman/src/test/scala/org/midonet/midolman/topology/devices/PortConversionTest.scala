@@ -17,6 +17,8 @@ package org.midonet.midolman.topology.devices
 
 import java.util.UUID
 
+import akka.actor.ActorSystem
+
 import scala.util.Random
 
 import org.junit.runner.RunWith
@@ -33,6 +35,7 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                          with TopologyMatchers {
 
     private val random = new Random()
+    implicit val as: ActorSystem = ActorSystem("port-conversion-test")
 
     feature("Conversion for bridge port") {
         scenario("Test conversion from Protocol Buffers message") {
@@ -48,18 +51,10 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 adminStateUp = random.nextBoolean(),
                 portGroupIds = Set(UUID.randomUUID, UUID.randomUUID),
                 vlanId = Some(random.nextInt().toShort))
-            val device = ZoomConvert.fromProto(port, classOf[Port])
+            val device = Port(port)
 
             device shouldBeDeviceOf port
             device.deviceTag should not be null
-        }
-
-        scenario("Test conversion to Protocol Buffers message") {
-            val port = init(new BridgePort())
-            port.networkId = UUID.randomUUID
-            val proto = ZoomConvert.toProto(port, classOf[Topology.Port])
-
-            port shouldBeDeviceOf proto
         }
     }
 
@@ -76,22 +71,10 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 interfaceName = Some(random.nextString(10)),
                 adminStateUp = random.nextBoolean(),
                 portGroupIds = Set(UUID.randomUUID, UUID.randomUUID))
-            val device = ZoomConvert.fromProto(port, classOf[Port])
+            val device = Port(port)
 
             device shouldBeDeviceOf port
             device.deviceTag should not be null
-        }
-
-        scenario("Test conversion to Protocol Buffers message") {
-            val port = init(new RouterPort())
-            port.routerId = UUID.randomUUID
-            port.portSubnet = new IPv4Subnet(random.nextInt(), random.nextInt(32))
-            port.portIp = new IPv4Addr(random.nextInt())
-            port.portMac = new MAC(random.nextLong())
-
-            val proto = ZoomConvert.toProto(port, classOf[Topology.Port])
-
-            port shouldBeDeviceOf proto
         }
     }
 
@@ -104,38 +87,14 @@ class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder
                 tunnelKey = random.nextLong(),
                 peerId = Some(UUID.randomUUID),
                 vifId = Some(UUID.randomUUID),
-                hostId = Some(UUID.randomUUID),
-                interfaceName = Some(random.nextString(10)),
+                hostId = None,
+                interfaceName = None,
                 adminStateUp = random.nextBoolean(),
                 portGroupIds = Set(UUID.randomUUID, UUID.randomUUID))
-            val device = ZoomConvert.fromProto(port, classOf[Port])
+            val device = Port(port)
 
             device shouldBeDeviceOf port
             device.deviceTag should not be null
         }
-
-        scenario("Test conversion to Protocol Buffers message") {
-            val port = init(new VxLanPort())
-            port.networkId = UUID.randomUUID
-            port.vtepId = UUID.randomUUID
-
-            val proto = ZoomConvert.toProto(port, classOf[Topology.Port])
-
-            port shouldBeDeviceOf proto
-        }
-    }
-
-    private def init(port: Port): port.type = {
-        port.id = UUID.randomUUID
-        port.inboundFilter = UUID.randomUUID
-        port.outboundFilter = UUID.randomUUID
-        port.tunnelKey = random.nextLong()
-        port.portGroups = Set(UUID.randomUUID, UUID.randomUUID)
-        port.peerId = UUID.randomUUID
-        port.hostId = UUID.randomUUID
-        port.interfaceName = random.nextString(5)
-        port.adminStateUp = random.nextBoolean()
-        port.vlanId = random.nextInt().toShort
-        port
     }
 }
