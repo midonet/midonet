@@ -67,8 +67,7 @@ class FlowExpirationIndexerTest extends MidolmanSpec {
             removedFlows.clear()
             clock.time = FlowExpirationIndexer.FLOW_EXPIRATION.value + 1
             flowExpiration.checkFlowsExpiration(clock.tick)
-            removedFlows should have size 1
-            removedFlows.dequeue() should be (flow)
+            removedFlows should have size 0
             flow.currentRefCount should be (0)
         }
 

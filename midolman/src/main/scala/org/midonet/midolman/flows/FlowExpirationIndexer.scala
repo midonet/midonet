@@ -50,7 +50,10 @@ object FlowExpirationIndexer {
 
 /**
  * This trait deals with flow expiration. It registers all new flows and removes
- * them when the specified expiration time has elapsed.
+ * them when the specified expiration time has elapsed. Note that a flow may
+ * be removed from the kernel via another mechanism (such as flow invalidation),
+ * but it is still kept in these data structures until it expires. This is to
+ * avoid linear remove operations or smarter, more expensive data structures.
  */
 trait FlowExpirationIndexer extends FlowIndexer {
     import FlowExpirationIndexer._
@@ -86,8 +89,7 @@ trait FlowExpirationIndexer extends FlowIndexer {
             while (({ flow = queue.peekFirst(); flow } ne null) &&
                    now >= flow.absoluteExpirationNanos) {
                 log.debug(s"Removing flow $flow for hard expiration")
-                removeFlow(queue.pollFirst())
-                flow.unref()
+                maybeRemoveFlow(queue.pollFirst())
             }
             i += 1
         }
@@ -116,11 +118,21 @@ trait FlowExpirationIndexer extends FlowIndexer {
             var flow: ManagedFlow = null
             while (evicted < numFlowsToEvict &&
                    ({ flow = queue.pollFirst(); flow } ne null)) {
-                removeFlow(flow)
-                flow.unref()
+                maybeRemoveFlow(flow)
                 evicted += 1
             }
             i += 1
         }
+    }
+
+    private def maybeRemoveFlow(flow: ManagedFlow): Unit = {
+        flow.unref()
+        // Check if the flow's ref count is greater than zero, in
+        // which case it means the flow is kept elsewhere (i.e., installed
+        // in the kernel) and needs to be properly removed. If, on the other
+        // hand, this class was the only reference to the flow, than it
+        // was already removed.
+        if (flow.currentRefCount > 0)
+            removeFlow(flow)
     }
 }
