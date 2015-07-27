@@ -38,11 +38,11 @@ import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
 import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
+import org.midonet.midolman.simulation.{Bridge => SimulationBridge, RouterPort, Chain}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state.{ReplicatedMap, StateAccessException}
-import org.midonet.midolman.topology.devices.{RouterPort, BridgePort, Port}
+import org.midonet.midolman.simulation.{BridgePort, Port}
 import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.collection.Reducer

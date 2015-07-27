@@ -31,12 +31,12 @@ import rx.functions.Func1;
 
 import org.midonet.cluster.client.PortBuilder;
 import org.midonet.midolman.cluster.zookeeper.ZkConnectionProvider;
+import org.midonet.midolman.simulation.Port;
+import org.midonet.midolman.simulation.Port$;
 import org.midonet.midolman.state.PortConfig;
 import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
-import org.midonet.midolman.topology.devices.Port;
-import org.midonet.midolman.topology.devices.Port$;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback1;
 

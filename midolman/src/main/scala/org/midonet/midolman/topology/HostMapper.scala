@@ -31,8 +31,9 @@ import org.midonet.cluster.data.storage.StateKey
 import org.midonet.cluster.models.Topology.{Host => TopologyHost}
 import org.midonet.cluster.services.MidonetBackend.AliveKey
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.midolman.simulation.Port
 import org.midonet.midolman.topology.DeviceMapper.DeviceState
-import org.midonet.midolman.topology.devices.{Host => SimulationHost, Port, TunnelZone}
+import org.midonet.midolman.topology.devices.{Host => SimulationHost, TunnelZone}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 
 /**

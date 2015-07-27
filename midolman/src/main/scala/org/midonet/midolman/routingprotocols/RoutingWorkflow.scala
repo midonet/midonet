@@ -22,9 +22,8 @@ import java.util.concurrent.ConcurrentHashMap
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, SimulationResult, ErrorDrop}
-import org.midonet.midolman.simulation.PacketContext
+import org.midonet.midolman.simulation.{RouterPort, PacketContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.FlowActions.{output, userspace}

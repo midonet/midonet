@@ -35,7 +35,7 @@ import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.l4lb.PoolHealthMonitorMapManager
 import org.midonet.midolman.{BackChannelMessage, SimulationBackChannel, NotYetException, Referenceable}
 import org.midonet.midolman.simulation._
-import org.midonet.midolman.topology.devices.{PoolHealthMonitorMap, RouterPort, BridgePort, Port}
+import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
 import org.midonet.util.concurrent._
 
 /**

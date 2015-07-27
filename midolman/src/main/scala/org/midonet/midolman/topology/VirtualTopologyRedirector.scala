@@ -31,7 +31,7 @@ import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation._
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.devices.{PoolHealthMonitorMap, Port}
+import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
 
 /**
  * An abstraction layer for the [[VirtualTopologyActor]] that redirects
