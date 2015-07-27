@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ public class RuleBuilder {
     public Rule sourceNat(NatTarget nt) {
         Set<NatTarget> targets = new HashSet<>();
         targets.add(nt);
-        r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, 1, false,
-            targets);
+        r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, false,
+                               targets);
         return r;
     }
 
@@ -74,8 +74,8 @@ public class RuleBuilder {
     public Rule destNat(NatTarget nt) {
         Set<NatTarget> targets = new HashSet<>();
         targets.add(nt);
-        r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, 1, true,
-            targets);
+        r = new ForwardNatRule(c, RuleResult.Action.ACCEPT, chainId, true,
+                               targets);
         return r;
     }
 
