@@ -67,15 +67,17 @@ class RoutingHandlerTest extends FeatureSpecLike
     val peer2Id = UUID.randomUUID()
 
     before {
-        rport = new RouterPort()
-        rport.routerId = UUID.randomUUID()
-        rport.portSubnet = IPv4Subnet.fromCidr("192.168.80.0/24")
-        rport.portIp = IPv4Addr.fromString("192.168.80.1")
-        rport.id = UUID.randomUUID()
-        rport.portMac = MAC.random()
-        rport.afterFromProto(null)
-
         as = ActorSystem("RoutingHandlerTest")
+
+        rport = RouterPort(
+                id = UUID.randomUUID(),
+                tunnelKey = 1,
+                isActive = true,
+                routerId = UUID.randomUUID(),
+                portSubnet = IPv4Subnet.fromCidr("192.168.80.0/24"),
+                portIp = IPv4Addr.fromString("192.168.80.1"),
+                portMac = MAC.random())
+
         bgpd = new MockBgpdProcess
         dataClient = mock[DataClient]
         invalidations = Nil
@@ -84,7 +86,6 @@ class RoutingHandlerTest extends FeatureSpecLike
                                                     dataClient,
                                                     config,
                                                     bgpd))
-
         routingHandler ! rport
         bgpd.state should be (bgpd.NOT_STARTED)
         routingHandler ! RoutingHandler.Update(baseConfig, Set(peer1Id))
@@ -108,14 +109,12 @@ class RoutingHandlerTest extends FeatureSpecLike
         }
 
         scenario("change in the router port address") {
-            val p = rport.copy(true)
-            p.portIp = IPv4Addr.fromString("192.168.80.2")
-            p.afterFromProto(null)
+            val p = rport.copy(isActive = true, portIp = IPv4Addr.fromString("192.168.80.2"))
             routingHandler ! p
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
 
-            routingHandler ! p.copy(true)
+            routingHandler ! p
             bgpd.state should be (bgpd.RUNNING)
             bgpd.starts should be (2)
         }

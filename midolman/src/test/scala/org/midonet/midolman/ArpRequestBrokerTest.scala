@@ -86,13 +86,12 @@ class ArpRequestBrokerTest extends Suite
     private val MY_MAC = MAC.fromString("02:0a:08:06:04:02")
     private val THEIR_MAC = MAC.random()
 
-    val port = new RouterPort
-    port.id = UUID.randomUUID()
-    port.routerId = routerId
-    port.portMac = MY_MAC
-    port.portIp = MY_IP
-    port.portSubnet = IPv4Subnet.fromCidr(NW_CIDR)
-    port.afterFromProto(null)
+    val port = RouterPort(id = UUID.randomUUID(),
+                          tunnelKey = 0,
+                          portMac = MY_MAC,
+                          routerId = routerId,
+                          portIp = MY_IP,
+                          portSubnet = IPv4Subnet.fromCidr(NW_CIDR))
 
     var router: Router = _
 
