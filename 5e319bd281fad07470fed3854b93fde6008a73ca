@@ -73,6 +73,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8d7de41e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 66,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-27T09:28:02Z",
+      "side": 1,
+      "message": "nope.",
+      "parentUuid": "9ad9bd40_5a7b958b",
+      "range": {
+        "startLine": 66,
+        "startChar": 67,
+        "endLine": 66,
+        "endChar": 71
+      },
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_cb49a132",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 1
