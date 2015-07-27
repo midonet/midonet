@@ -23,7 +23,7 @@ import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.midolman.simulation.Chain
-import org.midonet.midolman.topology.devices.{Port => SimulationPort}
+import org.midonet.midolman.simulation.{Port => SimulationPort}
 import org.midonet.util.functors.{makeAction0, makeFunc1, makeFunc2}
 
 /**

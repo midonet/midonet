@@ -18,13 +18,13 @@ package org.midonet.midolman.routingprotocols
 import java.util.UUID
 
 import com.typesafe.scalalogging.Logger
+import org.midonet.midolman.simulation.RouterPort
 import org.midonet.packets.{IPv4Subnet, IPv4Addr}
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.client.BGPListBuilder
 import org.midonet.cluster.data.{AdRoute, BGP}
 import org.midonet.midolman.config.MidolmanConfig
-import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.quagga.BgpdConfiguration.{Network, Neighbor, BgpRouter}
 
 class BgpModelTranslator(var portId: UUID,

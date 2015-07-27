@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.topology.devices
+package org.midonet.midolman.simulation
 
 import java.util.UUID
 
 import akka.actor.ActorSystem
-
-import scala.util.Random
-
 import org.junit.runner.RunWith
+import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 
-import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
+import scala.util.Random
 
 @RunWith(classOf[JUnitRunner])
 class PortConversionTest extends FeatureSpec with Matchers with TopologyBuilder

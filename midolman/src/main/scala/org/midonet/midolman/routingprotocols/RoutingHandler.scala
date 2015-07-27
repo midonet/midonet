@@ -18,6 +18,8 @@ package org.midonet.midolman.routingprotocols
 import java.io.File
 import java.util.UUID
 
+import org.midonet.midolman.simulation.RouterPort
+
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -36,7 +38,6 @@ import org.midonet.midolman.state.{StateAccessException, ZkConnectionAwareWatche
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman._
-import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.odp.ports.NetDevPort
 import org.midonet.odp.DpPort
 import org.midonet.packets._

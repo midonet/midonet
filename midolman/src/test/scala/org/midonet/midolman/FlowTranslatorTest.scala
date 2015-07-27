@@ -31,9 +31,9 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.rules.RuleResult.Action
 import org.midonet.midolman.rules.{Condition, RuleResult}
-import org.midonet.midolman.simulation.{Bridge, PacketContext}
+import org.midonet.midolman.simulation.{VxLanPort, Bridge, PacketContext}
 import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
-import org.midonet.midolman.topology.devices.{BridgePort,VxLanPort}
+import org.midonet.midolman.simulation.BridgePort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.{output, pushVLAN, setKey, userspace}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions, FlowKeys}

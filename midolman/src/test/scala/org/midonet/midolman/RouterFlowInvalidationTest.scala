@@ -25,10 +25,9 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.Drop
 import org.midonet.midolman.layer3.Route._
-import org.midonet.midolman.simulation.{Router => SimRouter}
+import org.midonet.midolman.simulation.{Router => SimRouter, RouterPort}
 import org.midonet.midolman.topology.RouterManager.RouterInvTrieTagCountModified
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.devices.RouterPort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.{EmptyActor, MessageAccumulator}
 import org.midonet.packets.{IPv4Subnet, Packets, IPv4Addr, MAC}

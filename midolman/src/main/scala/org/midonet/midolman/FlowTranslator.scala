@@ -25,11 +25,11 @@ import scala.concurrent.ExecutionContextExecutor
 import akka.actor.ActorSystem
 import akka.util.Timeout
 
-import org.midonet.midolman.simulation.{Bridge, PacketContext}
+import org.midonet.midolman.simulation.{VxLanPort, Bridge, PacketContext}
 import org.midonet.midolman.topology.VirtualToPhysicalMapper
 import org.midonet.midolman.topology.VirtualToPhysicalMapper.HostRequest
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
-import org.midonet.midolman.topology.devices.{Port, VxLanPort}
+import org.midonet.midolman.simulation.Port
 import org.midonet.odp.flows.FlowActions.{output, setKey}
 import org.midonet.odp.flows._
 import org.midonet.packets.{Ethernet, ICMP, IPv4, IPv4Addr}
