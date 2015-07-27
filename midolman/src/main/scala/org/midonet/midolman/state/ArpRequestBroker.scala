@@ -24,7 +24,7 @@ import scala.util.Random
 
 import com.google.common.collect.ArrayListMultimap
 import com.typesafe.scalalogging.Logger
-import org.jctools.queues.SpscLinkedQueue
+import org.jctools.queues.SpscGrowableArrayQueue
 import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.{SimulationBackChannel, NotYetException}
@@ -206,7 +206,7 @@ class SingleRouterArpRequestBroker(id: UUID,
      * ArpCache's reactor to write events to this concurrent queue. It will later
      * process these events sequentially when process() is invoked.
      */
-    private val macsDiscovered = new SpscLinkedQueue[MacChange]()
+    private val macsDiscovered = new SpscGrowableArrayQueue[MacChange](256, Integer.MAX_VALUE)
 
     /**
      * Notify this ArpRequestBroker when the ArpTable has discovered a new
