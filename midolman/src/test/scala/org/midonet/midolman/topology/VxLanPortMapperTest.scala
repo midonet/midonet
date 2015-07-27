@@ -107,7 +107,7 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
                 (1 to nPorts) foreach { _ =>
                     expectMsgPF() {
                         case PortRequest(id,false) if ids contains id =>
-                            lastSender ! new BridgePort
+                            lastSender ! BridgePort.random
                             true
                     }
                 }
@@ -122,13 +122,15 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
 
                 val nPorts = 5
                 val ports: Seq[VxLanPort] = List.tabulate(nPorts) { idx =>
-                    new VxLanPort {
-                        id = UUID.randomUUID
-                        vtepVni = idx
-                        vtepMgmtIp = IPv4Addr(idx)
-                        vtepTunnelIp = IPv4Addr(idx+1)
-                        vtepTunnelZoneId = UUID.randomUUID()
-                    }
+                    VxLanPort(
+                        id = UUID.randomUUID,
+                        networkId = UUID.randomUUID(),
+                        tunnelKey = 0,
+                        vtepId = null,
+                        vtepVni = idx,
+                        vtepMgmtIp = IPv4Addr(idx),
+                        vtepTunnelIp = IPv4Addr(idx+1),
+                        vtepTunnelZoneId = UUID.randomUUID())
                 }
                 val ids: Seq[UUID] = ports map { _.id }
                 val vnis: Seq[(IPv4Addr, Int)] = ports map { p => (p.vtepTunnelIp, p.vtepVni) }
@@ -160,7 +162,7 @@ class VxLanPortMapperTest extends TestKit(ActorSystem("VxLanPortMapperTest"))
                 expectMsgType[IdsRequest].cb.onSuccess(ids)
                 (1 to 2) foreach { _ =>
                     expectMsgType[PortRequest]
-                    lastSender ! new BridgePort // don't care about port type
+                    lastSender ! BridgePort.random // don't care about port type
                 }
                 expectNoMsg(Duration fromNanos 10000)
             }
