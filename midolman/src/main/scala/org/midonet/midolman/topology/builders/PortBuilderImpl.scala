@@ -27,13 +27,13 @@ class PortBuilderImpl(val portActor: ActorRef) extends PortBuilder {
     private var active = false
 
     override def setPort(p: Port) {
-        port = p.copy(active)
+        port = p.toggleActive(active)
     }
 
     override def setActive(active: Boolean) {
         this.active = active
         if (port != null)
-            port = port.copy(active)
+            port = port.toggleActive(active)
     }
 
     def build() {
