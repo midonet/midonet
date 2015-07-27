@@ -1,0 +1,119 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_0818e273",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 28,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-27T12:50:24Z",
+      "side": 1,
+      "message": "typo",
+      "range": {
+        "startLine": 28,
+        "startChar": 50,
+        "endLine": 28,
+        "endChar": 58
+      },
+      "revId": "6a7d7ae53e04b2a1ac4cb24e15c50195a2eda8e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_284f666c",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-27T12:50:24Z",
+      "side": 1,
+      "message": "guava",
+      "range": {
+        "startLine": 114,
+        "startChar": 40,
+        "endLine": 114,
+        "endChar": 45
+      },
+      "revId": "6a7d7ae53e04b2a1ac4cb24e15c50195a2eda8e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_887152aa",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 171,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-27T12:50:24Z",
+      "side": 1,
+      "message": "guava",
+      "range": {
+        "startLine": 171,
+        "startChar": 52,
+        "endLine": 171,
+        "endChar": 57
+      },
+      "revId": "6a7d7ae53e04b2a1ac4cb24e15c50195a2eda8e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c866faec",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 187,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-27T12:50:24Z",
+      "side": 1,
+      "message": "guava",
+      "range": {
+        "startLine": 187,
+        "startChar": 14,
+        "endLine": 187,
+        "endChar": 19
+      },
+      "revId": "6a7d7ae53e04b2a1ac4cb24e15c50195a2eda8e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_085d4215",
+        "filename": "docs/cluster_services_guide.md",
+        "patchSetId": 3
+      },
+      "lineNbr": 190,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-27T12:50:24Z",
+      "side": 1,
+      "message": "what is this name used for?",
+      "range": {
+        "startLine": 189,
+        "startChar": 0,
+        "endLine": 190,
+        "endChar": 23
+      },
+      "revId": "6a7d7ae53e04b2a1ac4cb24e15c50195a2eda8e2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
