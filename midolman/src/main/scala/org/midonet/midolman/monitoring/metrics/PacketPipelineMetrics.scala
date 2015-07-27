@@ -16,39 +16,17 @@
 
 package org.midonet.midolman.monitoring.metrics
 
-import java.util.ArrayList
-
 import com.codahale.metrics.{Gauge, MetricRegistry}
 import com.codahale.metrics.MetricRegistry.name
-import org.midonet.midolman.monitoring.metrics.PacketPipelineMetrics.CompositeLongGauge
-
-object PacketPipelineMetrics {
-    class CompositeLongGauge() extends Gauge[Long] {
-        private val gauges = new ArrayList[Gauge[Long]]()
-
-        def register(gauge: Gauge[Long]): Unit =
-            gauges.add(gauge)
-
-        override def getValue: Long = {
-            var value = 0L
-            var i = 0
-            while (i < gauges.size) {
-                value += gauges.get(i).getValue
-                i += 1
-            }
-            value
-        }
-    }
-}
 
 class PacketPipelineMetrics(val registry: MetricRegistry,
                             numPipelineProcessors: Int) {
 
     val pendedPackets = registry.counter(name(
-        classOf[PacketPipelineGauge], "currentPendedPackets"))
+        classOf[PacketPipelineCounter], "currentPendedPackets"))
 
     val packetsOnHold = registry.counter(name(
-        classOf[PacketPipelineMeter], "packetsOnHold"))
+        classOf[PacketPipelineCounter], "packetsOnHold"))
 
     val packetsSimulated = registry.meter(name(
         classOf[PacketPipelineMeter], "packetsSimulated", "packets"))
@@ -60,7 +38,7 @@ class PacketPipelineMetrics(val registry: MetricRegistry,
         classOf[PacketPipelineMeter], "packetsProcessed", "packets"))
 
     val packetsDropped = registry.meter(name(
-        classOf[PacketPipelineCounter], "packetsDropped", "packets"))
+        classOf[PacketPipelineMeter], "packetsDropped", "packets"))
 
     val liveSimulations = registry.register(name(
         classOf[PacketPipelineGauge], "liveSimulations"),
@@ -73,13 +51,18 @@ class PacketPipelineMetrics(val registry: MetricRegistry,
         classOf[PacketPipelineAccumulatedTime],
         "simulationAccumulatedTime"))
 
-    val currentDpFlowsMetric = registry.register(name(
-            classOf[FlowTablesGauge], "currentDatapathFlows"),
-            new CompositeLongGauge())
+    val currentDpFlowsMetric = registry.register("currentDatapathFlows",
+                                                 new Gauge[Long] with FlowTablesGauge {
+        override def getValue: Long = dpFlowsMetric.getCount - dpFlowsRemovedMetric.getCount
+    })
 
     val dpFlowsMetric = registry.meter(name(
-            classOf[FlowTablesMeter], "datapathFlowsCreated",
-            "datapathFlows"))
+        classOf[FlowTablesMeter], "datapathFlowsCreated",
+        "datapathFlows"))
+
+    val dpFlowsRemovedMetric = registry.meter(name(
+        classOf[FlowTablesMeter], "datapathFlowsRemoved",
+        "datapathFlowsRemoved"))
 
     def packetSimulated(latency: Int) {
         packetsSimulated.mark()
