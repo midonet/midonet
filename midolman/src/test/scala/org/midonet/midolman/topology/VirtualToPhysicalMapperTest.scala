@@ -65,55 +65,57 @@ class VirtualToPhysicalMapperTest extends MidolmanSpec
         devicesHost
     }
 
-    feature("VirtualToPhysicalMapper resolves host requests.") {
-        scenario("Subscribes to a host.") {
-            val host = buildHost()
-            val subscriber = subscribe(HostRequest(hostId))
-            val notifications = subscriber.getAndClear()
+    if (!useNewStorageStack) { // tests for new stack VTPM in VTPMRedirectorTest
+        feature("VirtualToPhysicalMapper resolves host requests.") {
+            scenario("Subscribes to a host.") {
+                val host = buildHost()
+                val subscriber = subscribe(HostRequest(hostId))
+                val notifications = subscriber.getAndClear()
 
-            notifications should contain only host
+                notifications should contain only host
 
-            (1 to 5) map { _ =>
-                host
-            } andThen {
-                VirtualToPhysicalMapper ! _
-            } andThen {
-                subscriber.messages should contain (_)
+                (1 to 5) map { _ =>
+                    host
+                } andThen {
+                    VirtualToPhysicalMapper ! _
+                } andThen {
+                    subscriber.messages should contain (_)
+                }
             }
         }
-    }
 
-    feature("VirtualToPhysicalMapper resolves tunnel zones") {
-        scenario("Subscribe to a tunnel zone.") {
-            val zone = greTunnelZone("twilight-zone")
-            val host = newHost("myself", hostId, Set(zone))
-            val tunnelZoneHost = new TunnelZone.HostConfig(host)
-                .setIp(IPv4Addr("1.1.1.1"))
-            addTunnelZoneMember(zone, host, tunnelZoneHost.getIp())
-            val subscriber = subscribe(TunnelZoneRequest(zone))
-            subscriber.getAndClear() should be (List(
-                ZoneMembers(zone, TunnelZone.Type.gre, Set(tunnelZoneHost))))
+        feature("VirtualToPhysicalMapper resolves tunnel zones") {
+            scenario("Subscribe to a tunnel zone.") {
+                val zone = greTunnelZone("twilight-zone")
+                val host = newHost("myself", hostId, Set(zone))
+                val tunnelZoneHost = new TunnelZone.HostConfig(host)
+                    .setIp(IPv4Addr("1.1.1.1"))
+                addTunnelZoneMember(zone, host, tunnelZoneHost.getIp())
+                val subscriber = subscribe(TunnelZoneRequest(zone))
+                subscriber.getAndClear() should be (
+                    List(ZoneMembers(zone, TunnelZone.Type.gre, Set(tunnelZoneHost))))
 
-            VirtualToPhysicalMapper ! ZoneChanged(
+                VirtualToPhysicalMapper ! ZoneChanged(
                     zone, TunnelZone.Type.gre, tunnelZoneHost, HostConfigOperation.Deleted)
-            subscriber.getAndClear() should be (List(
-                ZoneChanged(zone, TunnelZone.Type.gre, tunnelZoneHost,
-                               HostConfigOperation.Deleted)))
+                subscriber.getAndClear() should be (
+                    List(ZoneChanged(zone, TunnelZone.Type.gre, tunnelZoneHost,
+                                     HostConfigOperation.Deleted)))
 
-            VirtualToPhysicalMapper ! ZoneChanged(zone, TunnelZone.Type.gre,
-                                                  tunnelZoneHost,
-                                                  HostConfigOperation.Added)
+                VirtualToPhysicalMapper ! ZoneChanged(zone, TunnelZone.Type.gre,
+                                                      tunnelZoneHost,
+                                                      HostConfigOperation.Added)
 
-            subscriber.getAndClear() should be (List(
-                ZoneChanged(zone, TunnelZone.Type.gre, tunnelZoneHost,
-                               HostConfigOperation.Added)))
+                subscriber.getAndClear() should be (
+                    List(ZoneChanged(zone, TunnelZone.Type.gre, tunnelZoneHost,
+                                     HostConfigOperation.Added)))
 
-            val other = new TunnelZone.HostConfig(UUID.randomUUID())
-            VirtualToPhysicalMapper ! ZoneChanged(zone, TunnelZone.Type.gre, other,
-                                                     HostConfigOperation.Added)
-            subscriber.getAndClear() should be (List(
-                ZoneChanged(zone, TunnelZone.Type.gre, other,
-                               HostConfigOperation.Added)))
+                val other = new TunnelZone.HostConfig(UUID.randomUUID())
+                VirtualToPhysicalMapper ! ZoneChanged(zone, TunnelZone.Type.gre, other,
+                                                      HostConfigOperation.Added)
+                subscriber.getAndClear() should be (
+                    List(ZoneChanged(zone, TunnelZone.Type.gre, other,
+                                     HostConfigOperation.Added)))
+            }
         }
     }
 }
