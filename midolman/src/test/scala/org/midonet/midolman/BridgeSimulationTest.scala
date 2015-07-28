@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.simulation.Coordinator.{FloodBridgeAction, ToPortAction}
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.output
@@ -293,18 +293,11 @@ class BridgeSimulationTest extends MidolmanSpec {
         }
     }
 
-    private def verifyFloodAction(action: SimulationResult) : Unit =
-        action match {
-            case FloodBridgeAction(brId, ports) =>
-                assert(brId === bridge)
-                assert(ports.contains(port1OnHost1))
-                assert(ports.contains(port2OnHost1))
-                assert(ports.contains(port3OnHost1))
-                assert(ports.contains(portOnHost2))
-                assert(ports.contains(portOnHost3))
-            case _ => fail("Not FloodBridgeAction, instead: " +
-                               action.toString)
-        }
+    private def verifyFloodAction(action: SimulationResult) : Unit = {
+        val br: Bridge = fetchDevice[Bridge](bridge)
+        if (action != br.floodAction)
+            fail("Not flood action, instead: " + action.toString)
+    }
 }
 
 /**
