@@ -187,7 +187,8 @@ class PacketWorkflow(
 
     protected val datapathId = dpState.datapath.getIndex
 
-    protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, backChannel )
+    protected val arpBroker = new ArpRequestBroker(genPacketEmitter, config, backChannel,
+                                                   () => self ! CheckBackchannels)
 
     private val invalidateExpiredConnTrackKeys =
         new Reducer[ConnTrackKey, ConnTrackValue, Unit]() {

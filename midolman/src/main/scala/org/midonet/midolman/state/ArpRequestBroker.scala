@@ -80,6 +80,7 @@ object ArpRequestBroker {
 class ArpRequestBroker(emitter: PacketEmitter,
                        config: MidolmanConfig,
                        invalidator: SimulationBackChannel,
+                       triggerBackChannel: () => Unit,
                        clock: UnixClock = UnixClock()) {
 
     val log = Logger(LoggerFactory.getLogger(s"org.midonet.devices.router.arptable"))
@@ -93,7 +94,7 @@ class ArpRequestBroker(emitter: PacketEmitter,
             case null =>
                 log.info(s"Building new arp request broker for router ${router.id}")
                 val broker = new SingleRouterArpRequestBroker(router.id,
-                        router.arpCache, emitter, config, invalidator, clock)
+                        router.arpCache, emitter, config, invalidator, triggerBackChannel, clock)
                 brokers.put(router.id, broker)
                 broker
             case broker => broker
@@ -154,6 +155,7 @@ class SingleRouterArpRequestBroker(id: UUID,
                                    emitter: PacketEmitter,
                                    config: MidolmanConfig,
                                    invalidator: SimulationBackChannel,
+                                   triggerBackChannel: () => Unit,
                                    clock: UnixClock = UnixClock()) {
     import ArpRequestBroker._
 
@@ -212,6 +214,7 @@ class SingleRouterArpRequestBroker(id: UUID,
      */
     arpCache.observable.subscribe(makeAction1[ArpCacheUpdate] { u =>
         macsDiscovered.add(MacChange(u.ipAddr, u.oldMac, u.newMac))
+        triggerBackChannel()
     })
 
     private val stalenessJitter: Long = {
