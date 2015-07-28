@@ -35,7 +35,7 @@ import org.midonet.midolman.UnderlayResolver.{Route => UnderlayRoute}
 import org.midonet.midolman._
 import org.midonet.midolman.datapath.DatapathChannel
 import org.midonet.midolman.monitoring.FlowRecorderFactory
-import org.midonet.midolman.simulation.Coordinator.Device
+import org.midonet.midolman.simulation.SimDevice
 
 import org.midonet.midolman.simulation.{Bridge => SimBridge,
                                         Chain => SimChain,
@@ -183,7 +183,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         context
     }
 
-    def simulateDevice(device: Device, frame: Ethernet, inPort: UUID,
+    def simulateDevice(device: SimDevice, frame: Ethernet, inPort: UUID,
                        emitter: Queue[PacketEmitter.GeneratedPacket] = new LinkedList)
                       (implicit conntrackTx: FlowStateTransaction[ConnTrackKey, ConnTrackValue] = NO_CONNTRACK,
                                 natTx: FlowStateTransaction[NatKey, NatBinding] = NO_NAT,
@@ -217,7 +217,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             flushTransactions(conntrackTx, natTx)
             pktCtx.clear()
             pktCtx.wcmatch.reset(pktCtx.origMatch)
-            new Coordinator(pktCtx) simulate()
+            Simulator.simulate(pktCtx)
         }
         commitTransactions(conntrackTx, natTx)
         flushTransactions(conntrackTx, natTx)

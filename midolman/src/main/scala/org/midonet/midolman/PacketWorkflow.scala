@@ -446,9 +446,6 @@ class PacketWorkflow(
             handlePacketEgress(context)
     }
 
-    def runSimulation(context: PacketContext): SimulationResult =
-        new Coordinator(context).simulate()
-
     protected def addTranslatedFlow(context: PacketContext,
                                     expiration: Expiration): SimulationResult =
         if (context.packet.getReason == Packet.Reason.FlowActionUserspace) {
@@ -501,7 +498,7 @@ class PacketWorkflow(
 
     private def handlePacketEgress(context: PacketContext) = {
         context.log.debug("Handling generated packet")
-        processSimulationResult(context, runSimulation(context))
+        processSimulationResult(context, Simulator.simulate(context))
     }
 
     def processSimulationResult(context: PacketContext,
@@ -559,7 +556,7 @@ class PacketWorkflow(
         if (handleDHCP(context)) {
             NoOp
         } else {
-            runSimulation(context)
+            Simulator.simulate(context)
         }
 
     protected def handleStateMessage(context: PacketContext): Unit = {

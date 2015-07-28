@@ -44,9 +44,9 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                                         val routerMgrTagger: TagManager)
                                        (implicit system: ActorSystem,
                                         icmpErrors: IcmpErrorSender[IP])
-    extends Coordinator.Device with RoutingWorkflow with VirtualDevice {
+    extends SimDevice with RoutingWorkflow with VirtualDevice {
 
-    import org.midonet.midolman.simulation.Coordinator._
+    import org.midonet.midolman.simulation.Simulator._
 
     def isValidEthertype(ether: Short): Boolean
 
@@ -248,7 +248,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
 
                 case Route.NextHop.PORT =>
                     applyTimeToLive() match {
-                        case NoOp => ToPortAction(rt.nextHopPort)
+                        case NoOp => tryAsk[Port](rt.nextHopPort).action
                         case simRes => simRes
                     }
                 case _ =>
@@ -335,7 +335,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 context.log.debug("routing packet to {}", nextHopMac)
                 pMatch.setEthSrc(outPort.portMac)
                 pMatch.setEthDst(nextHopMac)
-                new ToPortAction(rt.nextHopPort)
+                tryAsk[RouterPort](rt.nextHopPort).action
         }
 
     }
