@@ -41,7 +41,6 @@ import org.midonet.midolman.simulation.{Bridge => SimBridge,
                                         Chain => SimChain, Coordinator,
                                         DhcpConfigFromDataclient,
                                         DhcpConfigFromZoom,
-                                        IPAddrGroup => SimIPAddrGroup,
                                         PacketContext, PacketEmitter,
                                         Router => SimRouter, Pool, LoadBalancer}
 import org.midonet.midolman.state.ConnTrackState._
@@ -103,17 +102,14 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
         }
     }
 
-    def fetchRouters(routers: UUID*): Seq[SimRouter] = {
-        routers map { fetchDevice[SimRouter](_) }
-    }
+    def fetchRouters(routers: UUID*): Seq[SimRouter] =
+        routers map fetchDevice[SimRouter]
 
-    def fetchPorts(ports: UUID*): Seq[SimPort] = {
-        ports map { fetchDevice[SimPort](_) }
-    }
+    def fetchPorts(ports: UUID*): Seq[SimPort] =
+        ports map fetchDevice[SimPort]
 
-    def fetchChains(chains: UUID*): Seq[SimChain] = {
-        chains map { fetchDevice[SimChain](_) }
-    }
+    def fetchChains(chains: UUID*): Seq[SimChain] =
+        chains map fetchDevice[SimChain]
 
     def fetchHost(hostId: UUID): Host =
         Await.result(
@@ -346,7 +342,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             Future.successful(new MockStateStorage),
             HappyGoLuckyLeaser,
             metrics,
-            injector.getInstance(classOf[FlowRecorderFactory]).newFlowRecorder,
+            injector.getInstance(classOf[FlowRecorderFactory]).newFlowRecorder(),
             _ => { }) {
 
             override def runWorkflow(pktCtx: PacketContext) = {

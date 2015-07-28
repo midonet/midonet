@@ -18,30 +18,27 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import com.typesafe.config.{ConfigFactory, Config}
-
 import scala.collection.JavaConversions._
 
-import com.codahale.metrics.MetricRegistry
-import com.google.inject.{AbstractModule, Guice, Injector, PrivateModule, Scopes}
+import com.google.inject.{AbstractModule, Guice, Injector, PrivateModule}
+import com.typesafe.config.{ConfigFactory, Config}
 import org.openjdk.jmh.annotations.{TearDown, Setup => JmhSetup}
 
-import org.midonet.cluster.Client
 import org.midonet.cluster.services.{LegacyStorageService, MidonetBackend}
+import org.midonet.cluster.storage.MidonetBackendTestModule
 import org.midonet.conf.MidoTestConfigurator
 import org.midonet.midolman.cluster.datapath.MockDatapathModule
 import org.midonet.midolman.cluster.serialization.SerializationModule
 import org.midonet.midolman.cluster.state.MockFlowStateStorageModule
 import org.midonet.midolman.cluster.zookeeper.MockZookeeperConnectionModule
 import org.midonet.midolman.cluster.{LegacyClusterModule, MidolmanActorsModule, ResourceProtectionModule}
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.guice.config.MidolmanConfigModule
 import org.midonet.midolman.host.scanner.InterfaceScanner
-import org.midonet.midolman.services.{DatapathConnectionService, HostIdProviderService, MidolmanActorsService, MidolmanService, SelectLoopService}
-import org.midonet.midolman.simulation.Chain
-import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
+import org.midonet.midolman.services.{HostIdProviderService, MidolmanActorsService, MidolmanService}
 import org.midonet.midolman.util.{MidolmanServices, ForwardingVirtualConfigurationBuilders, LegacyVirtualConfigurationBuilders, VirtualConfigurationBuilders, VirtualTopologyHelper}
-import org.midonet.util.concurrent.{MockClock, NanoClock}
+import org.midonet.midolman.util.guice.MockMidolmanModule
+import org.midonet.midolman.util.mock.{MockInterfaceScanner, MockMidolmanActors}
+import org.midonet.util.concurrent.NanoClock
 
 trait MidolmanBenchmark extends MockMidolmanActors
                         with MidolmanServices
@@ -51,8 +48,7 @@ trait MidolmanBenchmark extends MockMidolmanActors
 
     @JmhSetup
     def midolmanBenchmarkSetup(): Unit = {
-        val config = fillConfig()
-        injector = Guice.createInjector(getModules(config))
+        injector = Guice.createInjector(getModules)
         injector.getInstance(classOf[LegacyStorageService])
                 .startAsync().awaitRunning()
         injector.getInstance(classOf[MidonetBackend])
@@ -80,12 +76,14 @@ trait MidolmanBenchmark extends MockMidolmanActors
         ConfigFactory.parseString(defaults).withFallback(config)
     }
 
-    protected def getModules(config: Config) = {
+    protected def getModules = {
+        val conf = MidoTestConfigurator.forAgents(fillConfig())
         List(
             new SerializationModule(),
-            new MidolmanConfigModule(config),
+            new MidolmanConfigModule(conf),
             new MockDatapathModule(),
             new MockFlowStateStorageModule(),
+            new MidonetBackendTestModule(conf),
             new MockZookeeperConnectionModule(),
             new AbstractModule {
                 def configure() {
@@ -96,7 +94,7 @@ trait MidolmanBenchmark extends MockMidolmanActors
                     })
                 }
             },
-            new LegacyClusterModule(),
+            new MockMidolmanModule(),
             new MidolmanActorsModule {
                 override def configure() {
                     bind(classOf[MidolmanActorsService])
@@ -113,40 +111,13 @@ trait MidolmanBenchmark extends MockMidolmanActors
                     expose(classOf[InterfaceScanner])
                 }
             },
-            // This is MidolmanModule, but doesn't create threads via the
-            // SelectLoopService.
-            new PrivateModule {
+            new LegacyClusterModule(),
+            new AbstractModule {
                 override def configure() {
-                    binder.requireExplicitBindings()
-                    requireBinding(classOf[Client])
-                    requireBinding(classOf[DatapathConnectionService])
-                    requireBinding(classOf[MidolmanActorsService])
-
-                    bind(classOf[MidolmanService]).in(Scopes.SINGLETON)
-                    expose(classOf[MidolmanService])
-
                     bind(classOf[VirtualConfigurationBuilders])
                         .to(classOf[LegacyVirtualConfigurationBuilders])
                         .asEagerSingleton()
-                    expose(classOf[VirtualConfigurationBuilders])
-
-                    bind(classOf[MidolmanConfig])
-                            .toInstance(new MidolmanConfig(MidoTestConfigurator.forAgents))
-                    expose(classOf[MidolmanConfig])
-
-                    bind(classOf[SelectLoopService])
-                    .toInstance(new SelectLoopService {
-                        override def doStart(): Unit = notifyStarted()
-                        override def doStop(): Unit = notifyStopped()
-                    })
-                    expose(classOf[SelectLoopService])
-
-                    bind(classOf[MetricRegistry])
-                            .toInstance(new MetricRegistry)
-                    expose(classOf[MetricRegistry])
-
-                    requestStaticInjection(classOf[Chain])
-                }
+                    }
             }
         )
     }
