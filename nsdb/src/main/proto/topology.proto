@@ -26,22 +26,23 @@ enum Type {
     BGP_PEER = 2;
     CHAIN = 3;
     DHCP = 4;
-    HEALTH_MONITOR = 5;
-    HOST = 6;
-    IP_ADDR_GROUP = 7;
-    LOAD_BALANCER = 8;
-    NETWORK = 9;
-    POOL = 10;
-    POOL_MEMBER = 11;
-    PORT = 12;
-    PORT_GROUP = 13;
-    ROUTE = 14;
-    ROUTER = 15;
-    RULE = 16;
-    TUNNEL_ZONE = 17;
-    VIP = 18;
-    VTEP = 19;
-    VTEP_BINDING = 20;
+    DHCP_V6 = 5;
+    HEALTH_MONITOR = 6;
+    HOST = 7;
+    IP_ADDR_GROUP = 8;
+    LOAD_BALANCER = 9;
+    NETWORK = 10;
+    POOL = 11;
+    POOL_MEMBER = 12;
+    PORT = 13;
+    PORT_GROUP = 14;
+    ROUTE = 15;
+    ROUTER = 16;
+    RULE = 17;
+    TUNNEL_ZONE = 18;
+    VIP = 19;
+    VTEP = 20;
+    VTEP_BINDING = 21;
 }
 
 message BgpNetwork {
@@ -107,6 +108,20 @@ message Dhcp {
 
     // Gateway routes with a gateway via this DHCP.
     repeated UUID gateway_route_ids = 102;
+}
+
+message DhcpV6 {
+    optional UUID id = 1;
+    optional UUID network_id = 2;
+    optional IPSubnet subnet_address = 3;
+
+    message Host {
+        optional string client_id = 1;
+        optional IPAddress ip_address = 2;
+        optional string name = 3;
+    }
+
+    repeated Host hosts = 4;
 }
 
 message HealthMonitor {
@@ -185,6 +200,7 @@ message Network {
     repeated UUID port_ids = 101;
     repeated UUID vxlan_port_ids = 102;
     repeated UUID dhcp_ids = 103;
+    repeated UUID dhcpv6_ids = 104;
 }
 
 message Pool {

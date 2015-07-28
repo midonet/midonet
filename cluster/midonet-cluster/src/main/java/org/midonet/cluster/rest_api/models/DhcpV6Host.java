@@ -17,28 +17,26 @@
 package org.midonet.cluster.rest_api.models;
 
 import java.net.URI;
-import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
-import org.midonet.packets.IPv6Subnet;
+import org.midonet.cluster.util.IPAddressUtil;
 
 @XmlRootElement
+@ZoomClass(clazz = Topology.DhcpV6.Host.class)
 public class DhcpV6Host extends UriResource {
 
+    @ZoomField(name = "client_id")
     public String clientId;
+    @ZoomField(name = "ip_address", converter = IPAddressUtil.Converter.class)
     public String fixedAddress;
+    @ZoomField(name = "name")
     public String name;
-
-    @JsonIgnore
-    public UUID bridgeId;
-
-    @JsonIgnore
-    public IPv6Subnet prefix;
 
     /* Default constructor - for deserialization. */
     public DhcpV6Host() {
@@ -46,12 +44,7 @@ public class DhcpV6Host extends UriResource {
 
     @Override
     public URI getUri() {
-        URI uri = absoluteUri(ResourceUris.BRIDGES, bridgeId,
-                              ResourceUris.DHCPV6, prefix.toZkString());
-        return UriBuilder.fromUri(uri)
-                         .path(ResourceUris.DHCPV6_HOSTS)
-                         .path(clientIdToUri(clientId))
-                         .build();
+        return absoluteUri(ResourceUris.DHCPV6_HOSTS, clientIdToUri(clientId));
     }
 
     public static String clientIdToUri(String clientId) {
