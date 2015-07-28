@@ -16,6 +16,24 @@
       "revId": "f99b8bc0e9ffae0a03f5c9a3cc21e51e33769ce2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b93826d4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-28T09:12:04Z",
+      "side": 1,
+      "message": "well, given that this is a temporary situation, i didn\u0027t really give much thought. didn\u0027t seem that abstraction-leaky considering there\u0027s a parameter of type SimulationBackChannel!",
+      "parentUuid": "9ad9bd40_be5c8c4c",
+      "revId": "f99b8bc0e9ffae0a03f5c9a3cc21e51e33769ce2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
