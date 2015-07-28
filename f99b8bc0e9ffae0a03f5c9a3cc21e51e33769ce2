@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_be5c8c4c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/ArpRequestBroker.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 83,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-28T08:29:30Z",
+      "side": 1,
+      "message": "the parameter name is kindof abstraction-leaky, the arp request broker doesn\u0027t need to know that the callback is \"triggering a back channel\".",
+      "revId": "f99b8bc0e9ffae0a03f5c9a3cc21e51e33769ce2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
