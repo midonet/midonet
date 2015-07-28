@@ -21,11 +21,12 @@ import java.util.concurrent.TimeUnit
 
 import scala.concurrent.Future
 
+import org.midonet.midolman.PacketWorkflow.SimulationResult
 import org.openjdk.jmh.annotations.{Setup => JmhSetup, _}
 import org.openjdk.jmh.infra.Blackhole
 
 import org.midonet.midolman.rules.{RuleResult, Condition}
-import org.midonet.midolman.simulation.Bridge
+import org.midonet.midolman.simulation.{PacketContext, Bridge}
 import org.midonet.midolman.state.{MockStateStorage, FlowStateReplicator}
 import org.midonet.midolman.state.ConnTrackState._
 import org.midonet.midolman.state.NatState.{NatKey, NatBinding}
@@ -37,11 +38,6 @@ import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.packets.util.PacketBuilder._
 import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
 
-object ConnTrackBenchmark {
-    val leftMac = MAC.random
-    val rightMac = MAC.random
-}
-
 @BenchmarkMode(Array(Mode.AverageTime))
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
 @Warmup(iterations = 5)
@@ -49,9 +45,10 @@ object ConnTrackBenchmark {
 @Fork(5)
 @State(Scope.Benchmark)
 class ConnTrackBenchmark extends MidolmanBenchmark {
-    import org.midonet.midolman.ConnTrackBenchmark._
-
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
+
+    val leftMac = MAC.random
+    val rightMac = MAC.random
 
     var leftPortId: UUID = _
     var rightPortId: UUID = _
@@ -68,12 +65,13 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
     implicit val conntrackTx = new FlowStateTransaction(conntrackTable)
     implicit val natTx = new FlowStateTransaction(natTable)
     implicit val traceTx = new FlowStateTransaction(traceTable)
-    var replicator: FlowStateReplicator = _
 
     val packet = { { eth addr leftMac -> rightMac } <<
                    { ip4 addr IPv4Addr.random --> IPv4Addr.random } <<
                    { udp ports 5003 ---> 53 } << payload("payload") }
-    val packetContext = packetContextFor(packet, leftPortId)
+
+    var replicator: FlowStateReplicator = _
+    var packetContext: PacketContext = _
 
     @JmhSetup
     def setup(): Unit = {
@@ -90,9 +88,8 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
         newLiteralRuleOnChain(chainId, 1, fwdCond, RuleResult.Action.ACCEPT)
         fetchChains(chainId)
         fetchPorts(leftPortId, rightPortId)
-        fetchDevice[Bridge](clusterBridgeId)
 
-        val bridge: Bridge = fetchDevice(clusterBridgeId)
+        val bridge = fetchDevice[Bridge](clusterBridgeId)
         val macTable = bridge.vlanMacTableMap(0.toShort)
         macTable.add(leftMac, leftPortId)
         macTable.add(rightMac, rightPortId)
@@ -103,12 +100,14 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
                                              underlayResolver,
                                              mockFlowInvalidation,
                                              0)
+        packetContext = packetContextFor(packet, leftPortId)
     }
 
     @Benchmark
-    def benchmarkConntrack(bh: Blackhole): Unit = {
-        bh.consume(simulate(packetContext))
+    def benchmarkConntrack(bh: Blackhole): (SimulationResult, PacketContext) = {
+        val res = simulate(packetContext)
         replicator.accumulateNewKeys(packetContext)
         conntrackTx.flush()
+        res
     }
 }
