@@ -107,7 +107,14 @@ class Bridge(val id: UUID,
 
     import org.midonet.midolman.simulation.Coordinator._
 
-    val floodAction = FloodBridgeAction(id, exteriorPorts)
+    val floodAction: SimulationResult =
+        if (exteriorPorts.isEmpty) {
+            Drop
+        } else {
+            exteriorPorts map
+                (ToPortAction(_).asInstanceOf[SimulationResult]) reduce
+                    ((a, b) => ForkAction(a, b))
+        }
 
     override val deviceTag = tagForBridge(id)
 

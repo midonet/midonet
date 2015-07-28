@@ -17,6 +17,8 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
+
 import scala.collection.JavaConverters._
 
 import akka.actor.ActorSystem
@@ -139,6 +141,8 @@ trait Port extends VirtualDevice with Coordinator.Device with Cloneable {
     def isActive: Boolean = false
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
+
+    val action = ToPortAction(id)
 
     def toggleActive(active: Boolean) = this
 
