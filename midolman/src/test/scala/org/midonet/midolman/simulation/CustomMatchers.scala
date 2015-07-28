@@ -19,6 +19,7 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.UUID
 
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.topology.RouterManager
 import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel}
 
@@ -37,7 +38,6 @@ import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.odp.flows.{FlowAction, FlowActionSetKey, FlowKeyEthernet, FlowKeyIPv4}
 import org.midonet.packets.{IPv4Subnet, Ethernet, IPv4}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
 
 trait CustomMatchers {
 
@@ -68,12 +68,12 @@ trait CustomMatchers {
                         else Nil
                     case _ => Nil
                 }).exists({
-                    case FlowActionOutputToVrnPort(id) => id == portId
+                    case ToPortAction(id) => id == portId
                     case _ => false
                 }), s"a port action to $portId")
     }
 
-    def toBridge(bridgeId: UUID, brPorts: List[UUID], expectedTags: FlowTag*) =
+    def toBridge(bridge: Bridge, brPorts: List[UUID], expectedTags: FlowTag*) =
         new BePropertyMatcher[(SimulationResult, PacketContext)] {
             def apply(simRes: (SimulationResult, PacketContext)) =
                 BePropertyMatchResult((simRes._1 match {
@@ -83,10 +83,10 @@ trait CustomMatchers {
                             else Nil
                         case _ => Nil
                     }).exists({
-                        case FlowActionOutputToVrnBridge(id, ports) =>
-                            id == bridgeId && ports == brPorts
-                        case _ => false
-                    }), s"a flood bridge action on $bridgeId containing tags " +
+                        case flood if flood == bridge.floodAction => true
+                        case flood =>
+                            false
+                    }), s"a flood bridge action on ${bridge.id} containing tags " +
                         s"{${expectedTags.toList}}")
     }
 
