@@ -18,6 +18,8 @@ package org.midonet.midolman
 
 import java.util.{LinkedList, UUID}
 
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
+
 import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith
@@ -34,8 +36,6 @@ import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.odp.flows.FlowKeys
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnBridge
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 
 @RunWith(classOf[JUnitRunner])
 class PingTest extends MidolmanSpec {
@@ -177,7 +177,7 @@ class PingTest extends MidolmanSpec {
 
         // should come out the other side
         pktCtx.virtualFlowActions.get(2) should be (
-            FlowActionOutputToVrnPort(rtrPort1))
+            ToPortAction(rtrPort1))
     }
 
     scenario("Ping reply from external to internal") {
@@ -192,7 +192,7 @@ class PingTest extends MidolmanSpec {
         pktCtx.virtualFlowActions should have size 3
 
         pktCtx.virtualFlowActions.get(2) should be (
-            FlowActionOutputToVrnBridge(bridge, List(vm2Port)))
+            ToPortAction(vm2Port))
     }
 
     /*

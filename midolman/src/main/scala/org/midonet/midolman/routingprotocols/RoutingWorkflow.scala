@@ -22,13 +22,13 @@ import java.util.concurrent.ConcurrentHashMap
 import akka.actor.ActorSystem
 
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, NoOp, SimulationResult, ErrorDrop}
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.midonet.midolman.simulation.{RouterPort, PacketContext}
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.odp.FlowMatch
 import org.midonet.odp.FlowMatch.Field
 import org.midonet.odp.flows.FlowActions.{output, userspace}
 import org.midonet.packets._
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 
 object RoutingWorkflow {
     private def makeIpSet: java.util.Set[IPv4Addr] =
@@ -59,7 +59,7 @@ trait RoutingWorkflow {
             matchBgp(context, info, port)) {
 
             context.log.debug(s"Packet matched BGP traffic at port: ${info.portId}")
-            context.addVirtualAction(FlowActionOutputToVrnPort(port.id))
+            context.addVirtualAction(ToPortAction(port.id))
             AddVirtualWildcardFlow
         } else {
             context.log.debug(s"BGP traffic not recognized at port ${info.portId}")

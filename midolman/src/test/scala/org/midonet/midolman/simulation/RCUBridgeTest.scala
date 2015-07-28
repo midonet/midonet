@@ -131,9 +131,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         ingressMatch should be (origMatch)
 
         result match {
-            case Coordinator.FloodBridgeAction(brId, ports) =>
-                assert(brId === bridgeID)
-                assert(List(brPort.id) == ports)
+            case Coordinator.ToPortAction(port) => assert(brPort.id == port)
             case _ => fail("Not ForwardAction, instead: " + result.toString)
         }
         // TODO(jlm): Verify it learned the srcMAC
@@ -182,9 +180,8 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         ingressMatch should be (origMatch)
 
         result match {
-            case Coordinator.FloodBridgeAction(brId, ports) =>
-                assert(brId === bridgeID)
-                assert(List(brPort.id) === ports)
+            case Coordinator.ToPortAction(port) =>
+                assert(brPort.id === port)
             case _ => fail("Not ForwardAction")
         }
         // TODO(jlm): Verify it learned the srcMAC

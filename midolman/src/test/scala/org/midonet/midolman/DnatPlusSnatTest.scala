@@ -19,6 +19,7 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
@@ -31,7 +32,6 @@ import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 import org.midonet.sdn.state.{ShardedFlowStateTable, FlowStateTransaction}
 import org.midonet.util.Range
 
@@ -147,7 +147,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
         tcpKey.tcp_src should not be 12345
         tcpKey.tcp_dst should be (81)
 
-        pktCtx.virtualFlowActions.get(3) should be (FlowActionOutputToVrnPort(port2))
+        pktCtx.virtualFlowActions.get(3) should be (ToPortAction(port2))
 
         val dnatKey = NatKey(FWD_DNAT, client1, 12345, dst, 80,
                              TCP.PROTOCOL_NUMBER, router)
@@ -199,7 +199,7 @@ class DnatPlusSnatTest extends MidolmanSpec {
         tcpKey.tcp_src should be (80)
         tcpKey.tcp_dst should be (12345)
 
-        returnPktCtx.virtualFlowActions.get(3) should be (FlowActionOutputToVrnPort(port1))
+        returnPktCtx.virtualFlowActions.get(3) should be (ToPortAction(port1))
     }
 
     private def setKey[T <: FlowKey](action: FlowAction) =

@@ -19,6 +19,8 @@ package org.midonet.midolman
 import java.util.{LinkedList, UUID}
 
 import com.typesafe.config.{ConfigFactory, Config}
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
@@ -29,7 +31,6 @@ import org.midonet.midolman.simulation.PacketEmitter.GeneratedPacket
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{ARP, Packets, IPv4Addr, MAC}
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnPort, FlowActionOutputToVrnBridge}
 
 @RunWith(classOf[JUnitRunner])
 class BridgeFloodOptimizationsTest extends MidolmanSpec {
@@ -96,7 +97,7 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
 
             simRes should be (AddVirtualWildcardFlow)
             pktCtx.virtualFlowActions should have size 1
-            pktCtx.virtualFlowActions.get(0) should be (FlowActionOutputToVrnPort(port1))
+            pktCtx.virtualFlowActions.get(0) should be (ToPortAction(port1))
         }
     }
 
@@ -106,12 +107,16 @@ class BridgeFloodOptimizationsTest extends MidolmanSpec {
             val (simRes, pktCtx) = simulate(packetContextFor(ethPkt, port2))
 
             simRes should be (AddVirtualWildcardFlow)
-            pktCtx.virtualFlowActions should have size 1
+            pktCtx.virtualFlowActions should have size 2
 
-            val FlowActionOutputToVrnBridge(bridgeId, outputPorts) = pktCtx.virtualFlowActions.get(0)
+            val outputActions: List[ToPortAction] =
+                pktCtx.virtualFlowActions.
+                    filter(_.isInstanceOf[ToPortAction]).
+                    map(_.asInstanceOf[ToPortAction]).toList
 
-            bridgeId should be (bridge)
-            outputPorts should contain theSameElementsAs List(port1, port3)
+            outputActions.size should be (2)
+            outputActions.map(_.outPort) should contain (port1)
+            outputActions.map(_.outPort) should contain (port3)
         }
     }
     }
