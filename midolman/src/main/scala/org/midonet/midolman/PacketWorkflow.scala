@@ -278,6 +278,7 @@ class PacketWorkflow(
         natLeaser.obliterateUnusedBlocks()
         traceStateTable.expireIdleEntries()
         arpBroker.process()
+        waitingRoom.doExpirations(giveUpWorkflow)
     }
 
     protected def packetContext(packet: Packet): PacketContext =
@@ -312,22 +313,12 @@ class PacketWorkflow(
                 self ! RestartWorkflow(pktCtx, ex)
         }(ExecutionContext.callingThread)
         metrics.packetPostponed()
-        giveUpWorkflows(waitingRoom enter pktCtx)
+        waitingRoom enter pktCtx
     }
 
-    private def giveUpWorkflows(pktCtxs: IndexedSeq[PacketContext]) {
-        var i = 0
-        while (i < pktCtxs.size) {
-            val pktCtx = pktCtxs(i)
-            if (pktCtx.idle) {
-                drop(pktCtx)
-            } else {
-                log.warn(s"Pending ${pktCtx.cookieStr} was scheduled for " +
-                         "cleanup but was not idle")
-            }
-            i += 1
-        }
-    }
+    private val giveUpWorkflow: PacketContext => Unit = context =>
+        if (context.idle)
+            drop(context)
 
     private def drop(context: PacketContext): Unit =
         try {
