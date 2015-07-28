@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_395416fe",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/DhcpV6Host.java",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-28T09:16:37Z",
+      "side": 1,
+      "message": "Nit: this could be:\n\n  absoluteUri(DHCPV6_HOSTS, clientId)",
+      "range": {
+        "startLine": 47,
+        "startChar": 8,
+        "endLine": 50,
+        "endChar": 34
+      },
+      "revId": "a407e423c92a1fbe1b1c568d59bcaac48602d4ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3e195cd7",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/DhcpV6HostResource.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 38,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-28T09:16:37Z",
+      "side": 1,
+      "message": "Indent",
+      "range": {
+        "startLine": 38,
+        "startChar": 33,
+        "endLine": 38,
+        "endChar": 43
+      },
+      "revId": "a407e423c92a1fbe1b1c568d59bcaac48602d4ff",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
