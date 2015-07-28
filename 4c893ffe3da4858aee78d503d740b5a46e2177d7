@@ -33,6 +33,24 @@
       "revId": "4c893ffe3da4858aee78d503d740b5a46e2177d7",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a389d476",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-28T17:32:10Z",
+      "side": 1,
+      "message": "routers could do this, though it likely means a misconfigured topology.",
+      "parentUuid": "9ad9bd40_399c160f",
+      "revId": "4c893ffe3da4858aee78d503d740b5a46e2177d7",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
