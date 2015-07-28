@@ -18,6 +18,7 @@ package org.midonet.midolman
 
 import java.util.{LinkedList, UUID}
 
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 
@@ -35,7 +36,6 @@ import org.midonet.odp.FlowMatch
 import org.midonet.odp.flows._
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
-import org.midonet.sdn.flows.VirtualActions.FlowActionOutputToVrnPort
 
 @RunWith(classOf[JUnitRunner])
 class RouterSimulationTest extends MidolmanSpec {
@@ -147,7 +147,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val ipKey = setKey[FlowKeyIPv4](pktCtx.virtualFlowActions.get(1))
         ipKey.ipv4_ttl should be (ttl-1)
 
-        pktCtx.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(uplinkPort))
+        pktCtx.virtualFlowActions.get(2) should be (ToPortAction(uplinkPort))
     }
 
     scenario("Blackhole route") {
@@ -193,7 +193,7 @@ class RouterSimulationTest extends MidolmanSpec {
         ethKey.eth_dst should be (outToMac.getAddress)
         ethKey.eth_src should be (outFromMac.getAddress)
 
-        pktCtx.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port2))
+        pktCtx.virtualFlowActions.get(2) should be (ToPortAction(port2))
     }
 
     scenario("No route") {
@@ -406,7 +406,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val (simRes1, pktCtx1) = simulate(packetContextFor(pkt, port1))
         simRes1 should be (AddVirtualWildcardFlow)
         pktCtx1.virtualFlowActions should have size 3
-        pktCtx1.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port2))
+        pktCtx1.virtualFlowActions.get(2) should be (ToPortAction(port2))
 
         // Ping to -> from
         pkt = { eth src toMac dst port2dev.portMac } <<
@@ -415,7 +415,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val (simRes2, pktCtx2) = simulate(packetContextFor(pkt, port2))
         simRes2 should be (AddVirtualWildcardFlow)
         pktCtx2.virtualFlowActions should have size 3
-        pktCtx2.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(port1))
+        pktCtx2.virtualFlowActions.get(2) should be (ToPortAction(port1))
 
         // Deactivate port2
         deletePort(port2)
@@ -435,7 +435,7 @@ class RouterSimulationTest extends MidolmanSpec {
         val (simRes4, pktCtx4) = simulate(packetContextFor(pkt, port1))
         simRes4 should be (AddVirtualWildcardFlow)
         pktCtx4.virtualFlowActions should have size 3
-        pktCtx4.virtualFlowActions.get(2) should be (FlowActionOutputToVrnPort(ressurected))
+        pktCtx4.virtualFlowActions.get(2) should be (ToPortAction(ressurected))
     }
 
     private def matchIcmp(egressPort: UUID, fromMac: MAC, toMac: MAC,

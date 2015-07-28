@@ -20,6 +20,8 @@ import java.lang.{Integer => JInteger}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
+
 import scala.concurrent.ExecutionContextExecutor
 
 import akka.actor.ActorSystem
@@ -62,9 +64,7 @@ trait FlowTranslator {
         var i = 0
         while (i < actionsCount) {
             virtualActions.get(i) match {
-                case FlowActionOutputToVrnBridge(id, ports) =>
-                    expandFloodAction(id, ports, context)
-                case FlowActionOutputToVrnPort(port) =>
+                case ToPortAction(port) =>
                     expandPortAction(port, context)
                 case a: FlowActionSetKey =>
                     a.getFlowKey match {
@@ -163,71 +163,6 @@ trait FlowTranslator {
         context.addFlowTag(FlowTagger.tagForTunnelRoute(localIp, vtepIntIp))
         context.addFlowAndPacketAction(setKey(FlowKeys.tunnel(vni.toLong, localIp, vtepIntIp, 0)))
         context.addFlowAndPacketAction(dpState.vtepTunnellingOutputAction)
-    }
-
-    private def expandFloodAction(bridge: UUID, portIds: List[UUID],
-                                  context: PacketContext): Unit = {
-        def addLocal(allPorts: List[Port]) {
-            var ports = allPorts
-            while (ports.nonEmpty) {
-                val port = ports.head
-                ports = ports.tail
-                if (port.hostId == hostId) {
-                    val portNo = dpState.getDpPortNumberForVport(port.id)
-                    if (portNo ne null) {
-                        context.outPorts.add(port.id)
-                        outputActionsForLocalPort(portNo, context)
-                    }
-                }
-            }
-        }
-
-        def addRemote(allPorts: List[Port]) {
-            var ports = allPorts
-            while (ports.nonEmpty) {
-                val port = ports.head
-                ports = ports.tail
-                if (port.hostId != hostId) {
-                    context.outPorts.add(port.id)
-                    outputActionsToPeer(port.tunnelKey, port.hostId, context)
-                }
-            }
-        }
-
-        /* This is an awkward step, but necessary. After we figure out all the
-         * actions for local and remote ports, we need to consider the case
-         * where portset includes a bridge's VxLanPort. What we want is
-         * - If there is no VxLanPort, do nothing
-         * - If there is, but it was the ingress port, do nothing
-         * - Else, fetch the destination VTEP and VNI, craft the output action
-         *   through the dpPort dedicated to vxLan tunnels to VTEPs, and inject
-         *   this action in the result set
-         */
-        def addVtepActions(br: Bridge): Unit = {
-            var i = 0
-            while (i < br.vxlanPortIds.size) {
-                val vxlanPortId = br.vxlanPortIds(i)
-                i += 1
-                tryAsk[Port](vxlanPortId) match {
-                    case p: VxLanPort =>
-                        outputActionsToVtep(p.vtepVni, p.vtepTunnelIp,
-                                            p.vtepTunnelZoneId, context)
-                    case _ =>
-                        context.log.warn("Bridge {} was expected to be bound to"
-                                         + "VTEP through port {} that isn't "
-                                         + "found", vxlanPortId, br)
-                }
-            }
-        }
-
-        val ports = portIds.map(tryAsk[Port])
-        addLocal(ports)
-        addRemote(ports)
-
-        // FIXME: at the moment (v1.5), this is need for
-        // flooding traffic from a bridge. With mac
-        // syncing, it will become unnecessary.
-        addVtepActions(tryAsk[Bridge](bridge))
     }
 
     private def expandPortAction(port: UUID, context: PacketContext): Unit =
