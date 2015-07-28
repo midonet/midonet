@@ -16,6 +16,7 @@
 package org.midonet.midolman.util
 
 import java.util.{ArrayList, Random, UUID}
+import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.mutable
 import scala.collection.JavaConversions._
@@ -48,6 +49,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                                  legacyStorage: LegacyStorage)
         extends VirtualConfigurationBuilders
         with TopologyBuilder {
+    val tunnelKeys = new AtomicLong(0)
 
     val store = backend.store
     val stateStore = backend.stateStore
@@ -299,6 +301,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                interface: Option[String] = None): UUID = {
         val id = UUID.randomUUID
         store.create(createBridgePort(id, bridgeId=Some(bridge),
+                                      tunnelKey=tunnelKeys.incrementAndGet(),
                                       hostId=host, interfaceName=interface,
                                       adminStateUp=true))
         id
@@ -366,6 +369,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val id = UUID.randomUUID
         val addr = IPv4Addr.fromString(portAddr)
         store.create(createRouterPort(id, routerId=Some(router),
+                                      tunnelKey=tunnelKeys.incrementAndGet(),
                                       portMac=mac,
                                       portAddress=addr,
                                       portSubnet=toSubnet(nwAddr, nwLen),
