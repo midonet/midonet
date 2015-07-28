@@ -160,6 +160,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7e5a042b",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 122,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-28T02:39:05Z",
+      "side": 1,
+      "message": "sure.\ni have another concern; listening on port 80.\nit would conflict with an ordinary httpd listening on *:80.\ni guess it\u0027s more commonly used than link-local addresses.\n\nwrt static arp entry, you\u0027re right.",
+      "parentUuid": "9ad9bd40_8df96482",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4e7bdf8b",
         "filename": "specs/2015.02/metadata_service.rst",
         "patchSetId": 11
@@ -207,6 +225,24 @@
       "side": 1,
       "message": "For the purpose of the MD Proxy, it seems to me that only the mapping from rewritten IP to VM instance ID is needed.",
       "parentUuid": "9ad9bd40_aaae0e2c",
+      "revId": "229508041f5ad0045c777bd03246c180272bc845",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_be3f2cb3",
+        "filename": "specs/2015.02/metadata_service.rst",
+        "patchSetId": 11
+      },
+      "lineNbr": 125,
+      "author": {
+        "id": 1002897
+      },
+      "writtenOn": "2015-07-28T02:39:05Z",
+      "side": 1,
+      "message": "it needs to know the original ip address and tenant-id\nas well.  (they are sent to nova metadata api as\nadditional X-foo headers.)",
+      "parentUuid": "9ad9bd40_edecb0bd",
       "revId": "229508041f5ad0045c777bd03246c180272bc845",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
