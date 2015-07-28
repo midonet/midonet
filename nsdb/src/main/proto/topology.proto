@@ -418,9 +418,14 @@ message Rule {
         // True for reverse NAT rules. Reverse NAT rules have no targets.
         optional bool reverse = 3;
     }
+    message TraceRuleData {
+        optional UUID trace_request_id = 1;
+        optional uint64 limit = 2;
+    }
     oneof rule_data {
         JumpRuleData jump_rule_data = 100;
         NatRuleData nat_rule_data = 101;
+        TraceRuleData trace_rule_data = 102;
     }
 }
 

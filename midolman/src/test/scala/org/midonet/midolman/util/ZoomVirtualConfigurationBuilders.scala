@@ -28,12 +28,13 @@ import com.google.inject.Inject
 import org.midonet.cluster.data.storage.{NotFoundException, Storage, StateKey}
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget}
+import org.midonet.cluster.models.Topology.Rule.{TraceRuleData, Action, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
+import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules
@@ -156,7 +157,11 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                      requestId: UUID): UUID = {
         val rule = UUID.randomUUID
         val builder = createTraceRuleBuilder(rule)
-        // builder.setTraceRequestId(requestId)
+        val trd = TraceRuleData.newBuilder()
+                               .setTraceRequestId(UUIDUtil.toProto(requestId))
+                               .setLimit(Long.MaxValue)
+                               .build()
+        builder.setTraceRuleData(trd)
 
         store.create(setConditionFromCondition(builder, condition).build())
         val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)

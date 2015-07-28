@@ -86,7 +86,6 @@ class FlowTracingTest extends MidolmanSpec {
         (r, pktCtx)
     }
 
-    if (!awaitingImpl) {
     feature("Tracing enabled by rule in chain") {
         scenario("tracing enabled by catchall rule") {
             val requestId = UUID.randomUUID
@@ -336,6 +335,5 @@ class FlowTracingTest extends MidolmanSpec {
             pktCtx2.traceTx.size should be (1)
             pktCtx2.traceFlowId should not be context.flowTraceId
         }
-    }
     }
 }
