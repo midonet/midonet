@@ -24,7 +24,7 @@ import org.midonet.midolman.PacketWorkflow.ErrorDrop
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.services.HostIdProviderService
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.simulation.Router
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.ArpCacheHelper._
