@@ -29,14 +29,14 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Icmp.IPv4Icmp._
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.FlowMatch
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
+import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
 
 object Coordinator {
     val MAX_DEVICES_TRAVERSED = 12
 
     sealed trait ForwardAction extends Result
-    case class ToPortAction(outPort: UUID) extends ForwardAction
-    case class FloodBridgeAction(bridgeId: UUID, ports: List[UUID]) extends ForwardAction
+    case class ToPortAction(outPort: UUID) extends ForwardAction with VirtualFlowAction
+
 
     // This action is used when one simulation has to return N forward actions
     // A good example is when a bridge that has a vlan id set receives a
@@ -188,7 +188,6 @@ class Coordinator(context: PacketContext)
 
     private def handleAction(simRes: Result): Result = simRes match {
         case ForkAction(first, second) =>      merge(branch(first), branch(second))
-        case FloodBridgeAction(brId, ports) => floodBridge(brId, ports)
         case ToPortAction(outPortID) =>        packetEgressesPort(outPortID)
         case res => res
     }
@@ -249,6 +248,8 @@ class Coordinator(context: PacketContext)
         port match {
             case p if !p.adminStateUp =>
                 processAdminStateDown(p, isIngress = false)
+            case p if p.id == context.inPortId && p.isInstanceOf[BridgePort] =>
+                Drop
             case p =>
                 /* TODO(guillermo) the port itself should process the packet and
                  * do both the filtering and VLAN (un)tagging. */
@@ -269,46 +270,8 @@ class Coordinator(context: PacketContext)
     private def emitFromPort(port: Port): Result = {
         context.calculateActionsFromMatchDiff()
         log.debug("Emitting packet from vport {}", port.id)
-        context.addVirtualAction(FlowActionOutputToVrnPort(port.id))
+        context.addVirtualAction(port.action)
         emit(port.deviceId)
-    }
-
-    /**
-     * Accumulates an output action for a port in the actions array buffer if
-     * the port is exterior, active and its filter allows it
-     */
-    def applyExteriorPortFilter(portId: UUID): Boolean = {
-        val port = tryAsk[Port](portId)
-        context.addFlowTag(port.deviceTag)
-
-        if (port.isExterior && port.adminStateUp &&
-            port.isActive && port.id != context.inPortId) {
-
-            if (port.outboundFilter ne null) {
-                context.outPortId = portId
-                val chain = tryAsk[Chain](port.outboundFilter)
-                val result = Chain.apply(chain, context, port.id, true)
-                log.debug(s"Chain ${chain.id} on port ${port.id} returned ${result.action}")
-                result.action == RuleResult.Action.ACCEPT
-            } else {
-                true
-            }
-        } else {
-            false
-        }
-    }
-
-    private def floodBridge(deviceId: UUID, ports: List[UUID]): Result = {
-        context.calculateActionsFromMatchDiff()
-        val filteredPorts = ports filter applyExteriorPortFilter
-        if (filteredPorts.size > 0) {
-            log.debug(s"Flooding $deviceId, ports $filteredPorts")
-            context.addVirtualAction(FlowActionOutputToVrnBridge(deviceId, filteredPorts))
-            emit(deviceId)
-        } else {
-            log.debug(s"Flooding $deviceId but no ports to forward to, dropping")
-            Drop
-        }
     }
 
     private def emit(deviceId: UUID): Result = {

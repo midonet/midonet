@@ -251,7 +251,7 @@ class AdminStateTest extends MidolmanSpec {
 
             var pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1)
             var simRes = simulate (pktCtx)
-            simRes should be (toBridge(bridge, brPortIds))
+            simRes should be (toBridge(simBridge, brPortIds))
             ft.translate(simRes) should contain (output(1).asInstanceOf[Any])
 
             When("the port is set to down")
