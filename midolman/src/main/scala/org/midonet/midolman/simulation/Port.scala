@@ -17,7 +17,9 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.rules.RuleResult
+import org.midonet.midolman.simulation.Simulator.{SimStep, ToPortAction}
+import org.midonet.midolman.topology.VirtualTopologyActor._
 
 import scala.collection.JavaConverters._
 
@@ -26,7 +28,7 @@ import akka.actor.ActorSystem
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.{Commons, Topology}
 import org.midonet.cluster.util.{IPSubnetUtil, IPAddressUtil, UUIDUtil}
-import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
+import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, ErrorDrop, Drop, SimulationResult}
 import org.midonet.midolman.state.PortConfig
 import org.midonet.midolman.state.PortDirectory.{BridgePortConfig, RouterPortConfig, VxLanPortConfig}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
@@ -128,7 +130,7 @@ object Port {
             IPv4Addr.fromString(p.tunIpAddr), p.tunnelZoneId, p.vni)
 }
 
-trait Port extends VirtualDevice with Coordinator.Device with Cloneable {
+trait Port extends VirtualDevice with Cloneable {
     def id: UUID
     def inboundFilter: UUID
     def outboundFilter: UUID
@@ -156,16 +158,93 @@ trait Port extends VirtualDevice with Coordinator.Device with Cloneable {
 
     def isPlugged: Boolean = this.isInterior || this.isExterior
 
-    def ingress(context: PacketContext)(implicit as: ActorSystem): SimulationResult = {
-        Drop
+    protected def device(implicit as: ActorSystem): SimDevice
+
+    private[this] val emit: SimStep = if (isExterior) {
+        (context, as) =>
+            context.calculateActionsFromMatchDiff()
+            context.log.debug("Emitting packet from vport {}", id)
+            context.addVirtualAction(action)
+            context.trackConnection(deviceId)
+            context.addTraceKeysForEgress()
+            AddVirtualWildcardFlow
+    } else if (isInterior) {
+        (context, as) => Drop
+            implicit val actorSystem: ActorSystem = as
+            tryAsk[Port](peerId).ingress(context, as)
+    } else {
+        (context, as) =>
+            context.log.warn("Port {} is unplugged", id)
+            ErrorDrop
     }
 
-    def egress(context: PacketContext)(implicit as: ActorSystem): SimulationResult = {
-        Drop
+    def ingress(implicit context: PacketContext, as: ActorSystem): SimulationResult = {
+        if (context.devicesTraversed >= Simulator.MAX_DEVICES_TRAVERSED) {
+            ErrorDrop
+        } else {
+            context.addFlowTag(deviceTag)
+            context.addFlowTag(rxTag)
+            ingressAdminState(context, as)
+        }
     }
 
-    def process(context: PacketContext): SimulationResult = {
-        Drop
+    private[this] val ingressDevice: SimStep = (context, as) => {
+        val dev = device(as)
+        dev.continue(context, dev.process(context))(as)
+    }
+
+    private[this] val inFilter: SimStep = if (inboundFilter ne null) {
+        (context, as) => filter(context, inboundFilter, ingressDevice, as)
+    } else {
+        (context, as) => ingressDevice(context, as)
+    }
+
+    protected val outFilter: SimStep = if (outboundFilter ne null) {
+        (context, as) => filter(context, outboundFilter, emit, as)
+    } else {
+        (context, as) => emit(context, as)
+    }
+
+    protected def ingressUp: SimStep = (context, as) => {
+        if (isExterior && (portGroups ne null))
+            context.portGroups = portGroups.asJava // XXX(guillermo) - convert at construction
+        context.inPortId = id
+        inFilter(context, as)
+    }
+
+    protected def egressUp: SimStep = (context, as) => {
+        context.outPortId = id
+        outFilter(context, as)
+    }
+
+    protected def egressDown: SimStep = (c, as) => Drop
+    protected def ingressDown: SimStep = (c, as) => Drop
+
+    private[this] val ingressAdminState: SimStep = if (adminStateUp) ingressUp else ingressDown
+
+    private[this] val egressAdminState: SimStep = if (adminStateUp) egressUp else egressDown
+
+
+    protected def filter(context: PacketContext, filterId: UUID, next: SimStep, as: ActorSystem): SimulationResult = {
+        implicit val _as: ActorSystem = as
+        val chain = tryAsk[Chain](filterId)
+        val result = Chain.apply(chain, context, id, true)
+        result.action match {
+            case RuleResult.Action.ACCEPT =>
+                next(context, as)
+            case RuleResult.Action.DROP | RuleResult.Action.REJECT =>
+                Drop
+            case other =>
+                context.log.error("Port filter {} returned {} which was " +
+                                  "not ACCEPT, DROP or REJECT.", filterId, other)
+                ErrorDrop
+        }
+    }
+
+    def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
+        context.addFlowTag(deviceTag)
+        context.addFlowTag(txTag)
+        egressAdminState(context, as)
     }
 }
 
@@ -188,6 +267,19 @@ case class BridgePort(override val id: UUID,
 
     override def toggleActive(active: Boolean) = copy(isActive = active)
     override def deviceId = networkId
+
+    protected def device(implicit as: ActorSystem): SimDevice = tryAsk[Bridge](networkId)
+
+    override protected def egressUp: SimStep = (context, as) => {
+        if (id == context.inPortId) {
+            Drop
+        } else {
+            if ((vlanId > 0) && context.wcmatch.isVlanTagged)
+                context.wcmatch.removeVlanId(vlanId)
+            context.outPortId = id
+            outFilter(context, as)
+        }
+    }
 }
 
 case class RouterPort(override val id: UUID,
@@ -208,12 +300,34 @@ case class RouterPort(override val id: UUID,
 
     val _portAddr = new IPv4Subnet(portIp, portSubnet.getPrefixLen)
 
+    protected def device(implicit as: ActorSystem): SimDevice = tryAsk[Router](routerId)
+
     override def toggleActive(active: Boolean) = copy(isActive = active)
 
     override def deviceId = routerId
 
     def portAddr = _portAddr
     def nwSubnet = _portAddr
+
+    override protected def ingressDown: SimStep = (context, as) => {
+        sendIcmpProhibited(this, context)
+        Drop
+    }
+
+    override protected def egressDown: SimStep = (context, as) => {
+        implicit val _as: ActorSystem = as
+        if (context.inPortId ne null)
+            sendIcmpProhibited(tryAsk[RouterPort](context.inPortId), context)
+        Drop
+    }
+
+    private def sendIcmpProhibited(from: RouterPort, context: PacketContext): Unit = {
+        import Icmp.IPv4Icmp._
+        val ethOpt = unreachableProhibitedIcmp(from, context)
+        if (ethOpt.isDefined) {
+            context.addGeneratedPacket(from.id, ethOpt.get)
+        }
+    }
 }
 
 case class VxLanPort(override val id: UUID,
@@ -237,6 +351,8 @@ case class VxLanPort(override val id: UUID,
     override def isExterior = true
     override def isInterior = false
     override def isActive = true
+
+    protected def device(implicit as: ActorSystem): SimDevice = tryAsk[Bridge](networkId)
 
     override def toggleActive(active: Boolean) = this
 }

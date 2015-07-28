@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory
 import org.midonet.midolman.PacketWorkflow.{Drop, SimulationResult}
 import org.midonet.midolman.rules.{Condition, RuleResult}
 import org.midonet.midolman.simulation.Bridge
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.odp.flows.FlowActions.output

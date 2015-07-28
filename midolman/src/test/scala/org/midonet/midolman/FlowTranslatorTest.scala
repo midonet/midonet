@@ -17,7 +17,7 @@ package org.midonet.midolman
 
 import java.util.UUID
 
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._

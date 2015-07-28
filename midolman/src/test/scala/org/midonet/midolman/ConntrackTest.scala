@@ -29,7 +29,7 @@ import org.midonet.midolman.util.mock.MessageAccumulator
 import org.midonet.packets.{MAC, IPacket}
 import org.midonet.sdn.state.{FlowStateTransaction, ShardedFlowStateTable}
 import org.midonet.midolman.state.ConnTrackState._
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 
 @RunWith(classOf[JUnitRunner])
 class ConntrackTest extends MidolmanSpec {
