@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_a380f4c0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-28T18:31:10Z",
+      "side": 1,
+      "message": "Added an observable with the updates to the list of services.",
+      "parentUuid": "9ad9bd40_9e78a8c5",
+      "revId": "79c4cbf65f5a5afaf115d8de7a981a70b23caec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4d6cbcd0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 8
