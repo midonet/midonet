@@ -18,7 +18,7 @@ package org.midonet.midolman
 
 import java.util.{LinkedList, UUID}
 
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 
 import scala.collection.JavaConversions._
 

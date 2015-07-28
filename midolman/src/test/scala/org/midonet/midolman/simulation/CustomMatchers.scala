@@ -19,7 +19,7 @@ package org.midonet.midolman.simulation
 import java.util
 import java.util.UUID
 
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.midonet.midolman.topology.RouterManager
 import org.midonet.midolman.{BackChannelHandler, BackChannelMessage, SimulationBackChannel}
 

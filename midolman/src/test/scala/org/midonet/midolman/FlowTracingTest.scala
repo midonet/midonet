@@ -23,7 +23,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.{AddVirtualWildcardFlow, SimulationResult}
-import org.midonet.midolman.simulation.{Bridge, Coordinator, PacketContext}
+import org.midonet.midolman.simulation.{Bridge, Simulator, PacketContext}
 import org.midonet.midolman.state.HappyGoLuckyLeaser
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.topology._
@@ -81,7 +81,7 @@ class FlowTracingTest extends MidolmanSpec {
             : (SimulationResult, PacketContext) = {
         pktCtx.initialize(NO_CONNTRACK, NO_NAT, HappyGoLuckyLeaser, traceTx)
         val r = force {
-            new Coordinator(pktCtx) simulate()
+            Simulator.simulate(pktCtx)
         }
         (r, pktCtx)
     }

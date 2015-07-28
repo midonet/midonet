@@ -233,6 +233,8 @@ class PacketContext(val cookie: Int,
     var idle: Boolean = true
     var runs: Int = 0
 
+    var devicesTraversed = 0
+
     var inPortId: UUID = _
     var outPortId: UUID = _
     val outPorts = new ArrayList[UUID]()
@@ -272,6 +274,7 @@ class PacketContext(val cookie: Int,
     def prepareForSimulation() {
         idle = false
         runs += 1
+        devicesTraversed = 0
         wcmatch.reset(origMatch)
         diffBaseMatch.reset(origMatch)
     }

@@ -20,7 +20,7 @@ import java.lang.{Integer => JInteger}
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 
 import scala.concurrent.ExecutionContextExecutor
 

@@ -19,7 +19,7 @@ package org.midonet.midolman
 import java.util.{LinkedList, UUID}
 
 import com.typesafe.config.{ConfigFactory, Config}
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 import scala.collection.JavaConversions._
 
 import org.junit.runner.RunWith

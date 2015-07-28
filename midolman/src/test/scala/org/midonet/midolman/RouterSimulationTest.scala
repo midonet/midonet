@@ -18,7 +18,7 @@ package org.midonet.midolman
 
 import java.util.{LinkedList, UUID}
 
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.slf4j.helpers.NOPLogger
 import com.typesafe.scalalogging.Logger
 
