@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_99a442a7",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/LiteralRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-28T11:40:10Z",
+      "side": 1,
+      "message": "this is scala style. in java code. scala only requires this style because it sucks at knowing where the end of a line is.",
+      "revId": "8b98db885d765b86f3a0f2860b7c0435468fc612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d9aa4a70",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/NatRule.java",
+        "patchSetId": 1
+      },
+      "lineNbr": 37,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-28T11:40:10Z",
+      "side": 1,
+      "message": "again, scala type in java code.",
+      "revId": "8b98db885d765b86f3a0f2860b7c0435468fc612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
