@@ -188,7 +188,6 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         mockDpEgress.flowCreateSubscribe(flow => flowQueueEgress.add(flow))
     }
 
-    if (!awaitingImpl) {
     feature("tunnel tagging") {
         scenario("Tunnel key is tagged with trace mask, on bridge") {
             newTraceRuleOnChain(bridgeChain, 1,
@@ -216,7 +215,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
             injectPacketVerifyTraced(inPortNum, frame)
         }
     }
-  }
+
     private def injectPacketVerifyTraced(inPortNum: Int,
                                          frame: Ethernet): Unit = {
         val packets = List(new Packet(frame,
