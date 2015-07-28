@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_9e78a8c5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-28T08:22:06Z",
+      "side": 1,
+      "message": "According to the documentation in curator-x-discovery, this is done behind the scenes. Once you get a \u0027MidonetServiceClient\u0027, you should invoke \u0027getServerInfo\u0027 each time you need and endPoint (and you should not re-use it). The library takes care of receiving the change notifications and gives you a valid endpoint when you need it)\n\nMmm... on second thoughts, I see the point when using non-connection oriented endpoints, as we cannot detect a \u0027connection broken\u0027. Do you mind if I add this in a second iteration?",
+      "parentUuid": "9ad9bd40_0d9d54bc",
+      "revId": "79c4cbf65f5a5afaf115d8de7a981a70b23caec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4d6cbcd0",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
         "patchSetId": 8
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-27T08:19:31Z",
       "side": 1,
       "message": "guava already has a HostAndPort class which provides this.",
+      "revId": "79c4cbf65f5a5afaf115d8de7a981a70b23caec2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_de7eb0ae",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/discovery/MidonetDiscovery.scala",
+        "patchSetId": 8
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-28T08:22:06Z",
+      "side": 1,
+      "message": "This needs to be \u0027json-serializable\u0027 in order to be used as \u0027service payload\u0027 (I\u0027ll add that to the documentation).\nI\u0027ll check if the guava class can be used.",
+      "parentUuid": "9ad9bd40_4d6cbcd0",
       "revId": "79c4cbf65f5a5afaf115d8de7a981a70b23caec2",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
