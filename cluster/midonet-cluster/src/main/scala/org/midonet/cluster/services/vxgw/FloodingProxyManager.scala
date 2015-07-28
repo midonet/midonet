@@ -20,7 +20,9 @@ import java.util.UUID
 import java.util.concurrent.{ConcurrentHashMap, Executors}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
+import scala.util.{Failure, Success}
 
 import org.slf4j.LoggerFactory
 import rx.schedulers.Schedulers
@@ -28,15 +30,15 @@ import rx.subjects.PublishSubject
 import rx.subscriptions.CompositeSubscription
 import rx.{Observable, Observer, Subscription}
 
-import org.midonet.cluster.data.storage.{SingleValueKey, StateKey}
+import org.midonet.cluster.data.storage.{NotFoundException, StateKey}
 import org.midonet.cluster.models.Topology.{Host, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend._
-import org.midonet.cluster.services.vxgw.VtepTunnelZoneTracker.FloodingProxyUpdate
+import org.midonet.cluster.services.vxgw.FloodingProxyManager.{FloodingProxyUpdate, HostFpState}
 import org.midonet.cluster.util.UUIDUtil.fromProto
 import org.midonet.util.functors._
 
-object VtepTunnelZoneTracker {
+object FloodingProxyManager {
 
     object FloodingProxyUpdate {
         def apply(tzId: UUID, fpId: UUID): FloodingProxyUpdate = fpId match {
@@ -51,20 +53,26 @@ object VtepTunnelZoneTracker {
     case class FloodingProxyChanged(tz: UUID, hostId: UUID)
         extends FloodingProxyUpdate(tz)
 
+    case class HostFpState(host: Host, tzId: UUID, isAlive: Boolean,
+                           sub: Subscription) {
+        def toggle(newAlive: Boolean) = HostFpState(host, tzId, newAlive, sub)
+    }
+
 }
 
 /** This class is responsible for tracking all VTEP tunnel zones and ensure
   * Flooding Proxy is being calculated and published.
   */
-class VtepTunnelZoneTracker(backend: MidonetBackend) {
+class FloodingProxyManager(backend: MidonetBackend) {
 
     private val log = LoggerFactory.getLogger(vxgwLog)
 
     private val MAX_FP_RETRIES = 3
+    private val store = backend.store
 
-    // Host -> VTEP Tz, so that we know what TZ needs to recalculate its
-    // flooding proxy
-    private val trackedHosts = new ConcurrentHashMap[UUID, (UUID, Subscription)]
+    // An index of each host we're tracking, plus its state
+    private val trackedHosts = new ConcurrentHashMap[UUID,
+        FloodingProxyManager.HostFpState]
 
     // An index of a tunnel zone to its current flooding proxy
     private val fpIndex = new ConcurrentHashMap[UUID, UUID]()
@@ -73,14 +81,15 @@ class VtepTunnelZoneTracker(backend: MidonetBackend) {
     private val fpObservable = PublishSubject.create[FloodingProxyUpdate]
 
     // An observable to emit all hosts that are being modified
-    private val allHosts = PublishSubject.create[Host]()
+    private val allHosts = PublishSubject.create[HostFpState]()
 
     // All the subscriptions relevant to us
     private val subscriptions = new CompositeSubscription()
 
     // We will process all notifications on this thread
-    private val ec = Executors.newSingleThreadExecutor()
-    private val rxScheduler = Schedulers.from(ec)
+    private val executor = Executors.newSingleThreadExecutor()
+    private val rxScheduler = Schedulers.from(executor)
+    private implicit val ec = ExecutionContext.fromExecutor(executor)
 
     // This Observer will track all tunnel zones, and ensure that the allHosts
     // subject emits all updates for all hosts that belong to them.
@@ -107,34 +116,23 @@ class VtepTunnelZoneTracker(backend: MidonetBackend) {
     // This Observer tracks all hosts that belong to any VTEP tunnel zone.
     // Whenever a new one is emitted (that is: it's updated), we'll find out
     // what VTEP tunnel zone it belongs to, and recompute the flooding proxy.
-    private val hostObserver = new Observer[Host] {
+    private val hostObserver = new Observer[HostFpState] {
         override def onCompleted(): Unit = { /* Irrelevant */ }
         override def onError(throwable: Throwable): Unit = { /* Irrelevant */ }
-        override def onNext(h: Host): Unit = {
-            val hostId = fromProto(h.getId)
-            trackedHosts.get(hostId) match {
-                case null =>
-                    log.info(s"Host $hostId is not in a VTEP tunnel zone")
-                case (tzId, subscription) =>
-                    if (!h.getTunnelZoneIdsList.exists(fromProto(_) == tzId)) {
+        override def onNext(newState: HostFpState): Unit = {
+            val id = fromProto(newState.host.getId)
+            trackedHosts.get(id) match {
+                case null => log.info(s"Host $id is not in a VTEP tunnel zone")
+                case HostFpState(host, tzId, isAlive, subscription) =>
+                    val currTunnelZones = newState.host.getTunnelZoneIdsList.map(fromProto)
+                    if (!currTunnelZones.contains(tzId)) {
                         log.debug(s"Host is no longer on tunnel zone $tzId")
-                        trackedHosts.remove(hostId)
+                        trackedHosts.remove(id)
                         subscription.unsubscribe()
                     }
+                    trackedHosts.replace(id, newState)
                     cacheAndPublishFloodingProxy(tzId)
             }
-        }
-    }
-
-    private val hostStateObserver = new Observer[StateKey] {
-        override def onCompleted(): Unit = {}
-        override def onError(throwable: Throwable): Unit = {}
-        override def onNext(key: StateKey): Unit =  {
-            case SingleValueKey(_, _, hostId) =>
-                val tzAndSubscription = trackedHosts.get(hostId)
-                if (tzAndSubscription != null) {
-                    cacheAndPublishFloodingProxy(tzAndSubscription._1)
-                }
         }
     }
 
@@ -167,20 +165,21 @@ class VtepTunnelZoneTracker(backend: MidonetBackend) {
       * already known on the tunnel zone.
       */
     private def ensureTracked(id: UUID, onTz: UUID): Unit = {
-        val onMap = trackedHosts.getOrElseUpdate(id, {
-            val sub = new CompositeSubscription()
-            sub.add(selfHealingHostObservable(id).subscribe(allHosts))
-            sub.add(backend.stateStore.keyObservable(classOf[Host], id, AliveKey)
-                                      .observeOn(rxScheduler)
-                                      .subscribe(hostStateObserver))
-            val e = (onTz, sub)
-            cacheAndPublishFloodingProxy(onTz)
-            e
-        })
-        if (onMap._1 != onTz) {
-            log.warn(s"Host $id seems to be in two tunnel zones: " +
-                     s"${onMap._1} and $onTz - this is not expected, we're " +
-                     s"ignoring $onTz")
+        if (!trackedHosts.contains(id)) {
+            log.debug(s"New host $id on VTEP tunnel zone $onTz")
+            val obs = selfHealingHostObservable(id)
+            val stateObs = backend.stateStore
+                                  .keyObservable(classOf[Host], id, AliveKey)
+            val sub = new CompositeSubscription
+            val combiner = makeFunc2[Host, StateKey, HostFpState] {
+                case (h: Host, s: StateKey) =>
+                    HostFpState(h, onTz, s.nonEmpty, sub)
+            }
+            sub.add(Observable.combineLatest[Host, StateKey, HostFpState](
+                                         obs, stateObs, combiner)
+                              .subscribe(allHosts))
+
+            trackedHosts.put(id, HostFpState(null, onTz, isAlive = false, sub))
         }
     }
 
@@ -189,10 +188,13 @@ class VtepTunnelZoneTracker(backend: MidonetBackend) {
       * observable
       */
     private def cacheAndPublishFloodingProxy(tzId: UUID): Unit = {
-        recalculateFpFor(tzId).onSuccess { case fp =>
-            if (fp == null) fpIndex.remove(tzId)
-            else fpIndex.put(tzId, fp)
-            fpObservable.onNext(FloodingProxyUpdate(tzId, fp))
+        recalculateFpFor(tzId).onComplete {
+            case Success(fp) =>
+                if (fp == null) fpIndex.remove(tzId)
+                else fpIndex.put(tzId, fp)
+                fpObservable.onNext(FloodingProxyUpdate(tzId, fp))
+            case Failure(t) =>
+                log.warn("Unexpected exception calculating Flooding Proxy", t)
         }
     }
 
@@ -202,49 +204,59 @@ class VtepTunnelZoneTracker(backend: MidonetBackend) {
       */
     private def recalculateFpFor(tzId: UUID, retries: Int = MAX_FP_RETRIES)
     : Future[UUID] = {
-        backend.store
-            .get(classOf[TunnelZone], tzId) // should be cached locally
-            .map { _.getHostIdsList.map(fromProto).filter(isAlive) }
-            .flatMap(backend.store.getAll(classOf[Host], _)) // also these
-            .map(FloodingProxyCalculator.calculate)
-            .recoverWith[UUID] {
-                case t if retries > 0 =>
-                    log.warn("Failed to calculate flooding proxy for tunnel " +
-                             s"zone $tzId, (${retries - 1}) left.", t)
-                    recalculateFpFor(tzId, retries - 1)
-                case t =>
-                    log.error("Failed to calculate flooding proxy for tunnel " +
-                              s"zone $tzId, no retries left.", t)
-                    Future.successful[UUID](null)
-            }
+        store.get(classOf[TunnelZone], tzId) // should be cached locally
+             .map { tz => loadLiveHosts(tz.getHostIdsList.map(fromProto)) }
+             .map(hosts => FloodingProxyCalculator.calculate(hosts).orNull)
+             .recoverWith[UUID] {
+                 case t: Throwable if retries > 0 =>
+                     log.warn("Failed to calculate flooding proxy for " +
+                              s"tunnel zone $tzId, (${retries - 1}) left.", t)
+                     recalculateFpFor(tzId, retries - 1)
+                 case t: Throwable =>
+                     log.error("Failed to calculate flooding proxy for " +
+                               s"tunnel zone $tzId, no retries left.", t)
+                     Future.successful(null)
+             }
     }
 
-    /** Tells whether the host with the given ID is alive or not */
-    private def isAlive(hostId: UUID): Boolean = {
-        backend.stateStore.getKey(classOf[Host], hostId, AliveKey)
-                          .toBlocking.single().nonEmpty
+    private def loadLiveHosts(ids: Seq[UUID]): Seq[Host] = {
+        val hosts = new java.util.ArrayList[Host](ids.size)
+        ids.foreach { id =>
+            try {
+                val state = trackedHosts.get(id)
+                if (state != null && state.isAlive) {
+                    hosts.add(state.host)
+                } else {
+                    log.debug(s"Host $id is not eligible for FP")
+                }
+            } catch {
+                case NonFatal(t) => log.warn(s"Host $id could not be retrieved")
+            }
+        }
+        hosts
     }
 
     /** An Observable that will recover itself if an error is emitted */
     private def selfHealingTzObservable(): Observable[Observable[TunnelZone]] =
-        backend.store
-               .observable(classOf[TunnelZone])
-               .onErrorResumeNext(
-                   makeFunc1[Throwable, Observable[Observable[TunnelZone]]] {
-                       t => selfHealingTzObservable()
-                   }
-               )
+        store.observable(classOf[TunnelZone])
+             .onErrorResumeNext(
+                 makeFunc1[Throwable, Observable[Observable[TunnelZone]]] {
+                     case t: NotFoundException => Observable.empty()
+                     case _ => selfHealingTzObservable()
+                 }
+             )
 
     /**
      * A Host Observable that will recover itself if an error is emitted.
      */
     private def selfHealingHostObservable(id: UUID): Observable[Host] = {
-        backend.store
-                .observable(classOf[Host], id)
-                .onErrorResumeNext(makeFunc1[Throwable, Observable[Host]] { t =>
-                    log.info("Update stream for host $id failed, recovering")
-                    selfHealingHostObservable(id)
-                }
-        )
+        store.observable(classOf[Host], id)
+             .onErrorResumeNext ( makeFunc1[Throwable, Observable[Host]] {
+                 case t: NotFoundException => Observable.empty()
+                 case _ =>
+                     log.info(s"Update stream for host $id failed, recover")
+                     selfHealingHostObservable(id)
+                 }
+             )
     }
 }
