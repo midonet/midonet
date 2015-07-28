@@ -15,33 +15,30 @@
  */
 package org.midonet.midolman
 
-import java.{util => ju}
 import java.util.UUID
-import scala.collection.JavaConverters._
+import java.{util => ju}
+
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 import akka.testkit.TestActorRef
 import com.google.common.collect.{BiMap, HashBiMap}
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.UnderlayResolver.Route
-import org.midonet.midolman.layer3.{Route => L3Route}
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.rules.Condition
-import org.midonet.midolman.simulation.{Bridge => SimBridge, PacketContext}
-import org.midonet.midolman.simulation.{Router => SimRouter}
-import org.midonet.midolman.state.FlowStatePackets
-import org.midonet.midolman.state.TraceState
+import org.midonet.midolman.layer3.{Route => L3Route}
+import org.midonet.midolman.simulation.{Bridge => SimBridge, PacketContext, Router => SimRouter}
+import org.midonet.midolman.state.{FlowStatePackets, TraceState}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
 import org.midonet.midolman.topology._
 import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
-import org.midonet.odp.{Flow, FlowMatches, Packet}
 import org.midonet.odp.flows._
+import org.midonet.odp.{Flow, FlowMatches, Packet}
 import org.midonet.packets._
 import org.midonet.packets.util.AddressConversions._
 import org.midonet.packets.util.PacketBuilder._
@@ -197,7 +194,6 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         mockDpEgress.flowCreateSubscribe(flow => flowQueueEgress.add(flow))
     }
 
-    if (!awaitingImpl) {
     feature("tunnel tagging") {
         scenario("Tunnel key is tagged with trace mask, on bridge") {
             newTraceRuleOnChain(bridgeChain, 1,
@@ -225,7 +221,7 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
             injectPacketVerifyTraced(inPortNum, frame)
         }
     }
-    }
+
     private def injectPacketVerifyTraced(inPortNum: Int,
                                          frame: Ethernet): Unit = {
         val packets = List(new Packet(frame,
