@@ -344,17 +344,19 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         addPeerFor(port)
         tags.add(port.deviceTag)
 
-        val groupIds = port.portGroups.iterator
-        while (groupIds.hasNext) {
-            val group = getPortGroup(groupIds.next())
-            tags.add(group.deviceTag)
-            if (group.stateful) {
-                val members = group.members.iterator
-                while (members.hasNext) {
-                    val id = members.next()
-                    if (id != portId) {
-                        ports.add(id)
-                        addPeerFor(getPort(id))
+        if (port.portGroups ne null) {
+            val groupIds = port.portGroups.iterator
+            while (groupIds.hasNext) {
+                val group = getPortGroup(groupIds.next())
+                tags.add(group.deviceTag)
+                if (group.stateful) {
+                    val members = group.members.iterator
+                    while (members.hasNext) {
+                        val id = members.next()
+                        if (id != portId) {
+                            ports.add(id)
+                            addPeerFor(getPort(id))
+                        }
                     }
                 }
             }
