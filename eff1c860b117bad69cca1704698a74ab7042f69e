@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_123e4428",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-29T10:35:28Z",
+      "side": 1,
+      "message": "mmm, it all still sounds correct to me, anything that isn\u0027t true anymore?",
+      "parentUuid": "9ad9bd40_17dab6e7",
+      "revId": "eff1c860b117bad69cca1704698a74ab7042f69e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_77bea266",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
         "patchSetId": 1
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_3247c8bd",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-29T10:35:28Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_77bea266",
+      "revId": "eff1c860b117bad69cca1704698a74ab7042f69e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_97c326ec",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
         "patchSetId": 1
@@ -47,6 +83,24 @@
       "writtenOn": "2015-07-29T09:06:05Z",
       "side": 1,
       "message": "now these can be method calls, right?",
+      "revId": "eff1c860b117bad69cca1704698a74ab7042f69e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_921974d9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-29T10:35:28Z",
+      "side": 1,
+      "message": ".... but then you can\u0027t unit test process() alone for a single device as it would ask for ports and continue the simulation.",
+      "parentUuid": "9ad9bd40_97c326ec",
       "revId": "eff1c860b117bad69cca1704698a74ab7042f69e",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
