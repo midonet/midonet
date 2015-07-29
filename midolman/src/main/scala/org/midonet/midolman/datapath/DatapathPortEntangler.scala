@@ -75,8 +75,8 @@ import org.midonet.util.concurrent._
  * - when a binding is removed, if a corresponding port already exists on
  *   the datapath, then the datapath port is removed and the port number
  *   reclaimed, unless it's an internal port. If the virtual port was bound to
- *   an interface, then the DC also sends a LocalPortActive(vportID, active=false)
- *   message to the VirtualToPhysicalMapper.
+ *   an interface, then the DC also broadcasts a LocalPortActive(vportID,
+ *   active=false) message.
  */
 trait DatapathPortEntangler {
     protected val driver: DatapathStateDriver
