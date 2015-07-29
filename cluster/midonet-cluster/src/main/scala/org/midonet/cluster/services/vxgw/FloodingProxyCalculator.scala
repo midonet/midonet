@@ -16,11 +16,15 @@
 
 package org.midonet.cluster.services.vxgw
 
+import java.util
 import java.util.UUID
 
 import org.midonet.cluster.models.Topology.Host
-import org.midonet.cluster.util.UUIDUtil
+import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.util.UUIDUtil.fromProto
+import org.midonet.packets.IPv4Addr
+
+import scala.collection.JavaConversions._
 
 /** This class encapsulates the algorithm to generate a Flooding Proxy for a
   * given tunnel zone.
@@ -37,14 +41,15 @@ object FloodingProxyCalculator {
      * Note that hosts are only eligible to act as flooding proxy if their
      * weight is > 0.
      */
-    def calculate(candidates: Seq[Host]): Option[UUID] = {
-        val eligible = candidates.filter { _.getFloodingProxyWeight > 0 }
+    def calculate(candidates: util.Map[Host, IPv4Addr])
+    : Option[FloodingProxy] = {
+        val eligible = candidates.keySet.filter { _.getFloodingProxyWeight > 0 }
         if (eligible.isEmpty) {
             return None
         }
         // Sort the candidate proxies: provides a deterministic
         // behavior for unit testing (not necessary in practice).
-        val sorted = eligible.sortWith { (a, b) =>
+        val sorted = eligible.toList.sortWith { (a, b) =>
             a.getFloodingProxyWeight > b.getFloodingProxyWeight
         }
         val sumWeight = sorted.foldLeft(0)((seed, h) =>
@@ -52,13 +57,13 @@ object FloodingProxyCalculator {
         val randomWeight = random.nextInt(sumWeight)
         var index = 0
         var sum = 0
-        var candidate: Host = null
+        var chosen: Host = null
         while (index < sorted.length && sum <= randomWeight) {
-            candidate = sorted(index)
-            sum += candidate.getFloodingProxyWeight
+            chosen = sorted(index)
+            sum += chosen.getFloodingProxyWeight
             index = index + 1
         }
-        Some(fromProto(candidate.getId))
+        Some(FloodingProxy(chosen.getId, candidates.get(chosen)))
     }
 
 }
