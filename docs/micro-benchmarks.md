@@ -593,6 +593,18 @@ To run a benchmark with a particular profiler attached, we can do
 
 Note that we can run more than one profiler at the same time.
 
+## Flight Recorder
+
+To get flight recordings to use with Oracle's Mission Control, add this to the
+benchmark:
+
+```
+@Fork(value = 5, jvmArgsAppend = Array(
+    "-XX:+UnlockCommercialFeatures",
+    "-XX:+FlightRecorder",
+    "-XX:StartFlightRecording=duration=60s,dumponexit=true,dumponexitpath=path"))
+```
+
 ## Resources
 
 * [Statistically Rigorous Java Performance Evaluation](http://buytaert.net/files/oopsla07-georges.pdf)
