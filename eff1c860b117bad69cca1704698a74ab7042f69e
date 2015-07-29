@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_0639a9d6",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-29T11:02:50Z",
+      "side": 1,
+      "message": "\"the given match object\", the reference to ethernet packet, \"an instance of Action\". the whole comment could be gone. the packetcontext should be documented earlier too.",
+      "parentUuid": "9ad9bd40_123e4428",
+      "revId": "eff1c860b117bad69cca1704698a74ab7042f69e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_77bea266",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
         "patchSetId": 1
