@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_8cbdddb9",
+        "filename": "midolman/src/main/java/org/midonet/midolman/rules/LiteralRule.java",
+        "patchSetId": 2
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-29T03:31:14Z",
+      "side": 1,
+      "message": "The trailing curly brace is missing here.\n                \u0026\u0026 action !\u003d Action.REJECT \u0026\u0026 action !\u003d Action.RETURN) {",
+      "range": {
+        "startLine": 49,
+        "startChar": 16,
+        "endLine": 49,
+        "endChar": 18
+      },
+      "revId": "5c8dcd9344d9bd59d6d8f063d294be64fa68e1a2",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
