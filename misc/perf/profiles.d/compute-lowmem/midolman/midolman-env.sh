@@ -25,9 +25,6 @@ QUAGGA_DIR=/var/run/quagga
 WATCHDOG_DISABLE=yes
 WATCHDOG_TIMEOUT=10
 
-# The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk"
-
 # Amount of memory to allocate for the JVM heap.
 MAX_HEAP_SIZE="1024M"
 

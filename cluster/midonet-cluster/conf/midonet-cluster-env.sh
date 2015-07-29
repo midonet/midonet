@@ -16,15 +16,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-check_for_java7() {
+# The first existing directory is used for JAVA_HOME if needed.
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-1.8.0-openjdk-amd64 /usr/lib/jvm/java-8-openjdk-amd64 \
+                 /usr/lib/jvm/java-8-oracle /usr/lib/jvm/zulu-8-amd64"
+
+check_for_java8() {
     [ "x" = "x$1" ] && return 1
     [ -x "$1" ] || return 1
     $1 -version 2>&1 | grep '^java version' | sed -e 's/^[^"]*"\(.*\)"$/\1/' \
-        | grep '^1.7.' >/dev/null 2>&1
+        | grep '^1.8.' >/dev/null 2>&1
 }
-
-# The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk"
 
 if [ -n "`which java`" ]; then
         java=`which java`
@@ -46,7 +47,7 @@ oldopts=$-
 set +e
 JAVA_HOME=
 for jdir in $JVM_SEARCH_DIRS; do
-    check_for_java7 "$jdir/bin/java"
+    check_for_java8 "$jdir/bin/java"
     if [ $? -eq 0 ]; then
         JAVA_HOME="$jdir"
         break
@@ -55,9 +56,10 @@ done
 echo $oldopts | grep 'e' 2>&1 >/dev/null && set -e
 
 if [ -z "$JAVA_HOME" ] ; then
-    echo "No suitable JVM found (at least v1.7 required)"
+    echo "No suitable JVM found (at least v1.8 required)"
     exit 1
 fi
+
 JAVA="$JAVA_HOME/bin/java"
 
 # Override these to set the amount of memory to allocate to the JVM at
