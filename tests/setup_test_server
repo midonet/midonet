@@ -25,6 +25,10 @@ ZKDUMP_CURL_URI="http://repo.midonet.org/packages.midokura.key"
 sudo bash -c "echo deb [arch=amd64] http://$ZKDUMP_SERVER stable main > /etc/apt/sources.list.d/midokura-3rdparty.list"
 curl -k $ZKDUMP_CURL_URI | sudo apt-key add -
 
+# add repo for java 8
+
+sudo add-apt-repository ppa:webupd8team/java
+
 # update apt
 sudo apt-get update
 
@@ -45,8 +49,9 @@ sudo apt-get install -y software-properties-common
 # curl, screen, tmux, java
 sudo apt-get install -y screen tmux libncurses5-dev openjdk-7-jdk
 
-# use java7 by default for mm-dpctl
-sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+# use java 8
+sudo apt-get install oracle-java8-installer
+sudo apt-get install oracle-java8-set-default
 
 # python and ruby
 sudo apt-get install --no-install-recommends -y debhelper autotools-dev python-unittest2 python-all-dev ruby-ronn
@@ -121,7 +126,6 @@ sudo apt-get install -y python-httplib2
 sudo apt-get install --no-install-recommends -y python-webob python-eventlet
 
 sudo service tomcat7 stop && true
-sudo sed -i 's/#\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/default/tomcat7
 sudo update-rc.d tomcat7 enable
 
 # dmasq
