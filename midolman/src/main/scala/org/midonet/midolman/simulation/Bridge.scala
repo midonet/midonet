@@ -354,7 +354,7 @@ class Bridge(val id: UUID,
             case Some(vPId) if !context.inPortId.equals(vPId) =>
                 // This VUB is connected to a VAB: send there too
                 context.log.debug("Add vlan-aware bridge flood")
-                ForkAction(floodAction, tryAsk[Port](vPId).action)
+                Fork(floodAction, tryAsk[Port](vPId).action)
             case None if !vlanToPort.isEmpty => // A vlan-aware bridge
                 context.log.debug("Vlan-aware flood")
                 multicastVlanAware(tryAsk[BridgePort](context.inPortId))
@@ -385,7 +385,7 @@ class Bridge(val id: UUID,
                     context.log.debug(
                         "Frame from trunk on vlan {}, send to trunks, POP, to port {}",
                         vlanId, vlanPort)
-                    ForkAction(floodAction, tryAsk[Port](vlanPort).action)
+                    Fork(floodAction, tryAsk[Port](vlanPort).action)
             }
         case p: BridgePort if p.isInterior =>
             vlanToPort.getVlan(context.inPortId) match {
