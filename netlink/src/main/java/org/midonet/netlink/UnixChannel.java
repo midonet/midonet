@@ -24,12 +24,17 @@ import java.nio.channels.spi.SelectorProvider;
 import javax.annotation.Nullable;
 
 import com.sun.jna.Native;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import sun.nio.ch.PollArrayWrapper;
+import sun.nio.ch.IOStatus;
+import sun.nio.ch.NativeThread;
 import sun.nio.ch.SelectionKeyImpl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.midonet.netlink.hacks.IOUtil;
+import org.midonet.netlink.hacks.NativeDispatcher;
 import org.midonet.util.cLibrary;
-import org.midonet.netlink.hacks.*;
 
 /**
  * Abstracts a netlink channel. The implementation will make a native netlink
@@ -310,12 +315,11 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
         if ((ops & SelectionKey.OP_CONNECT) != 0)
             newOps |= PollArrayWrapper.POLLIN;
 
-        SelectorCaller.putEventOps(sk.selector(), sk, newOps);
+        sk.selector.putEventOps(sk, newOps);
     }
 
-
     public boolean translateAndUpdateReadyOps(int ops, SelectionKeyImpl sk) {
-        int initialOps = SelectionKeyImplCaller.nioReadyOps(sk);
+        int initialOps = sk.nioReadyOps();
         return translateReadyOps(ops, initialOps, sk);
     }
 
@@ -328,8 +332,8 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
      */
     private boolean translateReadyOps(int ops, int initialOps,
                                      SelectionKeyImpl sk) {
-        int intOps = SelectionKeyImplCaller.nioInterestOps(sk);
-        int oldOps = SelectionKeyImplCaller.nioReadyOps(sk);
+        int intOps = sk.nioInterestOps();
+        int oldOps = sk.nioReadyOps();
         int newOps = initialOps;
 
         if ((ops & PollArrayWrapper.POLLNVAL) != 0) {
@@ -342,7 +346,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
         if ((ops & (PollArrayWrapper.POLLERR
             | PollArrayWrapper.POLLHUP)) != 0) {
             newOps = intOps;
-            SelectionKeyImplCaller.nioReadyOps(sk, newOps);
+            sk.nioReadyOps(newOps);
             return (newOps & ~oldOps) != 0;
         }
 
@@ -362,7 +366,7 @@ public abstract class UnixChannel<Address> extends AbstractSelectableChannel
                 ((intOps & SelectionKey.OP_WRITE) != 0))
             newOps |= SelectionKey.OP_WRITE;
 
-        SelectionKeyImplCaller.nioReadyOps(sk, newOps);
+        sk.nioReadyOps(newOps);
         return (newOps & ~oldOps) != 0;
     }
 

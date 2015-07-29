@@ -36,11 +36,11 @@ else
     exit 1
 fi
 
-check_for_java7() {
+check_for_java8() {
     [ "x" = "x$1" ] && return 1
     [ -x "$1" ] || return 1
     $1 -version 2>&1 | grep '^java version' | sed -e 's/^[^"]*"\(.*\)"$/\1/' \
-        | grep '^1.7.' >/dev/null 2>&1
+        | grep '^1.8.' >/dev/null 2>&1
 }
 
 if [ -n "`which java`" ]; then
@@ -63,7 +63,7 @@ oldopts=$-
 set +e
 JAVA_HOME=
 for jdir in $JVM_SEARCH_DIRS; do
-    check_for_java7 "$jdir/bin/java"
+    check_for_java8 "$jdir/bin/java"
     if [ $? -eq 0 ]; then
         JAVA_HOME="$jdir"
         break

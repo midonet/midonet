@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
  * This class is a hack to allow using a custom socket implementation until jdk8
  * rolls over across the project.
  *
- * @deprecated since jdk8
- *
  * @see sun.nio.ch.IOUtil
  */
 public class IOUtil {
