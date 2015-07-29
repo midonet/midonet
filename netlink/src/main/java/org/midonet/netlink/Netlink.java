@@ -37,8 +37,7 @@ public abstract class Netlink {
         SelectorProvider provider = SelectorProvider.provider();
 
         if (!(provider instanceof NetlinkSelectorProvider)) {
-            log.error("Invalid selector type: {} => jdk-bootstrap shadowing "
-                + "may have failed ?", provider.getClass());
+            log.error("Invalid selector type", provider.getClass());
             throw new IllegalSelectorException();
         }
 

@@ -31,7 +31,6 @@ AGENT_BUILD_DIR="$TOP_DIR/midolman/build/install/midolman/lib"
 
 rm -rf $DEPS_DIR ; mkdir -p $DEPS_DIR
 cp $AGENT_BUILD_DIR/midolman-*.jar  $DEPS_DIR/midolman.jar
-cp $AGENT_BUILD_DIR/midonet-jdk-bootstrap-*.jar $DEPS_DIR/midonet-jdk-bootstrap.jar
 cp -r $AGENT_BUILD_DIR $DEPS_DIR/dep
 
 # Place our executables in /usr/local/bin
