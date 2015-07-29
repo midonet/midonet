@@ -15,38 +15,10 @@
 # limitations under the License.
 
 # The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
-                 /usr/lib/jvm/java-7-sun"
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-8-openjdk-amd64 /usr/lib/jvm/java-8-openjdk-amd64 \
+                 /usr/lib/jvm/java-8-oracle /usr/lib/jvm/zulu-8-amd64"
 
-# If JAVA_HOME has not been set, try to determine it.
-if [ -z "$JAVA_HOME" ]; then
-    # If java is in PATH, use a JAVA_HOME that corresponds to that. This is
-    # both consistent with how the upstream startup script works, and how
-    # Debian works (read: the use of alternatives to set a system JVM).
-    if [ -n "`which java`" ]; then
-        java=`which java`
-        # Dereference symlink(s)
-        while true; do
-            if [ -h "$java" ]; then
-                java=`readlink "$java"`
-                continue
-            fi
-            break
-        done
-        JAVA_HOME="`dirname $java`/../"
-    # No JAVA_HOME set and no java found in PATH, search for a JVM.
-    else
-        for jdir in $JVM_SEARCH_DIRS; do
-            if [ -x "$jdir/bin/java" ]; then
-                JAVA_HOME="$jdir"
-                break
-            fi
-        done
-    fi
-fi
-if [ -z "$JAVA" ]; then
-    JAVA="$JAVA_HOME/bin/java"
-fi
+. "prepare-java"
 
 # If MIDO_HOME has not been set, set it.
 if [ -z "$MIDO_HOME" ]; then
@@ -55,15 +27,6 @@ fi
 
 if [ ! -d "$MIDO_HOME" ]; then
    echo "ERROR: $MIDO_HOME does not exist"
-   exit 1
-fi
-
-if [ -z "$MIDO_BOOTSTRAP_JAR" ]; then
-   MIDO_BOOTSTRAP_JAR=`ls $MIDO_HOME/dep/midonet-jdk-bootstrap-*.jar`
-fi
-
-if [ ! -e "$MIDO_BOOTSTRAP_JAR" ]; then
-   echo "ERROR: $MIDO_BOOTSTRAP_JAR does not exist"
    exit 1
 fi
 
@@ -79,4 +42,4 @@ fi
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 
-$JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR -cp $MIDO_DEP_CLASS_PATH:$MIDO_JAR org.midonet.midolman.tools.MmCtl $*
+$JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml $JAVA_LIBRARY_PATH -cp $MIDO_DEP_CLASS_PATH:$MIDO_JAR org.midonet.midolman.tools.MmCtl $*

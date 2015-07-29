@@ -20,11 +20,11 @@ check_for_java7() {
     [ "x" = "x$1" ] && return 1
     [ -x "$1" ] || return 1
     $1 -version 2>&1 | grep '^java version' | sed -e 's/^[^"]*"\(.*\)"$/\1/' \
-        | grep '^1.7.' >/dev/null 2>&1
+        | grep '^1.8.' >/dev/null 2>&1
 }
 
 # The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk"
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-8-openjdk-amd64 /usr/lib/jvm/java-8-openjdk /usr/lib/jvm/java-8-oracle/jre"
 
 if [ -n "`which java`" ]; then
         java=`which java`
