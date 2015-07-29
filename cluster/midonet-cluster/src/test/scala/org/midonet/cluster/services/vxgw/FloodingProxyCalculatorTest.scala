@@ -20,8 +20,8 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, GivenWhenThen, Matchers}
 
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil
-import org.midonet.midolman.topology.TopologyBuilder
 
 @RunWith(classOf[JUnitRunner])
 class FloodingProxyCalculatorTest extends FlatSpec with Matchers
