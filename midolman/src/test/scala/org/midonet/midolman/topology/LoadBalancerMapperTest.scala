@@ -33,6 +33,7 @@ import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, U
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, Vip => TopologyVip}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVIP}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.topology
+package org.midonet.cluster.test
 
 import java.util.UUID
 
@@ -36,7 +36,7 @@ import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.midolman.{layer3 => l3}
-import org.midonet.packets.{IPAddr, IPv4Addr, IPSubnet, IPv4Subnet, MAC}
+import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.Range
 
 trait TopologyBuilder {

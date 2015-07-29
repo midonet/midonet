@@ -31,6 +31,7 @@ import org.midonet.cluster.data.storage.{Storage, StateStorage}
 import org.midonet.cluster.models.Topology.{Host, Port, TunnelZone}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.AliveKey
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver

@@ -29,6 +29,7 @@ import rx.Observable
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{IPAddrGroup => TopologyIPAddrGroup}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{IPAddrGroup => SimAddrGroup}
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver

@@ -32,6 +32,7 @@ import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -40,7 +41,7 @@ import org.midonet.midolman.rules
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
-import org.midonet.midolman.topology.{TopologyBuilder, VirtualTopology}
+import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, IPSubnet, MAC}
 
 class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,

@@ -38,10 +38,10 @@ import org.midonet.cluster.data.storage.{StateResult, ZookeeperObjectMapper}
 import org.midonet.cluster.models.Topology.Port
 import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.state.RoutingTableStorage._
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.layer3.Route.NextHop
-import org.midonet.midolman.topology.TopologyBuilder
 import org.midonet.util.concurrent._
 import org.midonet.util.reactivex._
 

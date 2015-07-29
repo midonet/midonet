@@ -28,9 +28,10 @@ import org.midonet.cluster.data.storage.Storage
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.models.{Topology => Proto}
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.midolman.topology.TopologyBuilder._
+import TopologyBuilder._
 import org.midonet.midolman.topology.devices.PoolHealthMonitorMap
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr

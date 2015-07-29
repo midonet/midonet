@@ -28,6 +28,7 @@ import org.midonet.cluster.data.storage._
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.HostsKey
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.{BridgePort, Port => SimPort, RouterPort, VxLanPort}

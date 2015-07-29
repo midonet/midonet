@@ -30,6 +30,7 @@ import rx.observers.TestObserver
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Network => TopologyBridge, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}

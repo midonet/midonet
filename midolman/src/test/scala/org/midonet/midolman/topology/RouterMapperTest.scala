@@ -33,6 +33,7 @@ import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Port => Topo
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.state.RoutingTableStorage._
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.simulation.{Chain, Router => SimulationRouter}

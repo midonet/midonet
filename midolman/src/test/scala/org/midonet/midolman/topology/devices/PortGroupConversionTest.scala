@@ -26,8 +26,9 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.midolman.simulation.PortGroup
-import org.midonet.midolman.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.midolman.topology.TopologyMatchers
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])

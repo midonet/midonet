@@ -25,7 +25,8 @@ import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
-import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
+import org.midonet.cluster.test.TopologyBuilder
+import org.midonet.midolman.topology.TopologyMatchers
 import org.midonet.packets.{IPv4Addr, IPv4Subnet, MAC}
 
 @RunWith(classOf[JUnitRunner])

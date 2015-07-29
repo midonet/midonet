@@ -26,7 +26,8 @@ import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute}
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
+import org.midonet.cluster.test.TopologyBuilder
+import org.midonet.midolman.topology.TopologyMatchers
 import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])

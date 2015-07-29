@@ -29,6 +29,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.data.host.{Host => DataHost}
 import org.midonet.cluster.data.{TunnelZone, ZoomConvert}
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.midolman.topology.VirtualToPhysicalMapper._
 import org.midonet.midolman.topology.devices.{Host => DevicesHost}
 import org.midonet.midolman.util.MidolmanSpec

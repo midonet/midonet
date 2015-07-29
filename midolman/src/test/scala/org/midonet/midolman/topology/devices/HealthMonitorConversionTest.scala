@@ -24,8 +24,9 @@ import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.{Commons, Topology => Proto}
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.midolman.state.l4lb.{LBStatus, HealthMonitorType}
-import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
+import org.midonet.midolman.topology.TopologyMatchers
 
 @RunWith(classOf[JUnitRunner])
 class HealthMonitorConversionTest extends FeatureSpec

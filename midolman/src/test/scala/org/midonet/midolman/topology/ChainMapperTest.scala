@@ -35,6 +35,7 @@ import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Topology.Rule.JumpRuleData
 import org.midonet.cluster.models.Topology.{Chain => ProtoChain, IPAddrGroup => ProtoIPAddrGroup, Rule => ProtoRule}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.test.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.NotYetException
 import org.midonet.midolman.rules.{Rule => SimRule}
