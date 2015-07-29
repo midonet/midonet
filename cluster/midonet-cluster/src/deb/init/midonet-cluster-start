@@ -32,7 +32,6 @@ MIDO_DEP_CLASS_PATH=$MIDO_HOME/dep/*
 MIDO_MAIN=org.midonet.cluster.ClusterNode
 
 test -r $MIDO_JAR || exit 1
-test -r $MIDO_BOOTSTRAP_JAR || exit 1
 
 # OpenJDK uses the system jnidispatcher as default, since /usr/lib/jni is in
 # the java library path.  If we specify our jna.jar in the classpath, this
