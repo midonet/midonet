@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_4c1bd5c9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/simulation/PortConversionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 19,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-29T04:34:56Z",
+      "side": 1,
+      "message": "It seems import scala.util.Random should be here. Ctrl-Alt-O should do all the jobs.",
+      "revId": "978d58ef4548abcaeefa369ba1ddaf43698be5f9",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
