@@ -16,15 +16,16 @@
 
 package org.midonet.midolman.simulation
 
-import java.util
 import java.util.UUID
 
 import akka.actor.ActorSystem
+
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => Result, _}
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
+import org.midonet.util.concurrent.{InstanceStash1, InstanceStash2}
 
 object Simulator {
     val MAX_DEVICES_TRAVERSED = 12
@@ -36,38 +37,30 @@ object Simulator {
     // A good example is when a bridge that has a vlan id set receives a
     // broadcast from the virtual network. It will output it to all its
     // materialized ports and to the logical port that connects it to the VAB
-    case class ForkAction(first: Result, second: Result) extends ForwardAction
+    case class ForkAction(var first: Result, var second: Result) extends ForwardAction
 
     type SimStep = (PacketContext, ActorSystem) => Result
 
-    /* Keep a pool of MAX_DEVICES*2 FlowMatch instances to support that many
-     * nested simulation forks (sequential forks are unlimited) with no
-     * extra allocations.
-     *
-     * The number is generous enough that we'll simply assume the pool never is
-     * empty. Should it be not, the affected packet won't make it through.
-     */
-    private val flowMatchPool = new ThreadLocal[util.ArrayList[FlowMatch]] {
-        override def initialValue = {
-            val l = new util.ArrayList[FlowMatch](MAX_DEVICES_TRAVERSED*2)
-            for (i <- 1 to MAX_DEVICES_TRAVERSED*2) {
-                l.add(new FlowMatch())
-            }
-            l
-        }
-    }
-    private def matchPool = flowMatchPool.get()
-
-    def popMatch() = matchPool.remove(matchPool.size()-1)
-    def pushMatch(m: FlowMatch): Unit = matchPool.add(m)
-
     def simulate(context: PacketContext)(implicit as: ActorSystem): Result = {
         context.log.debug("Simulating a packet")
+        Fork.reUp()
+        PooledMatches.reUp()
         if (context.ingressed)
             tryAsk[Port](context.inputPort).ingress(context, as)
         else
             tryAsk[Port](context.egressPort).egress(context, as)
     }
+
+    val Fork = new InstanceStash2[ForkAction, Result, Result](
+            () => ForkAction(null, null),
+            (fork, a, b) => {
+                fork.first = a
+                fork.second = b
+            })
+
+    val PooledMatches = new InstanceStash1[FlowMatch, FlowMatch](
+            () => new FlowMatch(),
+            (fm, template) => fm.reset(template))
 }
 
 trait SimDevice {
@@ -110,19 +103,18 @@ trait SimDevice {
     }
 
     private def branch(context: PacketContext, result: Result)(implicit as: ActorSystem): Result = {
-        val branchPoint = popMatch()
-        branchPoint.reset(context.wcmatch)
+        val branchPoint = PooledMatches(context.wcmatch)
         try {
             continue(context, result)
         } finally {
             context.wcmatch.reset(branchPoint)
-            pushMatch(branchPoint)
         }
     }
 
     def continue(context: PacketContext, simRes: Result)(
         implicit as: ActorSystem) : Result = simRes match {
-        case ForkAction(first, second) => merge(branch(context, first), branch(context, second))
+        case ForkAction(first, second) => merge(branch(context, first),
+                                                branch(context, second))
         case ToPortAction(port) => tryAsk[Port](port).egress(context, as)
         case res => res
     }
