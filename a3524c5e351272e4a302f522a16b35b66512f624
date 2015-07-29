@@ -1,0 +1,101 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_8c323d5d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 220,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-29T04:13:24Z",
+      "side": 1,
+      "message": "Super nit: Be consistent with use of parentheses. \"UUID.randomUUID, networkId \u003d UUID.randomUUID\" or \"UUID.randomUUID(), networkId \u003d UUID.randomUUID()\".",
+      "revId": "a3524c5e351272e4a302f522a16b35b66512f624",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ac338160",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/simulation/RCUBridgeTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 53,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-29T04:13:24Z",
+      "side": 1,
+      "message": "Super nit: let\u0027s be consistent with the use of (). UUID.randomUUID() and BridgePort.random are mixed. It seems UUID.randomUUID doesn\u0027t have side effects and this can be as it is though.",
+      "range": {
+        "startLine": 53,
+        "startChar": 28,
+        "endLine": 53,
+        "endChar": 34
+      },
+      "revId": "a3524c5e351272e4a302f522a16b35b66512f624",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0c3e2d28",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VxLanPortMapperTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-29T04:13:24Z",
+      "side": 1,
+      "message": "Super nit: UUID.randomUUID",
+      "revId": "a3524c5e351272e4a302f522a16b35b66512f624",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ac0aa176",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/PortConversionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 51,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-29T04:13:24Z",
+      "side": 1,
+      "message": "This can be Port(port) and it looks consistent with the last one.",
+      "range": {
+        "startLine": 51,
+        "startChar": 25,
+        "endLine": 51,
+        "endChar": 35
+      },
+      "revId": "a3524c5e351272e4a302f522a16b35b66512f624",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cc0fe586",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/devices/PortConversionTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 71,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-29T04:13:24Z",
+      "side": 1,
+      "message": "Ditto.",
+      "revId": "a3524c5e351272e4a302f522a16b35b66512f624",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
