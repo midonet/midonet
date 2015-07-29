@@ -104,6 +104,21 @@ cobertura {
     ]
 }
 
+// These three below allow exposing some test classes to other modules
+
+configurations {
+    tests.extendsFrom (testCompile)
+}
+
+task jarTest (type: Jar, dependsOn: testClasses) {
+    from sourceSets.test.output
+    classifier = 'test'
+}
+
+artifacts {
+    tests jarTest
+}
+
 task preparePkg(type: Copy, dependsOn: installApp) {
     from("${buildDir}/install/${project.name}") {
         include "**/*"

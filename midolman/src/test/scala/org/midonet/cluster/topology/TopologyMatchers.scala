@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.topology
+package org.midonet.cluster.topology
 
 import scala.collection.JavaConverters._
 
 import com.google.protobuf.MessageOrBuilder
-
 import org.scalatest.Matchers
 
 import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, HealthMonitor => TopologyHealthMonitor, IPAddrGroup => TopologyIpAddrGroup, LoadBalancer => TopologyLB, Network => TopologyBridge, Pool => TopologyPool, PoolMember => TopologyPoolMember, Port => TopologyPort, PortGroup => TopologyPortGroup, Route => TopologyRoute, Router => TopologyRouter, Rule => TopologyRule, Vip => TopologyVip}
+import org.midonet.cluster.topology.TopologyMatchers._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
 import org.midonet.cluster.util.UUIDUtil._
@@ -32,7 +32,6 @@ import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.{Condition, ForwardNatRule, JumpRule, NatRule, NatTarget, Rule}
 import org.midonet.midolman.simulation.{Bridge, Chain, IPAddrGroup, LoadBalancer, PortGroup, Router, VIP, _}
 import org.midonet.midolman.state.l4lb
-import org.midonet.midolman.topology.TopologyMatchers.{BridgeMatcher, BridgePortMatcher, RouterPortMatcher, _}
 import org.midonet.midolman.topology.devices.{BridgePort, Port, RouterPort, VxLanPort, _}
 import org.midonet.packets.{IPv4Addr, MAC}
 

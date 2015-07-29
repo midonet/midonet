@@ -28,11 +28,11 @@ import org.scalatest.{FeatureSpec, Matchers}
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action
-import org.midonet.cluster.util.{IPAddressUtil, RangeUtil, IPSubnetUtil}
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil}
 import org.midonet.midolman.rules.{Rule => SimRule, _}
-import org.midonet.midolman.topology.{TopologyBuilder, TopologyMatchers}
-import org.midonet.packets.{IPv4Subnet, IPSubnet, MAC}
+import org.midonet.packets.{IPSubnet, IPv4Subnet, MAC}
 import org.midonet.util.Range
 
 @RunWith(classOf[JUnitRunner])

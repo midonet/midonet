@@ -83,6 +83,7 @@ dependencies {
             libraries.zookeeper
 
     testCompile project(path: ':nsdb', configuration: 'tests')
+    testCompile project(path: ':midolman', configuration: 'tests')
     testCompile libraries.curator_test,
                 libraries.hamcrest_lib,
                 libraries.httpclient,

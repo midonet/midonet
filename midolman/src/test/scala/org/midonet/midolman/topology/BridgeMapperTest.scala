@@ -30,10 +30,11 @@ import rx.observers.TestObserver
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage, UpdateOp}
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Network => TopologyBridge, Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, Chain}
-import org.midonet.midolman.topology.TopologyTest.DeviceObserver
+import TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.{IPv4Addr, MAC}
