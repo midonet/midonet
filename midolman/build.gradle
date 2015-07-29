@@ -46,7 +46,6 @@ sourceSets {
 }
 
 dependencies {
-    runtime project(':midonet-jdk-bootstrap')
     compile project(':midonet-util'), project(':netlink'),
             project(':odp'), project(':nsdb'), project(':rpc')
 
@@ -249,7 +248,7 @@ rpm.doFirst {
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
             '--depends', 'python-setproctitle',
-            '--depends', 'java-1.7.0'])
+            '--depends', 'java-1.8.0'])
     } else {
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
@@ -270,7 +269,6 @@ mainClassName = "org.midonet.midolman.Midolman"
 
 task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
-    commandLine += '-Xbootclasspath:' + file(project.jdkBootstrap)
     commandLine += '-cp'
     commandLine += sourceSets.main.runtimeClasspath.collect{ it.toString() }.join(':')
     commandLine += mainClassName

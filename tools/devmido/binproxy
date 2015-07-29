@@ -15,7 +15,6 @@
 # limitations under the License.
 
 export MIDO_HOME=%DEPS_DIR%
-export MIDO_BOOTSTRAP_JAR=$MIDO_HOME/midonet-jdk-bootstrap.jar
 export MIDO_JAR=$MIDO_HOME/midolman.jar
 
 SCRIPT_NAME=`basename $0`
