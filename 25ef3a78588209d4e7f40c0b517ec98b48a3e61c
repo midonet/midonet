@@ -22,6 +22,30 @@
       "revId": "25ef3a78588209d4e7f40c0b517ec98b48a3e61c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f203a03f",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/PoolMemberResource.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-29T10:46:21Z",
+      "side": 1,
+      "message": "Idempotency. The test expects that this fails, I think due to (legacy) expectations from the plugin.\n\nI don\u0027t really have a strong opinion on this approach (I slightly prefer to 404), but I do think we should impose a consistent approach on all APIs gradually. I didn\u0027t want to change behaviour yet as it\u0027d involve applying it to the v1 API too.",
+      "parentUuid": "9ad9bd40_92f5f458",
+      "range": {
+        "startLine": 49,
+        "startChar": 0,
+        "endLine": 58,
+        "endChar": 5
+      },
+      "revId": "25ef3a78588209d4e7f40c0b517ec98b48a3e61c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
