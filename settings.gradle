@@ -1,4 +1,4 @@
-include "midonet-util", "midonet-jdk-bootstrap", "netlink", "odp",
+include "midonet-util", "netlink", "odp",
         "nsdb", "midolman", "midonet-api", "midonet-client", "rpc",
         "cluster:midonet-cluster", 'cluster:odl-ovsdb:commons:parent',
         'cluster:odl-ovsdb:distribution:opendaylight', 'cluster:odl-ovsdb:ovsdb',
