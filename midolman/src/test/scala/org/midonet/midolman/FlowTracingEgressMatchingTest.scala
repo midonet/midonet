@@ -149,18 +149,12 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
         feedMacTable(simBridge, vm2Mac, bridgeVm2Port)
 
         fetchPorts(uplinkPort, bridgeVm2Port) map {
-            _ match {
-                case p: Port =>
-                    portMapIngress.put(p.tunnelKey.toInt, p.id)
-                case _ =>
-            }
+            case p: Port => portMapIngress.put(p.tunnelKey.toInt, p.id)
+            case _ =>
         }
         fetchPorts(bridgeVm1Port) map {
-            _ match {
-                case p: Port =>
-                    portMapEgress.put(p.tunnelKey.toInt, p.id)
-                case _ =>
-            }
+            case p: Port => portMapEgress.put(p.tunnelKey.toInt, p.id)
+            case _ =>
         }
         fetchPorts(rtrIntPort, bridgeRtrPort)
         fetchChains(bridgeChain)
@@ -237,21 +231,21 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         // should have executed flow with tunnel mask set
         val (packet, actions) = packetOutQueueIngress.remove()
-        TraceState.traceBitPresent(getTunnelId(actions)) should be (true)
+        TraceState.traceBitPresent(getTunnelId(actions)) shouldBe true
         getTunnelDst(actions) should be (egressHostIp)
 
         // should have created flow, but without tunnel mask set
         flowQueueIngress.size should be (1)
         val flow = flowQueueIngress.remove()
         TraceState.traceBitPresent(
-            getTunnelId(flow.getActions)) should be (false)
+            getTunnelId(flow.getActions)) shouldBe false
 
         packetCtxTrapIngress.size should be (2)
         val ingressCtx = packetCtxTrapIngress.remove()
         // should have the same packet context after the workflow restart
         ingressCtx should be (packetCtxTrapIngress.pop())
 
-        val egressFrame = applyPacketActions(packet.getEthernet(),
+        val egressFrame = applyPacketActions(packet.getEthernet,
                                              actions)
         val egressFrameFlowMatch =
             FlowMatches.fromEthernetPacket(egressFrame)

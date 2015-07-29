@@ -32,13 +32,14 @@ public class JumpRule extends Rule {
 
     private final static Logger log = LoggerFactory.getLogger(JumpRule.class);
     private static final long serialVersionUID = -7212783590950701193L;
+
     @ZoomField(name = "jump_to", converter = UUIDUtil.Converter.class)
     public UUID jumpToChainID;
     @ZoomField(name = "jump_chain_name")
     public String jumpToChainName;
 
-    public JumpRule(
-            Condition condition, UUID jumpToChainID, String jumpToChainName) {
+    public JumpRule(Condition condition, UUID jumpToChainID,
+                    String jumpToChainName) {
         super(condition, null);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
@@ -51,8 +52,8 @@ public class JumpRule extends Rule {
     }
 
     public JumpRule(Condition condition, UUID jumpToChainID,
-                    String jumpToChainName, UUID chainId, int position) {
-        super(condition, null, chainId, position);
+                    String jumpToChainName, UUID chainId) {
+        super(condition, null, chainId);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
     }

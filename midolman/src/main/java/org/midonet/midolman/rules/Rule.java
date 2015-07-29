@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,11 +60,10 @@ public abstract class Rule extends BaseConfig {
     private Map<String, String> properties = new HashMap<>();
 
     public Rule(Condition condition, Action action) {
-        this(condition, action, null, -1);
+        this(condition, action, null);
     }
 
-    public Rule(Condition condition, Action action, UUID chainId,
-                int position) {
+    public Rule(Condition condition, Action action, UUID chainId) {
         this.condition = condition;
         this.action = action;
         this.chainId = chainId;

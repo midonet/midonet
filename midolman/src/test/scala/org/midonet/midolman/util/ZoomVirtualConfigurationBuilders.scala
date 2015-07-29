@@ -71,7 +71,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def addHostVrnPortMapping(host: UUID, port: UUID, iface: String): Unit = {
         val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .setHostId(host.asProto)
                          .setInterfaceName(iface)
                          .build())
@@ -80,7 +80,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newInboundChainOnBridge(name: String, bridge: UUID): UUID = {
         val chain = newChain(name)
         val n = Await.result(store.get(classOf[Network], bridge), awaitTimeout)
-        store.update(n.toBuilder()
+        store.update(n.toBuilder
                          .setInboundFilterId(chain.asProto)
                          .build())
         chain
@@ -88,7 +88,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newOutboundChainOnBridge(name: String, bridge: UUID): UUID = {
         val chain = newChain(name)
         val n = Await.result(store.get(classOf[Network], bridge), awaitTimeout)
-        store.update(n.toBuilder()
+        store.update(n.toBuilder
                          .setOutboundFilterId(chain.asProto)
                          .build())
         chain
@@ -96,7 +96,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newInboundChainOnRouter(name: String, router: UUID): UUID = {
         val chain = newChain(name)
         val r = Await.result(store.get(classOf[Router], router), awaitTimeout)
-        store.update(r.toBuilder()
+        store.update(r.toBuilder
                          .setInboundFilterId(chain.asProto)
                          .build())
         chain
@@ -104,7 +104,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newOutboundChainOnRouter(name: String, router: UUID): UUID =  {
         val chain = newChain(name)
         val r = Await.result(store.get(classOf[Router], router), awaitTimeout)
-        store.update(r.toBuilder()
+        store.update(r.toBuilder
                          .setOutboundFilterId(chain.asProto)
                          .build())
         chain
@@ -119,7 +119,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newOutboundChainOnPort(name: String, port: UUID, id: UUID): UUID = {
         val chain = newChain(name)
         val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .setOutboundFilterId(chain.asProto)
                          .build())
         chain
@@ -128,7 +128,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newInboundChainOnPort(name: String, port: UUID, id: UUID): UUID = {
         val chain = newChain(name)
         val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .setInboundFilterId(chain.asProto)
                          .build())
         chain
@@ -138,7 +138,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val rules = new ArrayList[Commons.UUID]
         rules.addAll(c.getRuleIdsList())
         rules.add(pos-1, rule.asProto)
-        c.toBuilder()
+        c.toBuilder
             .clearRuleIds()
             .addAllRuleIds(rules)
             .build()
@@ -198,7 +198,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def removeRuleFromBridge(bridge: UUID): Unit = {
         val b = Await.result(store.get(classOf[Network], bridge), awaitTimeout)
-        store.update(b.toBuilder().clearInboundFilterId().build())
+        store.update(b.toBuilder.clearInboundFilterId().build())
     }
 
     override def newJumpRuleOnChain(chain: UUID, pos: Int,
@@ -223,7 +223,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def addIpAddrToIpAddrGroup(id: UUID, addr: String): Unit = {
         val g = Await.result(store.get(classOf[IPAddrGroup], id), awaitTimeout)
-        store.update(g.toBuilder()
+        store.update(g.toBuilder
                          .addIpAddrPorts(IPAddrGroup.IPAddrPorts.newBuilder()
                                              .setIpAddress(IPv4Addr(addr).asProto)
                                              .build())
@@ -235,7 +235,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val ports = g.getIpAddrPortsList.asScala
             .filter(_.getIpAddress != IPv4Addr(addr).asProto)
             .asJava
-        store.update(g.toBuilder()
+        store.update(g.toBuilder
                          .clearIpAddrPorts()
                          .addAllIpAddrPorts(ports)
                          .build())
@@ -254,7 +254,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def addTunnelZoneMember(tz: UUID, host: UUID, ip: IPv4Addr): Unit = {
         val tzone = Await.result(store.get(classOf[TunnelZone], tz), awaitTimeout)
-        store.update(tzone.toBuilder()
+        store.update(tzone.toBuilder
                          .addHosts(HostToIp.newBuilder()
                                        .setHostId(host.asProto)
                                        .setIp(ip.asProto).build())
@@ -271,7 +271,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
             .filter(_ != host.asProto)
             .asJava
 
-        store.update(tzone.toBuilder()
+        store.update(tzone.toBuilder
                          .clearHosts()
                          .clearHostIds()
                          .addAllHosts(hosts)
@@ -286,7 +286,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
     override def setBridgeAdminStateUp(bridge: UUID, state: Boolean): Unit = {
         val n = Await.result(store.get(classOf[Network], bridge), awaitTimeout)
-        store.update(n.toBuilder()
+        store.update(n.toBuilder
                          .setAdminStateUp(state)
                          .build())
     }
@@ -309,7 +309,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def setPortAdminStateUp(port: UUID, state: Boolean): Unit = {
         val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .setAdminStateUp(state)
                          .build())
     }
@@ -330,18 +330,18 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def setPortGroupStateful(id: UUID, stateful: Boolean): Unit = {
         val pg = Await.result(store.get(classOf[PortGroup], id), awaitTimeout)
-        store.update(pg.toBuilder().setStateful(stateful).build())
+        store.update(pg.toBuilder.setStateful(stateful).build())
     }
 
     override def newPortGroupMember(pgId: UUID, portId: UUID): Unit = {
         val pg = Await.result(store.get(classOf[PortGroup], pgId), awaitTimeout)
-        store.update(pg.toBuilder()
+        store.update(pg.toBuilder
                          .addPortIds(portId.asProto).build())
     }
 
     override def deletePortGroupMember(pgId: UUID, portId: UUID): Unit = {
         val pg = Await.result(store.get(classOf[PortGroup], pgId), awaitTimeout)
-        store.update(pg.toBuilder()
+        store.update(pg.toBuilder
                          .clearPortIds()
                          .addAllPortIds(pg.getPortIdsList().asScala
                                             .filter({ _ != portId.asProto }).asJava)
@@ -355,7 +355,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     }
     override def setRouterAdminStateUp(router: UUID, state: Boolean): Unit = {
         val r = Await.result(store.get(classOf[Router], router), awaitTimeout)
-        store.update(r.toBuilder()
+        store.update(r.toBuilder
                          .setAdminStateUp(state)
                          .build())
     }
@@ -447,7 +447,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val id = UUID.randomUUID
         val dhcpId = subnet2Id.get(subnet).get
         val dhcp = Await.result(store.get(classOf[Dhcp], dhcpId), awaitTimeout)
-        store.update(dhcp.toBuilder()
+        store.update(dhcp.toBuilder
                          .addHosts(Dhcp.Host.newBuilder()
                                        .setMac(hostMac.toString)
                                        .setIpAddress(hostIp.asProto)
@@ -465,14 +465,14 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def linkPorts(port: UUID, peerPort: UUID): Unit = {
         val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .setPeerId(peerPort.asProto)
                          .build())
     }
 
     override def unlinkPorts(port: UUID): Unit = {
         val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .clearPeerId()
                          .build())
     }
@@ -485,7 +485,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         }
 
         val p = Await.result(store.get(classOf[Port], port), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .setHostId(hostId.asProto)
                          .setInterfaceName(portName).build())
         legacyStorage.setPortLocalAndActive(port, hostId, true)
@@ -503,7 +503,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def setLoadBalancerOnRouter(loadBalancer: UUID,
                                          router: UUID): Unit = {
         val r = Await.result(store.get(classOf[Router], router), awaitTimeout)
-        val b = r.toBuilder()
+        val b = r.toBuilder
         if (loadBalancer != null) {
             b.setLoadBalancerId(loadBalancer.asProto)
         } else {
@@ -514,7 +514,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def setLoadBalancerDown(loadBalancer: UUID): Unit = {
         val lb = Await.result(store.get(classOf[LoadBalancer], loadBalancer), awaitTimeout)
-        store.update(lb.toBuilder().setAdminStateUp(false).build())
+        store.update(lb.toBuilder.setAdminStateUp(false).build())
     }
 
     override def newVip(pool: UUID, address: String, port: Int): UUID = {
@@ -548,21 +548,21 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def setVipAdminStateUp(vip: UUID, adminStateUp: Boolean): Unit = {
         val v = Await.result(store.get(classOf[Vip], vip), awaitTimeout)
-        store.update(v.toBuilder()
+        store.update(v.toBuilder
                          .setAdminStateUp(adminStateUp)
                          .build())
     }
 
     override def vipEnableStickySourceIP(vip: UUID): Unit = {
         val v = Await.result(store.get(classOf[Vip], vip), awaitTimeout)
-        store.update(v.toBuilder()
+        store.update(v.toBuilder
                          .setSessionPersistence(Vip.SessionPersistence.SOURCE_IP)
                          .build())
     }
 
     override def vipDisableStickySourceIP(vip: UUID): Unit = {
         val v = Await.result(store.get(classOf[Vip], vip), awaitTimeout)
-        store.update(v.toBuilder()
+        store.update(v.toBuilder
                          .clearSessionPersistence()
                          .build())
     }
@@ -598,7 +598,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def setHealthMonitorDelay(id: UUID, delay: Int): Unit = {
         val hm = Await.result(store.get(classOf[HealthMonitor], id), awaitTimeout)
-        store.update(hm.toBuilder()
+        store.update(hm.toBuilder
                          .setDelay(delay)
                          .build())
     }
@@ -621,14 +621,14 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def setPoolHealthMonitor(pool: UUID, hmId: UUID): Unit = {
         val p = Await.result(store.get(classOf[Pool], pool), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .setHealthMonitorId(hmId.asProto)
                          .build())
     }
 
     override def setPoolAdminStateUp(pool: UUID, adminStateUp: Boolean): Unit = {
         val p = Await.result(store.get(classOf[Pool], pool), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .setAdminStateUp(adminStateUp)
                          .build())
     }
@@ -636,7 +636,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def setPoolLbMethod(pool: UUID, lbMethod: PoolLBMethod): Unit = {
         val p = Await.result(store.get(classOf[Pool], pool), awaitTimeout)
 
-        val builder = p.toBuilder()
+        val builder = p.toBuilder
         if (lbMethod.isDefined) {
             builder.setLbMethod(lbMethod.get)
         } else {
@@ -647,7 +647,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
 
     override def setPoolMapStatus(pool: UUID, status: PoolHealthMonitorMappingStatus): Unit = {
         val p = Await.result(store.get(classOf[Pool], pool), awaitTimeout)
-        store.update(p.toBuilder()
+        store.update(p.toBuilder
                          .setMappingStatus(status)
                          .build())
     }
@@ -669,7 +669,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                   weight: Option[Integer] = None,
                                   status: Option[LBStatus] = None): Unit = {
         val pm = Await.result(store.get(classOf[PoolMember], poolMember), awaitTimeout)
-        val builder = pm.toBuilder()
+        val builder = pm.toBuilder
         poolId.foreach((id: UUID) => builder.setPoolId(id.asProto))
         adminStateUp.foreach(builder.setAdminStateUp(_))
         weight.foreach(builder.setWeight(_))
