@@ -36,11 +36,11 @@ else
     exit 1
 fi
 
-check_for_java7() {
+check_for_java8() {
     [ "x" = "x$1" ] && return 1
     [ -x "$1" ] || return 1
     $1 -version 2>&1 | grep '^java version' | sed -e 's/^[^"]*"\(.*\)"$/\1/' \
-        | grep '^1.7.' >/dev/null 2>&1
+        | grep '^1.8.' >/dev/null 2>&1
 }
 
 if [ -n "`which java`" ]; then
@@ -63,7 +63,7 @@ oldopts=$-
 set +e
 JAVA_HOME=
 for jdir in $JVM_SEARCH_DIRS; do
-    check_for_java7 "$jdir/bin/java"
+    check_for_java8 "$jdir/bin/java"
     if [ $? -eq 0 ]; then
         JAVA_HOME="$jdir"
         break
@@ -72,7 +72,7 @@ done
 echo $oldopts | grep 'e' 2>&1 >/dev/null && set -e
 
 if [ -z "$JAVA_HOME" ] ; then
-    echo "No suitable JVM found (at least v1.7 required)"
+    echo "No suitable JVM found (at least v1.8 required)"
     exit 1
 fi
 
@@ -80,11 +80,9 @@ JAVA="$JAVA_HOME/bin/java"
 
 MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar`
 MIDO_DEP_CLASS_PATH=$MIDO_HOME/dep/*
-MIDO_BOOTSTRAP_JAR=`ls $MIDO_HOME/dep/midonet-jdk-bootstrap-*.jar`
 MIDO_MAIN=org.midonet.midolman.Midolman
 
 test -r $MIDO_JAR || exit 1
-test -r $MIDO_BOOTSTRAP_JAR || exit 1
 
 # OpenJDK uses the system jnidispatcher as default, since /usr/lib/jni is in
 # the java library path. We specify our jna.jar in the classpath, this leads
@@ -107,11 +105,10 @@ MIDO_WATCHDOG_TIMEOUT="${WATCHDOG_TIMEOUT:-10}"
 if [ -x /usr/bin/wdog ] && [ -z "$WATCHDOG_DISABLE" ] ; then
     exec /usr/bin/wdog -d /var/log/midolman $WATCHDOG_TIMEOUT -- \
                 $JAVA $JAVA_LIBRARY_PATH \
-                -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
                 -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH \
                 $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
 else
-    exec $JAVA $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR \
+    exec $JAVA $JAVA_LIBRARY_PATH 
                 -cp $MIDO_JAR:$MIDO_DEP_CLASS_PATH \
                 $JAVA_OPTS $MIDO_MAIN -c $MIDO_CFG/$MIDO_CFG_FILE
 fi
