@@ -18,9 +18,8 @@
 REQUIRED_MODS="openvswitch gre"
 
 # The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 \
-                 /usr/lib/jvm/java-7-openjdk \
-                 /usr/lib/jvm/java-7-sun"
+JVM_SEARCH_DIRS="/usr/lib/jvm/java-8-openjdk-amd64 /usr/lib/jvm/java-8-openjdk-amd64 \
+                 /usr/lib/jvm/java-8-oracle /usr/lib/jvm/zulu-8-amd64"
 
 
 ##############################################################
@@ -127,7 +126,6 @@ if [ ! -d "$MIDO_HOME" ]; then
 fi
 
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
-MIDO_BOOTSTRAP_JAR=`ls $MIDO_HOME/dep/midonet-jdk-bootstrap-*.jar`
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar 2>/dev/null`
 if [ ! -e "$MIDO_JAR" -a -z "$MIDO_EXTRA_JARS" ] ; then
@@ -145,8 +143,7 @@ run_test() {
     shift
     echo "Running $MAIN"
     $JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml\
-        $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR\
-        -cp $CLASSPATH $MAIN $*
+        $JAVA_LIBRARY_PATH -cp $CLASSPATH $MAIN $*
     [ $? -eq 0 ] || abort "error when running $MAIN"
 }
 

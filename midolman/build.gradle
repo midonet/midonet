@@ -46,7 +46,6 @@ sourceSets {
 }
 
 dependencies {
-    runtime project(':midonet-jdk-bootstrap')
     compile project(':midonet-util'), project(':netlink'),
             project(':odp'), project(':nsdb'), project(':rpc')
 
@@ -236,11 +235,11 @@ debian.doFirst {
         '-d', 'python',
         '-d', 'python-setproctitle',
         '-d', 'quagga (>= 0.99.21)',
-        '-d', 'java7-runtime-headless',
+        '-d', 'zulu-8 | openjdk-8-jre-headless',
         '-d', 'iproute (>= 20111117-1ubuntu2.1)',
         '-d', 'openvswitch-datapath-dkms (>= 1.10) | linux-image-generic (>= 3.13.0) | linux-image-virtual (>= 3.13.0) | linux-image-generic-lts-trusty (>= 3.13.0) | linux-image-virtual-lts-trusty (>= 3.13.0)',
         '--conflicts', 'openvswitch-switch',
-        '--deb-recommends', 'java7-runtime-headless | java7-runtime',
+        '--deb-recommends', 'zulu-8 | openjdk-8-jre-headless',
         '--after-install', "${project.projectDir}/src/deb/control/postinst",
         '--before-install', "${project.projectDir}/src/deb/control/preinst",
         '--after-remove', "${project.projectDir}/src/deb/control/postrm",
@@ -263,13 +262,13 @@ rpm.doFirst {
             '--after-remove', "${project.projectDir}/src/rhel7/control/postrm",
             '--before-remove', "${project.projectDir}/src/rhel7/control/prerm",
             '--depends', 'python-setproctitle',
-            '--depends', 'java-1.7.0'])
+            '--depends', 'java-1.8.0-openjdk-headless | zulu-8'])
     } else {
         project.packaging.fpmOpts.addAll([
             '--after-install', "${project.projectDir}/src/rhel6/control/postinst",
             '--before-install', "${project.projectDir}/src/rhel6/control/preinst",
             '--before-remove', "${project.projectDir}/src/rhel6/control/prerm",
-            '--depends', 'java7'])
+            '--depends', 'java-1.8.0-openjdk-headless | zulu-8'])
     }
 }
 
@@ -284,7 +283,6 @@ mainClassName = "org.midonet.midolman.Midolman"
 
 task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
-    commandLine += '-Xbootclasspath:' + file(project.jdkBootstrap)
     commandLine += '-cp'
     commandLine += sourceSets.main.runtimeClasspath.collect{ it.toString() }.join(':')
     commandLine += mainClassName
