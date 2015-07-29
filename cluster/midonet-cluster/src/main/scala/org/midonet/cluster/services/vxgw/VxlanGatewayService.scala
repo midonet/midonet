@@ -180,7 +180,7 @@ class VxlanGatewayService @Inject()(nodeCtx: ClusterNode.Context,
         } match {
             case Success(b) if b.getVxLanPortIds == null ||
                                b.getVxLanPortIds.isEmpty =>
-                log.info("VxGW is no more")
+                log.info(s"Network ${b.getId} is no longer in a VxGW")
                 if (log.isTraceEnabled) {
                     log.trace(s"Network ${b.getId} changed but isn't bound " +
                               s" to any VTEPs. Watching $numNetworks networks" +
