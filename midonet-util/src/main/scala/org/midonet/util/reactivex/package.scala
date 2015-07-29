@@ -27,4 +27,10 @@ package object reactivex {
     implicit def richObserver[T](observer: Observer[T]): RichObserver[T] =
         new RichObserver(observer)
 
+    def retryObserver[T](f: Throwable => Unit) = new Observer[T] {
+        override def onCompleted(): Unit = {}
+        override def onNext(r: T): Unit = {}
+        override def onError(t: Throwable): Unit = f(t)
+    }
+
 }
