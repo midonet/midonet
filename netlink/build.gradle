@@ -39,13 +39,9 @@ sourceSets {
 }
 
 dependencies {
-    compile project(":midonet-util"),
-            project(":midonet-jdk-bootstrap")
+    compile project(":midonet-util")
     compile libraries.jna, libraries.commons_io, libraries.guava, libraries.rx
 
     testCompile libraries.scalatest
 }
 
-compileScala {
-    options.bootClasspath = project.jdkBootstrap
-}
