@@ -21,13 +21,13 @@ import java.util.UUID
 import scala.util.Random
 
 import org.junit.runner.RunWith
-import org.scalatest.{Matchers, FeatureSpec}
 import org.scalatest.junit.JUnitRunner
+import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.midolman.simulation.PortGroup
-import org.midonet.midolman.topology.{TopologyMatchers, TopologyBuilder}
 import org.midonet.sdn.flows.FlowTagger
 
 @RunWith(classOf[JUnitRunner])

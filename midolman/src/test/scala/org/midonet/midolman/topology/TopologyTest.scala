@@ -16,12 +16,10 @@
 
 package org.midonet.midolman.topology
 
-import org.scalatest.exceptions.TestFailedException
-
 import rx.observers.TestObserver
 
 import org.midonet.midolman.topology.VirtualTopology.Device
-import org.midonet.util.reactivex.{AssertableObserver, AwaitableObserver}
+import org.midonet.util.reactivex.AwaitableObserver
 
 object TopologyTest {
 

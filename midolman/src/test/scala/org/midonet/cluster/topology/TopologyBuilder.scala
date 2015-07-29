@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.midolman.topology
+package org.midonet.cluster.topology
 
 import java.util.UUID
 
@@ -36,25 +36,25 @@ import org.midonet.cluster.util.{IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
 import org.midonet.midolman.state.l4lb.{LBStatus => L4LBStatus}
 import org.midonet.midolman.{layer3 => l3}
-import org.midonet.packets.{IPAddr, IPv4Addr, IPSubnet, IPv4Subnet, MAC}
+import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, IPv4Subnet, MAC}
 import org.midonet.util.Range
 
 trait TopologyBuilder {
 
     import TopologyBuilder._
 
-    protected def createBridgePort(id: UUID = UUID.randomUUID,
-                                   bridgeId: Option[UUID] = None,
-                                   inboundFilterId: Option[UUID] = None,
-                                   outboundFilterId: Option[UUID] = None,
-                                   tunnelKey: Long = -1L,
-                                   peerId: Option[UUID] = None,
-                                   vifId: Option[UUID] = None,
-                                   hostId: Option[UUID] = None,
-                                   interfaceName: Option[String] = None,
-                                   adminStateUp: Boolean = false,
-                                   portGroupIds: Set[UUID] = Set.empty,
-                                   vlanId: Option[Int] = None): Port = {
+    def createBridgePort(id: UUID = UUID.randomUUID,
+                         bridgeId: Option[UUID] = None,
+                         inboundFilterId: Option[UUID] = None,
+                         outboundFilterId: Option[UUID] = None,
+                         tunnelKey: Long = -1L,
+                         peerId: Option[UUID] = None,
+                         vifId: Option[UUID] = None,
+                         hostId: Option[UUID] = None,
+                         interfaceName: Option[String] = None,
+                         adminStateUp: Boolean = false,
+                         portGroupIds: Set[UUID] = Set.empty,
+                         vlanId: Option[Int] = None): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
@@ -63,22 +63,22 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createRouterPort(id: UUID = UUID.randomUUID,
-                                   routerId: Option[UUID] = None,
-                                   inboundFilterId: Option[UUID] = None,
-                                   outboundFilterId: Option[UUID] = None,
-                                   tunnelKey: Long = -1L,
-                                   peerId: Option[UUID] = None,
-                                   vifId: Option[UUID] = None,
-                                   hostId: Option[UUID] = None,
-                                   interfaceName: Option[String] = None,
-                                   adminStateUp: Boolean = false,
-                                   portGroupIds: Set[UUID] = Set.empty,
-                                   portSubnet: IPSubnet[_] = randomIPv4Subnet,
-                                   portAddress: IPAddr = IPv4Addr.random,
-                                   portMac: MAC = MAC.random,
-                                   bgpId: Option[UUID] = None,
-                                   routeIds: Set[UUID] = Set.empty): Port = {
+    def createRouterPort(id: UUID = UUID.randomUUID,
+                         routerId: Option[UUID] = None,
+                         inboundFilterId: Option[UUID] = None,
+                         outboundFilterId: Option[UUID] = None,
+                         tunnelKey: Long = -1L,
+                         peerId: Option[UUID] = None,
+                         vifId: Option[UUID] = None,
+                         hostId: Option[UUID] = None,
+                         interfaceName: Option[String] = None,
+                         adminStateUp: Boolean = false,
+                         portGroupIds: Set[UUID] = Set.empty,
+                         portSubnet: IPSubnet[_] = randomIPv4Subnet,
+                         portAddress: IPAddr = IPv4Addr.random,
+                         portMac: MAC = MAC.random,
+                         bgpId: Option[UUID] = None,
+                         routeIds: Set[UUID] = Set.empty): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
@@ -90,19 +90,18 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createVxLanPort(id: UUID = UUID.randomUUID,
-                                  bridgeId: Option[UUID] = None,
-                                  inboundFilterId: Option[UUID] = None,
-                                  outboundFilterId: Option[UUID] = None,
-                                  tunnelKey: Long = -1L,
-                                  peerId: Option[UUID] = None,
-                                  vifId: Option[UUID] = None,
-                                  hostId: Option[UUID] = None,
-                                  interfaceName: Option[String] = None,
-                                  adminStateUp: Boolean = false,
-                                  portGroupIds: Set[UUID] = Set.empty,
-                                  vtepMgmtIp: IPv4Addr = IPv4Addr.random)
-    : Port = {
+    def createVxLanPort(id: UUID = UUID.randomUUID,
+                        bridgeId: Option[UUID] = None,
+                        inboundFilterId: Option[UUID] = None,
+                        outboundFilterId: Option[UUID] = None,
+                        tunnelKey: Long = -1L,
+                        peerId: Option[UUID] = None,
+                        vifId: Option[UUID] = None,
+                        hostId: Option[UUID] = None,
+                        interfaceName: Option[String] = None,
+                        adminStateUp: Boolean = false,
+                        portGroupIds: Set[UUID] = Set.empty,
+                        vtepMgmtIp: IPv4Addr = IPv4Addr.random): Port = {
         val builder = createPortBuilder(
             id, inboundFilterId, outboundFilterId, tunnelKey, peerId, vifId,
             hostId, interfaceName, adminStateUp, portGroupIds)
@@ -111,11 +110,10 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createTunnelZone(id: UUID = UUID.randomUUID,
-                                   tzType: TunnelZone.Type,
-                                   name: Option[String] = None,
-                                   hosts: Map[UUID, IPAddr] = Map.empty)
-    : TunnelZone = {
+    def createTunnelZone(id: UUID = UUID.randomUUID,
+                         tzType: TunnelZone.Type,
+                         name: Option[String] = None,
+                         hosts: Map[UUID, IPAddr] = Map.empty): TunnelZone = {
         val builder = TunnelZone.newBuilder
             .setId(id.asProto)
             .setType(tzType)
@@ -125,9 +123,9 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createHost(id: UUID = UUID.randomUUID,
-                             portIds: Set[UUID] = Set.empty,
-                             tunnelZoneIds: Set[UUID] = Set.empty): Host = {
+    def createHost(id: UUID = UUID.randomUUID,
+                   portIds: Set[UUID] = Set.empty,
+                   tunnelZoneIds: Set[UUID] = Set.empty): Host = {
         Host.newBuilder
             .setId(id.asProto)
             .addAllPortIds(portIds.map(_.asProto).asJava)
@@ -135,16 +133,16 @@ trait TopologyBuilder {
             .build()
     }
 
-    protected def createBridge(id: UUID = UUID.randomUUID,
-                               tenantId: Option[String] = None,
-                               name: Option[String] = None,
-                               adminStateUp: Boolean = false,
-                               tunnelKey: Long = -1L,
-                               inboundFilterId: Option[UUID] = None,
-                               outboundFilterId: Option[UUID] = None,
-                               portIds: Set[UUID] = Set.empty,
-                               vxlanPortIds: Set[UUID] = Set.empty,
-                               dhcpIds: Seq[UUID] = Seq.empty): Network = {
+    def createBridge(id: UUID = UUID.randomUUID,
+                     tenantId: Option[String] = None,
+                     name: Option[String] = None,
+                     adminStateUp: Boolean = false,
+                     tunnelKey: Long = -1L,
+                     inboundFilterId: Option[UUID] = None,
+                     outboundFilterId: Option[UUID] = None,
+                     portIds: Set[UUID] = Set.empty,
+                     vxlanPortIds: Set[UUID] = Set.empty,
+                     dhcpIds: Seq[UUID] = Seq.empty): Network = {
         val builder = Network.newBuilder
             .setId(id.asProto)
             .setAdminStateUp(adminStateUp)
@@ -161,15 +159,15 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createDhcp(networkId: UUID,
-                             id: UUID = UUID.randomUUID,
-                             defaultGw: IPAddr = IPv4Addr.random,
-                             serverAddr: IPAddr = IPv4Addr.random,
-                             subnetAddr: IPSubnet[_] = IPv4Addr.random.subnet(24),
-                             dns: List[IPv4Addr] = List(),
-                             opt121routes: List[Dhcp.Opt121Route] = List(),
-                             enabled: Boolean = true,
-                             mtu: Int = 1024): Dhcp = {
+    def createDhcp(networkId: UUID,
+                   id: UUID = UUID.randomUUID,
+                   defaultGw: IPAddr = IPv4Addr.random,
+                   serverAddr: IPAddr = IPv4Addr.random,
+                   subnetAddr: IPSubnet[_] = IPv4Addr.random.subnet(24),
+                   dns: List[IPv4Addr] = List(),
+                   opt121routes: List[Dhcp.Opt121Route] = List(),
+                   enabled: Boolean = true,
+                   mtu: Int = 1024): Dhcp = {
         val builder = Dhcp.newBuilder()
             .setId(id.asProto)
             .setNetworkId(networkId.asProto)
@@ -183,8 +181,7 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createDhcpHost(name: String, mac: MAC, ip: IPAddr)
-    : Dhcp.Host = {
+    def createDhcpHost(name: String, mac: MAC, ip: IPAddr): Dhcp.Host = {
         val builder = Dhcp.Host.newBuilder()
                                .setName(name)
                                .setMac(mac.toString)
@@ -192,16 +189,16 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createRouter(id: UUID = UUID.randomUUID,
-                               tenandId: Option[String] = None,
-                               name: Option[String] = None,
-                               adminStateUp: Boolean = false,
-                               inboundFilterId: Option[UUID] = None,
-                               outboundFilterId: Option[UUID] = None,
-                               loadBalancerId: Option[UUID] = None,
-                               asNumber: Option[Int] = None,
-                               routeIds: Seq[UUID] = Seq.empty,
-                               portIds: Set[UUID] = Set.empty): Router = {
+    def createRouter(id: UUID = UUID.randomUUID,
+                     tenandId: Option[String] = None,
+                     name: Option[String] = None,
+                     adminStateUp: Boolean = false,
+                     inboundFilterId: Option[UUID] = None,
+                     outboundFilterId: Option[UUID] = None,
+                     loadBalancerId: Option[UUID] = None,
+                     asNumber: Option[Int] = None,
+                     routeIds: Seq[UUID] = Seq.empty,
+                     portIds: Set[UUID] = Set.empty): Router = {
         val builder = Router.newBuilder
             .setId(id.asProto)
             .setAdminStateUp(adminStateUp)
@@ -220,15 +217,15 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createRoute(id: UUID = UUID.randomUUID,
-                              srcNetwork: IPSubnet[_] = randomIPv4Subnet,
-                              dstNetwork: IPSubnet[_] = randomIPv4Subnet,
-                              nextHop: NextHop = NextHop.BLACKHOLE,
-                              nextHopPortId: Option[UUID] = None,
-                              nextHopGateway: Option[String] = None,
-                              weight: Option[Int] = None,
-                              attributes: Option[String] = None,
-                              routerId: Option[UUID] = None): Route = {
+    def createRoute(id: UUID = UUID.randomUUID,
+                    srcNetwork: IPSubnet[_] = randomIPv4Subnet,
+                    dstNetwork: IPSubnet[_] = randomIPv4Subnet,
+                    nextHop: NextHop = NextHop.BLACKHOLE,
+                    nextHopPortId: Option[UUID] = None,
+                    nextHopGateway: Option[String] = None,
+                    weight: Option[Int] = None,
+                    attributes: Option[String] = None,
+                    routerId: Option[UUID] = None): Route = {
         val builder = Route.newBuilder
             .setId(id.asProto)
             .setSrcSubnet(srcNetwork.asProto)
@@ -244,43 +241,43 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def setCondition(builder: Rule.Builder,
-                               conjunctionInv: Option[Boolean] = None,
-                               matchForwardFlow: Option[Boolean] = None,
-                               matchReturnFlow: Option[Boolean] = None,
-                               inPortIds: Option[Set[UUID]] = None,
-                               inPortInv: Option[Boolean] = None,
-                               outPortIds: Option[Set[UUID]] = None,
-                               outPortInv: Option[Boolean] = None,
-                               portGroup: Option[UUID] = None,
-                               invPortGroup: Option[Boolean] = None,
-                               ipAddrGroupIdSrc: Option[UUID] = None,
-                               invIpAddrGroupIdSrc: Option[Boolean] = None,
-                               ipAddrGroupIdDst: Option[UUID] = None,
-                               invIpAddrGroupIdDst: Option[Boolean] = None,
-                               etherType: Option[Int] = None,
-                               invDlType: Option[Boolean] = None,
-                               ethSrc: Option[MAC] = None,
-                               ethSrcMask: Option[Long] = None,
-                               invDlSrc: Option[Boolean] = None,
-                               ethDst: Option[MAC] = None,
-                               dlDstMask: Option[Long] = None,
-                               invDlDst: Option[Boolean] = None,
-                               nwTos: Option[Byte] = None,
-                               nwTosInv: Option[Boolean] = None,
-                               nwProto: Option[Byte] = None,
-                               nwProtoInv: Option[Boolean] = None,
-                               nwSrcIp: Option[IPSubnet[_]] = None,
-                               nwDstIp: Option[IPSubnet[_]] = None,
-                               tpSrc: Option[Range[Integer]] = None,
-                               tpDst: Option[Range[Integer]] = None,
-                               nwSrcInv: Option[Boolean] = None,
-                               nwDstInv: Option[Boolean] = None,
-                               tpSrcInv: Option[Boolean] = None,
-                               tpDstInv: Option[Boolean] = None,
-                               traversedDevice: Option[UUID] = None,
-                               traversedDeviceInv: Option[Boolean] = None,
-                               fragmentPolicy: Option[FragmentPolicy] = None)
+    def setCondition(builder: Rule.Builder,
+                     conjunctionInv: Option[Boolean] = None,
+                     matchForwardFlow: Option[Boolean] = None,
+                     matchReturnFlow: Option[Boolean] = None,
+                     inPortIds: Option[Set[UUID]] = None,
+                     inPortInv: Option[Boolean] = None,
+                     outPortIds: Option[Set[UUID]] = None,
+                     outPortInv: Option[Boolean] = None,
+                     portGroup: Option[UUID] = None,
+                     invPortGroup: Option[Boolean] = None,
+                     ipAddrGroupIdSrc: Option[UUID] = None,
+                     invIpAddrGroupIdSrc: Option[Boolean] = None,
+                     ipAddrGroupIdDst: Option[UUID] = None,
+                     invIpAddrGroupIdDst: Option[Boolean] = None,
+                     etherType: Option[Int] = None,
+                     invDlType: Option[Boolean] = None,
+                     ethSrc: Option[MAC] = None,
+                     ethSrcMask: Option[Long] = None,
+                     invDlSrc: Option[Boolean] = None,
+                     ethDst: Option[MAC] = None,
+                     dlDstMask: Option[Long] = None,
+                     invDlDst: Option[Boolean] = None,
+                     nwTos: Option[Byte] = None,
+                     nwTosInv: Option[Boolean] = None,
+                     nwProto: Option[Byte] = None,
+                     nwProtoInv: Option[Boolean] = None,
+                     nwSrcIp: Option[IPSubnet[_]] = None,
+                     nwDstIp: Option[IPSubnet[_]] = None,
+                     tpSrc: Option[Range[Integer]] = None,
+                     tpDst: Option[Range[Integer]] = None,
+                     nwSrcInv: Option[Boolean] = None,
+                     nwDstInv: Option[Boolean] = None,
+                     tpSrcInv: Option[Boolean] = None,
+                     tpDstInv: Option[Boolean] = None,
+                     traversedDevice: Option[UUID] = None,
+                     traversedDeviceInv: Option[Boolean] = None,
+                     fragmentPolicy: Option[FragmentPolicy] = None)
     : Rule.Builder = {
 
         if (matchForwardFlow.isDefined) {
@@ -374,24 +371,23 @@ trait TopologyBuilder {
         builder
     }
 
-    protected def createLiteralRuleBuilder(id: UUID,
-                                           chainId: Option[UUID] = None,
-                                           action: Option[Rule.Action] = None)
+    def createLiteralRuleBuilder(id: UUID,
+                                 chainId: Option[UUID] = None,
+                                 action: Option[Rule.Action] = None)
     : Rule.Builder = {
         createRuleBuilder(id, chainId, action)
             .setType(Rule.Type.LITERAL_RULE)
     }
 
-    protected def createTraceRuleBuilder(id: UUID,
-                                         chainId: Option[UUID] = None)
-    : Rule.Builder = {
+    def createTraceRuleBuilder(id: UUID,
+                               chainId: Option[UUID] = None): Rule.Builder = {
         createRuleBuilder(id, chainId, Option(Action.CONTINUE))
             .setType(Rule.Type.TRACE_RULE)
     }
 
-    protected def createJumpRuleBuilder(id: UUID,
-                                        chainId: Option[UUID] = None,
-                                        jumpChainId: Option[UUID] = None)
+    def createJumpRuleBuilder(id: UUID,
+                              chainId: Option[UUID] = None,
+                              jumpChainId: Option[UUID] = None)
     : Rule.Builder = {
         val builder = createRuleBuilder(id, chainId, Option(Action.JUMP))
             .setType(Rule.Type.JUMP_RULE)
@@ -403,10 +399,10 @@ trait TopologyBuilder {
         builder
     }
 
-    protected def createNatTarget(startAddr: IPAddress = IPv4Addr.random.asProto,
-                                  endAddr: IPAddress = IPv4Addr.random.asProto,
-                                  portStart: Int = random.nextInt(),
-                                  portEnd: Int = random.nextInt()): NatTarget = {
+    def createNatTarget(startAddr: IPAddress = IPv4Addr.random.asProto,
+                        endAddr: IPAddress = IPv4Addr.random.asProto,
+                        portStart: Int = random.nextInt(),
+                        portEnd: Int = random.nextInt()): NatTarget = {
         NatTarget.newBuilder
             .setNwStart(startAddr)
             .setNwEnd(endAddr)
@@ -415,12 +411,12 @@ trait TopologyBuilder {
             .build()
     }
 
-    protected def createNatRuleBuilder(id: UUID,
-                                       chainId: Option[UUID] = None,
-                                       dnat: Option[Boolean] = None,
-                                       matchFwdFlow: Option[Boolean] = None,
-                                       targets: Set[NatTarget] = Set.empty,
-                                       reverse: Boolean = false)
+    def createNatRuleBuilder(id: UUID,
+                             chainId: Option[UUID] = None,
+                             dnat: Option[Boolean] = None,
+                             matchFwdFlow: Option[Boolean] = None,
+                             targets: Set[NatTarget] = Set.empty,
+                             reverse: Boolean = false)
     : Rule.Builder = {
         val builder = createRuleBuilder(id, chainId, Option(Action.CONTINUE))
             .setType(Rule.Type.NAT_RULE)
@@ -443,9 +439,9 @@ trait TopologyBuilder {
         builder
     }
 
-    protected def createChain(id: UUID = UUID.randomUUID,
-                              name: Option[String] = None,
-                              ruleIds: Set[UUID] = Set.empty): Chain = {
+    def createChain(id: UUID = UUID.randomUUID,
+                    name: Option[String] = None,
+                    ruleIds: Set[UUID] = Set.empty): Chain = {
         val builder = Chain.newBuilder
             .setId(id.asProto)
             .addAllRuleIds(ruleIds.map(_.asProto).asJava)
@@ -455,11 +451,11 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createPortGroup(id: UUID = UUID.randomUUID,
-                                  name: Option[String] = None,
-                                  tenantId: Option[String] = None,
-                                  stateful: Option[Boolean] = None,
-                                  portIds: Set[UUID] = Set.empty): PortGroup = {
+    def createPortGroup(id: UUID = UUID.randomUUID,
+                        name: Option[String] = None,
+                        tenantId: Option[String] = None,
+                        stateful: Option[Boolean] = None,
+                        portIds: Set[UUID] = Set.empty): PortGroup = {
         val builder = PortGroup.newBuilder
             .setId(id.asProto)
             .addAllPortIds(portIds.map(_.asProto).asJava)
@@ -469,15 +465,13 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createVip(id: UUID = UUID.randomUUID,
-                            adminStateUp: Option[Boolean] = None,
-                            loadBalancerId: Option[UUID] = None,
-                            poolId: Option[UUID] = None,
-                            address: Option[IPAddr] = None,
-                            protocolPort: Option[Int] = None,
-                            sessionPersistence
-                                : Option[Vip.SessionPersistence] = None) = {
-
+    def createVip(id: UUID = UUID.randomUUID,
+                  adminStateUp: Option[Boolean] = None,
+                  loadBalancerId: Option[UUID] = None,
+                  poolId: Option[UUID] = None,
+                  address: Option[IPAddr] = None,
+                  protocolPort: Option[Int] = None,
+                  sessionPersistence: Option[Vip.SessionPersistence] = None) = {
         val builder = Vip.newBuilder
             .setId(id.asProto)
         if (adminStateUp.isDefined)
@@ -497,10 +491,10 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createLoadBalancer(id: UUID = UUID.randomUUID,
-                                     adminStateUp: Option[Boolean] = None,
-                                     routerId: Option[UUID] = None,
-                                     vips: Set[UUID] = Set.empty) = {
+    def createLoadBalancer(id: UUID = UUID.randomUUID,
+                           adminStateUp: Option[Boolean] = None,
+                           routerId: Option[UUID] = None,
+                           vips: Set[UUID] = Set.empty) = {
         val builder = LoadBalancer.newBuilder
             .setId(id.asProto)
         if (adminStateUp.isDefined)
@@ -511,11 +505,11 @@ trait TopologyBuilder {
             .build()
     }
 
-    protected def createIpAddrGroup(id: UUID = UUID.randomUUID,
-                                    name: Option[String] = None,
-                                    inChainId: Option[UUID] = None,
-                                    outChainId: Option[UUID] = None,
-                                    ruleIds: Set[UUID] = Set.empty)
+    def createIpAddrGroup(id: UUID = UUID.randomUUID,
+                          name: Option[String] = None,
+                          inChainId: Option[UUID] = None,
+                          outChainId: Option[UUID] = None,
+                          ruleIds: Set[UUID] = Set.empty)
     : IPAddrGroup = {
         val builder = IPAddrGroup.newBuilder
             .setId(id.asProto)
@@ -529,13 +523,13 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createPool(id: UUID = UUID.randomUUID,
-                             healthMonitorId: Option[UUID] = None,
-                             loadBalancerId: Option[UUID] = None,
-                             adminStateUp: Option[Boolean] = None,
-                             protocol: Option[PoolProtocol] = None,
-                             lbMethod: Option[PoolLBMethod] = None,
-                             poolMemberIds: Set[UUID] = Set.empty): Pool = {
+    def createPool(id: UUID = UUID.randomUUID,
+                   healthMonitorId: Option[UUID] = None,
+                   loadBalancerId: Option[UUID] = None,
+                   adminStateUp: Option[Boolean] = None,
+                   protocol: Option[PoolProtocol] = None,
+                   lbMethod: Option[PoolLBMethod] = None,
+                   poolMemberIds: Set[UUID] = Set.empty): Pool = {
         val builder = Pool.newBuilder
             .setId(id.asProto)
             .addAllPoolMemberIds(poolMemberIds.map(_.asProto).asJava)
@@ -550,13 +544,13 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createPoolMember(id: UUID = UUID.randomUUID,
-                                   adminStateUp: Option[Boolean] = None,
-                                   poolId: Option[UUID] = None,
-                                   status: Option[LBStatus] = None,
-                                   address: Option[IPAddr] = None,
-                                   protocolPort: Option[Int] = None,
-                                   weight: Option[Int] = None): PoolMember = {
+    def createPoolMember(id: UUID = UUID.randomUUID,
+                         adminStateUp: Option[Boolean] = None,
+                         poolId: Option[UUID] = None,
+                         status: Option[LBStatus] = None,
+                         address: Option[IPAddr] = None,
+                         protocolPort: Option[Int] = None,
+                         weight: Option[Int] = None): PoolMember = {
         val builder = PoolMember.newBuilder
             .setId(id.asProto)
         if (adminStateUp.isDefined)
@@ -574,9 +568,9 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createBgpNetwork(id: UUID = UUID.randomUUID,
-                                   subnet: Option[IPSubnet[_]] = None,
-                                   routerId: Option[UUID] = None)
+    def createBgpNetwork(id: UUID = UUID.randomUUID,
+                         subnet: Option[IPSubnet[_]] = None,
+                         routerId: Option[UUID] = None)
     : BgpNetwork = {
         val builder = BgpNetwork.newBuilder().setId(id.asProto)
         if (subnet.isDefined)
@@ -586,10 +580,10 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    protected def createBgpPeer(id: UUID = UUID.randomUUID,
-                                asNumber: Option[Int] = None,
-                                peerAddress: Option[IPAddr] = None,
-                                routerId: Option[UUID] = None): BgpPeer = {
+    def createBgpPeer(id: UUID = UUID.randomUUID,
+                      asNumber: Option[Int] = None,
+                      peerAddress: Option[IPAddr] = None,
+                      routerId: Option[UUID] = None): BgpPeer = {
         val builder = BgpPeer.newBuilder().setId(id.asProto)
         if (asNumber.isDefined)
             builder.setAsNumber(asNumber.get)
@@ -631,14 +625,13 @@ trait TopologyBuilder {
         builder
     }
 
-    protected def createHealthMonitor(id: UUID = UUID.randomUUID(),
-                                      adminStateUp: Boolean = false,
-                                      healthMonitorType: Option[HealthMonitorType] = None,
-                                      status: Option[LBStatus] = None,
-                                      delay: Option[Int] = None,
-                                      timeout: Option[Int] = None,
-                                      maxRetries: Option[Int] = None)
-    : HealthMonitor = {
+    def createHealthMonitor(id: UUID = UUID.randomUUID(),
+                            adminStateUp: Boolean = false,
+                            healthMonitorType: Option[HealthMonitorType] = None,
+                            status: Option[LBStatus] = None,
+                            delay: Option[Int] = None,
+                            timeout: Option[Int] = None,
+                            maxRetries: Option[Int] = None) : HealthMonitor = {
         val builder = HealthMonitor.newBuilder()
             .setId(id.asProto).setAdminStateUp(adminStateUp)
         if (healthMonitorType.isDefined)

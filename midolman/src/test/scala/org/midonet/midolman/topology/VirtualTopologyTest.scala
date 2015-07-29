@@ -29,8 +29,9 @@ import rx.{Notification, Observable}
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{Port => TopologyPort}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.midolman.NotYetException
-import org.midonet.midolman.topology.TopologyTest.DeviceObserver
+import TopologyTest.DeviceObserver
 import org.midonet.midolman.topology.devices.{Port => SimulationPort}
 import org.midonet.midolman.util.MidolmanSpec
 

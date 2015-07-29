@@ -30,6 +30,7 @@ import rx.subjects.{PublishSubject, Subject}
 import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain}
 import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{Chain => SimulationChain}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
