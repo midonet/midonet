@@ -32,12 +32,11 @@ import org.midonet.cluster.services.c3po.C3POState
 import org.midonet.cluster.storage.MidonetBackendConfig
 
 object MidonetBackend {
-
     final val AliveKey = "alive"
     final val HostsKey = "hosts"
     final val HostKey = "host"
     final val RoutesKey = "routes"
-
+    final val TunnelZoneKey = "flooding_proxy"
 }
 
 /** The trait that models the new Midonet Backend, managing all relevant
@@ -154,6 +153,7 @@ abstract class MidonetBackend extends AbstractService {
         stateStore.registerKey(classOf[Host], HostKey, SingleFirstWriteWins)
         stateStore.registerKey(classOf[Port], HostsKey, Multiple)
         stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
+        stateStore.registerKey(classOf[TunnelZone], TunnelZoneKey, SingleLastWriteWins)
 
         store.declareBinding(classOf[Vtep], "bindings", CASCADE,
                              classOf[VtepBinding], "vtep_id", CLEAR)

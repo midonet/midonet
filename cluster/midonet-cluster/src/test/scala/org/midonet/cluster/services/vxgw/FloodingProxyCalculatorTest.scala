@@ -16,12 +16,18 @@
 
 package org.midonet.cluster.services.vxgw
 
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 import org.scalatest.{BeforeAndAfter, FlatSpec, GivenWhenThen, Matchers}
 
+import org.midonet.cluster.models.Topology.Host
+import org.midonet.cluster.services.vxgw.FloodingProxyCalculator.calculate
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.UUIDUtil
+import org.midonet.packets.IPv4Addr
 
 @RunWith(classOf[JUnitRunner])
 class FloodingProxyCalculatorTest extends FlatSpec with Matchers
@@ -30,22 +36,25 @@ class FloodingProxyCalculatorTest extends FlatSpec with Matchers
                                  with TopologyBuilder {
 
     "No hosts" should "produce no FP" in {
-        FloodingProxyCalculator.calculate(Seq.empty) shouldBe None
+        calculate(Map.empty[Host, IPv4Addr]) shouldBe None
     }
 
     "One host with the veto weight" should "produce no FP" in {
-        val h = createHost().toBuilder.setFloodingProxyWeight(-1).build()
-        FloodingProxyCalculator.calculate(Seq(h)) shouldBe None
+        val h = createHost().toBuilder.setFloodingProxyWeight(0).build()
+        calculate(Map(h -> IPv4Addr.random).asJava) shouldBe None
     }
 
     "Happy case" should "work" in {
+        val candidates = new java.util.HashMap[Host, IPv4Addr]()
         val hosts = 1 to 100 map { i =>
             createHost().toBuilder.setFloodingProxyWeight(i).build()
         }
-        val fp = FloodingProxyCalculator.calculate(hosts).flatMap { id =>
-            hosts.find(h => UUIDUtil.fromProto(h.getId) == id)
-        }
-        fp.orNull.getFloodingProxyWeight shouldBe >(0)
+        hosts foreach { h => candidates.put(h, IPv4Addr.random) }
+        val fp = calculate(candidates).orNull
+        fp.tunnelIp shouldNot be (null)
+
+        val fpHost = hosts.find(h => UUIDUtil.fromProto(h.getId) == fp.hostId)
+        fpHost.orNull.getFloodingProxyWeight shouldBe >(0)
     }
 
 }
