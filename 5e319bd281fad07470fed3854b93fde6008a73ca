@@ -150,6 +150,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_d2b77cf3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 182,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-07-29T10:10:26Z",
+      "side": 1,
+      "message": "roger, since I moved this in a later patch, I\u0027ll change it there.",
+      "parentUuid": "9ad9bd40_7a6cd9d0",
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2b604da4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Coordinator.scala",
         "patchSetId": 1
