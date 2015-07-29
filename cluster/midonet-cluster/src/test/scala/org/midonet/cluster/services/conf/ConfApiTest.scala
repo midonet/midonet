@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,62 +20,15 @@ import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 import com.typesafe.config.{ConfigException, ConfigFactory}
-import org.apache.curator.framework.{CuratorFramework, CuratorFrameworkFactory}
-import org.apache.curator.retry.RetryNTimes
-import org.apache.curator.test.TestingServer
 import org.apache.http.client.fluent.Request
 import org.apache.http.entity.ContentType
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.test.util.ZookeeperTestSuite
 import org.midonet.cluster.{ClusterConfig, ClusterNode}
-import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator, MidoTestConfigurator}
-
-trait ZookeeperTestSuite extends BeforeAndAfterAll with BeforeAndAfter { this: Suite =>
-    var zkServer: TestingServer = _
-    var zkClient: CuratorFramework = _
-
-    val ZK_PORT: Int = 10000 + (Math.random() * 50000).toInt
-    val ZK_ROOT = "/test"
-
-    protected def config = MidoTestConfigurator.forClusters(ConfigFactory.parseString(
-        s"""
-          |zookeeper.zookeeper_hosts : "127.0.0.1:$ZK_PORT"
-          |zookeeper.root_key : "$ZK_ROOT"
-        """.stripMargin))
-
-    override def beforeAll(): Unit = {
-        super.beforeAll()
-        if (zkServer eq null) {
-            zkServer = new TestingServer(ZK_PORT)
-            zkServer.start()
-        }
-
-        zkClient = CuratorFrameworkFactory.newClient(
-                zkServer.getConnectString, new RetryNTimes(1, 1000))
-        zkClient.start()
-        zkClient.create().forPath(ZK_ROOT)
-    }
-
-    override def afterAll(): Unit = {
-        if (zkClient ne null)
-            zkClient.close()
-        if (zkServer ne null)
-            zkServer.close()
-    }
-
-    protected def clearZookeeper(): Unit = {
-        try {
-            zkClient.delete().deletingChildrenIfNeeded().forPath(ZK_ROOT)
-            zkClient.create().forPath(ZK_ROOT)
-        } catch {
-            case e: Exception => // ignore
-                println(e.getMessage)
-                e.printStackTrace(System.out)
-        }
-    }
-}
+import org.midonet.conf.{HostIdGenerator, MidoNodeConfigurator}
 
 
 @RunWith(classOf[JUnitRunner])
