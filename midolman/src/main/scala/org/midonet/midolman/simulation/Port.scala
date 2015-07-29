@@ -17,6 +17,7 @@
 package org.midonet.midolman.simulation
 
 import java.util.UUID
+import java.util.{Set => JSet}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Simulator.{SimStep, ToPortAction}
 import org.midonet.midolman.topology.VirtualTopologyActor._
@@ -45,9 +46,11 @@ object Port {
     private implicit def jlistToSSet(from: java.util.List[Commons.UUID]): Set[UUID] =
         if (from ne null) from.asScala.toSet map UUIDUtil.fromProto else Set.empty
 
-    private implicit def jsetToSSet(from: java.util.Set[UUID]): Set[UUID] =
-        if (from ne null) from.asScala.toSet else Set.empty
+    private implicit def jlistToJSet(from: java.util.List[Commons.UUID]): JSet[UUID] =
+        if (from ne null) (from.asScala.toSet map UUIDUtil.fromProto).asJava else null
 
+    private implicit def jsetToSSet(from: JSet[UUID]): Set[UUID] =
+        if (from ne null) from.asScala.toSet else Set.empty
 
     def apply(proto: Topology.Port): Port = {
         if (proto.hasVtepId)
@@ -139,7 +142,7 @@ trait Port extends VirtualDevice with Cloneable {
     def hostId: UUID
     def interfaceName: String
     def adminStateUp: Boolean
-    def portGroups: Set[UUID] = Set.empty
+    def portGroups: JSet[UUID] = null
     def isActive: Boolean = false
     def deviceId: UUID
     def vlanId: Short = Bridge.UntaggedVlanId
@@ -207,7 +210,7 @@ trait Port extends VirtualDevice with Cloneable {
 
     protected def ingressUp: SimStep = (context, as) => {
         if (isExterior && (portGroups ne null))
-            context.portGroups = portGroups.asJava // XXX(guillermo) - convert at construction
+            context.portGroups = portGroups
         context.inPortId = id
         inFilter(context, as)
     }
@@ -260,7 +263,7 @@ case class BridgePort(override val id: UUID,
                       override val hostId: UUID = null,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
-                      override val portGroups: Set[UUID] = Set.empty,
+                      override val portGroups: JSet[UUID] = null,
                       override val isActive: Boolean = false,
                       override val vlanId: Short = Bridge.UntaggedVlanId,
                       networkId: UUID) extends Port {
@@ -290,7 +293,7 @@ case class RouterPort(override val id: UUID,
                       override val hostId: UUID = null,
                       override val interfaceName: String = null,
                       override val adminStateUp: Boolean = true,
-                      override val portGroups: Set[UUID] = Set.empty,
+                      override val portGroups: JSet[UUID] = null,
                       override val isActive: Boolean = false,
                       routerId: UUID,
                       portSubnet: IPv4Subnet,
@@ -336,7 +339,7 @@ case class VxLanPort(override val id: UUID,
                      override val tunnelKey: Long = 0,
                      override val peerId: UUID = null,
                      override val adminStateUp: Boolean = true,
-                     override val portGroups: Set[UUID] = Set.empty,
+                     override val portGroups: JSet[UUID] = null,
                      vtepId: UUID,
                      networkId: UUID,
                      vtepMgmtIp: IPv4Addr = null,
