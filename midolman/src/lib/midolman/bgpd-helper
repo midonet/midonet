@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-bgpd_up() {
+bgpd_start() {
     bgpd=/usr/sbin/bgpd
     pidfile="/var/run/quagga/bgpd.${vtyport}.pid"
     if [ ! -x $bgpd ] ; then
@@ -25,17 +25,44 @@ bgpd_up() {
         fi
     fi
 
-    kill_namespace_pids
-
     quagga_log="$log_dir/quagga.$vtyport"
     mkdir -p $quagga_log
     chown quagga.quagga $quagga_log
     pushd $quagga_log
 
+    # Q: bgpd has an option to run as a daemon, so why are we running as a
+    # background process?
+    # A: Because we want to control multiple processes (zebra, bgpd) and exit
+    # the script only when all processes have exited.
     exec ip netns exec $namespace $bgpd --vty_port $vtyport \
-                                        --config_file $config_file \
+                                        --config_file $bgp_config_file \
                                         --pid_file $pidfile \
-                                        --socket $api_socket
+                                        --socket $api_socket &
+}
+
+zebra_start() {
+    zebra=/usr/sbin/zebra
+    pidfile="/var/run/quagga/zebra.${vtyport}.pid"
+    if [ ! -x $zebra ] ; then
+        zebra=/usr/lib/quagga/zebra
+        if [ ! -x $zebra ] ; then
+            echo "Could not find zebra, looked in /usr/lib/quagga and /usr/sbin"
+            exit 3
+        fi
+    fi
+
+    exec ip netns exec $namespace $zebra --fpm-port $fpm_port \
+                                         --fpm-address $local_vty_ip \
+                                         --config_file $zebra_config_file \
+                                         --pid_file $pidfile \
+                                         --socket $api_socket &
+}
+
+wait_for_all() {
+    for job in `jobs -p`
+    do
+        wait $job
+    done
 }
 
 bgpd_prepare() {
@@ -107,9 +134,23 @@ usage() {
     echo "Usage: $0 prepare INDEX LOCAL_VTY_IP REMOTE_VTY_IP ROUTER_IP ROUTER_MAC"
     echo "       $0 up INDEX VTY_PORT_NUMBER BGPD_CONFIG_FILE LOG_DIR"
     echo "       $0 down INDEX"
+    echo "experimental:"
+    echo "       $0 quagga_up INDEX LOCAL_VTY_IP VTY_PORT_NUMBER BGPD_CONFIG_FILE ZEBRA_CONFIG_FILE LOG_DIR"
     exit 1
 }
 
+bgpd_up() {
+    kill_namespace_pids
+    bgpd_start
+    wait_for_all
+}
+
+quagga_up() {
+    kill_namespace_pids
+    bgpd_start
+    zebra_start
+    wait_for_all
+}
 
 ########### script body ###########
 
@@ -150,12 +191,27 @@ case "$1" in
 
     up)
         vtyport=$3
-        config_file=$4
+        bgp_config_file=$4
         log_dir=$5
         if [ -z "$config_file" ] || [ -z "$vtyport" ] || [ -z "$log_dir" ] ; then
             usage
         fi
+        kill_namespace_pids
         bgpd_up
+        wait_for_all
+        ;;
+
+    quagga_up)
+        vtyport=$3
+        local_vty_ip=$4
+        bgp_config_file=$5
+        zebra_config_file=$6
+        log_dir=$7
+        let fpm_port="vtyport+2620"
+        if [ -z "$bgp_config_file" ] || [ -z "$zebra_config_file" ] || [ -z "$vtyport" ] || [ -z "$log_dir" ] ; then
+            usage
+        fi
+        quagga_up
         ;;
 
     down)
