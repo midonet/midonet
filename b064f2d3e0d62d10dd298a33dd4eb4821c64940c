@@ -22,6 +22,30 @@
       "revId": "b064f2d3e0d62d10dd298a33dd4eb4821c64940c",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_371edabb",
+        "filename": "cluster/midonet-cluster/src/main/java/org/midonet/cluster/rest_api/models/Bridge.java",
+        "patchSetId": 3
+      },
+      "lineNbr": 108,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-29T09:00:12Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_173e3628",
+      "range": {
+        "startLine": 101,
+        "startChar": 8,
+        "endLine": 108,
+        "endChar": 20
+      },
+      "revId": "b064f2d3e0d62d10dd298a33dd4eb4821c64940c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
