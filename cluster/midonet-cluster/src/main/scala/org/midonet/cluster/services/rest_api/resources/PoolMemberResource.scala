@@ -17,11 +17,14 @@
 package org.midonet.cluster.services.rest_api.resources
 
 import java.util.UUID
+import javax.ws.rs.core.Response
+import javax.ws.rs.{PathParam, Path, DELETE}
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.NotFoundHttpException
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.PoolMember
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -36,12 +39,22 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
                    APPLICATION_JSON))
 @AllowUpdate(Array(APPLICATION_POOL_MEMBER_JSON,
                    APPLICATION_JSON))
-@AllowDelete
 class PoolMemberResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[PoolMember](resContext) {
 
     protected override def updateFilter = (to: PoolMember, from: PoolMember) => {
         to.update(from)
+    }
+
+    @DELETE
+    @Path("{id}")
+    override def delete(@PathParam("id") id: String): Response = {
+        try {
+            deleteResource(classOf[PoolMember], id)
+        } catch {
+            case t: NotFoundHttpException => // ok, idempotent
+        }
+        MidonetResource.OkNoContentResponse
     }
 
 }

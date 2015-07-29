@@ -21,19 +21,20 @@ import java.util.List;
 import java.util.UUID;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.cluster.rest_api.VendorMediaType;
+import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
 import org.midonet.client.dto.DtoPoolMember;
 import org.midonet.client.dto.l4lb.LBStatus;
+import org.midonet.cluster.rest_api.VendorMediaType;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.CONFLICT;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static org.junit.Assert.assertEquals;
@@ -156,6 +157,9 @@ public class TestPoolMember {
 
         @Test
         public void testDeletePoolRemovesReferencesFromPoolMembers() {
+
+            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
             assertEquals(pool.getId(), member.getPoolId());
             assertEquals(pool.getUri(), member.getPool());
 
@@ -269,7 +273,7 @@ public class TestPoolMember {
         public void testUpdateWithBadPoolMemberId() throws Exception {
             member.setId(UUID.randomUUID());
             member.setUri(addIdToUri(topLevelPoolMembersUri, member.getId()));
-            DtoError error = dtoResource.putAndVerifyBadRequest(
+            DtoError error = dtoResource.putAndVerifyNotFound(
                 member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(error, RESOURCE_NOT_FOUND,
                                "pool member", member.getId());
@@ -278,7 +282,7 @@ public class TestPoolMember {
         @Test
         public void testUpdateWithBadPoolId() {
             member.setPoolId(UUID.randomUUID());
-            DtoError error = dtoResource.putAndVerifyBadRequest(
+            DtoError error = dtoResource.putAndVerifyNotFound(
                     member.getUri(), APPLICATION_POOL_MEMBER_JSON, member);
             assertErrorMatches(
                     error, RESOURCE_NOT_FOUND, "pool", member.getPoolId());
