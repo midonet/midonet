@@ -25,6 +25,11 @@ ZKDUMP_CURL_URI="http://repo.midonet.org/packages.midokura.key"
 sudo bash -c "echo deb [arch=amd64] http://$ZKDUMP_SERVER stable main > /etc/apt/sources.list.d/midokura-3rdparty.list"
 curl -k $ZKDUMP_CURL_URI | sudo apt-key add -
 
+# add repo for java 8
+
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 0x219BD9C9
+sudo apt-add-repository 'deb http://repos.azulsystems.com/ubuntu stable main'
+
 # update apt
 sudo apt-get update
 
@@ -42,11 +47,15 @@ sudo apt-get install --no-install-recommends -y bridge-utils iptables
 sudo apt-get install -y haproxy quagga
 sudo apt-get install -y software-properties-common
 
-# curl, screen, tmux, java
-sudo apt-get install -y screen tmux libncurses5-dev openjdk-7-jdk
+# curl, screen, tmux, python-setproctitle, java
+sudo apt-get install -y screen tmux libncurses5-dev python-setproctitle openjdk-7-jdk
 
-# use java7 by default for mm-dpctl
-sudo update-alternatives --set java /usr/lib/jvm/java-7-openjdk-amd64/jre/bin/java
+# install java 8
+sudo apt-get install zulu-8
+
+# but keep java 7 as default
+export JAVA_HOME=/usr/lib/jvm/java-1.7.0-openjdk-amd64
+update-java-alternatives -s /usr/lib/jvm/java-1.7.0-openjdk-amd64 > /dev/null 2>&1
 
 # python and ruby
 sudo apt-get install --no-install-recommends -y debhelper autotools-dev python-unittest2 python-all-dev ruby-ronn
@@ -55,7 +64,7 @@ sudo apt-get install -y ruby1.9.1-dev ruby1.9.1-full rpm && sudo gem install fpm
 # zookeeper
 sudo apt-get install -y zookeeper zookeeperd
 if [ $(lsb_release  -cs) != "trusty" ] ; then
-    sudo sed -i 's/\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/zookeeper/zookeeper-env.sh
+    sudo sed -i 's/\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/zulu-8-amd64/' /etc/zookeeper/zookeeper-env.sh
 fi
 
 sudo service zookeeper stop && true
@@ -95,7 +104,7 @@ else
 fi
 
 # Install cassandra
-sudo apt-get -o Dpkg::Options::=--force-confnew -y install dsc20=2.0.10-1 cassandra=2.0.10
+sudo apt-get -o Dpkg::Options::=--force-confnew --force-yes -y install dsc20=2.0.10-1 cassandra=2.0.10
 sudo apt-mark hold dsc20 cassandra
 
 sudo bash -c "echo $(hostname|sed 's/ip-//;s/-/./g') $(hostname -f) $(hostname) >>/etc/hosts"
@@ -121,7 +130,7 @@ sudo apt-get install -y python-httplib2
 sudo apt-get install --no-install-recommends -y python-webob python-eventlet
 
 sudo service tomcat7 stop && true
-sudo sed -i 's/#\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/java-1.7.0-openjdk-amd64/' /etc/default/tomcat7
+sudo sed -i 's/#\(JAVA_HOME=\).*$/\1\/usr\/lib\/jvm\/zulu-8-amd64/' /etc/default/tomcat7
 sudo update-rc.d tomcat7 enable
 
 # dmasq
