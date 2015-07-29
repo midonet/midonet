@@ -46,7 +46,6 @@ sourceSets {
 }
 
 dependencies {
-    runtime project(':midonet-jdk-bootstrap')
     compile project(':midonet-util'), project(':netlink'),
             project(':odp'), project(':nsdb'), project(':rpc')
 
@@ -270,7 +269,6 @@ mainClassName = "org.midonet.midolman.Midolman"
 
 task runWithSudo(type:Exec, dependsOn: installApp) {
     commandLine 'sudo', 'java', '-Djava.library.path=/lib:/usr/lib'
-    commandLine += '-Xbootclasspath:' + file(project.jdkBootstrap)
     commandLine += '-cp'
     commandLine += sourceSets.main.runtimeClasspath.collect{ it.toString() }.join(':')
     commandLine += mainClassName
