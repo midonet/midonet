@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_17dab6e7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 88,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-29T09:06:05Z",
+      "side": 1,
+      "message": "this seems a bit out of date",
+      "revId": "eff1c860b117bad69cca1704698a74ab7042f69e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_77bea266",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 115,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-29T09:06:05Z",
+      "side": 1,
+      "message": "my sensibilities are still hurt by the inclusion of this line in the try :(",
+      "revId": "eff1c860b117bad69cca1704698a74ab7042f69e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_97c326ec",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 126,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-29T09:06:05Z",
+      "side": 1,
+      "message": "now these can be method calls, right?",
+      "revId": "eff1c860b117bad69cca1704698a74ab7042f69e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
