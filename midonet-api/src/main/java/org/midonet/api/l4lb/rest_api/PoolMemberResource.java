@@ -44,7 +44,6 @@ import org.midonet.api.rest_api.AbstractResource;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.auth.AuthRole;
-import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.ServiceUnavailableHttpException;
@@ -174,15 +173,19 @@ public class PoolMemberResource extends AbstractResource {
         validate(poolMember);
 
         try {
-            // Ignore `address`, `protocolPort` and `status` property
-            // populated by users.
             if (!dataClient.poolMemberExists(id)) {
-                throw new BadRequestHttpException(
-                    getMessage(RESOURCE_NOT_FOUND, "pool member", id));
+                throw notFoundException(id, "pool member");
+            }
+
+            if (dataClient.poolGet(poolMember.poolId) == null) {
+                throw notFoundException(poolMember.poolId, "pool");
             }
 
             org.midonet.cluster.data.l4lb.PoolMember oldPoolMember =
                 dataClient.poolMemberGet(id);
+
+            // Ignore `address`, `protocolPort` and `status` property populated
+            // by users.
             poolMember.address = oldPoolMember.getAddress();
             poolMember.protocolPort = oldPoolMember.getProtocolPort();
             poolMember.status = oldPoolMember.getStatus();

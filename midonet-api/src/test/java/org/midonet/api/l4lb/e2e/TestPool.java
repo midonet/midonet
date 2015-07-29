@@ -23,11 +23,13 @@ import javax.ws.rs.core.MultivaluedMap;
 import com.sun.jersey.api.client.ClientResponse;
 
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
+import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoHealthMonitor;
 import org.midonet.client.dto.DtoLoadBalancer;
@@ -104,6 +106,8 @@ public class TestPool {
         @Test
         public void testCrud() throws Exception {
 
+            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
             // Pools should be empty
             verifyNumberOfPools(0);
 
@@ -130,6 +134,9 @@ public class TestPool {
 
         @Test
         public void testCreateIntializesReferences() {
+
+            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
             DtoPool pool = getStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor.getId());
@@ -141,6 +148,9 @@ public class TestPool {
         @Test
         public void testUpdateReferences()
                 throws SerializationException, StateAccessException {
+
+            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
             // Start with no health monitor.
             DtoPool pool = createStockPool(loadBalancer.getId());
             assertNull(pool.getHealthMonitor());
@@ -163,6 +173,9 @@ public class TestPool {
 
         @Test
         public void testDeleteClearsBackrefs() {
+
+            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
             DtoPool pool = createStockPool(loadBalancer.getId());
 
             // Add some VIPs.
@@ -361,6 +374,9 @@ public class TestPool {
         @Test
         public void testServiceUnavailableWithNullHealthMonitor()
                 throws Exception {
+
+            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
+
             DtoPool pool = createStockPool(loadBalancer.getId());
             DtoHealthMonitor healthMonitor = createStockHealthMonitor();
             pool.setHealthMonitorId(healthMonitor.getId());
