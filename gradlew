@@ -15,17 +15,6 @@ APP_BASE_NAME=`basename "$0"`
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD="maximum"
 
-warn ( ) {
-    echo "$*"
-}
-
-die ( ) {
-    echo
-    echo "$*"
-    echo
-    exit 1
-}
-
 # OS specific support (must be 'true' or 'false').
 cygwin=false
 msys=false
@@ -46,6 +35,64 @@ esac
 if $cygwin ; then
     [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
 fi
+
+# Set the correct JAVA_HOME for compilation, which should be Java 1.8
+
+JVM_SEARCH_DIRS="java-1.8.0-openjdk-amd64 java-8-openjdk-amd64 \
+                 java-8-oracle zulu-8-amd64 zulu-8.jdk jdk1.8.0.jdk"
+
+check_for_java8() {
+    [ "x" = "x$1" ] && return 1
+    [ -x "$1" ] || return 1
+    $1 -version 2>&1 | grep -q 'version "1.8'
+}
+
+if [ -n "`which java`" ]; then
+    java=`which java`
+    # Dereference symlink(s)
+    while true; do
+        if [ -h "$java" ]; then
+            java=`readlink "$java"`
+            continue
+        fi
+        break
+    done
+    JVM_SEARCH_DIRS="`dirname $java`/../ $JVM_SEARCH_DIRS"
+fi
+
+if [ ! -z "$JAVA_HOME" ]; then
+    JVM_SEARCH_DIRS="$JAVA_HOME $JVM_SEARCH_DIRS"
+fi
+
+JAVA_HOME=
+for jdir in $JVM_SEARCH_DIRS; do
+    if $darwin ; then
+	jdir="/Library/Java/JavaVirtualMachines/$jdir/Contents/Home"
+    else
+        jdir="/usr/lib/jvm/$jdir"
+    fi
+    check_for_java8 "$jdir/bin/java"
+    if [ $? -eq 0 ]; then
+        JAVA_HOME="$jdir"
+        break
+    fi
+done
+
+if [ -z "$JAVA_HOME" ] ; then
+    echo "No suitable JVM found (at least v1.8.0 required)"
+    exit 1
+fi
+
+warn ( ) {
+    echo "$*"
+}
+
+die ( ) {
+    echo
+    echo "$*"
+    echo
+    exit 1
+}
 
 # Attempt to set APP_HOME
 # Resolve links: $0 may be a link

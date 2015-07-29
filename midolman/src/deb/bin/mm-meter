@@ -14,42 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# The first existing directory is used for JAVA_HOME if needed.
-JVM_SEARCH_DIRS="/usr/lib/jvm/java-7-openjdk-amd64 /usr/lib/jvm/java-7-openjdk \
-                 /usr/lib/jvm/java-7-sun"
-
-# If JAVA_HOME has not been set, try to determine it.
-if [ -z "$JAVA_HOME" ]; then
-    # If java is in PATH, use a JAVA_HOME that corresponds to that. This is
-    # both consistent with how the upstream startup script works, and how
-    # Debian works (read: the use of alternatives to set a system JVM).
-    if [ -n "`which java`" ]; then
-        java=`which java`
-        # Dereference symlink(s)
-        while true; do
-            if [ -h "$java" ]; then
-                java=`readlink "$java"`
-                continue
-            fi
-            break
-        done
-        JAVA_HOME="`dirname $java`/../"
-    # No JAVA_HOME set and no java found in PATH, search for a JVM.
-    else
-        for jdir in $JVM_SEARCH_DIRS; do
-            if [ -x "$jdir/bin/java" ]; then
-                JAVA_HOME="$jdir"
-                break
-            fi
-        done
-    fi
-fi
-
-export DRIP_INIT_CLASS=org.midonet.midolman.management.DripMain
-export DRIP_INIT="" # Needs to be non-null
-
-if [ -z "$JAVA" ]; then
-    JAVA="$JAVA_HOME/bin/java"
+if [ -f /usr/share/midolman/prepare-java ]; then
+    . /usr/share/midolman/prepare-java
+else
+    echo "/usr/share/midolman/prepare-java: file not found"
+    exit 1
 fi
 
 # If MIDO_HOME has not been set, set it.
