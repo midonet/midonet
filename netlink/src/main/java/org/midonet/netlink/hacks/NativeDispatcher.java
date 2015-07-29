@@ -26,8 +26,6 @@ import org.slf4j.LoggerFactory;
  * This class is a hack to allow using a custom socket implementation until jdk8
  * rolls over across the project.
  *
- * @deprecated since jdk8
- *
  * @see sun.nio.ch.NativeDispatcher
  */
 public class NativeDispatcher {
@@ -48,7 +46,7 @@ public class NativeDispatcher {
             preCloseRef = nativeDispatcherClass.getDeclaredMethod("preClose", FileDescriptor.class);
             preCloseRef.setAccessible(true);
         } catch (Exception e) {
-            log.error("Exception initializing sun.nio.ch.IOUtil method ref", e);
+            log.error("Exception initializing sun.nio.ch.NativeDispatcher method ref", e);
         }
     }
 

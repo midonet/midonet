@@ -140,8 +140,8 @@ public class NetlinkSelectorProvider extends SelectorProvider {
         } catch (ClassNotFoundException e) {
             log.error("Can't find class of type: {}", type);
         } catch (SecurityException e) {
-            log.error("Security exception when trying to instantiate class {}"
-                + "   midonet-jdk-boostrap might be missing ? {}", type, e);
+            log.error("Security exception when trying to instantiate class {}",
+                      type, e);
         } catch (Throwable e) {
             log.error("Exception making instance of class " + type, e);
         }

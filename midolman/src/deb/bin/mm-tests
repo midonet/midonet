@@ -127,7 +127,6 @@ if [ ! -d "$MIDO_HOME" ]; then
 fi
 
 JAVA_LIBRARY_PATH=-Djava.library.path=/lib:/usr/lib
-MIDO_BOOTSTRAP_JAR=`ls $MIDO_HOME/dep/midonet-jdk-bootstrap-*.jar`
 MIDO_DEP_CLASS_PATH=`echo $MIDO_HOME/dep/* | sed 's/ /:/g'`
 MIDO_JAR=`ls $MIDO_HOME/midolman-*.jar 2>/dev/null`
 if [ ! -e "$MIDO_JAR" -a -z "$MIDO_EXTRA_JARS" ] ; then
@@ -145,8 +144,7 @@ run_test() {
     shift
     echo "Running $MAIN"
     $JAVA -Dlogback.configurationFile=file:/etc/midolman/logback-dpctl.xml\
-        $JAVA_LIBRARY_PATH -Xbootclasspath/p:$MIDO_BOOTSTRAP_JAR\
-        -cp $CLASSPATH $MAIN $*
+        $JAVA_LIBRARY_PATH -cp $CLASSPATH $MAIN $*
     [ $? -eq 0 ] || abort "error when running $MAIN"
 }
 
