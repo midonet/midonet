@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_ea2c7f9b",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T18:35:32Z",
+      "side": 1,
+      "message": "we should bound this",
+      "range": {
+        "startLine": 52,
+        "startChar": 22,
+        "endLine": 52,
+        "endChar": 46
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_2a23c7a7",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T18:35:32Z",
+      "side": 1,
+      "message": "Could it be made so by using a ConcurrentHashMap?",
+      "range": {
+        "startLine": 75,
+        "startChar": 4,
+        "endLine": 76,
+        "endChar": 36
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ca85fb5a",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbTableMonitor.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T18:35:32Z",
+      "side": 1,
+      "message": "Is this correct? If updates happen between the completion and the execution of line 63 (which is an RPC also), we will lose some updates that (if I read correctly) tableUpdates will not be emitting.\n\nShouldn\u0027t we instead:\n\nOvsdbTools.tableUpdates(..).startWith(Observable.from(OvsdbTools.tableEntries(..)).subscribe(subscriber) ?\n\nThis way we subscribe to updates from the start, and then also request the initial state.\n\nIn practise the monitor is going to be requested before any updates happen, so you may be getting some duplicate notifications, but that should be accepted by clientes IMO.",
+      "range": {
+        "startLine": 56,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 46
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8a6133d5",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T18:35:32Z",
+      "side": 1,
+      "message": "We can\u0027t really handle these exceptions, so better to bubble them up (otherwise clients need to if (null) and then guess what\u0027s wrong)",
+      "range": {
+        "startLine": 81,
+        "startChar": 6,
+        "endLine": 81,
+        "endChar": 11
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
