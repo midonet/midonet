@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_10b7173b",
+        "filename": "cluster/midonet-cluster/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-30T08:38:34Z",
+      "side": 1,
+      "message": "didn\u0027t you move the classes you wanted to depend on to cluster? is this dependency necessary then?",
+      "revId": "ccfcb0e6473691b8fd949e18be9ba671b3b166b6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
