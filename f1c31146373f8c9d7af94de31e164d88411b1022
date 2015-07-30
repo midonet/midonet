@@ -1,0 +1,107 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b50f3d87",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 50,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T06:49:27Z",
+      "side": 1,
+      "message": "ditto, as below",
+      "revId": "f1c31146373f8c9d7af94de31e164d88411b1022",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_950a3977",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T06:49:27Z",
+      "side": 1,
+      "message": "Add implications of this? (e.g.: can we create a new one of the same device?)",
+      "revId": "f1c31146373f8c9d7af94de31e164d88411b1022",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_151e29bb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 141,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T06:49:27Z",
+      "side": 1,
+      "message": "nit: maybe factor out to:\n\nif (handleSubscriptionIfTerminal(child)) {\n   return\n}",
+      "range": {
+        "startLine": 128,
+        "startChar": 8,
+        "endLine": 141,
+        "endChar": 9
+      },
+      "revId": "f1c31146373f8c9d7af94de31e164d88411b1022",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d54041a7",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/DeviceMapperTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 180,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T06:49:27Z",
+      "side": 1,
+      "message": "Is this needed? any way we can replace with a latch or similar solution (so we can reduce likelyhood of flakiness)",
+      "range": {
+        "startLine": 180,
+        "startChar": 12,
+        "endLine": 180,
+        "endChar": 30
+      },
+      "revId": "f1c31146373f8c9d7af94de31e164d88411b1022",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b5865dd9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/VtpmRedirectorTest.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 195,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T06:49:27Z",
+      "side": 1,
+      "message": "any reasons for changing this type?",
+      "range": {
+        "startLine": 195,
+        "startChar": 44,
+        "endLine": 195,
+        "endChar": 54
+      },
+      "revId": "f1c31146373f8c9d7af94de31e164d88411b1022",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
