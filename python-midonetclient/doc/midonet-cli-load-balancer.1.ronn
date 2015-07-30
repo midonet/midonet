@@ -91,7 +91,7 @@ Attributes:
     IP address the VIP covers.
   * `load-balancer` [!]<LOAD_BALANCER> (read-only)
     A load balancer the VIP belongs to.
-  * `persistence` [!]`SOURCE_IP`
+  * `persistence` `SOURCE_IP` | `NONE`
     Ssession persistence type.
   * `protocol-port` [!]<TCP_PORT>
     TCP port the VIP covers.
