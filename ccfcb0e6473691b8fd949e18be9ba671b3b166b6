@@ -16,6 +16,24 @@
       "revId": "ccfcb0e6473691b8fd949e18be9ba671b3b166b6",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_308b3b69",
+        "filename": "cluster/midonet-cluster/build.gradle",
+        "patchSetId": 2
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T08:42:16Z",
+      "side": 1,
+      "message": "Oh sorry this sneaked in. I will need it in a patch later in the sequence, so it\u0027s still valid (even if premature)",
+      "parentUuid": "9ad9bd40_10b7173b",
+      "revId": "ccfcb0e6473691b8fd949e18be9ba671b3b166b6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
