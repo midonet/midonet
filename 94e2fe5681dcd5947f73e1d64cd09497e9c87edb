@@ -22,6 +22,30 @@
       "revId": "94e2fe5681dcd5947f73e1d64cd09497e9c87edb",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_f52385ba",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-30T08:03:06Z",
+      "side": 1,
+      "message": "The only use was to check that a state is terminal (i.e. not continue processing in `onNext` for instance). For this, I mostly used:\n\n  if (state.isTerminal) return",
+      "parentUuid": "9ad9bd40_f552a565",
+      "range": {
+        "startLine": 44,
+        "startChar": 8,
+        "endLine": 44,
+        "endChar": 62
+      },
+      "revId": "94e2fe5681dcd5947f73e1d64cd09497e9c87edb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
