@@ -343,6 +343,7 @@ public class ZkNatBlockAllocatorTest {
         s = zk.getZooKeeper().exists(paths.getNatDevicePath(device), false);
         assertThat(s, is(not(nullValue())));
 
+        clock.time_$eq(System.currentTimeMillis() + TimeUnit.DAYS.toMillis(1) + 1);
         blocks = Await.result(recycler.recycle(), Duration.apply(3, TimeUnit.MINUTES));
         assertThat(blocks, is(0));
         s = zk.getZooKeeper().exists(paths.getNatDevicePath(device), false);
