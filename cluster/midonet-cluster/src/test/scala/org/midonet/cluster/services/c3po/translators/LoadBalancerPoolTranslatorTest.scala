@@ -22,6 +22,7 @@ import org.scalatest.junit.JUnitRunner
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.ModelsUtil._
 import org.midonet.cluster.models.Neutron.NeutronLoadBalancerPool
+import org.midonet.cluster.models.Topology.Pool.{PoolHealthMonitorMappingStatus => MappingStatus}
 import org.midonet.cluster.models.Topology.{LoadBalancer, Pool}
 import org.midonet.cluster.services.c3po.{midonet, neutron}
 import org.midonet.cluster.util.UUIDUtil
@@ -57,15 +58,20 @@ class LoadBalancerPoolTranslatorTestBase extends TranslatorTestBase {
         """)
 
     protected def midoPoolProtoStr(adminStateUp: Boolean = true,
-                                   healthMonitorId: UUID = null) = {
-        val protoStr = s"""
+                                   healthMonitorId: UUID = null,
+                                   mappingStatus: MappingStatus = null)
+    : String = {
+        val bldr = new StringBuilder
+        bldr ++= s"""
             id { $poolId }
             admin_state_up: $adminStateUp
             load_balancer_id { $routerId }
             """
-        if (healthMonitorId == null) protoStr
-        else protoStr + s"""health_monitor_id { $healthMonitorId }
-                            mapping_status: PENDING_CREATE"""
+        if (healthMonitorId != null)
+            bldr ++= s"health_monitor_id { $healthMonitorId }\n"
+        if (mappingStatus != null)
+            bldr ++= s"mapping_status: $mappingStatus\n"
+        bldr.toString()
     }
     protected def midoPool(adminStateUp: Boolean = true,
                            healthMonitorId: UUID = null) =
@@ -104,15 +110,14 @@ class LoadBalancerPoolTranslatorCreateTest
         bind(lbId, lb)
         val midoOps = translator.translate(neutron.Create(poolNoHm))
 
-        midoOps should contain only (midonet.Create(mPoolNoHm))
+        midoOps should contain only midonet.Create(mPoolNoHm)
     }
 
-    "Creation of a Pool with a Health Monitor ID" should "set the Pool " +
-    "Health Monitor Mapping Status to PENDING CREATE." in {
+    "Creation of a Pool with a Health Monitor ID" should "fail" in {
         bind(lbId, lb)
-        val midoOps = translator.translate(neutron.Create(poolWithHm))
-
-        midoOps should contain only (midonet.Create(mPoolWithHm))
+        val ex = the [TranslationException] thrownBy
+                 translator.translate(neutron.Create(poolWithHm))
+        ex.getMessage should include ("A health monitor may be associated")
     }
 
     "Creation of a Pool without Router ID specified" should "throw an " +
@@ -125,7 +130,7 @@ class LoadBalancerPoolTranslatorCreateTest
         te.getCause match {
             case null => fail("Expected an IllegalArgumentException.")
             case iae: IllegalArgumentException if iae.getMessage != null =>
-                iae.getMessage startsWith("No router ID") shouldBe true
+                iae.getMessage.startsWith("No router ID") shouldBe true
             case e => fail("Expected an IllegalArgumentException.", e)
         }
     }
@@ -140,14 +145,6 @@ class LoadBalancerPoolTranslatorUpdateTest
     before {
         initMockStorage()
         translator = new LoadBalancerPoolTranslator(storage)
-    }
-
-    "UPDATE of a Pool with a Health Monitor ID" should "add a Health Monitor " +
-    "ID to the MidoNet Pool." in {
-        bind(poolId, mPoolNoHm)
-        val midoOps = translator.translate(neutron.Update(poolWithHm))
-
-        midoOps should contain only midonet.Update(mPoolWithHm)
     }
 
     "UPDATE of a Pool with no Health Monitor ID" should "not add a Health " +
@@ -171,44 +168,8 @@ class LoadBalancerPoolTranslatorUpdateTest
         midoOps should contain only midonet.Update(mPoolDown)
     }
 
-    "Pool UPDATE" should "not revert the Health Monitor mapping status." in {
-        val mPoolWithHmPendingUpdate =
-            mPoolWithHm.toBuilder().setMappingStatus(
-                    Pool.PoolHealthMonitorMappingStatus.PENDING_UPDATE).build()
-        bind(poolId, mPoolWithHmPendingUpdate)
-        val midoOps = translator.translate(neutron.Update(poolDown))
-
-        midoOps should contain only midonet.Update(
-                mPoolWithHmPendingUpdate.toBuilder()
-                                        .setAdminStateUp(false)
-                                        .build())
-    }
-
-    "Pool UPDATE with Health Monitor ID removed" should "remove the " +
-    "corresponding ID in MidoNet Pool" in {
-        bind(poolId, mPoolWithHm)
-        val midoOps = translator.translate(neutron.Update(poolNoHm))
-
-        midoOps should contain only midonet.Update(mPoolNoHm)
-    }
-
     private val newHmId = UUIDUtil.toProtoFromProtoStr("msb: 3 lsb: 2")
     protected val poolWithNewHm = neutronPool(healthMonitorId = newHmId)
-
-    "Pool UPDATE with a different Health Monitor ID" should "throw an " +
-    "IllegalArgumentException." in {
-        bind(poolId, mPoolWithHm)
-        val te = intercept[TranslationException] {
-            translator.translate(neutron.Update(poolWithNewHm))
-        }
-
-        te.getCause match {
-            case null => fail("Expected an IllegalStateException.")
-            case ise: IllegalStateException if ise.getMessage != null =>
-                ise.getMessage contains("Health Monitor") shouldBe true
-            case e => fail("Expected an IllegalStateException.", e)
-        }
-    }
 }
 
 /**
