@@ -276,6 +276,46 @@
       "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_50b8bfc7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 242,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-30T09:45:46Z",
+      "side": 1,
+      "message": "could be val, no?",
+      "range": {
+        "startLine": 242,
+        "startChar": 4,
+        "endLine": 242,
+        "endChar": 7
+      },
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_30a89b76",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 276,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-30T09:45:46Z",
+      "side": 1,
+      "message": "diffBaseMatch.reset(origMatch) needs to be here too, because of restarts",
+      "revId": "5e319bd281fad07470fed3854b93fde6008a73ca",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
