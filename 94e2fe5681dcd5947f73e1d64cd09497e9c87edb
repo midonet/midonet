@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f552a565",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/DeviceMapper.scala",
+        "patchSetId": 15
+      },
+      "lineNbr": 44,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-30T06:54:40Z",
+      "side": 1,
+      "message": "Would it make sense to type this?\n\nclass MapperState\nclass TerminalMapperState extends MapperState\n\nThen have the terminal states extend from the latter? I haven\u0027t seen the uses so not sure if you can replace the isTerminal with pattern matching.",
+      "range": {
+        "startLine": 44,
+        "startChar": 8,
+        "endLine": 44,
+        "endChar": 62
+      },
+      "revId": "94e2fe5681dcd5947f73e1d64cd09497e9c87edb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
