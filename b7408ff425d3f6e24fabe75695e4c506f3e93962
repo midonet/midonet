@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_671eea0d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 2,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-30T15:54:45Z",
+      "side": 1,
+      "message": "2015",
+      "revId": "b7408ff425d3f6e24fabe75695e4c506f3e93962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_87192e24",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 29,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-30T15:54:45Z",
+      "side": 1,
+      "message": "by renaming to simulator, it makes it hard to track what has been removed from Coordinator and what is now in simulator. I\u0027d be clearer if you moved out the functionality in one patch and then did the rename in a patch of it\u0027s own.",
+      "revId": "b7408ff425d3f6e24fabe75695e4c506f3e93962",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
