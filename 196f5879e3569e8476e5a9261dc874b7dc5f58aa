@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_35bfadab",
+        "filename": "python-midonetclient/doc/midonet-cli-load-balancer.1.ronn",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002753
+      },
+      "writtenOn": "2015-07-30T06:34:04Z",
+      "side": 1,
+      "message": "That should be changed back to \"SOURCE_IP\", because the VIP is created with SOURCE_IP in the example (line 29).\n\nCreating a VIP with \"NONE\" or \"null\" works both. But when showing the VIP afterwards, the persistence is not displayed at all.\n\n###\nmidonet\u003e load-balancer lb0 pool pool0 create vip address 192.168.0.1 persistence SOURCE_IP protocol-port 8080\nlb0:pool0:vip0\nmidonet\u003e load-balancer lb0 pool pool0 vip vip0 show\nvip vip0 load-balancer lb0 address 192.168.0.1 protocol-port 8080 persistence SOURCE_IP state up\n\nmidonet\u003e load-balancer lb0 pool pool0 create vip address 192.168.0.2 persistence NONE protocol-port 8080\nlb0:pool0:vip1\nmidonet\u003e load-balancer lb0 pool pool0 vip vip1 show\nvip vip1 load-balancer lb0 address 192.168.0.2 protocol-port 8080 state up\n\nmidonet\u003e load-balancer lb0 pool pool0 create vip address 192.168.0.3 persistence null protocol-port 8080\nlb0:pool0:vip2\nmidonet\u003e load-balancer lb0 pool pool0 vip vip2 show\nvip vip2 load-balancer lb0 address 192.168.0.3 protocol-port 8080 state up\n###",
+      "range": {
+        "startLine": 33,
+        "startChar": 25,
+        "endLine": 33,
+        "endChar": 29
+      },
+      "revId": "196f5879e3569e8476e5a9261dc874b7dc5f58aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
