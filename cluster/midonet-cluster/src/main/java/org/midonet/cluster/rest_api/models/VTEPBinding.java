@@ -22,7 +22,6 @@ import java.util.UUID;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -32,11 +31,10 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil;
 
-@ZoomClass(clazz = Topology.VtepBinding.class)
+@ZoomClass(clazz = Topology.Vtep.Binding.class)
 public class VTEPBinding extends UriResource {
 
     @JsonIgnore
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
     private UUID id;
 
     @JsonIgnore
@@ -56,7 +54,6 @@ public class VTEPBinding extends UriResource {
     public UUID networkId;
 
     @JsonIgnore
-    @ZoomField(name = "vtep_id", converter = UUIDUtil.Converter.class)
     public UUID vtepId;
 
     @Override
