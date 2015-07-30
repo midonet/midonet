@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a76632b9",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/util/VirtualTopologyHelper.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 86,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-07-30T15:35:35Z",
+      "side": 1,
+      "message": "indent is a little off here.",
+      "revId": "6b90e15614c77db584fca968773b0b132f8d9d46",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
