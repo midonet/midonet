@@ -67,7 +67,8 @@ trait NeutronTranslator[NeutronModel <: Message] {
             case neutron.Delete(_, id) => translateDelete(id)
         }
     } catch {
-        case NonFatal(ex) => throw new TranslationException(op, ex)
+        case NonFatal(ex) =>
+            throw new TranslationException(op, ex, ex.getMessage)
     }
 
     /* Implement the following for CREATE/UPDATE/DELETE of the model */
