@@ -22,7 +22,6 @@ import java.util.UUID;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -32,12 +31,8 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.util.UUIDUtil;
 
-@ZoomClass(clazz = Topology.VtepBinding.class)
-public class VTEPBinding extends UriResource {
-
-    @JsonIgnore
-    @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
-    private UUID id;
+@ZoomClass(clazz = Topology.Vtep.Binding.class)
+public class VtepBinding extends UriResource {
 
     @JsonIgnore
     public String mgmtIp;
@@ -56,7 +51,6 @@ public class VTEPBinding extends UriResource {
     public UUID networkId;
 
     @JsonIgnore
-    @ZoomField(name = "vtep_id", converter = UUIDUtil.Converter.class)
     public UUID vtepId;
 
     @Override
@@ -66,14 +60,6 @@ public class VTEPBinding extends UriResource {
                            Short.toString(vlanId));
     }
 
-    @Override
-    @JsonIgnore
-    public void create() {
-        if (null == id) {
-            id = UUID.randomUUID();
-        }
-    }
-
     @JsonIgnore
     public void create(String mgmtIp) {
         create();
@@ -81,10 +67,9 @@ public class VTEPBinding extends UriResource {
     }
 
     @JsonIgnore
-    public void update(VTEPBinding from) {
-        id = from.id;
+    public void update(VtepBinding from) {
         mgmtIp = from.mgmtIp;
-        vtepId = from.id;
+        vtepId = from.vtepId;
     }
 
 }

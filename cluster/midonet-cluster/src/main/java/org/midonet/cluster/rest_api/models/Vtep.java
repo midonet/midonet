@@ -38,7 +38,7 @@ import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4;
 
 @ZoomClass(clazz = Topology.Vtep.class)
-public class VTEP extends UriResource {
+public class Vtep extends UriResource {
 
     @JsonIgnore
     @ZoomField(name = "id", converter = UUIDUtil.Converter.class)
@@ -70,8 +70,8 @@ public class VTEP extends UriResource {
     public List<String> tunnelIpAddrs;
 
     @JsonIgnore
-    @ZoomField(name = "bindings", converter = UUIDUtil.Converter.class)
-    public List<UUID> bindings;
+    @ZoomField(name = "bindings")
+    public List<Topology.Vtep.Binding> bindings;
 
     @Override
     public URI getUri() {
@@ -99,7 +99,7 @@ public class VTEP extends UriResource {
     }
 
     @JsonIgnore
-    public void update(VTEP from) {
+    public void update(Vtep from) {
         id = from.id;
         bindings = from.bindings;
     }

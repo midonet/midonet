@@ -29,7 +29,7 @@ import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.ApiException
 import org.midonet.cluster.rest_api.annotation.AllowCreate
-import org.midonet.cluster.rest_api.models.{Bridge, VTEP, VTEPBinding}
+import org.midonet.cluster.rest_api.models.{Bridge, Vtep, VtepBinding}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -37,18 +37,18 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceC
 @RequestScoped
 @AllowCreate(Array(APPLICATION_VTEP_BINDING_JSON,
                    APPLICATION_JSON))
-class VTEPBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
-    extends MidonetResource[VTEPBinding](resContext) {
+class VtepBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
+    extends MidonetResource[VtepBinding](resContext) {
 
     @GET
     @Path("{portName}/{vlanId}")
     @Produces(Array(APPLICATION_VTEP_BINDING_JSON,
                     APPLICATION_JSON))
     def get(@PathParam("portName") portName: String,
-            @PathParam("vlanId") vlanId: Short): VTEPBinding = {
+            @PathParam("vlanId") vlanId: Short): VtepBinding = {
 
         getVtep.flatMap(vtep => {
-            listResources(classOf[VTEPBinding], vtep.bindings.asScala)
+            listResources(classOf[VtepBinding], vtep.bindings.asScala)
                 .map(_.find(binding =>
                                 binding.portName == portName &&
                                 binding.vlanId == vlanId))
@@ -62,15 +62,15 @@ class VTEPBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
     @Produces(Array(APPLICATION_VTEP_BINDING_COLLECTION_JSON,
                     APPLICATION_JSON))
     override def list(@HeaderParam("Accept") accept: String)
-    : JList[VTEPBinding] = {
+    : JList[VtepBinding] = {
         getVtep.flatMap(vtep => {
-            listResources(classOf[VTEPBinding], vtep.bindings.asScala)
+            listResources(classOf[VtepBinding], vtep.bindings.asScala)
         })
             .getOrThrow
             .asJava
     }
 
-    protected override def createFilter = (binding: VTEPBinding) => {
+    protected override def createFilter = (binding: VtepBinding) => {
         hasResource(classOf[Bridge], binding.networkId).map(exists => {
             // Validate the bridge exists.
             if (!exists) throw new ApiException(Status.BAD_REQUEST)
@@ -78,8 +78,8 @@ class VTEPBindingResource @Inject()(mgmtIp: String, resContext: ResourceContext)
         binding.create(mgmtIp)
     }
 
-    private def getVtep: Future[VTEP] = {
-        listResources(classOf[VTEP])
+    private def getVtep: Future[Vtep] = {
+        listResources(classOf[Vtep])
             .map(_.find(_.managementIp == mgmtIp)
                   .getOrElse(throw new ApiException(Status.NOT_FOUND,
                                                     getMessage(VTEP_NOT_FOUND))))

@@ -17,7 +17,7 @@
 package org.midonet.cluster.rest_api.conversion;
 
 import org.midonet.cluster.data.vtep.model.PhysicalSwitch;
-import org.midonet.cluster.rest_api.models.VTEP;
+import org.midonet.cluster.rest_api.models.Vtep;
 import org.midonet.midolman.state.VtepConnectionState;
 import org.midonet.packets.IPv4Addr;
 
@@ -25,9 +25,9 @@ import static scala.collection.JavaConversions.seqAsJavaList;
 
 public class VTEPDataConverter {
 
-    public static VTEP fromData(org.midonet.cluster.data.VTEP vtepData,
+    public static Vtep fromData(org.midonet.cluster.data.VTEP vtepData,
                                 PhysicalSwitch ps) {
-        VTEP vtep = new VTEP();
+        Vtep vtep = new Vtep();
         vtep.managementIp = vtepData.getId().toString();
         vtep.managementPort = vtepData.getMgmtPort();
         vtep.tunnelZoneId = vtepData.getTunnelZoneId();
@@ -44,7 +44,7 @@ public class VTEPDataConverter {
         return vtep;
     }
 
-    public static org.midonet.cluster.data.VTEP toData(VTEP vtep) {
+    public static org.midonet.cluster.data.VTEP toData(Vtep vtep) {
         return new org.midonet.cluster.data.VTEP()
                 .setId(IPv4Addr.fromString(vtep.managementIp))
                 .setMgmtPort(vtep.managementPort)

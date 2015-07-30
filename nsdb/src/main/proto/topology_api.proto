@@ -199,7 +199,6 @@ message Response {
             TunnelZone tunnel_zone = 18;
             Vip vip = 19;
             Vtep vtep = 20;
-            VtepBinding vtep_binding = 21;
         }
     }
     message Snapshot {

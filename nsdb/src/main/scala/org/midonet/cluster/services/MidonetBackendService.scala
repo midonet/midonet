@@ -17,7 +17,6 @@ package org.midonet.cluster.services
 
 import com.google.common.util.concurrent.AbstractService
 import com.google.inject.Inject
-
 import org.apache.curator.framework.CuratorFramework
 import org.apache.curator.framework.imps.CuratorFrameworkState
 import org.slf4j.LoggerFactory.getLogger
@@ -87,8 +86,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[SecurityGroupRule],
              classOf[TunnelZone],
              classOf[Vip],
-             classOf[Vtep],
-             classOf[VtepBinding]
+             classOf[Vtep]
         ).foreach(store.registerClass)
 
         store.declareBinding(classOf[Network], "port_ids", CASCADE,
@@ -154,9 +152,6 @@ abstract class MidonetBackend extends AbstractService {
         stateStore.registerKey(classOf[Port], HostsKey, Multiple)
         stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
         stateStore.registerKey(classOf[TunnelZone], FloodingProxyKey, SingleLastWriteWins)
-
-        store.declareBinding(classOf[Vtep], "bindings", CASCADE,
-                             classOf[VtepBinding], "vtep_id", CLEAR)
 
         store.build()
     }
