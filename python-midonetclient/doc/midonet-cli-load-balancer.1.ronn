@@ -30,7 +30,7 @@ midonet-cli-load-balancer(1) -- Load Balancer objects in midonet-cli
     lb0:pool0:vip0
     midonet> load-balancer lb0 pool pool0 vip vip0 show
     vip vip0 load-balancer lb0 address 192.168.0.1 protocol-port 8080 \
-             persistence SOURCE_IP state down
+             persistence NONE state down
 
 ## DESCRIPTION
 
@@ -89,7 +89,7 @@ Attributes:
     IP address the VIP covers.
   * `load-balancer` [!]<LOAD_BALANCER> (read-only)
     A load balancer the VIP belongs to.
-  * `persistence` [!]`SOURCE_IP`
+  * `persistence` `SOURCE_IP` | `NONE`
     Ssession persistence type.
   * `protocol-port` [!]<TCP_PORT>
     TCP port the VIP covers.
