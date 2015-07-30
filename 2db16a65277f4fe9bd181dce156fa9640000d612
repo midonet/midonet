@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b5449d1b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/AddressManager.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-30T04:26:43Z",
+      "side": 1,
+      "message": "Name of the method is confusing to me.  Maybe something like getLocalDpPort?",
+      "revId": "2db16a65277f4fe9bd181dce156fa9640000d612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7565b5b3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-30T04:26:43Z",
+      "side": 1,
+      "message": "Wrong class?",
+      "revId": "2db16a65277f4fe9bd181dce156fa9640000d612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_d5fa01bc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-30T04:26:43Z",
+      "side": 1,
+      "message": "can we use MidolmanConfig\u0027s datapathName here instead of hard-coded \u0027midolman\u0027?",
+      "revId": "2db16a65277f4fe9bd181dce156fa9640000d612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b55bbdf4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/openstack/metadata/DatapathInterface.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 59,
+      "author": {
+        "id": 1002740
+      },
+      "writtenOn": "2015-07-30T04:26:43Z",
+      "side": 1,
+      "message": "Does Process return an exit code?  Shouldn\u0027t this method fail if these commands fail?",
+      "revId": "2db16a65277f4fe9bd181dce156fa9640000d612",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
