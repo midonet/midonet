@@ -108,7 +108,10 @@ class Bridge(val id: UUID,
     import org.midonet.midolman.simulation.Simulator._
 
     val floodAction: SimulationResult = (exteriorPorts map ToPortAction).
-            foldLeft(Drop: SimulationResult) { ForkAction(_, _) }
+            foldLeft(Drop: SimulationResult) { ForkAction(_, _) } match {
+        case ForkAction(Drop, a) => a
+        case a => a
+    }
 
     override val deviceTag = tagForBridge(id)
 
@@ -161,7 +164,7 @@ class Bridge(val id: UUID,
                     case Some(filterId) => tryAsk[Chain](filterId)
                     case None => null
                 },
-                context, id, false)
+                context, id)
             context.log.debug("Ingress chain returned {}", preBridgeResult)
 
             preBridgeResult.action match {
@@ -478,8 +481,7 @@ class Bridge(val id: UUID,
                 case Some(filterId) => tryAsk[Chain](filterId)
                 case None => null
             },
-            context, id, false
-        )
+            context, id)
         postBridgeResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
                 context.log.debug("Forwarding packet with action {}", act)

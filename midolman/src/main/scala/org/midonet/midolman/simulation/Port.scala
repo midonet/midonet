@@ -212,11 +212,13 @@ trait Port extends VirtualDevice with Cloneable {
         if (isExterior && (portGroups ne null))
             context.portGroups = portGroups
         context.inPortId = id
+        context.outPortId = null
         inFilter(context, as)
     }
 
     protected def egressUp: SimStep = (context, as) => {
         context.outPortId = id
+        context.inPortId = null
         outFilter(context, as)
     }
 
@@ -231,7 +233,7 @@ trait Port extends VirtualDevice with Cloneable {
     protected def filter(context: PacketContext, filterId: UUID, next: SimStep, as: ActorSystem): SimulationResult = {
         implicit val _as: ActorSystem = as
         val chain = tryAsk[Chain](filterId)
-        val result = Chain.apply(chain, context, id, true)
+        val result = Chain.apply(chain, context, id)
         result.action match {
             case RuleResult.Action.ACCEPT =>
                 next(context, as)
@@ -244,7 +246,7 @@ trait Port extends VirtualDevice with Cloneable {
         }
     }
 
-    def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
+    final def egress(context: PacketContext, as: ActorSystem): SimulationResult = {
         context.addFlowTag(deviceTag)
         context.addFlowTag(txTag)
         egressAdminState(context, as)

@@ -289,7 +289,7 @@ class ChainManager(val id: UUID, val clusterClient: Client)
     private def createChain() = {
         val eventStream = context.system.eventStream
         val name = chainName getOrElse "unknown"
-        new Chain(id, rules.toList, idToChain.toMap, name)
+        new Chain(id, rules.toList, mapAsJavaMap(idToChain.toMap), name)
     }
 
     private def updateJumpChain(chain: Chain): Unit = {

@@ -22,6 +22,7 @@ import akka.actor.ActorSystem
 
 import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimulationResult => Result, _}
+import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopologyActor._
 import org.midonet.odp.FlowMatch
 import org.midonet.sdn.flows.VirtualActions.VirtualFlowAction
@@ -43,12 +44,17 @@ object Simulator {
 
     def simulate(context: PacketContext)(implicit as: ActorSystem): Result = {
         context.log.debug("Simulating a packet")
-        Fork.reUp()
-        PooledMatches.reUp()
+        reUpStashes()
         if (context.ingressed)
             tryAsk[Port](context.inputPort).ingress(context, as)
         else
             tryAsk[Port](context.egressPort).egress(context, as)
+    }
+
+    private def reUpStashes(): Unit = {
+        Fork.reUp()
+        PooledMatches.reUp()
+        RuleResults.reUp()
     }
 
     val Fork = new InstanceStash2[ForkAction, Result, Result](
@@ -61,6 +67,13 @@ object Simulator {
     val PooledMatches = new InstanceStash1[FlowMatch, FlowMatch](
             () => new FlowMatch(),
             (fm, template) => fm.reset(template))
+
+    val RuleResults = new InstanceStash2[RuleResult, RuleResult.Action, UUID](
+        () => new RuleResult(RuleResult.Action.ACCEPT, null),
+        (rs, a, j) => {
+            rs.action = a
+            rs.jumpToChain = j
+        })
 }
 
 trait SimDevice {
