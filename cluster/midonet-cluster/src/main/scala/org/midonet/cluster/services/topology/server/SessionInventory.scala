@@ -42,7 +42,7 @@ import org.midonet.cluster.rpc.Commands.{Response, ResponseType}
 import org.midonet.cluster.services.topology.common.TopologyMappings.typeOf
 import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
 import org.midonet.util.concurrent.SpscRwdRingBuffer.SequencedItem
-import org.midonet.util.concurrent.{CallingThreadExecutionContext, BlockingSpscRwdRingBuffer, NamedThreadFactory}
+import org.midonet.util.concurrent.{BlockingSpscRwdRingBuffer, CallingThreadExecutionContext, NamedThreadFactory}
 import org.midonet.util.functors.{makeAction0, makeFunc1}
 import org.midonet.util.reactivex.HermitObservable.HermitOversubscribedException
 
@@ -79,7 +79,6 @@ object SessionInventory {
             case h: Rule => Update.newBuilder().setRule(h).build()
             case h: TunnelZone => Update.newBuilder().setTunnelZone(h).build()
             case h: Vtep => Update.newBuilder().setVtep(h).build()
-            case h: VtepBinding => Update.newBuilder().setVtepBinding(h).build()
             case _ => throw new UnknownTopologyEntityException
         }
         val objInfo = extractId(m)

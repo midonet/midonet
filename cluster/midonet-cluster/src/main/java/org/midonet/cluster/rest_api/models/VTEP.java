@@ -71,7 +71,7 @@ public class VTEP extends UriResource {
 
     @JsonIgnore
     @ZoomField(name = "bindings", converter = UUIDUtil.Converter.class)
-    public List<UUID> bindings;
+    public List<Topology.Vtep.Binding> bindings;
 
     @Override
     public URI getUri() {

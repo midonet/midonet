@@ -46,8 +46,7 @@ object TopologyMappings {
         Topology.Type.RULE -> classOf[Topology.Rule],
         Topology.Type.TUNNEL_ZONE -> classOf[Topology.TunnelZone],
         Topology.Type.VIP -> classOf[Topology.Vip],
-        Topology.Type.VTEP -> classOf[Topology.Vtep],
-        Topology.Type.VTEP_BINDING -> classOf[Topology.VtepBinding]
+        Topology.Type.VTEP -> classOf[Topology.Vtep]
     )
     /** Retrieve the klass for the given Topology entity type */
     def klassOf(t: Topology.Type) = typeToKlass.get(t)
