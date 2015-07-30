@@ -164,7 +164,7 @@ class Bridge(val id: UUID,
                     case Some(filterId) => tryAsk[Chain](filterId)
                     case None => null
                 },
-                context, id, false)
+                context, id)
             context.log.debug("Ingress chain returned {}", preBridgeResult)
 
             preBridgeResult.action match {
@@ -481,8 +481,7 @@ class Bridge(val id: UUID,
                 case Some(filterId) => tryAsk[Chain](filterId)
                 case None => null
             },
-            context, id, false
-        )
+            context, id)
         postBridgeResult.action match {
             case RuleResult.Action.ACCEPT => // pass through
                 context.log.debug("Forwarding packet with action {}", act)

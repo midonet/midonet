@@ -399,7 +399,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             Then("We receive only one update")
             obs.awaitOnNext(5, timeout) shouldBe true
             obs.getOnNextEvents should have size 5
-            obs.getOnNextEvents.get(4).getRules shouldBe empty
+            obs.getOnNextEvents.get(4).rules shouldBe empty
         }
 
         scenario("A chain with two rules pointing to the same IPAddrGroup") {
@@ -536,9 +536,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             assertEquals(chain, updatedSimChain, List(updatedRule),
                          jumpChain = null,
                          Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc))
-            updatedSimChain.getRules.get(0)
+            updatedSimChain.rules.get(0)
                 .getCondition.ipAddrGroupIdDst shouldBe null
-            updatedSimChain.getRules.get(0)
+            updatedSimChain.rules.get(0)
                 .getCondition.ipAddrGroupDst shouldBe null
 
             And("When we change the source IPAddrGroup reference")
@@ -557,9 +557,9 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             assertEquals(chain, updatedSimChain, List(updatedRule),
                          jumpChain = null,
                          Map(ipAddrGroupSrc.getId.asJava -> ipAddrGroupSrc))
-            updatedSimChain.getRules.get(0)
+            updatedSimChain.rules.get(0)
                 .getCondition.ipAddrGroupIdDst shouldBe null
-            updatedSimChain.getRules.get(0)
+            updatedSimChain.rules.get(0)
                 .getCondition.ipAddrGroupDst shouldBe null
         }
 
@@ -614,7 +614,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
         chain.getName shouldBe simChain.name
 
         // Checking rules
-        simChain.getRules should contain theSameElementsAs
+        simChain.rules should contain theSameElementsAs
             rules.map(ZoomConvert.fromProto(_, classOf[SimRule]))
 
         val jumpRules = rules.filter(_.getType == ProtoRule.Type.JUMP_RULE)
@@ -628,7 +628,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
         // Checking ipAddrGroups
         val ipAddrGroupIds = new mutable.HashSet[UUID]()
-        simChain.getRules.asScala.foreach(rule => {
+        simChain.rules.asScala.foreach(rule => {
             val cond = rule.getCondition
             if (cond.ipAddrGroupIdSrc ne null) {
                 ipAddrGroupIds += cond.ipAddrGroupIdSrc

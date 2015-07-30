@@ -152,8 +152,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 val inFilter = if (cfg.inboundFilter == null) null
                                else tryAsk[Chain](cfg.inboundFilter)
                 handlePreRoutingResult(
-                    Chain.apply(inFilter, context, id, false), inPort
-                )
+                    Chain.apply(inFilter, context, id), inPort)
             case res => // Skip the inFilter / ingress chain
                 handlePreRoutingResult(res, inPort)
         }
@@ -293,7 +292,7 @@ abstract class RouterBase[IP <: IPAddr](val id: UUID,
                 // Continue to outFilter / egress chain
                 val outFilter = if (cfg.outboundFilter == null) null
                                 else tryAsk[Chain](cfg.outboundFilter)
-                Chain.apply(outFilter, context, id, false)
+                Chain.apply(outFilter, context, id)
             case res => res // Skip outFilter / egress chain
         }
 

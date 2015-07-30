@@ -40,7 +40,7 @@ public class JumpRule extends Rule {
 
     public JumpRule(Condition condition, UUID jumpToChainID,
                     String jumpToChainName) {
-        super(condition, null);
+        super(condition, Action.JUMP);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
     }
@@ -49,11 +49,12 @@ public class JumpRule extends Rule {
     // This constructor is also needed by ZoomConvert.
     public JumpRule() {
         super();
+        action = Action.JUMP;
     }
 
     public JumpRule(Condition condition, UUID jumpToChainID,
                     String jumpToChainName, UUID chainId) {
-        super(condition, null, chainId);
+        super(condition, Action.JUMP, chainId);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
     }
@@ -68,7 +69,7 @@ public class JumpRule extends Rule {
     public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
         res.action = Action.JUMP;
         res.jumpToChain = jumpToChainID;
-        log.debug("Rule evaluation jumping to chain {} with ID {}.",
+        pktCtx.jlog().debug("Rule evaluation jumping to chain {} with ID {}.",
                 jumpToChainName, jumpToChainID);
     }
 

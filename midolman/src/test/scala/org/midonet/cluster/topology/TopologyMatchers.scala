@@ -150,7 +150,7 @@ object TopologyMatchers {
         override def shouldBeDeviceOf(c: TopologyChain): Unit = {
             chain.id shouldBe c.getId.asJava
             chain.name shouldBe c.getName
-            chain.getRules.asScala.map(_.id) should contain theSameElementsAs c
+            chain.rules.asScala.map(_.id) should contain theSameElementsAs c
                 .getRuleIdsList.asScala.map(_.asJava)
         }
     }

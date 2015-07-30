@@ -144,7 +144,7 @@ public class Condition extends BaseConfig {
         private final boolean matches;
 
         @Override
-        public boolean matches(PacketContext fwdInfo, boolean isPortFilter) {
+        public boolean matches(PacketContext fwdInfo) {
             return matches;
         }
 
@@ -194,7 +194,7 @@ public class Condition extends BaseConfig {
         return outPortIds != null && outPortIds.contains(portId);
     }
 
-    public boolean matches(PacketContext pktCtx, boolean isPortFilter) {
+    public boolean matches(PacketContext pktCtx) {
         FlowMatch pktMatch = pktCtx.wcmatch();
         // Matching on fragmentPolicy is unaffected by conjunctionInv,
         // so that gets tested separately.
@@ -219,8 +219,8 @@ public class Condition extends BaseConfig {
         if (matchReturnFlow && pktCtx.isForwardFlow())
             return conjunctionInv;
 
-        UUID inPortId = isPortFilter ? null : pktCtx.inPortId();
-        UUID outPortId = isPortFilter ? null : pktCtx.outPortId();
+        UUID inPortId = pktCtx.inPortId();
+        UUID outPortId = pktCtx.outPortId();
         IPAddr pmSrcIP = pktMatch.getNetworkSrcIP();
         IPAddr pmDstIP = pktMatch.getNetworkDstIP();
         if (!matchPortGroup(pktCtx.portGroups(), portGroup, invPortGroup))

@@ -390,8 +390,7 @@ class Router(override val id: UUID,
                     val outFilter = if (cfg.outboundFilter == null) null
                                     else tryAsk[Chain](cfg.outboundFilter)
 
-                    val postRoutingResult =
-                        Chain.apply(outFilter, egrPktContext, id, false)
+                    val postRoutingResult = Chain.apply(outFilter, egrPktContext, id)
 
                     _applyPostActions(eth, postRoutingResult, egrPktContext)
                     postRoutingResult.action match {

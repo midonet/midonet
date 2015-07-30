@@ -160,14 +160,11 @@ public abstract class Rule extends BaseConfig {
      * @param res          contains a match of the packet after all
      *                     transformations preceding this rule. This may be
      *                     modified.
-     * @param isPortFilter whether the rule is being processed in a port filter
-     *                     context
      */
-    public void process(PacketContext pktCtx, RuleResult res, UUID ownerId,
-                        boolean isPortFilter) {
-        if (condition.matches(pktCtx, isPortFilter)) {
+    public void process(PacketContext pktCtx, RuleResult res, UUID ownerId) {
+        if (condition.matches(pktCtx)) {
             pktCtx.jlog().debug(
-                    "Condition matched on device {} chain {} with action {} and match {}",
+                    "Condition matched on device {} chain {} with action {} and condition {}",
                     ownerId, chainId, action, condition);
 
             if (meter != null)
