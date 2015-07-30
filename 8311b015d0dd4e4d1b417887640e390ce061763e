@@ -1,0 +1,44 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_b0b3cbe7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 241,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-30T09:45:46Z",
+      "side": 1,
+      "message": "could be val, no?",
+      "range": {
+        "startLine": 241,
+        "startChar": 4,
+        "endLine": 241,
+        "endChar": 7
+      },
+      "revId": "8311b015d0dd4e4d1b417887640e390ce061763e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_30bfbbab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/PacketContext.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 275,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-30T09:45:46Z",
+      "side": 1,
+      "message": "diffBaseMatch.reset(origMatch) for restarts",
+      "revId": "8311b015d0dd4e4d1b417887640e390ce061763e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
