@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f0939358",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyCalculator.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-30T10:05:04Z",
+      "side": 1,
+      "message": "According to the spec, the candidates require a positive weight. A weight of 0 means that the host should not be selected as a flooding proxy.\n\nWould it be useful to comment the logic above, as explained in Pino\u0027s spec?",
+      "range": {
+        "startLine": 33,
+        "startChar": 49,
+        "endLine": 33,
+        "endChar": 77
+      },
+      "revId": "6e3ee8a1daf24b58273bba3c186a98d761550dc6",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
