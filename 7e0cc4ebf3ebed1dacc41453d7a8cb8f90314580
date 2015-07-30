@@ -108,6 +108,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8bdbfa4d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 246,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-30T12:58:17Z",
+      "side": 1,
+      "message": "The value Route differs form the key Route in that has the weight received from zebra (the weight is unknown when the key is added to the map).\n\nThe value route (with the weight) is passed to forgetLearnedRoute to prevent creating a new one (the key route + weight). This would be needed because the v2 API must match all fields.",
+      "parentUuid": "9ad9bd40_cf773b3a",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0f5e8312",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 11
@@ -155,6 +173,24 @@
       "side": 1,
       "message": "is \"zk connection lost\u0027 temporary or fatal (session lost, reboot upcoming)?\n\nIn any case, the lifecycle of the actor should be \"correct\", so yes, I\u0027d stop, restart or resubscribe upon errors accordingly.",
       "parentUuid": "9ad9bd40_cfe2db00",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6bc15653",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 310,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-30T12:58:17Z",
+      "side": 1,
+      "message": "With the latest changes, the errors from the port BGP observable are also handled by the RoutingManagerActor. Here, we ensure bgpd is stopped.",
+      "parentUuid": "9ad9bd40_0f9be372",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -214,6 +250,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8bb21a04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 314,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-30T12:58:17Z",
+      "side": 1,
+      "message": "The RoutingManagerActor also processes the errors and should stop the actor.",
+      "parentUuid": "9ad9bd40_4f8c0b36",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8f861312",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 11
@@ -225,6 +279,24 @@
       "writtenOn": "2015-07-13T10:30:20Z",
       "side": 1,
       "message": "which would make this flag redundant.",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_8b805af8",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 315,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-30T12:58:17Z",
+      "side": 1,
+      "message": "Agree, flag removed.",
+      "parentUuid": "9ad9bd40_8f861312",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
