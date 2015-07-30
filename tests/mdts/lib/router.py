@@ -199,3 +199,32 @@ class Router(ResourceBase):
 
     def get_load_balancer(self):
         return self._load_balancer
+
+    """
+    BGP helper functions
+    """
+    def set_asn(self, asn):
+        self._mn_resource.asn(asn).update()
+
+    def clear_asn(self):
+        self._mn_resource.asn(None).update()
+
+    def add_bgp_network(self, address, prefix):
+        return self._mn_resource.add_bgp_network() \
+            .subnet_address(address) \
+            .subnet_prefix(prefix) \
+            .create()
+
+    def clear_bgp_networks(self):
+        for network in self._mn_resource.get_bgp_networks():
+            network.delete()
+
+    def add_bgp_peer(self, asn, address):
+        return self._mn_resource.add_bgp_peer() \
+            .asn(asn) \
+            .address(address) \
+            .create()
+
+    def clear_bgp_peers(self):
+        for peer in self._mn_resource.get_bgp_peers():
+            peer.delete()
