@@ -365,7 +365,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         .getOrElse(log.error("Failed stopping the keep alive DB cnxn"))
     }
 
-    case class IPAlloc(ipAddress: String, subnetId: String)
+    case class IPAlloc(ipAddress: String, subnetId: UUID)
 
     protected def portJson(id: UUID,
                            networkId: UUID,
@@ -392,7 +392,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
             for (fixedIp <- fixedIps) {
                 val ip = nodeFactory.objectNode
                 ip.put("ip_address", fixedIp.ipAddress)
-                ip.put("subnet_id", fixedIp.subnetId)
+                ip.put("subnet_id", fixedIp.subnetId.toString)
                 fi.add(ip)
             }
         }
@@ -646,7 +646,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     protected def createDhcpPort(taskId: Int, portId: UUID, networkId: UUID,
                                  subnetId: UUID, ipAddr: String): Unit = {
         val json = portJson(portId, networkId, deviceOwner = DeviceOwner.DHCP,
-                            fixedIps = List(IPAlloc(ipAddr, subnetId.toString)))
+                            fixedIps = List(IPAlloc(ipAddr, subnetId)))
         insertCreateTask(taskId, PortType, json, portId)
     }
 
@@ -654,7 +654,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                           networkId: UUID, routerId: UUID,
                                           gwIpAddr: String, macAddr: String,
                                           subnetId: UUID) : Unit = {
-        val gwIpAlloc = IPAlloc(gwIpAddr, subnetId.toString)
+        val gwIpAlloc = IPAlloc(gwIpAddr, subnetId)
         val json = portJson(portId, networkId, fixedIps = List(gwIpAlloc),
                             deviceId = routerId, macAddr = macAddr,
                             deviceOwner = DeviceOwner.ROUTER_GATEWAY)
@@ -668,7 +668,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                                             ifName: String = null): Unit = {
         val json = portJson(portId, networkId, deviceId = routerId,
                             deviceOwner = DeviceOwner.ROUTER_INTERFACE, macAddr = macAddr,
-                            fixedIps = List(IPAlloc(ipAddr, subnetId.toString)),
+                            fixedIps = List(IPAlloc(ipAddr, subnetId)),
                             hostId = hostId, ifName = ifName)
         insertCreateTask(taskId, PortType, json, portId)
     }
@@ -789,7 +789,7 @@ class C3POMinionTest extends C3POMinionTestBase {
         val dhcpPortIp = "10.0.0.7"
         val pJson = portJson(id = portId, networkId = nId,
             adminStateUp = true, deviceOwner = DeviceOwner.DHCP,
-            fixedIps = List(IPAlloc(dhcpPortIp, sId.toString)))
+            fixedIps = List(IPAlloc(dhcpPortIp, sId)))
         insertCreateTask(4, PortType, pJson, portId)
 
         // Update the subnet

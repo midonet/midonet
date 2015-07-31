@@ -90,6 +90,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
                                                nPort.getMacAddress,
                                                nPort.getId))
             // Add an ARP entry.
+            // TODO: Support multiple fixed IPs.
             if (nPort.getFixedIpsCount > 0) {
                 val fixedIp = nPort.getFixedIps(0).getIpAddress.getAddress
                 midoOps += CreateNode(arpEntryPath(nPort.getNetworkId,
@@ -223,6 +224,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
             updateSecurityBindings(nPort, oldNPort, mPort, portContext)
             addMidoOps(portContext, midoOps)
             midoOps ++= macTableUpdateOps(oldNPort, nPort)
+            midoOps ++= arpTableUpdateOps(oldNPort, nPort)
         }
         // TODO if a DHCP port, assert that the fixed IPs haven't changed.
         // TOOD A VIF port may be re-purposed as a Router Interface port,
@@ -578,13 +580,31 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         ops.toList
     }
 
+    private def arpTableUpdateOps(oldPort: NeutronPort,
+                                  newPort: NeutronPort): MidoOpList = {
+        // TODO: Support multiple fixed IPs.
+        val oldIp = if (oldPort.getFixedIpsCount == 0) null
+                    else oldPort.getFixedIps(0).getIpAddress.getAddress
+        val newIp = if (newPort.getFixedIpsCount == 0) null
+                    else newPort.getFixedIps(0).getIpAddress.getAddress
+
+        val ops = new MidoOpListBuffer
+        if (oldIp != newIp) {
+            if (oldIp != null) ops += DeleteNode(arpEntryPath(oldPort))
+            if (newIp != null) ops += CreateNode(arpEntryPath(newPort))
+        }
+        ops.toList
+    }
+
+    private def arpEntryPath(nPort: NeutronPort): String = {
+        arpEntryPath(nPort.getNetworkId,
+                     nPort.getFixedIps(0).getIpAddress.getAddress,
+                     nPort.getMacAddress)
+    }
+
     private def deleteArpEntry(nPort: NeutronPort) = {
         if (nPort.getFixedIpsCount > 0) {
-            val arpPath = arpEntryPath(
-                    nPort.getNetworkId,
-                    nPort.getFixedIps(0).getIpAddress.getAddress,
-                    nPort.getMacAddress)
-            Some(DeleteNode(arpPath))
+            Some(DeleteNode(arpEntryPath(nPort)))
         } else None
     }
 

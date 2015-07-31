@@ -121,15 +121,39 @@ class PortTranslatorIT extends C3POMinionTestBase {
 
         val vifPortJson = portJson(
                 vifPortId, nw1Id, macAddr = vifPortMac,
-                fixedIps = List(IPAlloc(vifPortIp, sn1Id.toString)))
+                fixedIps = List(IPAlloc(vifPortIp, sn1Id)))
         insertCreateTask(4, PortType, vifPortJson, vifPortId)
-        eventually{
+        eventually {
             arpTable.containsKey(vifPortIp) shouldBe true
             arpTable.get(vifPortIp) shouldBe MAC.fromString(vifPortMac)
         }
 
+        // Update the port with a new fixed IP.
+        val vifPortIp2 = "10.0.2.6"
+        val vifPortJsonNewIp = portJson(
+            vifPortId, nw1Id, macAddr = vifPortMac,
+            fixedIps = List(IPAlloc(vifPortIp2, sn1Id)))
+        insertUpdateTask(5, PortType, vifPortJsonNewIp, vifPortId)
+        eventually {
+            arpTable.containsKey(vifPortIp) shouldBe false
+            arpTable.containsKey(vifPortIp2) shouldBe true
+            arpTable.get(vifPortIp2) shouldBe MAC.fromString(vifPortMac)
+        }
+
+        // Update the IP and MAC in a single update.
+        val vifPortMac2 = "ad:be:cf:03:14:26"
+        val vifPortJsonNewMac = portJson(
+            vifPortId, nw1Id, macAddr = vifPortMac2,
+            fixedIps = List(IPAlloc(vifPortIp, sn1Id)))
+        insertUpdateTask(6, PortType, vifPortJsonNewMac, vifPortId)
+        eventually {
+            arpTable.containsKey(vifPortIp2) shouldBe false
+            arpTable.containsKey(vifPortIp) shouldBe true
+            arpTable.get(vifPortIp) shouldBe MAC.fromString(vifPortMac2)
+        }
+
         // Delete the VIF port.
-        insertDeleteTask(5, PortType, vifPortId)
+        insertDeleteTask(10, PortType, vifPortId)
         eventually{
             arpTable.containsKey(vifPortIp) shouldBe false
         }

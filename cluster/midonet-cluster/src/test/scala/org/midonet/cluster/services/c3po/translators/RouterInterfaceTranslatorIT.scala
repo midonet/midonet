@@ -256,7 +256,7 @@ class RouterInterfaceTranslatorIT extends C3POMinionTestBase {
         val json = portJson(rifPortId, tenantNetworkId, null,
                             deviceOwner = DeviceOwner.ROUTER_INTERFACE,
                             macAddr = "ab:cd:ef:01:02:03",
-                            fixedIps = List(IPAlloc("10.0.0.3", subnetId.toString)),
+                            fixedIps = List(IPAlloc("10.0.0.3", subnetId)),
                             hostId = hostId, ifName = null)
         insertCreateTask(6, PortType, json, rifPortId)
 

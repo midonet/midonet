@@ -97,7 +97,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    networkId = privateNetworkId,
                                    macAddr = vifPortMac,
                                    fixedIps = List(IPAlloc(
-                                           fixedIp, privateSubnetId.toString)),
+                                           fixedIp, privateSubnetId)),
                                    deviceOwner = DeviceOwner.COMPUTE)
         insertCreateTask(4, PortType, vifPortJson, vifPortId)
         eventually {
@@ -143,7 +143,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    networkId = extNetworkId,
                                    macAddr = rgwMac,
                                    fixedIps = List(IPAlloc(
-                                           rgwIp, extSubnetId.toString)),
+                                           rgwIp, extSubnetId)),
                                    deviceOwner = DeviceOwner.ROUTER_GATEWAY)
         insertCreateTask(8, PortType, rgwPortJson, rgwPortId)
 
@@ -172,7 +172,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    networkId = privateNetworkId,
                                    macAddr = rifMac,
                                    fixedIps = List(IPAlloc(
-                                           rifIp, privateSubnetId.toString)),
+                                           rifIp, privateSubnetId)),
                                    deviceOwner = DeviceOwner.ROUTER_INTERFACE,
                                    deviceId = tRouterId)
         insertCreateTask(10, PortType, rifPortJson, rifPortUuid)
@@ -197,7 +197,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
                                    networkId = extNetworkId,
                                    macAddr = fipMac,
                                    fixedIps = List(IPAlloc(
-                                           fipIp, extSubnetId.toString)),
+                                           fipIp, extSubnetId)),
                                    deviceOwner = DeviceOwner.ROUTER_GATEWAY,
                                    // Neutron sets FIP ID as device ID.
                                    deviceId = fipId)
@@ -231,7 +231,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val vifPortUpdatedJson = portJson(
                 name = "port1Updated", id = vifPortId,
                 networkId = privateNetworkId, macAddr = vifPortMac,
-                fixedIps = List(IPAlloc(fixedIp, privateSubnetId.toString)),
+                fixedIps = List(IPAlloc(fixedIp, privateSubnetId)),
                 deviceOwner = DeviceOwner.COMPUTE)
         insertUpdateTask(14, PortType, vifPortUpdatedJson, vifPortId)
         eventually {
@@ -247,7 +247,7 @@ class FloatingIpTranslatorIT extends C3POMinionTestBase with ChainManager {
         val vifPort2Json = portJson(
             name = "vif_port2", id = vifPort2Id,
             networkId = privateNetworkId, macAddr = vifPort2Mac,
-            fixedIps = List(IPAlloc(vifPort2FixedIp, extSubnetId.toString)),
+            fixedIps = List(IPAlloc(vifPort2FixedIp, extSubnetId)),
             deviceOwner = DeviceOwner.COMPUTE)
 
         // Reassign the FIP to the new VIP port.
