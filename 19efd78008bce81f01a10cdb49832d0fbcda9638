@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_3c386d3c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-31T15:43:27Z",
+      "side": 1,
+      "message": "unsubscribe?",
+      "revId": "19efd78008bce81f01a10cdb49832d0fbcda9638",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
