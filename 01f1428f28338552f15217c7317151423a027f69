@@ -1,0 +1,96 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_f6a706bb",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 67,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-31T09:05:10Z",
+      "side": 1,
+      "message": "This is not enough in case of backpressure error. We should either forward this to the table owner (so it can re-create it), or silently restart the monitor",
+      "range": {
+        "startLine": 67,
+        "startChar": 16,
+        "endLine": 67,
+        "endChar": 36
+      },
+      "revId": "01f1428f28338552f15217c7317151423a027f69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7693f65a",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 106,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-31T09:05:10Z",
+      "side": 1,
+      "message": "We have to make sure that the caller treats the backpressure \u0027filled\u0027 errors",
+      "range": {
+        "startLine": 106,
+        "startChar": 34,
+        "endLine": 106,
+        "endChar": 57
+      },
+      "revId": "01f1428f28338552f15217c7317151423a027f69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_567fd214",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 135,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-31T09:05:10Z",
+      "side": 1,
+      "message": "We should detect backpressure errors here and communicate with the mac provider, so we can reset the state and get any missing values",
+      "range": {
+        "startLine": 134,
+        "startChar": 12,
+        "endLine": 135,
+        "endChar": 30
+      },
+      "revId": "01f1428f28338552f15217c7317151423a027f69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_767a1625",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbVtepData.scala",
+        "patchSetId": 21
+      },
+      "lineNbr": 191,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-31T09:05:10Z",
+      "side": 1,
+      "message": "MacRemoteUpdater should be modified to deal with backpressure errors (see above)",
+      "range": {
+        "startLine": 188,
+        "startChar": 12,
+        "endLine": 191,
+        "endChar": 50
+      },
+      "revId": "01f1428f28338552f15217c7317151423a027f69",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
