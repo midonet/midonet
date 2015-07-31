@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_36b7aef6",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-31T08:52:42Z",
+      "side": 1,
+      "message": "Good point. But if we bound it, then we should be able to emit an error and restart everything again (so we re-sync with the current state)",
+      "parentUuid": "9ad9bd40_ea2c7f9b",
+      "range": {
+        "startLine": 52,
+        "startChar": 22,
+        "endLine": 52,
+        "endChar": 46
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2a23c7a7",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
         "patchSetId": 20
@@ -36,6 +60,30 @@
       "writtenOn": "2015-07-30T18:35:32Z",
       "side": 1,
       "message": "Could it be made so by using a ConcurrentHashMap?",
+      "range": {
+        "startLine": 75,
+        "startChar": 4,
+        "endLine": 76,
+        "endChar": 36
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_76ccd689",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 76,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-31T08:52:42Z",
+      "side": 1,
+      "message": "No, because of the hint mechanism (which maybe is not such a good idea). If updates come from two different threads, an authoritative data from the vtep could be overwritten by a hint...",
+      "parentUuid": "9ad9bd40_2a23c7a7",
       "range": {
         "startLine": 75,
         "startChar": 4,
@@ -71,6 +119,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_96c79a63",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbTableMonitor.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-31T08:52:42Z",
+      "side": 1,
+      "message": "The issue with startWith is that updates coming during the initial state query are also lost.\nAs commented off-line, we may try to get the initial states from the vtep at the moment of registering the watcher (though the ovsdb implementation does not guarantee much, neither)",
+      "parentUuid": "9ad9bd40_ca85fb5a",
+      "range": {
+        "startLine": 56,
+        "startChar": 16,
+        "endLine": 68,
+        "endChar": 46
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_8a6133d5",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
         "patchSetId": 20
@@ -82,6 +154,30 @@
       "writtenOn": "2015-07-30T18:35:32Z",
       "side": 1,
       "message": "We can\u0027t really handle these exceptions, so better to bubble them up (otherwise clients need to if (null) and then guess what\u0027s wrong)",
+      "range": {
+        "startLine": 81,
+        "startChar": 6,
+        "endLine": 81,
+        "endChar": 11
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_76e5b607",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-31T08:52:42Z",
+      "side": 1,
+      "message": "I would agree only for the NonFatal(exc): the other two are part of the logic:\n\n- IllegalArgumentException is thrown by UUID.fromString if the string does not have a valid uuid format, which may happen with non-midonet ls names, so we should return a null;\n\n- IndexOutOfBoundsException is thrown by lsName.substring (which means that the ls name does no match midonet ls names - and we should also return a null)\n\n- The last case should not occur and it is there mostly to calm the compiler... but may be we could just let those exceptions pass",
+      "parentUuid": "9ad9bd40_8a6133d5",
       "range": {
         "startLine": 81,
         "startChar": 6,
