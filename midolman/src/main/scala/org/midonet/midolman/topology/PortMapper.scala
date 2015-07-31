@@ -58,9 +58,7 @@ final class PortMapper(id: UUID, vt: VirtualTopology)
     private lazy val combinator =
         makeFunc2[TopologyPort, Boolean, SimulationPort](
             (port: TopologyPort, active: Boolean) => {
-                val simPort = ZoomConvert.fromProto(port, classOf[SimulationPort])
-                simPort._active = active
-                simPort
+                SimulationPort(port).toggleActive(active)
             })
 
     private lazy val portObservable = Observable

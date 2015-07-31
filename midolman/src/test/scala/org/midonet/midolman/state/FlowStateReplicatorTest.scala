@@ -75,17 +75,11 @@ class FlowStateReplicatorTest extends MidolmanSpec {
     val ingressGroupId = UUID.randomUUID()
     val egressGroupId = UUID.randomUUID()
 
-    def makePort(host: UUID): Port = {
-        new BridgePort() {
-            id = UUID.randomUUID
-            hostId = host
-        }
-    }
+    def makePort(host: UUID): BridgePort =
+            BridgePort.random.copy(hostId = host)
 
-    def makePort(host: UUID, group: UUID): Port = {
-        val p = makePort(host)
-        p.portGroups = Set[UUID](group)
-        p
+    def makePort(host: UUID, group: UUID): BridgePort = {
+        makePort(host).copy(portGroups = Set[UUID](group))
     }
 
     val ingressPortNoGroup = makePort(ingressHostId)

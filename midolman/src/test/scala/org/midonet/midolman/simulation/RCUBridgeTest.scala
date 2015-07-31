@@ -50,7 +50,7 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
     val learnedMac = MAC.fromString("00:1e:a4:46:ed:3a")
     val learnedPort = UUID.randomUUID
 
-    val brPort = new BridgePort()
+    var brPort = BridgePort.random
 
     private val macPortMap = new MockMacLearningTable(mutable.Map(
                                         learnedMac -> learnedPort))
@@ -80,18 +80,13 @@ class RCUBridgeTest extends Suite with BeforeAndAfterAll with Matchers {
         val macLearningTables = mutable.Map[Short, MacLearningTable]()
         macLearningTables.put(data.Bridge.UNTAGGED_VLAN_ID, macPortMap)
 
-        brPort.id = UUID.randomUUID()
-
         bridge = new Bridge(bridgeID, true, 0, macLearningTables.toMap, ip4MacMap,
                             flowCount, Option(inFilterId), Option(outFilterId),
                             vlanBridgePortId, Seq.empty[UUID],
                             flowRemovedCallbackGen, rtrMacToLogicalPortId,
                             rtrIpToMac, vlanToPort, List(brPort.id), List.empty)
 
-        brPort.hostId = UUID.randomUUID()
-        brPort.interfaceName = "eth0"
-        brPort.networkId = bridge.id
-        brPort.afterFromProto(null)
+        brPort = brPort.copy(hostId = UUID.randomUUID(), interfaceName = "eth0", networkId = bridge.id)
     }
 
     override def afterAll() {

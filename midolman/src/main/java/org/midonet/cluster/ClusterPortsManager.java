@@ -36,7 +36,7 @@ import org.midonet.midolman.state.PortConfigCache;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.midolman.state.zkManagers.PortZkManager;
 import org.midonet.midolman.topology.devices.Port;
-import org.midonet.midolman.topology.devices.PortFactory;
+import org.midonet.midolman.topology.devices.Port$;
 import org.midonet.util.eventloop.Reactor;
 import org.midonet.util.functors.Callback1;
 
@@ -106,7 +106,7 @@ public class ClusterPortsManager extends ClusterManager<PortBuilder> {
 
     private void buildFromConfig(UUID id, PortConfig config) {
         PortBuilder builder = getBuilder(id);
-        Port port = PortFactory.from(config);
+        Port port = Port$.MODULE$.apply(config);
 
         if (builder != null) {
             builder.setPort(port);
