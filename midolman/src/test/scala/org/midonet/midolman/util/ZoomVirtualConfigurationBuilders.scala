@@ -15,25 +15,24 @@
  */
 package org.midonet.midolman.util
 
-import java.util.{ArrayList, Random, UUID}
 import java.util.concurrent.atomic.AtomicLong
+import java.util.{ArrayList, Random, UUID}
 
-import scala.collection.mutable
-import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import com.google.inject.Inject
 
-import org.midonet.cluster.data.storage.{NotFoundException, Storage, StateKey}
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.Condition
 import org.midonet.cluster.models.Topology._
-import org.midonet.cluster.models.Topology.Rule.{TraceRuleData, Action, NatTarget}
+import org.midonet.cluster.models.Topology.Rule.{Action, NatTarget, TraceRuleData}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.cluster.topology.TopologyBuilder
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -44,11 +43,9 @@ import org.midonet.midolman.rules
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod}
-import org.midonet.midolman.topology.VirtualTopology
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, IPSubnet, MAC}
+import org.midonet.packets.{IPAddr, IPSubnet, IPv4Addr, IPv4Subnet, MAC}
 
-class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
-                                                 legacyStorage: LegacyStorage)
+class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend)
         extends VirtualConfigurationBuilders
         with TopologyBuilder {
     val tunnelKeys = new AtomicLong(0)
@@ -500,7 +497,7 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         store.update(p.toBuilder
                          .setHostId(hostId.asProto)
                          .setInterfaceName(portName).build())
-        legacyStorage.setPortLocalAndActive(port, hostId, true)
+        stateStore.setPortActive(port, hostId, active = true).toBlocking.first()
     }
 
     override def newLoadBalancer(id: UUID = UUID.randomUUID): UUID = {

@@ -15,31 +15,44 @@
  */
 package org.midonet.midolman.topology
 
+import java.util.concurrent.ConcurrentHashMap
 import java.util.{Set => JSet, UUID}
 
 import scala.collection.mutable
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.{ClassTag, classTag}
-import scala.util.Failure
+import scala.util.{Success, Failure}
 
 import akka.actor._
 import akka.util.Timeout
 
 import com.google.inject.Inject
+import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
 
+import rx.Observable
+import rx.subjects.PublishSubject
+
 import org.midonet.cluster.data.TunnelZone
+import org.midonet.cluster.data.storage.StateResult
+import org.midonet.cluster.models.Topology.Port
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman._
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.services.HostIdProviderService
 import org.midonet.midolman.state.Directory.TypedWatcher
 import org.midonet.midolman.state.DirectoryCallback
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.midolman.topology.devices.{Host, TunnelZone => NewTunnelZone}
 import org.midonet.util.concurrent._
+import org.midonet.util.reactivex._
 
 object HostConfigOperation extends Enumeration {
     val Added, Deleted = Value
@@ -67,11 +80,14 @@ case class LocalPortActive(portID: UUID, active: Boolean)
 
 object VirtualToPhysicalMapper extends Referenceable {
 
-    val log = LoggerFactory.getLogger(classOf[VirtualToPhysicalMapper])
+    val log = LoggerFactory.getLogger("org.midonet.devices.underlay")
 
     implicit val timeout: Timeout = 3 seconds
 
     override val Name = "VirtualToPhysicalMapper"
+
+    private[topology] val subjectLocalPortActive =
+        PublishSubject.create[LocalPortActive]
 
     case class HostRequest(hostId: UUID, update: Boolean = true)
         extends VTPMRequest[Host] {
@@ -116,6 +132,9 @@ object VirtualToPhysicalMapper extends Referenceable {
                 throw NotYetException(makeRequest(req), "Device not found in cache")
         }
     }
+
+    def localPortActiveObservable: Observable[LocalPortActive] =
+        subjectLocalPortActive.asObservable
 
     private def makeRequest[D](req: VTPMRequest[D])
                               (implicit system: ActorSystem): Future[D] =
@@ -293,17 +312,69 @@ class DeviceHandlersManager[T <: AnyRef](handler: DeviceHandler,
 trait DataClientLink {
 
     @Inject
+    var config: MidolmanConfig = null
+    @Inject
     val cluster: DataClient = null
     @Inject
-    val stateStorage: LegacyStorage = null
-
+    private val legacyStorage: LegacyStorage = null
     @Inject
-    val hostIdProvider : HostIdProviderService = null
+    private val backend: MidonetBackend = null
+    @Inject
+    private val hostIdProvider : HostIdProviderService = null
 
-    def notifyLocalPortActive(vportID: UUID, active: Boolean) {
-        stateStorage.setPortLocalAndActive(vportID, hostIdProvider.hostId,
-                                           active)
+    private val activeLocalPorts = new ConcurrentHashMap[UUID, Boolean]
+
+    protected def log: Logger
+
+    def notifyLocalPortActive(portId: UUID, active: Boolean): Unit = {
+        val hostId = hostIdProvider.hostId()
+
+        if (config.zookeeper.useNewStack) {
+            if (active) {
+                backend.stateStore.addValue(classOf[Port], portId, HostsKey,
+                                            hostId.toString) andThen {
+                    case Success(StateResult(ownerId)) =>
+                        log.debug("Port {} active (owner {})", portId,
+                                  Long.box(ownerId))
+                        activeLocalPorts.putIfAbsent(portId, true)
+                        VirtualToPhysicalMapper.subjectLocalPortActive.onNext(
+                            LocalPortActive(portId, active = true))
+                    case Failure(e) =>
+                        log.error("Failed to set port {} active", portId, e)
+                }
+            } else {
+                backend.stateStore.removeValue(classOf[Port], portId, HostsKey,
+                                               hostId.toString) andThen {
+                    case Success(StateResult(ownerId)) =>
+                        log.debug("Port {} inactive (owner {})", portId,
+                                  Long.box(ownerId))
+                        activeLocalPorts.remove(portId)
+                        VirtualToPhysicalMapper.subjectLocalPortActive.onNext(
+                            LocalPortActive(portId, active = false))
+                    case Failure(e) =>
+                        log.error("Failed to set port {} inactive", portId, e)
+                }
+            }
+        } else {
+            legacyStorage.setPortActive(portId, hostId, active) andThen {
+                case Success(_) =>
+                    if (active) activeLocalPorts.putIfAbsent(portId, true)
+                    else activeLocalPorts.remove(portId)
+                    VirtualToPhysicalMapper.subjectLocalPortActive.onNext(
+                        LocalPortActive(portId, active))
+                case Failure(e) =>
+                    log.error("Failed to set port {} active {}", portId,
+                              Boolean.box(active), e)
+            }
+        }
     }
+
+    def clearLocalPortActive(): Unit = {
+        for (portId: UUID <- activeLocalPorts.keySet().asScala.toSet) {
+            notifyLocalPortActive(portId, active = false)
+        }
+    }
+
 }
 
 trait DeviceManagement {
@@ -349,6 +420,7 @@ abstract class VirtualToPhysicalMapperBase
     import context.system
 
     def notifyLocalPortActive(vportID: UUID, active: Boolean): Unit
+    def clearLocalPortActive(): Unit
 
     def makeHostManager(actor: ActorRef): DeviceHandler
     def makeTunnelZoneManager(actor: ActorRef): DeviceHandler
@@ -370,10 +442,15 @@ abstract class VirtualToPhysicalMapperBase
     implicit val requestReplyTimeout = new Timeout(1 second)
     implicit val executor = context.dispatcher
 
-    override def preStart() {
+    override def preStart(): Unit = {
         super.preStart()
         DeviceCaches.clear()
         startVxLanPortMapper()
+    }
+
+    override def postStop(): Unit = {
+        clearLocalPortActive()
+        super.postStop()
     }
 
     def startVxLanPortMapper() {

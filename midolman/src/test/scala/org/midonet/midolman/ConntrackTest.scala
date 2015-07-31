@@ -51,9 +51,9 @@ class ConntrackTest extends MidolmanSpec {
         clusterBridge should not be null
 
         leftPort = newBridgePort(clusterBridge)
-        stateStorage.setPortLocalAndActive(leftPort, host, true)
+        setPortActive(leftPort, host, true)
         rightPort = newBridgePort(clusterBridge)
-        stateStorage.setPortLocalAndActive(rightPort, host, true)
+        setPortActive(rightPort, host, true)
 
         val brChain = newInboundChainOnBridge("brChain", clusterBridge)
 

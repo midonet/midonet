@@ -18,6 +18,8 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
+import org.midonet.cluster.services.MidonetBackend
+import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.SimulationBackChannel
 
 import scala.concurrent.ExecutionContext
@@ -34,7 +36,7 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.data.dhcp.{Host,Subnet}
 
-import org.midonet.cluster.state.LegacyStorage
+import org.midonet.cluster.state.PortStateStorage._
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.datapath.{FlowProcessor, DatapathChannel}
 import org.midonet.midolman.flows.FlowTagIndexer
@@ -54,13 +56,22 @@ trait MidolmanServices {
     def config =
         injector.getInstance(classOf[MidolmanConfig])
 
-    def stateStorage =
-        injector.getInstance(classOf[LegacyStorage])
-
     def virtConfBuilderImpl =
         injector.getInstance(classOf[VirtualConfigurationBuilders])
 
     def useNewStorageStack: Boolean = System.getProperty("midonet.newStack") != null
+
+    def setPortActive(portId: UUID, hostId: UUID, active: Boolean): Unit = {
+        if (useNewStorageStack) {
+            injector.getInstance(classOf[MidonetBackend]).stateStore
+                    .setPortActive(portId, hostId, active)
+                    .toBlocking.first()
+        } else {
+            injector.getInstance(classOf[LegacyStorage])
+                    .setPortActive(portId, hostId, active)
+                    .toBlocking.first()
+        }
+    }
 
     def mockDhcpConfig = new DhcpConfig() {
         override def bridgeDhcpSubnets(deviceId: UUID): Seq[Subnet] = List()

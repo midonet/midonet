@@ -104,7 +104,7 @@ class FlowTranslatorTest extends MidolmanSpec {
                                      case None => newBridge("bridge" + id)
                                  }, host=Some(host),
                                  interface=interface)
-        stateStorage.setPortLocalAndActive(port, host, true)
+        setPortActive(port, host, true)
         fetchDevice[BridgePort](port)
     }
 
@@ -113,7 +113,7 @@ class FlowTranslatorTest extends MidolmanSpec {
 
         val port = newVxLanPort(bridge, vtep.mgmtIp, 4789,
                                 vtep.vni, vtep.tunIp, tzId)
-        stateStorage.setPortLocalAndActive(port, host, true)
+        setPortActive(port, host, true)
 
         fetchDevice[Bridge](bridge)
         fetchDevice[VxLanPort](port)

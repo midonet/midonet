@@ -73,7 +73,7 @@ class BridgeWithOneVm(val subnet: IPSubnet[IPv4Addr],
 
     private def addAndMaterializeBridgePort(br: UUID): UUID = {
         val port = spec.newBridgePort(br)
-        spec.stateStorage.setPortLocalAndActive(port, spec.hostId, true)
+        spec.setPortActive(port, spec.hostId, true)
         port
     }
 
