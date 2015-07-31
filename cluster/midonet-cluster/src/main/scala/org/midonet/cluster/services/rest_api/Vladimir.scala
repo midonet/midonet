@@ -30,6 +30,7 @@ import com.typesafe.scalalogging.Logger
 import org.apache.curator.framework.CuratorFramework
 import org.eclipse.jetty.server.{DispatcherType, Server}
 import org.eclipse.jetty.servlet.{DefaultServlet, ServletContextHandler}
+import org.slf4j.bridge.SLF4JBridgeHandler
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.auth.{AuthModule, AuthService}
@@ -59,6 +60,9 @@ object Vladimir {
                       log: Logger) = new JerseyServletModule {
 
         override def configureServlets(): Unit = {
+            // To redirect JDK log to slf4j. Ref: MNA-706
+            SLF4JBridgeHandler.removeHandlersForRootLogger();
+            SLF4JBridgeHandler.install();
 
             install(new AuthModule(config.auth, log))
 
