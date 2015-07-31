@@ -49,6 +49,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_505a752a",
+        "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 52,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-31T17:21:37Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_36b7aef6",
+      "range": {
+        "startLine": 52,
+        "startChar": 22,
+        "endLine": 52,
+        "endChar": 46
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_2a23c7a7",
         "filename": "cluster/vtep/src/main/scala/org/midonet/vtep/OvsdbCachedTable.scala",
         "patchSetId": 20
@@ -178,6 +202,30 @@
       "side": 1,
       "message": "I would agree only for the NonFatal(exc): the other two are part of the logic:\n\n- IllegalArgumentException is thrown by UUID.fromString if the string does not have a valid uuid format, which may happen with non-midonet ls names, so we should return a null;\n\n- IndexOutOfBoundsException is thrown by lsName.substring (which means that the ls name does no match midonet ls names - and we should also return a null)\n\n- The last case should not occur and it is there mostly to calm the compiler... but may be we could just let those exceptions pass",
       "parentUuid": "9ad9bd40_8a6133d5",
+      "range": {
+        "startLine": 81,
+        "startChar": 6,
+        "endLine": 81,
+        "endChar": 11
+      },
+      "revId": "7cc238c6ac3f384a3b8eedc0c70a93c90555509e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b04ae152",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/vtep/model/LogicalSwitch.scala",
+        "patchSetId": 20
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002731
+      },
+      "writtenOn": "2015-07-31T17:21:37Z",
+      "side": 1,
+      "message": "As that\u0027s just ordinary flow control, replacing the try-catch with if cases.",
+      "parentUuid": "9ad9bd40_76e5b607",
       "range": {
         "startLine": 81,
         "startChar": 6,
