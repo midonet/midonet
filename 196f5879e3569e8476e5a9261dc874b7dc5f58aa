@@ -22,6 +22,30 @@
       "revId": "196f5879e3569e8476e5a9261dc874b7dc5f58aa",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_50d43aeb",
+        "filename": "python-midonetclient/doc/midonet-cli-load-balancer.1.ronn",
+        "patchSetId": 1
+      },
+      "lineNbr": 33,
+      "author": {
+        "id": 1002743
+      },
+      "writtenOn": "2015-07-31T02:10:18Z",
+      "side": 1,
+      "message": "Ooops, thanks!",
+      "parentUuid": "9ad9bd40_35bfadab",
+      "range": {
+        "startLine": 33,
+        "startChar": 25,
+        "endLine": 33,
+        "endChar": 29
+      },
+      "revId": "196f5879e3569e8476e5a9261dc874b7dc5f58aa",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
