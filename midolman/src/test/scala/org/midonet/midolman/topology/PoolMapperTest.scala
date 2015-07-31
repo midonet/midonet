@@ -23,6 +23,7 @@ import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
+
 import rx.Observable
 import rx.observers.TestObserver
 
@@ -30,10 +31,10 @@ import org.midonet.cluster.data.storage.{CreateOp, NotFoundException, Storage}
 import org.midonet.cluster.models.Commons.LBStatus
 import org.midonet.cluster.models.Topology.{Pool => TopologyPool, PoolMember}
 import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.topology.{TopologyMatchers, TopologyBuilder}
+import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.simulation.{Pool => SimulationPool}
-import TopologyTest.DeviceObserver
+import org.midonet.midolman.topology.TopologyTest.DeviceObserver
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.reactivex.AwaitableObserver
