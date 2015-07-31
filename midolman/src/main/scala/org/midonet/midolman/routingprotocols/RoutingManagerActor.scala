@@ -17,25 +17,23 @@ package org.midonet.midolman.routingprotocols
 
 import java.util.UUID
 
-import org.midonet.midolman.simulation.RouterPort
-
 import scala.collection.mutable
 
 import akka.actor._
+
 import com.google.inject.Inject
 
-import org.midonet.cluster.state.{LegacyStorage, LocalPortActive}
 import org.midonet.cluster.{Client, DataClient}
-import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
+import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
+import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
-import org.midonet.midolman.simulation.Port
-import org.midonet.midolman.topology.VirtualTopologyActor
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
-import org.midonet.midolman.{SimulationBackChannel, DatapathState, Referenceable}
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopologyActor}
+import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
 import org.midonet.util.concurrent.ReactiveActor
 import org.midonet.util.eventloop.SelectLoop
 
@@ -59,8 +57,6 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     @Inject
     val client: Client = null
     @Inject
-    val stateStorage: LegacyStorage = null
-    @Inject
     var zkConnWatcher: ZkConnectionAwareWatcher = null
     @Inject
     @ZEBRA_SERVER_LOOP
@@ -80,7 +76,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
 
     override def preStart() {
         super.preStart()
-        stateStorage.localPortActiveObservable.subscribe(this)
+        VirtualToPhysicalMapper.localPortActiveObservable.subscribe(this)
     }
 
     override def receive = {
