@@ -33,11 +33,11 @@ import org.midonet.cluster.state.LegacyStorage
 import org.midonet.midolman.host.state.HostZkManager
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.rules.RuleResult.Action
-import org.midonet.midolman.rules.{Condition, FragmentPolicy, NatTarget}
+import org.midonet.midolman.rules.{Condition, NatTarget}
 import org.midonet.midolman.state.PoolHealthMonitorMappingStatus
 import org.midonet.midolman.state.l4lb.{LBStatus, PoolLBMethod, VipSessionPersistence}
 import org.midonet.midolman.util.VirtualConfigurationBuilders.DhcpOpt121Route
-import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC, TCP}
+import org.midonet.packets.{IPAddr, IPv4Addr, IPv4Subnet, MAC}
 
 class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient,
                                                    stateStorage: LegacyStorage,
@@ -404,7 +404,7 @@ class LegacyVirtualConfigurationBuilders @Inject()(clusterDataClient: DataClient
         clusterDataClient.hostsAddVrnPortMappingAndReturnPort(
             hostId, port, portName)
 
-        stateStorage.setPortLocalAndActive(port, hostId, true)
+        stateStorage.setPortActive(port, hostId, true).toBlocking.first()
     }
 
     // L4LB

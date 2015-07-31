@@ -61,7 +61,7 @@ class BridgeInvalidationTest extends MidolmanSpec
     private def addAndMaterializeBridgePort(br: UUID): UUID = {
         val port = newBridgePort(br)
         port should not be null
-        stateStorage.setPortLocalAndActive(port, hostId, true)
+        setPortActive(port, hostId, true)
         port
     }
 
