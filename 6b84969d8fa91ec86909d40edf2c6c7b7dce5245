@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_1c20099a",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-31T14:33:13Z",
+      "side": 1,
+      "message": "In simulation no. It used by the RoutingHandler, which subscribes to port BGP updates. Since it\u0027s also virtual topology info, I\u0027ve added it here, such there is a single place where we manage all streams connected to storage.",
+      "parentUuid": "9ad9bd40_612972e5",
+      "revId": "6b84969d8fa91ec86909d40edf2c6c7b7dce5245",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_0180a6be",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/BgpPort.scala",
         "patchSetId": 5
@@ -30,6 +48,24 @@
       "writtenOn": "2015-07-31T13:41:42Z",
       "side": 1,
       "message": "why case class?",
+      "revId": "6b84969d8fa91ec86909d40edf2c6c7b7dce5245",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fc536514",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/BgpPort.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-31T14:33:13Z",
+      "side": 1,
+      "message": "These are throwables emitted by an observable, and I planned to use them with a pattern matching an actor\u0027s receive method. Although it can be done without one too.",
+      "parentUuid": "9ad9bd40_0180a6be",
       "revId": "6b84969d8fa91ec86909d40edf2c6c7b7dce5245",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
