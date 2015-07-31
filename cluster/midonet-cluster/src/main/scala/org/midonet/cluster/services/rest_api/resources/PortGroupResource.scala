@@ -43,7 +43,8 @@ class PortGroupResource @Inject()(resContext: ResourceContext)
     private val uriInfo = resContext.uriInfo
 
     protected override def listFilter: (PortGroup) => Boolean = {
-        val portId = uriInfo.getQueryParameters.getFirst("port_id")
+        val portIdStr = uriInfo.getQueryParameters.getFirst("port_id")
+        val portId = if (portIdStr == null) null else UUID.fromString(portIdStr)
         val tenantId = uriInfo.getQueryParameters.getFirst("tenant_id")
         if ((portId ne null) && (tenantId ne null))
             (pg: PortGroup) => pg.portIds.contains(portId) &&
