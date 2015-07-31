@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_56235255",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyCalculator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 61,
+      "author": {
+        "id": 1002750
+      },
+      "writtenOn": "2015-07-31T08:29:27Z",
+      "side": 1,
+      "message": "Probably not necessary if with the\nif (eligible.isEmpty) {\n            return None\n}\n\n(which I think we cannot remove because of the random.nextInt(sumWeight))",
+      "range": {
+        "startLine": 61,
+        "startChar": 8,
+        "endLine": 61,
+        "endChar": 30
+      },
+      "revId": "8017ff551ec5a93abdbb3b131984a39dfe3d3b9b",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
