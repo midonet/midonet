@@ -22,6 +22,30 @@
       "revId": "7e9a242b62e11d1034b285bc271508933086f9c1",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_b6b81e12",
+        "filename": "tests/mdts/lib/router.py",
+        "patchSetId": 4
+      },
+      "lineNbr": 213,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-31T07:54:30Z",
+      "side": 1,
+      "message": "Thanks Taku. \\ fixed\nBGP tests in v1 should have been ignored - will check the Jenkins job (we don\u0027t support both v1 and v2 tests at a time).",
+      "parentUuid": "9ad9bd40_3047b678",
+      "range": {
+        "startLine": 213,
+        "startChar": 50,
+        "endLine": 213,
+        "endChar": 51
+      },
+      "revId": "7e9a242b62e11d1034b285bc271508933086f9c1",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
