@@ -287,6 +287,15 @@ if [[ "$USE_NEW_STACK" = "True" ]]; then
         configure_mn "cluster.neutron_importer.jdbc_driver_class" "\"$TASKS_DB_DRIVER_CLASS\""
     fi
 
+    # Configure the embedded metadata proxy
+    if [[ "$USE_METADATA" = "True" ]]; then
+        configure_mn "agent.openstack.metadata.enabled" "true"
+        configure_mn "agent.openstack.metadata.nova_metadata_url" \
+            "$NOVA_METADATA_URL"
+        configure_mn "agent.openstack.metadata.shared_secret" \
+            "$METADATA_SHARED_SECRET"
+    fi
+
     CLUSTER_LOG=$TOP_DIR/cluster/midonet-cluster/conf/logback.xml
     cp $CLUSTER_LOG.dev $TOP_DIR/cluster/midonet-cluster/build/resources/main/logback.xml
 
