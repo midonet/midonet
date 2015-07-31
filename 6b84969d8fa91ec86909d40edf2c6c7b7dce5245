@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_612972e5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 192,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-31T13:41:42Z",
+      "side": 1,
+      "message": "is this used in the simulation?",
+      "revId": "6b84969d8fa91ec86909d40edf2c6c7b7dce5245",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0180a6be",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/devices/BgpPort.scala",
+        "patchSetId": 5
+      },
+      "lineNbr": 42,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-07-31T13:41:42Z",
+      "side": 1,
+      "message": "why case class?",
+      "revId": "6b84969d8fa91ec86909d40edf2c6c7b7dce5245",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
