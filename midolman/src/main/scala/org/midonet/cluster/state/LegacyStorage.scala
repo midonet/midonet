@@ -25,14 +25,6 @@ import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.state.{Ip4ToMacReplicatedMap, MacPortMap, StateAccessException, _}
 
 /**
- * Indicates when a virtual network port becomes active.
- * @param portId The identifier of the port that is to be changed to active
- *               or inactive.
- * @param active True if the port is ready to emit/receive, false otherwise.
- */
-case class LocalPortActive(portId: UUID, active: Boolean)
-
-/**
  * A trait defining the cluster state API. Currently, this trait represents a
  * transitional interface from the legacy [[org.midonet.cluster.DataClient]].
  */
@@ -74,17 +66,7 @@ trait LegacyStorage {
      * @param active True / false depending on what state we want in the end
      *               for the port
      */
-    def setPortLocalAndActive(portId: UUID, host: UUID, active: Boolean): Unit
-
-    /**
-     * An observable that emits notifications when a local port becomes active,
-     * or inactive. This can be used, e.g. by the BGP manager, to discover local
-     * ports, such that it may then observe those specific ports and manage
-     * their BGP entries, if any.
-     *
-     * The notifications are emitted on the thread specified by the storage
-     * reactor.
-     */
-    def localPortActiveObservable: Observable[LocalPortActive]
+    def setPortLocalAndActive(portId: UUID, host: UUID, active: Boolean)
+    : Observable[PortConfig]
 
 }

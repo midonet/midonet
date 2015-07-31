@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.midonet.cluster;
+package org.midonet.cluster
 
-import java.util.{List, Map, Set, UUID}
-
-import rx.Observable
+import java.util.{List => JList, Map => JMap, Set => JSet, UUID}
 
 import org.apache.zookeeper.{CreateMode, Op, OpResult, Watcher}
+
+import rx.Observable
 
 import org.midonet.cluster.client._
 import org.midonet.cluster.state._
@@ -65,21 +65,21 @@ class ExplodingDataClient extends DataClient {
     override def adRoutesGet(id: UUID): AdRoute = explode()
     override def adRoutesDelete(id: UUID): Unit = explode()
     override def adRoutesCreate(adRoute: AdRoute): UUID = explode()
-    override def adRoutesFindByBgp(bgpId: UUID): List[AdRoute] = explode()
+    override def adRoutesFindByBgp(bgpId: UUID): JList[AdRoute] = explode()
     override def bgpSetStatus(id: UUID, status: String): Unit = explode()
     override def bgpGet(id: UUID): BGP = explode()
     override def bgpDelete(id: UUID): Unit = explode()
     override def bgpCreate(bgp: BGP): UUID = explode()
-    override def bgpFindByPort(portId: UUID): List[BGP] = explode()
+    override def bgpFindByPort(portId: UUID): JList[BGP] = explode()
     override def bridgeExists(id: UUID): Boolean = explode()
     override def bridgesGet(id: UUID): Bridge = explode()
     override def bridgesDelete(id: UUID): Unit = explode()
     override def bridgesCreate(bridge: Bridge): UUID = explode()
     override def bridgesUpdate(bridge: Bridge): Unit = explode()
-    override def bridgesGetAll(): List[Bridge] = explode()
+    override def bridgesGetAll(): JList[Bridge] = explode()
     override def bridgesGetUuidSetMonitor(
         zkConnection: ZookeeperConnectionWatcher): EntityIdSetMonitor[UUID] = explode()
-    override def bridgesFindByTenant(tenantId: String): List[Bridge] = explode()
+    override def bridgesFindByTenant(tenantId: String): JList[Bridge] = explode()
     override def ensureBridgeHasVlanDirectory(bridgeId: UUID): Unit = explode()
     override def bridgeHasMacTable(bridgeId: UUID, vlanId: Short): Boolean = explode()
     override def bridgeGetMacTable(bridgeId: UUID, vlanId: Short,
@@ -88,9 +88,9 @@ class ExplodingDataClient extends DataClient {
                                   mac: MAC, portId: UUID): Unit = explode()
     override def bridgeHasMacPort(bridgeId: UUID, vlanId: java.lang.Short,
                                   mac: MAC, portId: UUID): Boolean = explode()
-    override def bridgeGetMacPorts(bridgeId: UUID): List[VlanMacPort] = explode()
+    override def bridgeGetMacPorts(bridgeId: UUID): JList[VlanMacPort] = explode()
     override def bridgeGetMacPorts(bridgeId: UUID,
-                                   vlanId: Short): List[VlanMacPort] = explode()
+                                   vlanId: Short): JList[VlanMacPort] = explode()
     override def bridgeDeleteMacPort(bridgeId: UUID, vlanId: java.lang.Short,
                                      mac: MAC, portId: UUID): Unit = explode()
     override def bridgeAddIp4Mac(bridgeId: UUID, ip4: IPv4Addr,
@@ -100,21 +100,21 @@ class ExplodingDataClient extends DataClient {
     override def bridgeHasIP4MacPair(bridgeId: UUID,
                                      ip: IPv4Addr, mac: MAC): Boolean = explode()
     override def bridgeGetIP4MacPairs(
-        bridgeId: UUID): Map[IPv4Addr, MAC] = explode()
+        bridgeId: UUID): JMap[IPv4Addr, MAC] = explode()
     override def bridgeDeleteIp4Mac(bridgeId: UUID, ip4: IPv4Addr,
                                     mac: MAC): Unit = explode()
     override def bridgeDeleteLearnedIp4Mac(bridgeId: UUID,
                                            ip4: IPv4Addr,
                                            mac: MAC): Unit = explode()
     override def bridgeGetIp4ByMac(bridgeId: UUID,
-                                   mac: MAC): Set[IPv4Addr] = explode()
+                                   mac: MAC): JSet[IPv4Addr] = explode()
     override def bridgeGetArpTable(
         bridgeId: UUID): Ip4ToMacReplicatedMap = explode()
     override def chainsGet(id: UUID): Chain = explode()
     override def chainsDelete(id: UUID): Unit = explode()
     override def chainsCreate(chain: Chain): UUID = explode()
-    override def chainsGetAll(): List[Chain] = explode()
-    override def chainsFindByTenant(tenantId: String): List[Chain] = explode()
+    override def chainsGetAll(): JList[Chain] = explode()
+    override def chainsFindByTenant(tenantId: String): JList[Chain] = explode()
     override def dhcpSubnetsCreate(bridgeId: UUID,
                                    subnet: Subnet): Unit = explode()
     override def dhcpSubnetsUpdate(bridgeId: UUID,
@@ -124,9 +124,9 @@ class ExplodingDataClient extends DataClient {
     override def dhcpSubnetsGet(bridgeId: UUID,
                                 subnetAddr: IPv4Subnet): Subnet = explode()
     override def dhcpSubnetsGetByBridge(
-        bridgeId: UUID): List[Subnet] = explode()
+        bridgeId: UUID): JList[Subnet] = explode()
     override def dhcpSubnetsGetByBridgeEnabled(
-        bridgeId: UUID): List[Subnet] = explode()
+        bridgeId: UUID): JList[Subnet] = explode()
     override def dhcpHostsCreate(bridgeId: UUID, subnet: IPv4Subnet,
                                  host: org.midonet.cluster.data.dhcp.Host): Unit = explode()
     override def dhcpHostsUpdate(bridgeId: UUID, subnet: IPv4Subnet,
@@ -136,13 +136,13 @@ class ExplodingDataClient extends DataClient {
     override def dhcpHostsDelete(bridgId: UUID, subnet: IPv4Subnet,
                                  mac: String): Unit = explode()
     override def dhcpHostsGetBySubnet(bridgeId: UUID,
-                                      subnet: IPv4Subnet): List[org.midonet.cluster.data.dhcp.Host] = explode()
+                                      subnet: IPv4Subnet): JList[org.midonet.cluster.data.dhcp.Host] = explode()
 
     override def dhcpSubnet6Create(bridgeId: UUID, subnet: Subnet6): Unit = explode()
     override def dhcpSubnet6Update(bridgeId: UUID, subnet: Subnet6): Unit = explode()
     override def dhcpSubnet6Delete(bridgeId: UUID, prefix: IPv6Subnet): Unit = explode()
     override def dhcpSubnet6Get(bridgeId: UUID, prefix: IPv6Subnet): Subnet6 = explode()
-    override def dhcpSubnet6sGetByBridge(bridgeId: UUID): List[Subnet6] = explode()
+    override def dhcpSubnet6sGetByBridge(bridgeId: UUID): JList[Subnet6] = explode()
     override def dhcpV6HostCreate(bridgeId: UUID, prefix: IPv6Subnet,
                                   host: V6Host): Unit = explode()
     override def dhcpV6HostUpdate(bridgeId: UUID, prefix: IPv6Subnet,
@@ -152,15 +152,15 @@ class ExplodingDataClient extends DataClient {
     override def dhcpV6HostDelete(bridgId: UUID,
                                   prefix: IPv6Subnet, clientId: String ): Unit = explode()
     override def dhcpV6HostsGetByPrefix(
-        bridgeId: UUID, prefix: IPv6Subnet): List[V6Host] = explode()
+        bridgeId: UUID, prefix: IPv6Subnet): JList[V6Host] = explode()
     override def tunnelZonesCreate(zone: TunnelZone): UUID = explode()
     override def tunnelZonesDelete(uuid: UUID): Unit = explode()
     override def tunnelZonesExists(uuid: UUID): Boolean = explode()
     override def tunnelZonesGet(uuid: UUID): TunnelZone = explode()
-    override def tunnelZonesGetAll(): List[TunnelZone] = explode()
+    override def tunnelZonesGetAll(): JList[TunnelZone] = explode()
     override def tunnelZonesUpdate(zone: TunnelZone): Unit = explode()
     override def tunnelZonesGetMemberships(
-        uuid: UUID): Set[TunnelZone.HostConfig] = explode()
+        uuid: UUID): JSet[TunnelZone.HostConfig] = explode()
     override def tunnelZonesGetMembership(
         uuid: UUID, hostId: UUID): TunnelZone.HostConfig = explode()
     override def tunnelZonesContainHost(hostId: UUID): Boolean = explode()
@@ -178,16 +178,16 @@ class ExplodingDataClient extends DataClient {
     override def loadBalancerDelete(id: UUID): Unit = explode()
     override def loadBalancerCreate(loadBalancer: LoadBalancer): UUID = explode()
     override def loadBalancerUpdate(loadBalancer: LoadBalancer): Unit = explode()
-    override def loadBalancersGetAll(): List[LoadBalancer] = explode()
-    override def loadBalancerGetPools(id: UUID): List[Pool] = explode()
-    override def loadBalancerGetVips(id: UUID): List[VIP] = explode()
+    override def loadBalancersGetAll(): JList[LoadBalancer] = explode()
+    override def loadBalancerGetPools(id: UUID): JList[Pool] = explode()
+    override def loadBalancerGetVips(id: UUID): JList[VIP] = explode()
 
     override def healthMonitorGet(id: UUID): HealthMonitor = explode()
     override def healthMonitorDelete(id: UUID): Unit = explode()
     override def healthMonitorCreate(healthMonitor: HealthMonitor): UUID = explode()
     override def healthMonitorUpdate(healthMonitor: HealthMonitor): Unit = explode()
-    override def healthMonitorsGetAll(): List[HealthMonitor] = explode()
-    override def healthMonitorGetPools(id: UUID): List[Pool] = explode()
+    override def healthMonitorsGetAll(): JList[HealthMonitor] = explode()
+    override def healthMonitorGetPools(id: UUID): JList[Pool] = explode()
     override def poolMemberExists(id: UUID): Boolean = explode()
     override def poolMemberGet(id: UUID): PoolMember = explode()
     override def poolMemberDelete(id: UUID): Unit = explode()
@@ -195,36 +195,36 @@ class ExplodingDataClient extends DataClient {
     override def poolMemberUpdate(poolMember: PoolMember): Unit = explode()
     override def poolMemberUpdateStatus(poolMemberId: UUID,
                                         status: LBStatus): Unit = explode()
-    override def poolMembersGetAll(): List[PoolMember] = explode()
+    override def poolMembersGetAll(): JList[PoolMember] = explode()
     override def poolGet(id: UUID): Pool = explode()
     override def poolDelete(id: UUID): Unit = explode()
     override def poolCreate(pool: Pool): UUID = explode()
     override def poolUpdate(pool: Pool): Unit = explode()
-    override def poolsGetAll(): List[Pool] = explode()
-    override def poolGetMembers(id: UUID): List[PoolMember] = explode()
-    override def poolGetVips(id: UUID): List[VIP] = explode()
+    override def poolsGetAll(): JList[Pool] = explode()
+    override def poolGetMembers(id: UUID): JList[PoolMember] = explode()
+    override def poolGetVips(id: UUID): JList[VIP] = explode()
     override def poolSetMapStatus(id: UUID, status: PoolHealthMonitorMappingStatus): Unit = explode()
     override def vipGet(id: UUID): VIP = explode()
     override def vipDelete(id: UUID): Unit = explode()
     override def vipCreate(vip: VIP): UUID = explode()
     override def vipUpdate(vip: VIP): Unit = explode()
-    override def vipGetAll(): List[VIP] = explode()
+    override def vipGetAll(): JList[VIP] = explode()
     override def hostsGet(hostId: UUID): Host = explode()
     override def hostsDelete(hostId: UUID): Unit = explode()
     override def hostsExists(hostId: UUID): Boolean = explode()
     override def hostsIsAlive(hostId: UUID): Boolean = explode()
     override def hostsIsAlive(hostId: UUID, watcher: Watcher): Boolean = explode()
     override def hostsHasPortBindings(hostId: UUID): Boolean = explode()
-    override def hostsGetAll(): List[Host] = explode()
+    override def hostsGetAll(): JList[Host] = explode()
     override def hostsGetMonitor(
         zkConnection: ZookeeperConnectionWatcher): EntityMonitor[UUID, HostDirectory.Metadata, Host] = explode()
     override def hostsGetUuidSetMonitor(
         zkConnection: ZookeeperConnectionWatcher): EntityIdSetMonitor[UUID] = explode()
-    override def interfacesGetByHost(hostId: UUID): List[Interface] = explode()
+    override def interfacesGetByHost(hostId: UUID): JList[Interface] = explode()
     override def interfacesGet(hostId: UUID,
                                interfaceName: String): Interface = explode()
     override def hostsGetVirtualPortMappingsByHost(
-        hostId: UUID): List[VirtualPortMapping] = explode()
+        hostId: UUID): JList[VirtualPortMapping] = explode()
     override def hostsVirtualPortMappingExists(hostId: UUID,
                                                portId: UUID): Boolean = explode()
     override def hostsGetVirtualPortMapping(
@@ -242,38 +242,38 @@ class ExplodingDataClient extends DataClient {
     override def portsExists(id: UUID): Boolean = explode()
     override def portsCreate(port: Port[_, _]): UUID = explode()
     override def portsDelete(id: UUID): Unit = explode()
-    override def portsFindByBridge(bridgeId: UUID): List[BridgePort] = explode()
+    override def portsFindByBridge(bridgeId: UUID): JList[BridgePort] = explode()
     override def portsFindPeersByBridge(
-        bridgeId: UUID): List[Port[_, _]] = explode()
+        bridgeId: UUID): JList[Port[_, _]] = explode()
     override def portsFindByRouter(
-        routerId: UUID): List[Port[_, _]] = explode()
+        routerId: UUID): JList[Port[_, _]] = explode()
     override def portsFindPeersByRouter(
-        routerId: UUID): List[Port[_, _]] = explode()
-    override def portsGetAll(): List[Port[_, _]] = explode()
+        routerId: UUID): JList[Port[_, _]] = explode()
+    override def portsGetAll(): JList[Port[_, _]] = explode()
     override def portsGet(id: UUID): Port[_, _] = explode()
     override def portsUpdate(port: Port[_, _]): Unit = explode()
     override def portsLink(portId: UUID, peerPortId: UUID): Unit = explode()
     override def portsUnlink(portId: UUID): Unit = explode()
     override def portsFindByPortGroup(
-        portGroupId: UUID): List[Port[_, _]] = explode()
+        portGroupId: UUID): JList[Port[_, _]] = explode()
     override def ipAddrGroupsGet(id: UUID): IpAddrGroup = explode()
     override def ipAddrGroupsDelete(id: UUID): Unit = explode()
     override def ipAddrGroupsCreate(ipAddrGroup: IpAddrGroup): UUID = explode()
     override def ipAddrGroupsExists(id: UUID): Boolean = explode()
-    override def ipAddrGroupsGetAll(): List[IpAddrGroup] = explode()
+    override def ipAddrGroupsGetAll(): JList[IpAddrGroup] = explode()
     override def ipAddrGroupAddAddr(id: UUID, addr: String): Unit = explode()
     override def ipAddrGroupRemoveAddr(id: UUID, addr: String): Unit = explode()
     override def ipAddrGroupHasAddr(id: UUID, addr: String): Boolean = explode()
-    override def getAddrsByIpAddrGroup(id: UUID): Set[String] = explode()
+    override def getAddrsByIpAddrGroup(id: UUID): JSet[String] = explode()
     override def portGroupsGet(id: UUID): PortGroup = explode()
     override def portGroupsDelete(id: UUID): Unit = explode()
     override def portGroupsCreate(portGroup: PortGroup): UUID = explode()
     override def portGroupsUpdate(portGroup: PortGroup): Unit = explode()
     override def portGroupsExists(id: UUID): Boolean = explode()
-    override def portGroupsGetAll(): List[PortGroup] = explode()
-    override def portGroupsFindByPort(portId: UUID): List[PortGroup] = explode()
+    override def portGroupsGetAll(): JList[PortGroup] = explode()
+    override def portGroupsFindByPort(portId: UUID): JList[PortGroup] = explode()
     override def portGroupsFindByTenant(
-        tenantId: String): List[PortGroup] = explode()
+        tenantId: String): JList[PortGroup] = explode()
     override def portGroupsIsPortMember(id: UUID,
                                         portId: UUID): Boolean = explode()
     override def portGroupsAddPortMembership(id: UUID,
@@ -284,32 +284,32 @@ class ExplodingDataClient extends DataClient {
     override def routesDelete(id: UUID): Unit = explode()
     override def routesCreate(route: Route): UUID = explode()
     override def routesCreateEphemeral(route: Route): UUID = explode()
-    override def routesFindByRouter(routerId: UUID): List[Route] = explode()
+    override def routesFindByRouter(routerId: UUID): JList[Route] = explode()
     override def routerExists(id: UUID): Boolean = explode()
     override def routersGet(id: UUID): Router = explode()
     override def routersDelete(id: UUID): Unit = explode()
     override def routersCreate(router: Router): UUID = explode()
     override def routersUpdate(router: Router): Unit = explode()
-    override def routersGetAll(): List[Router] = explode()
-    override def routersFindByTenant(tenantId: String): List[Router] = explode()
+    override def routersGetAll(): JList[Router] = explode()
+    override def routersFindByTenant(tenantId: String): JList[Router] = explode()
     override def rulesGet(id: UUID): Rule[_, _]  = explode()
     override def rulesDelete(id: UUID): Unit = explode()
     override def rulesCreate(rule: Rule[_, _]): UUID = explode()
-    override def rulesFindByChain(chainId: UUID): List[Rule[_, _]] = explode()
-    override def tenantsGetAll(): Set[String] = explode()
+    override def rulesFindByChain(chainId: UUID): JList[Rule[_, _]] = explode()
+    override def tenantsGetAll(): JSet[String] = explode()
     override def writeVersionGet(): WriteVersion = explode()
     override def writeVersionUpdate(newVersion: WriteVersion): Unit = explode()
     override def systemStateGet(): SystemState = explode()
     override def systemStateUpdate(systemState: SystemState): Unit = explode()
-    override def hostVersionsGet(): List[HostVersion] = explode()
+    override def hostVersionsGet(): JList[HostVersion] = explode()
     override def traceRequestGet(id: UUID): TraceRequest = explode()
     override def traceRequestDelete(id: UUID): Unit = explode()
     override def traceRequestCreate(request: TraceRequest): UUID = explode()
     override def traceRequestCreate(request: TraceRequest,
                                     enabled: Boolean): UUID = explode()
-    override def traceRequestGetAll(): List[TraceRequest] = explode()
+    override def traceRequestGetAll(): JList[TraceRequest] = explode()
     override def traceRequestFindByTenant(
-        tenantId: String): List[TraceRequest] = explode()
+        tenantId: String): JList[TraceRequest] = explode()
     override def traceRequestEnable(id: UUID): Unit = explode()
     override def traceRequestDisable(id: UUID): Unit = explode()
     override def getPrecedingHealthMonitorLeader(
@@ -320,7 +320,7 @@ class ExplodingDataClient extends DataClient {
     override def removeHealthMonitorLeaderNode(node: Integer): Unit = explode()
     override def vtepCreate(vtep: VTEP): Unit = explode()
     override def vtepGet(ipAddr: IPv4Addr): VTEP = explode()
-    override def vtepsGetAll(): List[VTEP] = explode()
+    override def vtepsGetAll(): JList[VTEP] = explode()
     override def vtepDelete(ipAddr: IPv4Addr): Unit = explode()
     override def vtepUpdate(vtep: VTEP): Unit = explode()
     override def vtepAddBinding(ipAddr: IPv4Addr,
@@ -328,12 +328,12 @@ class ExplodingDataClient extends DataClient {
                                 networkId: UUID): Unit = explode()
     override def vtepDeleteBinding(ipAddr: IPv4Addr, portName: String,
                                    vlanId: Short): Unit = explode()
-    override def vtepGetBindings(ipAddr: IPv4Addr): List[VtepBinding] = explode()
+    override def vtepGetBindings(ipAddr: IPv4Addr): JList[VtepBinding] = explode()
     override def vtepGetBinding(ipAddr: IPv4Addr, portName: String,
                                 vlanId: Short): VtepBinding = explode()
-    override def getNewVni(): Int = explode()
+    override def getNewVni: Int = explode()
     override def bridgeGetVtepBindings(id: UUID,
-                                       mgmtIp: IPv4Addr): List[VtepBinding] = explode()
+                                       mgmtIp: IPv4Addr): JList[VtepBinding] = explode()
     override def bridgeCreateVxLanPort(
             bridgeId: UUID, mgmtIp: IPv4Addr, mgmtPort: Int, vni: Int,
             tunnelIp: IPv4Addr, tunnelZoneId: UUID): VxLanPort = explode()
@@ -345,7 +345,7 @@ class ExplodingDataClient extends DataClient {
     override def bridgeGetAndWatch(
         id: UUID, watcher: Directory.TypedWatcher): Bridge = explode()
     override def vxLanPortIdsAsyncGet(
-        callback: DirectoryCallback[Set[UUID]], watcher: Directory.TypedWatcher) = explode()
+        callback: DirectoryCallback[JSet[UUID]], watcher: Directory.TypedWatcher) = explode()
     override def getIp4MacMap(bridgeId: UUID): Ip4ToMacReplicatedMap = explode()
 }
 
@@ -358,8 +358,8 @@ class ExplodingLegacyStorage extends LegacyStorage {
     override def bridgeIp4MacMap(bridgeId: UUID): Ip4ToMacReplicatedMap = explode()
     override def routerRoutingTable(routerId: UUID): ReplicatedSet[org.midonet.midolman.layer3.Route] = explode()
     override def routerArpTable(routerId: UUID): ArpTable = explode()
-    override def setPortLocalAndActive(portId: UUID, host: UUID, active: Boolean): Unit = explode()
-    override def localPortActiveObservable: Observable[LocalPortActive] = explode()
+    override def setPortLocalAndActive(portId: UUID, host: UUID, active: Boolean)
+    : Observable[PortConfig] = explode()
 }
 
 
@@ -371,7 +371,7 @@ class ExplodingZkManager extends ZkManager(null, null) {
                           data: DirectoryCallback[Array[Byte]],
                           watcher: Directory.TypedWatcher): Unit = explode()
     override def asyncGetChildren(relativePath: String,
-                                  childrenCallback: DirectoryCallback[Set[String]],
+                                  childrenCallback: DirectoryCallback[JSet[String]],
                                   watcher: Directory.TypedWatcher): Unit = explode()
     override def asyncAdd(relativePath: String, data: Array[Byte],
                           mode: CreateMode,
@@ -380,9 +380,9 @@ class ExplodingZkManager extends ZkManager(null, null) {
                              callback: DirectoryCallback[Void]): Unit = explode()
 
     override def add(path: String, data: Array[Byte], mode: CreateMode): String = explode()
-    override def asyncMultiPathGet(paths: Set[String],
-                                   cb: DirectoryCallback[Set[Array[Byte]]]): Unit = explode()
-    override def getDirectory(): Directory = explode()
+    override def asyncMultiPathGet(paths: JSet[String],
+                                   cb: DirectoryCallback[JSet[Array[Byte]]]): Unit = explode()
+    override def getDirectory: Directory = explode()
     override def getSubDirectory(path: String): Directory = explode()
     override def exists(path: String): Boolean = explode()
     override def exists(path: String,  watcher: Watcher): Boolean = explode()
@@ -405,19 +405,19 @@ class ExplodingZkManager extends ZkManager(null, null) {
     override def get(path: String): Array[Byte] = explode()
     override def get(path: String, watcher: Runnable): Array[Byte] = explode()
     override def getWithVersion(path: String,
-                                watcher: Runnable): Map.Entry[Array[Byte], java.lang.Integer] = explode()
-    override def getChildren(path: String): Set[String] = explode()
-    override def getChildren(path: String, watcher: Runnable): Set[String] = explode()
-    override def multi(ops: List[Op]): List[OpResult] = explode()
+                                watcher: Runnable): JMap.Entry[Array[Byte], java.lang.Integer] = explode()
+    override def getChildren(path: String): JSet[String] = explode()
+    override def getChildren(path: String, watcher: Runnable): JSet[String] = explode()
+    override def multi(ops: JList[Op]): JList[OpResult] = explode()
     override def update(path: String, data: Array[Byte]): Unit = explode()
     override def update(path: String, data: Array[Byte], version: Int): Unit = explode()
     override def getPersistentCreateOp(path: String, data: Array[Byte]): Op = explode()
-    override def getPersistentCreateOps(paths: String*): List[Op] = explode()
+    override def getPersistentCreateOps(paths: String*): JList[Op] = explode()
     override def getEphemeralCreateOp(path: String, data: Array[Byte]): Op = explode()
     override def getDeleteOp(path: String): Op = explode()
-    override def getDeleteOps(paths: String*): List[Op] = explode()
+    override def getDeleteOps(paths: String*): JList[Op] = explode()
     override def getSetDataOp(path: String, data: Array[Byte]): Op = explode()
-    override def removeLastOp(op: List[Op], path: String): Unit = explode()
-    override def getRecursiveDeleteOps(root: String): List[Op] = explode()
+    override def removeLastOp(op: JList[Op], path: String): Unit = explode()
+    override def getRecursiveDeleteOps(root: String): JList[Op] = explode()
     override def disconnect(): Unit = explode()
 }

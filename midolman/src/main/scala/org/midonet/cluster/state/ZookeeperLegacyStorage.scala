@@ -19,40 +19,28 @@ import java.util.UUID
 
 import javax.annotation.Nonnull
 
-import scala.util.{Failure, Success}
-import scala.util.control.NonFatal
-
 import com.google.inject.Inject
 import com.google.inject.name.Named
 
 import org.apache.zookeeper.CreateMode.EPHEMERAL
 
 import rx.Observable
-import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.storage.StateResult
-import org.midonet.cluster.models.Topology.Port
-import org.midonet.cluster.services.MidonetBackend
-import org.midonet.cluster.services.MidonetBackend._
-import org.midonet.cluster.storage.MidonetBackendConfig
 import org.midonet.cluster.{ClusterRouterManager, DataClient}
 import org.midonet.midolman.layer3.Route
 import org.midonet.midolman.logging.MidolmanLogging
-import org.midonet.midolman.serialization.{SerializationException, Serializer}
+import org.midonet.midolman.serialization.Serializer
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
-import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
 import org.midonet.midolman.state._
+import org.midonet.midolman.state.zkManagers.{PortZkManager, RouterZkManager}
 import org.midonet.util.eventloop.Reactor
 import org.midonet.util.functors._
-import org.midonet.util.reactivex._
 
 /**
  * An implementation of the [[LegacyStorage]] trait using the legacy ZooKeeper
  * managers as backend.
  */
-class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
-                                       backend: MidonetBackend,
-                                       dataClient: DataClient,
+class ZookeeperLegacyStorage @Inject()(dataClient: DataClient,
                                        @Named("directoryReactor") reactor: Reactor,
                                        connectionWatcher: ZkConnectionAwareWatcher,
                                        serializer: Serializer,
@@ -93,8 +81,6 @@ class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
         }
     }
 
-    private val subjectLocalPortActive = PublishSubject.create[LocalPortActive]
-
     override def logSource = "org.midonet.cluster.state"
 
     @throws[StateAccessException]
@@ -134,61 +120,17 @@ class ZookeeperLegacyStorage @Inject()(config: MidonetBackendConfig,
     }
 
     override def setPortLocalAndActive(portId: UUID, hostId: UUID,
-                                       active: Boolean): Unit = runOnReactor {
-        if (!config.useNewStack) {
-            // Activate the port for legacy ZK storage.
-            portZkManager.setActivePort(portId, hostId, active)
-                .observeOn(reactor.rxScheduler)
-                .flatMap(makeFunc1(_ => portZkManager.getWithObservable(portId)))
-                .doOnNext(makeAction1(portConfig => {
-                        if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
-                            routerManager.updateRoutesBecauseLocalPortChangedStatus(
-                                portConfig.device_id, portId, active)
-                        }
-                    }))
-                .subscribe(
-                    makeAction1(_ => {
-                        subjectLocalPortActive.onNext(LocalPortActive(portId, active))
-                    }),
-                    makeAction1 {
-                        case e: StateAccessException =>
-                            log.error("Error retrieving the configuration " +
-                                      "for port {}", portId, e)
-                        case e: SerializationException =>
-                            log.error("Error serializing the configuration " +
-                                      "for port {}", portId, e)
-                        case NonFatal(e) =>
-                            log.error("Unexpected exception caught", e)
-                    })
-        } else {
-            // Activate the port for cluster storage.
-            if (active) {
-                backend.stateStore.addValue(classOf[Port], portId, HostsKey,
-                                            hostId.toString) andThen {
-                    case Success(StateResult(ownerId)) =>
-                        log.debug("Port {} active (owner {})", portId,
-                                  Long.box(ownerId))
-                    case Failure(e) =>
-                        log.error("Failed to set port {} active", portId, e)
-                }
-            } else {
-                backend.stateStore.removeValue(classOf[Port], portId, HostsKey,
-                                               hostId.toString) andThen {
-                    case Success(StateResult(ownerId)) =>
-                        log.debug("Port {} inactive (owner {})", portId,
-                                  Long.box(ownerId))
-                    case Failure(e) =>
-                        log.error("Failed to set port {} inactive", portId, e)
-                }
+                                       active: Boolean): Observable[PortConfig] = {
+        portZkManager.setActivePort(portId, hostId, active)
+            .observeOn(reactor.rxScheduler)
+            .flatMap(makeFunc1(_ => portZkManager.getWithObservable(portId)))
+            .doOnNext(makeAction1(portConfig => {
+            if (portConfig.isInstanceOf[PortDirectory.RouterPortConfig]) {
+                routerManager.updateRoutesBecauseLocalPortChangedStatus(
+                    portConfig.device_id, portId, active)
             }
-            subjectLocalPortActive.onNext(LocalPortActive(portId, active))
-        }
+        }))
     }
-
-    override def localPortActiveObservable: Observable[LocalPortActive] =
-        subjectLocalPortActive.asObservable
-
-    private def runOnReactor(fn: => Unit) = reactor.submit(makeRunnable(fn))
 
     /** Ensures that the path for the specified bridge is created in the
       * legacy storage. */

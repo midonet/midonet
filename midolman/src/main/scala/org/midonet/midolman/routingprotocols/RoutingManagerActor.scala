@@ -22,7 +22,6 @@ import scala.collection.mutable
 import akka.actor._
 import com.google.inject.Inject
 
-import org.midonet.cluster.state.{LegacyStorage, LocalPortActive}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
@@ -30,7 +29,7 @@ import org.midonet.midolman.io.UpcallDatapathConnectionManager
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.routingprotocols.RoutingHandler.PortActive
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
-import org.midonet.midolman.topology.VirtualTopologyActor
+import org.midonet.midolman.topology.{VirtualToPhysicalMapper, LocalPortActive, VirtualTopologyActor}
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices.{Port, RouterPort}
 import org.midonet.midolman.{SimulationBackChannel, DatapathState, Referenceable}
@@ -57,8 +56,6 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
     @Inject
     val client: Client = null
     @Inject
-    val stateStorage: LegacyStorage = null
-    @Inject
     var zkConnWatcher: ZkConnectionAwareWatcher = null
     @Inject
     @ZEBRA_SERVER_LOOP
@@ -78,7 +75,7 @@ class RoutingManagerActor extends ReactiveActor[LocalPortActive]
 
     override def preStart() {
         super.preStart()
-        stateStorage.localPortActiveObservable.subscribe(this)
+        VirtualToPhysicalMapper.localPortActiveObservable.subscribe(this)
     }
 
     override def receive = {
