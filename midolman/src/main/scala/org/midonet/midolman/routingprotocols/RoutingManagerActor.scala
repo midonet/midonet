@@ -33,8 +33,8 @@ import org.midonet.cluster.data.{Converter, Route}
 import org.midonet.cluster.models.Topology.BgpPeer
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.MidonetBackend.BgpKey
+import org.midonet.cluster.state.LegacyStorage
 import org.midonet.cluster.state.RoutingTableStorage._
-import org.midonet.cluster.state.{LegacyStorage, LocalPortActive}
 import org.midonet.cluster.{Client, DataClient}
 import org.midonet.midolman.cluster.MidolmanActorsModule.ZEBRA_SERVER_LOOP
 import org.midonet.midolman.config.MidolmanConfig
@@ -45,7 +45,7 @@ import org.midonet.midolman.simulation.{Port, RouterPort}
 import org.midonet.midolman.state.ZkConnectionAwareWatcher
 import org.midonet.midolman.topology.VirtualTopologyActor.PortRequest
 import org.midonet.midolman.topology.devices._
-import org.midonet.midolman.topology.{VirtualTopology, VirtualTopologyActor}
+import org.midonet.midolman.topology.{LocalPortActive, VirtualToPhysicalMapper, VirtualTopology, VirtualTopologyActor}
 import org.midonet.midolman.{DatapathState, Referenceable, SimulationBackChannel}
 import org.midonet.util.concurrent.ReactiveActor
 import org.midonet.util.concurrent.ReactiveActor.{OnCompleted, OnError}
@@ -321,7 +321,7 @@ class RoutingManagerActor extends ReactiveActor[AnyRef]
                 new RoutingStorageForV2(backend.stateStore)
             else
                 new RoutingStorageForV1(dataClient)
-        legacyStorage.localPortActiveObservable.subscribe(this)
+        VirtualToPhysicalMapper.localPortActiveObservable.subscribe(this)
     }
 
     override def receive = {
