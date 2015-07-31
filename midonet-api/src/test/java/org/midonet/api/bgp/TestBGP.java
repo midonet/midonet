@@ -22,6 +22,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -86,6 +87,10 @@ public class TestBGP extends JerseyTest {
 
     @Test
     public void testCreateGetListDelete() {
+
+        // Models have changed for BGP in v2, this is no longer relevant
+        Assume.assumeFalse(!FuncTest.isCompatApiEnabled());
+
         DtoBgp bgp = new DtoBgp();
         bgp.setLocalAS(55394);
         bgp.setPeerAS(65104);

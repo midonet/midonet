@@ -22,6 +22,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.test.framework.JerseyTest;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -109,6 +110,10 @@ public class TestAdRoute extends JerseyTest {
 
     @Test
     public void testCreateGetListDelete() {
+
+        // Models have changed for BGP in v2, this is no longer relevant
+        Assume.assumeFalse(!FuncTest.isCompatApiEnabled());
+
         DtoAdRoute adRoute = new DtoAdRoute();
         adRoute.setNwPrefix("14.128.23.0");
         adRoute.setPrefixLength(27);
