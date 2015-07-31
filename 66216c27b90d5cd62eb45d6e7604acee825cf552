@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_01f50656",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/MidonetBackendService.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-31T14:00:49Z",
+      "side": 1,
+      "message": "Should this be \"flooding_proxy\"?",
+      "range": {
+        "startLine": 39,
+        "startChar": 4,
+        "endLine": 39,
+        "endChar": 44
+      },
+      "revId": "66216c27b90d5cd62eb45d6e7604acee825cf552",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6105f244",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 39,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-07-31T14:00:49Z",
+      "side": 1,
+      "message": "# ?",
+      "range": {
+        "startLine": 39,
+        "startChar": 29,
+        "endLine": 39,
+        "endChar": 30
+      },
+      "revId": "66216c27b90d5cd62eb45d6e7604acee825cf552",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
