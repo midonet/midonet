@@ -421,16 +421,16 @@ public class TestDHCP extends JerseyTest {
         // Now try to create a new host with host1's mac address. This should
         // fail.
         host1.setIpAddr("172.31.0.13");
-        response =resource().uri(subnet.getHosts())
+        response = resource().uri(subnet.getHosts())
                 .type(APPLICATION_DHCP_HOST_JSON_V2)
                 .post(ClientResponse.class, host1);
-        assertEquals(500, response.getStatus());
+        assertEquals(409, response.getStatus());
 
         // Try again, this time using an UPDATE operation.
         response =resource().uri(host1.getUri())
                 .type(APPLICATION_DHCP_HOST_JSON_V2)
                 .put(ClientResponse.class, host1);
-        assertEquals(200, response.getStatus());
+        assertEquals(204, response.getStatus());
         host1 = resource().uri(host1.getUri())
                 .accept(APPLICATION_DHCP_HOST_JSON_V2)
                 .get(DtoDhcpHost.class);
