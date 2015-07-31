@@ -44,6 +44,7 @@ public class DhcpHost extends UriResource {
 
     @Since("2")
     @Nonnull
+    @ZoomField(name = "extra_dhcp_opts")
     private List<ExtraDhcpOpt> extraDhcpOpts = new ArrayList<>();
 
     @Nonnull

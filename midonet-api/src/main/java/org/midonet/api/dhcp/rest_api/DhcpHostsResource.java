@@ -46,11 +46,13 @@ import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.DataClient;
 import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.data.dhcp.Host;
+import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.models.DhcpHost;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
+import org.midonet.midolman.state.StatePathExistsException;
 import org.midonet.packets.IPv4Subnet;
 
 import static org.midonet.cluster.rest_api.conversion.DhcpHostDataConverter.fromData;
@@ -88,7 +90,13 @@ public class DhcpHostsResource extends AbstractResource {
                                       "configure DHCP for this bridge.");
 
         Host h = toData(host);
-        dataClient.dhcpHostsCreate(bridgeId, subnet, h);
+
+        try {
+            dataClient.dhcpHostsCreate(bridgeId, subnet, h);
+        } catch (StatePathExistsException e) {
+            throw new ConflictHttpException("DHCP Host already exists");
+        }
+
         // Update the Bridge's ARP table.
         dataClient.bridgeAddIp4Mac(bridgeId, h.getIp(), h.getMAC());
         URI dhcpUri = ResourceUriBuilder.getBridgeDhcp(getBaseUri(),
@@ -150,7 +158,7 @@ public class DhcpHostsResource extends AbstractResource {
                                       oldHost.getMAC());
         dataClient.bridgeAddIp4Mac(bridgeId, newHost.getIp(), newHost.getMAC());
 
-        return Response.ok().build();
+        return Response.noContent().build();
     }
 
     @DELETE
