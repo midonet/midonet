@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_33997b6e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 60,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-01T11:56:44Z",
+      "side": 1,
+      "message": "you can use hasCompleted on the mark instead.",
+      "revId": "99cbefa66991f7f74a6e23f7e9bd62faf7552927",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_539c3f5d",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/topology/BgpRouterMapperTest.scala",
+        "patchSetId": 17
+      },
+      "lineNbr": 105,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-01T11:56:44Z",
+      "side": 1,
+      "message": "eventually not needed. this is single threaded",
+      "revId": "99cbefa66991f7f74a6e23f7e9bd62faf7552927",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
