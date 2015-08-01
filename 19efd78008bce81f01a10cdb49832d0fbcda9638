@@ -49,6 +49,23 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_93c88756",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 22
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-01T12:22:55Z",
+      "side": 1,
+      "message": "whats with the awaits? either you are waiting for some condition to be true or not. a timeout like this is a bug waiting to happen.",
+      "revId": "19efd78008bce81f01a10cdb49832d0fbcda9638",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_3c386d3c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 22
