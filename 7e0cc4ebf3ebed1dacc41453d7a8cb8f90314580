@@ -403,6 +403,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_cf63bbdb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-01T12:22:55Z",
+      "side": 1,
+      "message": "sure. Legacy is fine, it\u0027s just new that\u0027s bad.",
+      "parentUuid": "9ad9bd40_cf0e5b32",
+      "range": {
+        "startLine": 81,
+        "startChar": 36,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ec588d58",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 11
@@ -438,6 +462,30 @@
       "side": 1,
       "message": "There is no id for learned routes in the new architecture. This is kept here for compatibility with the dataClient, which does return an id for newly create learned route, and with these changes the id is mainly used to determine whether a route was successfully written to the mock dataClient.\n\nWhen using dataClient, the underlying RouterZkManager.create(...) return a random UUID, which is emulated here.",
       "parentUuid": "9ad9bd40_ec588d58",
+      "range": {
+        "startLine": 89,
+        "startChar": 17,
+        "endLine": 89,
+        "endChar": 27
+      },
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_afaf57e2",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-01T12:22:55Z",
+      "side": 1,
+      "message": "This should be hidden inside the LegacyRoutingStorage then, rather than leaking implementation details in to RoutingManager. For the success check this method can return a boolean (or throw an exception. Inability to store should really be an exception).",
+      "parentUuid": "9ad9bd40_0f3043e7",
       "range": {
         "startLine": 89,
         "startChar": 17,
@@ -521,6 +569,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_6f7d4f6e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-01T12:22:55Z",
+      "side": 1,
+      "message": "Why is the await even here? You seem to be waiting for some asynchronous operation to complete? What will go wrong if the async operation hasn\u0027t completed in 5 seconds? Why no just return immediately?",
+      "parentUuid": "9ad9bd40_6f58ef32",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_6c139d66",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 11
@@ -550,6 +616,24 @@
       "side": 1,
       "message": "In v2, the learned routes are stored separately from the static ones (i.e. topology). All routes returned from the state storage are learned routes, since the agent does not modify the zoom topology.",
       "parentUuid": "9ad9bd40_6c139d66",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_af967792",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 94,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-01T12:22:55Z",
+      "side": 1,
+      "message": "ok. It\u0027d be good for the method names for storage to reflect this.",
+      "parentUuid": "9ad9bd40_0f47634c",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
