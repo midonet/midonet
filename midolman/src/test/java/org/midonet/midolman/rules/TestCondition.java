@@ -87,9 +87,9 @@ public class TestCondition {
         Condition cond = new Condition();
         // This condition should match all packets.
         pktCtx.inPortId_$eq(new UUID(rand.nextLong(), rand.nextLong()));
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.conjunctionInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
     }
 
     @Test
@@ -100,20 +100,20 @@ public class TestCondition {
         cond.inPortIds.add(new UUID(rand.nextLong(), rand.nextLong()));
         cond.inPortIds.add(new UUID(rand.nextLong(), rand.nextLong()));
         // The condition should not match the packet.
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         pktCtx.inPortId_$eq(inPort);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         // Verify that inPortInv causes a match.
         cond.inPortInv = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         pktCtx.inPortId_$eq(null);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         // Now add inPort to the condition - it stops matching due to invert.
         cond.inPortIds.add(inPort);
         pktCtx.inPortId_$eq(inPort);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.inPortInv = false;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
     }
 
     @Test
@@ -126,27 +126,25 @@ public class TestCondition {
         cond.outPortIds.add(new UUID(rand.nextLong(), rand.nextLong()));
         cond.outPortIds.add(new UUID(rand.nextLong(), rand.nextLong()));
         // The condition should not match the packet.
-        Assert.assertFalse(cond.matches(pktCtx, false));
-        Assert.assertFalse(cond.matches(pktCtx, true));
+        Assert.assertFalse(cond.matches(pktCtx));
+        Assert.assertFalse(cond.matches(pktCtx));
         pktCtx.outPortId_$eq(outPort);
-        Assert.assertFalse(cond.matches(pktCtx, true));
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
+        Assert.assertFalse(cond.matches(pktCtx));
         // Verify that outPortInv causes a match.
         cond.outPortInv = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
-        Assert.assertTrue(cond.matches(pktCtx, true));
+        Assert.assertTrue(cond.matches(pktCtx));
+        Assert.assertTrue(cond.matches(pktCtx));
         pktCtx.outPortId_$eq(null);
-        Assert.assertTrue(cond.matches(pktCtx, false));
-        Assert.assertTrue(cond.matches(pktCtx, true));
+        Assert.assertTrue(cond.matches(pktCtx));
+        Assert.assertTrue(cond.matches(pktCtx));
         // Now add outPort to the condition - it stops matching due to invert
         // on forwarding elements, but stays the same on port filters.
         cond.outPortIds.add(outPort);
         pktCtx.outPortId_$eq(outPort);
-        Assert.assertFalse(cond.matches(pktCtx, false));
-        Assert.assertTrue(cond.matches(pktCtx, true));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.outPortInv = false;
-        Assert.assertTrue(cond.matches(pktCtx, false));
-        Assert.assertFalse(cond.matches(pktCtx, true));
+        Assert.assertTrue(cond.matches(pktCtx));
     }
 
     @Test
@@ -155,19 +153,19 @@ public class TestCondition {
 
         // InvDlSrc shouldn't matter when ethSrc is null.
         cond.invDlSrc = true;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
 
         cond.ethSrc = pktMatch.getEthSrc();
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
 
         cond.invDlSrc = false;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
 
         cond.ethSrc = MAC.random();
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
 
         cond.invDlSrc = true;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
     }
 
     @Test
@@ -176,19 +174,19 @@ public class TestCondition {
 
         // InvDlDst shouldn't matter when ethDst is null.
         cond.invDlDst = true;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
 
         cond.ethDst = pktMatch.getEthDst();
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
 
         cond.invDlDst = false;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
 
         cond.ethDst = MAC.random();
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
 
         cond.invDlDst = true;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
     }
 
     @Test
@@ -199,9 +197,9 @@ public class TestCondition {
         cond.ethSrcMask = 0L;
         cond.ethSrc = MAC.random();
         cond.invDlSrc = true;
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
         cond.invDlSrc = false;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
 
         // Ignore lower 32 bits.
         cond.ethSrcMask = 0xffffL << 32;
@@ -210,16 +208,16 @@ public class TestCondition {
         long macLong = pktMatch.getEthSrc().asLong();
         cond.ethSrc = new MAC(macLong ^ 0xffffffffL);
         cond.invDlSrc = true;
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
         cond.invDlSrc = false;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
 
         // Flip one more bit and match should fail.
         cond.ethSrc = new MAC(macLong ^ 0x1ffffffffL);
         cond.invDlSrc = true;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
         cond.invDlSrc = false;
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
     }
 
     @Test
@@ -230,9 +228,9 @@ public class TestCondition {
         cond.dlDstMask = 0L;
         cond.ethDst = MAC.random();
         cond.invDlDst = true;
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
         cond.invDlDst = false;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
 
         // Ignore lower 32 bits.
         cond.dlDstMask = 0xffffL << 32;
@@ -241,89 +239,89 @@ public class TestCondition {
         long macLong = pktMatch.getEthDst().asLong();
         cond.ethDst = new MAC(macLong ^ 0xffffffffL);
         cond.invDlDst = true;
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
         cond.invDlDst = false;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
 
 
         // Flip one more bit and match should fail.
         cond.ethDst = new MAC(macLong ^ 0x1ffffffffL);
         cond.invDlDst = true;
-        assertTrue(cond.matches(pktCtx, false));
+        assertTrue(cond.matches(pktCtx));
         cond.invDlDst = false;
-        assertFalse(cond.matches(pktCtx, false));
+        assertFalse(cond.matches(pktCtx));
     }
 
     @Test
     public void testNwTos() {
         Condition cond = new Condition();
         pktCtx.inPortId_$eq(new UUID(rand.nextLong(), rand.nextLong()));
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwTos = 5;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.nwTosInv = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwTosInv = false;
         cond.nwTos = 34;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwTosInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
     }
 
     @Test
     public void testNwProto() {
         Condition cond = new Condition();
         pktCtx.inPortId_$eq(UUID.randomUUID());
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwProto = 5;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.nwProtoInv = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwProtoInv = false;
         cond.nwProto = 6;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwProtoInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
     }
 
     @Test
     public void testNwSrc() {
         Condition cond = new Condition();
         pktCtx.inPortId_$eq(UUID.randomUUID());
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         // Inverting nwSrc has no effect when it's wild-carded.
         cond.nwSrcInv = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwSrcInv = false;
         // Set the nwSrcIp to something different than the packet's 0x0a001406.
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.3"), 0);
         // Since nwSrcLength is still 0, the condition still matches the packet.
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.3"), 32);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         // Now try shorter prefixes:
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.3"), 24);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.3"), 16);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         // Now try length 0 with an ip that differs in the left-most bit.
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("250.1.1.4"), 1);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("250.1.1.4"), 0);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwSrcInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         // Now increase the maskLength. The packet doesn't match the
         // condition's srcIp, but the nwSrcInv is true.
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("250.1.1.4"), 32);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         // Remove the invert, set the nwSrcIp to the packet's
         cond.nwSrcInv = false;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.nwSrcIp = new IPv4Subnet(IPv4Addr.fromString("10.0.20.6"), 32);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwSrcInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
     }
 
     @Test
@@ -331,40 +329,40 @@ public class TestCondition {
         Condition cond = new Condition();
         // Empty condition matches the packet.
         pktCtx.inPortId_$eq(UUID.randomUUID());
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         // Inverting is ignored if the field is null.
         cond.nwDstInv = true;
         // Condition still matches the packet.
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwDstInv = false;
         // Set the nwDstIp to something different than the packet's 0x0a000b22.
         cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 0);
         // Since nwDstLength is 0, the condition still matches the packet.
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         // Now try inverting the result
         cond.nwDstInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.nwDstInv = false;
         cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 32);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         // Now try shorter prefixes:
         cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 31);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 24);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 16);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         // Now try inverting
         cond.nwDstInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.35"), 32);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         // Remove the invert, set the nwDstIp to the packet's
         cond.nwDstInv = false;
         cond.nwDstIp = new IPv4Subnet(IPv4Addr.fromString("10.0.11.34"), 32);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.nwDstInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
     }
 
     @Test
@@ -372,26 +370,26 @@ public class TestCondition {
         // Note tpSrc is set to 4321
         Condition cond = new Condition();
         pktCtx.inPortId_$eq(UUID.randomUUID());
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrc = new Range<>(30, Transport.MAX_PORT_NO);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrcInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpSrcInv = false;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrc = new Range<>(4322, Transport.MAX_PORT_NO);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpSrcInv = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrcInv = false;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpSrc = new Range<>(4321, 4321) ;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrcInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpSrcInv = false;
         cond.tpSrc = new Range<>(0, 4322);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
     }
 
     @Test
@@ -400,26 +398,26 @@ public class TestCondition {
 
         Condition cond = new Condition();
         pktCtx.inPortId_$eq(UUID.randomUUID());
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrc = new Range<>(30000, Transport.MAX_PORT_NO);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrcInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpSrcInv = false;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrc = new Range<>(45000, Transport.MAX_PORT_NO);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpSrcInv = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrcInv = false;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpSrc = new Range<>(35000, 45000);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpSrcInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpSrcInv = false;
         cond.tpSrc = new Range<>(0, Transport.MAX_PORT_NO);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
     }
 
     @Test
@@ -427,26 +425,26 @@ public class TestCondition {
         // tpDst is set to 1234
         Condition cond = new Condition();
         pktCtx.inPortId_$eq(UUID.randomUUID());
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpDst = new Range<>(1235, Transport.MAX_PORT_NO);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpDstInv = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpDstInv = false;
         cond.tpDst = new Range<>(1233, Transport.MAX_PORT_NO);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpDstInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpDstInv = false;
         cond.tpDst = new Range<>(1233, 1233);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpDst = new Range<>(1233, 1234);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpDstInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpDstInv = false;
         cond.tpDst = new Range<>(0, 1234);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
     }
 
     @Test
@@ -455,26 +453,26 @@ public class TestCondition {
 
         Condition cond = new Condition();
         pktCtx.inPortId_$eq(UUID.randomUUID());
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpDst = new Range<>(40000, Transport.MAX_PORT_NO);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpDstInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpDstInv = false;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpDst = new Range<>(55000, Transport.MAX_PORT_NO);
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpDstInv = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpDstInv = false;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpDst = new Range<>(45000, 55000);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.tpDstInv = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.tpDstInv = false;
         cond.tpDst = new Range<>(0, Transport.MAX_PORT_NO);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
     }
 
     /*
@@ -482,17 +480,17 @@ public class TestCondition {
     public void testFwdFlow() {
         Condition cond = new Condition();
         pktCtx.inPortId = UUID.randomUUID();
-        Assert.assertTrue(cond.matches(pktCtx, pktMatch, false));
+        Assert.assertTrue(cond.matches(pktCtx, pktMatch));
         Assert.assertFalse(pktCtx.state().isConnectionTracked());
         cond.matchForwardFlow = true;
-        Assert.assertTrue(cond.matches(pktCtx, pktMatch, false));
+        Assert.assertTrue(cond.matches(pktCtx, pktMatch));
         Assert.assertTrue(pktCtx.state().isConnectionTracked());
         // Still matches forward flow.
-        Assert.assertTrue(cond.matches(pktCtx, pktMatch, false));
+        Assert.assertTrue(cond.matches(pktCtx, pktMatch));
         cond.matchReturnFlow = true;
-        Assert.assertFalse(cond.matches(pktCtx, pktMatch, false));
+        Assert.assertFalse(cond.matches(pktCtx, pktMatch));
         cond.matchForwardFlow = false;
-        Assert.assertFalse(cond.matches(pktCtx, pktMatch, false));
+        Assert.assertFalse(cond.matches(pktCtx, pktMatch));
     }
 
     @Test
@@ -500,15 +498,15 @@ public class TestCondition {
         Condition cond = new Condition();
         pktCtx.inPortId = UUID.randomUUID();
         connCache.setStoredValue("r");
-        Assert.assertTrue(cond.matches(pktCtx, pktMatch, false));
+        Assert.assertTrue(cond.matches(pktCtx, pktMatch));
         Assert.assertFalse(pktCtx.state().isConnectionTracked());
         cond.matchForwardFlow = true;
-        Assert.assertFalse(cond.matches(pktCtx, pktMatch, false));
+        Assert.assertFalse(cond.matches(pktCtx, pktMatch));
         Assert.assertTrue(pktCtx.state().isConnectionTracked());
         cond.matchReturnFlow = true;
-        Assert.assertFalse(cond.matches(pktCtx, pktMatch, false));
+        Assert.assertFalse(cond.matches(pktCtx, pktMatch));
         cond.matchForwardFlow = false;
-        Assert.assertTrue(cond.matches(pktCtx, pktMatch, false));
+        Assert.assertTrue(cond.matches(pktCtx, pktMatch));
     }
     */
 
@@ -516,76 +514,76 @@ public class TestCondition {
     public void testIpAddrGroup() {
         // Should match with empty condition.
         Condition cond = new Condition();
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
 
         // Should fail to match with empty IPAddrGroup for source or dest.
         IPAddrGroup ipAddrGroupEmpty = IPAddrGroup.fromAddrs(
                 UUID.randomUUID(), new IPAddr[]{});
         cond.ipAddrGroupDst = ipAddrGroupEmpty;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
 
         cond = new Condition();
         cond.ipAddrGroupSrc = ipAddrGroupEmpty;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
 
         // Should match with inverted empty IPAddrGroup for source or dest.
         cond = new Condition();
         cond.ipAddrGroupDst = ipAddrGroupEmpty;
         cond.invIpAddrGroupIdDst = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
 
         cond = new Condition();
         cond.ipAddrGroupSrc = ipAddrGroupEmpty;
         cond.invIpAddrGroupIdSrc = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
 
         // Should match with dest set containing dest address.
         IPAddrGroup ipAddrGroupDst = IPAddrGroup.fromAddrs(UUID.randomUUID(),
                 new IPAddr[]{dstIpAddr, new IPv4Addr(0x12345678)});
         cond = new Condition();
         cond.ipAddrGroupDst = ipAddrGroupDst;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
 
         // And not when inverted.
         cond.invIpAddrGroupIdDst = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
 
         // Should not match when source set contains dest, not source, address.
         cond = new Condition();
         cond.ipAddrGroupSrc = ipAddrGroupDst;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.invIpAddrGroupIdSrc = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
 
         // The above with source and dest inverted.
         IPAddrGroup ipAddrGroupSrc = IPAddrGroup.fromAddrs(UUID.randomUUID(),
                 new IPAddr[]{srcIpAddr, new IPv4Addr(0x87654321)});
         cond = new Condition();
         cond.ipAddrGroupSrc = ipAddrGroupSrc;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
         cond.invIpAddrGroupIdSrc = true;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
 
         cond = new Condition();
         cond.ipAddrGroupDst = ipAddrGroupSrc;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.invIpAddrGroupIdDst = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
 
         // Should not match when source matches and dest doesn't, or vice-versa.
         cond = new Condition();
         cond.ipAddrGroupDst = ipAddrGroupDst;
         cond.ipAddrGroupSrc = ipAddrGroupDst;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.invIpAddrGroupIdSrc = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
 
         cond = new Condition();
         cond.ipAddrGroupDst = ipAddrGroupSrc;
         cond.ipAddrGroupSrc = ipAddrGroupSrc;
-        Assert.assertFalse(cond.matches(pktCtx, false));
+        Assert.assertFalse(cond.matches(pktCtx));
         cond.invIpAddrGroupIdDst = true;
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
 
         // Should match when both match.
         cond = new Condition();
@@ -599,7 +597,7 @@ public class TestCondition {
         cond.etherType = 0x86DD;
         pktCtx.inPortId_$eq(UUID.randomUUID());
         pktCtx.wcmatch().setEtherType((short)0x86DD);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
     }
 
     @Test
@@ -608,7 +606,7 @@ public class TestCondition {
         cond.etherType = (int)(short)0x86DD;
         pktCtx.inPortId_$eq(UUID.randomUUID());
         pktCtx.wcmatch().setEtherType((short)0x86DD);
-        Assert.assertTrue(cond.matches(pktCtx, false));
+        Assert.assertTrue(cond.matches(pktCtx));
     }
 
     @Test

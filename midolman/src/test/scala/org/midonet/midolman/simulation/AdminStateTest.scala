@@ -251,6 +251,8 @@ class AdminStateTest extends MidolmanSpec {
 
             var pktCtx = packetContextFor(fromRouterSide._2, fromRouterSide._1)
             var simRes = simulate (pktCtx)
+            println("SIMRES " + simRes._1)
+            println("SIMRES " + simRes._2.virtualFlowActions)
             simRes should be (toBridge(simBridge, brPortIds))
             ft.translate(simRes) should contain (output(1).asInstanceOf[Any])
 

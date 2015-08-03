@@ -59,8 +59,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Then("it should return the requested chain, including the rule")
             val c = expectMsgType[Chain]
             c.id shouldEqual chain
-            c.getRules.size shouldBe 1
-            checkTcpDstRule(c.getRules.get(0), 80, Action.DROP)
+            c.rules.size shouldBe 1
+            checkTcpDstRule(c.rules.get(0), 80, Action.DROP)
         }
 
         scenario("Receive update when a rule is added") {
@@ -81,8 +81,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Then("the VTA should send an update")
             val c = expectMsgType[Chain]
             c.id shouldEqual chain
-            c.getRules.size shouldBe 2
-            checkTcpDstRule(c.getRules.get(1), 81, Action.ACCEPT)
+            c.rules.size shouldBe 2
+            checkTcpDstRule(c.rules.get(1), 81, Action.ACCEPT)
 
             And("the VTA should receive a flow invalidation")
             vta.getAndClearBC() should contain (flowInvalidationTag(c.id))
@@ -103,8 +103,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                  "should have a reference to the second chain")
             val c = expectMsgType[Chain]
             c.id shouldEqual chain1
-            c.getRules.size shouldBe 1
-            checkJumpRule(c.getRules.get(0), chain2)
+            c.rules.size shouldBe 1
+            checkJumpRule(c.rules.get(0), chain2)
             c.getJumpTarget(chain2) shouldBe a [Chain]
         }
 
@@ -128,9 +128,9 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Then("the VTA should send an update with both jumps")
             val c1 = expectMsgType[Chain]
             c1.id shouldEqual chain1
-            c1.getRules.size shouldBe 2
-            checkJumpRule(c1.getRules.get(0), chain2)
-            checkJumpRule(c1.getRules.get(1), chain3)
+            c1.rules.size shouldBe 2
+            checkJumpRule(c1.rules.get(0), chain2)
+            checkJumpRule(c1.rules.get(1), chain3)
             c1.getJumpTarget(chain2) should not be null
             c1.getJumpTarget(chain3) should not be null
 
@@ -159,14 +159,14 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
                  "all three chains connected by jumps")
             val c1 = expectMsgType[Chain]
             c1.id shouldEqual chain1
-            c1.getRules.size shouldBe 1
-            checkJumpRule(c1.getRules.get(0), chain2)
+            c1.rules.size shouldBe 1
+            checkJumpRule(c1.rules.get(0), chain2)
 
             val c2 = c1.getJumpTarget(chain2)
             c2 should not be null
             c2.id shouldEqual chain2
-            c2.getRules.size shouldBe 1
-            checkJumpRule(c2.getRules.get(0), chain3)
+            c2.rules.size shouldBe 1
+            checkJumpRule(c2.rules.get(0), chain3)
             c2.getJumpTarget(chain3) should not be null
 
             And("the VTA should receive flow invalidations " +
@@ -199,8 +199,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             val c1 = expectMsgType[Chain]
             val c2 = c1.getJumpTarget(chain2)
             val c3 = c2.getJumpTarget(chain3)
-            c3.getRules.size shouldBe 1
-            checkTcpDstRule(c3.getRules.get(0), 80, Action.DROP)
+            c3.rules.size shouldBe 1
+            checkTcpDstRule(c3.rules.get(0), 80, Action.DROP)
 
             And("the VTA should receive flow invalidations for all three chains")
             val msgs = vta.getAndClearBC()
@@ -226,8 +226,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             Then("It returns the chain with the IPAddrGroup")
             val c = expectMsgType[Chain]
-            c.getRules.size shouldBe 1
-            checkIpAddrGroupRule(c.getRules.get(0), Action.DROP,
+            c.rules.size shouldBe 1
+            checkIpAddrGroupRule(c.rules.get(0), Action.DROP,
                                  ipAddrGroup, Set(addr), null, null)
         }
 
@@ -246,8 +246,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             Then("It returns the chain with the IPAddrGroup")
             var c = expectMsgType[Chain]
-            c.getRules.size shouldBe 1
-            checkIpAddrGroupRule(c.getRules.get(0), Action.DROP,
+            c.rules.size shouldBe 1
+            checkIpAddrGroupRule(c.rules.get(0), Action.DROP,
                                  ipAddrGroup, Set(addr), null, null)
 
             When("The rule is removed and the IP group is modified")
@@ -260,15 +260,15 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
               * does get notified when the ipaddr group is changed */
             if (!useNewStorageStack) {
                 c = expectMsgType[Chain]
-                c.getRules.size() should be (0)
+                c.rules.size() should be (0)
             }
             c = expectMsgType[Chain]
-            c.getRules.size() should be (0)
+            c.rules.size() should be (0)
 
             Then("We still get chain updates")
             newTcpDstRuleOnChain(chain, 1, 80, Action.DROP)
             c = expectMsgType[Chain]
-            c.getRules.size() should be (1)
+            c.rules.size() should be (1)
         }
 
         scenario("Add an address to an IPAddrGroup") {
@@ -294,8 +294,8 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             Then("the VTA should send an update")
             val c = expectMsgType[Chain]
-            c.getRules.size shouldBe 1
-            checkIpAddrGroupRule(c.getRules.get(0), Action.DROP,
+            c.rules.size shouldBe 1
+            checkIpAddrGroupRule(c.rules.get(0), Action.DROP,
                                  ipAddrGroup, Set(addr1, addr2),
                                  null, null)
 
@@ -320,7 +320,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
 
             And("it returns the first version of the chain")
             val c1 = expectMsgType[Chain]
-            checkIpAddrGroupRule(c1.getRules.get(0), Action.DROP, null, null,
+            checkIpAddrGroupRule(c1.rules.get(0), Action.DROP, null, null,
                                  ipAddrGroup, Set(addr1, addr2))
             vta.getAndClearBC()
 
@@ -330,7 +330,7 @@ class ChainManagerTest extends TestKit(ActorSystem("ChainManagerTest"))
             Then("the VTA should send an update")
             val c2 = expectMsgType[Chain]
             c2.id shouldEqual chain
-            checkIpAddrGroupRule(c2.getRules.get(0), Action.DROP, null, null,
+            checkIpAddrGroupRule(c2.rules.get(0), Action.DROP, null, null,
                                  ipAddrGroup, Set(addr2))
 
             And("the VTA should receive a flow invalidation for the chain")

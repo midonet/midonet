@@ -17,6 +17,7 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
+import java.util.{ArrayList, HashMap => JHashMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -339,9 +340,15 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
                     .ipAddressGroup
             }
         }
-        val chain = new SimChain(chainId,
-                                 ruleIds.map(rules(_).currentRule).asJava,
-                                 currentChains, chainProto.getName)
+
+        val ruleList = new ArrayList[SimRule]()
+        ruleList.addAll(ruleIds.map(rules(_).currentRule).asJava)
+
+        val chainMap = new JHashMap[UUID, SimChain]()
+        for ((id, chain) <- currentChains) {
+            chainMap.put(id, chain)
+        }
+        val chain = new SimChain(chainId, ruleList, chainMap, chainProto.getName)
         log.debug("Emitting {}", chain)
         chain
     }

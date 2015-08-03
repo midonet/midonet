@@ -186,19 +186,19 @@ class ChainTest extends Suite
      */
     def testLoopThenAccept() {
         // Can't use makeChain because we need to add a jump target.
-        val jumpTargetMap = mutable.Map[UUID, Chain]()
+        val jumpTargetMap = new java.util.HashMap[UUID, Chain]()
         val chainId = UUID.randomUUID
         val name = "Chain-" + chainId
-        val innerAndOuterChain = new Chain(chainId,
-                                           List[Rule](rejectRule).asJava,
-                                           jumpTargetMap, name)
+        val rules = new java.util.ArrayList[Rule]()
+        rules.add(rejectRule)
+        val innerAndOuterChain = new Chain(chainId, rules, jumpTargetMap, name)
         val middleChain = makeChain(List(makeJumpRule(innerAndOuterChain),
                                          acceptRule),
                                     List(innerAndOuterChain))
 
         // Add a jump from innerAndOuterChain to middleChain.
-        innerAndOuterChain.getRules.add(0, makeJumpRule(middleChain))
-        jumpTargetMap(middleChain.id) = middleChain
+        innerAndOuterChain.rules.add(0, makeJumpRule(middleChain))
+        jumpTargetMap.put(middleChain.id, middleChain)
 
         applyChain(innerAndOuterChain).action should be (Action.ACCEPT)
     }
@@ -212,30 +212,29 @@ class ChainTest extends Suite
      */
     def testLoopThenReject() {
         // Can't use makeChain because we need to add a jump target.
-        val jumpTargetMap = mutable.Map[UUID, Chain]()
+        val jumpTargetMap = new java.util.HashMap[UUID, Chain]()
         val chainId = UUID.randomUUID
         val name = "Chain-" + chainId
-        val innerAndOuterChain = new Chain(chainId,
-                                           List[Rule](acceptRule).asJava,
-                                           jumpTargetMap, name)
+        val rules = new java.util.ArrayList[Rule]()
+        rules.add(acceptRule)
+        val innerAndOuterChain = new Chain(chainId, rules, jumpTargetMap, name)
         val middleChain = makeChain(List(makeJumpRule(innerAndOuterChain),
                                          rejectRule),
                                     List(innerAndOuterChain))
 
         // Add a jump from innerAndOuterChain to middleChain.
-        innerAndOuterChain.getRules.add(0, makeJumpRule(middleChain))
-        jumpTargetMap(middleChain.id) = middleChain
+        innerAndOuterChain.rules.add(0, makeJumpRule(middleChain))
+        jumpTargetMap.put(middleChain.id, middleChain)
 
         applyChain(innerAndOuterChain).action should be (Action.REJECT)
     }
 
-    private def applyChain(c: Chain) =
-        Chain.apply(c, pktCtx, ownerId, false)
+    private def applyChain(c: Chain) = Chain.apply(c, pktCtx, ownerId)
 
     private def makeChain(rules: List[Rule],
                           jumpTargets: List[Chain] = Nil): Chain = {
         val chainId = UUID.randomUUID
-        val jumpTargetMap = jumpTargets.map(c => (c.id, c)).toMap
+        val jumpTargetMap = jumpTargets.map(c => (c.id, c)).toMap.asJava
         val name = "Chain-" + chainId.toString
         rules.foreach(_.chainId = chainId)
         new Chain(chainId, rules.asJava, jumpTargetMap, name)

@@ -86,8 +86,8 @@ trait CustomMatchers {
                         case flood if flood == bridge.floodAction => true
                         case flood =>
                             false
-                    }), s"a flood bridge action on ${bridge.id} containing tags " +
-                        s"{${expectedTags.toList}}")
+                    }), s"a flood bridge action ${bridge.floodAction} on " +
+                        s"${bridge.id} containing tags {${expectedTags.toList}}")
     }
 
     def flowMatching(pkt: Ethernet, expectedTags: FlowTag*) =

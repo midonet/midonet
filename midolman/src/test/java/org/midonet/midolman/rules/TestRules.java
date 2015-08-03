@@ -209,10 +209,10 @@ public class TestRules {
         Rule rule = new LiteralRule(cond, Action.ACCEPT);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(null, res.action);
         pktCtx.inPortId_$eq(inPort);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.ACCEPT, res.action);
     }
 
@@ -226,10 +226,10 @@ public class TestRules {
         Rule rule = new LiteralRule(cond, Action.DROP);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(null, res.action);
         pktCtx.inPortId_$eq(inPort);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.DROP, res.action);
     }
 
@@ -243,10 +243,10 @@ public class TestRules {
         Rule rule = new LiteralRule(cond, Action.REJECT);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(null, res.action);
         pktCtx.inPortId_$eq(inPort);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.REJECT, res.action);
     }
 
@@ -255,10 +255,10 @@ public class TestRules {
         Rule rule = new LiteralRule(cond, Action.RETURN);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(null, res.action);
         pktCtx.inPortId_$eq(inPort);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.RETURN, res.action);
     }
 
@@ -299,11 +299,11 @@ public class TestRules {
 
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(null, res.action);
         pktCtx.inPortId_$eq(inPort);
         try {
-            rule.process(pktCtx, res, ownerId, false);
+            rule.process(pktCtx, res, ownerId);
             Assert.fail("Processing a trace rule without the"
                         + " trace bit set should error");
         } catch (Exception tre) {
@@ -316,11 +316,11 @@ public class TestRules {
         }
 
         res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(null, res.action);
 
         try {
-            rule2.process(pktCtx, res, ownerId, false);
+            rule2.process(pktCtx, res, ownerId);
             Assert.fail("Should throw exception");
         } catch (Exception tre) {
             Assert.assertEquals("Should be trace required exception",
@@ -350,7 +350,7 @@ public class TestRules {
 
             RuleResult res = new RuleResult(null, null);
             try {
-                rule.process(pktCtx, res, ownerId, false);
+                rule.process(pktCtx, res, ownerId);
 
                 Assert.fail("Processing a trace rule without the"
                             + " trace bit set should error");
@@ -368,7 +368,7 @@ public class TestRules {
         pktCtx.inPortId_$eq(inPort);
 
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertFalse("Trace is enabled for requestId",
                            pktCtx.tracingEnabled(requestId));
     }
@@ -378,10 +378,10 @@ public class TestRules {
         Rule rule = new JumpRule(cond, jumpChainId, jumpChainName);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(null, res.action);
         pktCtx.inPortId_$eq(inPort);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.JUMP, res.action);
         Assert.assertEquals(jumpChainId, res.jumpToChain);
     }
@@ -408,17 +408,17 @@ public class TestRules {
         Rule rule = new ForwardNatRule(cond, Action.ACCEPT, null, false, nats);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         natTx.commit();
         Assert.assertEquals(null, res.action);
         // We let the reverse snat rule try reversing everything.
         Rule revRule = new ReverseNatRule(new Condition(), Action.RETURN, false);
         // If the condition doesn't match the result is not modified.
-        revRule.process(pktCtx, res, ownerId, false);
+        revRule.process(pktCtx, res, ownerId);
         Assert.assertEquals(null, res.action);
         // Now get the Snat rule to match.
         pktCtx.inPortId_$eq(inPort);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.ACCEPT, res.action);
         IPv4Addr newNwSrc = (IPv4Addr)(pktCtx.wcmatch().getNetworkSrcIP());
         Assert.assertTrue(0x0b000102 <= newNwSrc.toInt());
@@ -434,7 +434,7 @@ public class TestRules {
         // Verify we get the same mapping if we re-process the original match.
         res = new RuleResult(null, null);
         pktCtx.wcmatch().reset(pktCtx.origMatch());
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(expected, pktCtx.wcmatch());
         // Now use the new ip/port in the return packet.
         pktCtx.wcmatch().reset(pktResponseMatch);
@@ -444,7 +444,7 @@ public class TestRules {
         Assert.assertNotSame(pktResponseMatch.getDstPort(), newTpSrc);
         pktCtx.wcmatch().setDstPort(newTpSrc);
         res = new RuleResult(null, null);
-        revRule.process(pktCtx, res, ownerId, false);
+        revRule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.RETURN, res.action);
         // The generated response should be the mirror of the original.
         Assert.assertEquals(pktResponseMatch, pktCtx.wcmatch());
@@ -457,7 +457,7 @@ public class TestRules {
         Rule rule = new ForwardNatRule(cond, Action.CONTINUE, null, true, nats);
         // If the condition doesn't match the result is not modified.
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(res.action, null);
         Assert.assertEquals(pktCtx.origMatch(), pktCtx.wcmatch());
         // We let the reverse dnat rule try reversing everything.
@@ -467,7 +467,7 @@ public class TestRules {
         Assert.assertEquals(pktCtx.origMatch(), pktCtx.wcmatch());
         // Now get the Dnat rule to match.
         pktCtx.inPortId_$eq(inPort);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.CONTINUE, res.action);
         int newNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         Assert.assertTrue(0x0c000102 <= newNwDst);
@@ -483,7 +483,7 @@ public class TestRules {
         // Verify we get the same mapping if we re-process the original match.
         res = new RuleResult(null, null);
         pktCtx.wcmatch().reset(pktCtx.origMatch());
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(pktCtx.wcmatch(), expected);
         // Now use the new ip/port in the return packet.
         pktCtx.wcmatch().reset(pktResponseMatch.clone());
@@ -497,7 +497,7 @@ public class TestRules {
         pktCtx.wcmatch().setSrcPort(newTpDst);
         res.action = null;
         pktCtx.inPortId_$eq(null);
-        revRule.process(pktCtx, res, ownerId, false);
+        revRule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.ACCEPT, res.action);
 
         // The generated response should be the mirror of the original.
@@ -514,7 +514,7 @@ public class TestRules {
         // Now get the Dnat rule to match.
         pktCtx.inPortId_$eq(inPort);
         RuleResult res = new RuleResult(null, null);
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         Assert.assertEquals(Action.CONTINUE, res.action);
         int firstNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         Assert.assertTrue(0x0c000102 <= firstNwDst);
@@ -532,7 +532,7 @@ public class TestRules {
         // Verify we get the same mapping if we re-process the original match.
         res = new RuleResult(null, null);
         pktCtx.wcmatch().reset(pktCtx.origMatch());
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         int secondNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         int secondTpDst = pktCtx.wcmatch().getDstPort();
         Assert.assertEquals(expected, pktCtx.wcmatch());
@@ -550,7 +550,7 @@ public class TestRules {
         // Verify we get a NEW mapping if we re-process the original match.
         res = new RuleResult(null, null);
         pktCtx.wcmatch().reset(pktCtx.origMatch());
-        rule.process(pktCtx, res, ownerId, false);
+        rule.process(pktCtx, res, ownerId);
         int thirdNwDst = ((IPv4Addr) pktCtx.wcmatch().getNetworkDstIP()).toInt();
         int thirdTpDst = pktCtx.wcmatch().getDstPort();
         Assert.assertNotEquals(expected, pktCtx.wcmatch());
