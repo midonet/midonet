@@ -266,7 +266,7 @@ public class MockOvsDatapathConnection extends OvsDatapathConnection {
 
     @Override
     protected void _doFlowsDelete(@Nonnull Datapath datapath,
-                                  @Nonnull Iterable<FlowKey> keys,
+                                  @Nonnull ArrayList<FlowKey> keys,
                                   @Nonnull Callback<Flow> callback, long timeout) {
         FlowMatch match = new FlowMatch(keys);
         Flow removed = flowsTable.remove(match);
