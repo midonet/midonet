@@ -17,8 +17,13 @@ package org.midonet.cluster.data.dhcp;
 
 import com.google.common.base.Objects;
 
+import org.midonet.cluster.data.ZoomClass;
+import org.midonet.cluster.data.ZoomField;
+import org.midonet.cluster.data.ZoomObject;
+import org.midonet.cluster.models.Topology;
 
-public class ExtraDhcpOpt {
+@ZoomClass(clazz = Topology.Dhcp.Host.ExtraDhcpOpt.class)
+public class ExtraDhcpOpt extends ZoomObject {
 
     public ExtraDhcpOpt() {}
 
@@ -27,8 +32,10 @@ public class ExtraDhcpOpt {
         this.optValue = optValue;
     }
 
+    @ZoomField(name = "name")
     public String optName;
 
+    @ZoomField(name = "value")
     public String optValue;
 
     @Override

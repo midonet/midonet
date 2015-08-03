@@ -96,6 +96,12 @@ message Dhcp {
         optional string mac = 1;
         optional IPAddress ip_address = 2;
         optional string name = 3;
+
+        message ExtraDhcpOpt {
+            optional string name = 1;
+            optional string value = 2;
+        }
+        repeated ExtraDhcpOpt extra_dhcp_opts = 4;
     }
     repeated Host hosts = 9;
 
