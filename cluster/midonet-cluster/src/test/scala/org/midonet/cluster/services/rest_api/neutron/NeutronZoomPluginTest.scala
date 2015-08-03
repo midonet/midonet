@@ -28,9 +28,10 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.ZookeeperLockFactory
 import org.midonet.cluster.data.ZoomConvert.toProto
+import org.midonet.cluster.data.storage.{ObjectExistsException, NotFoundException}
 import org.midonet.cluster.models.Neutron.{NeutronNetwork, NeutronPort, NeutronRouter, NeutronRouterInterface, NeutronSubnet, SecurityGroup => NeutronSecurityGroup}
 import org.midonet.cluster.models.{Commons, Topology}
-import org.midonet.cluster.rest_api.NotFoundHttpException
+import org.midonet.cluster.rest_api.{ConflictHttpException, BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.rest_api.neutron.models._
 import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
@@ -127,6 +128,41 @@ class NeutronZoomPluginTest extends FeatureSpec
 
             plugin.deleteSecurityGroup(sgId)
             doesNotExist(classOf[Topology.IPAddrGroup], sgId)
+        }
+
+        scenario("The plugin gracefully (no 5xx) handles ill-formed requests") {
+            val nwId = UUID.randomUUID()
+            val nw = new Network(nwId, null, "nw", false)
+            plugin.createNetwork(nw)
+
+            // Try to create subnet with ill-formed CIDR.
+            val snId = UUID.randomUUID()
+            val subnet = new Subnet(snId, nwId, "tenant", "subnet",
+                                    "10.0.1.0/100", 4, "10.0.1.0", List(),
+                                    List(), List(), true)
+            val ex = the [BadRequestHttpException] thrownBy
+                     plugin.createSubnet(subnet)
+            ex.getCause shouldBe an [IllegalArgumentException]
+        }
+
+        scenario("The plugin gracefully (no 5xx) handles invalid references") {
+            val portId = UUID.randomUUID()
+            val nwId = UUID.randomUUID()
+            val port = new Port(portId, nwId, "tenant", "port",
+                                "ab:ab:ab:ab:ab:ab", List(),
+                                DeviceOwner.COMPUTE, "device-id", List())
+            val ex = the [NotFoundHttpException] thrownBy
+                     plugin.createPort(port)
+            ex.getCause shouldBe a [NotFoundException]
+        }
+
+        scenario("The plugin gracefully (no 5xx) handles a duplicate create") {
+            val nwId = UUID.randomUUID()
+            val nw = new Network(nwId, "tenant", "network", false)
+            plugin.createNetwork(nw)
+            val ex = the [ConflictHttpException] thrownBy
+                     plugin.createNetwork(nw)
+            ex.getCause shouldBe a [ObjectExistsException]
         }
     }
 

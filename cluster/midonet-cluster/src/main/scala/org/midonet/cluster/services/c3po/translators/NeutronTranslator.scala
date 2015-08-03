@@ -23,12 +23,11 @@ import com.google.protobuf.Message
 
 import org.slf4j.LoggerFactory
 
-import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
-import org.midonet.cluster.services.c3po.midonet
-import org.midonet.cluster.services.c3po.midonet.MidoOp
-import org.midonet.cluster.services.c3po.neutron
-import org.midonet.cluster.services.c3po.neutron.NeutronOp
 import org.midonet.cluster.models.Commons.UUID
+import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
+import org.midonet.cluster.services.c3po.midonet.MidoOp
+import org.midonet.cluster.services.c3po.neutron.NeutronOp
+import org.midonet.cluster.services.c3po.{midonet, neutron}
 
 /** Defines a class that is able to translate from an operation on the Neutron
   * model to a set of operations on the MidoNet model. */

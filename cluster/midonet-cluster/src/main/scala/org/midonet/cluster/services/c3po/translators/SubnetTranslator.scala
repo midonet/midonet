@@ -40,8 +40,8 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
         if (isOnUplinkNetwork(ns)) return List()
 
         if (ns.isIpv6)
-            throw new TranslationException(  // Doesn't handle IPv6 yet.
-                    neutron.Create(ns), msg = "Cannot handle an IPv6 Subnet.")
+            throw new IllegalArgumentException(
+                "IPv6 Subnets are not supported in this version of Midonet.")
 
         val dhcp = Dhcp.newBuilder
                        .setId(ns.getId)
@@ -72,8 +72,8 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
         if (isOnUplinkNetwork(ns)) return List()
 
         if (ns.isIpv6)
-            throw new TranslationException(  // Doesn't handle IPv6 yet.
-                    neutron.Update(ns), msg = "Cannot handle an IPv6 Subnet.")
+            throw new IllegalArgumentException(
+                "IPv6 Subnets are not supported in this version of Midonet.")
 
         val oldDhcp = storage.get(classOf[Dhcp], ns.getId).await()
         val newDhcp = oldDhcp.toBuilder

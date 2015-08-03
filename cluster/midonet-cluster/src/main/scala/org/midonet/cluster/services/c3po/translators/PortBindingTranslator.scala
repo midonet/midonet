@@ -45,8 +45,8 @@ class PortBindingTranslator(protected val storage: ReadOnlyStorage)
      * Update is not allowed for port binding.
      */
     override protected def translateUpdate(binding: PortBinding): MidoOpList =
-        throw new TranslationException(neutron.Update(binding),
-                msg = "Port binding UPDATE is not allowed")
+        throw new UnsupportedOperationException(
+            "Port binding UPDATE is not allowed")
 
     /**
      * Deletes a port binding of a port to a host / interface, producing an
