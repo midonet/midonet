@@ -346,7 +346,7 @@ public class FlowMatch {
 
     public FlowMatch() { }
 
-    public FlowMatch(@Nonnull Iterable<FlowKey> keys) {
+    public FlowMatch(@Nonnull ArrayList<FlowKey> keys) {
         this.addKeys(keys);
     }
 
@@ -362,11 +362,10 @@ public class FlowMatch {
         return keys;
     }
 
-    public FlowMatch addKeys(@Nonnull Iterable<FlowKey> keys) {
-        for (FlowKey key : keys) {
-            addKey(key);
+    private void addKeys(@Nonnull ArrayList<FlowKey> keys) {
+        for (int i = 0; i < keys.size(); ++i) {
+            addKey(keys.get(i));
         }
-        return this;
     }
 
     /**
@@ -496,7 +495,7 @@ public class FlowMatch {
         seenFields = that.seenFields;
 
         keys.clear();
-        keys.addAll(that.keys);
+        addKeys(that.keys);
         invalidateHashCode();
     }
 
