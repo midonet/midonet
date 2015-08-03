@@ -1,0 +1,89 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_248053bf",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-03T15:51:25Z",
+      "side": 1,
+      "message": "all the code in this class except this method looks like an exact duplicate of the next class. And, I\u0027m purely guessing, probably other classes in other mappers. ....probably something that could be factored out.",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_448397cb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-03T15:51:25Z",
+      "side": 1,
+      "message": "A question I\u0027m sure there\u0027s a good answer for: why don\u0027t we make mandatory fields mandatory in protobufs too and avoid these checks?\n\n...or, why doesn\u0027t zoom enforce mandatory fields on its own before getting to this point?",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6486dbdc",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-03T15:51:25Z",
+      "side": 1,
+      "message": "indentation.",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_84703f0c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-03T15:51:25Z",
+      "side": 1,
+      "message": "ditto. This else aligned with the upper val, please align with its if statement.",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a46b831c",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002763
+      },
+      "writtenOn": "2015-08-03T15:51:25Z",
+      "side": 1,
+      "message": "why isn\u0027t this method in a parent class? it looks pretty bgp-agnostic too.",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
