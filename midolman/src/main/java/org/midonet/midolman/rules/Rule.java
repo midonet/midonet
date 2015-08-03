@@ -32,6 +32,7 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.rules.RuleResult.Action;
+import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.simulation.PacketContext;
 import org.midonet.midolman.state.zkManagers.BaseConfig;
 import org.midonet.sdn.flows.FlowTagger;
@@ -58,6 +59,8 @@ public abstract class Rule extends BaseConfig {
     @JsonIgnore
     public FlowTagger.UserTag meter;
     private Map<String, String> properties = new HashMap<>();
+
+    protected RuleResult result;
 
     public Rule(Condition condition, Action action) {
         this(condition, action, null);
@@ -152,16 +155,7 @@ public abstract class Rule extends BaseConfig {
         this.condition = cond;
     }
 
-    /**
-     * If the packet specified by res.pmatch matches this rule's condition,
-     * apply the rule.
-     *
-     * @param pktCtx       the PacketContext for the packet being processed
-     * @param res          contains a match of the packet after all
-     *                     transformations preceding this rule. This may be
-     *                     modified.
-     */
-    public void process(PacketContext pktCtx, RuleResult res, UUID ownerId) {
+    public RuleResult process(PacketContext pktCtx, UUID ownerId) {
         if (condition.matches(pktCtx)) {
             pktCtx.jlog().debug(
                     "Condition matched on device {} chain {} with action {} and condition {}",
@@ -169,24 +163,24 @@ public abstract class Rule extends BaseConfig {
 
             if (meter != null)
                 pktCtx.addFlowTag(meter);
-            apply(pktCtx, res, ownerId);
+            if (apply(pktCtx, ownerId))
+                return onSuccess();
         }
+        return Chain.CONTINUE();
     }
 
     public Condition getCondition() {
         return condition;
     }
 
-    /**
-     * Apply this rule to the packet specified by res.pmatch.
-     *
-     * @param pktCtx     the PacketContext for the packet being processed.
-     * @param res        contains a match of the packet after all
-     *                   transformations preceding this rule. This may be
-     *                   modified.
-     */
-    protected abstract void apply(PacketContext pktCtx, RuleResult res,
-                                  UUID ownerId);
+    // TODO: Once we get rid of the default ctor, we can create
+    //       this in the ctor as final.
+    protected RuleResult onSuccess() {
+        result = new RuleResult(action, null);
+        return result;
+    }
+
+    protected abstract boolean apply(PacketContext pktCtx, UUID ownerId);
 
     public Map<String, String> getProperties() {
         return properties;

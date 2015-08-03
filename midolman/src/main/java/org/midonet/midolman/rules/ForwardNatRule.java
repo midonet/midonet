@@ -94,11 +94,10 @@ public class ForwardNatRule extends NatRule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
-        boolean gotNat = dnat ? applyDnat(pktCtx, ownerId)
-                              : applySnat(pktCtx, ownerId);
-        if (gotNat)
-            res.action = action;
+    public boolean apply(PacketContext pktCtx, UUID ownerId) {
+        return dnat
+             ? applyDnat(pktCtx, ownerId)
+             : applySnat(pktCtx, ownerId);
     }
 
     protected boolean applyDnat(PacketContext pktCtx, UUID ownerId) {
