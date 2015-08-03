@@ -17,9 +17,10 @@
 package org.midonet.cluster.services.c3po
 
 import com.google.protobuf.Message
-import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
+
 import org.midonet.cluster.data.storage.{CreateOp, DeleteOp, UpdateOp}
 import org.midonet.cluster.models.Commons
+import org.midonet.cluster.services.c3po.C3POStorageManager.{OpType, Operation}
 
 package object neutron {
 
