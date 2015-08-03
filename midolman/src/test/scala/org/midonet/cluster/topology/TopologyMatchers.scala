@@ -51,7 +51,7 @@ object TopologyMatchers {
             port.outboundFilter shouldBe (if (p.hasOutboundFilterId)
                 p.getOutboundFilterId.asJava else null)
             port.tunnelKey shouldBe p.getTunnelKey
-            port.portGroups shouldBe p.getPortGroupIdsList.asScala.map(_.asJava)
+            port.portGroups.asScala.toSet shouldBe p.getPortGroupIdsList.asScala.map(_.asJava)
                 .toSet
             port.peerId shouldBe (if (p.hasPeerId) p.getPeerId.asJava else null)
             port.hostId shouldBe (if (p.hasHostId) p.getHostId.asJava else null)
