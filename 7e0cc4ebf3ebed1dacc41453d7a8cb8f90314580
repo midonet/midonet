@@ -427,6 +427,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_89d938f5",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 81,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-03T14:10:03Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_cf63bbdb",
+      "range": {
+        "startLine": 81,
+        "startChar": 36,
+        "endLine": 81,
+        "endChar": 53
+      },
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_ec588d58",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 11
@@ -486,6 +510,30 @@
       "side": 1,
       "message": "This should be hidden inside the LegacyRoutingStorage then, rather than leaking implementation details in to RoutingManager. For the success check this method can return a boolean (or throw an exception. Inability to store should really be an exception).",
       "parentUuid": "9ad9bd40_0f3043e7",
+      "range": {
+        "startLine": 89,
+        "startChar": 17,
+        "endLine": 89,
+        "endChar": 27
+      },
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_299f4c04",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 89,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-03T14:10:03Z",
+      "side": 1,
+      "message": "For v1 I added the returned id to the route. This is needed, since the removal of the route is based on id.\n\nNevertheless, once the v2 is merged the legacy code will be removed.",
+      "parentUuid": "9ad9bd40_afaf57e2",
       "range": {
         "startLine": 89,
         "startChar": 17,
@@ -581,6 +629,24 @@
       "side": 1,
       "message": "Why is the await even here? You seem to be waiting for some asynchronous operation to complete? What will go wrong if the async operation hasn\u0027t completed in 5 seconds? Why no just return immediately?",
       "parentUuid": "9ad9bd40_6f58ef32",
+      "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_84fcbfb9",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 92,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-03T14:10:03Z",
+      "side": 1,
+      "message": "Okay, so I made the legacy method asynchronous, rather than the other way around. Now, all these methods return a future, and the remaining operations are executed asynchronously when the future completes.\n\nThe reason for using a future and not an observable is that\u0027s less code to schedule the future ops on the actor execution context, rather that creating an rx scheduler, subscriber, etc.",
+      "parentUuid": "9ad9bd40_6f7d4f6e",
       "revId": "7e0cc4ebf3ebed1dacc41453d7a8cb8f90314580",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
