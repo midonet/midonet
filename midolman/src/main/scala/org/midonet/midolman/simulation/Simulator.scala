@@ -20,7 +20,6 @@ import java.util.{List => JList, UUID}
 
 import akka.actor.ActorSystem
 
-import org.midonet.midolman.PacketWorkflow
 import org.midonet.midolman.PacketWorkflow.{SimStep, SimulationResult => Result, _}
 import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.topology.VirtualTopologyActor.tryAsk
@@ -62,7 +61,6 @@ object Simulator {
     private def reUpStashes(): Unit = {
         Fork.reUp()
         PooledMatches.reUp()
-        RuleResults.reUp()
         Continuations.reUp()
     }
 
@@ -82,13 +80,6 @@ object Simulator {
     val PooledMatches = new InstanceStash1[FlowMatch, FlowMatch](
             () => new FlowMatch(),
             (fm, template) => fm.reset(template))
-
-    val RuleResults = new InstanceStash2[RuleResult, RuleResult.Action, UUID](
-        () => new RuleResult(RuleResult.Action.ACCEPT, null),
-        (rs, a, j) => {
-            rs.action = a
-            rs.jumpToChain = j
-        })
 }
 
 trait ForwardingDevice extends SimDevice {

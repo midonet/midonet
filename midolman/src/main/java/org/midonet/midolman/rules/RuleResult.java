@@ -56,12 +56,16 @@ public class RuleResult {
         }
     }
 
-    public Action action;
-    public UUID jumpToChain;
+    public final Action action;
+    public final UUID jumpToChain;
 
     public RuleResult(Action action, UUID jumpToChain) {
         this.action = action;
         this.jumpToChain = jumpToChain;
+    }
+
+    public boolean isDecisive() {
+        return action.isDecisive();
     }
 
     @Override
