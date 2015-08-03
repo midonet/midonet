@@ -19,7 +19,7 @@ package org.midonet.midolman
 import java.util.UUID
 
 import org.junit.runner.RunWith
-import org.midonet.midolman.simulation.Coordinator.ToPortAction
+import org.midonet.midolman.simulation.Simulator.ToPortAction
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.PacketWorkflow.AddVirtualWildcardFlow
