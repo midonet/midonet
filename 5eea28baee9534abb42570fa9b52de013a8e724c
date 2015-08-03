@@ -1,0 +1,188 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_a9335cf4",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 303,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-03T08:29:21Z",
+      "side": 1,
+      "message": "metrics.count(nne)",
+      "range": {
+        "startLine": 303,
+        "startChar": 20,
+        "endLine": 303,
+        "endChar": 47
+      },
+      "revId": "5eea28baee9534abb42570fa9b52de013a8e724c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_6944f449",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 433,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-03T08:29:21Z",
+      "side": 1,
+      "message": "metrics.count(nee)",
+      "range": {
+        "startLine": 433,
+        "startChar": 16,
+        "endLine": 433,
+        "endChar": 47
+      },
+      "revId": "5eea28baee9534abb42570fa9b52de013a8e724c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_696b14b7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 497,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-03T08:29:21Z",
+      "side": 1,
+      "message": "metrics.count(nne)",
+      "range": {
+        "startLine": 497,
+        "startChar": 16,
+        "endLine": 497,
+        "endChar": 43
+      },
+      "revId": "5eea28baee9534abb42570fa9b52de013a8e724c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_69b2344d",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectMapper.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 670,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-03T08:29:21Z",
+      "side": 1,
+      "message": "recoverNodeObservable[T](key, obs))",
+      "range": {
+        "startLine": 660,
+        "startChar": 30,
+        "endLine": 670,
+        "endChar": 13
+      },
+      "revId": "5eea28baee9534abb42570fa9b52de013a8e724c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_49f650fa",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZookeeperObjectState.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 585,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-03T08:29:21Z",
+      "side": 1,
+      "message": "This is just used to detect the deletion of the object associated with they key so we don\u0027t need to count it (it\u0027s taken into account in ZookeeperObjectMapper.scala).",
+      "range": {
+        "startLine": 585,
+        "startChar": 16,
+        "endLine": 585,
+        "endChar": 49
+      },
+      "revId": "5eea28baee9534abb42570fa9b52de013a8e724c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_a91c3c6b",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 35,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-03T08:29:21Z",
+      "side": 1,
+      "message": "remove",
+      "range": {
+        "startLine": 35,
+        "startChar": 77,
+        "endLine": 35,
+        "endChar": 78
+      },
+      "revId": "5eea28baee9534abb42570fa9b52de013a8e724c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_29caeca0",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 109,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-03T08:29:21Z",
+      "side": 1,
+      "message": "protected? It seems that all direct calls could be replaced by count(...)",
+      "range": {
+        "startLine": 104,
+        "startChar": 4,
+        "endLine": 109,
+        "endChar": 37
+      },
+      "revId": "5eea28baee9534abb42570fa9b52de013a8e724c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_699954c3",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/ZoomMetrics.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 127,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-03T08:29:21Z",
+      "side": 1,
+      "message": "override?",
+      "range": {
+        "startLine": 127,
+        "startChar": 4,
+        "endLine": 127,
+        "endChar": 18
+      },
+      "revId": "5eea28baee9534abb42570fa9b52de013a8e724c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
