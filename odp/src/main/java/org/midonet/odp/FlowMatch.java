@@ -28,6 +28,8 @@ import com.google.common.primitives.Longs;
 import org.midonet.odp.flows.*;
 import org.midonet.packets.*;
 
+import static org.midonet.util.collection.ArrayListUtil.resetWith;
+
 /**
  * An ovs datapath flow match object. Contains a list of FlowKey instances.
  *
@@ -333,7 +335,7 @@ public class FlowMatch {
     // Extended fields only supported inside MM
     private short icmpId = 0;
     private byte[] icmpData;
-    private List<Short> vlanIds = new ArrayList<>();
+    private ArrayList<Short> vlanIds = new ArrayList<>();
 
     private long trackSeenFields = 1L;
 
@@ -346,7 +348,7 @@ public class FlowMatch {
 
     public FlowMatch() { }
 
-    public FlowMatch(@Nonnull Iterable<FlowKey> keys) {
+    public FlowMatch(@Nonnull ArrayList<FlowKey> keys) {
         this.addKeys(keys);
     }
 
@@ -362,11 +364,10 @@ public class FlowMatch {
         return keys;
     }
 
-    public FlowMatch addKeys(@Nonnull Iterable<FlowKey> keys) {
-        for (FlowKey key : keys) {
-            addKey(key);
+    private void addKeys(@Nonnull ArrayList<FlowKey> keys) {
+        for (int i = 0; i < keys.size(); ++i) {
+            addKey(keys.get(i));
         }
-        return this;
     }
 
     /**
@@ -488,15 +489,13 @@ public class FlowMatch {
         ipFragmentType = that.ipFragmentType;
         srcPort = that.srcPort;
         dstPort = that.dstPort;
-        vlanIds.clear();
-        vlanIds.addAll(that.vlanIds);
+        resetWith(that.vlanIds, vlanIds);
         icmpId = that.icmpId;
         usedFields = that.usedFields;
         trackSeenFields = that.trackSeenFields;
         seenFields = that.seenFields;
 
-        keys.clear();
-        keys.addAll(that.keys);
+        resetWith(that.keys, keys);
         invalidateHashCode();
     }
 
@@ -774,7 +773,7 @@ public class FlowMatch {
         return this;
     }
 
-    public List<Short> getVlanIds() {
+    public ArrayList<Short> getVlanIds() {
         fieldSeen(Field.VlanId);
         return vlanIds;
     }
