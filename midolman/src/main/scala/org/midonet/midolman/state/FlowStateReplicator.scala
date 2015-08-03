@@ -26,11 +26,10 @@ import org.slf4j.LoggerFactory
 
 import org.midonet.midolman.flows.FlowTagIndexer
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
-import org.midonet.midolman.simulation.{PacketContext, PortGroup}
+import org.midonet.midolman.simulation.{PacketContext, Port, PortGroup}
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.topology.devices.Port
 import org.midonet.midolman.topology.{VirtualTopologyActor => VTA}
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction

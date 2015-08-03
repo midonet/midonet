@@ -27,7 +27,6 @@ import com.typesafe.scalalogging.Logger
 
 import org.midonet.cluster.DataClient
 import org.midonet.cluster.data.dhcp.{Host, Opt121, Subnet}
-import org.midonet.midolman.topology.devices.{BridgePort, Port}
 import org.midonet.packets._
 
 /**

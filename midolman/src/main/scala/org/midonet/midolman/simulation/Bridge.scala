@@ -29,7 +29,6 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.midolman.topology.VirtualTopologyActor._
-import org.midonet.midolman.topology.devices.BridgePort
 import org.midonet.midolman.topology.{MacFlowCount, RemoveFlowCallbackGenerator}
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForBridge, tagForFloodedFlowsByDstMac, tagForVlanPort}

@@ -36,7 +36,7 @@ import org.midonet.midolman.rules.TraceRule
 import org.midonet.midolman.simulation.{Bridge => SimBridge, Chain => SimChain}
 import org.midonet.midolman.state.{Directory, MockDirectory, StateAccessException}
 import org.midonet.midolman.topology.VirtualTopologyActor
-import org.midonet.midolman.topology.devices.{Port => SimPort}
+import org.midonet.midolman.simulation.{Port => SimPort}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.VirtualConfigurationBuilders.TraceDeviceType
 import org.midonet.packets.{IPv4Subnet, MAC}
