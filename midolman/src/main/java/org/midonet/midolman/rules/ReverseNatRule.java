@@ -22,6 +22,7 @@ import org.midonet.midolman.rules.RuleResult.Action;
 import org.midonet.midolman.simulation.PacketContext;
 
 public class ReverseNatRule extends NatRule {
+    private RuleResult result;
 
     public ReverseNatRule(Condition condition, Action action, boolean dnat) {
         super(condition, action, dnat);
@@ -34,12 +35,10 @@ public class ReverseNatRule extends NatRule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res) {
-        boolean reversed = dnat ? applyReverseDnat(pktCtx)
-                                : applyReverseSnat(pktCtx);
-
-        if (reversed)
-            res.action = action;
+    protected boolean apply(PacketContext pktCtx) {
+        return dnat
+             ? applyReverseDnat(pktCtx)
+             : applyReverseSnat(pktCtx);
     }
 
     protected boolean applyReverseDnat(PacketContext pktCtx) {

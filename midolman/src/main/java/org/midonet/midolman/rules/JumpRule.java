@@ -18,8 +18,7 @@ package org.midonet.midolman.rules;
 
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.protobuf.Message;
 
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomOneOf;
@@ -30,13 +29,14 @@ import org.midonet.midolman.simulation.PacketContext;
 @ZoomOneOf(name = "jump_rule_data")
 public class JumpRule extends Rule {
 
-    private final static Logger log = LoggerFactory.getLogger(JumpRule.class);
     private static final long serialVersionUID = -7212783590950701193L;
 
     @ZoomField(name = "jump_chain_id", converter = UUIDUtil.Converter.class)
     public UUID jumpToChainID;
     @ZoomField(name = "jump_chain_name")
     public String jumpToChainName;
+
+    private RuleResult result;
 
     public JumpRule(Condition condition, UUID jumpToChainID,
                     String jumpToChainName) {
@@ -57,6 +57,7 @@ public class JumpRule extends Rule {
         super(condition, Action.JUMP, chainId);
         this.jumpToChainID = jumpToChainID;
         this.jumpToChainName = jumpToChainName;
+        result = new RuleResult(action, jumpToChainID);
     }
 
     public JumpRule(UUID chainId, UUID jumpChainId,
@@ -66,11 +67,23 @@ public class JumpRule extends Rule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res) {
-        res.action = Action.JUMP;
-        res.jumpToChain = jumpToChainID;
+    public void afterFromProto(Message proto) {
+        super.afterFromProto(proto);
+        result = new RuleResult(action, jumpToChainID);
+    }
+
+    @Override
+    protected RuleResult onSuccess() {
+        if (result == null) //TODO: Remove this after v2
+            result = new RuleResult(action, jumpToChainID);
+        return result;
+    }
+
+    @Override
+    protected boolean apply(PacketContext pktCtx) {
         pktCtx.jlog().debug("Rule evaluation jumping to chain {} with ID {}.",
                 jumpToChainName, jumpToChainID);
+        return true;
     }
 
     @Override
