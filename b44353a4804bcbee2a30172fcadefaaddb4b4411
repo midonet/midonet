@@ -16,6 +16,24 @@
       "revId": "b44353a4804bcbee2a30172fcadefaaddb4b4411",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_0996083f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-03T09:26:56Z",
+      "side": 1,
+      "message": "Oh, this is solved in the other patch",
+      "parentUuid": "9ad9bd40_c970a042",
+      "revId": "b44353a4804bcbee2a30172fcadefaaddb4b4411",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
