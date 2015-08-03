@@ -26,6 +26,7 @@ import org.midonet.cluster.models.Topology;
 import org.midonet.cluster.util.UUIDUtil;
 import org.midonet.midolman.TraceRequiredException;
 import org.midonet.midolman.rules.RuleResult.Action;
+import org.midonet.midolman.simulation.Chain;
 import org.midonet.midolman.simulation.PacketContext;
 
 @ZoomClass(clazz = Topology.Rule.class, factory = TraceRule.RuleFactory.class)
@@ -71,13 +72,13 @@ public class TraceRule extends Rule {
     }
 
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
+    public boolean apply(PacketContext pktCtx, UUID ownerId) {
         if (!pktCtx.tracingEnabled(requestId) && hits < limit) {
             hits++;
             pktCtx.enableTracing(requestId);
             throw TraceRequiredException.instance();
         }
-        // else do nothing, tracing has already been enabled for the packet
+        return true;
     }
 
     @Override

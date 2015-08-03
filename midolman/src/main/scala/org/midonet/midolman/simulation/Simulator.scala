@@ -54,7 +54,6 @@ object Simulator {
     private def reUpStashes(): Unit = {
         Fork.reUp()
         PooledMatches.reUp()
-        RuleResults.reUp()
     }
 
     val Fork = new InstanceStash2[ForkAction, Result, Result](
@@ -67,13 +66,6 @@ object Simulator {
     val PooledMatches = new InstanceStash1[FlowMatch, FlowMatch](
             () => new FlowMatch(),
             (fm, template) => fm.reset(template))
-
-    val RuleResults = new InstanceStash2[RuleResult, RuleResult.Action, UUID](
-        () => new RuleResult(RuleResult.Action.ACCEPT, null),
-        (rs, a, j) => {
-            rs.action = a
-            rs.jumpToChain = j
-        })
 }
 
 trait SimDevice {

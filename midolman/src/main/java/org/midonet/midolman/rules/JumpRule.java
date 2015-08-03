@@ -18,9 +18,6 @@ package org.midonet.midolman.rules;
 
 import java.util.UUID;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomOneOf;
 import org.midonet.cluster.util.UUIDUtil;
@@ -30,13 +27,14 @@ import org.midonet.midolman.simulation.PacketContext;
 @ZoomOneOf(name = "jump_rule_data")
 public class JumpRule extends Rule {
 
-    private final static Logger log = LoggerFactory.getLogger(JumpRule.class);
     private static final long serialVersionUID = -7212783590950701193L;
 
     @ZoomField(name = "jump_to", converter = UUIDUtil.Converter.class)
     public UUID jumpToChainID;
     @ZoomField(name = "jump_chain_name")
     public String jumpToChainName;
+
+    private RuleResult result;
 
     public JumpRule(Condition condition, UUID jumpToChainID,
                     String jumpToChainName) {
@@ -65,12 +63,19 @@ public class JumpRule extends Rule {
         this.chainId = chainId;
     }
 
+
     @Override
-    public void apply(PacketContext pktCtx, RuleResult res, UUID ownerId) {
-        res.action = Action.JUMP;
-        res.jumpToChain = jumpToChainID;
+    protected RuleResult onSuccess() {
+        if (result == null)
+            result = new RuleResult(action, jumpToChainID);
+        return result;
+    }
+
+    @Override
+    protected boolean apply(PacketContext pktCtx, UUID ownerId) {
         pktCtx.jlog().debug("Rule evaluation jumping to chain {} with ID {}.",
                 jumpToChainName, jumpToChainID);
+        return true;
     }
 
     @Override
