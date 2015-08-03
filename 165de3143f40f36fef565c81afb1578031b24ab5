@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e452eb33",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 100,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-03T16:31:02Z",
+      "side": 1,
+      "message": "Agree. These state classes follow the same template more or less. Cleaning them/removing redundant code is on the to do list (we haven\u0027t done it yet until the code becomes more or less stable)",
+      "parentUuid": "9ad9bd40_248053bf",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_448397cb",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
         "patchSetId": 19
@@ -30,6 +48,24 @@
       "writtenOn": "2015-08-03T15:51:25Z",
       "side": 1,
       "message": "A question I\u0027m sure there\u0027s a good answer for: why don\u0027t we make mandatory fields mandatory in protobufs too and avoid these checks?\n\n...or, why doesn\u0027t zoom enforce mandatory fields on its own before getting to this point?",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c457a724",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 165,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-03T16:31:02Z",
+      "side": 1,
+      "message": "AFAIK, it\u0027s because Google recommends not using mandatory fields, in case they are removed in a future version.",
+      "parentUuid": "9ad9bd40_448397cb",
       "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_04350ff7",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 178,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-03T16:31:02Z",
+      "side": 1,
+      "message": "Will do",
+      "parentUuid": "9ad9bd40_6486dbdc",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_84703f0c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
         "patchSetId": 19
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_443b97ea",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 181,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-03T16:31:02Z",
+      "side": 1,
+      "message": "Will do.",
+      "parentUuid": "9ad9bd40_84703f0c",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_a46b831c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
         "patchSetId": 19
@@ -81,6 +153,24 @@
       "writtenOn": "2015-08-03T15:51:25Z",
       "side": 1,
       "message": "why isn\u0027t this method in a parent class? it looks pretty bgp-agnostic too.",
+      "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_643edbdb",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/BgpRouterMapper.scala",
+        "patchSetId": 19
+      },
+      "lineNbr": 252,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-03T16:31:02Z",
+      "side": 1,
+      "message": "There is a DeviceMapper abstract class that provides more or less the same functionality but there are a few differences. If you think it\u0027s better, I will introduce a `BaseMapper` to include this code.",
+      "parentUuid": "9ad9bd40_a46b831c",
       "revId": "165de3143f40f36fef565c81afb1578031b24ab5",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
