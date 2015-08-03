@@ -16,6 +16,24 @@
       "revId": "4fbaeadea9a6791607c725112ecb91f656a5693a",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7a4e703c",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/services/vxgw/FloodingProxyHerald.scala",
+        "patchSetId": 11
+      },
+      "lineNbr": 78,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-03T21:43:06Z",
+      "side": 1,
+      "message": "will add a log message in a subsequent patch",
+      "parentUuid": "9ad9bd40_5fb35ee8",
+      "revId": "4fbaeadea9a6791607c725112ecb91f656a5693a",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
