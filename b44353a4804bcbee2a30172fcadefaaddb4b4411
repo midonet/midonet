@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_c970a042",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Simulator.scala",
+        "patchSetId": 6
+      },
+      "lineNbr": 58,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-03T09:25:58Z",
+      "side": 1,
+      "message": "Still worry this is not enough for Bridges with a lot of ports, since they need forks and ports don\u0027t count towards simulated devices. We should grow the pool as needed",
+      "revId": "b44353a4804bcbee2a30172fcadefaaddb4b4411",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
