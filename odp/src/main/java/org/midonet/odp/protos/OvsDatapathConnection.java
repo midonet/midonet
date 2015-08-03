@@ -15,6 +15,7 @@
  */
 package org.midonet.odp.protos;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -564,7 +565,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
      * @param callback a callback which will receive the installed flow
      */
     public void flowsDelete(@Nonnull final Datapath datapath,
-                            @Nonnull final Iterable<FlowKey> keys,
+                            @Nonnull final ArrayList<FlowKey> keys,
                             @Nonnull final Callback<Flow> callback) {
         flowsDelete(datapath, keys, callback, DEF_REPLY_TIMEOUT);
     }
@@ -578,14 +579,14 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
      * @param timeoutMillis the amount of time we should wait for the response
      */
     public void flowsDelete(@Nonnull final Datapath datapath,
-                            @Nonnull final Iterable<FlowKey> keys,
+                            @Nonnull final ArrayList<FlowKey> keys,
                             @Nonnull final Callback<Flow> callback,
                             long timeoutMillis) {
         _doFlowsDelete(datapath, keys, callback, timeoutMillis);
     }
 
     protected abstract void _doFlowsDelete(@Nonnull final Datapath datapath,
-                                           @Nonnull final Iterable<FlowKey> keys,
+                                           @Nonnull final ArrayList<FlowKey> keys,
                                            @Nonnull final Callback<Flow> callback,
                                            final long timeout);
 
@@ -913,7 +914,7 @@ public abstract class OvsDatapathConnection extends AbstractNetlinkConnection {
         }
 
         public Future<Flow> flowsDelete(@Nonnull final Datapath datapath,
-                                        @Nonnull final Iterable<FlowKey> keys) {
+                                        @Nonnull final ArrayList<FlowKey> keys) {
             SettableFuture<Flow> flowFuture = SettableFuture.create();
             OvsDatapathConnection.this.flowsDelete(datapath, keys, wrapFuture(flowFuture));
             return flowFuture;

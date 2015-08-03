@@ -243,8 +243,8 @@ public class FlowKeys {
         }
     };
 
-    public static List<FlowKey> randomKeys() {
-        List<FlowKey> keys = new ArrayList<>();
+    public static ArrayList<FlowKey> randomKeys() {
+        ArrayList<FlowKey> keys = new ArrayList<>();
         while (ThreadLocalRandom.current().nextInt(100) >= 30 && keys.size() <= 10) {
             keys.add(randomKey());
         }

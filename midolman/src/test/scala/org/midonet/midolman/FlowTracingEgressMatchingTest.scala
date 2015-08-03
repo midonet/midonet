@@ -15,7 +15,7 @@
  */
 package org.midonet.midolman
 
-import java.util.UUID
+import java.util.{ArrayList, LinkedList,UUID}
 import java.{util => ju}
 
 import scala.collection.JavaConversions._
@@ -26,7 +26,6 @@ import com.google.common.collect.{BiMap, HashBiMap}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import org.midonet.cluster.data.rules.{TraceRule => TraceRuleData}
 import org.midonet.midolman.UnderlayResolver.Route
 import org.midonet.midolman.layer3.Route.NextHop
 import org.midonet.midolman.layer3.{Route => L3Route}
@@ -85,17 +84,17 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
     private val portMapIngress: BiMap[Int,UUID] = HashBiMap.create()
     private val mockDpIngress = new MockDatapathChannel
     private var pktWkflIngress: TestActorRef[PacketWorkflow] = null
-    private val packetOutQueueIngress = new ju.LinkedList[(Packet, ju.List[FlowAction])]
-    private val flowQueueIngress = new ju.LinkedList[Flow]
-    private val packetCtxTrapIngress = new ju.LinkedList[PacketContext]
+    private val packetOutQueueIngress = new LinkedList[(Packet, ju.List[FlowAction])]
+    private val flowQueueIngress = new LinkedList[Flow]
+    private val packetCtxTrapIngress = new LinkedList[PacketContext]
 
     // infra for egress dda
     private val portMapEgress: BiMap[Int,UUID] = HashBiMap.create()
     private val mockDpEgress = new MockDatapathChannel
     private var pktWkflEgress: TestActorRef[PacketWorkflow] = null
-    private val packetOutQueueEgress = new ju.LinkedList[(Packet, ju.List[FlowAction])]
-    private val flowQueueEgress = new ju.LinkedList[Flow]
-    private val packetCtxTrapEgress = new ju.LinkedList[PacketContext]
+    private val packetOutQueueEgress = new LinkedList[(Packet, ju.List[FlowAction])]
+    private val flowQueueEgress = new LinkedList[Flow]
+    private val packetCtxTrapEgress = new LinkedList[PacketContext]
 
     override def beforeTest(): Unit = {
         ingressHost = newHost("ingressHost", hostId)
@@ -247,13 +246,11 @@ class FlowTracingEgressMatchingTest extends MidolmanSpec {
 
         val egressFrame = applyPacketActions(packet.getEthernet,
                                              actions)
-        val egressFrameFlowMatch =
-            FlowMatches.fromEthernetPacket(egressFrame)
-        egressFrameFlowMatch.addKeys(
-            actions.asScala.collect(
-                { case f: FlowActionSetKey
-                         if f.getFlowKey.isInstanceOf[FlowKeyTunnel] =>
-                    f.getFlowKey }).asJava)
+        val egressFrameFlowMatch = FlowMatches.fromEthernetPacket(egressFrame)
+        actions.asScala.collect {
+            case f: FlowActionSetKey if f.getFlowKey.isInstanceOf[FlowKeyTunnel] =>
+                f.getFlowKey
+        } foreach egressFrameFlowMatch.addKey
         egressFrameFlowMatch.addKey(FlowKeys.inPort(tunnelPort))
             .setInputPortNumber(tunnelPort)
 

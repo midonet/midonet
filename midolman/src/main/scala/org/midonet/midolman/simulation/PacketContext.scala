@@ -30,11 +30,10 @@ import org.midonet.midolman.rules.RuleResult
 import org.midonet.odp.{FlowMatch, Packet}
 import org.midonet.odp.flows.FlowActions._
 import org.midonet.odp.flows.{FlowAction, FlowActions, FlowKeys}
-import org.midonet.sdn.flows.FlowTagger.DeviceTag
-
 import org.midonet.packets._
 import org.midonet.sdn.flows.FlowTagger.{FlowStateTag, FlowTag}
 import org.midonet.util.Clearable
+import org.midonet.util.collection.ArrayListUtil
 import org.midonet.util.functors.Callback0
 
 object PacketContext {
@@ -137,7 +136,7 @@ trait FlowContext extends Clearable { this: PacketContext =>
         }
 
     private def diffVlan(): Unit =
-        if (!diffBaseMatch.getVlanIds.equals(wcmatch.getVlanIds)) {
+        if (!ArrayListUtil.equals(diffBaseMatch.getVlanIds, wcmatch.getVlanIds)) {
             val vlansToRemove = diffBaseMatch.getVlanIds.diff(wcmatch.getVlanIds)
             val vlansToAdd = wcmatch.getVlanIds.diff(diffBaseMatch.getVlanIds)
             log.debug("Vlan tags to pop {}, vlan tags to push {}",
