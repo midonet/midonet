@@ -89,7 +89,7 @@ public class TestBGP extends JerseyTest {
     public void testCreateGetListDelete() {
 
         // Models have changed for BGP in v2, this is no longer relevant
-        Assume.assumeFalse(!FuncTest.isCompatApiEnabled());
+        Assume.assumeFalse(FuncTest.isCompatApiEnabled());
 
         DtoBgp bgp = new DtoBgp();
         bgp.setLocalAS(55394);
