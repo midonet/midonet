@@ -17,6 +17,8 @@ package org.midonet.midolman
 
 import java.util.UUID
 
+import org.midonet.midolman.simulation.Coordinator.ToPortAction
+
 import scala.collection.JavaConverters._
 import scala.collection.JavaConversions._
 import scala.collection.immutable.List
@@ -42,7 +44,6 @@ import org.midonet.packets.util.PacketBuilder._
 import org.midonet.packets.{Ethernet, ICMP, IPv4Addr}
 import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.midonet.sdn.flows.VirtualActions.{FlowActionOutputToVrnBridge, FlowActionOutputToVrnPort}
 import org.midonet.util.concurrent.ExecutionContextOps
 
 @RunWith(classOf[JUnitRunner])
@@ -135,12 +136,12 @@ class FlowTranslatorTest extends MidolmanSpec {
         chain
     }
 
-    feature("FlowActionOutputToVrnPort is translated") {
+    feature("ToPortAction is translated") {
         translationScenario("The port is local") { ctx =>
             val port = UUID.randomUUID()
             ctx local port -> 3
 
-            ctx translate FlowActionOutputToVrnPort(port)
+            ctx translate ToPortAction(port)
             ctx verify (List(output(3)),
                         Set(FlowTagger.tagForDpPort(3)))
         }
@@ -151,7 +152,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx grePort 1342
             ctx peer remoteHost -> (1, 2)
 
-            ctx translate FlowActionOutputToVrnPort(port.id)
+            ctx translate ToPortAction(port.id)
             ctx verify (List(setKey(FlowKeys.tunnel(port.tunnelKey, 1, 2, 0)),
                                    output(1342)),
                         Set(FlowTagger.tagForTunnelRoute(1, 2)))
@@ -164,7 +165,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx grePort 1342
             ctx peer remoteHost -> (1, 2)
 
-            ctx translate FlowActionOutputToVrnPort(port.id)
+            ctx translate ToPortAction(port.id)
             ctx verify (List.empty, Set.empty)
         }
 
@@ -174,7 +175,7 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx vxlanPort 3
             ctx local port -> 4
 
-            ctx translate FlowActionOutputToVrnPort(port)
+            ctx translate ToPortAction(port)
             ctx verify (List(output(4)), Set(FlowTagger.tagForDpPort(4)))
         }
     }
@@ -188,173 +189,6 @@ class FlowTranslatorTest extends MidolmanSpec {
         }
         bindings foreach { case (id, name) => materializePort(id, hostId, name) }
         fetchHost(hostId)
-    }
-
-    feature("FlowActionOutputToVrnBridge is translated") {
-        if (!awaitingImpl) {
-        translationScenario("The bridge has local ports, from VTEP") { ctx =>
-            val vtep = new VtepDef(IPv4Addr("192.167.34.1"),
-                                   IPv4Addr("102.32.2.1"),
-                                   394)
-            val tzId = UUID.randomUUID()
-            val bridge = newBridge("floodBridge")
-
-            val inPort = makeVxLanPort(hostId, bridge, vtep, tzId)
-            val port0 = makePort(hostId, bridge=Some(bridge)) // code assumes
-            val port1 = makePort(hostId, bridge=Some(bridge)) // them exterior
-
-            activatePorts(List(inPort.id, port0.id, port1.id))
-            makeHost(Map(inPort.id -> "in", port0.id -> "port0"))
-            ctx input inPort.id
-            ctx local inPort.id -> 1
-            ctx local port0.id -> 2
-            ctx local port1.id -> 3
-
-            val brPorts = List(port0.id, port1.id)
-            ctx translate FlowActionOutputToVrnBridge(bridge, brPorts)
-            ctx verify (List(output(2), output(3)),
-            Set(FlowTagger.tagForDpPort(2),
-                FlowTagger.tagForDpPort(3)))
-        }
-        }
-
-        translationScenario("The bridge has local ports") { ctx =>
-            val bridge = newBridge("floodBridge")
-            val inPort = makePort(hostId, bridge=Some(bridge))
-            val port0 = makePort(hostId, bridge=Some(bridge)) // code assumes that they
-            val port1 = makePort(hostId, bridge=Some(bridge)) // are exterior
-
-            activatePorts(List(inPort.id, port0.id, port1.id))
-            makeHost(Map(inPort.id -> "in", port0.id -> "port0", port1.id -> "port1"))
-            ctx input inPort.id
-            ctx local inPort.id -> 1
-            ctx local port0.id -> 2
-            ctx local port1.id -> 3
-
-            val brPorts = List(port0.id, port1.id)
-
-            ctx translate FlowActionOutputToVrnBridge(bridge, brPorts)
-            ctx verify (List(output(2), output(3)),
-                        Set(FlowTagger.tagForDpPort(2),
-                            FlowTagger.tagForDpPort(3)))
-        }
-
-        translationScenario("The bridge has remote ports") { ctx =>
-            val inPort = UUID.randomUUID()
-            val remoteHost0 = newHost("remoteHost0")
-            val port0 = makePort(remoteHost0, interface=Some("if"))
-            val remoteHost1 = newHost("remoteHost1")
-            val port1 = makePort(remoteHost1, interface=Some("if"))
-            val bridge = newBridge("floodBridge")
-            makeHost()
-            ctx input inPort
-            ctx local inPort -> 9
-            ctx grePort 1342
-            ctx peer remoteHost0 -> (1, 2)
-            ctx peer remoteHost1 -> (3, 4)
-
-            val brPorts = List(port0.id, port1.id)
-            ctx translate FlowActionOutputToVrnBridge(bridge, brPorts)
-            ctx verify (List(setKey(FlowKeys.tunnel(port0.tunnelKey, 1, 2, 0)),
-                             output(1342),
-                             setKey(FlowKeys.tunnel(port1.tunnelKey, 3, 4, 0)),
-                             output(1342)),
-                        Set(FlowTagger.tagForTunnelRoute(1, 2),
-                            FlowTagger.tagForTunnelRoute(3, 4)))
-        }
-
-        if (!awaitingImpl) {
-        translationScenario("The bridge has vxlan ports") { ctx =>
-            val hostIp = IPv4Addr("172.167.3.3")
-            val hostTunIp = IPv4Addr("10.0.2.1")
-
-            val tzId = UUID.randomUUID()
-
-            val vtep1 = new VtepDef(IPv4Addr("10.0.2.2"),
-                                    IPv4Addr("192.168.20.2"), 11)
-
-            val vtep2 = new VtepDef(IPv4Addr("10.0.2.4"),
-                                    IPv4Addr("192.168.20.4"), 44)
-
-            var bridge = newBridge("floodBridge")
-            val inPort = makePort(hostId, bridge=Some(bridge))
-            val port0 = makePort(hostId, bridge=Some(bridge))
-            val vxlanPort1 = makeVxLanPort(hostId, bridge, vtep1, tzId)
-            val vxlanPort2 = makeVxLanPort(hostId, bridge, vtep2, tzId)
-
-            // refetch bridge, it was updated with the vxlan port
-            activatePorts(List(inPort.id, port0.id, vxlanPort1.id, vxlanPort2.id))
-
-            makeHost(
-                Map(port0.id -> "port0"),
-                hostIp,
-                Map(tzId -> hostTunIp)
-            )
-
-            ctx input inPort.id
-            ctx local inPort.id -> 7
-            ctx local port0.id -> 8
-            ctx vxlanPort 666
-            ctx grePort 1342
-
-            ctx translate FlowActionOutputToVrnBridge(bridge, List(port0.id))
-            ctx verify (
-                List(
-                    output(8),
-                    setKey(
-                        FlowKeys.tunnel(vtep1.vni.toLong, hostTunIp.toInt,
-                                        vtep1.tunIp.toInt, 0)
-                    ),
-                    output(666),
-                    setKey(
-                        FlowKeys.tunnel(vtep2.vni.toLong, hostTunIp.toInt,
-                                        vtep2.tunIp.toInt, 0)
-                        ),
-                    output(666)
-                ),
-                Set(
-                    FlowTagger.tagForTunnelRoute(hostTunIp.toInt,
-                                                 vtep1.tunIp.toInt),
-                    FlowTagger.tagForTunnelRoute(hostTunIp.toInt,
-                                                 vtep2.tunIp.toInt),
-                    FlowTagger.tagForDpPort(8)
-                )
-            )
-        }
-        }
-
-        translationScenario("Local and remote ports are translated") { ctx =>
-            val remoteHost0 = newHost("remoteHost0")
-            val rport0 = makePort(remoteHost0, interface=Some("if"))
-            val remoteHost1 = newHost("remoteHost1")
-            val rport1 = makePort(remoteHost1, interface=Some("if"))
-            val bridge = newBridge("floodBridge")
-            val lport0 = makePort(hostId, bridge=Some(bridge)) // code assumes that they
-            val lport1 = makePort(hostId, bridge=Some(bridge)) // are exterior
-
-            activatePorts(List(lport0.id, lport1.id))
-
-            ctx grePort 1342
-            makeHost(Map(lport0.id -> "lport0", lport1.id -> "lport1"))
-            ctx peer remoteHost0 -> (1, 2)
-            ctx peer remoteHost1 -> (3, 4)
-            ctx local lport0.id -> 2
-            ctx local lport1.id -> 3
-
-            val brPorts = List(rport0.id, lport0.id, lport1.id, rport1.id)
-            ctx translate FlowActionOutputToVrnBridge(bridge, brPorts)
-
-            ctx verify (List(output(2),
-                             output(3),
-                             setKey(FlowKeys.tunnel(rport0.tunnelKey, 1, 2, 0)),
-                             output(1342),
-                             setKey(FlowKeys.tunnel(rport1.tunnelKey, 3, 4, 0)),
-                             output(1342)),
-                        Set(FlowTagger.tagForDpPort(2),
-                            FlowTagger.tagForDpPort(3),
-                            FlowTagger.tagForTunnelRoute(1, 2),
-                            FlowTagger.tagForTunnelRoute(3, 4)))
-        }
     }
 
     feature("FlowActionUserspace goes through untouched") {
@@ -417,8 +251,8 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx local port1.id -> 3
 
             val brPorts = List(port1.id)
-            ctx translate List(FlowActionOutputToVrnPort(port0),
-                               FlowActionOutputToVrnBridge(bridge, brPorts),
+            ctx translate List(ToPortAction(port0),
+                               ToPortAction(port1.id),
                                userspace(1),
                                pushVLAN(3))
             ctx verify (List(output(2), output(3), userspace(1), pushVLAN(3)),
@@ -435,8 +269,8 @@ class FlowTranslatorTest extends MidolmanSpec {
             ctx grePort 1342
             ctx peer remoteHost -> (1, 2)
 
-            ctx translate List(FlowActionOutputToVrnPort(port0),
-                               FlowActionOutputToVrnPort(port1.id))
+            ctx translate List(ToPortAction(port0),
+                               ToPortAction(port1.id))
             ctx verify (List(output(3),
                              setKey(FlowKeys.tunnel(port1.tunnelKey, 1, 2, 0)),
                              output(1342)),
