@@ -17,15 +17,13 @@ package org.midonet.midolman.topology
 
 import akka.actor.{ActorRef, Actor}
 import collection.JavaConverters._
-import java.util.{Set => JSet, UUID}
-import scala.collection.breakOut
+import java.util.{ArrayList, Set => JSet, UUID}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.PortGroupBuilder
 import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation
-import org.midonet.sdn.flows.FlowTagger
 import org.midonet.cluster.data.PortGroup
 
 object PortGroupManager {
@@ -56,7 +54,7 @@ class PortGroupManager(val id: UUID, val clusterClient: Client) extends Actor
         log.debug(s"Publishing update for port group $id.")
 
         val simGroup = new simulation.PortGroup(config.getId, config.getName,
-                                                config.isStateful, members)
+                                                config.isStateful, new ArrayList(members.asJava))
         VirtualTopologyActor ! simGroup
         VirtualTopologyActor ! InvalidateFlowsByTag(simGroup.deviceTag)
     }

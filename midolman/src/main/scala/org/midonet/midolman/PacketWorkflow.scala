@@ -95,8 +95,8 @@ trait UnderlayTrafficHandler { this: PacketWorkflow =>
         val srcTunIp = IPv4Addr(context.wcmatch.getTunnelSrc)
         val vni   = context.wcmatch.getTunnelKey.toInt
         val portIdOpt = VxLanPortMapper uuidOf (srcTunIp, vni)
-        context.inputPort = portIdOpt.orNull
-        val simResult = if (context.inputPort != null) {
+        val simResult = if (portIdOpt.isDefined) {
+            context.inputPort = portIdOpt.get
             simulatePacketIn(context)
         } else {
             context.log.info("VNI doesn't map to any VxLAN port")

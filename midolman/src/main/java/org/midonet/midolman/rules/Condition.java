@@ -15,6 +15,7 @@
  */
 package org.midonet.midolman.rules;
 
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -186,14 +187,6 @@ public class Condition extends BaseConfig {
         etherType = Unsigned.unsign(subnet.ethertype());
     }
 
-    public boolean containsInPort(UUID portId) {
-        return inPortIds != null && inPortIds.contains(portId);
-    }
-
-    public boolean containsOutPort(UUID portId) {
-        return outPortIds != null && outPortIds.contains(portId);
-    }
-
     public boolean matches(PacketContext pktCtx) {
         FlowMatch pktMatch = pktCtx.wcmatch();
         // Matching on fragmentPolicy is unaffected by conjunctionInv,
@@ -321,7 +314,7 @@ public class Condition extends BaseConfig {
     // which indicates that the packet ingressed through a port in the
     // condition's port group.
     private boolean matchPortGroup(
-            Set<UUID> pktGroups, UUID condGroup, boolean negate) {
+            ArrayList<UUID> pktGroups, UUID condGroup, boolean negate) {
         return portGroup == null ||
                 negate ^ (pktGroups != null && pktGroups.contains(condGroup));
     }

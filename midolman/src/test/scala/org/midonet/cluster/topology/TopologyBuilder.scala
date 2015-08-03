@@ -455,7 +455,7 @@ trait TopologyBuilder {
                         name: Option[String] = None,
                         tenantId: Option[String] = None,
                         stateful: Option[Boolean] = None,
-                        portIds: Set[UUID] = Set.empty): PortGroup = {
+                        portIds: Seq[UUID] = Seq.empty): PortGroup = {
         val builder = PortGroup.newBuilder
             .setId(id.asProto)
             .addAllPortIds(portIds.map(_.asProto).asJava)

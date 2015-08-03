@@ -16,41 +16,16 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{Objects, UUID}
+import java.util.{ArrayList, UUID}
 
-import com.google.protobuf.Message
-
-import org.midonet.cluster.data.ZoomConvert.ScalaZoomField
-import org.midonet.cluster.data.ZoomObject
-import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.midolman.topology.VirtualTopology.VirtualDevice
 import org.midonet.sdn.flows.FlowTagger
 
-class PortGroup(@ScalaZoomField(name = "id", converter = classOf[UUIDConverter])
-                val id: UUID,
-                @ScalaZoomField(name = "name")
+class PortGroup(val id: UUID,
                 val name: String,
-                @ScalaZoomField(name = "stateful")
                 val stateful: Boolean,
-                @ScalaZoomField(name = "port_ids", converter = classOf[UUIDConverter])
-                val members: Set[UUID])
-    extends ZoomObject with VirtualDevice {
+                val members: ArrayList[UUID])
+    extends VirtualDevice {
 
-    private var _deviceTag = FlowTagger.tagForPortGroup(id)
-
-    def this() = this(null, null, false, null)
-    override def deviceTag = _deviceTag
-
-    override def afterFromProto(proto: Message): Unit = {
-        _deviceTag = FlowTagger.tagForPortGroup(id)
-    }
-
-    override def equals(obj: Any): Boolean = obj match {
-        case portGroup: PortGroup =>
-            id == portGroup.id && name == portGroup.name &&
-            stateful == portGroup.stateful &&  members == portGroup.members
-        case _ => false
-    }
-
-    override def hashCode: Int = Objects.hashCode(id, name, stateful, members)
+    val deviceTag = FlowTagger.tagForPortGroup(id)
 }

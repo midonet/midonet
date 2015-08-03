@@ -16,7 +16,7 @@
 
 package org.midonet.midolman.state
 
-import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JIterator, List => JList, Set => JSet, UUID}
+import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JIterator, Set => JSet, UUID}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -166,9 +166,11 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
 
                 traceKeyToProto(k, txTraceEntry)
                 txTraceEntry.setFlowTraceId(ctx.flowTraceId)
-                val iter = ctx.requests.iterator
-                while (iter.hasNext) {
-                    txTraceEntry.addRequestId(iter.next())
+                var i = 0
+                val requests = ctx.requests
+                while (i < requests.size) {
+                    txTraceEntry.addRequestId(requests.get(i))
+                    i += 1
                 }
                 txState.addTraceEntry(txTraceEntry.build())
             }
@@ -236,14 +238,14 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         context.conntrackTx.fold(callbacks, _conntrackAdder)
         context.natTx.fold(callbacks, _natAdder)
         context.traceTx.fold(callbacks, _traceAdder)
-        buildMessage(context, ingressPort)
+        buildMessage(context)
     }
 
-    def buildMessage(context: PacketContext, ingressPort: UUID): Unit =
+    def buildMessage(context: PacketContext): Unit =
         if (!txPeers.isEmpty) {
             try {
                 resetCurrentMessage()
-                txState.setIngressPort(uuidToProto(ingressPort))
+                txState.setIngressPort(uuidToProto(txIngressPort))
                 currentMessage.addNewState(txState.build())
                 context.stateMessage = currentMessage.build()
                 hostsToActions(txPeers, context.stateActions)
@@ -334,38 +336,44 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     private def collectPeersForPort(portId: UUID, hosts: JSet[UUID],
                                     ports: JSet[UUID],
                                     tags: Collection[FlowTag]) {
-        def addPeerFor(port: Port) {
-            if ((port.hostId ne null) && (port.hostId != hostId))
-                hosts.add(port.hostId)
-            tags.add(port.deviceTag)
-        }
-
         val port = getPort(portId)
-        addPeerFor(port)
-        tags.add(port.deviceTag)
-
-        if (port.portGroups ne null) {
-            val groupIds = port.portGroups.iterator
-            while (groupIds.hasNext) {
-                val group = getPortGroup(groupIds.next())
+        addPeerFor(port, hosts, tags)
+        var i = 0
+        val groupIds = port.portGroups
+        while (i < groupIds.size()) {
+            val group = getPortGroup(groupIds.get(i))
+            if (group.stateful) {
                 tags.add(group.deviceTag)
-                if (group.stateful) {
-                    val members = group.members.iterator
-                    while (members.hasNext) {
-                        val id = members.next()
-                        if (id != portId) {
-                            ports.add(id)
-                            addPeerFor(getPort(id))
-                        }
-                    }
-                }
+                collectPortGroupPeers(portId, hosts, ports, tags, group)
             }
+            i += 1
         }
+    }
+
+    def collectPortGroupPeers(skip: UUID, hosts: JSet[UUID], ports: JSet[UUID],
+                              tags: Collection[FlowTag], group: PortGroup) {
+        var i = 0
+        val members = group.members
+        while (i < members.size()) {
+            val id = members.get(i)
+            if (id != skip) {
+                ports.add(id)
+                addPeerFor(getPort(id), hosts, tags)
+            }
+            i += 1
+        }
+    }
+
+    private def addPeerFor(port: Port, hosts: JSet[UUID],
+                           tags: Collection[FlowTag]): Unit = {
+        if ((port.hostId ne null) && port.hostId != hostId)
+            hosts.add(port.hostId)
+        tags.add(port.deviceTag)
     }
 
     @throws(classOf[NotYetException])
     protected def resolvePeers(ingressPort: UUID,
-                               egressPorts: JList[UUID],
+                               egressPorts: ArrayList[UUID],
                                hosts: JSet[UUID],
                                ports: JSet[UUID],
                                tags: Collection[FlowTag]): Unit = {
@@ -373,11 +381,12 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         ports.clear()
         if (ingressPort ne null)
             collectPeersForPort(ingressPort, hosts, ports, tags)
-        val portsIt = egressPorts.iterator
-        while (portsIt.hasNext) {
-            val port = portsIt.next()
+        var i = 0
+        while (i < egressPorts.size) {
+            val port = egressPorts.get(i)
             ports.add(port)
             collectPeersForPort(port, hosts, ports, tags)
+            i += 1
         }
 
         log.debug("Resolved peers {}", hosts)

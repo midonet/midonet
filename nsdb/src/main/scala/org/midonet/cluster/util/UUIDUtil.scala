@@ -17,12 +17,11 @@ package org.midonet.cluster.util
 
 import java.lang.reflect.Type
 import java.nio.ByteBuffer
-import java.util.{UUID => JUUID}
+import java.util.{UUID => JUUID, ArrayList}
 import javax.annotation.Nonnull
 
-import scala.util.Random
-
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.models.Commons
 import org.midonet.cluster.models.Commons.{UUID => PUUID}
 
 object UUIDUtil {
@@ -57,6 +56,16 @@ object UUIDUtil {
 
     implicit def fromProto(uuid: PUUID): JUUID = {
         new JUUID(uuid.getMsb, uuid.getLsb)
+    }
+
+    implicit def fromProtoList(from: java.util.List[Commons.UUID]): ArrayList[JUUID] = {
+        val res = new ArrayList[JUUID]
+        if (from ne null) {
+            val it = from.iterator()
+            while (it.hasNext)
+                res.add(it.next())
+        }
+        res
     }
 
     implicit class RichJavaUuid(val uuid: JUUID) extends AnyVal {
