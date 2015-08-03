@@ -25,10 +25,8 @@ import scala.reflect._
 
 import akka.actor._
 import com.google.inject.Inject
-import com.typesafe.scalalogging.Logger
 import org.midonet.midolman.topology.VirtualTopology.Device
 import org.midonet.sdn.flows.FlowTagger.FlowTag
-import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.Client
 import org.midonet.midolman.config.MidolmanConfig
@@ -45,7 +43,6 @@ import org.midonet.util.concurrent._
  */
 object VirtualTopologyActor extends Referenceable {
     val deviceRequestTimeout = 30 seconds
-    val log = Logger(LoggerFactory.getLogger("org.midonet.devices.devices-service"))
 
     override val Name: String = "VirtualTopologyActor"
 
