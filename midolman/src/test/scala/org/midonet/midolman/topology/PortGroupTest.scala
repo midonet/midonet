@@ -20,7 +20,6 @@ import scala.concurrent.duration._
 
 import akka.util.Timeout
 import org.junit.runner.RunWith
-import org.scalatest.concurrent.Eventually._
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.midolman.simulation.{PortGroup => SimPortGroup}
@@ -71,24 +70,16 @@ class PortGroupTest extends MidolmanSpec
             pg should not be 'stateful
 
             setPortGroupStateful(portGroup, true)
-            eventually {
-                interceptPortGroup() should be ('stateful)
-            }
+            interceptPortGroup() should be ('stateful)
 
             newPortGroupMember(pg.id, port1)
-            eventually {
-                interceptPortGroup().members should equal (Set(port1))
-            }
+            interceptPortGroup().members should contain theSameElementsAs List(port1)
 
             newPortGroupMember(pg.id, port2)
-            eventually {
-                interceptPortGroup().members should equal (Set(port1, port2))
-            }
+            interceptPortGroup().members should contain theSameElementsAs List(port1, port2)
 
             deletePortGroupMember(pg.id, port1)
-            eventually {
-                interceptPortGroup().members should equal (Set(port2))
-            }
+            interceptPortGroup().members should contain theSameElementsAs List(port2)
         }
     }
 }

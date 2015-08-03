@@ -18,14 +18,13 @@ package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
 import java.util.{ArrayList, Collection, HashSet => JHashSet}
-import java.util.{List => JList, Set => JSet, UUID}
+import java.util.{Set => JSet, UUID}
 import java.util.Random
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.Future
 
-import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.slf4j.LoggerFactory
 import org.slf4j.helpers.NOPLogger
 
@@ -43,7 +42,6 @@ import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
 import org.midonet.midolman.simulation.{BridgePort, Port}
-import org.midonet.midolman.topology.rcu.ResolvedHost
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
@@ -79,7 +77,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             BridgePort.random.copy(hostId = host)
 
     def makePort(host: UUID, group: UUID): BridgePort = {
-        makePort(host).copy(portGroups = Set[UUID](group))
+        makePort(host).copy(portGroups = new ArrayList[UUID]() { add(group) })
     }
 
     val ingressPortNoGroup = makePort(ingressHostId)
@@ -91,9 +89,9 @@ class FlowStateReplicatorTest extends MidolmanSpec {
     val egressPort2 = makePort(egressHost2, egressGroupId)
 
     val ingressGroup = new PortGroup(ingressGroupId, "ingress", true,
-        Set[UUID](ingressPort.id, ingressPortGroupMember.id))
+        new ArrayList[UUID]() { add(ingressPort.id); add(ingressPortGroupMember.id) })
     val egressGroup = new PortGroup(egressGroupId, "egress", true,
-        Set[UUID](egressPort1.id, egressPort2.id))
+        new ArrayList[UUID]() { add(egressPort1.id); add(egressPort2.id) })
 
     var sender: TestableFlowStateReplicator = _
     var recipient: TestableFlowStateReplicator = _
@@ -385,7 +383,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
 
             callbacks should have size 2
             (0 to 1) map { traces.drop(_).head._1 } foreach { key =>
-                sender.traceTable.unrefedKeys should not contain (key)
+                sender.traceTable.unrefedKeys should not contain key
             }
 
             (0 to 1) foreach { callbacks.get(_).call() }
@@ -405,7 +403,8 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             When("The flow replicator resolves peers for a flow's state")
             val hosts = new JHashSet[UUID]()
             val ports = new JHashSet[UUID]()
-            sender.resolvePeers(ingressPort.id, List(egressPort1.id), hosts, ports, tags)
+            sender.resolvePeers(
+                ingressPort.id, new ArrayList[UUID]() { add(egressPort1.id) }, hosts, ports, tags)
 
             Then("Hosts in the ingress port's port group should be included")
             hosts should contain (ingressGroupMemberHostId)
@@ -493,7 +492,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         override def getPortGroup(id: UUID) = portGroups(id)
 
         override def resolvePeers(ingressPort: UUID,
-                                  egressPorts: JList[UUID],
+                                  egressPorts: ArrayList[UUID],
                                   peers: JSet[UUID],
                                   ports: JSet[UUID],
                                   tags: Collection[FlowTag]) {

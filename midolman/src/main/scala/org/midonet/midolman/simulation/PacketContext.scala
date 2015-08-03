@@ -228,7 +228,7 @@ class PacketContext(val cookie: Int,
 
     def jlog = log.underlying
 
-    var portGroups: JSet[UUID] = null
+    var portGroups: ArrayList[UUID] = null
 
     var idle: Boolean = true
     var runs: Int = 0
