@@ -42,7 +42,7 @@ public class TestIPv4Subnet {
     @Test(expected = IllegalArgumentException.class)
     @Parameters(source = TestIPv4Subnet.class, method="invalidCidrs")
     public void testInvalidCidrs(String input) {
-        IPv4Subnet testObject = IPv4Subnet.fromCidr(input);
+        IPv4Subnet.fromCidr(input);
     }
 
     @Test
@@ -67,7 +67,13 @@ public class TestIPv4Subnet {
     @Parameters(source = TestIPv4Subnet.class, method="prefixLenToBytes")
     public void testPrefixLenToBytes(int prefixLen, byte[] expected) {
         Assert.assertArrayEquals(
-                expected, IPv4Subnet.prefixLenToBytes(prefixLen));
+            expected, IPv4Subnet.prefixLenToBytes(prefixLen));
+    }
+
+    @Test
+    public void testDefaultMask() {
+        IPv4Subnet subnet = IPv4Subnet.fromCidr("1.1.1.1");
+        Assert.assertEquals("1.1.1.1/32", subnet.toString());
     }
 
     public static Object[] validCidrs() {
@@ -90,7 +96,6 @@ public class TestIPv4Subnet {
                 $("foo"),
 
                 // Invalid delim
-                $("1.1.1.1"),
                 $("1.1.1.1_32"),
                 $("1.1.1.1 32"),
 

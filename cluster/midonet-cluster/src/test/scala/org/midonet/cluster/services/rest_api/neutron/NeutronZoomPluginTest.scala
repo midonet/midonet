@@ -37,7 +37,7 @@ import org.midonet.cluster.services.rest_api.neutron.plugin.NeutronZoomPlugin
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.services.{MidonetBackend, MidonetBackendService}
 import org.midonet.cluster.storage.MidonetBackendConfig
-import org.midonet.cluster.util.CuratorTestFramework
+import org.midonet.cluster.util.{IPSubnetUtil, CuratorTestFramework}
 import org.midonet.cluster.util.UUIDUtil.{toProto => toPuuid}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.util.MidonetEventually
@@ -140,9 +140,8 @@ class NeutronZoomPluginTest extends FeatureSpec
             val subnet = new Subnet(snId, nwId, "tenant", "subnet",
                                     "10.0.1.0/100", 4, "10.0.1.0", List(),
                                     List(), List(), true)
-            val ex = the [BadRequestHttpException] thrownBy
-                     plugin.createSubnet(subnet)
-            ex.getCause shouldBe an [IllegalArgumentException]
+            a [BadRequestHttpException] should be thrownBy
+                plugin.createSubnet(subnet)
         }
 
         scenario("The plugin gracefully (no 5xx) handles invalid references") {
@@ -262,7 +261,7 @@ class NeutronZoomPluginTest extends FeatureSpec
         protoSubnet.getName shouldBe pojoSubnet.name
         protoSubnet.getIpVersion shouldBe 4
         protoSubnet.getNetworkId shouldBe toPuuid(pojoSubnet.networkId)
-        protoSubnet.getCidr shouldBe pojoSubnet.cidr
+        protoSubnet.getCidr shouldBe IPSubnetUtil.toProto(pojoSubnet.cidr)
         protoSubnet.getGatewayIp.getAddress shouldBe pojoSubnet.gatewayIp
         protoSubnet.getAllocationPoolsCount shouldBe 1
         val ipAlloc = protoSubnet.getAllocationPools(0)

@@ -25,6 +25,7 @@ import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Network => NetworkType, Port => PortType, Subnet => SubnetType}
+import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil.toProto
 import org.midonet.packets.MAC
@@ -35,7 +36,7 @@ import org.midonet.util.concurrent.toFutureOps
  * Provides integration tests for PortTranslator.
  */
 @RunWith(classOf[JUnitRunner])
-class PortTranslatorIT extends C3POMinionTestBase {
+class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
     /* Set up legacy Data Client for testing Replicated Map. */
     override protected val useLegacyDataClient = true
 
@@ -87,6 +88,30 @@ class PortTranslatorIT extends C3POMinionTestBase {
             val hf = storage.get(classOf[Host], h1Id)
             storage.exists(classOf[Port], nw1p2Id).await() shouldBe false
             hf.await().getPortIdsList should contain only toProto(nw1p1Id)
+        }
+
+        // Add allowed address pairs to the port. Use one with CIDR and one
+        // without.
+        val nw1p1WithAddrPairsJson = portJson(
+            nw1p1Id, nw1Id, allowedAddrPairs = List(
+                AddrPair("10.0.1.0/24", "ab:cd:ef:ab:cd:ef"),
+                AddrPair("10.0.2.1", "12:34:56:12:34:56")))
+        insertUpdateTask(7, PortType, nw1p1WithAddrPairsJson, nw1p1Id)
+        eventually {
+            val asc = storage.get(classOf[Chain],
+                                  antiSpoofChainId(nw1p1Id)).await()
+            asc.getRuleIdsCount shouldBe 5
+
+            // First two rules (don't drop ARP, don't drop DHCP) and the last
+            // one (drop everything) are fixed.
+            val ruleIds = asc.getRuleIdsList.asScala.slice(2, 4)
+            val rules = storage.getAll(classOf[Rule], ruleIds).await()
+            rules(0).getAction shouldBe Action.RETURN
+            rules(0).getNwSrcIp.getAddress shouldBe "10.0.1.0"
+            rules(0).getNwSrcIp.getPrefixLength shouldBe 24
+            rules(1).getAction shouldBe Action.RETURN
+            rules(1).getNwSrcIp.getAddress shouldBe "10.0.2.1"
+            rules(1).getNwSrcIp.getPrefixLength shouldBe 32
         }
 
         // Unbind the first port.

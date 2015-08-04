@@ -45,7 +45,7 @@ message NeutronSubnet {
     optional UUID network_id = 2;
     optional string tenant_id = 3;
     optional string name = 4;
-    optional string cidr = 5;
+    optional IPSubnet cidr = 5;
     optional uint32 ip_version = 6;
     optional IPAddress gateway_ip = 7;
 
@@ -103,7 +103,7 @@ message NeutronPort {
     optional bool port_security_enabled = 14 [default = true];
 
     message AllowedAddressPair {
-        optional IPAddress ip_address = 1;
+        optional IPSubnet ip_address = 1;
         optional string mac_address = 2;
     }
 
