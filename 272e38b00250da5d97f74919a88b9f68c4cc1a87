@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_d96ce90a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTableStorage.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-04T14:47:36Z",
+      "side": 1,
+      "message": "The way I was thinking of doing this is to have one trait for MacTable and one for ArpTable. This is because both have specific methods and methods with the same semantic are sometimes named differently.",
+      "range": {
+        "startLine": 30,
+        "startChar": 40,
+        "endLine": 30,
+        "endChar": 50
+      },
+      "revId": "272e38b00250da5d97f74919a88b9f68c4cc1a87",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
