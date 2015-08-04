@@ -61,7 +61,6 @@ public class HostModule extends PrivateModule {
         expose(InterfaceScanner.class);
 
         requireBinding(MidolmanConfig.class);
-        expose(HostIdProviderService.class);
 
         bind(HostIdProviderService.class)
             .to(HostService.class)

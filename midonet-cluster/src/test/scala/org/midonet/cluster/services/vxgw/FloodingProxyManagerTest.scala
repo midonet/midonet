@@ -17,6 +17,7 @@
 package org.midonet.cluster.services.vxgw
 
 import java.util.UUID
+import java.util.concurrent.TimeoutException
 
 import scala.concurrent.duration._
 
@@ -52,14 +53,14 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
                                                 with MidonetEventually {
 
     // Testing this with a real ZK as the coverage in upper layers is very low
-    // so we reduce likelyhood of missing errors due to the in-memory zoom
+    // so we reduce likelihood of missing errors due to the in-memory zoom
     // version.
 
     var backend: MidonetBackend = _
     var fpManager: FloodingProxyManager = _
     var obs: TestAwaitableObserver[FloodingProxy] = _
 
-    val timeout = 10 second
+    val timeout = 1 second
 
     val backendCfg = new MidonetBackendConfig(config)
     override protected def config = MidoTestConfigurator.forClusters(
@@ -138,6 +139,58 @@ class FloodingProxyManagerTest extends FlatSpec with Matchers
         eventually {
             ensureCurrentFpIs(tzId, h1Id, ip1)
         }
+    }
+
+    "Filtering by host id" should "observe only that host's tunnel zones" in {
+        fpManager.start()
+
+        val tz1Id = makeTz(TunnelZone.Type.VTEP)
+        val ip1 = IPv4Addr.random
+        val h1Id = addHostToZone(tz1Id, ip1, 10)
+
+        val herald = new FloodingProxyHerald(backend, Some(h1Id))
+        herald.start()
+        val obs =  new TestAwaitableObserver[FloodingProxy]
+        herald.observable.subscribe(obs)
+
+        obs.awaitOnNext(1, timeout) shouldBe true
+        obs.getOnNextEvents.get(0).hostId shouldBe h1Id
+        obs.getOnNextEvents.get(0).tunnelIp shouldBe ip1
+        obs.getOnNextEvents.get(0).tunnelZoneId shouldBe tz1Id
+        herald.lookup(tz1Id) should be (Some(FloodingProxy(tz1Id, h1Id, ip1)))
+
+        val tz2Id = makeTz(TunnelZone.Type.VTEP)
+        val ip2 = IPv4Addr.random
+        addHostToZone(tz2Id, ip2, 1000)
+
+        intercept[TimeoutException] {
+            obs.awaitOnNext(2, timeout)
+        }
+        herald.lookup(tz2Id) should be (None)
+    }
+
+     "Multiple tunnel zones" should "notify of their respective FPs" in {
+        fpManager.start()
+
+        val tz1Id = makeTz(TunnelZone.Type.VTEP)
+        val ip1 = IPv4Addr.random
+        val h1Id = addHostToZone(tz1Id, ip1, 10)
+
+        obs.awaitOnNext(1, timeout) shouldBe true
+        obs.getOnNextEvents.get(0).hostId shouldBe h1Id
+        obs.getOnNextEvents.get(0).tunnelIp shouldBe ip1
+        obs.getOnNextEvents.get(0).tunnelZoneId shouldBe tz1Id
+        ensureCurrentFpIs(tz1Id, h1Id, ip1)
+
+        val tz2Id = makeTz(TunnelZone.Type.VTEP)
+        val ip2 = IPv4Addr.random
+        val h2Id = addHostToZone(tz2Id, ip2, 1000)
+
+        obs.awaitOnNext(2, timeout) shouldBe true
+        obs.getOnNextEvents.get(1).hostId shouldBe h2Id
+        obs.getOnNextEvents.get(1).tunnelIp shouldBe ip2
+        obs.getOnNextEvents.get(1).tunnelZoneId shouldBe tz2Id
+        ensureCurrentFpIs(tz2Id, h2Id, ip2)
     }
 
     "Tunnel Zones that are not type VTEP" should "not generate any FPs" in {
