@@ -16,6 +16,24 @@
       "revId": "76d8fabb2d4143593228a718ef2c2f34d131ce53",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9f77a19f",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-04T18:20:39Z",
+      "side": 0,
+      "message": "how can the patch compile then?",
+      "parentUuid": "9ad9bd40_fcb8bb76",
+      "revId": "76d8fabb2d4143593228a718ef2c2f34d131ce53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
