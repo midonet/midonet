@@ -29,6 +29,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import org.midonet.cluster.DataClient
+import org.midonet.cluster.data.storage.NotFoundException
 import org.midonet.midolman.Setup
 import org.midonet.midolman.config.MidolmanConfig
 import org.midonet.midolman.rules.RuleResult.Action
@@ -46,7 +47,7 @@ class TraceRequestTest extends MidolmanSpec {
     registerActors(VirtualTopologyActor -> (() => new VirtualTopologyActor))
 
     val tenantId = "tenant0"
-    if (!awaitingImpl) {
+
     scenario("Creation, listing and deletion of trace requests") {
         listTraceRequests().size should be (0)
 
@@ -88,9 +89,16 @@ class TraceRequestTest extends MidolmanSpec {
     }
 
     scenario("Non-existing device") {
-        intercept[StateAccessException] {
-            newTraceRequest(UUID.randomUUID, TraceDeviceType.BRIDGE,
-                            newCondition())
+        if (useNewStorageStack) {
+            intercept[NotFoundException] {
+                newTraceRequest(UUID.randomUUID, TraceDeviceType.BRIDGE,
+                                newCondition())
+            }
+        } else {
+            intercept[StateAccessException] {
+                newTraceRequest(UUID.randomUUID, TraceDeviceType.BRIDGE,
+                                newCondition())
+            }
         }
     }
 
@@ -203,8 +211,14 @@ class TraceRequestTest extends MidolmanSpec {
         port4.inboundFilter should be (null)
 
         VirtualTopologyActor.clearTopology()
-        intercept[TimeoutException] {
-            fetchDevice[SimChain](chainId)
+        if (useNewStorageStack) {
+            intercept[NotFoundException] {
+                fetchDevice[SimChain](chainId)
+            }
+        } else {
+            intercept[TimeoutException] {
+                fetchDevice[SimChain](chainId)
+            }
         }
     }
 
@@ -214,6 +228,7 @@ class TraceRequestTest extends MidolmanSpec {
             fail("Should throw an exception")
         } catch {
             case e: IllegalStateException => /* correct behaviour */
+            case e: NotFoundException => /* correct behaviour (new stack) */
             case _: Throwable => fail("Wrong exception thrown")
         }
 
@@ -222,6 +237,7 @@ class TraceRequestTest extends MidolmanSpec {
             fail("Should throw an exception")
         } catch {
             case e: IllegalStateException => /* correct behaviour */
+            case e: NotFoundException => /* correct behaviour (new stack) */
             case _: Throwable => fail("Wrong exception thrown")
         }
     }
@@ -237,74 +253,79 @@ class TraceRequestTest extends MidolmanSpec {
             enableTraceRequest(trace1)
         } catch {
             case e: IllegalStateException => /* correct behaviour */
+            case e: NotFoundException => /* correct behaviour (new stack) */
             case _: Throwable => fail("Wrong exception thrown")
         }
     }
 
-    scenario("enable a rule on a device with preexisting infilter") {
-        val bridge = newBridge("bridge0", tenant=Some(tenantId))
+    if (!useNewStorageStack) {
+        /* the following two tests test things specific to the model
+         * used on the pre-zoom architecture. */
+        scenario("enable a rule on a device with preexisting infilter") {
+            val bridge = newBridge("bridge0", tenant=Some(tenantId))
 
-        val chain = newInboundChainOnBridge("bridge-filter", bridge)
-        newLiteralRuleOnChain(chain, 1,
-                              newCondition(tpDst = Some(4002)), Action.ACCEPT)
+            val chain = newInboundChainOnBridge("bridge-filter", bridge)
+            newLiteralRuleOnChain(chain, 1,
+                                  newCondition(tpDst = Some(4002)), Action.ACCEPT)
 
-        val simBridge = fetchDevice[SimBridge](bridge)
-        val chainId = simBridge.inFilterId.get
-        fetchDevice[SimChain](chainId).rules.size should be (1)
+            val simBridge = fetchDevice[SimBridge](bridge)
+            var chainId = simBridge.inFilterId.get
+            fetchDevice[SimChain](chainId).rules.size should be (1)
 
-        val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
-                                     newCondition(tpSrc = Some(5000)))
-        fetchDevice[SimChain](chainId).rules.size should be (1)
-        enableTraceRequest(trace1)
+            val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
+                                         newCondition(tpSrc = Some(5000)))
+            fetchDevice[SimChain](chainId).rules.size should be (1)
+            enableTraceRequest(trace1)
 
-        var rules = fetchDevice[SimChain](chainId).rules
-        rules.size() should be (2)
-        rules.get(0) match {
-            case t: TraceRule => t.getRequestId should be (trace1)
-            case _ => fail("First rule should be the trace rule")
+            var rules = fetchDevice[SimChain](chainId).rules
+            rules.size() should be (2)
+            rules.get(0) match {
+                case t: TraceRule => t.getRequestId should be (trace1)
+                case _ => fail("First rule should be the trace rule")
+            }
+
+            // add another rule at the start
+            newLiteralRuleOnChain(chain, 1,
+                                  newCondition(tpDst = Some(4003)), Action.ACCEPT)
+            rules = fetchDevice[SimChain](chainId).rules
+            rules.size() should be (3)
+            rules.get(0) match {
+                case t: TraceRule => fail("Shouldn't be first rule anymore")
+                case _ => /* anything else is fine */
+            }
+
+            disableTraceRequest(trace1)
+            rules = fetchDevice[SimChain](chainId).rules
+            rules.size() should be (2)
+            rules.asScala foreach {
+                case t: TraceRule => fail("There should be no trace rule")
+                case _ => /* anything else is fine */
+            }
         }
 
-        // add another rule at the start
-        newLiteralRuleOnChain(chain, 1,
-                              newCondition(tpDst = Some(4003)), Action.ACCEPT)
-        rules = fetchDevice[SimChain](chainId).rules
-        rules.size() should be (3)
-        rules.get(0) match {
-            case t: TraceRule => fail("Shouldn't be first rule anymore")
-            case _ => /* anything else is fine */
+        scenario("disable rule which is last on chain, but chain not trace chain") {
+            val bridge = newBridge("bridge0", tenant=Some(tenantId))
+
+            val chain = newInboundChainOnBridge("bridge-filter", bridge)
+            val rule1 = newLiteralRuleOnChain(chain, 1,
+                                              newCondition(tpDst = Some(4002)),
+                                              Action.ACCEPT)
+            fetchDevice[SimChain](chain).rules.size() should be (1)
+
+            val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
+                                         newCondition(tpSrc = Some(5000)))
+            enableTraceRequest(trace1)
+
+            fetchDevice[SimChain](chain).rules.size() should be (2)
+            deleteRule(rule1)
+
+            fetchDevice[SimChain](chain).rules.size() should be (1)
+
+            disableTraceRequest(trace1)
+
+            fetchDevice[SimBridge](bridge).inFilterId.get should be (chain)
+            fetchDevice[SimChain](chain).rules.size() should be (0)
         }
-
-        disableTraceRequest(trace1)
-        rules = fetchDevice[SimChain](chainId).rules
-        rules.size() should be (2)
-        rules.asScala foreach {
-            case t: TraceRule => fail("There should be no trace rule")
-            case _ => /* anything else is fine */
-        }
-    }
-
-    scenario("disable rule which is last on chain, but chain not trace chain") {
-        val bridge = newBridge("bridge0", tenant=Some(tenantId))
-
-        val chain = newInboundChainOnBridge("bridge-filter", bridge)
-        val rule1 = newLiteralRuleOnChain(chain, 1,
-                                          newCondition(tpDst = Some(4002)),
-                                          Action.ACCEPT)
-        fetchDevice[SimChain](chain).rules.size() should be (1)
-
-        val trace1 = newTraceRequest(bridge, TraceDeviceType.BRIDGE,
-                                     newCondition(tpSrc = Some(5000)))
-        enableTraceRequest(trace1)
-
-        fetchDevice[SimChain](chain).rules.size() should be (2)
-        deleteRule(rule1)
-
-        fetchDevice[SimChain](chain).rules.size() should be (1)
-
-        disableTraceRequest(trace1)
-
-        fetchDevice[SimBridge](bridge).inFilterId.get should be (chain)
-        fetchDevice[SimChain](chain).rules.size() should be (0)
     }
 
     scenario("Enable on creation, disabled on delete") {
@@ -340,7 +361,6 @@ class TraceRequestTest extends MidolmanSpec {
         intercept[TimeoutException] {
             fetchDevice[SimChain](chain.get)
         }
-    }
     }
 }
 

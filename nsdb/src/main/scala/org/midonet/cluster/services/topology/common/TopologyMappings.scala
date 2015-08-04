@@ -46,6 +46,7 @@ object TopologyMappings {
         Topology.Type.LOAD_BALANCER -> classOf[Topology.LoadBalancer],
         Topology.Type.RULE -> classOf[Topology.Rule],
         Topology.Type.TUNNEL_ZONE -> classOf[Topology.TunnelZone],
+        Topology.Type.TRACE_REQUEST -> classOf[Topology.TraceRequest],
         Topology.Type.VIP -> classOf[Topology.Vip],
         Topology.Type.VTEP -> classOf[Topology.Vtep]
     )

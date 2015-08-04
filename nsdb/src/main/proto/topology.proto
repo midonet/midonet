@@ -43,6 +43,7 @@ enum Type {
     VIP = 19;
     VTEP = 20;
     CONDITION = 21;
+    TRACE_REQUEST = 22;
 }
 
 message BgpNetwork {
@@ -207,6 +208,7 @@ message Network {
     repeated UUID vxlan_port_ids = 102;
     repeated UUID dhcp_ids = 103;
     repeated UUID dhcpv6_ids = 104;
+    repeated UUID trace_request_ids = 105;
 }
 
 message Pool {
@@ -283,6 +285,8 @@ message Port {
 
     // NAT rules that implement FIP for this port.
     repeated UUID fip_nat_rule_ids = 102;
+
+    repeated UUID trace_request_ids = 103;
 }
 
 message PortGroup {
@@ -332,6 +336,7 @@ message Router {
 
     // Backreferences
     repeated UUID port_ids = 101;
+    repeated UUID trace_request_ids = 102;
 }
 
 message Condition {
@@ -499,3 +504,13 @@ message Vtep {
     repeated Binding bindings = 6;
 }
 
+message TraceRequest {
+    optional UUID id = 1;
+    optional bool enabled = 2;
+    optional Condition condition = 3;
+    optional uint32 limit = 4;
+
+    optional UUID port_id = 101;
+    optional UUID network_id = 102;
+    optional UUID router_id = 103;
+}

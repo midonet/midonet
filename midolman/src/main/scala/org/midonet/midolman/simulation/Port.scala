@@ -150,6 +150,7 @@ trait Port extends VirtualDevice with Cloneable {
     val action = ToPortAction(id)
 
     def toggleActive(active: Boolean) = this
+    def updateInboundFilter(filter: UUID) = this
 
     val deviceTag = FlowTagger.tagForPort(id)
     val txTag = FlowTagger.tagForPortTx(id)
@@ -271,6 +272,7 @@ case class BridgePort(override val id: UUID,
                       networkId: UUID) extends Port {
 
     override def toggleActive(active: Boolean) = copy(isActive = active)
+    override def updateInboundFilter(filter: UUID) = copy(inboundFilter = filter)
     override def deviceId = networkId
 
     protected def device(implicit as: ActorSystem): SimDevice = tryAsk[Bridge](networkId)
@@ -308,6 +310,7 @@ case class RouterPort(override val id: UUID,
     protected def device(implicit as: ActorSystem): SimDevice = tryAsk[Router](routerId)
 
     override def toggleActive(active: Boolean) = copy(isActive = active)
+    override def updateInboundFilter(filter: UUID) = copy(inboundFilter = filter)
 
     override def deviceId = routerId
 
@@ -360,4 +363,5 @@ case class VxLanPort(override val id: UUID,
     protected def device(implicit as: ActorSystem): SimDevice = tryAsk[Bridge](networkId)
 
     override def toggleActive(active: Boolean) = this
+    override def updateInboundFilter(filter: UUID) = copy(inboundFilter = filter)
 }
