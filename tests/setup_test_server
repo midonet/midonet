@@ -12,7 +12,7 @@ sudo apt-get install -y python2.7
 sudo apt-get install -y curl
 
 # add apt source for cassandra
-sudo bash -c "echo deb http://debian.datastax.com/community stable main > /etc/apt/sources.list.d/cassandra.sources.list"
+sudo bash -c "echo deb http://debian.datastax.com/community 2.0 main > /etc/apt/sources.list.d/cassandra.sources.list"
 curl -L http://debian.datastax.com/debian/repo_key | sudo apt-key add -
 
 # TODO: This is an internal, private dependency which won't work
@@ -95,8 +95,7 @@ else
 fi
 
 # Install cassandra
-sudo apt-get -o Dpkg::Options::=--force-confnew -y install dsc20=2.0.10-1 cassandra=2.0.10
-sudo apt-mark hold dsc20 cassandra
+sudo apt-get -o Dpkg::Options::=--force-confnew -y install dsc20
 
 sudo bash -c "echo $(hostname|sed 's/ip-//;s/-/./g') $(hostname -f) $(hostname) >>/etc/hosts"
 
