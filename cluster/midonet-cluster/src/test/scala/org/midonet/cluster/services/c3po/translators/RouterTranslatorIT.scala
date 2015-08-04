@@ -21,8 +21,9 @@ import org.junit.runner.RunWith
 import org.midonet.cluster.C3POMinionTestBase
 import org.midonet.cluster.data.neutron.NeutronResourceType.{Port => PortType, Router => RouterType, Subnet => SubnetType}
 import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
+import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.translators.RouterTranslator.tenantGwPortId
 import org.midonet.cluster.util.UUIDUtil._
@@ -343,29 +344,29 @@ class RouterTranslatorIT extends C3POMinionTestBase {
         val gwSubnet = IPSubnetUtil.fromAddr(gatewayIp)
 
         outSnatRule.getChainId shouldBe outChain.getId
-        outSnatRule.getOutPortIdsList.asScala should contain only trGwPortId
-        outSnatRule.getNwSrcIp shouldBe gwSubnet
-        outSnatRule.getNwSrcInv shouldBe true
+        outSnatRule.getCondition.getOutPortIdsList.asScala should contain only trGwPortId
+        outSnatRule.getCondition.getNwSrcIp shouldBe gwSubnet
+        outSnatRule.getCondition.getNwSrcInv shouldBe true
         validateNatRule(outSnatRule, dnat = false, gatewayIp)
 
         val odfr = outDropFragmentsRule
         odfr.getChainId shouldBe outChain.getId
-        odfr.getOutPortIdsList should contain only trGwPortId
-        odfr.getNwSrcIp.getAddress shouldBe gatewayIp
-        odfr.getNwSrcInv shouldBe true
+        odfr.getCondition.getOutPortIdsList should contain only trGwPortId
+        odfr.getCondition.getNwSrcIp.getAddress shouldBe gatewayIp
+        odfr.getCondition.getNwSrcInv shouldBe true
         odfr.getType shouldBe Rule.Type.LITERAL_RULE
-        odfr.getFragmentPolicy shouldBe FragmentPolicy.ANY
+        odfr.getCondition.getFragmentPolicy shouldBe FragmentPolicy.ANY
         odfr.getAction shouldBe Action.DROP
 
         inRevSnatRule.getChainId shouldBe inChain.getId
-        inRevSnatRule.getNwDstIp shouldBe gwSubnet
+        inRevSnatRule.getCondition.getNwDstIp shouldBe gwSubnet
         validateNatRule(inRevSnatRule, dnat = false, addr = null)
 
         val idwptr = inDropWrongPortTrafficRule
         idwptr.getChainId shouldBe inChain.getId
-        idwptr.getNwDstIp shouldBe gwSubnet
+        idwptr.getCondition.getNwDstIp shouldBe gwSubnet
         idwptr.getType shouldBe Rule.Type.LITERAL_RULE
-        idwptr.getNwProto shouldBe ICMP.PROTOCOL_NUMBER
+        idwptr.getCondition.getNwProto shouldBe ICMP.PROTOCOL_NUMBER
         idwptr.getAction shouldBe Action.DROP
     }
 

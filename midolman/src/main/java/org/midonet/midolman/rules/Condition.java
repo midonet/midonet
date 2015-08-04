@@ -23,7 +23,7 @@ import java.util.UUID;
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.rest_api.neutron.models.SecurityGroupRule;
-import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.MACUtil;
 import org.midonet.cluster.util.RangeUtil;
@@ -39,7 +39,7 @@ import org.midonet.packets.Unsigned;
 import org.midonet.sdn.flows.FlowTagger;
 import org.midonet.util.Range;
 
-@ZoomClass(clazz = Topology.Rule.class)
+@ZoomClass(clazz = Commons.Condition.class, skipSuper = true)
 public class Condition extends BaseConfig {
     @ZoomField(name = "conjunction_inv")
     public boolean conjunctionInv;
