@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_fcb8bb76",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopologyActor.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 48,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-04T17:38:43Z",
+      "side": 0,
+      "message": "why you killing this? It\u0027s used by the zoom mappers afaik.",
+      "revId": "76d8fabb2d4143593228a718ef2c2f34d131ce53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
