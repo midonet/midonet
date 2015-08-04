@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_dc6cd70a",
+        "filename": "odp/src/main/java/org/midonet/odp/FlowMatch.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-04T17:56:33Z",
+      "side": 0,
+      "message": "escape analysis must be catching this. It\u0027s the simplest case.",
+      "revId": "e8b313ae208fde38dc483934817dabf4ab67a731",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
