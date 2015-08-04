@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_9c9ecfb7",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ConnectionObservable.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 32,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-04T15:33:22Z",
+      "side": 1,
+      "message": "ZKConnectionObservable?",
+      "range": {
+        "startLine": 32,
+        "startChar": 7,
+        "endLine": 32,
+        "endChar": 27
+      },
+      "revId": "44e25717470f99b92901f1700b0e5a10a403c3d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_7c5cab19",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/util/ConnectionObservable.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 114,
+      "author": {
+        "id": 1002820
+      },
+      "writtenOn": "2015-08-04T15:33:22Z",
+      "side": 1,
+      "message": "ZKConnectionObservable?",
+      "range": {
+        "startLine": 114,
+        "startChar": 6,
+        "endLine": 114,
+        "endChar": 26
+      },
+      "revId": "44e25717470f99b92901f1700b0e5a10a403c3d4",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
