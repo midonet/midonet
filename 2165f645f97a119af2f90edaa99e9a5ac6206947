@@ -1,0 +1,55 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5fe6f944",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-04T18:45:48Z",
+      "side": 1,
+      "message": "why not def updateInboundFilter(filter: UUID) \u003d copy(inboundFilter \u003d filter)?",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_bf3d4591",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-04T18:45:48Z",
+      "side": 1,
+      "message": "Why don\u0027t we just create the chain in storage when creating the trace request? I fear the mappers are becoming more convoluted than the Zj managers.",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1fc71197",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-04T18:45:48Z",
+      "side": 1,
+      "message": "extract to method?",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
