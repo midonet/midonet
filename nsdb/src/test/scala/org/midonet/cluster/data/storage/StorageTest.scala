@@ -1194,8 +1194,10 @@ private object StorageTest {
     : Rule = {
         val builder = Rule.newBuilder.setId(id.asProto)
         if (chainId ne null) builder.setChainId(chainId.asProto)
-        if (inPortIds ne null) builder.addAllInPortIds(inPortIds.map(_.asProto).asJava)
-        if (outPortIds ne null) builder.addAllOutPortIds(outPortIds.map(_.asProto).asJava)
+        if (inPortIds ne null) builder.setCondition(
+            Condition.newBuilder.addAllInPortIds(inPortIds.map(_.asProto).asJava))
+        if (outPortIds ne null) builder.setCondition(
+            Condition.newBuilder.addAllOutPortIds(outPortIds.map(_.asProto).asJava))
         builder.build()
     }
 
