@@ -18,11 +18,15 @@ package org.midonet.midolman.util
 
 import java.util.UUID
 
+import akka.actor.ActorSystem
+import org.midonet.cluster.state.LegacyStorage
+
 import scala.concurrent.ExecutionContext
 
-import akka.actor.ActorSystem
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
 import com.google.inject.Injector
+import org.midonet.midolman.state.PeerResolver
+
 import com.typesafe.scalalogging.Logger
 import org.slf4j.helpers.NOPLogger
 
@@ -50,6 +54,9 @@ trait MidolmanServices {
 
     def config =
         injector.getInstance(classOf[MidolmanConfig])
+
+    def peerResolver =
+        injector.getInstance(classOf[PeerResolver])
 
     def virtConfBuilderImpl =
         injector.getInstance(classOf[VirtualConfigurationBuilders])

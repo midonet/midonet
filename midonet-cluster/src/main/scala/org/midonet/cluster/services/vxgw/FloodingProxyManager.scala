@@ -39,7 +39,8 @@ import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.services.vxgw.FloodingProxyManager.{HostFpState, MaxFpRetries}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.{IPAddressUtil, UUIDUtil, selfHealingEntityObservable, selfHealingTypeObservable}
+import org.midonet.cluster.util.{UUIDUtil, selfHealingEntityObservable, selfHealingTypeObservable}
+import org.midonet.cluster.util.IPAddressUtil
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
 
@@ -78,8 +79,8 @@ class FloodingProxyManager(backend: MidonetBackend) {
     private val rxScheduler = Schedulers.from(executor)
     private implicit val ec = ExecutionContext.fromExecutor(executor)
 
-    // He'll spread the word about our decissions to the rest of MidoNet
-    private val _herald = new WritableFloodingProxyHerald(backend, executor)
+    // He'll spread the word about our decisions to the rest of MidoNet
+    private val _herald = new WritableFloodingProxyHerald(backend)
 
     // All the subscriptions relevant to us
     private val subscriptions = new CompositeSubscription()
@@ -136,7 +137,7 @@ class FloodingProxyManager(backend: MidonetBackend) {
     }
 
     /** The [[FloodingProxyHerald]] that exposes the flooding proxies */
-    def herald: FloodingProxyHerald = _herald
+    val herald = new FloodingProxyHerald(backend, None)
 
     /** Starts watching the VTEP tunnel zone. */
     def start(): Unit = {
@@ -146,6 +147,7 @@ class FloodingProxyManager(backend: MidonetBackend) {
             Observable.merge(selfHealingTypeObservable[TunnelZone](store))
                       .observeOn(rxScheduler)
                       .subscribe(tzObserver))
+        herald.start()
     }
 
     /** Stop tracking VTEP tunnel zones */
@@ -180,7 +182,7 @@ class FloodingProxyManager(backend: MidonetBackend) {
             log.debug(s"Stop tracking host $hostId, no longer in zone $tzId")
             val hostFpState = trackedHosts.remove(hostId)
             hostFpState.sub.unsubscribe()
-            herald.lookup(tzId).foreach { fp =>
+            herald.lookup(tzId) foreach { fp =>
                 if (fp.hostId == hostId) {
                     log.debug("Host was current flooding proxy, recalculate")
                     cacheAndPublishFloodingProxy(tzId)

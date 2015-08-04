@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.midonet.midolman.host.services.HostService;
+import org.midonet.midolman.state.PeerResolver;
 
 /**
  * Basic controller of the internal midolman services.
@@ -55,6 +56,9 @@ public class MidolmanService extends AbstractService {
     @Inject(optional = true)
     HostService hostService;
 
+    @Inject
+    PeerResolver resolver;
+
     private JmxReporter jmxReporter = null;
 
     @Override
@@ -77,6 +81,14 @@ public class MidolmanService extends AbstractService {
             jmxReporter.start();
         } catch (Exception e) {
             log.error("Cannot start metrics reporter");
+            notifyFailed(e);
+            doStop();
+        }
+
+        try {
+            resolver.start();
+        } catch (Exception e) {
+            log.error("Cannot start the peer resolver");
             notifyFailed(e);
             doStop();
         }

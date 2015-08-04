@@ -159,6 +159,7 @@ class PacketWorkflow(
             val connTrackStateTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
             val natStateTable: FlowStateTable[NatKey, NatBinding],
             val traceStateTable: FlowStateTable[TraceKey, TraceContext],
+            val peerResolver: PeerResolver,
             val storage: Future[FlowStateStorage],
             val natLeaser: NatLeaser,
             val metrics: PacketPipelineMetrics,
@@ -193,6 +194,7 @@ class PacketWorkflow(
             traceStateTable,
             storage,
             hostId,
+            peerResolver,
             dpState,
             this,
             config.datapath.controlPacketTos)

@@ -84,10 +84,16 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
     def fetchChains(chains: UUID*): Seq[SimChain] =
         chains map fetchDevice[SimChain]
 
+    def fetchHosts(hosts: UUID*): Seq[Host] =
+        hosts map fetchDevice[Host]
+
     def fetchHost(hostId: UUID): Host =
         Await.result(
             ask(VirtualToPhysicalMapper, HostRequest(hostId)),
             timeout.duration).asInstanceOf[Host]
+
+    def fetchPortGroups(portGroups: UUID*): Seq[PortGroup] =
+        portGroups map fetchDevice[PortGroup]
 
     def feedArpTable(router: SimRouter, ip: IPv4Addr, mac: MAC): Unit = {
         ArpCacheHelper.feedArpCache(router, ip, mac)
@@ -310,6 +316,7 @@ trait VirtualTopologyHelper { this: MidolmanServices =>
             conntrackTable,
             natTable,
             traceTable,
+            peerResolver,
             Future.successful(new MockStateStorage),
             HappyGoLuckyLeaser,
             metrics,

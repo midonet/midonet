@@ -36,8 +36,8 @@ import org.midonet.midolman.simulation.DhcpConfigFromNsdb
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.state.{FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
 import org.midonet.midolman.topology.RouterMapper.InvalidateFlows
+import org.midonet.midolman.state.{PeerResolver, FlowStateStorageFactory, NatBlockAllocator, NatLeaser}
 import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.sdn.state.ShardedFlowStateTable
 import org.midonet.util.StatisticalCounter
@@ -112,6 +112,9 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
     @Inject
     var flowRecorderFactory: FlowRecorderFactory = _
 
+    @Inject
+    var peerResolver: PeerResolver = _
+
     var connTrackStateTable: ShardedFlowStateTable[ConnTrackKey, ConnTrackValue] = _
     var natStateTable: ShardedFlowStateTable[NatKey, NatBinding] = _
     var natLeaser: NatLeaser = _
@@ -153,8 +156,7 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
         val cookieGen = new CookieGenerator(index, NUM_WORKERS)
         val dhcpConfig = new DhcpConfigFromNsdb(vt)
 
-        Props(
-            classOf[PacketWorkflow],
+        Props(new PacketWorkflow(
             config,
             hostIdProviderService.hostId(),
             dpState,
@@ -167,11 +169,12 @@ class PacketsEntryPoint extends Actor with ActorLogWithoutPath {
             connTrackStateTable.addShard(log = shardLogger(connTrackStateTable)),
             natStateTable.addShard(log = shardLogger(natStateTable)),
             traceStateTable.addShard(log = shardLogger(traceStateTable)),
+            peerResolver,
             storageFactory.create(),
             natLeaser,
             metrics,
             flowRecorderFactory.newFlowRecorder(),
-            counter.addAndGet(index, _: Int))
+            counter.addAndGet(index, _: Int)))
     }
 
     private def broadcast(m: Any) { workers foreach ( _ ! m ) }
