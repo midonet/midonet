@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_9cca4f19",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-04T17:34:59Z",
+      "side": 0,
+      "message": "unrelated.",
+      "revId": "600e5e334cf0f2833796ebaea1c293fc2289717c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9c988f1d",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 345,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-04T17:34:59Z",
+      "side": 0,
+      "message": "i think this is why MNA-3730 happens.",
+      "revId": "600e5e334cf0f2833796ebaea1c293fc2289717c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}

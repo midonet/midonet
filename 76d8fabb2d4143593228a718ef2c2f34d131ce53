@@ -1,0 +1,72 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_5ce447ab",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/PacketWorkflow.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 99,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-04T17:34:59Z",
+      "side": 1,
+      "message": "unrelated.",
+      "revId": "76d8fabb2d4143593228a718ef2c2f34d131ce53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_3cd943f3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 259,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-04T17:34:59Z",
+      "side": 1,
+      "message": "since we\u0027re worries about garbage, and these are supposed to be immutable, why not use a final static instance of new ArrayList(0) for these cases.",
+      "revId": "76d8fabb2d4143593228a718ef2c2f34d131ce53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_fcea7b72",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-04T17:34:59Z",
+      "side": 1,
+      "message": "shouldn\u0027t escape analysis catch this anyhow?",
+      "revId": "76d8fabb2d4143593228a718ef2c2f34d131ce53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1c055f45",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 244,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-04T17:34:59Z",
+      "side": 1,
+      "message": "unrelated.",
+      "revId": "76d8fabb2d4143593228a718ef2c2f34d131ce53",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
