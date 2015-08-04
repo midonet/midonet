@@ -32,7 +32,6 @@ import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
@@ -115,17 +114,32 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    def createTunnelZone(id: UUID = UUID.randomUUID,
+    private def tunnelZoneBuilder(id: UUID = UUID.randomUUID,
                          tzType: TunnelZone.Type,
                          name: Option[String] = None,
-                         hosts: Map[UUID, IPAddr] = Map.empty): TunnelZone = {
+                         hosts: Map[UUID, IPAddr] = Map.empty) = {
         val builder = TunnelZone.newBuilder
             .setId(id.asProto)
             .setType(tzType)
             .addAllHosts(hosts.map(e => HostToIp.newBuilder
                 .setHostId(e._1.asProto).setIp(e._2.asProto).build()).asJava)
         if (name.isDefined) builder.setName(name.get)
-        builder.build()
+        builder
+    }
+
+    def createTunnelZone(id: UUID = UUID.randomUUID,
+                         tzType: TunnelZone.Type,
+                         name: Option[String] = None,
+                         hosts: Map[UUID, IPAddr] = Map.empty): TunnelZone =
+        tunnelZoneBuilder(id, tzType, name, hosts).build()
+
+    def createTunnelZoneAndAddHostIds(
+            id: UUID = UUID.randomUUID,
+            tzType: TunnelZone.Type,
+            name: Option[String] = None,
+            hosts: Map[UUID, IPAddr] = Map.empty): TunnelZone = {
+        tunnelZoneBuilder(id, tzType, name, hosts)
+            .addAllHostIds(hosts.keys.map(_.asProto).asJava).build()
     }
 
     def createHost(id: UUID = UUID.randomUUID,

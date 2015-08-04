@@ -68,5 +68,4 @@ package object util {
                     selfHealingEntityObservable[T](store, id, retries - 1)(ct)
             })
     }
-
 }
