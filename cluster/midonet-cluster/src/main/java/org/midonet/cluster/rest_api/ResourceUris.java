@@ -18,6 +18,7 @@ package org.midonet.cluster.rest_api;
 
 import java.util.UUID;
 
+import org.midonet.cluster.rest_api.models.Ip4MacPair;
 import org.midonet.packets.MAC;
 
 /**

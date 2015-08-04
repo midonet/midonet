@@ -35,7 +35,6 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.protobuf.Message
 import com.typesafe.scalalogging.Logger
-import org.eclipse.jetty.http.HttpStatus
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.data.ZoomConvert
@@ -43,10 +42,12 @@ import org.midonet.cluster.data.ZoomConvert.ConvertException
 import org.midonet.cluster.data.storage._
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowGet, AllowList, AllowUpdate}
 import org.midonet.cluster.rest_api.models.UriResource
-import org.midonet.cluster.rest_api.{BadRequestHttpException, ConflictHttpException, InternalServerErrorHttpException, NotFoundHttpException}
+import org.midonet.cluster.rest_api._
+import org.midonet.cluster.rest_api.ResponseUtils.buildErrorResponse
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.services.rest_api.resources.MidonetResource._
 import org.midonet.cluster.util.SequenceDispenser
+import org.midonet.midolman.state._
 import org.midonet.util.reactivex._
 
 object MidonetResource {
@@ -69,7 +70,15 @@ object MidonetResource {
         }
     }
 
-    protected def tryRead[T](f: => T): T = {
+    protected[resources] def tryWith[T](e: Throwable)(f: => T): T = {
+        try {
+            f
+        } catch {
+            case NonFatal(_) => throw e
+        }
+    }
+
+    protected[resources] def tryRead[T](f: => T): T = {
         try {
             f
         } catch {
@@ -80,7 +89,7 @@ object MidonetResource {
             case e: ReferenceConflictException =>
                 throw new ConflictHttpException("Conflicting read")
             case e: ObjectExistsException =>
-                throw new WebApplicationException(e, Status.CONFLICT)
+                throw new ConflictHttpException("Conflicting read")
         }
     }
 
@@ -93,28 +102,60 @@ object MidonetResource {
             } catch {
                 case e: NotFoundException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
-                    throw new NotFoundHttpException("Resource not found")
+                    return buildErrorResponse(Status.NOT_FOUND, "Resource not found")
                 case e: ObjectReferencedException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
-                    return Response.status(HttpStatus.NOT_ACCEPTABLE_406).build()
+                    return Response.status(Status.NOT_ACCEPTABLE).build()
                 case e: ReferenceConflictException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
-                    throw new ConflictHttpException("Conflicting write")
+                    return buildErrorResponse(Status.CONFLICT, "Conflicting write")
                 case e: ObjectExistsException =>
                     log.error(s"Write $attempt of $StorageAttempts", e)
-                    throw new ConflictHttpException("Conflicting write")
+                    return buildErrorResponse(Status.CONFLICT, "Conflicting write")
                 case e: ConcurrentModificationException =>
                     attempt += 1
                 case NonFatal(t) =>
                     log.error("Unhandled exception", t)
             }
         }
-        Response.status(HttpStatus.CONFLICT_409).build()
+        Response.status(Status.CONFLICT).build()
+    }
+
+    protected[resources] def tryLegacyRead[T](f: => T): T = {
+        try {
+            f
+        } catch {
+            case e: NoStatePathException =>
+                throw new NotFoundHttpException("Resource not found")
+            case e: StateAccessException =>
+                throw new WebApplicationException(e, Status.NOT_ACCEPTABLE)
+        }
+    }
+
+    protected[resources] def tryLegacyWrite(f: => Response)(implicit log: Logger)
+    : Response = {
+        try {
+            f
+        } catch {
+            case e: NoStatePathException =>
+                buildErrorResponse(Status.NOT_FOUND, "Resource not found")
+            case e: NodeNotEmptyStateException =>
+                buildErrorResponse(Status.CONFLICT, "Conflicting write")
+            case e: StatePathExistsException =>
+                buildErrorResponse(Status.CONFLICT, "Conflicting write")
+            case e: StateVersionException =>
+                buildErrorResponse(Status.CONFLICT, "Conflicting write")
+            case e: StateAccessException =>
+                Response.status(Status.NOT_ACCEPTABLE).build()
+            case NonFatal(e) =>
+                log.error("Unhandled exception", e)
+                Response.status(Status.INTERNAL_SERVER_ERROR).build()
+        }
     }
 
     protected def tryResponse(f: => Response): Response = {
         try {
-            return f
+            f
         } catch {
             case e: WebApplicationException => e.getResponse
         }
@@ -123,7 +164,8 @@ object MidonetResource {
     case class ResourceContext @Inject() (backend: MidonetBackend,
                                           uriInfo: UriInfo,
                                           validator: Validator,
-                                          seqDispenser: SequenceDispenser)
+                                          seqDispenser: SequenceDispenser,
+                                          stateTables: StateTableStorage)
 
 }
 
@@ -213,8 +255,8 @@ abstract class MidonetResource[T >: Null <: UriResource]
         }
     }
 
-    protected def throwIfViolationsOn[T](t: T): Unit = {
-        val violations: JSet[ConstraintViolation[T]] = validator.validate(t)
+    protected def throwIfViolationsOn[U](t: U): Unit = {
+        val violations: JSet[ConstraintViolation[U]] = validator.validate(t)
         if (violations.nonEmpty) {
             throw new BadRequestHttpException(violations)
         }

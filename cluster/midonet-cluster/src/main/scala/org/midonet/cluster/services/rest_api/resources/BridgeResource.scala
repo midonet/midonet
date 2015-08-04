@@ -36,14 +36,15 @@ import org.midonet.cluster.models.Topology
 import org.midonet.cluster.rest_api.ResourceUris.{macPortUriToMac, macPortUriToPort}
 import org.midonet.cluster.rest_api.VendorMediaType._
 import org.midonet.cluster.rest_api.annotation._
-import org.midonet.cluster.rest_api.models.{Bridge, MacPort}
+import org.midonet.cluster.rest_api.models.{Ip4MacPair, Bridge, MacPort}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{BadRequestHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes.{APPLICATION_BRIDGE_COLLECTION_JSON, APPLICATION_BRIDGE_COLLECTION_JSON_V2, APPLICATION_BRIDGE_COLLECTION_JSON_V3, APPLICATION_BRIDGE_JSON, APPLICATION_BRIDGE_JSON_V2, APPLICATION_BRIDGE_JSON_V3}
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
+import org.midonet.cluster.services.rest_api.resources.MidonetResource.{tryLegacyRead, tryLegacyWrite, tryWith}
 import org.midonet.midolman.state.MacPortMap.encodePersistentPath
 import org.midonet.midolman.state.PathBuilder
-import org.midonet.packets.MAC
+import org.midonet.packets.{IPv4Addr, MAC}
 import org.midonet.packets.MAC.InvalidMacException
 
 @RequestScoped
@@ -84,13 +85,96 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         new DhcpV6SubnetResource(id, resContext)
     }
 
+    @GET
+    @Path("{id}/arp_table/{pair}")
+    @Produces(Array(APPLICATION_IP4_MAC_JSON,
+                    APPLICATION_JSON))
+    def getArpEntry(@PathParam("id") bridgeId: UUID,
+                    @PathParam("pair") pair: String): Ip4MacPair = {
+        val parts = pair.split("_")
+        val address = tryWith(new BadRequestHttpException(getMessage(IP_ADDR_INVALID))) {
+            IPv4Addr.fromString(parts(0))
+        }
+        val mac = tryWith(new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID))) {
+            MAC.fromString(parts(1).replace('-', ':'))
+        }
+
+        tryLegacyRead {
+            if (resContext.stateTables.bridgeArpTable(bridgeId)
+                .contains(address, mac)) {
+                new Ip4MacPair(resContext.uriInfo.getBaseUri, bridgeId,
+                               address.toString, mac.toString)
+            } else {
+                throw new NotFoundHttpException(getMessage(ARP_ENTRY_NOT_FOUND))
+            }
+        }
+    }
+
+    @GET
+    @Path("{id}/arp_table")
+    @Produces(Array(APPLICATION_IP4_MAC_COLLECTION_JSON,
+                    APPLICATION_JSON))
+    def listArpEntries(@PathParam("id") bridgeId: UUID): util.List[Ip4MacPair] = {
+        val entries = tryLegacyRead {
+            resContext.stateTables.bridgeArpTable(bridgeId).snapshot
+        }
+        entries map { entry =>
+            new Ip4MacPair(resContext.uriInfo.getBaseUri, bridgeId,
+                           entry._1.toString, entry._2.toString)
+        } toList
+    }
+
+    @POST
+    @Path("{id}/arp_table")
+    @Consumes(Array(APPLICATION_IP4_MAC_JSON))
+    def addArpEntry(@PathParam("id") bridgeId: UUID, arpEntry: Ip4MacPair)
+    : Response = {
+
+        throwIfViolationsOn(arpEntry)
+
+        arpEntry.bridgeId = bridgeId
+        arpEntry.setBaseUri(resContext.uriInfo.getBaseUri)
+
+        val address = tryWith(new BadRequestHttpException(getMessage(IP_ADDR_INVALID))) {
+            IPv4Addr.fromString(arpEntry.ip)
+        }
+        val mac = tryWith(new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID))) {
+            MAC.fromString(arpEntry.mac)
+        }
+
+        tryLegacyWrite {
+            resContext.stateTables.bridgeArpTable(bridgeId)
+                      .addPersistent(address, mac)
+            Response.created(arpEntry.getUri).build()
+        }
+    }
+
+    @DELETE
+    @Path("{id}/arp_table/{pair}")
+    def deleteArpEntry(@PathParam("id") bridgeId: UUID,
+                       @PathParam("pair") pair: String): Response = {
+        val parts = pair.split("_")
+        val address = tryWith(new BadRequestHttpException(getMessage(IP_ADDR_INVALID))) {
+            IPv4Addr.fromString(parts(0))
+        }
+        val mac = tryWith(new BadRequestHttpException(getMessage(MAC_ADDRESS_INVALID))) {
+            MAC.fromString(parts(1).replace('-', ':'))
+        }
+
+        tryLegacyWrite {
+            resContext.stateTables.bridgeArpTable(bridgeId).remove(address, mac)
+            Response.noContent().build()
+        }
+    }
+
     @POST
     @Path("{id}/mac_table")
     @Consumes(Array(APPLICATION_MAC_PORT_JSON,
                     APPLICATION_MAC_PORT_JSON_V2,
-                    MediaType.APPLICATION_JSON))
-    def putMacTable(@PathParam("id") id: UUID, macPort: MacPort): Response = {
-        macPort.bridgeId = id
+                    APPLICATION_JSON))
+    def putMacTable(@PathParam("id") bridgeId: UUID, macPort: MacPort)
+    : Response = {
+        macPort.bridgeId = bridgeId
         macPort.vlanId = if (macPort.vlanId == null) UNTAGGED_VLAN_ID
                          else macPort.vlanId
         putMacTableEntry(macPort)
@@ -217,13 +301,11 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         val pieces = n.split(",")
         val mac = pieces(0)
         val port = UUID.fromString(pieces(1))
-        val mp = new MacPort(resContext.uriInfo.getBaseUri, mac, port)
-        mp.bridgeId = bridgeId
+        val mp = new MacPort(resContext.uriInfo.getBaseUri, bridgeId, mac, port)
         mp.vlanId = if (isV1 || vlan == null) UNTAGGED_VLAN_ID
         else vlan
         mp
     }
-
 
     private def putMacTableEntry(macPort: MacPort): Response = {
         throwIfViolationsOn(macPort)
@@ -249,7 +331,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
                     s"Port ${macPort.portId} doesn't exist")
         }
 
-        macPort.baseUri = resContext.uriInfo.getBaseUri
+        macPort.setBaseUri(resContext.uriInfo.getBaseUri)
         val mac = MAC.fromString(macPort.macAddr)
         val path = pathBuilder.getBridgeMacPortEntryPath(macPort.bridgeId,
                      macPort.vlanId, encodePersistentPath(mac, macPort.portId))
@@ -292,7 +374,7 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         MidonetResource.OkNoContentResponse
     }
 
-    private def macPort(id: UUID, s: String, vlan: Option[Short] = None)
+    private def macPort(bridgeId: UUID, s: String, vlan: Option[Short] = None)
     : MacPort = {
         val mac = try {
             macPortUriToMac(s)
@@ -304,9 +386,9 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         val vlanId = vlan.getOrElse(UNTAGGED_VLAN_ID)
 
         val store = resContext.backend.store
-        store.get(classOf[Topology.Network], id).getOrThrow
-        val path = pathBuilder.getBridgeMacPortEntryPath(id, vlanId,
-                                 encodePersistentPath(mac, portId))
+        store.get(classOf[Topology.Network], bridgeId).getOrThrow
+        val path = pathBuilder.getBridgeMacPortEntryPath(
+            bridgeId, vlanId, encodePersistentPath(mac, portId))
         val node = try {
             curator.getData.forPath(path)
         } catch {
@@ -316,11 +398,13 @@ class BridgeResource @Inject()(resContext: ResourceContext,
             throw new NotFoundHttpException("Entry not found")
         }
 
-        val r = new MacPort(resContext.uriInfo.getBaseUri, mac.toString, portId)
-        r.bridgeId = id
-        r.vlanId = vlanId
-        r
+        val macPort = new MacPort(resContext.uriInfo.getBaseUri, bridgeId,
+                                  mac.toString, portId)
+        macPort.vlanId = vlanId
+        macPort
     }
+
+    //private def arpEntry()
 
     protected def macOrThrow(s: String): MAC = try {
         MAC.fromString(s)
@@ -361,4 +445,5 @@ class BridgeResource @Inject()(resContext: ResourceContext,
         to.vxLanPortIds = from.vxLanPortIds
         to.update(from)
     }
+
 }
