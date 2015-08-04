@@ -65,7 +65,10 @@ class NeutronZoomPluginTest extends FeatureSpec
         backend.setupBindings()
 
         val paths = new PathBuilder(ZK_ROOT)
-        val resContext = new ResourceContext(backend, null, null, null)
+        val resContext = new ResourceContext(backend, uriInfo = null,
+                                             validator = null,
+                                             seqDispenser = null,
+                                             stateTables = null)
         val lockFactory = new ZookeeperLockFactory(curator, paths)
         plugin = new NeutronZoomPlugin(resContext, paths, lockFactory)
     }
