@@ -45,7 +45,7 @@ import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.ConflictHttpException;
 import org.midonet.cluster.rest_api.GatewayTimeoutHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
-import org.midonet.cluster.rest_api.models.VTEPBinding;
+import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -283,17 +283,17 @@ public class VtepClusterClient {
      * @param bridgeId ID of bridge to get bindings for. Will return all
      *                 bindings if bridgeId is null.
      */
-    public final List<VTEPBinding> listVtepBindings(IPv4Addr ipAddr,
+    public final List<VtepBinding> listVtepBindings(IPv4Addr ipAddr,
                                                     UUID bridgeId)
             throws SerializationException, StateAccessException {
 
         List<org.midonet.cluster.data.VtepBinding> dataBindings =
                 dataClient.vtepGetBindings(ipAddr);
-        List<VTEPBinding> apiBindings = new ArrayList<>();
+        List<VtepBinding> apiBindings = new ArrayList<>();
         for (org.midonet.cluster.data.VtepBinding dataBinding : dataBindings) {
             if (bridgeId == null ||
                     bridgeId.equals(dataBinding.getNetworkId())) {
-                VTEPBinding b = new VTEPBinding();
+                VtepBinding b = new VtepBinding();
                 b.mgmtIp = ipAddr.toString();
                 b.portName = dataBinding.getPortName();
                 b.vlanId = dataBinding.getVlanId();
@@ -312,7 +312,7 @@ public class VtepClusterClient {
      * deletBinding) can reuse the VTEP and VtepDataClient.
      */
     @SuppressWarnings("unused")
-    private List<VTEPBinding> listVtepBindings(VtepDataClient vtepClient,
+    private List<VtepBinding> listVtepBindings(VtepDataClient vtepClient,
             IPv4Addr mgmtIp, int mgmtPort, UUID bridgeId)
             throws SerializationException, StateAccessException,
                    VtepNotConnectedException {
@@ -323,7 +323,7 @@ public class VtepClusterClient {
             lsToBridge.put(ls.uuid(), logicalSwitchNameToBridgeId(ls.name()));
         }
 
-        List<VTEPBinding> bindings = new ArrayList<>();
+        List<VtepBinding> bindings = new ArrayList<>();
         for (PhysicalPort pp :
                 listPhysicalPorts(vtepClient, mgmtIp, mgmtPort)) {
             for (Map.Entry<Integer, UUID> e :
@@ -335,7 +335,7 @@ public class VtepClusterClient {
                 if (bindingBridgeId != null &&
                         (bridgeId == null ||
                                 bridgeId.equals(bindingBridgeId))) {
-                    VTEPBinding b = new VTEPBinding();
+                    VtepBinding b = new VtepBinding();
                     b.mgmtIp = mgmtIp.toString();
                     b.portName = pp.name();
                     b.vlanId = e.getKey().shortValue();
@@ -377,7 +377,7 @@ public class VtepClusterClient {
      * @throws NotFoundHttpException when the physical port is not present in
      * the VTEP (only checked if the VTEP is reachable).
      */
-    public final void createBinding(VTEPBinding binding, IPv4Addr mgmtIp,
+    public final void createBinding(VtepBinding binding, IPv4Addr mgmtIp,
                                     Bridge bridge)
             throws SerializationException, StateAccessException {
 
@@ -432,7 +432,7 @@ public class VtepClusterClient {
     private void createAdditionalNetworkBinding(VTEP vtep,
                                                 Bridge bridge,
                                                 VxLanPort vxlanPort,
-                                                VTEPBinding binding)
+                                                VtepBinding binding)
         throws SerializationException, StateAccessException,
                VtepNotConnectedException {
 
@@ -489,7 +489,7 @@ public class VtepClusterClient {
      * left to the VxGwService.
      */
     private void createFirstNetworkBinding(VTEP vtep, Bridge bridge,
-                                           VTEPBinding binding)
+                                           VtepBinding binding)
         throws SerializationException, StateAccessException,
                VtepNotConnectedException {
 

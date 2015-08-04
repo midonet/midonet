@@ -24,7 +24,7 @@ import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
 import org.midonet.cluster.rest_api.annotation.{AllowCreate, AllowDelete, AllowList}
-import org.midonet.cluster.rest_api.models.{TunnelZone, VTEP}
+import org.midonet.cluster.rest_api.models.{TunnelZone, Vtep}
 import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{ApiException, NotFoundHttpException}
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -37,15 +37,15 @@ import org.midonet.packets.IPv4Addr
 @AllowCreate(Array(APPLICATION_VTEP_JSON,
                    APPLICATION_JSON))
 @AllowDelete
-class VTEPResource @Inject()(resContext: ResourceContext)
-    extends MidonetResource[VTEP](resContext) {
+class VtepResource @Inject()(resContext: ResourceContext)
+    extends MidonetResource[Vtep](resContext) {
 
     @GET
     @Path("{mgmtIp}")
     @Produces(Array(APPLICATION_VTEP_JSON,
                     APPLICATION_JSON))
     override def get(@PathParam("mgmtIp") mgmtIp: String,
-                     @HeaderParam("Accept") accept: String): VTEP = {
+                     @HeaderParam("Accept") accept: String): Vtep = {
         try {
             IPv4Addr.fromString(mgmtIp)
         } catch {
@@ -54,7 +54,7 @@ class VTEPResource @Inject()(resContext: ResourceContext)
                 throw new ApiException(Status.BAD_REQUEST, msg)
         }
         IPv4Addr.fromString(mgmtIp)
-        listResources(classOf[VTEP])
+        listResources(classOf[Vtep])
             .map(_.find(_.managementIp == mgmtIp))
             .getOrThrow
             .getOrElse(throw new NotFoundHttpException(
@@ -62,11 +62,11 @@ class VTEPResource @Inject()(resContext: ResourceContext)
     }
 
     @Path("{mgmtIp}/bindings")
-    def bindings(@PathParam("mgmtIp") mgmtIp: String): VTEPBindingResource = {
-        new VTEPBindingResource(mgmtIp, resContext)
+    def bindings(@PathParam("mgmtIp") mgmtIp: String): VtepBindingResource = {
+        new VtepBindingResource(mgmtIp, resContext)
     }
 
-    protected override def createFilter = (vtep: VTEP) => {
+    protected override def createFilter = (vtep: Vtep) => {
         hasResource(classOf[TunnelZone], vtep.tunnelZoneId).flatMap(exists => {
             // Validate the tunnel zone.
             if (!exists) {
@@ -74,7 +74,7 @@ class VTEPResource @Inject()(resContext: ResourceContext)
                                        getMessage(TUNNEL_ZONE_ID_IS_INVALID))
             }
 
-            listResources(classOf[VTEP])
+            listResources(classOf[Vtep])
         }).map(vteps => {
             // Validate there is no conflict with existing VTEPs.
             for (v <- vteps if v.managementIp == vtep.managementIp) {
@@ -86,7 +86,7 @@ class VTEPResource @Inject()(resContext: ResourceContext)
     }
 
     protected override def deleteFilter = (id: String) => {
-        getResource(classOf[VTEP], id).map(vtep => {
+        getResource(classOf[Vtep], id).map(vtep => {
             // Validate the VTEP has no bindings.
             if (vtep.bindings.size() > 0) {
                 throw new ApiException(Status.BAD_REQUEST,

@@ -41,7 +41,7 @@ import org.midonet.cluster.data.ports.VxLanPort;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.cluster.rest_api.models.VTEPBinding;
+import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
@@ -72,7 +72,7 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                MediaType.APPLICATION_JSON})
     @Path("{portName}/{vlanId}")
-    public VTEPBinding get(@PathParam("portName") String portName,
+    public VtepBinding get(@PathParam("portName") String portName,
                            @PathParam("vlanId") short vlanId)
             throws SerializationException, StateAccessException {
 
@@ -88,7 +88,7 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
                     VTEP_BINDING_NOT_FOUND, ipAddr, vlanId, portName));
         }
 
-        VTEPBinding b = new VTEPBinding();
+        VtepBinding b = new VtepBinding();
         b.mgmtIp = ipAddr.toString();
         b.portName = portName;
         b.vlanId = vlanId;
@@ -101,7 +101,7 @@ public class VxLanPortBindingResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON,
             MediaType.APPLICATION_JSON})
-    public List<VTEPBinding> list() throws StateAccessException,
+    public List<VtepBinding> list() throws StateAccessException,
             SerializationException {
 
         VxLanPort vxLanPort = getVxLanPort(vxLanPortId);

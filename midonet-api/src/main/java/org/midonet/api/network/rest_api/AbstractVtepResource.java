@@ -30,7 +30,7 @@ import org.midonet.api.rest_api.ResourceFactory;
 import org.midonet.api.rest_api.RestApiConfig;
 import org.midonet.cluster.southbound.vtep.VtepClusterClient;
 import org.midonet.cluster.DataClient;
-import org.midonet.cluster.rest_api.models.VTEPBinding;
+import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.NoStatePathException;
 import org.midonet.midolman.state.StateAccessException;
@@ -53,11 +53,11 @@ abstract public class AbstractVtepResource extends AbstractResource {
         this.factory = factory;
     }
 
-    protected final List<VTEPBinding> listVtepBindings(String ipAddrStr,
+    protected final List<VtepBinding> listVtepBindings(String ipAddrStr,
                                                        UUID bridgeId)
             throws SerializationException, StateAccessException {
 
-        List<VTEPBinding> bindings;
+        List<VtepBinding> bindings;
         try {
             bindings = vtepClient.listVtepBindings(parseIPv4Addr(ipAddrStr),
                                                    bridgeId);
@@ -67,7 +67,7 @@ abstract public class AbstractVtepResource extends AbstractResource {
         }
 
         URI baseUri = getBaseUri();
-        for (VTEPBinding binding : bindings) {
+        for (VtepBinding binding : bindings) {
             binding.setBaseUri(baseUri);
         }
         return bindings;

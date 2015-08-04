@@ -51,7 +51,7 @@ class ApplicationResource @Inject()(resContext: ResourceContext,
                                     tenantResource: TenantResource,
                                     tunnelZoneResource: TunnelZoneResource,
                                     vipResource: VipResource,
-                                    vtepResource: VTEPResource)
+                                    vtepResource: VtepResource)
     extends MidonetResource(resContext) {
 
     @GET

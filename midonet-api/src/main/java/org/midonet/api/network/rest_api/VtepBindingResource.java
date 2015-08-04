@@ -43,7 +43,7 @@ import org.midonet.cluster.DataClient;
 import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.rest_api.VendorMediaType;
-import org.midonet.cluster.rest_api.models.VTEPBinding;
+import org.midonet.cluster.rest_api.models.VtepBinding;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
 import org.midonet.packets.IPv4Addr;
@@ -68,7 +68,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Consumes({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                MediaType.APPLICATION_JSON})
-    public Response create(VTEPBinding binding)
+    public Response create(VtepBinding binding)
         throws StateAccessException, SerializationException {
         validate(binding);
         IPv4Addr ipAddr = parseIPv4Addr(ipAddrStr);
@@ -84,13 +84,13 @@ public class VtepBindingResource extends AbstractVtepResource {
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_JSON,
                MediaType.APPLICATION_JSON})
     @Path("{portName}/{vlanId}")
-    public VTEPBinding get(@PathParam("portName") String portName,
+    public VtepBinding get(@PathParam("portName") String portName,
                            @PathParam("vlanId") short vlanId)
         throws SerializationException, StateAccessException {
 
         java.util.UUID bridgeId = vtepClient.getBoundBridgeId(
                 parseIPv4Addr(ipAddrStr), portName, vlanId);
-        VTEPBinding b = new VTEPBinding();
+        VtepBinding b = new VtepBinding();
         b.mgmtIp = ipAddrStr;
         b.portName = portName;
         b.vlanId = vlanId;
@@ -103,7 +103,7 @@ public class VtepBindingResource extends AbstractVtepResource {
     @RolesAllowed({AuthRole.ADMIN})
     @Produces({VendorMediaType.APPLICATION_VTEP_BINDING_COLLECTION_JSON,
                MediaType.APPLICATION_JSON})
-    public List<VTEPBinding> list() throws StateAccessException,
+    public List<VtepBinding> list() throws StateAccessException,
                                            SerializationException {
         return listVtepBindings(this.ipAddrStr, null);
     }
