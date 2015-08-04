@@ -32,7 +32,6 @@ import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
-import org.midonet.cluster.util.UUIDUtil
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, RangeUtil, UUIDUtil}
 import org.midonet.midolman.rules.FragmentPolicy
@@ -124,6 +123,7 @@ trait TopologyBuilder {
             .setType(tzType)
             .addAllHosts(hosts.map(e => HostToIp.newBuilder
                 .setHostId(e._1.asProto).setIp(e._2.asProto).build()).asJava)
+            .addAllHostIds(hosts.keys.map(_.asProto).asJava)
         if (name.isDefined) builder.setName(name.get)
         builder.build()
     }
