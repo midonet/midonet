@@ -421,6 +421,7 @@ class PacketWorkflowTest extends MidolmanSpec {
                                    flowProcessor,
                                    conntrackTable, natTable,
                                    new ShardedFlowStateTable[TraceKey, TraceContext](),
+                                   peerResolver,
                                    Future.successful(new MockStateStorage()),
                                    HappyGoLuckyLeaser,
                                    metrics,

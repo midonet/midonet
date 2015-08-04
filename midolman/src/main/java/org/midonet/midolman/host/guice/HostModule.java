@@ -67,7 +67,6 @@ public class HostModule extends PrivateModule {
         expose(InterfaceDataUpdater.class);
 
         requireBinding(MidolmanConfig.class);
-        expose(HostIdProviderService.class);
 
         // TODO: uncomment this when the direct dependency on HostZKManager has been removed
         // requireBinding(Client.class);

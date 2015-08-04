@@ -39,7 +39,7 @@ import org.midonet.cluster.services.MidonetBackend._
 import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
 import org.midonet.cluster.services.vxgw.FloodingProxyManager.{HostFpState, MaxFpRetries}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.cluster.util.{IPAddressUtil, selfHealingTzObservable}
+import org.midonet.cluster.util.{IPAddressUtil, selfHealingObservable}
 import org.midonet.packets.IPv4Addr
 import org.midonet.util.functors._
 
@@ -77,8 +77,8 @@ class FloodingProxyManager(backend: MidonetBackend) {
     private val rxScheduler = Schedulers.from(executor)
     private implicit val ec = ExecutionContext.fromExecutor(executor)
 
-    // He'll spread the word about our decissions to the rest of MidoNet
-    private val _herald = new WritableFloodingProxyHerald(backend, executor)
+    // He'll spread the word about our decisions to the rest of MidoNet
+    private val _herald = new WritableFloodingProxyHerald(backend)
 
     // All the subscriptions relevant to us
     private val subscriptions = new CompositeSubscription()
@@ -129,13 +129,13 @@ class FloodingProxyManager(backend: MidonetBackend) {
     }
 
     /** The [[FloodingProxyHerald]] that exposes the flooding proxies */
-    def herald: FloodingProxyHerald = _herald
+    val herald = new FloodingProxyHerald(backend, None)
 
     /** Starts watching the VTEP tunnel zone. */
     def start(): Unit = {
         subscriptions.add(allHosts.observeOn(rxScheduler)
                                   .subscribe(hostObserver))
-        subscriptions.add(Observable.merge(selfHealingTzObservable(store))
+        subscriptions.add(Observable.merge(selfHealingObservable(store))
                                     .observeOn(rxScheduler)
                                     .subscribe(tzObserver))
     }

@@ -65,24 +65,11 @@ object VirtualTopology extends MidolmanLogging {
 
     private[topology] var self: VirtualTopology = null
 
-    /**
-     * Tries to get the virtual device with the specified identifier.
-     * @return The topology device if it is found in the cache of the virtual
-     *         topology manager. The method throws a [[NotYetException]] if the
-     *         device is not yet available in the cache, or an [[Exception]] if
-     *         retrieving the device failed.
-     */
     @throws[NotYetException]
     @throws[Exception]
     def tryGet[D <: Device](id: UUID)
-                           (implicit tag: ClassTag[D]): D = {
-        val device = self.devices.get(id).asInstanceOf[D]
-        if (device eq null) {
-            throw new NotYetException(self.observableOf(Key(tag, id)).asFuture,
-                                      s"Device $id not yet available")
-        }
-        device
-    }
+                           (implicit tag: ClassTag[D]): D =
+        self.tryGet(id)(tag)
 
     /**
      * Gets the virtual device with the specified identifier.
@@ -278,4 +265,22 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
         }
     }
 
+    /**
+     * Tries to get the virtual device with the specified identifier.
+     * @return The topology device if it is found in the cache of the virtual
+     *         topology manager. The method throws a [[NotYetException]] if the
+     *         device is not yet available in the cache, or an [[Exception]] if
+     *         retrieving the device failed.
+     */
+    @throws[NotYetException]
+    @throws[Exception]
+    def tryGet[D <: Device](id: UUID)
+                           (implicit tag: ClassTag[D]): D = {
+        val device = devices.get(id).asInstanceOf[D]
+        if (device eq null) {
+            throw new NotYetException(observableOf(Key(tag, id)).asFuture,
+                                      s"Device $id not yet available")
+        }
+        device
+    }
 }

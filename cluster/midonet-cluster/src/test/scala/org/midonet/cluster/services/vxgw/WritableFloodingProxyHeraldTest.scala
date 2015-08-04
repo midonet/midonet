@@ -103,11 +103,18 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
                 _store.observable(anyObject[Class[TunnelZone]]())
             ).thenReturn(tzsObservable.asObservable())
 
+<<<<<<< Updated upstream
             val herald = new WritableFloodingProxyHerald(backend,
                                                          sameThreadExecutor())
 
             tzsObservable.onNext(Observable.just(vtepTz))
             herald.lookup(tzId) shouldBe None
+=======
+            val herald = new WritableFloodingProxyHerald(backend)
+
+            tzsObservable.onNext(Observable.just(vtepTz))
+            herald.lookup(tzId) shouldBe null
+>>>>>>> Stashed changes
 
             stateInjector.onNext(initialState)
 
@@ -117,7 +124,11 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             stateInjector.onNext(SingleValueKey(FloodingProxyKey,
                                                 Some(fp.toString), 0))
 
+<<<<<<< Updated upstream
             herald.lookup(tzId) shouldBe Some(fp)
+=======
+            herald.lookup(tzId) shouldBe fp
+>>>>>>> Stashed changes
 
             // Test filtering of non-VTEP tunnel zones:
             when (
@@ -129,7 +140,11 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             val greTz = createTunnelZone(greTzId, Type.GRE)
             tzsObservable.onNext(Observable.just(greTz))
 
+<<<<<<< Updated upstream
             herald.lookup(greTzId) shouldBe None
+=======
+            herald.lookup(greTzId) shouldBe null
+>>>>>>> Stashed changes
         }
 
         scenario("An announcement fails and the retry is invoked") {
@@ -155,9 +170,14 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
                 Observable.error[Observable[TunnelZone]](new NullPointerException)
             )
 
+<<<<<<< Updated upstream
             val herald = new WritableFloodingProxyHerald(backend,
                                                          sameThreadExecutor())
             herald.lookup(tzId) shouldBe None
+=======
+            val herald = new WritableFloodingProxyHerald(backend)
+            herald.lookup(tzId) shouldBe null
+>>>>>>> Stashed changes
 
             val fp = FloodingProxy(h2Id, IPv4Addr.random)
             herald.announce(tzId, fp, retry)
@@ -165,7 +185,11 @@ class WritableFloodingProxyHeraldTest extends FeatureSpec
             latch.await(1, TimeUnit.SECONDS) shouldBe true
 
             // The change wasn't applied
+<<<<<<< Updated upstream
             herald.lookup(tzId) shouldBe None
+=======
+            herald.lookup(tzId) shouldBe null
+>>>>>>> Stashed changes
         }
     }
 }

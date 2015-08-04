@@ -97,6 +97,7 @@ class ConnTrackBenchmark extends MidolmanBenchmark {
                                              traceTable,
                                              Future.successful(new MockStateStorage),
                                              hostId,
+                                             peerResolver,
                                              underlayResolver,
                                              mockFlowInvalidation,
                                              0)

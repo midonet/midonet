@@ -28,6 +28,7 @@ import akka.actor.ActorSystem
 import com.codahale.metrics.{MetricFilter, MetricRegistry}
 
 import com.google.inject.Injector
+import org.midonet.midolman.state.PeerResolver
 import org.midonet.netlink.{MockNetlinkChannel, NetlinkChannelFactory}
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 
@@ -55,6 +56,12 @@ trait MidolmanServices {
 
     def config =
         injector.getInstance(classOf[MidolmanConfig])
+
+    def stateStorage =
+        injector.getInstance(classOf[LegacyStorage])
+
+    def peerResolver =
+        injector.getInstance(classOf[PeerResolver])
 
     def virtConfBuilderImpl =
         injector.getInstance(classOf[VirtualConfigurationBuilders])

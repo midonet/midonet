@@ -479,17 +479,10 @@ class FlowStateReplicatorTest extends MidolmanSpec {
         val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
         val natTable = new MockFlowStateTable[NatKey, NatBinding]()
         val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
-    } with BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
-                                   Future.successful(new MockStateStorage),
-                                   ingressHostId, underlay,
-                                   mockFlowInvalidation,
-                                   0) {
-
-        override val log = Logger(LoggerFactory.getLogger(this.getClass))
-
-        override def getPort(id: UUID): Port = ports(id)
-
-        override def getPortGroup(id: UUID) = portGroups(id)
+    } with FlowStateReplicator(conntrackTable, natTable, traceTable,
+                               Future.successful(new MockStateStorage),
+                               ingressHostId, peerResolver, underlay,
+                               mockFlowInvalidation, 0) {
 
         override def resolvePeers(ingressPort: UUID,
                                   egressPorts: ArrayList[UUID],

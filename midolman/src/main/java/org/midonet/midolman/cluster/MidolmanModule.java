@@ -31,6 +31,7 @@ import com.google.inject.Scopes;
 import com.google.inject.name.Names;
 
 import org.midonet.cluster.Client;
+import org.midonet.cluster.services.vxgw.FloodingProxyHerald;
 import org.midonet.midolman.ShardedSimulationBackChannel;
 import org.midonet.midolman.ShardedSimulationBackChannel$;
 import org.midonet.midolman.SimulationBackChannel;
@@ -78,7 +79,6 @@ public class MidolmanModule extends PrivateModule {
             .asEagerSingleton();
 
         requestStaticInjection(Chain.class);
-
     }
 
     protected void bindSimulationBackChannel() {

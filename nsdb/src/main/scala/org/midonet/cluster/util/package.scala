@@ -16,23 +16,36 @@
 
 package org.midonet.cluster
 
+import java.util.UUID
+
+import scala.reflect.ClassTag
+
 import rx.Observable
 
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
-import org.midonet.cluster.models.Topology.TunnelZone
 import org.midonet.util.functors.makeFunc1
 
 package object util {
 
     /** An Observable that will recover itself if an error is emitted */
-    def selfHealingTzObservable(store: Storage):
-    Observable[Observable[TunnelZone]] =
-        store.observable(classOf[TunnelZone])
+    def selfHealingObservable[T](store: Storage)
+                                (implicit ctag: ClassTag[T]):
+    Observable[Observable[T]] =
+        store.observable(ctag.runtimeClass.asInstanceOf[Class[T]])
              .onErrorResumeNext(makeFunc1[Throwable,
-                                          Observable[Observable[TunnelZone]]] {
-                     case t: NotFoundException => Observable.empty()
-                     case _ => selfHealingTzObservable(store)
-                 }
-             )
+                                          Observable[Observable[T]]] {
+                case t: NotFoundException => Observable.empty[Observable[T]]()
+                case _ => selfHealingObservable[T](store)
+             })
 
+    /** An Observable that will recover itself if an error is emitted */
+    def selfHealingObservable[T](store: Storage, id: UUID)
+                                (implicit ctag: ClassTag[T]):
+    Observable[T] =
+        store.observable(ctag.runtimeClass.asInstanceOf[Class[T]], id)
+             .onErrorResumeNext(makeFunc1[Throwable,
+                                          Observable[T]] {
+                case t: NotFoundException => Observable.empty()
+                case _: T => selfHealingObservable[T](store, id)
+             })
 }
