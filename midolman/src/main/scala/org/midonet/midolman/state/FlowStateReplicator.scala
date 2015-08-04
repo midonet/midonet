@@ -20,8 +20,6 @@ import java.util.{ArrayList, Collection, HashSet => JHashSet, Iterator => JItera
 
 import scala.concurrent.{ExecutionContext, Future}
 
-import akka.actor.ActorSystem
-
 import com.typesafe.scalalogging.Logger
 
 import org.slf4j.LoggerFactory
@@ -29,11 +27,10 @@ import org.slf4j.LoggerFactory
 import org.midonet.cluster.flowstate.proto.{FlowState => FlowStateSbe}
 import org.midonet.midolman.HostRequestProxy.FlowStateBatch
 import org.midonet.midolman.flows.FlowTagIndexer
-import org.midonet.midolman.simulation.{PacketContext, Port, PortGroup}
+import org.midonet.midolman.simulation.PacketContext
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceContext, TraceKey}
-import org.midonet.midolman.topology.VirtualTopology
 import org.midonet.midolman.{NotYetException, UnderlayResolver}
 import org.midonet.odp.flows.FlowAction
 import org.midonet.odp.flows.FlowActions.setKey
@@ -91,19 +88,19 @@ import org.midonet.util.functors.Callback0
  *   5 Other threads' read operations will spill over to this shard for the
  *     received keys.
  */
-abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
-                                       natTable: FlowStateTable[NatKey, NatBinding],
-                                       traceTable: FlowStateTable[TraceKey, TraceContext],
-                                       storageFuture: Future[FlowStateStorage],
-                                       hostId: UUID,
-                                       underlay: UnderlayResolver,
-                                       flowInvalidation: FlowTagIndexer,
-                                       tos: Byte) {
+class FlowStateReplicator(
+        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
+        natTable: FlowStateTable[NatKey, NatBinding],
+        traceTable: FlowStateTable[TraceKey, TraceContext],
+        storageFuture: Future[FlowStateStorage],
+        hostId: UUID,
+        peerResolver: PeerResolver,
+        underlay: UnderlayResolver,
+        flowInvalidation: FlowTagIndexer,
+        tos: Byte) {
     import FlowStatePackets._
 
-    protected def log: Logger
-    protected def getPort(id: UUID): Port
-    protected def getPortGroup(id: UUID): PortGroup
+    private val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
 
     private val flowStateEncoder = new SbeEncoder
 
@@ -336,45 +333,6 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
     }
 
     @throws(classOf[NotYetException])
-    private def collectPeersForPort(portId: UUID, hosts: JSet[UUID],
-                                    ports: JSet[UUID],
-                                    tags: Collection[FlowTag]) {
-        val port = getPort(portId)
-        addPeerFor(port, hosts, tags)
-        var i = 0
-        val groupIds = port.portGroups
-        while (i < groupIds.size()) {
-            val group = getPortGroup(groupIds.get(i))
-            if (group.stateful) {
-                tags.add(group.flowStateTag)
-                collectPortGroupPeers(portId, hosts, ports, tags, group)
-            }
-            i += 1
-        }
-    }
-
-    def collectPortGroupPeers(skip: UUID, hosts: JSet[UUID], ports: JSet[UUID],
-                              tags: Collection[FlowTag], group: PortGroup) {
-        var i = 0
-        val members = group.members
-        while (i < members.size()) {
-            val id = members.get(i)
-            if (id != skip) {
-                ports.add(id)
-                addPeerFor(getPort(id), hosts, tags)
-            }
-            i += 1
-        }
-    }
-
-    private def addPeerFor(port: Port, hosts: JSet[UUID],
-                           tags: Collection[FlowTag]): Unit = {
-        if ((port.hostId ne null) && port.hostId != hostId)
-            hosts.add(port.hostId)
-        tags.add(port.flowStateTag)
-    }
-
-    @throws(classOf[NotYetException])
     protected def resolvePeers(ingressPort: UUID,
                                egressPorts: ArrayList[UUID],
                                hosts: JSet[UUID],
@@ -383,36 +341,15 @@ abstract class BaseFlowStateReplicator(conntrackTable: FlowStateTable[ConnTrackK
         hosts.clear()
         ports.clear()
         if (ingressPort ne null)
-            collectPeersForPort(ingressPort, hosts, ports, tags)
+            peerResolver.collectPeersForPort(ingressPort, hosts, ports, tags)
         var i = 0
         while (i < egressPorts.size) {
             val port = egressPorts.get(i)
             ports.add(port)
-            collectPeersForPort(port, hosts, ports, tags)
+            peerResolver.collectPeersForPort(port, hosts, ports, tags)
             i += 1
         }
 
         log.debug("Resolved peers {}", hosts)
     }
-}
-
-class FlowStateReplicator(
-        conntrackTable: FlowStateTable[ConnTrackKey, ConnTrackValue],
-        natTable: FlowStateTable[NatKey, NatBinding],
-        traceTable: FlowStateTable[TraceKey, TraceContext],
-        storageFuture: Future[FlowStateStorage],
-        hostId: UUID,
-        underlay: UnderlayResolver,
-        flowInvalidation: FlowTagIndexer,
-        tso: Byte)(implicit as: ActorSystem)
-        extends BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
-                                        storageFuture, hostId, underlay,
-                                        flowInvalidation, tso) {
-    override val log = Logger(LoggerFactory.getLogger("org.midonet.state.replication"))
-
-    @throws(classOf[NotYetException])
-    override def getPort(id: UUID) = VirtualTopology.tryGet[Port](id)
-
-    @throws(classOf[NotYetException])
-    override def getPortGroup(id: UUID) = VirtualTopology.tryGet[PortGroup](id)
 }

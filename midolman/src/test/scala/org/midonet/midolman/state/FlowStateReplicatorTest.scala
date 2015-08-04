@@ -17,92 +17,113 @@
 package org.midonet.midolman.state
 
 import java.nio.ByteBuffer
-import java.util.{ArrayList, Arrays, Collection, HashSet => JHashSet}
+import java.util.{ArrayList, Collection, HashSet => JHashSet}
 import java.util.{Set => JSet, UUID}
 import java.util.Random
 
 import scala.collection.JavaConversions._
-import scala.collection.mutable
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
-import org.slf4j.LoggerFactory
 import org.slf4j.helpers.NOPLogger
-
-import com.google.protobuf.{CodedOutputStream, MessageLite}
-
 import com.typesafe.scalalogging.Logger
-
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
+import org.midonet.cluster.models.Topology._
+import org.midonet.cluster.services.MidonetBackend._
+import org.midonet.cluster.services.vxgw.FloodingProxyHerald.FloodingProxy
+import org.midonet.cluster.topology.TopologyBuilder
+import org.midonet.cluster.util.UUIDUtil.{fromProto, toProto}
 import org.midonet.midolman.{HostRequestProxy, UnderlayResolver}
 import org.midonet.midolman.datapath.StatePacketExecutor
-import org.midonet.midolman.simulation.PortGroup
 import org.midonet.midolman.state.ConnTrackState.{ConnTrackKey, ConnTrackValue}
 import org.midonet.midolman.state.NatState.{NatBinding, NatKey}
 import org.midonet.midolman.state.TraceState.{TraceKey, TraceContext}
-import org.midonet.midolman.simulation.{BridgePort, Port}
 import org.midonet.midolman.util.MidolmanSpec
 import org.midonet.midolman.util.mock.MockDatapathChannel
+import org.midonet.midolman.topology.VirtualTopology
+import org.midonet.midolman.topology.devices.{TunnelZone => SimTunnelZone}
 import org.midonet.odp.flows.{FlowAction, FlowActionOutput, FlowActions}
 import org.midonet.odp.{FlowMatches, Packet}
 import org.midonet.packets._
 import org.midonet.packets.util.PacketBuilder._
+import org.midonet.sdn.flows.FlowTagger
 import org.midonet.sdn.flows.FlowTagger.FlowTag
 import org.midonet.sdn.state.FlowStateTransaction
 import org.midonet.util.functors.Callback0
+import org.midonet.util.reactivex._
 
 @RunWith(classOf[JUnitRunner])
-class FlowStateReplicatorTest extends MidolmanSpec {
+class FlowStateReplicatorTest extends MidolmanSpec with TopologyBuilder {
     implicit def stringToIp(str: String): IPv4Addr = IPv4Addr.fromString(str)
 
     type ConnTrackTx = FlowStateTransaction[ConnTrackKey, ConnTrackValue]
     type NatTx = FlowStateTransaction[NatKey, NatBinding]
     type TraceTx = FlowStateTransaction[TraceKey, TraceContext]
 
-    var ports = mutable.Map[UUID, Port]()
-    var portGroups = mutable.Map[UUID, PortGroup]()
-
-    val ingressHostId = UUID.randomUUID()
     val ingressGroupMemberHostId = UUID.randomUUID()
-    val egressHost1 = UUID.randomUUID()
-    val egressHost2 = UUID.randomUUID()
+    val egressHost1Id = UUID.randomUUID()
+    val egressHost2Id = UUID.randomUUID()
 
     val ingressGroupId = UUID.randomUUID()
     val egressGroupId = UUID.randomUUID()
 
-    def makePort(host: UUID): BridgePort =
-        new BridgePort(id=UUID.randomUUID, networkId=UUID.randomUUID,
-                       hostId = host)
+    val bridge = Network.newBuilder()
+                        .setId(UUID.randomUUID())
+                        .build()
 
-    def makePort(host: UUID, group: UUID): BridgePort = {
-        new BridgePort(id=UUID.randomUUID, networkId=UUID.randomUUID,
-                       hostId=host,
-                       portGroups=new ArrayList[UUID]() { add(group) })
-    }
+    def makeHost(id: UUID) =
+        Host.newBuilder()
+            .setId(id)
+            .build()
 
-    val ingressPortNoGroup = makePort(ingressHostId)
-    val egressPortNoGroup = makePort(ingressHostId)
+    def makePort(host: UUID) =
+        Port.newBuilder()
+            .setId(UUID.randomUUID())
+            .setNetworkId(bridge.getId)
+            .setHostId(host)
+            .build()
 
-    val ingressPort = makePort(ingressHostId, ingressGroupId)
+    def makePort(host: UUID, group: UUID) =
+        Port.newBuilder()
+            .setId(UUID.randomUUID())
+            .setNetworkId(bridge.getId)
+            .setHostId(host)
+            .addPortGroupIds(group)
+            .build()
+
+    def makePortGroup(id: UUID, name: String) =
+        PortGroup.newBuilder()
+                 .setId(id)
+                 .setName(name)
+                 .setStateful(true)
+                 .build()
+
+    val ingressGroupMemberHost = makeHost(ingressGroupMemberHostId)
+    val egressHost1 = makeHost(egressHost1Id)
+    val egressHost2 = makeHost(egressHost2Id)
+
+    var ingressPortNoGroup: Port = _
+    var egressPortNoGroup: Port = _
+
+    var ingressPort: Port = _
     val ingressPortGroupMember = makePort(ingressGroupMemberHostId, ingressGroupId)
-    val egressPort1 = makePort(egressHost1, egressGroupId)
-    val egressPort2 = makePort(egressHost2, egressGroupId)
+    val egressPort1 = makePort(egressHost1Id, egressGroupId)
+    val egressPort2 = makePort(egressHost2Id, egressGroupId)
 
-    val ingressGroup = new PortGroup(ingressGroupId, "ingress", true,
-        new ArrayList[UUID]() { add(ingressPort.id); add(ingressPortGroupMember.id) })
-    val egressGroup = new PortGroup(egressGroupId, "egress", true,
-        new ArrayList[UUID]() { add(egressPort1.id); add(egressPort2.id) })
+    val ingressGroup = makePortGroup(ingressGroupId, "ingress")
+    val egressGroup = makePortGroup(egressGroupId, "egress")
 
     var sender: TestableFlowStateReplicator = _
     var recipient: TestableFlowStateReplicator = _
     val peers = Map(ingressGroupMemberHostId -> IPv4Addr.fromString("192.168.1.1"),
-                    egressHost1 -> IPv4Addr.fromString("192.168.1.2"),
-                    egressHost2 -> IPv4Addr.fromString("192.168.1.3"))
+                    egressHost1Id -> IPv4Addr.fromString("192.168.1.2"),
+                    egressHost2Id -> IPv4Addr.fromString("192.168.1.3"))
     val senderIp = IPv4Addr.fromString("192.168.1.254")
 
-    val senderUnderlay = new MockUnderlayResolver(ingressHostId, senderIp, peers)
-    val recipientUnderlay = new MockUnderlayResolver(egressHost1, senderIp, peers)
+    var senderUnderlay: MockUnderlayResolver = _
+    val recipientUnderlay = new MockUnderlayResolver(egressHost1Id, senderIp, peers)
     val dpChannel = new MockDatapathChannel()
     var packetsSeen = List[(Packet, List[FlowAction])]()
 
@@ -145,19 +166,41 @@ class FlowStateReplicatorTest extends MidolmanSpec {
     val conntrackDevice = UUID.randomUUID()
 
     override def beforeTest(): Unit = {
-        ports += ingressPortNoGroup.id -> ingressPortNoGroup
-        ports += egressPortNoGroup.id -> egressPortNoGroup
+        val ingressHost = makeHost(hostId)
+        ingressPortNoGroup = makePort(hostId)
+        egressPortNoGroup = makePort(hostId)
 
-        ports += ingressPort.id -> ingressPort
-        ports += ingressPortGroupMember.id -> ingressPortGroupMember
-        ports += egressPort1.id -> egressPort1
-        ports += egressPort2.id -> egressPort2
+        ingressPort = makePort(hostId, ingressGroupId)
 
-        portGroups += ingressGroup.id -> ingressGroup
-        portGroups += egressGroup.id -> egressGroup
+        senderUnderlay = new MockUnderlayResolver(hostId, senderIp, peers)
 
-        sender = new TestableFlowStateReplicator(ports, portGroups, senderUnderlay)
-        recipient = new TestableFlowStateReplicator(ports, portGroups, recipientUnderlay)
+        val store = injector.getInstance(classOf[VirtualTopology]).store
+        store.create(ingressHost)
+        store.create(ingressGroupMemberHost)
+        store.create(egressHost1)
+        store.create(egressHost2)
+        fetchHosts(hostId, ingressGroupMemberHostId, egressHost1Id, egressHost2Id)
+
+        store.create(ingressGroup)
+        store.create(egressGroup)
+        fetchPortGroups(ingressGroupId, egressGroupId)
+
+        store.create(bridge)
+
+        store.create(ingressPortNoGroup)
+        store.create(egressPortNoGroup)
+        store.create(ingressPort)
+        store.create(ingressPortGroupMember)
+        store.create(egressPort1)
+        store.create(egressPort2)
+        fetchPorts(ingressPortNoGroup.getId, egressPortNoGroup.getId,
+                   ingressPort.getId, ingressPortGroupMember.getId,
+                   egressPort1.getId, egressPort2.getId)
+
+
+
+        sender = new TestableFlowStateReplicator(senderUnderlay)
+        recipient = new TestableFlowStateReplicator(recipientUnderlay)
         connTrackTx = new ConnTrackTx(sender.conntrackTable)
         natTx = new NatTx(sender.natTable)
         traceTx = new TraceTx(sender.traceTable)
@@ -186,7 +229,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
     }
 
     private def sendAndAcceptTransactions(): (Packet, List[FlowAction]) = {
-        val (packet, actions) = sendState(ingressPort.id, egressPort1.id)
+        val (packet, actions) = sendState(ingressPort.getId, egressPort1.getId)
         acceptPushedState(packet)
         (packet, actions)
     }
@@ -211,7 +254,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             val sender = UUID.randomUUID
             uuidToSbe(sender, flowStateMessage.sender)
 
-            val len = encoder.encodedLength
+            val len = encoder.encodedLength()
             System.arraycopy(encodingBytes, 0, buffer, 0, len)
             val fse = packet.getEthernet.asInstanceOf[FlowStateEthernet]
             fse.limit(len)
@@ -282,7 +325,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             }
 
             When("The transaction is added to the replicator")
-            val (packet, _) = sendState(ingressPortNoGroup.id, egressPortNoGroup.id)
+            val (packet, _) = sendState(ingressPortNoGroup.getId, egressPortNoGroup.getId)
 
             Then("No packets should have been sent")
             packet should be (null)
@@ -303,7 +346,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             val callbacks = new ArrayList[Callback0]
 
             When("The transaction is commited and added to the replicator")
-            sendState(ingressPort.id, egressPort1.id, callbacks)
+            sendState(ingressPort.getId, egressPort1.getId, callbacks)
 
             Then("The unref callbacks should have been correctly added")
 
@@ -329,7 +372,7 @@ class FlowStateReplicatorTest extends MidolmanSpec {
 
             When("The transaction is commited and added to the replicator")
             natTx.commit()
-            sendState(ingressPort.id, egressPort1.id, callbacks)
+            sendState(ingressPort.getId, egressPort1.getId, callbacks)
 
             Then("The unref callbacks should have been correctly added")
 
@@ -356,31 +399,95 @@ class FlowStateReplicatorTest extends MidolmanSpec {
             val hosts = new JHashSet[UUID]()
             val ports = new JHashSet[UUID]()
             sender.resolvePeers(
-                ingressPort.id, new ArrayList[UUID]() { add(egressPort1.id) }, hosts, ports, tags)
+                ingressPort.getId, new ArrayList[UUID]() {
+                    add(egressPort1.getId)
+                }, hosts, ports, tags)
 
             Then("Hosts in the ingress port's port group should be included")
             hosts should contain (ingressGroupMemberHostId)
 
             And("The host that owns the egress port should be included")
-            hosts should contain (egressHost1)
+            hosts should contain (egressHost1Id)
 
             And("Hosts in the egress port's port group should be included")
-            hosts should contain (egressHost2)
+            hosts should contain (egressHost2Id)
 
             And("All ports should be reported")
-            ports should contain (ingressPortGroupMember.id)
-            ports should contain (egressPort1.id)
-            ports should contain (egressPort2.id)
+            ports should contain (fromProto(ingressPortGroupMember.getId))
+            ports should contain (fromProto(egressPort1.getId))
+            ports should contain (fromProto(egressPort2.getId))
 
             hosts should have size 3
             ports should have size 3
 
             And("The flow should be tagged with all of the ports and port group tags")
-            tags should contain (ingressPortGroupMember.flowStateTag)
-            tags should contain (egressPort1.flowStateTag)
-            tags should contain (egressPort2.flowStateTag)
-            tags should contain (ingressGroup.flowStateTag)
-            tags should contain (egressGroup.flowStateTag)
+            tags should contain (FlowTagger.tagForFlowStateDevice(ingressPortGroupMember.getId))
+            tags should contain (FlowTagger.tagForFlowStateDevice(egressPort1.getId))
+            tags should contain (FlowTagger.tagForFlowStateDevice(egressPort2.getId))
+            tags should contain (FlowTagger.tagForFlowStateDevice(ingressGroup.getId))
+            tags should contain (FlowTagger.tagForFlowStateDevice(egressGroup.getId))
+        }
+
+        scenario ("State is sent to the Flooding Proxy") {
+            injector.getInstance(classOf[PeerResolver]).start()
+            val vt = injector.getInstance(classOf[VirtualTopology])
+            val store = vt.store
+            val stateStore = vt.stateStore
+
+            Given("A Flooding Proxy")
+            val fpHostId = UUID.randomUUID()
+            val fpHost = createHost(id = fpHostId, floodingProxyWeight = 1)
+            store.create(fpHost)
+            fetchHosts(fpHostId)
+
+            val tzone = createTunnelZoneAndAddHostIds(
+                tzType = TunnelZone.Type.VTEP,
+                hosts = Map(hostId -> IPv4Addr.random, fpHostId -> IPv4Addr.random))
+            store.create(tzone)
+            fetchDevice[SimTunnelZone](tzone.getId)
+
+            val fp = FloodingProxy(tzone.getId, fpHostId, IPv4Addr.random)
+            stateStore.addValue(
+                classOf[TunnelZone],
+                tzone.getId,
+                FloodingProxyKey,
+                fp.toString).await(3 seconds)
+
+            val vxlanPort = createVxLanPort(
+                bridgeId = Some(bridge.getId),
+                vtepId = Some(UUID.randomUUID()))
+            store.create(vxlanPort)
+            fetchPorts(vxlanPort.getId)
+
+            When("The flow replicator resolves peers for a flow's state")
+            val hosts = new JHashSet[UUID]()
+            val ports = new JHashSet[UUID]()
+            val tags = new JHashSet[FlowTag]()
+
+            sender.resolvePeers(
+                ingressPort.getId, new ArrayList[UUID]() {
+                    add(vxlanPort.getId)
+                }, hosts, ports, tags)
+
+            Then("Hosts in the ingress port's port group should be included")
+            hosts should contain (ingressGroupMemberHostId)
+
+            And("The flooding proxy should be included")
+            hosts should contain (fpHostId)
+
+            And("All ports should be reported")
+            ports should contain (fromProto(ingressPortGroupMember.getId))
+            ports should contain (fromProto(vxlanPort.getId))
+
+            hosts should have size 2
+            ports should have size 2
+
+            And("The flow should be tagged with all of the ports and port group tags")
+            tags should contain (FlowTagger.tagForFlowStateDevice(ingressPort.getId))
+            tags should contain (FlowTagger.tagForFlowStateDevice(ingressPortGroupMember.getId))
+            tags should contain (FlowTagger.tagForFlowStateDevice(ingressGroup.getId))
+            tags should contain (FlowTagger.tagForFlowStateDevice(vxlanPort.getId))
+            tags should have size 4
         }
     }
 
@@ -425,23 +532,14 @@ class FlowStateReplicatorTest extends MidolmanSpec {
     }
 
     class TestableFlowStateReplicator(
-            val ports: mutable.Map[UUID, Port],
-            val portGroups: mutable.Map[UUID, PortGroup],
             val underlay: UnderlayResolver) extends {
         val conntrackTable = new MockFlowStateTable[ConnTrackKey, ConnTrackValue]()
         val natTable = new MockFlowStateTable[NatKey, NatBinding]()
         val traceTable = new MockFlowStateTable[TraceKey, TraceContext]()
-    } with BaseFlowStateReplicator(conntrackTable, natTable, traceTable,
-                                   Future.successful(new MockStateStorage),
-                                   ingressHostId, underlay,
-                                   mockFlowInvalidation,
-                                   0) {
-
-        override val log = Logger(LoggerFactory.getLogger(this.getClass))
-
-        override def getPort(id: UUID): Port = ports(id)
-
-        override def getPortGroup(id: UUID) = portGroups(id)
+    } with FlowStateReplicator(conntrackTable, natTable, traceTable,
+                               Future.successful(new MockStateStorage),
+                               hostId, peerResolver, underlay,
+                               mockFlowInvalidation, 0) {
 
         override def resolvePeers(ingressPort: UUID,
                                   egressPorts: ArrayList[UUID],
