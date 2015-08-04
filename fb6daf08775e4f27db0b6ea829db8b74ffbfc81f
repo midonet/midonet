@@ -1,0 +1,27 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_1c98ff76",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/VirtualTopology.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 169,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-04T16:47:21Z",
+      "side": 1,
+      "message": "Why dataClient here? Aren\u0027t we supposed to abstract the underlying storage (v1 or v2) rather than doing the opposite?",
+      "range": {
+        "startLine": 169,
+        "startChar": 33,
+        "endLine": 169,
+        "endChar": 60
+      },
+      "revId": "fb6daf08775e4f27db0b6ea829db8b74ffbfc81f",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
