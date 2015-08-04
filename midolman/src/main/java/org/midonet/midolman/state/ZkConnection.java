@@ -59,6 +59,9 @@ public class ZkConnection implements Watcher {
         terminated = false;
     }
 
+    protected ZkConnection() {
+    }
+
     public void open() throws Exception {
         synchronized (this) {
             if (null == zk) {
