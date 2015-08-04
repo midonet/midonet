@@ -31,6 +31,7 @@ import org.midonet.cluster.data.storage.FieldBinding.DeleteAction
 import org.midonet.cluster.data.storage.FieldBinding.DeleteAction._
 import org.midonet.cluster.data.storage.StorageTestClasses._
 import org.midonet.cluster.models.Commons
+import org.midonet.cluster.models.Commons.Condition
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.cluster.util.{ClassAwaitableObserver, UUIDUtil}
@@ -104,11 +105,6 @@ abstract class StorageTest extends FeatureSpec with BeforeAndAfter
 
         storage.declareBinding(classOf[Chain], "rule_ids", CASCADE,
                                classOf[Rule], "chain_id", CLEAR)
-
-        storage.declareBinding(classOf[Rule], "in_port_ids", CLEAR,
-                               classOf[Port], "inbound_filter_id", CLEAR)
-        storage.declareBinding(classOf[Rule], "out_port_ids", CLEAR,
-                               classOf[Port], "outbound_filter_id", CLEAR)
 
         storage.build()
     }
@@ -1194,8 +1190,10 @@ private object StorageTest {
     : Rule = {
         val builder = Rule.newBuilder.setId(id.asProto)
         if (chainId ne null) builder.setChainId(chainId.asProto)
-        if (inPortIds ne null) builder.addAllInPortIds(inPortIds.map(_.asProto).asJava)
-        if (outPortIds ne null) builder.addAllOutPortIds(outPortIds.map(_.asProto).asJava)
+        if (inPortIds ne null) builder.setCondition(
+            Condition.newBuilder.addAllInPortIds(inPortIds.map(_.asProto).asJava))
+        if (outPortIds ne null) builder.setCondition(
+            Condition.newBuilder.addAllOutPortIds(outPortIds.map(_.asProto).asJava))
         builder.build()
     }
 

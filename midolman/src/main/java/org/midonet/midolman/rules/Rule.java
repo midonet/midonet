@@ -49,6 +49,7 @@ import org.midonet.sdn.flows.FlowTagger;
 @ZoomClass(clazz = Topology.Rule.class, factory = Rule.RuleFactory.class)
 public abstract class Rule extends BaseConfig {
 
+    @ZoomField(name = "condition")
     protected Condition condition;
 
     @ZoomField(name = "action")
@@ -113,8 +114,6 @@ public abstract class Rule extends BaseConfig {
                         + " set to CONTINUE (" + rule + ")");
                 break;
         }
-
-        condition = ZoomConvert.fromProto(proto, Condition.class);
     }
 
     // WARNING!

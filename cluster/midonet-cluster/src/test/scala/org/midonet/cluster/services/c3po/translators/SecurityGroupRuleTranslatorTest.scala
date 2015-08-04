@@ -124,10 +124,10 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
 
         val mRule = SecurityGroupRuleManager.translate(nRule)
         mRule.getId shouldBe sgrId
-        mRule.getNwProto shouldBe Protocol.TCP.getNumber
-        mRule.getTpDst.getStart shouldBe start
-        mRule.getTpDst.getEnd shouldBe end
-        mRule.getNwSrcIp.getAddress shouldBe ip
+        mRule.getCondition.getNwProto shouldBe Protocol.TCP.getNumber
+        mRule.getCondition.getTpDst.getStart shouldBe start
+        mRule.getCondition.getTpDst.getEnd shouldBe end
+        mRule.getCondition.getNwSrcIp.getAddress shouldBe ip
     }
 
     "Egress SecurityGroupRule translation" should "correspond " +
@@ -149,9 +149,9 @@ class SecurityGroupRuleTranslatorTest extends TranslatorTestBase
 
         val mRule = SecurityGroupRuleManager.translate(nRule)
         mRule.getId shouldBe sgrId
-        mRule.getNwProto shouldBe Protocol.UDP.getNumber
-        mRule.getTpDst.getStart shouldBe start
-        mRule.getTpDst.getEnd shouldBe end
-        mRule.getNwDstIp.getAddress shouldBe ip
+        mRule.getCondition.getNwProto shouldBe Protocol.UDP.getNumber
+        mRule.getCondition.getTpDst.getStart shouldBe start
+        mRule.getCondition.getTpDst.getEnd shouldBe end
+        mRule.getCondition.getNwDstIp.getAddress shouldBe ip
     }
 }

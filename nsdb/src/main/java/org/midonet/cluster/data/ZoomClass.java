@@ -52,4 +52,8 @@ public @interface ZoomClass {
     Class<? extends ZoomConvert.Factory<?,?>> factory()
         default ZoomConvert.DefaultFactory.class;
 
+    /**
+     * Specifies whether the superclass should be converted also.
+     */
+    boolean skipSuper() default false;
 }

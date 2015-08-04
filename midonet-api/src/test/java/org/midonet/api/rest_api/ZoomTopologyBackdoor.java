@@ -38,6 +38,7 @@ import org.midonet.cluster.data.storage.StateKey;
 import org.midonet.cluster.data.storage.StateResult;
 import org.midonet.cluster.models.State;
 import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.models.Commons.Condition;
 import org.midonet.cluster.models.Topology.Host;
 import org.midonet.cluster.services.MidonetBackend;
 import org.midonet.cluster.util.UUIDUtil;
@@ -241,7 +242,7 @@ public class ZoomTopologyBackdoor implements TopologyBackdoor {
                 .setType(Topology.Rule.Type.LITERAL_RULE)
                 .setAction(Topology.Rule.Action.ACCEPT)
                 .setChainId(UUIDUtil.toProto(chainId))
-                .setDlType(ethertype)
+                .setCondition(Condition.newBuilder().setDlType(ethertype))
                 .build();
             backend.store().create(r);
             return randId;

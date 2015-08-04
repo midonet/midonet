@@ -32,7 +32,7 @@ import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.annotation.JsonError;
 import org.midonet.cluster.rest_api.validation.IsValidFragmentType;
@@ -58,7 +58,7 @@ public class Condition extends UriResource {
     /** This enumeration is equivalent with
      * [[org.midonet.midolman.rules.FragmentPolicy]] except that this class
      * uses the lower-case values for API compatibility. */
-    @ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
+    @ZoomEnum(clazz = Commons.Condition.FragmentPolicy.class)
     public enum FragmentPolicy {
         @ZoomEnumValue(value = "ANY") any,
         @ZoomEnumValue(value = "NONHEADER") nonheader,
@@ -236,5 +236,47 @@ public class Condition extends UriResource {
         return null;
     }
 
-
+    public Condition copyFrom(Condition condition) {
+        this.nwDst = condition.nwDst;
+        this.nwDstAddress = condition.nwDstAddress;
+        this.nwDstLength = condition.nwDstLength;
+        this.nwSrc = condition.nwSrc;
+        this.nwSrcAddress = condition.nwSrcAddress;
+        this.nwSrcLength = condition.nwSrcLength;
+        this.condInvert = condition.condInvert;
+        this.matchForwardFlow = condition.matchForwardFlow;
+        this.matchReturnFlow = condition.matchReturnFlow;
+        this.inPorts = condition.inPorts;
+        this.invInPorts = condition.invInPorts;
+        this.outPorts = condition.outPorts;
+        this.invOutPorts = condition.invOutPorts;
+        this.portGroup = condition.portGroup;
+        this.invPortGroup = condition.invPortGroup;
+        this.ipAddrGroupSrc = condition.ipAddrGroupSrc;
+        this.invIpAddrGroupSrc = condition.invIpAddrGroupSrc;
+        this.ipAddrGroupDst = condition.ipAddrGroupDst;
+        this.invIpAddrGroupDst = condition.invIpAddrGroupDst;
+        this.traversedDevice = condition.traversedDevice;
+        this.invTraversedDevice = condition.invTraversedDevice;
+        this.dlType = condition.dlType;
+        this.invDlType = condition.invDlType;
+        this.dlSrc = condition.dlSrc;
+        this.dlSrcMask = condition.dlSrcMask;
+        this.invDlSrc = condition.invDlSrc;
+        this.dlDst = condition.dlDst;
+        this.dlDstMask = condition.dlDstMask;
+        this.invDlDst = condition.invDlDst;
+        this.nwTos = condition.nwTos;
+        this.invNwTos = condition.invNwTos;
+        this.nwProto = condition.nwProto;
+        this.invNwProto = condition.invNwProto;
+        this.invNwSrc = condition.invNwSrc;
+        this.invNwDst = condition.invNwDst;
+        this.fragmentPolicy = condition.fragmentPolicy;
+        this.tpSrc = condition.tpSrc;
+        this.tpDst = condition.tpDst;
+        this.invTpSrc = condition.invTpSrc;
+        this.invTpDst = condition.invTpDst;
+        return this;
+    }
 }

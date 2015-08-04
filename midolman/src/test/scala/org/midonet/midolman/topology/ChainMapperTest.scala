@@ -235,7 +235,8 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
             And("When we update the jump rule and the chain")
             store.update(jumpRule.toBuilder
                              .clearChainId()
-                             .setInvDlDst(true)
+                             .setCondition(jumpRule.getCondition.toBuilder
+                                               .setInvDlDst(true))
                              .build())
             store.update(updatedChain.toBuilder
                              .setName("test-chain2")
@@ -508,9 +509,10 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
             And("When we remove the two IPAddrGroups from the rule")
             updatedRule = rule.toBuilder
-                              .clearIpAddrGroupIdSrc()
-                              .clearIpAddrGroupIdDst()
-                              .build()
+                .setCondition(rule.getCondition.toBuilder
+                                  .clearIpAddrGroupIdSrc()
+                                  .clearIpAddrGroupIdDst())
+                .build()
             store.update(updatedRule)
 
             Then("We receive the rule with no IPAddrGroups")
@@ -681,10 +683,11 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
 
     private def buildAndStoreJumpRule(chainId: UUID, jumpChainId: UUID)
     : ProtoRule = {
-        val jumpRule = createJumpRuleBuilder(UUID.randomUUID(),
-                                             chainId = Some(chainId),
-                                             jumpChainId = Some(jumpChainId))
-            .build()
+        val builder = createJumpRuleBuilder(UUID.randomUUID(),
+                                            chainId = Some(chainId),
+                                            jumpChainId = Some(jumpChainId))
+        setCondition(builder)
+        val jumpRule = builder.build()
         store.create(jumpRule)
         jumpRule
     }

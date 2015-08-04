@@ -107,11 +107,11 @@ class PortTranslatorIT extends C3POMinionTestBase with ChainManager {
             val ruleIds = asc.getRuleIdsList.asScala.slice(2, 4)
             val rules = storage.getAll(classOf[Rule], ruleIds).await()
             rules(0).getAction shouldBe Action.RETURN
-            rules(0).getNwSrcIp.getAddress shouldBe "10.0.1.0"
-            rules(0).getNwSrcIp.getPrefixLength shouldBe 24
+            rules(0).getCondition.getNwSrcIp.getAddress shouldBe "10.0.1.0"
+            rules(0).getCondition.getNwSrcIp.getPrefixLength shouldBe 24
             rules(1).getAction shouldBe Action.RETURN
-            rules(1).getNwSrcIp.getAddress shouldBe "10.0.2.1"
-            rules(1).getNwSrcIp.getPrefixLength shouldBe 32
+            rules(1).getCondition.getNwSrcIp.getAddress shouldBe "10.0.2.1"
+            rules(1).getCondition.getNwSrcIp.getPrefixLength shouldBe 32
         }
 
         // Unbind the first port.
