@@ -103,8 +103,10 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             id { $snatRuleId }
             type: NAT_RULE
             action: ACCEPT
-            out_port_ids { ${tenantGwPortId(gatewayPortId)} }
-            nw_src_ip { $fixedIpSubnet }
+            condition {
+                out_port_ids { ${tenantGwPortId(gatewayPortId)} }
+                nw_src_ip { $fixedIpSubnet }
+            }
             fip_port_id { $sourcePortId }
             nat_rule_data {
                 nat_targets {
@@ -124,8 +126,10 @@ class FloatingIpTranslatorTestBase extends TranslatorTestBase with ChainManager
             id { $dnatRuleId }
             type: NAT_RULE
             action: ACCEPT
-            in_port_ids { ${tenantGwPortId(gatewayPortId)} }
-            nw_dst_ip { $fipIpSubnet }
+            condition {
+                in_port_ids { ${tenantGwPortId(gatewayPortId)} }
+                nw_dst_ip { $fipIpSubnet }
+            }
             fip_port_id { $destPortId }
             nat_rule_data {
                 nat_targets {

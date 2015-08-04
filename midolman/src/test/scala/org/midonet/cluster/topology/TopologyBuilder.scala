@@ -21,7 +21,7 @@ import scala.collection.JavaConverters._
 import scala.util.Random
 
 import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Commons.{IPAddress, LBStatus}
+import org.midonet.cluster.models.Commons.{Condition, IPAddress, LBStatus}
 import org.midonet.cluster.models.Topology.HealthMonitor.HealthMonitorType
 import org.midonet.cluster.models.Topology.IPAddrGroup.IPAddrPorts
 import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
@@ -241,7 +241,7 @@ trait TopologyBuilder {
         builder.build()
     }
 
-    def setCondition(builder: Rule.Builder,
+    def setCondition(ruleBuilder: Rule.Builder,
                      conjunctionInv: Option[Boolean] = None,
                      matchForwardFlow: Option[Boolean] = None,
                      matchReturnFlow: Option[Boolean] = None,
@@ -279,7 +279,68 @@ trait TopologyBuilder {
                      traversedDeviceInv: Option[Boolean] = None,
                      fragmentPolicy: Option[FragmentPolicy] = None)
     : Rule.Builder = {
+        val builder = if (ruleBuilder.hasCondition) {
+            ruleBuilder.getCondition.toBuilder
+        } else {
+            Condition.newBuilder
 
+        }
+        setConditionParameters(builder, conjunctionInv, matchForwardFlow,
+                               matchReturnFlow, inPortIds, inPortInv,
+                               outPortIds, outPortInv, portGroup,
+                               invPortGroup, ipAddrGroupIdSrc,
+                               invIpAddrGroupIdSrc, ipAddrGroupIdDst,
+                               invIpAddrGroupIdDst, etherType,
+                               invDlType, ethSrc, ethSrcMask, invDlSrc,
+                               ethDst, dlDstMask, invDlDst,
+                               nwTos, nwTosInv, nwProto,
+                               nwProtoInv, nwSrcIp, nwDstIp,
+                               tpSrc, tpDst, nwSrcInv, nwDstInv,
+                               tpSrcInv, tpDstInv, traversedDevice,
+                               traversedDeviceInv, fragmentPolicy)
+        ruleBuilder.setCondition(builder)
+        ruleBuilder
+
+    }
+
+    protected def setConditionParameters(builder: Condition.Builder,
+                                         conjunctionInv: Option[Boolean] = None,
+                                         matchForwardFlow: Option[Boolean] = None,
+                                         matchReturnFlow: Option[Boolean] = None,
+                                         inPortIds: Option[Set[UUID]] = None,
+                                         inPortInv: Option[Boolean] = None,
+                                         outPortIds: Option[Set[UUID]] = None,
+                                         outPortInv: Option[Boolean] = None,
+                                         portGroup: Option[UUID] = None,
+                                         invPortGroup: Option[Boolean] = None,
+                                         ipAddrGroupIdSrc: Option[UUID] = None,
+                                         invIpAddrGroupIdSrc: Option[Boolean] = None,
+                                         ipAddrGroupIdDst: Option[UUID] = None,
+                                         invIpAddrGroupIdDst: Option[Boolean] = None,
+                                         etherType: Option[Int] = None,
+                                         invDlType: Option[Boolean] = None,
+                                         ethSrc: Option[MAC] = None,
+                                         ethSrcMask: Option[Long] = None,
+                                         invDlSrc: Option[Boolean] = None,
+                                         ethDst: Option[MAC] = None,
+                                         dlDstMask: Option[Long] = None,
+                                         invDlDst: Option[Boolean] = None,
+                                         nwTos: Option[Byte] = None,
+                                         nwTosInv: Option[Boolean] = None,
+                                         nwProto: Option[Byte] = None,
+                                         nwProtoInv: Option[Boolean] = None,
+                                         nwSrcIp: Option[IPSubnet[_]] = None,
+                                         nwDstIp: Option[IPSubnet[_]] = None,
+                                         tpSrc: Option[Range[Integer]] = None,
+                                         tpDst: Option[Range[Integer]] = None,
+                                         nwSrcInv: Option[Boolean] = None,
+                                         nwDstInv: Option[Boolean] = None,
+                                         tpSrcInv: Option[Boolean] = None,
+                                         tpDstInv: Option[Boolean] = None,
+                                         traversedDevice: Option[UUID] = None,
+                                         traversedDeviceInv: Option[Boolean] = None,
+                                         fragmentPolicy: Option[FragmentPolicy] = None)
+            : Condition.Builder = {
         if (matchForwardFlow.isDefined) {
             builder.setMatchForwardFlow(matchForwardFlow.get)
         }
@@ -354,8 +415,7 @@ trait TopologyBuilder {
             builder.setTraversedDeviceInv(traversedDeviceInv.get)
         if (fragmentPolicy.isDefined)
             builder.setFragmentPolicy(
-                Rule.FragmentPolicy.valueOf(fragmentPolicy.get.name))
-
+                Condition.FragmentPolicy.valueOf(fragmentPolicy.get.name))
         builder
     }
 
@@ -433,8 +493,10 @@ trait TopologyBuilder {
         builder.setNatRuleData(ruleData.build())
 
         if (matchFwdFlow.isDefined) {
-            builder.setMatchForwardFlow(matchFwdFlow.get)
-            builder.setMatchReturnFlow(!matchFwdFlow.get)
+            val c = Condition.newBuilder
+            c.setMatchForwardFlow(matchFwdFlow.get)
+            c.setMatchReturnFlow(!matchFwdFlow.get)
+            builder.setCondition(c)
         }
         builder
     }

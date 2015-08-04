@@ -125,14 +125,14 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
         val outChain1Rules = storage.getAll(
             classOf[Rule], outChain1.getRuleIdsList.asScala).await()
         outChain1Rules(0).getId should be(toProto(rule1Id))
-        outChain1Rules(0).getTpDst.getStart should be(15000)
-        outChain1Rules(0).getTpDst.getEnd should be(15500)
-        outChain1Rules(0).getNwSrcIp.getAddress should be("10.0.0.1")
-        outChain1Rules(0).getNwSrcIp.getPrefixLength should be(24)
+        outChain1Rules(0).getCondition.getTpDst.getStart should be(15000)
+        outChain1Rules(0).getCondition.getTpDst.getEnd should be(15500)
+        outChain1Rules(0).getCondition.getNwSrcIp.getAddress should be("10.0.0.1")
+        outChain1Rules(0).getCondition.getNwSrcIp.getPrefixLength should be(24)
 
         outChain1Rules(1).getId should be(toProto(rule2Id))
-        outChain1Rules(1).getDlType should be(EtherType.IPV6_VALUE)
-        outChain1Rules(1).getIpAddrGroupIdSrc should be(toProto(sg2Id))
+        outChain1Rules(1).getCondition.getDlType should be(EtherType.IPV6_VALUE)
+        outChain1Rules(1).getCondition.getIpAddrGroupIdSrc should be(toProto(sg2Id))
 
         val rule1aJson = ruleJson(rule1Id, sg1Id,
                                   direction = RuleDirection.EGRESS,
@@ -160,7 +160,7 @@ class SecurityGroupIT extends C3POMinionTestBase with ChainManager {
 
         val inChain1aRule1 = ipg1aRules(0)
         inChain1aRule1.getId should be(toProto(rule1Id))
-        inChain1aRule1.getNwProto should be(UDP.PROTOCOL_NUMBER)
+        inChain1aRule1.getCondition.getNwProto should be(UDP.PROTOCOL_NUMBER)
 
         val outChain1aRule1 = ipg1aRules(1)
         outChain1aRule1.getId should be(toProto(rule3Id))

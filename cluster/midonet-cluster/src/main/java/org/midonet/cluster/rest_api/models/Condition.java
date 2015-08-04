@@ -32,7 +32,7 @@ import org.midonet.cluster.data.ZoomConvert;
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
 import org.midonet.cluster.data.ZoomField;
-import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.models.Commons;
 import org.midonet.cluster.rest_api.BadRequestHttpException;
 import org.midonet.cluster.rest_api.annotation.JsonError;
 import org.midonet.cluster.rest_api.validation.IsValidFragmentType;
@@ -58,7 +58,7 @@ public class Condition extends UriResource {
     /** This enumeration is equivalent with
      * [[org.midonet.midolman.rules.FragmentPolicy]] except that this class
      * uses the lower-case values for API compatibility. */
-    @ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
+    @ZoomEnum(clazz = Commons.Condition.FragmentPolicy.class)
     public enum FragmentPolicy {
         @ZoomEnumValue(value = "ANY") any,
         @ZoomEnumValue(value = "NONHEADER") nonheader,

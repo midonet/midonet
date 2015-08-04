@@ -20,7 +20,7 @@ import java.util.EnumSet;
 
 import org.midonet.cluster.data.ZoomEnum;
 import org.midonet.cluster.data.ZoomEnumValue;
-import org.midonet.cluster.models.Topology;
+import org.midonet.cluster.models.Commons;
 import org.midonet.packets.IPFragmentType;
 
 import static org.midonet.packets.IPFragmentType.*;
@@ -30,7 +30,7 @@ import static org.midonet.packets.IPFragmentType.*;
  * Condition to cause rules to match some combination of unfragmented
  * packets, header fragments, and non-header fragments.
  */
-@ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
+@ZoomEnum(clazz = Commons.Condition.FragmentPolicy.class)
 public enum FragmentPolicy {
     /**
      * Matches any packet, fragmented or not.

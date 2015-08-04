@@ -359,51 +359,7 @@ message Rule {
     }
     optional Action action = 4;
 
-    // Condition fields
-    optional bool conjunction_inv = 5;
-    optional bool match_forward_flow = 6;
-    optional bool match_return_flow = 7;
-    repeated UUID in_port_ids = 8;
-    optional bool in_port_inv = 9;
-    repeated UUID out_port_ids = 10;
-    optional bool out_port_inv = 11;
-    optional UUID port_group_id = 12;
-    optional bool inv_port_group = 13;
-    optional UUID ip_addr_group_id_src = 14;
-    optional bool inv_ip_addr_group_id_src = 15;
-    optional UUID ip_addr_group_id_dst = 16;
-    optional bool inv_ip_addr_group_id_dst = 17;
-    optional int32 dl_type = 18;
-    optional bool inv_dl_type = 19;
-    optional string dl_src = 20;
-    optional int64 dl_src_mask = 21 [default = -1];  // Top 16 bits ignored.
-    optional bool inv_dl_src = 22;
-    optional string dl_dst = 23;
-    optional int64 dl_dst_mask =  24 [default = -1];  // Top 16 bits ignored.
-    optional bool inv_dl_dst = 25;
-    optional int32 nw_tos = 26;
-    optional bool nw_tos_inv = 27;
-    optional int32 nw_proto = 28;
-    optional bool nw_proto_inv = 29;
-    optional IPSubnet nw_src_ip = 30;
-    optional IPSubnet nw_dst_ip = 31;
-    optional Int32Range tp_src = 32;
-    optional Int32Range tp_dst = 33;
-    optional bool nw_src_inv = 34;
-    optional bool nw_dst_inv = 35;
-    optional bool tp_src_inv = 36;
-    optional bool tp_dst_inv = 37;
-    optional UUID traversed_device = 38;
-    optional bool traversed_device_inv = 39;
-
-    enum FragmentPolicy {
-        ANY = 1;
-        NONHEADER = 2;
-        HEADER = 3;
-        UNFRAGMENTED = 4;
-    }
-    optional FragmentPolicy fragment_policy = 40;
-    // end of condition fields
+    optional Condition condition = 5;
 
     // Port for which this rule implements floating IP NAT.
     optional UUID fip_port_id = 41;
