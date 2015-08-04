@@ -17,7 +17,6 @@
 package org.midonet.cluster.services.vxgw
 
 import java.util.UUID
-import java.util.concurrent.Executor
 
 import rx.Observable
 
@@ -32,8 +31,7 @@ import org.midonet.util.reactivex
  * This class is responsible for keeping a register of the current flooding
  * proxy for each tunnel zone, and announcing it via the NSDB.
  */
-class WritableFloodingProxyHerald(backend: MidonetBackend, executor: Executor)
-    extends FloodingProxyHerald(backend, executor) {
+class WritableFloodingProxyHerald(backend: MidonetBackend) {
 
     /** Asynchronously publish the given hostId as Flooding Proxy for the given
       * tunnel zone.
