@@ -23,13 +23,13 @@ import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
-import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.IPSubnetUtil;
 
 @ZoomClass(clazz = Neutron.NeutronPort.AllowedAddressPair.class)
 public class PortAllowedAddressPair extends ZoomObject {
 
     @JsonProperty("ip_address")
-    @ZoomField(name = "ip_address", converter = IPAddressUtil.Converter.class)
+    @ZoomField(name = "ip_address", converter = IPSubnetUtil.Converter.class)
     public String ipAddress;
 
     @JsonProperty("mac_address")

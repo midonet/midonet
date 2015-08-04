@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,8 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
 
     /**
      * Construct an IPv4Subnet object from a CIDR notation string - e.g.
-     * "192.168.0.1/16".
+     * "192.168.0.1/16". The mask length is optional; if omitted, a value of
+     * 32 is assumed.
      *
      * IllegalArgumentException is thrown if the CIDR notation string is
      * invalid.
@@ -117,14 +118,15 @@ public final class IPv4Subnet extends IPSubnet<IPv4Addr> {
     public static String IPV4_CIDR_PATTERN =
             "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}" +
             "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])" +
-            "(\\/(\\d|[1-2]\\d|3[0-2]))$";
+            "(\\/(\\d|[1-2]\\d|3[0-2]))?$";
 
     private static Pattern ipv4CidrPattern = Pattern.compile(IPV4_CIDR_PATTERN);
 
     /**
-     * Checks whether CIDR is in the correct format.  The expected format
-     * is n.n.n.n/m where n.n.n.n is a valid quad-dotted IPv4 address and m is
-     * a prefix length value in [0, 32].  False is returned if cidr is null.
+     * Checks whether CIDR is in the correct format. The expected format is
+     * n.n.n.n(/m) where n.n.n.n is a valid quad-dotted IPv4 address and the
+     * optional m is a prefix length value in [0, 32]. Returns false if cidr is
+     * null.
      *
      * @param cidr CIDR to validate
      * @return True if CIDR is valid

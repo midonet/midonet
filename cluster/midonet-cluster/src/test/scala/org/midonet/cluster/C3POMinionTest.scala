@@ -366,7 +366,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
     }
 
     case class IPAlloc(ipAddress: String, subnetId: UUID)
-
+    case class AddrPair(cidr: String, mac: String)
     protected def portJson(id: UUID,
                            networkId: UUID,
                            name: String = null,
@@ -379,6 +379,7 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                            securityGroups: List[UUID] = null,
                            hostId: UUID = null,
                            ifName: String = null,
+                           allowedAddrPairs: List[AddrPair] = null,
                            portSecurityEnabled: Boolean = true): JsonNode = {
         val p = nodeFactory.objectNode
         p.put("id", id.toString)
@@ -406,6 +407,15 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
         if (hostId != null) p.put("binding:host_id", hostId.toString)
         if (ifName != null)
             p.putObject("binding:profile").put("interface_name", ifName)
+        if (allowedAddrPairs != null) {
+            val pairs = p.putArray("allowed_address_pairs")
+            for (pair <- allowedAddrPairs) {
+                val p = nodeFactory.objectNode
+                p.put("ip_address", pair.cidr)
+                p.put("mac_address", pair.mac)
+                pairs.add(p)
+            }
+        }
         p
     }
 

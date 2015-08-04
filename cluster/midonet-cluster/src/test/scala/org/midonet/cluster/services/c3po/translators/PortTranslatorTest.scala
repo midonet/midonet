@@ -183,7 +183,7 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
     val nIpv4Subnet1 = nSubnetFromTxt(s"""
         id { $nIpv4Subnet1Id }
         network_id { $networkId }
-        cidr: '$ipv4Subnet1Cidr'
+        cidr { $ipv4Subnet1 }
         ip_version: 4
         """)
 
@@ -191,7 +191,7 @@ class PortTranslatorTest extends TranslatorTestBase with ChainManager
     val nIpv6Subnet1= nSubnetFromTxt(s"""
         id { $nIpv6Subnet1Id }
         network_id { $networkId }
-        cidr: '$ipv6Subnet1Cidr'
+        cidr { $ipv6Subnet1 }
         ip_version: 6
         """)
 
@@ -407,6 +407,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             ip_address {
               version: V4
               address: '1.2.1.2'
+              prefix_length: 32
             }
             mac_address: "01:02:03:0a:0b:0c"
           }
@@ -414,6 +415,7 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             ip_address {
               version: V4
               address: '2.3.2.3'
+              prefix_length: 32
             }
             mac_address: "0a:0b:0b:0a:0b:0c"
           }
