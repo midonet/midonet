@@ -30,6 +30,7 @@ import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.IPAddressUtil;
+import org.midonet.cluster.util.IPSubnetUtil;
 import org.midonet.cluster.util.UUIDUtil.Converter;
 import org.midonet.packets.IPAddr;
 import org.midonet.packets.IPv4Addr;
@@ -75,7 +76,7 @@ public class Subnet extends ZoomObject {
     @ZoomField(name = "network_id", converter = Converter.class)
     public UUID networkId;
 
-    @ZoomField(name = "cidr")
+    @ZoomField(name = "cidr", converter = IPSubnetUtil.Converter.class)
     public String cidr;
 
     @JsonProperty("gateway_ip")

@@ -26,9 +26,7 @@ import org.midonet.cluster.models.Topology.Dhcp.Opt121Route
 import org.midonet.cluster.models.Topology.{Dhcp, Network, Route}
 import org.midonet.cluster.rest_api.neutron.models.DeviceOwner
 import org.midonet.cluster.services.c3po.midonet.{Create, Delete, Update}
-import org.midonet.cluster.services.c3po.neutron
 import org.midonet.cluster.util.DhcpUtil.asRichNeutronSubnet
-import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.util.concurrent.toFutureOps
 
 // TODO: add code to handle connection to provider router.
@@ -51,7 +49,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
             dhcp.setServerAddress(ns.getGatewayIp)
         }
         if (ns.hasCidr)
-            dhcp.setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
+            dhcp.setSubnetAddress(ns.getCidr)
         if (ns.hasEnableDhcp)
             dhcp.setEnabled(ns.getEnableDhcp)
 
@@ -78,7 +76,7 @@ class SubnetTranslator(val storage: ReadOnlyStorage)
         val oldDhcp = storage.get(classOf[Dhcp], ns.getId).await()
         val newDhcp = oldDhcp.toBuilder
             .setEnabled(ns.getEnableDhcp)
-            .setSubnetAddress(IPSubnetUtil.toProto(ns.getCidr))
+            .setSubnetAddress(ns.getCidr)
             .clearDnsServerAddress()
             .clearOpt121Routes()
 

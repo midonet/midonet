@@ -379,7 +379,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         for (ipAddr <- nPort.getAllowedAddressPairsList.asScala) {
             portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
-                .setNwSrcIp(IPSubnetUtil.fromAddr(ipAddr.getIpAddress))
+                .setNwSrcIp(ipAddr.getIpAddress)
                 .setDlSrc(ipAddr.getMacAddress)
                 .build())
         }
