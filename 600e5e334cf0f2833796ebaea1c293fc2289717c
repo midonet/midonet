@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7f173d45",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 175,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-04T18:21:51Z",
+      "side": 0,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_9cca4f19",
+      "revId": "600e5e334cf0f2833796ebaea1c293fc2289717c",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_9c988f1d",
         "filename": "midolman/src/main/scala/org/midonet/midolman/state/FlowStateReplicator.scala",
         "patchSetId": 1
