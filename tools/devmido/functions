@@ -352,9 +352,17 @@ function stop_process {
 # Wrapper for mn-conf command
 # Uses globals ``ZOOKEEPER_HOSTS``
 function configure_mn {
+    local value="$2"
+
+    # quote with "" only when necessary.  we don't always quote because
+    # mn-conf complains for quoted booleans.  eg. "false"
+    if [[ "${value}" =~ ":" || "${value}" = "" ]]; then
+        value="\"${value}\""
+    fi
+
     # In some commands, mn-conf creates a local file, which requires root
     # access.  For simplicity, always call mn-conf with root for now.
-    echo $1 : $2 | MIDO_ZOOKEEPER_HOSTS="$ZOOKEEPER_HOSTS" sudo mn-conf set
+    echo $1 : "${value}" | MIDO_ZOOKEEPER_HOSTS="$ZOOKEEPER_HOSTS" sudo mn-conf set
 }
 
 # Restore xtrace
