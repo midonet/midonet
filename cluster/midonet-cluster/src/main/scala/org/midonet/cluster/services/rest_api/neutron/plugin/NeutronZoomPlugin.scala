@@ -20,6 +20,8 @@ import java.util
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
+import javax.ws.rs.WebApplicationException
+
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.fromExecutor
 import scala.concurrent.duration._
@@ -29,16 +31,18 @@ import scala.util.control.NonFatal
 import com.google.common.util.concurrent.MoreExecutors
 import com.google.inject.Inject
 import com.google.protobuf.Message
+
 import org.slf4j.LoggerFactory
 
 import org.midonet.cluster.ZookeeperLockFactory
-import org.midonet.cluster.data.ZoomConvert.{fromProto, toProto}
+import org.midonet.cluster.data.ZoomConvert.fromProto
 import org.midonet.cluster.data.storage.{NotFoundException, ObjectExistsException, PersistenceOp, _}
 import org.midonet.cluster.data.util.ZkOpLock
-import org.midonet.cluster.data.{ZoomClass, ZoomObject}
+import org.midonet.cluster.data.{ZoomClass, ZoomConvert, ZoomObject}
 import org.midonet.cluster.models.Commons
+import org.midonet.cluster.rest_api._
 import org.midonet.cluster.rest_api.neutron.models._
-import org.midonet.cluster.rest_api.{ConflictHttpException, InternalServerErrorHttpException, NotFoundHttpException, ServiceUnavailableHttpException}
+import org.midonet.cluster.services.c3po.translators.TranslationException
 import org.midonet.cluster.services.c3po.{C3POMinion, neutron}
 import org.midonet.cluster.services.rest_api.resources.MidonetResource.ResourceContext
 import org.midonet.cluster.util.UUIDUtil
@@ -82,24 +86,43 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     /** Transform StorageExceptions to appropriate HTTP exceptions. */
     private def tryStorageOp[T](f: => T): T = {
         try f catch {
-            case e: NotFoundException =>
-                throw new NotFoundHttpException(e, e.getMessage)
-            case e: ObjectExistsException =>
-                throw new ConflictHttpException(e, e.getMessage)
-            case e: ReferenceConflictException =>
-                throw new ConflictHttpException(e, e.getMessage)
-            case e: ObjectReferencedException =>
-                throw new ConflictHttpException(e, e.getMessage)
-            case e: StorageException =>
-                throw new InternalServerErrorHttpException(e, e.getMessage)
+            case e: StorageException => throw toHttpException(e)
         }
+    }
+
+    private def toPersistenceOps(nop: neutron.NeutronOp[_ <: Message])
+    : Seq[PersistenceOp] = {
+        try c3po.toPersistenceOps(nop) catch {
+            case te: TranslationException =>
+                te.cause match {
+                    case ex: StorageException => throw toHttpException(ex)
+                    case ex: IllegalArgumentException =>
+                        throw new BadRequestHttpException(ex, ex.getMessage)
+                    case ex: IllegalStateException =>
+                        throw new ConflictHttpException(ex, ex.getMessage)
+                }
+        }
+    }
+
+    private def toHttpException(ex: StorageException)
+    : WebApplicationException = ex match {
+        case e: NotFoundException =>
+            new NotFoundHttpException(e, e.getMessage)
+        case e: ObjectExistsException =>
+            new ConflictHttpException(e, e.getMessage)
+        case e: ReferenceConflictException =>
+            new ConflictHttpException(e, e.getMessage)
+        case e: ObjectReferencedException =>
+            new ConflictHttpException(e, e.getMessage)
+        case e: StorageException =>
+            new InternalServerErrorHttpException(e, e.getMessage)
     }
 
     def create[T >: Null <: ZoomObject](dto: T)(implicit ct: ClassTag[T]): T = {
         log.info(s"Create: $dto")
         val protoClass = protoClassOf(dto)
         val neutronOp = neutron.Create(toProto(dto, protoClass))
-        val persistenceOps = c3po.toPersistenceOps(neutronOp)
+        val persistenceOps = toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
         tryWrite(store.multi(persistenceOps))
         log.debug(s"Create ${dto.getClass.getSimpleName} $id succeeded.")
@@ -117,9 +140,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val dtoClass = dtos.head.getClass
         val protoClass = protoClassOf(dtoClass)
         val creates = dtos.map { d => neutron.Create(toProto(d, protoClass)) }
-        val ops: Seq[PersistenceOp] = creates.flatMap ( c =>
-            c3po.toPersistenceOps(c)
-        )
+        val ops: Seq[PersistenceOp] = creates.flatMap(toPersistenceOps)
 
         tryWrite(store.multi(ops))
         val ids = list[T](creates.map(c => idOf(c.model)))
@@ -142,7 +163,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         log.info("Update: " + dto)
         val protoClass = protoClassOf(dto)
         val neutronOp = neutron.Update(toProto(dto, protoClass))
-        val persistenceOps = c3po.toPersistenceOps(neutronOp)
+        val persistenceOps = toPersistenceOps(neutronOp)
         val id = idOf(neutronOp.model)
         tryWrite(store.multi(persistenceOps))
         log.debug(s"Update ${dto.getClass.getSimpleName} $id succeeded")
@@ -153,7 +174,7 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
         val protoClass = protoClassOf(dtoClass)
         log.info(s"Delete ${dtoClass.getSimpleName}: $id")
         val neutronOp = neutron.Delete(protoClass, UUIDUtil.toProto(id))
-        val persistenceOps = c3po.toPersistenceOps(neutronOp)
+        val persistenceOps = toPersistenceOps(neutronOp)
         tryWrite(store.multi(persistenceOps))
         log.debug(s"Delete ${dtoClass.getSimpleName} $id succeeded")
     }
@@ -203,6 +224,14 @@ class NeutronZoomPlugin @Inject()(resourceContext: ResourceContext,
     private def protoClassOf(dtoClass: Class[_ <: ZoomObject])
     : Class[_ <: Message] = {
         dtoClass.getAnnotation(classOf[ZoomClass]).clazz
+    }
+
+    private def toProto[T <: Message](dto: ZoomObject,
+                                      protoClass: Class[T]): T = {
+        try ZoomConvert.toProto(dto, protoClass) catch {
+            case NonFatal(ex) =>
+                throw new BadRequestHttpException(ex, ex.getMessage)
+        }
     }
 
     override def createRouter(dto: Router): Router = create(dto)
