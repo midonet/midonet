@@ -19,7 +19,7 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.UUID
 import org.midonet.cluster.models.Neutron.{FloatingIp, NeutronPort, NeutronRouter}
-import org.midonet.cluster.models.Topology.{Chain, Rule}
+import org.midonet.cluster.models.Topology.{Chain, Condition, Rule}
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, DeleteNode, Update}
 import org.midonet.cluster.util.IPSubnetUtil
 import org.midonet.cluster.util.UUIDUtil.fromProto
@@ -97,9 +97,11 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .setId(fipSnatRuleId(fip.getId))
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
-            .addOutPortIds(routerGwPortId)
             .setFipPortId(fip.getPortId)
-            .setNwSrcIp(IPSubnetUtil.fromAddr(fip.getFixedIpAddress))
+            .setCondition(Condition.newBuilder
+                              .addOutPortIds(routerGwPortId)
+                              .setNwSrcIp(IPSubnetUtil.fromAddr(
+                                              fip.getFixedIpAddress)))
             .setNatRuleData(natRuleData(fip.getFloatingIpAddress, dnat = false,
                                         dynamic = false))
             .build()
@@ -107,9 +109,11 @@ class FloatingIpTranslator(protected val readOnlyStorage: ReadOnlyStorage,
             .setId(fipDnatRuleId(fip.getId))
             .setType(Rule.Type.NAT_RULE)
             .setAction(Rule.Action.ACCEPT)
-            .addInPortIds(routerGwPortId)
             .setFipPortId(fip.getPortId)
-            .setNwDstIp(IPSubnetUtil.fromAddr(fip.getFloatingIpAddress))
+            .setCondition(Condition.newBuilder
+                              .addInPortIds(routerGwPortId)
+                              .setNwDstIp(IPSubnetUtil.fromAddr(
+                                              fip.getFloatingIpAddress)))
             .setNatRuleData(natRuleData(fip.getFixedIpAddress, dnat = true,
                                         dynamic = false))
             .build()

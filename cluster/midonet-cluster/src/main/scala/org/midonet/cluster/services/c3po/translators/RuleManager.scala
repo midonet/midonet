@@ -19,9 +19,11 @@ package org.midonet.cluster.services.c3po.translators
 import org.midonet.cluster.services.c3po.C3POStorageManager.Operation
 import org.midonet.cluster.services.c3po.midonet.{Create, Delete, MidoOp, Update}
 import org.midonet.cluster.models.Commons.{IPAddress, UUID}
+import org.midonet.cluster.models.Topology.Condition
+import org.midonet.cluster.models.Topology.Condition.FragmentPolicy
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action._
-import org.midonet.cluster.models.Topology.Rule.{FragmentPolicy, JumpRuleData, NatRuleData, NatTarget}
+import org.midonet.cluster.models.Topology.Rule.{JumpRuleData, NatRuleData, NatTarget}
 import org.midonet.cluster.util.UUIDUtil
 
 /**
@@ -35,14 +37,16 @@ trait RuleManager {
         newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(ACCEPT)
-            .setMatchReturnFlow(true)
+            .setCondition(Condition.newBuilder.setMatchReturnFlow(true))
             .build()
 
     protected def dropRuleBuilder(chainId: UUID): Rule.Builder =
         newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(DROP)
-            .setFragmentPolicy(FragmentPolicy.ANY)
+
+    protected def dropRuleCondition(): Condition.Builder =
+        Condition.newBuilder.setFragmentPolicy(FragmentPolicy.ANY)
 
     protected def jumpRule(fromChain: UUID, toChain: UUID): Rule =
         newRule(fromChain)
@@ -57,7 +61,9 @@ trait RuleManager {
         newRule(chainId)
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(RETURN)
-            .setFragmentPolicy(FragmentPolicy.ANY)
+
+    protected def returnCondition(): Condition.Builder =
+        Condition.newBuilder.setFragmentPolicy(FragmentPolicy.ANY)
 
     protected def natRuleData(addr: IPAddress, dnat: Boolean,
                               dynamic: Boolean = true): NatRuleData = {

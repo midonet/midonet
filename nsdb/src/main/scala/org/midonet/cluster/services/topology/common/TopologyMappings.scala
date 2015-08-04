@@ -29,6 +29,7 @@ object TopologyMappings {
         Topology.Type.BGP_NETWORK -> classOf[Topology.BgpNetwork],
         Topology.Type.BGP_PEER -> classOf[Topology.BgpPeer],
         Topology.Type.CHAIN  -> classOf[Topology.Chain],
+        Topology.Type.CONDITION -> classOf[Topology.Condition],
         Topology.Type.DHCP -> classOf[Topology.Dhcp],
         Topology.Type.DHCP_V6 -> classOf[Topology.DhcpV6],
         Topology.Type.HEALTH_MONITOR -> classOf[Topology.HealthMonitor],

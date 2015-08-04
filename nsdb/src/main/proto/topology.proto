@@ -42,6 +42,7 @@ enum Type {
     TUNNEL_ZONE = 18;
     VIP = 19;
     VTEP = 20;
+    CONDITION = 21;
 }
 
 message BgpNetwork {
@@ -333,27 +334,10 @@ message Router {
     repeated UUID port_ids = 101;
 }
 
-message Rule {
+message Condition {
+    // unused. This field is only here because Condition inherits
+    // from Base config which has a id field
     optional UUID id = 1;
-
-    enum Type {
-        LITERAL_RULE = 1;
-        NAT_RULE = 2;
-        JUMP_RULE = 3;
-        TRACE_RULE = 4;
-    }
-    optional Type type = 2;
-    optional UUID chain_id = 3;
-
-    enum Action {
-        ACCEPT = 1;
-        CONTINUE = 2;
-        DROP = 3;
-        JUMP = 4;
-        REJECT = 5;
-        RETURN = 6;
-    }
-    optional Action action = 4;
 
     // Condition fields
     optional bool conjunction_inv = 5;
@@ -400,6 +384,31 @@ message Rule {
     }
     optional FragmentPolicy fragment_policy = 40;
     // end of condition fields
+}
+
+message Rule {
+    optional UUID id = 1;
+
+    enum Type {
+        LITERAL_RULE = 1;
+        NAT_RULE = 2;
+        JUMP_RULE = 3;
+        TRACE_RULE = 4;
+    }
+    optional Type type = 2;
+    optional UUID chain_id = 3;
+
+    enum Action {
+        ACCEPT = 1;
+        CONTINUE = 2;
+        DROP = 3;
+        JUMP = 4;
+        REJECT = 5;
+        RETURN = 6;
+    }
+    optional Action action = 4;
+
+    optional Condition condition = 5;
 
     // Port for which this rule implements floating IP NAT.
     optional UUID fip_port_id = 41;

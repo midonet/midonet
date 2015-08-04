@@ -58,7 +58,7 @@ public class Condition extends UriResource {
     /** This enumeration is equivalent with
      * [[org.midonet.midolman.rules.FragmentPolicy]] except that this class
      * uses the lower-case values for API compatibility. */
-    @ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
+    @ZoomEnum(clazz = Topology.Condition.FragmentPolicy.class)
     public enum FragmentPolicy {
         @ZoomEnumValue(value = "ANY") any,
         @ZoomEnumValue(value = "NONHEADER") nonheader,

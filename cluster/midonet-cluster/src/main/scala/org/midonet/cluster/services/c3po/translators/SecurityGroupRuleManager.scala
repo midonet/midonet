@@ -18,7 +18,7 @@ package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.models.Commons.{Int32Range, RuleDirection}
 import org.midonet.cluster.models.Neutron.SecurityGroupRule
-import org.midonet.cluster.models.Topology.Rule
+import org.midonet.cluster.models.Topology.{Condition, Rule}
 import org.midonet.cluster.util.IPSubnetUtil
 
 /**
@@ -34,28 +34,31 @@ object SecurityGroupRuleManager extends ChainManager {
             .setType(Rule.Type.LITERAL_RULE)
             .setAction(Rule.Action.ACCEPT)
 
+        val condBldr = Condition.newBuilder
         if (sgRule.hasProtocol)
-            bldr.setNwProto(sgRule.getProtocol.getNumber)
+            condBldr.setNwProto(sgRule.getProtocol.getNumber)
         if (sgRule.hasEthertype)
-            bldr.setDlType(sgRule.getEthertype.getNumber)
+            condBldr.setDlType(sgRule.getEthertype.getNumber)
         if (sgRule.hasPortRangeMin)
-            bldr.setTpDst(createRange(sgRule.getPortRangeMin,
+            condBldr.setTpDst(createRange(sgRule.getPortRangeMin,
                                       sgRule.getPortRangeMax))
 
         if (sgRule.getDirection == RuleDirection.INGRESS) {
             bldr.setChainId(outChainId(sgRule.getSecurityGroupId))
             if (sgRule.hasRemoteIpPrefix)
-                bldr.setNwSrcIp(IPSubnetUtil.toProto(sgRule.getRemoteIpPrefix))
+                condBldr.setNwSrcIp(IPSubnetUtil.toProto(
+                                        sgRule.getRemoteIpPrefix))
             if (sgRule.hasRemoteGroupId)
-                bldr.setIpAddrGroupIdSrc(sgRule.getRemoteGroupId)
+                condBldr.setIpAddrGroupIdSrc(sgRule.getRemoteGroupId)
         } else {
             bldr.setChainId(inChainId(sgRule.getSecurityGroupId))
             if (sgRule.hasRemoteIpPrefix)
-                bldr.setNwDstIp(IPSubnetUtil.toProto(sgRule.getRemoteIpPrefix))
+                condBldr.setNwDstIp(IPSubnetUtil.toProto(
+                                        sgRule.getRemoteIpPrefix))
             if (sgRule.hasRemoteGroupId)
-                bldr.setIpAddrGroupIdDst(sgRule.getRemoteGroupId)
+                condBldr.setIpAddrGroupIdDst(sgRule.getRemoteGroupId)
         }
-        bldr.build()
+        bldr.setCondition(condBldr).build()
     }
 
     private def createRange(start: Int, end: Int): Int32Range = {

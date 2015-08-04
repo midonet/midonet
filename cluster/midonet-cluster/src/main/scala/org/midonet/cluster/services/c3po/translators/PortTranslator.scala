@@ -358,7 +358,7 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         // Don't filter ARP
         portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
-            .setDlType(ARP.ETHERTYPE)
+            .setCondition(returnCondition().setDlType(ARP.ETHERTYPE))
             .build())
 
         // Don't filter DHCP
@@ -366,21 +366,21 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
         val dhcpTo = RangeUtil.toProto(new Range[Integer](67, 67))
 
         portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
-            .setTpDst(dhcpTo)
-            .setTpSrc(dhcpFrom)
+            .setCondition(returnCondition().setTpDst(dhcpTo).setTpSrc(dhcpFrom))
             .build())
 
         for (fixedIp <- nPort.getFixedIpsList.asScala) {
             portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
-                .setNwSrcIp(IPSubnetUtil.fromAddr(fixedIp.getIpAddress))
-                .setDlSrc(mac)
+                .setCondition(returnCondition()
+                                  .setNwSrcIp(IPSubnetUtil.fromAddr(fixedIp.getIpAddress))
+                                  .setDlSrc(mac))
                 .build())
         }
 
         for (ipAddr <- nPort.getAllowedAddressPairsList.asScala) {
             portCtx.antiSpoofRules += Create(returnRule(spoofChainId)
-                .setNwSrcIp(ipAddr.getIpAddress)
-                .setDlSrc(ipAddr.getMacAddress)
+                .setCondition(returnCondition().setNwSrcIp(ipAddr.getIpAddress)
+                                  .setDlSrc(ipAddr.getMacAddress))
                 .build())
         }
 
@@ -432,11 +432,15 @@ class PortTranslator(protected val storage: ReadOnlyStorage,
 
         // Drop non-ARP traffic that wasn't accepted by earlier rules.
         portCtx.inRules += Create(dropRuleBuilder(inChainId)
-                                  .setDlType(ARP.ETHERTYPE)
-                                  .setInvDlType(true).build)
+                                  .setCondition(dropRuleCondition()
+                                                    .setDlType(ARP.ETHERTYPE)
+                                                    .setInvDlType(true))
+                                   .build)
         portCtx.outRules += Create(dropRuleBuilder(outChainId)
-                                   .setDlType(ARP.ETHERTYPE)
-                                   .setInvDlType(true).build)
+                                   .setCondition(dropRuleCondition()
+                                                     .setDlType(ARP.ETHERTYPE)
+                                                     .setInvDlType(true))
+                                   .build)
     }
 
     /* Create chains, rules and IP Address Groups associated with nPort. */

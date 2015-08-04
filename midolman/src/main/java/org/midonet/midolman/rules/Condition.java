@@ -38,7 +38,7 @@ import org.midonet.packets.Unsigned;
 import org.midonet.sdn.flows.FlowTagger;
 import org.midonet.util.Range;
 
-@ZoomClass(clazz = Topology.Rule.class)
+@ZoomClass(clazz = Topology.Condition.class)
 public class Condition extends BaseConfig {
     @ZoomField(name = "conjunction_inv")
     public boolean conjunctionInv;
