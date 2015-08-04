@@ -696,12 +696,69 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     override def newTraceRequest(device: UUID,
                                  devType: TraceDeviceType.TraceDeviceType,
                                  condition: rules.Condition,
-                                 enabled: Boolean = false): UUID = ???
-    override def listTraceRequests(tenant: Option[String] = None): List[UUID] = ???
-    override def deleteTraceRequest(tr: UUID): Unit = ???
-    override def enableTraceRequest(tr: UUID): Unit = ???
-    override def disableTraceRequest(tr: UUID): Unit = ???
-    override def isTraceRequestEnabled(tr: UUID): Boolean = ???
+                                 enabled: Boolean = false): UUID = {
+        val id = UUID.randomUUID
+        val builder = TraceRequest.newBuilder.setId(id.asProto)
+        devType match {
+            case TraceDeviceType.BRIDGE => builder.setNetworkId(device.asProto)
+            case TraceDeviceType.ROUTER => builder.setRouterId(device.asProto)
+            case TraceDeviceType.PORT => builder.setPortId(device.asProto)
+        }
+        builder.setCondition(setConditionFromCondition(Condition.newBuilder,
+                                                       condition))
+        store.create(builder.setEnabled(enabled).build())
+        id
+    }
+
+    override def listTraceRequests(tenant: Option[String] = None): List[UUID] = {
+        val requests = Await.result(store.getAll(classOf[TraceRequest]),
+                                    awaitTimeout)
+
+        def getTenant(tr: TraceRequest) = tr match {
+            case tr if tr.hasPortId => {
+                Await.result(store.get(classOf[Port], tr.getPortId),
+                             awaitTimeout) match {
+                    case p if p.hasRouterId =>
+                        Await.result(store.get(classOf[Router], p.getRouterId),
+                                     awaitTimeout).getTenantId
+                    case p if p.hasNetworkId =>
+                        Await.result(store.get(classOf[Network], p.getNetworkId),
+                                     awaitTimeout).getTenantId
+                }
+            }
+            case tr if tr.hasRouterId => {
+                Await.result(store.get(classOf[Router], tr.getRouterId),
+                             awaitTimeout).getTenantId
+            }
+            case tr if tr.hasNetworkId => {
+                Await.result(store.get(classOf[Network], tr.getNetworkId),
+                             awaitTimeout).getTenantId
+            }
+        }
+
+        tenant match {
+            case Some(t) => requests.filter(getTenant(_) == t).map(_.getId.asJava).toList
+            case None => requests.map(_.getId.asJava).toList
+        }
+    }
+
+    override def deleteTraceRequest(tr: UUID): Unit = {
+        store.delete(classOf[TraceRequest], tr)
+    }
+
+    override def enableTraceRequest(tr: UUID): Unit = {
+        var obj = Await.result(store.get(classOf[TraceRequest], tr), awaitTimeout)
+        store.update(obj.toBuilder.setEnabled(true).build)
+    }
+
+    override def disableTraceRequest(tr: UUID): Unit = {
+        var obj = Await.result(store.get(classOf[TraceRequest], tr), awaitTimeout)
+        store.update(obj.toBuilder.setEnabled(false).build)
+    }
+
+    override def isTraceRequestEnabled(tr: UUID): Boolean = {
+        Await.result(store.get(classOf[TraceRequest], tr), awaitTimeout).getEnabled
+    }
 
     def toSubnet(network: String, length: Int): IPSubnet[_] = {
         IPSubnet.fromString(s"${network}/${length}")

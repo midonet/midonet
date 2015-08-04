@@ -84,6 +84,7 @@ abstract class MidonetBackend extends AbstractService {
              classOf[Rule],
              classOf[SecurityGroup],
              classOf[SecurityGroupRule],
+             classOf[TraceRequest],
              classOf[TunnelZone],
              classOf[Vip],
              classOf[Vtep]
@@ -153,6 +154,12 @@ abstract class MidonetBackend extends AbstractService {
         stateStore.registerKey(classOf[Port], RoutesKey, Multiple)
         stateStore.registerKey(classOf[TunnelZone], FloodingProxyKey, SingleLastWriteWins)
 
+        store.declareBinding(classOf[Network], "trace_request_ids", CASCADE,
+                             classOf[TraceRequest], "network_id", CLEAR)
+        store.declareBinding(classOf[Router], "trace_request_ids", CASCADE,
+                             classOf[TraceRequest], "router_id", CLEAR)
+        store.declareBinding(classOf[Port], "trace_request_ids", CASCADE,
+                             classOf[TraceRequest], "port_id", CLEAR)
         store.build()
     }
 
