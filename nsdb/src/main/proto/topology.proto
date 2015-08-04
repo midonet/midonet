@@ -333,27 +333,8 @@ message Router {
     repeated UUID port_ids = 101;
 }
 
-message Rule {
-    optional UUID id = 1;
-
-    enum Type {
-        LITERAL_RULE = 1;
-        NAT_RULE = 2;
-        JUMP_RULE = 3;
-        TRACE_RULE = 4;
-    }
-    optional Type type = 2;
-    optional UUID chain_id = 3;
-
-    enum Action {
-        ACCEPT = 1;
-        CONTINUE = 2;
-        DROP = 3;
-        JUMP = 4;
-        REJECT = 5;
-        RETURN = 6;
-    }
-    optional Action action = 4;
+message Condition {
+    optional UUID id = 1; // only here for zoom, do not use
 
     // Condition fields
     optional bool conjunction_inv = 5;
@@ -400,6 +381,31 @@ message Rule {
     }
     optional FragmentPolicy fragment_policy = 40;
     // end of condition fields
+}
+
+message Rule {
+    optional UUID id = 1;
+
+    enum Type {
+        LITERAL_RULE = 1;
+        NAT_RULE = 2;
+        JUMP_RULE = 3;
+        TRACE_RULE = 4;
+    }
+    optional Type type = 2;
+    optional UUID chain_id = 3;
+
+    enum Action {
+        ACCEPT = 1;
+        CONTINUE = 2;
+        DROP = 3;
+        JUMP = 4;
+        REJECT = 5;
+        RETURN = 6;
+    }
+    optional Action action = 4;
+
+    optional Condition condition = 5;
 
     // Port for which this rule implements floating IP NAT.
     optional UUID fip_port_id = 41;

@@ -30,7 +30,7 @@ import static org.midonet.packets.IPFragmentType.*;
  * Condition to cause rules to match some combination of unfragmented
  * packets, header fragments, and non-header fragments.
  */
-@ZoomEnum(clazz = Topology.Rule.FragmentPolicy.class)
+@ZoomEnum(clazz = Topology.Condition.FragmentPolicy.class)
 public enum FragmentPolicy {
     /**
      * Matches any packet, fragmented or not.

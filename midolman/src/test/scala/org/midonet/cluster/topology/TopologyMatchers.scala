@@ -177,7 +177,7 @@ object TopologyMatchers {
     class NatRuleMatcher(rule: NatRule) extends RuleMatcher(rule) {
         override def shouldBeDeviceOf(r: TopologyRule): Unit = {
             super.shouldBeDeviceOf(r)
-            if (r.getMatchForwardFlow) {
+            if (r.getCondition.getMatchForwardFlow) {
                 val fwdNatRule = rule.asInstanceOf[ForwardNatRule]
                 fwdNatRule.getTargetsArray should not be null
                 val targets = fwdNatRule.getNatTargets
@@ -207,49 +207,50 @@ object TopologyMatchers {
 
     class ConditionMatcher(cond: Condition) extends DeviceMatcher[TopologyRule] {
         override def shouldBeDeviceOf(r: TopologyRule): Unit = {
-            r.getConjunctionInv shouldBe cond.conjunctionInv
-            r.getMatchForwardFlow shouldBe cond.matchForwardFlow
-            r.getMatchReturnFlow shouldBe cond.matchReturnFlow
+            val c = r.getCondition
+            c.getConjunctionInv shouldBe cond.conjunctionInv
+            c.getMatchForwardFlow shouldBe cond.matchForwardFlow
+            c.getMatchReturnFlow shouldBe cond.matchReturnFlow
 
-            r.getInPortIdsCount shouldBe cond.inPortIds.size
-            r.getInPortIdsList.asScala.map(_.asJava) should
+            c.getInPortIdsCount shouldBe cond.inPortIds.size
+            c.getInPortIdsList.asScala.map(_.asJava) should
                 contain theSameElementsAs cond.inPortIds.asScala
-            r.getInPortInv shouldBe cond.inPortInv
+            c.getInPortInv shouldBe cond.inPortInv
 
-            r.getOutPortIdsCount shouldBe cond.outPortIds.size
-            r.getOutPortIdsList.asScala.map(_.asJava) should
+            c.getOutPortIdsCount shouldBe cond.outPortIds.size
+            c.getOutPortIdsList.asScala.map(_.asJava) should
                 contain theSameElementsAs cond.outPortIds.asScala
-            r.getOutPortInv shouldBe cond.outPortInv
+            c.getOutPortInv shouldBe cond.outPortInv
 
-            r.getPortGroupId shouldBe cond.portGroup.asProto
-            r.getInvPortGroup shouldBe cond.invPortGroup
-            r.getIpAddrGroupIdSrc shouldBe cond.ipAddrGroupIdSrc.asProto
-            r.getInvIpAddrGroupIdSrc shouldBe cond.invIpAddrGroupIdSrc
-            r.getIpAddrGroupIdDst shouldBe cond.ipAddrGroupIdDst.asProto
-            r.getInvIpAddrGroupIdDst shouldBe cond.invIpAddrGroupIdDst
-            r.getDlType shouldBe cond.etherType
-            r.getInvDlType shouldBe cond.invDlType
-            r.getDlSrc shouldBe cond.ethSrc.toString
-            r.getDlSrcMask shouldBe cond.ethSrcMask
-            r.getInvDlSrc shouldBe cond.invDlSrc
-            r.getDlDst shouldBe cond.ethDst.toString
-            r.getDlDstMask shouldBe cond.dlDstMask
-            r.getInvDlDst shouldBe cond.invDlDst
-            r.getNwTos shouldBe cond.nwTos
-            r.getNwTosInv shouldBe cond.nwTosInv
-            r.getNwProto shouldBe cond.nwProto
-            r.getNwProtoInv shouldBe cond.nwProtoInv
-            r.getNwSrcIp shouldBe IPSubnetUtil.toProto(cond.nwSrcIp)
-            r.getNwDstIp shouldBe IPSubnetUtil.toProto(cond.nwDstIp)
-            r.getTpSrc shouldBe RangeUtil.toProto(cond.tpSrc)
-            r.getTpDst shouldBe RangeUtil.toProto(cond.tpDst)
-            r.getNwSrcInv shouldBe cond.nwSrcInv
-            r.getNwDstInv shouldBe cond.nwDstInv
-            r.getTpSrcInv shouldBe cond.tpSrcInv
-            r.getTpDstInv shouldBe cond.tpDstInv
-            r.getTraversedDevice shouldBe cond.traversedDevice.asProto
-            r.getTraversedDeviceInv shouldBe cond.traversedDeviceInv
-            r.getFragmentPolicy.name shouldBe cond.fragmentPolicy.name
+            c.getPortGroupId shouldBe cond.portGroup.asProto
+            c.getInvPortGroup shouldBe cond.invPortGroup
+            c.getIpAddrGroupIdSrc shouldBe cond.ipAddrGroupIdSrc.asProto
+            c.getInvIpAddrGroupIdSrc shouldBe cond.invIpAddrGroupIdSrc
+            c.getIpAddrGroupIdDst shouldBe cond.ipAddrGroupIdDst.asProto
+            c.getInvIpAddrGroupIdDst shouldBe cond.invIpAddrGroupIdDst
+            c.getDlType shouldBe cond.etherType
+            c.getInvDlType shouldBe cond.invDlType
+            c.getDlSrc shouldBe cond.ethSrc.toString
+            c.getDlSrcMask shouldBe cond.ethSrcMask
+            c.getInvDlSrc shouldBe cond.invDlSrc
+            c.getDlDst shouldBe cond.ethDst.toString
+            c.getDlDstMask shouldBe cond.dlDstMask
+            c.getInvDlDst shouldBe cond.invDlDst
+            c.getNwTos shouldBe cond.nwTos
+            c.getNwTosInv shouldBe cond.nwTosInv
+            c.getNwProto shouldBe cond.nwProto
+            c.getNwProtoInv shouldBe cond.nwProtoInv
+            c.getNwSrcIp shouldBe IPSubnetUtil.toProto(cond.nwSrcIp)
+            c.getNwDstIp shouldBe IPSubnetUtil.toProto(cond.nwDstIp)
+            c.getTpSrc shouldBe RangeUtil.toProto(cond.tpSrc)
+            c.getTpDst shouldBe RangeUtil.toProto(cond.tpDst)
+            c.getNwSrcInv shouldBe cond.nwSrcInv
+            c.getNwDstInv shouldBe cond.nwDstInv
+            c.getTpSrcInv shouldBe cond.tpSrcInv
+            c.getTpDstInv shouldBe cond.tpDstInv
+            c.getTraversedDevice shouldBe cond.traversedDevice.asProto
+            c.getTraversedDeviceInv shouldBe cond.traversedDeviceInv
+            c.getFragmentPolicy.name shouldBe cond.fragmentPolicy.name
         }
     }
 

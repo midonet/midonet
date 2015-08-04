@@ -149,7 +149,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                        action: RuleResult.Action): UUID = {
         val rule = UUID.randomUUID
         val builder = createLiteralRuleBuilder(rule, None, Some(action))
-        store.create(setConditionFromCondition(builder, condition).build())
+        builder.setCondition(setConditionFromCondition(Condition.newBuilder,
+                                                       condition))
+        store.create(builder.build())
         val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
         store.update(insertRule(c, pos, rule))
         rule
@@ -166,7 +168,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                .build()
         builder.setTraceRuleData(trd)
 
-        store.create(setConditionFromCondition(builder, condition).build())
+        builder.setCondition(setConditionFromCondition(Condition.newBuilder,
+                                                       condition))
+        store.create(builder.build())
         val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
         store.update(insertRule(c, pos, rule))
         rule
@@ -179,7 +183,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val id = UUID.randomUUID
         val builder = createNatRuleBuilder(id, None, Option(isDnat),
                                            None, targets)
-        store.create(setConditionFromCondition(builder, condition).build())
+        builder.setCondition(setConditionFromCondition(Condition.newBuilder,
+                                                       condition))
+        store.create(builder.build())
         val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
         store.update(insertRule(c, pos, id))
         id
@@ -191,7 +197,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
         val id = UUID.randomUUID
         val builder = createNatRuleBuilder(id, None, Option(isDnat),
                                            None, reverse=true)
-        store.create(setConditionFromCondition(builder, condition).build())
+        builder.setCondition(setConditionFromCondition(Condition.newBuilder,
+                                                       condition))
+        store.create(builder.build())
         val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
         store.update(insertRule(c, pos, id))
         id
@@ -207,7 +215,9 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
                                     jumpToChainID: UUID): UUID = {
         val id = UUID.randomUUID
         val builder = createJumpRuleBuilder(id, None, Some(jumpToChainID))
-        store.create(setConditionFromCondition(builder, condition).build())
+        builder.setCondition(setConditionFromCondition(Condition.newBuilder,
+                                                       condition))
+        store.create(builder.build())
         val c = Await.result(store.get(classOf[Chain], chain), awaitTimeout)
         store.update(insertRule(c, pos, id))
         id
@@ -719,49 +729,50 @@ class ZoomVirtualConfigurationBuilders @Inject()(backend: MidonetBackend,
     implicit def convertHmStatus(from: PoolHealthMonitorMappingStatus): Pool.PoolHealthMonitorMappingStatus =
         from.toProto()
 
-    def setConditionFromCondition(rule: Rule.Builder,
-                                  condition: rules.Condition): Rule.Builder = {
-        setCondition(rule,
-                     Option(condition.conjunctionInv),
-                     Option(condition.matchForwardFlow),
-                     Option(condition.matchReturnFlow),
-                     if (condition.inPortIds != null) {
-                         Some(condition.inPortIds.asScala.toSet)
-                     } else { None },
-                     Some(condition.inPortInv),
-                     if (condition.outPortIds != null) {
-                         Some(condition.outPortIds.asScala.toSet)
-                     } else { None },
-                     Option(condition.outPortInv),
-                     Option(condition.portGroup),
-                     Option(condition.invPortGroup),
-                     Option(condition.ipAddrGroupIdSrc),
-                     Option(condition.invIpAddrGroupIdSrc),
-                     Option(condition.ipAddrGroupIdDst),
-                     Option(condition.invIpAddrGroupIdDst),
-                     someOrNone(condition.etherType),
-                     Option(condition.invDlType),
-                     Option(condition.ethSrc),
-                     Option(condition.ethSrcMask),
-                     Option(condition.invDlSrc),
-                     Option(condition.ethDst),
-                     Option(condition.dlDstMask),
-                     Option(condition.invDlDst),
-                     someOrNone(condition.nwTos),
-                     Option(condition.nwTosInv),
-                     someOrNone(condition.nwProto),
-                     Option(condition.nwProtoInv),
-                     Option(condition.nwSrcIp),
-                     Option(condition.nwDstIp),
-                     Option(condition.tpSrc),
-                     Option(condition.tpDst),
-                     Option(condition.nwSrcInv),
-                     Option(condition.nwDstInv),
-                     Option(condition.tpSrcInv),
-                     Option(condition.tpDstInv),
-                     Option(condition.traversedDevice),
-                     Option(condition.traversedDeviceInv),
-                     Option(condition.fragmentPolicy))
+    def setConditionFromCondition(builder: Condition.Builder,
+                                  condition: rules.Condition): Condition.Builder = {
+        setConditionParameters(builder,
+                               Option(condition.conjunctionInv),
+                               Option(condition.matchForwardFlow),
+                               Option(condition.matchReturnFlow),
+                               if (condition.inPortIds != null) {
+                                   Some(condition.inPortIds.asScala.toSet)
+                               } else { None },
+                               Some(condition.inPortInv),
+                               if (condition.outPortIds != null) {
+                                   Some(condition.outPortIds.asScala.toSet)
+                               } else { None },
+                               Option(condition.outPortInv),
+                               Option(condition.portGroup),
+                               Option(condition.invPortGroup),
+                               Option(condition.ipAddrGroupIdSrc),
+                               Option(condition.invIpAddrGroupIdSrc),
+                               Option(condition.ipAddrGroupIdDst),
+                               Option(condition.invIpAddrGroupIdDst),
+                               someOrNone(condition.etherType),
+                               Option(condition.invDlType),
+                               Option(condition.ethSrc),
+                               Option(condition.ethSrcMask),
+                               Option(condition.invDlSrc),
+                               Option(condition.ethDst),
+                               Option(condition.dlDstMask),
+                               Option(condition.invDlDst),
+                               someOrNone(condition.nwTos),
+                               Option(condition.nwTosInv),
+                               someOrNone(condition.nwProto),
+                               Option(condition.nwProtoInv),
+                               Option(condition.nwSrcIp),
+                               Option(condition.nwDstIp),
+                               Option(condition.tpSrc),
+                               Option(condition.tpDst),
+                               Option(condition.nwSrcInv),
+                               Option(condition.nwDstInv),
+                               Option(condition.tpSrcInv),
+                               Option(condition.tpDstInv),
+                               Option(condition.traversedDevice),
+                               Option(condition.traversedDeviceInv),
+                               Option(condition.fragmentPolicy))
+        builder
     }
 
     def someOrNone(ref: java.lang.Integer): Option[Int] = {
