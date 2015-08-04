@@ -112,7 +112,7 @@ public class TestAdRoute extends JerseyTest {
     public void testCreateGetListDelete() {
 
         // Models have changed for BGP in v2, this is no longer relevant
-        Assume.assumeFalse(!FuncTest.isCompatApiEnabled());
+        Assume.assumeFalse(FuncTest.isCompatApiEnabled());
 
         DtoAdRoute adRoute = new DtoAdRoute();
         adRoute.setNwPrefix("14.128.23.0");
