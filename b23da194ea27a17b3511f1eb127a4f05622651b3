@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_39cf9557",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 271,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-04T16:29:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f911ad04",
+      "revId": "b23da194ea27a17b3511f1eb127a4f05622651b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_39f795d4",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 26
@@ -30,6 +48,24 @@
       "writtenOn": "2015-08-04T13:48:11Z",
       "side": 1,
       "message": "why volatile?",
+      "revId": "b23da194ea27a17b3511f1eb127a4f05622651b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9907c181",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 278,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-04T16:29:35Z",
+      "side": 1,
+      "message": "removed",
+      "parentUuid": "9ad9bd40_39f795d4",
       "revId": "b23da194ea27a17b3511f1eb127a4f05622651b3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
@@ -53,6 +89,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_f900cd67",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 427,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-04T16:29:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_391eb50c",
+      "revId": "b23da194ea27a17b3511f1eb127a4f05622651b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_39e5d508",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
         "patchSetId": 26
@@ -70,6 +124,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_5c0287b4",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingHandler.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 470,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-04T16:29:35Z",
+      "side": 1,
+      "message": "Yes, sequence uses a foreach on the futures and yield, which is equivalent to flatMap to my understanding. So it needs all the futures to complete.",
+      "parentUuid": "9ad9bd40_39e5d508",
+      "revId": "b23da194ea27a17b3511f1eb127a4f05622651b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_f9844d0c",
         "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
         "patchSetId": 26
@@ -81,6 +153,24 @@
       "writtenOn": "2015-08-04T13:48:11Z",
       "side": 1,
       "message": "indent.",
+      "revId": "b23da194ea27a17b3511f1eb127a4f05622651b3",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_9c2faf3e",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/routingprotocols/RoutingManagerActor.scala",
+        "patchSetId": 26
+      },
+      "lineNbr": 197,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-04T16:29:35Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_f9844d0c",
       "revId": "b23da194ea27a17b3511f1eb127a4f05622651b3",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
