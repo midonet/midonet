@@ -20,11 +20,11 @@ import java.util.UUID;
 
 import javax.ws.rs.core.UriBuilder;
 
-import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.cluster.data.Bridge;
 import org.midonet.cluster.rest_api.ResourceUris;
 import org.midonet.cluster.rest_api.models.DhcpV6Host;
+import org.midonet.cluster.rest_api.models.Ip4MacPair;
 import org.midonet.packets.IPv4Addr;
 import org.midonet.packets.IPv4Subnet;
 import org.midonet.packets.IPv6Subnet;
@@ -182,8 +182,8 @@ public class ResourceUriBuilder {
         return UriBuilder.fromUri(bridgeUri).path(ARP_TABLE).build();
     }
 
-    public static String ip4MacPairToUri(IP4MacPair pair) {
-        return pair.getIp() + "_" + macToUri(pair.getMac());
+    public static String ip4MacPairToUri(Ip4MacPair pair) {
+        return pair.ip + "_" + macToUri(pair.mac);
     }
 
     public static MAC ip4MacPairToMac(String macPortString) {
@@ -223,7 +223,7 @@ public class ResourceUriBuilder {
                 .path(macToUri(macAddr)).build();
     }
 
-    public static URI getIP4MacPair(URI bridgeUri, IP4MacPair pair) {
+    public static URI getIP4MacPair(URI bridgeUri, Ip4MacPair pair) {
         return UriBuilder.fromUri(getArpTable(bridgeUri))
             .path(ip4MacPairToUri(pair)).build();
     }
