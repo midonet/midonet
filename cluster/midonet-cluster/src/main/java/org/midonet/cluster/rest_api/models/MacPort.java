@@ -23,7 +23,8 @@ import java.util.UUID;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.ws.rs.core.UriBuilder;
-import javax.xml.bind.annotation.XmlRootElement;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import org.midonet.packets.MAC;
 import org.midonet.util.version.Since;
@@ -33,10 +34,10 @@ import static org.midonet.cluster.rest_api.ResourceUris.MAC_TABLE;
 import static org.midonet.cluster.rest_api.ResourceUris.VLANS;
 import static org.midonet.cluster.rest_api.ResourceUris.macToUri;
 
-@XmlRootElement
-public class MacPort {
+public class MacPort extends UriResource {
 
     public static final short UNTAGGED_VLAN_ID = 0;
+
     @NotNull
     @Pattern(regexp = MAC.regex)
     public String macAddr;
@@ -47,24 +48,24 @@ public class MacPort {
     @Since("2")
     public Short vlanId;
 
-    // This is only needed for validating that the port belongs to the bridge.
+    @JsonIgnore
     public UUID bridgeId;
-
-    public URI baseUri;
-
-    public MacPort(URI baseUri, String macAddr, UUID portId) {
-        this.baseUri = baseUri;
-        this.macAddr = macAddr;
-        this.portId = portId;
-    }
 
     /* Default constructor - for deserialization. */
     @SuppressWarnings("unused")
     public MacPort() {
     }
 
+    public MacPort(URI baseUri, UUID bridgeId, String macAddr, UUID portId) {
+        setBaseUri(baseUri);
+        this.bridgeId = bridgeId;
+        this.macAddr = macAddr;
+        this.portId = portId;
+    }
+
+    @Override
     public URI getUri() {
-        UriBuilder builder = UriBuilder.fromUri(baseUri);
+        UriBuilder builder = UriBuilder.fromUri(getBaseUri());
         builder.path(BRIDGES).path(bridgeId.toString());
         if (vlanId != null && vlanId != UNTAGGED_VLAN_ID) {
             builder.path(VLANS).path(vlanId.toString());

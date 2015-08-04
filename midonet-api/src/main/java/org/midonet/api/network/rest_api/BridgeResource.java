@@ -48,7 +48,6 @@ import org.midonet.cluster.auth.AuthRole;
 import org.midonet.cluster.rest_api.ForbiddenHttpException;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpResource;
 import org.midonet.api.dhcp.rest_api.BridgeDhcpV6Resource;
-import org.midonet.api.network.IP4MacPair;
 import org.midonet.api.network.MacPort;
 import org.midonet.api.network.Port;
 import org.midonet.api.rest_api.AbstractResource;
@@ -61,6 +60,7 @@ import org.midonet.cluster.rest_api.NotFoundHttpException;
 import org.midonet.cluster.rest_api.VendorMediaType;
 import org.midonet.cluster.rest_api.conversion.BridgeDataConverter;
 import org.midonet.cluster.rest_api.models.Bridge;
+import org.midonet.cluster.rest_api.models.Ip4MacPair;
 import org.midonet.event.topology.BridgeEvent;
 import org.midonet.midolman.serialization.SerializationException;
 import org.midonet.midolman.state.StateAccessException;
@@ -610,17 +610,17 @@ public class BridgeResource extends AbstractResource {
     @PermitAll
     @Path("/{id}" + ResourceUriBuilder.ARP_TABLE)
     @Produces({ VendorMediaType.APPLICATION_IP4_MAC_COLLECTION_JSON })
-    public List<IP4MacPair> listArpEntries(@PathParam("id") UUID id)
+    public List<Ip4MacPair> listArpEntries(@PathParam("id") UUID id)
         throws StateAccessException, SerializationException {
         authoriser.tryAuthoriseBridge(id, "view this bridge's ARP table.");
 
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
         Map<IPv4Addr, MAC> IP4MacPairMap = dataClient.bridgeGetIP4MacPairs(id);
-        List<IP4MacPair> IP4MacPairList = new ArrayList<>();
+        List<Ip4MacPair> IP4MacPairList = new ArrayList<>();
         for (Map.Entry<IPv4Addr, MAC> entry : IP4MacPairMap.entrySet()) {
-            IP4MacPair pair = new IP4MacPair(
+            Ip4MacPair pair = new Ip4MacPair(
+                getBaseUri(), id,
                 entry.getKey().toString(), entry.getValue().toString());
-            pair.setParentUri(bridgeUri);
             IP4MacPairList.add(pair);
         }
         return IP4MacPairList;
@@ -638,7 +638,7 @@ public class BridgeResource extends AbstractResource {
     @Path("/{id}" + ResourceUriBuilder.ARP_TABLE)
     @Consumes({ VendorMediaType.APPLICATION_IP4_MAC_JSON,
         MediaType.APPLICATION_JSON })
-    public Response addArpEntry(@PathParam("id") UUID id, IP4MacPair mp)
+    public Response addArpEntry(@PathParam("id") UUID id, Ip4MacPair mp)
         throws StateAccessException, SerializationException {
 
         authoriser.tryAuthoriseBridge(id, "add to this bridge's ARP table.");
@@ -646,7 +646,7 @@ public class BridgeResource extends AbstractResource {
         validate(mp, Default.class);
 
         dataClient.bridgeAddIp4Mac(id,
-            IPv4Addr.fromString(mp.getIp()), MAC.fromString(mp.getMac()));
+            IPv4Addr.fromString(mp.ip), MAC.fromString(mp.mac));
 
         URI bridgeUri = ResourceUriBuilder.getBridge(getBaseUri(), id);
         return Response.created(
@@ -666,7 +666,7 @@ public class BridgeResource extends AbstractResource {
     @Path("/{id}" + ResourceUriBuilder.ARP_TABLE + "/{mac_port}")
     @Produces({ VendorMediaType.APPLICATION_IP4_MAC_JSON,
         MediaType.APPLICATION_JSON })
-    public IP4MacPair getArpEntry(@PathParam("id") UUID id,
+    public Ip4MacPair getArpEntry(@PathParam("id") UUID id,
                                   @PathParam("mac_port") String ipMacPair)
         throws StateAccessException, SerializationException {
 
@@ -679,9 +679,8 @@ public class BridgeResource extends AbstractResource {
             throw new NotFoundHttpException(
                     getMessage(ARP_ENTRY_NOT_FOUND));
         } else {
-            IP4MacPair mp = new IP4MacPair(ip.toString(), mac.toString());
-            mp.setParentUri(ResourceUriBuilder.getBridge(getBaseUri(), id));
-            return mp;
+            return new Ip4MacPair(getBaseUri(), id, ip.toString(),
+                                  mac.toString());
         }
     }
 
