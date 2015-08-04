@@ -683,7 +683,6 @@ class PoolTest extends MidolmanSpec {
     private[this] def getPoolMemberFromIp(ip: Int): UUID = {
         val ipaddr = IPv4Addr.fromInt(ip)
         fetchDevice[Pool](pool).members.find(x => {
-                                                 log.info(s"IKDEBUG member $x");
                                                  x.address.equals(ipaddr)
                                              }).get.id
     }
