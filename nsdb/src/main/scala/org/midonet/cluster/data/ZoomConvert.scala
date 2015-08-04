@@ -81,6 +81,7 @@ object ZoomConvert {
         pojo.beforeToProto()
         val builder = newBuilder(protoClass)
         to(pojo, pojo.getClass, builder)
+        pojo.afterToProto(builder)
         builder.build().asInstanceOf[U]
     }
 
@@ -126,11 +127,13 @@ object ZoomConvert {
     private def to[T <: ZoomObject, U <: Message](
             pojo: T, clazz: Class[_], topBuilder: ProtoBuilder): ProtoBuilder = {
 
+        val zoomClass = clazz.getAnnotation(classOf[ZoomClass])
         // Recursively iterate over all superclasses in the objects inheritance
         // hierarchy, and get the corresponding Protocol Buffers message.
         val superBuilder =
             if (clazz != classOf[ZoomObject] &&
-                clazz.getSuperclass != classOf[ZoomObject])
+                clazz.getSuperclass != classOf[ZoomObject] &&
+                (zoomClass == null || !zoomClass.skipSuper))
                 to(pojo, clazz.getSuperclass, topBuilder)
             else topBuilder
 
@@ -206,12 +209,14 @@ object ZoomConvert {
      */
     private def from[T <: ZoomObject, U <: Message]
                     (proto: U, pojo: T, clazz: Class[_]): Message = {
+        val zoomClass = clazz.getAnnotation(classOf[ZoomClass])
 
         // Recursively iterate over all superclasses in the objects inheritance
         // hierarchy, and get the corresponding Protocol Buffers message.
         var message =
             if (clazz != classOf[ZoomObject] &&
-                clazz.getSuperclass != classOf[ZoomObject])
+                clazz.getSuperclass != classOf[ZoomObject] &&
+                (zoomClass == null || !zoomClass.skipSuper))
                 from(proto, pojo, clazz.getSuperclass)
             else proto
 

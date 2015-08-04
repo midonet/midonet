@@ -26,6 +26,7 @@ import org.scalatest.junit.JUnitRunner
 import org.scalatest.{FeatureSpec, Matchers}
 
 import org.midonet.cluster.data.ZoomConvert
+import org.midonet.cluster.models.Commons.{Condition => TopologyCondition}
 import org.midonet.cluster.models.Topology.Rule
 import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.topology.{TopologyBuilder, TopologyMatchers}
@@ -150,7 +151,8 @@ class RuleConversionTest extends FeatureSpec with Matchers
                                             dnat = Some(true),
                                             matchFwdFlow = Some(true),
                                             Set.empty)
-                .setMatchForwardFlow(true)
+                .setCondition(TopologyCondition.newBuilder
+                                  .setMatchForwardFlow(true))
                 .build()
 
             intercept[ZoomConvert.ConvertException] {
@@ -170,7 +172,7 @@ class RuleConversionTest extends FeatureSpec with Matchers
         }
     }
 
-    private def setConditionAllFieldsDefault(builder: Rule.Builder,
+    private def setConditionAllFieldsDefault(ruleBuilder: Rule.Builder,
                                              conjunctionInv: Boolean = true,
                                              matchForwardFlow: Option[Boolean] = None,
                                              inPortIds: Set[UUID] = Set(UUID.randomUUID()),
@@ -208,7 +210,8 @@ class RuleConversionTest extends FeatureSpec with Matchers
                                              traversedDevice: UUID = UUID.randomUUID,
                                              traversedDeviceInv: Boolean = true,
                                              fragmentPolicy: FragmentPolicy =
-                                             FragmentPolicy.ANY): Rule.Builder = {
+                                                 FragmentPolicy.ANY): Rule.Builder = {
+        val builder = ruleBuilder.getConditionBuilder
 
         if (matchForwardFlow.isDefined) {
             builder.setMatchForwardFlow(matchForwardFlow.get)
@@ -248,7 +251,8 @@ class RuleConversionTest extends FeatureSpec with Matchers
             .setTpDstInv(tpDstInv)
             .setTraversedDevice(traversedDevice.asProto)
             .setTraversedDeviceInv(traversedDeviceInv)
-            .setFragmentPolicy(Rule.FragmentPolicy.valueOf(fragmentPolicy.name))
+            .setFragmentPolicy(TopologyCondition.FragmentPolicy.valueOf(fragmentPolicy.name))
+        ruleBuilder
     }
 }
 

@@ -48,6 +48,13 @@ abstract class ZoomObject {
     protected[data] def beforeToProto(): Unit = {
     }
 
+    /**
+     * When override in a derived class, allows the execution of custom tasks
+     * after the object has been converted to a Protocol Buffers builder.
+     */
+    protected[data] def afterToProto(builder: Message.Builder): Unit = {
+    }
+
     final protected[data] def getField(field: Field): Any = {
         field setAccessible true
         field get this
