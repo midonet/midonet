@@ -69,4 +69,14 @@ package object util {
             })
     }
 
+    /** An Observable that will recover itself if an error is emitted */
+    def selfHealingObservable[T](store: Storage, id: UUID)
+                                (implicit ctag: ClassTag[T]):
+    Observable[T] =
+        store.observable(ctag.runtimeClass.asInstanceOf[Class[T]], id)
+             .onErrorResumeNext(makeFunc1[Throwable,
+                                          Observable[T]] {
+                case t: NotFoundException => Observable.empty()
+                case _: T => selfHealingObservable[T](store, id)
+             })
 }

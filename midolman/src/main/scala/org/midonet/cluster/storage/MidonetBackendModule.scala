@@ -64,7 +64,6 @@ class MidonetBackendModule(val conf: MidonetBackendConfig)
             .asEagerSingleton()
         expose(classOf[CuratorFramework])
     }
-
 }
 
 class CuratorFrameworkProvider @Inject()(cfg: MidonetBackendConfig)
