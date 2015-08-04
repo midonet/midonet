@@ -16,6 +16,24 @@
       "revId": "e8b313ae208fde38dc483934817dabf4ab67a731",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_1f447148",
+        "filename": "odp/src/main/java/org/midonet/odp/FlowMatch.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 366,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-04T18:21:43Z",
+      "side": 0,
+      "message": "not trusting it. i prefer to just enforce Arrays and ArrayLists everywhere.",
+      "parentUuid": "9ad9bd40_dc6cd70a",
+      "revId": "e8b313ae208fde38dc483934817dabf4ab67a731",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }

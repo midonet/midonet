@@ -36,6 +36,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_7f457d41",
+        "filename": "midolman/src/test/scala/org/midonet/midolman/FlowTracingEgressMatchingTest.scala",
+        "patchSetId": 4
+      },
+      "lineNbr": 251,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-04T18:21:43Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_bc50f332",
+      "revId": "1e9a3664e148f02b17b23cac13fc507ea1532844",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_5c2e07a6",
         "filename": "midonet-util/src/main/java/org/midonet/util/collection/ArrayListUtil.java",
         "patchSetId": 4
@@ -47,6 +65,24 @@
       "writtenOn": "2015-08-04T17:56:33Z",
       "side": 1,
       "message": "this is pretty much the same as AbstractList.equals",
+      "revId": "1e9a3664e148f02b17b23cac13fc507ea1532844",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_df568905",
+        "filename": "midonet-util/src/main/java/org/midonet/util/collection/ArrayListUtil.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-04T18:21:43Z",
+      "side": 1,
+      "message": "you mean the one that allocates two iterators? that one actually showed up in the flight record",
+      "parentUuid": "9ad9bd40_5c2e07a6",
       "revId": "1e9a3664e148f02b17b23cac13fc507ea1532844",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
