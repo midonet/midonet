@@ -433,70 +433,82 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         val fixedIp = mRuleFromTxt(s"""
             type: LITERAL_RULE
             action: RETURN
-            dl_src: "$mac"
             chain_id: { $spoofChainId }
-            nw_src_ip {
-              version: V4
-              address: "6.6.6.6"
-              prefix_length: 32
+            condition {
+                dl_src: "$mac"
+                nw_src_ip {
+                    version: V4
+                    address: "6.6.6.6"
+                    prefix_length: 32
+                }
+                fragment_policy: ANY
             }
-            fragment_policy: ANY
             """)
 
         val addrPairOne = mRuleFromTxt(s"""
             type: LITERAL_RULE
             action: RETURN
-            dl_src: "0a:0b:0b:0a:0b:0c"
             chain_id: { $spoofChainId }
-            nw_src_ip {
-              version: V4
-              address: "2.3.2.3"
-              prefix_length: 32
+            condition {
+                dl_src: "0a:0b:0b:0a:0b:0c"
+                nw_src_ip {
+                    version: V4
+                    address: "2.3.2.3"
+                    prefix_length: 32
+                }
+                fragment_policy: ANY
             }
-            fragment_policy: ANY
             """)
 
         val addrPairTwo = mRuleFromTxt(s"""
             type: LITERAL_RULE
             action: RETURN
-            dl_src: "01:02:03:0a:0b:0c"
             chain_id: { $spoofChainId }
-            nw_src_ip {
-              version: V4
-              address: '1.2.1.2'
-              prefix_length: 32
+            condition {
+                dl_src: "01:02:03:0a:0b:0c"
+                nw_src_ip {
+                    version: V4
+                    address: '1.2.1.2'
+                    prefix_length: 32
+                }
+                fragment_policy: ANY
             }
-            fragment_policy: ANY
             """)
 
         val dropAll = mRuleFromTxt(s"""
             type: LITERAL_RULE
             chain_id { $spoofChainId }
             action: DROP
-            fragment_policy: ANY
+            condition {
+                fragment_policy: ANY
+            }
             """)
 
         val arpRule = mRuleFromTxt(s"""
             type: LITERAL_RULE
             chain_id { $spoofChainId }
             action: RETURN
-            dl_type: ${ARP.ETHERTYPE}
-            fragment_policy: ANY
+            condition {
+                dl_type: ${ARP.ETHERTYPE}
+                fragment_policy: ANY
+            }
             """)
 
         val dhcpRule = mRuleFromTxt(s"""
             type: LITERAL_RULE
             chain_id { $spoofChainId }
             action: RETURN
-            tp_src: {
-              start: 68
-              end: 68
+            condition {
+                tp_src: {
+                    start: 68
+                    end: 68
+                }
+                tp_dst: {
+                    start: 67
+                    end: 67
+                }
+                fragment_policy: ANY
             }
-            tp_dst: {
-              start: 67
-              end: 67
-            }
-            fragment_policy: ANY
             """)
 
         val midoOps = translator.translate(neutron.Create(vifPortWithAllowedAddressPairs))
@@ -566,13 +578,17 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
         val revFlowRuleOutbound = mRuleFromTxt(s"""
             type: LITERAL_RULE
             action: ACCEPT
-            match_return_flow: true
+            condition {
+                match_return_flow: true
+            }
             chain_id { $outboundChainId }
             """)
         val revFlowRuleInbound = mRuleFromTxt(s"""
             type: LITERAL_RULE
             action: ACCEPT
-            match_return_flow: true
+            condition {
+                match_return_flow: true
+            }
             chain_id { $inboundChainId }
             """)
 
@@ -625,18 +641,22 @@ class VifPortCreateTranslationTest extends VifPortTranslationTest {
             type: LITERAL_RULE
             chain_id { $inboundChainId }
             action: DROP
-            dl_type: ${ARP.ETHERTYPE}
-            inv_dl_type: true
-            fragment_policy: ANY
+            condition {
+                dl_type: ${ARP.ETHERTYPE}
+                inv_dl_type: true
+                fragment_policy: ANY
+            }
             """)
 
         val dropNonArpOut = mRuleFromTxt(s"""
             type: LITERAL_RULE
             chain_id { $outboundChainId }
             action: DROP
-            dl_type: ${ARP.ETHERTYPE}
-            inv_dl_type: true
-            fragment_policy: ANY
+            condition {
+                dl_type: ${ARP.ETHERTYPE}
+                inv_dl_type: true
+                fragment_policy: ANY
+            }
             """)
 
         val inChain = findChainOp(midoOps, OpType.Create, inboundChainId)
@@ -819,13 +839,17 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
         val revFlowRuleOutbound = mRuleFromTxt(s"""
             type: LITERAL_RULE
             action: ACCEPT
-            match_return_flow: true
+            condition {
+                match_return_flow: true
+            }
             chain_id { $outboundChainId }
             """)
         val revFlowRuleInbound = mRuleFromTxt(s"""
             type: LITERAL_RULE
             action: ACCEPT
-            match_return_flow: true
+            condition {
+                match_return_flow: true
+            }
             chain_id { $inboundChainId }
             """)
 
@@ -869,18 +893,22 @@ class VifPortUpdateDeleteTranslationTest extends VifPortTranslationTest {
             action: DROP
             type: LITERAL_RULE
             chain_id { $inboundChainId }
-            dl_type: ${ARP.ETHERTYPE}
-            inv_dl_type: true
-            fragment_policy: ANY
+            condition {
+                dl_type: ${ARP.ETHERTYPE}
+                inv_dl_type: true
+                fragment_policy: ANY
+            }
             """)
 
         val dropNonArpOut = mRuleFromTxt(s"""
             action: DROP
             type: LITERAL_RULE
             chain_id { $outboundChainId }
-            dl_type: ${ARP.ETHERTYPE}
-            inv_dl_type: true
-            fragment_policy: ANY
+            condition {
+                dl_type: ${ARP.ETHERTYPE}
+                inv_dl_type: true
+                fragment_policy: ANY
+            }
             """)
 
         midoOps should contain (midonet.Delete(classOf[Rule], inChainRule1))

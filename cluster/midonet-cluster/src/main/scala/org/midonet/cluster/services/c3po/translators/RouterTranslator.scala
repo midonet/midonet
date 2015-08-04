@@ -17,9 +17,10 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
-import org.midonet.cluster.models.Commons.{IPAddress, UUID}
+import org.midonet.cluster.models.Commons.{Condition, IPAddress, UUID}
+import org.midonet.cluster.models.Commons.Condition.FragmentPolicy
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
-import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
+import org.midonet.cluster.models.Topology.Rule.Action
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, Update}
 import org.midonet.cluster.util.IPSubnetUtil
@@ -200,31 +201,39 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         def outRuleBuilder(ruleId: UUID) = Rule.newBuilder
             .setId(ruleId)
             .setChainId(r.getOutboundFilterId)
+        def outRuleConditionBuilder = Condition.newBuilder
             .addOutPortIds(tenantGwPortId)
             .setNwSrcIp(portSubnet)
             .setNwSrcInv(true)
         def inRuleBuilder(ruleId: UUID) = Rule.newBuilder
             .setId(ruleId)
             .setChainId(r.getInboundFilterId)
+        def inRuleConditionBuilder = Condition.newBuilder
             .setNwDstIp(portSubnet)
+
 
         List(outRuleBuilder(outSnatRuleId(nr.getId))
                  .setType(Rule.Type.NAT_RULE)
                  .setAction(Action.ACCEPT)
-                 .setNatRuleData(natRuleData(gwIpAddr, dnat = false)),
+                 .setNatRuleData(natRuleData(gwIpAddr, dnat = false))
+                 .setCondition(outRuleConditionBuilder),
              outRuleBuilder(outDropUnmatchedFragmentsRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)
                  .setAction(Action.DROP)
-                 .setFragmentPolicy(FragmentPolicy.ANY),
+                 .setCondition(outRuleConditionBuilder
+                                   .setFragmentPolicy(FragmentPolicy.ANY)),
              inRuleBuilder(inReverseSnatRuleId(nr.getId))
                  .setType(Rule.Type.NAT_RULE)
                  .setAction(Action.ACCEPT)
-                 .addInPortIds(tenantGwPortId)
+                 .setCondition(inRuleConditionBuilder
+                                   .addInPortIds(tenantGwPortId))
                  .setNatRuleData(revNatRuleData(dnat = false)),
              inRuleBuilder(inDropWrongPortTrafficRuleId(nr.getId))
                  .setType(Rule.Type.LITERAL_RULE)
                  .setAction(Action.DROP)
-                 .setNwProto(ICMP.PROTOCOL_NUMBER).setNwProtoInv(true)
+                 .setCondition(inRuleConditionBuilder
+                                   .setNwProto(ICMP.PROTOCOL_NUMBER)
+                                   .setNwProtoInv(true))
         ).map(bldr => Create(bldr.build()))
     }
 
