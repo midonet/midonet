@@ -25,7 +25,7 @@ import rx.subjects.PublishSubject
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.{Topology => Proto}
 import org.midonet.cluster.util.UUIDUtil.fromProto
-import org.midonet.midolman.simulation.{VIP, LoadBalancer, PoolMember, Pool}
+import org.midonet.midolman.simulation.{Vip, LoadBalancer, PoolMember, Pool}
 import org.midonet.midolman.topology.devices.{HealthMonitor, PoolHealthMonitor, PoolHealthMonitorMap}
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
 
@@ -135,7 +135,7 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
         /** Gets the current load balancer or null, if none is set */
         @Nullable def loadBalancer: LoadBalancer = currentLoadBalancer
         /** Get the vips associated to the current load balancer, or null */
-        @Nullable def vipsByPool(poolId: UUID): Iterable[VIP] =
+        @Nullable def vipsByPool(poolId: UUID): Iterable[Vip] =
             if (currentLoadBalancer == null) null
             else currentLoadBalancer.vips.filter(_.poolId == poolId)
     }
@@ -162,7 +162,7 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
                 assertThread()
                 update match {
                     case p: Pool if pool == null =>
-                        log.debug("new pool contents: {}", p)
+                        log.debug("New pool {}", p)
                         hMon = new HealthMonitorState(p.healthMonitorId)
                         funnel.onNext(hMon.observable)
                         lBal = new LoadBalancerState(p.loadBalancerId)
@@ -170,7 +170,7 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
                         members = p.members
                         pool = p
                     case p: Pool =>
-                        log.debug("pool updated: {}", p)
+                        log.debug("Pool updated {}", p)
                         if (p.healthMonitorId != hMon.healthMonitorId) {
                             hMon.complete()
                             hMon = new HealthMonitorState(p.healthMonitorId)
@@ -184,14 +184,15 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
                         members = p.members
                         pool = p
                     case hm: HealthMonitor =>
-                        log.debug("updated health monitor for " + poolId +
-                                      ": {}", hm)
+                        log.debug("Updated health monitor for pool {}: {}",
+                                  poolId, hm)
                     case lb: LoadBalancer =>
-                        log.debug("updated load balancer for " + poolId +
-                                      ": {}", lb)
-                    case other =>
-                        log.warn("unexpected update for " + poolId +
-                                      ": " + other)
+                        log.debug("Updated load balancer for pool {}: {}",
+                                  poolId, lb)
+                    case other: AnyRef =>
+                        log.warn("Unexpected update for pool {}: {}",
+                                 poolId, other)
+                    case _ =>
             }
 
             if (isPending) PoolHealthMonitorEntry(poolId, null)
@@ -201,7 +202,7 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
         }}
 
         private val completion = makeAction0 {
-            log.debug("pool deleted: {}", poolId)
+            log.debug("Pool deleted {}", poolId)
             hMon.complete()
             lBal.complete()
             mark.onCompleted()
@@ -249,10 +250,10 @@ class PoolHealthMonitorMapper(vt: VirtualTopology)
                                     poolId, poolHealthMonitor = null))
                         )}))
             case PoolHealthMonitorEntry(poolId, null) =>
-                log.debug("removing entry: {}", poolId)
+                log.debug("Remove entry {}", poolId)
                 mappings = mappings - poolId
             case PoolHealthMonitorEntry(poolId, poolHealthMonitor) =>
-                log.debug("updating entry: {}",
+                log.debug("Update entry {}",
                           PoolHealthMonitorEntry(poolId, poolHealthMonitor))
                 mappings = mappings updated(poolId, poolHealthMonitor)
         }

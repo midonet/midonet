@@ -42,7 +42,6 @@ import org.midonet.cluster.services.rest_api.resources.MidonetResource._
                    APPLICATION_JSON))
 @AllowUpdate(Array(APPLICATION_POOL_JSON,
                    APPLICATION_JSON))
-@AllowDelete
 class PoolResource @Inject()(resContext: ResourceContext)
     extends MidonetResource[Pool](resContext) {
 
