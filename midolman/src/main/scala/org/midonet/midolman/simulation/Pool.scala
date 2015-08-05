@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,8 @@
 
 package org.midonet.midolman.simulation
 
-import java.util.{Arrays, Objects, UUID}
+import java.util
+import java.util.{Objects, UUID}
 
 import org.midonet.midolman.state.NatState
 import org.midonet.midolman.state.NatState.NatKey
@@ -46,7 +47,8 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
                  val loadBalancerId: UUID,
                  val members: Array[PoolMember],
                  val activePoolMembers: Array[PoolMember],
-                 val disabledPoolMembers: Array[PoolMember])
+                 val disabledPoolMembers: Array[PoolMember],
+                 val vips: Array[Vip])
     extends VirtualDevice {
 
     override val deviceTag = FlowTagger.tagForPool(id)
@@ -199,7 +201,8 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
         s"Pool [id=$id adminStateUp=$adminStateUp lbMethod=$lbMethod " +
         s"healtMonitorId=$healthMonitorId loadBalancerId=$loadBalancerId " +
         s"activePoolMembers=${activePoolMembers.toSeq} " +
-        s"disabledPoolMembers=${disabledPoolMembers.toSeq}]"
+        s"disabledPoolMembers=${disabledPoolMembers.toSeq} " +
+        s"vips=${vips.toSeq}}]"
 
     override def equals(obj: Any) = obj match {
         case pool: Pool =>
@@ -207,17 +210,19 @@ final class Pool(val id: UUID, val adminStateUp: Boolean,
             lbMethod == pool.lbMethod &&
             healthMonitorId == pool.healthMonitorId &&
             loadBalancerId == pool.loadBalancerId &&
-            Arrays.equals(members.asInstanceOf[Array[AnyRef]],
-                          pool.members.asInstanceOf[Array[AnyRef]]) &&
-            Arrays.equals(activePoolMembers.asInstanceOf[Array[AnyRef]],
-                          pool.activePoolMembers.asInstanceOf[Array[AnyRef]]) &&
-            Arrays.equals(disabledPoolMembers.asInstanceOf[Array[AnyRef]],
-                          pool.disabledPoolMembers.asInstanceOf[Array[AnyRef]])
+            util.Arrays.equals(members.asInstanceOf[Array[AnyRef]],
+                               pool.members.asInstanceOf[Array[AnyRef]]) &&
+            util.Arrays.equals(activePoolMembers.asInstanceOf[Array[AnyRef]],
+                               pool.activePoolMembers.asInstanceOf[Array[AnyRef]]) &&
+            util.Arrays.equals(disabledPoolMembers.asInstanceOf[Array[AnyRef]],
+                               pool.disabledPoolMembers.asInstanceOf[Array[AnyRef]]) &&
+            util.Arrays.equals(vips.asInstanceOf[Array[AnyRef]],
+                               pool.vips.asInstanceOf[Array[AnyRef]])
         case _ => false
     }
 
     override def hashCode =
         Objects.hash(id, Boolean.box(adminStateUp), lbMethod, healthMonitorId,
                      loadBalancerId, members, activePoolMembers,
-                     disabledPoolMembers)
+                     disabledPoolMembers, vips)
 }
