@@ -23,7 +23,7 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 import rx.Observable
-import rx.subjects.PublishSubject
+import rx.subjects.{PublishSubject,Subject}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Chain => TopologyChain, Rule => TopologyRule}
@@ -115,7 +115,8 @@ object ChainMapper {
 
 }
 
-final class ChainMapper(chainId: UUID, vt: VirtualTopology)
+final class ChainMapper(chainId: UUID, vt: VirtualTopology,
+                        traceChainMap: mutable.Map[UUID,Subject[SimChain,SimChain]])
     extends DeviceWithChainsMapper[SimChain](chainId, vt)
             with MidolmanLogging {
 
@@ -394,4 +395,13 @@ final class ChainMapper(chainId: UUID, vt: VirtualTopology)
                               chainObservable)
             .filter(makeFunc1(chainReady))
             .map[SimChain](makeFunc1(buildChain))
+            .onErrorResumeNext(makeFunc1[Throwable,Observable[SimChain]](
+                                   (t: Throwable) => {
+                                       traceChainMap.get(chainId) match {
+                                           case Some(subject) =>
+                                               subject.doOnTerminate(
+                                                   makeAction0(chainDeleted()))
+                                           case None => throw t
+                                       }
+                                   }))
 }

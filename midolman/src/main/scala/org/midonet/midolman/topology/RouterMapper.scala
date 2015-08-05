@@ -28,7 +28,7 @@ import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 
 import rx.Observable
-import rx.subjects.PublishSubject
+import rx.subjects.{PublishSubject,Subject}
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.models.Topology.{Route => TopologyRoute, Router => TopologyRouter}
@@ -343,11 +343,15 @@ object RouterMapper {
  * A class that implements the [[VirtualDeviceMapper]] for a
  * [[SimulationRouter]].
  */
-final class RouterMapper(routerId: UUID, vt: VirtualTopology)
+final class RouterMapper(routerId: UUID, vt: VirtualTopology,
+                         _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
                         (implicit actorSystem: ActorSystem)
-    extends DeviceWithChainsMapper[SimulationRouter](routerId, vt) {
+        extends DeviceWithChainsMapper[SimulationRouter](routerId, vt)
+        with TraceRequestChainMapper[SimulationRouter] {
 
     override def logSource = s"org.midonet.devices.router.router-$routerId"
+    override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
+        _traceChainMap
 
     private class RemoveTagCallback(dst: IPv4Addr) extends Callback0 {
         override def call(): Unit = {
@@ -370,6 +374,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
     // Stores routes received via the router's configuration in storage.
     private val localRoutes = new mutable.HashMap[UUID, RouteState]
     private var arpCache: ArpCache = null
+    private var traceChain: Option[UUID] = None
 
     private val routingTableBroker = new RoutingTableBroker(vt, routerId)
 
@@ -456,6 +461,8 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
                          arpTableObservable,
                          portRoutesObservable,
                          routesObservable,
+                         traceChainObservable.map[Config](
+                             makeFunc1(traceChainUpdated)),
                          chainsObservable.map[Config](makeFunc1(chainUpdated)),
                          loadBalancerObservable,
                          routerObservable)
@@ -472,7 +479,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
         ready = (config ne null) && (arpCache ne null) &&
                 (if (loadBalancer ne null) loadBalancer.isReady else true) &&
                 ports.forall(_._2.isReady) && localRoutes.forall(_._2.isReady) &&
-                areChainsReady
+                areChainsReady && isTracingReady
         log.debug("Router ready: {} ", Boolean.box(ready))
         ready
     }
@@ -488,6 +495,7 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
 
         // Complete the mapper observables.
         completeChains()
+        completeTraceChain()
         mark.onCompleted()
     }
 
@@ -533,6 +541,10 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
         for (portState <- addedPorts) {
             portRoutesSubject onNext portState.observable
         }
+
+        // Request trace chain be built if necessary
+        requestTraceChain(Option(if (router.hasInboundFilterId) router.getInboundFilterId else null),
+                          router.getTraceRequestIdsList().asScala.map(_.asJava).toList)
 
         // Request the chains for this router.
         requestChains(
@@ -580,6 +592,12 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
     private def chainUpdated(chain: Chain): Config = {
         assertThread()
         log.debug("Router chain updated {}", chain)
+        config
+    }
+
+    private def traceChainUpdated(chainId: Option[UUID]): Config = {
+        log.debug(s"Trace chain updated $chainId")
+        traceChain = chainId
         config
     }
 
@@ -631,9 +649,16 @@ final class RouterMapper(routerId: UUID, vt: VirtualTopology)
     private def buildRouter(config: Config) : SimulationRouter = {
         assertThread()
 
+        val config2 = traceChain match {
+            case Some(t) => Config(config.adminStateUp,
+                                   t, config.outboundFilter,
+                                   config.loadBalancer)
+            case None => config
+        }
+
         val device = new SimulationRouter(
             routerId,
-            config,
+            config2,
             new RouterRoutingTable(routes),
             tagManager,
             arpCache

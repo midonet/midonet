@@ -30,6 +30,7 @@ import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
 import rx.Observable
+import rx.subjects.Subject
 
 import org.midonet.cluster.data.ZoomConvert
 import org.midonet.cluster.data.storage.{NotFoundException, Storage}
@@ -58,6 +59,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     private var vt: VirtualTopology = _
     private implicit var store: Storage = _
     private val timeout = 5 second
+    private val traceChains = mutable.Map[UUID,Subject[SimChain,SimChain]]()
 
     protected override def beforeTest() = {
         vt = injector.getInstance(classOf[VirtualTopology])
@@ -65,7 +67,7 @@ class ChainMapperTest extends TestKit(ActorSystem("ChainMapperTest"))
     }
 
     private def subscribeToChain(count: Int, chainId: UUID) = {
-        val mapper = new ChainMapper(chainId, vt)
+        val mapper = new ChainMapper(chainId, vt, traceChains)
         val obs = new DeviceObserver[SimChain](vt)
         val subscription = Observable.create(mapper).subscribe(obs)
         (subscription, obs)
