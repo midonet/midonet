@@ -18,6 +18,7 @@ package org.midonet.midolman.topology
 import java.util.UUID
 import java.util.concurrent.{ConcurrentHashMap, ExecutorService}
 
+import scala.collection.mutable
 import scala.concurrent.{Future, Promise}
 import scala.reflect._
 import scala.util.control.NonFatal
@@ -28,6 +29,7 @@ import com.google.inject.name.Named
 import rx.Observable
 import rx.Observable.OnSubscribe
 import rx.schedulers.Schedulers
+import rx.subjects.Subject
 
 import org.midonet.cluster.services.MidonetBackend
 import org.midonet.cluster.state.LegacyStorage
@@ -188,23 +190,25 @@ class VirtualTopology @Inject() (val backend: MidonetBackend,
     private[topology] val observables =
         new ConcurrentHashMap[Key, Observable[_]]()
 
+    private val traceChains = mutable.Map[UUID,Subject[Chain,Chain]]()
+
     private val factories = Map[ClassTag[_], DeviceFactory](
         classTag[BgpPort] -> (new BgpPortMapper(_, this)),
         classTag[BgpRouter] -> (new BgpRouterMapper(_, this)),
-        classTag[Bridge] -> (new BridgeMapper(_, this)(actorsService.system)),
-        classTag[BridgePort] -> (new PortMapper(_, this)),
-        classTag[Chain] -> (new ChainMapper(_, this)),
+        classTag[Bridge] -> (new BridgeMapper(_, this, traceChains)(actorsService.system)),
+        classTag[BridgePort] -> (new PortMapper(_, this, traceChains)),
+        classTag[Chain] -> (new ChainMapper(_, this, traceChains)),
         classTag[Host] -> (new HostMapper(_, this)),
         classTag[IPAddrGroup] -> (new IPAddrGroupMapper(_, this)),
         classTag[LoadBalancer] -> (new LoadBalancerMapper(_, this)),
         classTag[Pool] -> (new PoolMapper(_, this)),
         classTag[PoolHealthMonitorMap] -> (id => new PoolHealthMonitorMapper(this)),
-        classTag[Port] -> (new PortMapper(_, this)),
+        classTag[Port] -> (new PortMapper(_, this, traceChains)),
         classTag[PortGroup] -> (new PortGroupMapper(_, this)),
-        classTag[Router] -> (new RouterMapper(_, this)(actorsService.system)),
-        classTag[RouterPort] -> (new PortMapper(_, this)),
+        classTag[Router] -> (new RouterMapper(_, this, traceChains)(actorsService.system)),
+        classTag[RouterPort] -> (new PortMapper(_, this, traceChains)),
         classTag[TunnelZone] -> (new TunnelZoneMapper(_, this)),
-        classTag[VxLanPort] -> (new PortMapper(_, this))
+        classTag[VxLanPort] -> (new PortMapper(_, this, traceChains))
     )
 
     register(this)

@@ -17,6 +17,7 @@ package org.midonet.midolman.topology
 
 import java.util.UUID
 
+import scala.collection.mutable
 import scala.concurrent.duration._
 
 import org.junit.runner.RunWith
@@ -56,7 +57,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             val id = UUID.randomUUID
 
             And("A port mapper")
-            val mapper = new PortMapper(id, vt)
+            val mapper = new PortMapper(id, vt, mutable.Map())
 
             And("An observer to the port mapper")
             val obs = new DeviceObserver[SimPort](vt)
@@ -82,7 +83,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(bridge), CreateOp(port)))
 
             And("A port mapper")
-            val mapper = new PortMapper(id, vt)
+            val mapper = new PortMapper(id, vt, mutable.Map())
 
             And("An observer to the port mapper")
             val obs = new DeviceObserver[SimPort](vt)
@@ -108,7 +109,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(router), CreateOp(port)))
 
             And("A port mapper")
-            val mapper = new PortMapper(id, vt)
+            val mapper = new PortMapper(id, vt, mutable.Map())
 
             And("An observer to the port mapper")
             val obs = new DeviceObserver[SimPort](vt)
@@ -132,7 +133,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.create(port)
 
             And("A port mapper")
-            val mapper = new PortMapper(id, vt)
+            val mapper = new PortMapper(id, vt, mutable.Map())
 
             And("An observer to the port mapper")
             val obs = new DeviceObserver[SimPort](vt)
@@ -160,7 +161,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(bridge), CreateOp(port1)))
 
             And("A port mapper")
-            val mapper = new PortMapper(id, vt)
+            val mapper = new PortMapper(id, vt, mutable.Map())
 
             And("An observer to the port mapper")
             val obs = new DeviceObserver[SimPort](vt)
@@ -207,7 +208,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(bridge), CreateOp(port)))
 
             And("A port mapper")
-            val mapper = new PortMapper(id, vt)
+            val mapper = new PortMapper(id, vt, mutable.Map())
 
             And("An observer to the port mapper")
             val obs = new DeviceObserver[SimPort](vt)
@@ -272,7 +273,7 @@ class PortMapperTest extends MidolmanSpec with TopologyBuilder
             store.multi(Seq(CreateOp(bridge), CreateOp(port)))
 
             And("A port mapper")
-            val mapper = new PortMapper(id, vt)
+            val mapper = new PortMapper(id, vt, mutable.Map())
 
             And("An observer to the port mapper")
             val obs = new DeviceObserver[SimPort](vt)
