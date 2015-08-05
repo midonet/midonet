@@ -19,6 +19,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_8885a95b",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-05T13:45:48Z",
+      "side": 1,
+      "message": "Port is a trait. copy only exists on case classes.",
+      "parentUuid": "9ad9bd40_5fe6f944",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_bf3d4591",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
         "patchSetId": 2
@@ -36,6 +54,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_e87e3569",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 41,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-05T13:45:48Z",
+      "side": 1,
+      "message": "the zk managers did it by storing a trace chain, but that was even more convoluted, especially when the user could add new rules while tracing was enabled.\n\nWe could have a trace chain per device, and the chain could reference the trace requests. This would mean preprocessing before updates hit the storage. I\u0027m not sure this is something the cluster team want to do. @alex? @galo?",
+      "parentUuid": "9ad9bd40_bf3d4591",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_1fc71197",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
         "patchSetId": 2
@@ -47,6 +83,24 @@
       "writtenOn": "2015-08-04T18:45:48Z",
       "side": 1,
       "message": "extract to method?",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_089999c3",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-05T13:45:48Z",
+      "side": 1,
+      "message": "only used once, so i don\u0027t see the point.",
+      "parentUuid": "9ad9bd40_1fc71197",
       "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
