@@ -98,8 +98,9 @@ final class HostMapper(hostId: UUID, vt: VirtualTopology)
                 log.debug("Host updated with tunnel zones: {} bound ports: {}",
                           tunnelZoneIds, portIds)
 
-                updateDeviceState(tunnelZoneIds, tunnelZones, tunnelZonesSubject)
-                updateDeviceState(portIds, ports, portsSubject)
+                updateTopologyDeviceState(tunnelZoneIds, tunnelZones,
+                                          tunnelZonesSubject)
+                updateTopologyDeviceState(portIds, ports, portsSubject)
 
                 currentHost = host
             case a: Boolean =>

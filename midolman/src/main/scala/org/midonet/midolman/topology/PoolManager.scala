@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,20 @@
  */
 package org.midonet.midolman.topology
 
-import akka.actor.{ActorRef, Actor}
-import collection.JavaConverters._
 import java.util.{Map => JMap, UUID}
+
+import scala.collection.JavaConverters._
 import scala.collection.breakOut
+
+import akka.actor.{Actor, ActorRef}
 
 import org.midonet.cluster.Client
 import org.midonet.cluster.client.PoolBuilder
-import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
-import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.cluster.data.l4lb.{Pool, PoolMember}
+import org.midonet.midolman.logging.ActorLogWithoutPath
 import org.midonet.midolman.simulation
+import org.midonet.midolman.simulation.Vip
+import org.midonet.midolman.topology.VirtualTopologyActor.InvalidateFlowsByTag
 import org.midonet.packets.IPv4Addr
 import org.midonet.sdn.flows.FlowTagger
 
@@ -45,6 +48,7 @@ object PoolManager {
 class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
     with ActorLogWithoutPath {
     import PoolManager._
+
     import context.system // Used implicitly. Don't delete.
 
     private var poolConfig: Pool = null
@@ -89,7 +93,8 @@ class PoolManager(val id: UUID, val clusterClient: Client) extends Actor
             id, poolConfig.isAdminStateUp, poolConfig.getLbMethod,
             poolConfig.getHealthMonitorId,
             poolConfig.getLoadBalancerId,
-            allPoolMembers, simPoolMembers, disabledPoolMembers)
+            allPoolMembers, simPoolMembers, disabledPoolMembers,
+            Array.empty[Vip])
         VirtualTopologyActor ! simPool
         VirtualTopologyActor ! InvalidateFlowsByTag(FlowTagger.tagForPool(id))
     }

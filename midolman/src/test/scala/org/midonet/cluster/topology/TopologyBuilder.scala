@@ -28,6 +28,7 @@ import org.midonet.cluster.models.Topology.Pool.{PoolLBMethod, PoolProtocol}
 import org.midonet.cluster.models.Topology.Route.NextHop
 import org.midonet.cluster.models.Topology.Rule.{Action, JumpRuleData, NatRuleData, NatTarget}
 import org.midonet.cluster.models.Topology.TunnelZone.HostToIp
+import org.midonet.cluster.models.Topology.Vip.SessionPersistence
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.util.IPAddressUtil._
 import org.midonet.cluster.util.IPSubnetUtil._
@@ -523,7 +524,6 @@ trait TopologyBuilder {
 
     def createVip(id: UUID = UUID.randomUUID,
                   adminStateUp: Option[Boolean] = None,
-                  loadBalancerId: Option[UUID] = None,
                   poolId: Option[UUID] = None,
                   address: Option[IPAddr] = None,
                   protocolPort: Option[Int] = None,
@@ -532,8 +532,6 @@ trait TopologyBuilder {
             .setId(id.asProto)
         if (adminStateUp.isDefined)
             builder.setAdminStateUp(adminStateUp.get)
-        if (loadBalancerId.isDefined)
-            builder.setLoadBalancerId(loadBalancerId.get.asProto)
         if (poolId.isDefined)
             builder.setPoolId(poolId.get.asProto)
         if (address.isDefined)
@@ -550,14 +548,14 @@ trait TopologyBuilder {
     def createLoadBalancer(id: UUID = UUID.randomUUID,
                            adminStateUp: Option[Boolean] = None,
                            routerId: Option[UUID] = None,
-                           vips: Set[UUID] = Set.empty) = {
+                           poolIds: Set[UUID] = Set.empty) = {
         val builder = LoadBalancer.newBuilder
             .setId(id.asProto)
         if (adminStateUp.isDefined)
             builder.setAdminStateUp(adminStateUp.get)
         if (routerId.isDefined)
             builder.setRouterId(routerId.get.asProto)
-        builder.addAllVipIds(vips.map(_.asProto).asJava)
+        builder.addAllPoolIds(poolIds.map(_.asProto).asJava)
             .build()
     }
 
@@ -907,6 +905,8 @@ object TopologyBuilder {
             pool.toBuilder.setLbMethod(lbMethod).build()
         def addPoolMember(poolMemberId: UUID) =
             pool.toBuilder.addPoolMemberIds(poolMemberId.asProto).build()
+        def addVip(vipId: UUID) =
+            pool.toBuilder.addVipIds(vipId.asProto).build()
     }
 
     final class RichPoolMember(val poolMember: PoolMember) extends AnyVal {
@@ -927,13 +927,34 @@ object TopologyBuilder {
     final class RichLoadBalancer(val loadBalancer: LoadBalancer) extends AnyVal {
         def setAdminStateUp(adminStateUp: Boolean): LoadBalancer =
             loadBalancer.toBuilder.setAdminStateUp(adminStateUp).build()
-        def addVipId(vipId: UUID): LoadBalancer =
-            loadBalancer.toBuilder.addVipIds(vipId.asProto).build()
+        def addPool(poolId: UUID): LoadBalancer =
+            loadBalancer.toBuilder.addPoolIds(poolId.asProto).build()
     }
 
     final class RichVip(val vip: Vip) extends AnyVal {
-        def setAddress(ipAddress: IPAddress): Vip =
-            vip.toBuilder.setAddress(ipAddress).build()
+        def setAdminStateUp(adminStateUp: Boolean): Vip =
+            vip.toBuilder.setAdminStateUp(adminStateUp).build()
+        def setPoolId(poolId: UUID): Vip =
+            vip.toBuilder.setPoolId(poolId.asProto).build()
+        def setAddress(ipAddress: IPAddr): Vip =
+            vip.toBuilder.setAddress(ipAddress.asProto).build()
+        def setProtocolPort(port: Int): Vip =
+            vip.toBuilder.setProtocolPort(port).build()
+        def setSessionPersistence(sessionPersistence: SessionPersistence): Vip =
+            vip.toBuilder.setSessionPersistence(sessionPersistence).build()
+        def setGatewayPortId(portId: UUID): Vip =
+            vip.toBuilder.setGatewayPortId(portId.asProto).build()
+
+        def clearPoolId(): Vip =
+            vip.toBuilder.clearPoolId().build()
+        def clearAddress(): Vip =
+            vip.toBuilder.clearAddress().build()
+        def clearProtocolPort(): Vip =
+            vip.toBuilder.clearProtocolPort().build()
+        def clearSessionPersistence(): Vip =
+            vip.toBuilder.clearSessionPersistence().build()
+        def clearGatewayPortId(): Vip =
+            vip.toBuilder.clearGatewayPortId().build()
     }
 
     final class RichHealthMonitor(val healthMonitor: HealthMonitor) extends AnyVal {
