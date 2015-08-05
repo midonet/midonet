@@ -37,6 +37,24 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_2849fd30",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/simulation/Port.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 153,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-05T14:00:49Z",
+      "side": 1,
+      "message": "ah yeah, i forgot the copy method was special",
+      "parentUuid": "9ad9bd40_8885a95b",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_bf3d4591",
         "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
         "patchSetId": 2
@@ -101,6 +119,24 @@
       "side": 1,
       "message": "only used once, so i don\u0027t see the point.",
       "parentUuid": "9ad9bd40_1fc71197",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_c8409109",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-05T14:00:49Z",
+      "side": 1,
+      "message": "it was about readability, no reusability. preferentially with  name that would make the comment not needed.",
+      "parentUuid": "9ad9bd40_089999c3",
       "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
