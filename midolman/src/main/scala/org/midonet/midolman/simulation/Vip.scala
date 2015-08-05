@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Midokura SARL
+ * Copyright 2015 Midokura SARL
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,35 +18,30 @@ package org.midonet.midolman.simulation
 
 import java.util.{Objects, UUID}
 
-import org.midonet.cluster.data.ZoomConvert.ScalaZoomField
-import org.midonet.cluster.data.{ZoomClass, ZoomObject}
+import org.midonet.cluster.data.{Zoom, ZoomClass, ZoomField, ZoomObject}
 import org.midonet.cluster.models.Topology
 import org.midonet.cluster.util.IPAddressUtil.{Converter => IPAddressConverter}
 import org.midonet.cluster.util.UUIDUtil.{Converter => UUIDConverter}
 import org.midonet.midolman.state.l4lb.VipSessionPersistence
-import org.midonet.packets.{IPAddr, IPv4Addr, TCP}
+import org.midonet.packets.{IPAddr, TCP}
 
 @ZoomClass(clazz = classOf[Topology.Vip])
-final class VIP(
-    @ScalaZoomField(name = "id", converter = classOf[UUIDConverter])
+final class Vip @Zoom() (
+    @ZoomField(name = "id", converter = classOf[UUIDConverter])
     val id: UUID,
-    @ScalaZoomField(name = "admin_state_up")
+    @ZoomField(name = "admin_state_up")
     val adminStateUp: Boolean,
-    @ScalaZoomField(name = "pool_id", converter = classOf[UUIDConverter])
+    @ZoomField(name = "pool_id", converter = classOf[UUIDConverter])
     val poolId: UUID,
-    @ScalaZoomField(name = "address", converter = classOf[IPAddressConverter])
+    @ZoomField(name = "address", converter = classOf[IPAddressConverter])
     val address: IPAddr,
-    @ScalaZoomField(name = "protocol_port")
+    @ZoomField(name = "protocol_port")
     val protocolPort: Int,
-    @ScalaZoomField(name = "session_persistence")
-    val sessionPersistence: VipSessionPersistence,
-    @ScalaZoomField(name = "load_balancer_id", converter = classOf[UUIDConverter])
-    val loadBalancerId: UUID) extends ZoomObject {
-
-    def this() = this(null, false, null, null, 0, null, null)
+    @ZoomField(name = "session_persistence")
+    val sessionPersistence: VipSessionPersistence) extends ZoomObject {
 
     override def equals(obj: Any): Boolean = obj match {
-        case vip: VIP =>
+        case vip: Vip =>
             vip.id == id && vip.adminStateUp == adminStateUp &&
             vip.poolId == poolId && vip.address == address &&
             vip.protocolPort == protocolPort &&

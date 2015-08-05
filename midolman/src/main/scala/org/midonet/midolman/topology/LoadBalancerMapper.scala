@@ -17,145 +17,45 @@
 package org.midonet.midolman.topology
 
 import java.util.UUID
-import javax.annotation.Nullable
 
-import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ArrayBuffer
 
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLB, Vip => TopologyVip}
+import org.midonet.cluster.models.Topology.{LoadBalancer => TopologyLb}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.simulation.{LoadBalancer => SimLB, VIP => SimVip}
-import org.midonet.midolman.topology.LoadBalancerMapper.VipState
+import org.midonet.midolman.simulation.{LoadBalancer => SimulationLb, Pool => SimulationPool, Vip}
+import org.midonet.midolman.topology.DeviceMapper.DeviceState
+import org.midonet.util.collection._
 import org.midonet.util.functors._
 
-object LoadBalancerMapper {
-    /**
-     * Stores the state for a VIP and exposes an observable for it. If the vip
-     * is removed from the load-balancer, we unsubscribe from it by calling
-     * the complete() method below.
-     */
-    private final class VipState(vipId: UUID, vt: VirtualTopology) {
-        private var currentVip: SimVip = null
+final class LoadBalancerMapper(loadBalancerId: UUID, vt: VirtualTopology)
+    extends VirtualDeviceMapper[SimulationLb](loadBalancerId, vt) {
 
-        private val mark = PublishSubject.create[TopologyVip]
-        /** The vip observable, notifications on the VT thread.
-          * The filter discards any vip without a back-reference to the
-          * load balancer, which may occur when removing the VIP from the
-          * load balancer. */
-        val observable = vt.store.observable(classOf[TopologyVip], vipId)
-            .filter(makeFunc1(_.hasLoadBalancerId))
-            .map[SimVip](makeFunc1(ZoomConvert.fromProto(_, classOf[SimVip])))
-            .observeOn(vt.vtScheduler)
-            .doOnNext(makeAction1(currentVip = _))
-            .distinctUntilChanged
-            .takeUntil(mark)
+    override def logSource = s"org.midonet.devices.l4lb.l4lb-$loadBalancerId"
 
-        /** Completes the observable corresponding to this vip state. */
-        def complete() = mark.onCompleted()
-        /** Gets the current vip or null, if none is set. */
-        @Nullable
-        def vip: SimVip = currentVip
-        /** Indicates whether the vip state has received the vip data. */
-        def isReady: Boolean = currentVip ne null
-    }
-}
+    private var loadBalancer: TopologyLb = null
+    private var device: SimulationLb = null
+    private var poolIds: Seq[UUID] = null
+    private val pools = mutable.HashMap[UUID, DeviceState[SimulationPool]]()
 
-final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
-    extends VirtualDeviceMapper[SimLB](lbId, vt) {
+    private val poolsSubject = PublishSubject.create[Observable[SimulationPool]]
+    private lazy val poolsObservable = Observable
+        .merge(poolsSubject)
+        .map[TopologyLb](makeFunc1 { pool =>
+            assertThread()
+            log.debug("Pool updated {}", pool)
+            loadBalancer
+        })
 
-    private var currentLB: TopologyLB = null
-    private val vipSubject = PublishSubject.create[Observable[SimVip]]()
-    private val vips = mutable.HashMap[UUID, VipState]()
-
-    // Store the order in which VIPs appear in the load-balancer protocol
-    // buffer.
-    private var vipIdsInOrder: Seq[UUID] = null
-
-    // The last emitted load-balancer
-    private var device: SimLB = null
-
-    private def buildDevice(): SimLB = {
-        val vipsArray = new Array[SimVip](vipIdsInOrder.size)
-        var index = 0
-        for (vipId <- vipIdsInOrder)
-            { vipsArray(index) = vips(vipId).vip; index += 1 }
-
-        val lb = new SimLB(lbId, currentLB.getAdminStateUp,
-                           if (currentLB.hasRouterId)
-                               currentLB.getRouterId.asJava
-                           else null,
-                           vipsArray)
-        lb
-    }
-
-    private def loadBalancerReady(update: Any): Boolean = {
-        assertThread()
-
-        update match {
-            case loadBalancer: TopologyLB =>
-                vipIdsInOrder = loadBalancer.getVipIdsList.asScala.map(_.asJava)
-                val vipIds = vipIdsInOrder.toSet
-                log.debug("Load-balancer update, VIPs {}", vipIds)
-
-                // Complete the observables for the vips no longer part
-                // of this load-balancer.
-                for ((vipId, vipState) <- vips.toList
-                     if !vipIds.contains(vipId)) {
-                    vipState.complete()
-                    vips -= vipId
-                }
-
-                // Create state for the new vips of this load-balancer, and
-                // notify their observable on the vips observable.
-                val addedVips = new mutable.MutableList[VipState]
-                for (vipId <- vipIds if !vips.contains(vipId)) {
-                    val vipState = new VipState(vipId, vt)
-                    vips += vipId -> vipState
-                    addedVips += vipState
-                }
-
-                // Publish observable for added VIPs.
-                for (vipState <- addedVips) {
-                    vipSubject onNext vipState.observable
-                }
-
-                currentLB = loadBalancer
-            case vip: SimVip =>
-                log.debug("Update for VIP: {}", vip)
-            case _ =>
-                log.warn("Unexpected update of class: {}, ignoring",
-                         update.getClass)
-        }
-
-        if ((currentLB ne null) && vips.forall(_._2.isReady)) {
-            val lb = buildDevice()
-            if (lb != device) {
-                log.debug("Load-balancer ready: {}", lb)
-
-                device = lb
-                return true
-            }
-        }
-        false
-    }
-
-    private def loadBalancerDeleted(): Unit = {
-        assertThread()
-
-        log.debug("Load-balancer deleted")
-        vipSubject.onCompleted()
-        vips.values.foreach(_.complete())
-        vips.clear()
-    }
-
-    private lazy val loadBalancerObservable =
-        vt.store.observable[TopologyLB](classOf[TopologyLB], lbId)
-            .observeOn(vt.vtScheduler)
-            .doOnCompleted(makeAction0(loadBalancerDeleted()))
+    private lazy val loadBalancerObservable = vt.store
+        .observable[TopologyLb](classOf[TopologyLb], loadBalancerId)
+        .observeOn(vt.vtScheduler)
+        .doOnCompleted(makeAction0(loadBalancerDeleted()))
+        .doOnNext(makeAction1(loadBalancerUpdated))
 
     // The output device observable for the load-balancer mapper:
     //
@@ -164,20 +64,75 @@ final class LoadBalancerMapper(lbId: UUID, vt: VirtualTopology)
     // store[Load-Balancer]-->| loadBalancerDeleted |--+
     //                        +---------------------+  |
     // onNext(VT.observable[VIP])                      |
-    //     +--------+----------------------------------+
-    //     |        |
-    //     |        |  +-------------------------+
-    //Obs[Obs[VIP]]-+->|filter(loadBalancerReady)|-> device: simLB
-    //                 +-------------------------+
+    //      +--------+---------------------------------+
+    //      |        |
+    //      |        |  +-------------------------+
+    // Obs[Obs[VIP]]-+->|filter(loadBalancerReady)|-> device: simLB
+    //                  +-------------------------+
     //
-    protected override lazy val observable: Observable[SimLB] =
-        // WARNING! The device observable merges the vips and load-balancer
-        // observables. The vip publish subject must be added to the merge before
-        // observables that may trigger their update, such as the load-balancer
-        // observable, which ensures they are subscribed to before emitting any
-        // updates.
-        Observable.merge[Any](Observable.merge(vipSubject),
-                              loadBalancerObservable)
-            .filter(makeFunc1(loadBalancerReady))
-            .map[SimLB](makeFunc1(_ => device))
+    // WARNING! The device observable merges the vips and load-balancer
+    // observables. The vip publish subject must be added to the merge before
+    // observables that may trigger their update, such as the load-balancer
+    // observable, which ensures they are subscribed to before emitting any
+    // updates.
+    protected override lazy val observable: Observable[SimulationLb] =
+        Observable.merge(poolsObservable,
+                         loadBalancerObservable)
+            .filter(makeFunc1(isLoadBalancerReadyAndChanged))
+            .map[SimulationLb](makeFunc1(_ => device))
+
+    /** Processes updates for the load-balancer. */
+    private def loadBalancerUpdated(lb: TopologyLb): Unit = {
+        assertThread()
+        loadBalancer = lb
+
+        poolIds = loadBalancer.getPoolIdsList.asScala.map(_.asJava)
+        log.debug("Load-balancer updated with pools {}", poolIds)
+
+        // Update the device state for the pools.
+        updateTopologyDeviceState(poolIds.toSet, pools, poolsSubject)
+    }
+
+    /** The method is called when the load-balancer is deleted. It triggers a
+      * completion of the device observable, by completing all pool subjects. */
+    private def loadBalancerDeleted(): Unit = {
+        assertThread()
+        log.debug("Load-balancer deleted")
+
+        completeDeviceState(pools)
+        poolsSubject.onCompleted()
+    }
+
+    /** Returns whether the load-balancer device is ready, when the load-balancer
+      * and all the pools are received. */
+    private def isLoadBalancerReadyAndChanged(update: Any): Boolean = {
+        assertThread()
+        val ready = (loadBalancer ne null) && loadBalancer.hasRouterId &&
+                    pools.values.forall(_.isReady)
+        val lb = if (ready) buildLoadBalancer else null
+        val changed = lb != device
+
+        log.debug("Pool ready {} changed {}", Boolean.box(ready),
+                  Boolean.box(changed))
+
+        if (ready && changed) {
+            log.debug("Building load-balancer {}", lb)
+            device = lb
+        }
+
+        ready && changed
+    }
+
+    /** Builds the load-balancer simulation device. */
+    private def buildLoadBalancer: SimulationLb = {
+        // Aggregate the load-balancer VIPs in pool order.
+        val vips = new ArrayBuffer[Vip]()
+        for (pool <- pools.orderAsKeys(poolIds)) vips ++= pool.device.vips
+
+        new SimulationLb(loadBalancerId,
+                         loadBalancer.getAdminStateUp,
+                         loadBalancer.getRouterId.asJava,
+                         vips.toArray)
+    }
+
 }
