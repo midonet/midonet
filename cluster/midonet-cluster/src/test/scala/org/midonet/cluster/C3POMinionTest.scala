@@ -23,6 +23,8 @@ import java.util.concurrent.TimeUnit
 
 import javax.sql.DataSource
 
+import org.midonet.cluster.models.Neutron.NeutronRoute
+
 import scala.collection.JavaConverters._
 import scala.util.{Random, Try}
 
@@ -466,7 +468,8 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                              tenantId: String = "tenant",
                              gwPortId: UUID = null,
                              enableSnat: Boolean = false,
-                             extGwNetworkId: UUID = null): JsonNode = {
+                             extGwNetworkId: UUID = null,
+                             routes: List[NeutronRoute] = null): JsonNode = {
         val r = nodeFactory.objectNode
         r.put("name", name)
         r.put("id", id.toString)
@@ -480,6 +483,17 @@ class C3POMinionTestBase extends FlatSpec with BeforeAndAfter
                 egi.put("network_id", extGwNetworkId.toString)
             egi.put("enable_snat", enableSnat)
             r.set("external_gateway_info", egi)
+        }
+        if (routes != null) {
+            val routesNode = r.putArray("routes")
+            for (route <- routes) {
+                val node = nodeFactory.objectNode
+                node.put("destination",
+                         IPSubnetUtil.fromProto(route.getDestination).toString)
+                node.put("nexthop",
+                         IPAddressUtil.toIPv4Addr(route.getNexthop).toString)
+                routesNode.add(node)
+            }
         }
         r
     }
