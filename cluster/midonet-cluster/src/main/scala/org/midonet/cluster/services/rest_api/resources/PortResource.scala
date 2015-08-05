@@ -21,6 +21,7 @@ import javax.ws.rs._
 import javax.ws.rs.core.MediaType.APPLICATION_JSON
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.Response.Status
+import javax.ws.rs.core.Response.Status._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Await
@@ -30,9 +31,11 @@ import scala.util.control.NonFatal
 import com.google.inject.Inject
 import com.google.inject.servlet.RequestScoped
 
+import org.midonet.cluster.rest_api.ResponseUtils._
 import org.midonet.cluster.rest_api.annotation._
 import org.midonet.cluster.rest_api.models.Route.NextHop
 import org.midonet.cluster.rest_api.models._
+import org.midonet.cluster.rest_api.validation.MessageProperty._
 import org.midonet.cluster.rest_api.{InternalServerErrorHttpException, NotFoundHttpException}
 import org.midonet.cluster.services.MidonetBackend.HostsKey
 import org.midonet.cluster.services.rest_api.MidonetMediaTypes._
@@ -89,19 +92,26 @@ class PortResource @Inject()(resContext: ResourceContext)
     @Consumes(Array(APPLICATION_PORT_LINK_JSON,
                     APPLICATION_JSON))
     def link(@PathParam("id") id: UUID, link: Link): Response = {
-        getResource(classOf[Port], id).map(port => {
-            port.peerId = link.peerId
-            updateResource(port, Response.created(link.getUri).build())
-        }).getOrThrow
+        getResource(classOf[Port], id) flatMap { port =>
+            getResource(classOf[Port], link.peerId) map { peerPort =>
+                if ((port.peerId eq null) && (peerPort.peerId eq null)) {
+                    port.peerId = link.peerId
+                    updateResource(port, Response.created(link.getUri).build())
+                } else {
+                    buildErrorResponse(BAD_REQUEST.getStatusCode,
+                                       getMessage(PORTS_LINKABLE))
+                }
+            }
+        } getOrThrow
     }
 
     @DELETE
     @Path("{id}/link")
     def unlink(@PathParam("id") id: UUID): Response = {
-        getResource(classOf[Port], id).map(port => {
+        getResource(classOf[Port], id) map { port =>
             port.peerId = null
             updateResource(port, MidonetResource.OkNoContentResponse)
-        }).getOrThrow
+        } getOrThrow
     }
 
     @Path("{id}/port_groups")
@@ -168,6 +178,46 @@ class RouterPortResource @Inject()(routerId: UUID, resContext: ResourceContext)
         route.setBaseUri(resContext.uriInfo.getBaseUri)
         multiResource(Seq(Create(port), Create(route)),
                       Response.created(port.getUri).build())
+    }
+
+}
+
+@RequestScoped
+class BridgePeerPortResource @Inject()(routerId: UUID,
+                                       resContext: ResourceContext)
+    extends AbstractPortResource[Port](resContext) {
+
+    @GET
+    @Produces(Array(APPLICATION_PORT_COLLECTION_JSON,
+                    APPLICATION_PORT_V2_COLLECTION_JSON,
+                    APPLICATION_JSON))
+    override def list(@HeaderParam("Accept") accept: String): JList[Port] = {
+        (getResource(classOf[Bridge], routerId) flatMap { router =>
+            listResources(classOf[Port], router.portIds.asScala)
+        } flatMap { ports =>
+            val peerPortIds = ports.filter(_.peerId ne null).map(_.peerId)
+            listResources(classOf[Port], peerPortIds)
+         } getOrThrow).asJava
+    }
+
+}
+
+@RequestScoped
+class RouterPeerPortResource @Inject()(routerId: UUID,
+                                       resContext: ResourceContext)
+    extends AbstractPortResource[Port](resContext) {
+
+    @GET
+    @Produces(Array(APPLICATION_PORT_COLLECTION_JSON,
+                    APPLICATION_PORT_V2_COLLECTION_JSON,
+                    APPLICATION_JSON))
+    override def list(@HeaderParam("Accept") accept: String): JList[Port] = {
+        (getResource(classOf[Router], routerId) flatMap { router =>
+            listResources(classOf[Port], router.portIds.asScala)
+        } flatMap { ports =>
+            val peerPortIds = ports.filter(_.peerId ne null).map(_.peerId)
+            listResources(classOf[Port], peerPortIds)
+         } getOrThrow).asJava
     }
 
 }
