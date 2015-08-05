@@ -163,7 +163,7 @@ trait Port extends VirtualDevice with Cloneable {
             context.addTraceKeysForEgress()
             AddVirtualWildcardFlow
     } else if (isInterior) {
-        (context, as) => Drop
+        (context, as) =>
             implicit val actorSystem: ActorSystem = as
             tryAsk[Port](peerId).ingress(context, as)
     } else {
