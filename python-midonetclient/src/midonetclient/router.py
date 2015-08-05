@@ -19,12 +19,12 @@
 from midonetclient import admin_state_up_mixin
 from midonetclient import bgp_network
 from midonetclient import bgp_peer
-from midonetclient import mirror
 from midonetclient import port
 from midonetclient import port_type
 from midonetclient import resource_base
 from midonetclient import route
 from midonetclient import vendor_media_type
+
 
 class Router(resource_base.ResourceBase,
              admin_state_up_mixin.AdminStateUpMixin):

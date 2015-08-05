@@ -1,5 +1,5 @@
 // Test protobuf definitions. Compilable from midonet/pythonmidonet-client
-// doing protoc -I=src --python_out=src/tests/ src/tests/test.proto
+// doing protoc -I=src --python_out=src/ src/tests/test.proto
 package prototest;
 
 message Exhaustive {

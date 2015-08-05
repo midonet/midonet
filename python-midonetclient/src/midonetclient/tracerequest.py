@@ -16,7 +16,7 @@
 from midonetclient import condition
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
-from midonetclient import vtep_binding
+
 
 class TraceRequest(resource_base.ResourceBase, condition.ConditionBase):
     media_type = vendor_media_type.APPLICATION_TRACE_REQUEST_JSON
@@ -27,7 +27,7 @@ class TraceRequest(resource_base.ResourceBase, condition.ConditionBase):
         condition.ConditionBase.__init__(self, self.condition_dto)
 
     def condition_dto(self):
-        if not self.dto.has_key('condition'):
+        if 'condition' not in self.dto:
             self.dto['condition'] = dict()
         return self.dto['condition']
 
@@ -93,5 +93,3 @@ class TraceRequest(resource_base.ResourceBase, condition.ConditionBase):
     def set_enabled(self, enabled):
         self.dto['enabled'] = enabled
         return self
-
-
