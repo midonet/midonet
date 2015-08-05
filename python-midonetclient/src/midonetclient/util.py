@@ -37,7 +37,7 @@ def convert_dict_keys(x, converter):
     """Recursively modifies dictionary keys by applying converter"""
     if isinstance(x, dict):
         new_dict = dict()
-        for k, v in x.iteritems():
+        for k, v in x.items():
             new_dict[converter(k)] = convert_dict_keys(v, converter)
         return new_dict
     elif isinstance(x, list):
@@ -56,7 +56,7 @@ def convert_case(f):
             new_args.append(convert_dict_keys(arg, snake_to_camel))
 
         new_kwargs = dict()
-        for k, v in kwargs.iteritems():
+        for k, v in kwargs.items():
             new_kwargs[k] = convert_dict_keys(v, snake_to_camel)
 
         return convert_dict_keys(f(*new_args, **new_kwargs), camel_to_snake)

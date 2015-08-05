@@ -488,7 +488,7 @@ class MidonetApi(object):
 
         # Initialize the rule with passed-in or default values
         vals = {}
-        for (prop, default) in prop_defaults.iteritems():
+        for (prop, default) in prop_defaults.items():
             vals[prop] = kwargs.get(prop, default)
 
         rule = chain.add_rule().type(action)
