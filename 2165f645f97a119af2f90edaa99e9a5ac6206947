@@ -140,6 +140,24 @@
       "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_28701d71",
+        "filename": "midolman/src/main/scala/org/midonet/midolman/topology/TraceRequestMapper.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 166,
+      "author": {
+        "id": 1003555
+      },
+      "writtenOn": "2015-08-05T14:08:57Z",
+      "side": 1,
+      "message": "i\u0027d have to pass 3 locals, added, removed, prevJumpTargetState to such a method. And then the method name would be hasJumpTargetStateBeenClearedOrSomethingRemovedWhileNothingAdded(). It doesn\u0027t add clarity for me.",
+      "parentUuid": "9ad9bd40_c8409109",
+      "revId": "2165f645f97a119af2f90edaa99e9a5ac6206947",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
