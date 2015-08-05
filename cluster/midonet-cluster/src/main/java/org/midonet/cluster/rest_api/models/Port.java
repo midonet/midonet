@@ -116,6 +116,11 @@ public abstract class Port extends UriResource {
         return relativeUri(ResourceUris.PORT_GROUPS);
     }
 
+    public URI getHostInterfacePort() {
+        return absoluteUri(ResourceUris.HOSTS, hostId,
+                           ResourceUris.PORTS, id);
+    }
+
     @JsonIgnore
     @Override
     public void create() {
