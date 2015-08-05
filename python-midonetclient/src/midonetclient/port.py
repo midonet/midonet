@@ -16,10 +16,11 @@
 
 from midonetclient import admin_state_up_mixin
 from midonetclient import port_group_port
+from midonetclient.port_type import VXLAN
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
-from midonetclient.port_type import VXLAN
 from vendor_media_type import APPLICATION_PORTGROUP_PORT_COLLECTION_JSON
+
 
 class Port(resource_base.ResourceBase,
            admin_state_up_mixin.AdminStateUpMixin):

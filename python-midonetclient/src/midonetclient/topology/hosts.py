@@ -18,11 +18,11 @@
 import functools
 import uuid
 
-from ..protobuf import utils
-from . import get as base_get
-from . import get_all as base_get_all
-from . import TYPE
-from . import msg_type_map
+from midonetclient.protobuf import utils
+from midonetclient.topology import get as base_get
+from midonetclient.topology import get_all as base_get_all
+from midonetclient.topology import msg_type_map
+from midonetclient.topology import TYPE
 
 get = functools.partial(base_get, kind=TYPE['HOST'])
 get_all = functools.partial(base_get_all, kind=TYPE['HOST'])

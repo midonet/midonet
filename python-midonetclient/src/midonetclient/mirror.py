@@ -20,6 +20,7 @@ from midonetclient import condition
 from midonetclient import resource_base
 from midonetclient import vendor_media_type
 
+
 class Mirror(resource_base.ResourceBase):
 
     media_type = vendor_media_type.APPLICATION_MIRROR_JSON

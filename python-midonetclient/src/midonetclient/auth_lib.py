@@ -32,7 +32,7 @@ _token = None
 _sem = threading.Semaphore(1)
 
 
-class Auth:
+class Auth(object):
 
     def __init__(self, uri, username, password, project_id=None):
         self.uri = uri
@@ -89,7 +89,7 @@ class Auth:
 
     # This is used by resource_base.ResourceBase, calls api_lib
     def do_request(self, uri, method, body=None, query=None, headers=None):
-        ''' Wrapper for api_lib.do_request that includes auth logic.
+        '''Wrapper for api_lib.do_request that includes auth logic.
         '''
         query = query or dict()
         headers = headers or dict()
@@ -108,7 +108,7 @@ class Auth:
                                       headers=headers)
 
     def do_upload(self, uri, body=None, query=None, headers=None):
-        ''' Wrapper for api_lib.do_upload that includes auth logic.
+        '''Wrapper for api_lib.do_upload that includes auth logic.
         '''
         query = query or dict()
         headers = headers or dict()
