@@ -80,8 +80,6 @@ class VipTranslatorTestBase extends TranslatorTestBase {
         pool_id { $poolId }
         """ else "" } + { if (gwPortId != null) s"""
         gateway_port_id { $gwPortId }
-        """ else "" } + { if (lbId != null) s"""
-        load_balancer_id { $lbId }
         """ else "" }
         )
     protected def midoPool(poolId: UUID, loadBalancerId: UUID) = {
@@ -141,7 +139,7 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
         bindVipNetwork(external = false)
         val midoOps = translator.translate(neutron.Create(neutronVip()))
 
-        midoOps should contain only (midonet.Create(midoVip()))
+        midoOps should contain only midonet.Create(midoVip())
     }
 
     it should "set MidoNet VIP source IP session persistence as specified." in {
@@ -150,8 +148,8 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
         val midoOps = translator.translate(
                 neutron.Create(neutronVip(sourceIpSessionPersistence = true)))
 
-        midoOps should contain only (
-                midonet.Create(midoVip(sourceIpSessionPersistence = true)))
+        midoOps should contain only
+                midonet.Create(midoVip(sourceIpSessionPersistence = true))
     }
 
     it should "associate Mido VIP with the LB Pool as specified." in {
@@ -160,8 +158,8 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
         val midoOps = translator.translate(
                 neutron.Create(neutronVip(poolId = poolId)))
 
-        midoOps should contain only (
-                midonet.Create(midoVip(poolId = poolId, lbId = lbId)))
+        midoOps should contain only
+                midonet.Create(midoVip(poolId = poolId, lbId = lbId))
     }
 
     it should "add an ARP entry when it is associated with a Pool and is on " +
@@ -184,8 +182,8 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
         val midoOps = translator.translate(
                 neutron.Create(neutronVip(poolId = poolId)))
 
-        midoOps should contain only (
-                midonet.Create(midoVip(poolId = poolId, lbId = lbId)))
+        midoOps should contain only
+                midonet.Create(midoVip(poolId = poolId, lbId = lbId))
     }
 
     it should "not add an ARP entry when the tenant Router does not have a " +
@@ -195,8 +193,8 @@ class VipTranslatorCreateTest extends VipTranslatorTestBase {
         val midoOps = translator.translate(
                 neutron.Create(neutronVip(poolId = poolId)))
 
-        midoOps should contain only (
-                midonet.Create(midoVip(poolId = poolId, lbId = lbId)))
+        midoOps should contain only
+                midonet.Create(midoVip(poolId = poolId, lbId = lbId))
     }
 }
 
@@ -234,7 +232,7 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
     protected val updatedMidoVip = mVIPFromTxt(s"""
         $commonUpdatedFlds
         session_persistence: SOURCE_IP
-        load_balancer_id { $lb2Id }
+        pool_id { $pool2Id }
         """)
 
     "Neutron VIP Update" should "update a Midonet VIP." in {
@@ -253,10 +251,10 @@ class VipTranslatorUpdateTest extends VipTranslatorTestBase {
         val te = intercept[TranslationException] {
             translator.translate(neutron.Update(vipWithDifferentIp))
         }
-        te.getCause should not be (null)
+        te.getCause should not be null
         te.getCause match {
             case iae: IllegalArgumentException if iae.getMessage != null =>
-                iae.getMessage startsWith("VIP IP") shouldBe true
+                iae.getMessage startsWith "VIP IP" shouldBe true
             case e => fail("Expected an IllegalArgumentException.", e)
         }
     }
@@ -277,8 +275,8 @@ class VipTranslatorDeleteTest extends VipTranslatorTestBase {
         val midoOps = translator.translate(
                 neutron.Delete(classOf[NeutronVIP], vipId))
 
-        midoOps should contain only (
-                midonet.Delete(classOf[Vip], vipId))
+        midoOps should contain only
+                midonet.Delete(classOf[Vip], vipId)
     }
 
     it should "also delete an ARP entry when VIP is associated with a " +

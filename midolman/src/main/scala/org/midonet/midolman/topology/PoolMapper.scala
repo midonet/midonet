@@ -25,48 +25,13 @@ import scala.collection.mutable
 import rx.Observable
 import rx.subjects.PublishSubject
 
-import org.midonet.cluster.data.ZoomConvert
-import org.midonet.cluster.models.Topology.{Pool => TopologyPool, PoolMember => TopologyPoolMember}
+import org.midonet.cluster.models.Topology.{Pool => TopologyPool, PoolMember => TopologyPoolMember, Vip => TopologyVip}
 import org.midonet.cluster.util.UUIDUtil._
-import org.midonet.midolman.simulation.{Pool => SimulationPool, PoolMember => SimulationPoolMember}
+import org.midonet.midolman.simulation.{Pool => SimulationPool, PoolMember => SimulationPoolMember, Vip => SimulationVip}
 import org.midonet.midolman.state.l4lb.PoolLBMethod
-import org.midonet.midolman.topology.PoolMapper.PoolMemberState
+import org.midonet.midolman.topology.DeviceMapper.DeviceState
 import org.midonet.util.functors.{makeAction0, makeAction1, makeFunc1}
-
-object PoolMapper {
-
-    /**
-     * Stores the state for a pool member, and exposes an [[rx.Observable]] that
-     * emits updates for this pool member. This observable completes either when
-     * the pool member is deleted, or when calling the complete() method, which
-     * is used to signal that a member no longer belongs to a pool.
-     */
-    private class PoolMemberState(val poolMemberId: UUID, vt: VirtualTopology) {
-
-        private var currentMember: SimulationPoolMember = null
-        private val mark = PublishSubject.create[SimulationPoolMember]
-
-        val observable = vt.store
-            .observable(classOf[TopologyPoolMember], poolMemberId)
-            .observeOn(vt.vtScheduler)
-            .map[SimulationPoolMember](makeFunc1(poolMemberUpdated))
-            .takeUntil(mark)
-
-        /** Completes the observable corresponding to the pool member state */
-        def complete(): Unit = mark.onCompleted()
-        /** Gets the underlying pool member of this pool member state */
-        def poolMember: SimulationPoolMember = currentMember
-        /** Indicates that the pool member state has received the member data */
-        def isReady: Boolean = currentMember ne null
-
-        private def poolMemberUpdated(poolMember: TopologyPoolMember)
-        : SimulationPoolMember = {
-            currentMember =
-                ZoomConvert.fromProto(poolMember, classOf[SimulationPoolMember])
-            currentMember
-        }
-    }
-}
+import org.midonet.util.collection._
 
 /**
  * A device mapper that exposes an [[rx.Observable]] with notifications for a
@@ -79,19 +44,35 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
     override def logSource = s"org.midonet.devices.pool.pool-$poolId"
 
     private var pool: TopologyPool = null
-    private val poolMembers = new mutable.HashMap[UUID, PoolMemberState]
-    // The order of members in the pool protocol buffer
-    private var membersInOrder: Seq[UUID] = null
-    // The last emitted pool
-    private var device: SimulationPool = null
+    private var memberIds: Seq[UUID] = null
+    private var vipIds: Seq[UUID] = null
+    private val members =
+        new mutable.HashMap[UUID, DeviceState[SimulationPoolMember]]
+    private val vips =
+        new mutable.HashMap[UUID, DeviceState[SimulationVip]]
 
     // A subject that emits a pool member observable for every pool member added
     // to the pool.
-    private lazy val poolMembersSubject = PublishSubject
+    private lazy val membersSubject = PublishSubject
         .create[Observable[SimulationPoolMember]]
-    private lazy val poolMembersObservable = Observable
-        .merge(poolMembersSubject)
-        .map[TopologyPool](makeFunc1(poolMemberUpdated))
+    private lazy val membersObservable = Observable
+        .merge(membersSubject)
+        .map[TopologyPool](makeFunc1 { poolMember =>
+            assertThread()
+            log.debug("Pool member updated {}", poolMember)
+            pool
+        })
+
+    private lazy val vipsSubject = PublishSubject
+        .create[Observable[SimulationVip]]
+    private lazy val vipsObservable = Observable
+        .merge(vipsSubject)
+        .map[TopologyPool](makeFunc1 { vip =>
+            assertThread()
+            log.debug("VIP updated {}", vip)
+            pool
+        })
+
     private lazy val poolObservable = vt.store
         .observable(classOf[TopologyPool], poolId)
         .observeOn(vt.vtScheduler)
@@ -114,9 +95,9 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
     //   +->| filter(isPoolReady) |-> device: SimulationPool
     //      +---------------------+
     protected override val observable = Observable
-        .merge[Any](poolMembersObservable, poolObservable)
+        .merge(membersObservable, vipsObservable, poolObservable)
         .filter(makeFunc1(isPoolReady))
-        .map[SimulationPool](makeFunc1(_ => device))
+        .map[SimulationPool](makeFunc1(buildPool))
 
     /**
      * Indicates that the pool is ready, which occurs when the states for all
@@ -124,29 +105,11 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
      */
     private def isPoolReady(update: Any): JBoolean = {
         assertThread()
-        if (poolMembers.forall(_._2.isReady)) {
-            val pool = buildDevice()
-            if (pool != device) {
-                log.debug("Pool ready: {}", pool)
-                device = pool
-                return true
-            }
-        }
-        false
-    }
-
-    /**
-     * The method is called when the pool is deleted. It triggers a completion
-     * of the device observable, by completing all pool member subjects.
-     */
-    private def poolDeleted(): Unit = {
-        assertThread()
-        log.debug("Pool deleted")
-
-        for (poolMemberState <- poolMembers.values) {
-            poolMemberState.complete()
-        }
-        poolMembersSubject.onCompleted()
+        val ready = (pool ne null) &&
+                    members.values.forall(_.isReady) &&
+                    vips.values.forall(_.isReady)
+        log.debug("Pool ready: {}", Boolean.box(ready))
+        ready
     }
 
     /**
@@ -165,77 +128,55 @@ final class PoolMapper(poolId: UUID, vt: VirtualTopology)
 
         pool = p
 
-        membersInOrder = pool.getPoolMemberIdsList.asScala.map(_.asJava)
-        val memberIds = membersInOrder.toSet
-        log.debug("Update for pool with members {}", memberIds)
+        memberIds = pool.getPoolMemberIdsList.asScala.map(_.asJava)
+        vipIds = pool.getVipIdsList.asScala.map(_.asJava)
+        log.debug("Pool updated with members {} VIPs {}", memberIds, vipIds)
 
-        // Complete the observables for the members no longer part of this pool.
-        for ((memberId, memberState) <- poolMembers.toList
-             if !memberIds.contains(memberId)) {
-            memberState.complete()
-            poolMembers -= memberId
-        }
+        // Update the device state for pool members.
+        updateZoomDeviceState[SimulationPoolMember, TopologyPoolMember](
+            memberIds.toSet, members, membersSubject, vt)
 
-        // Create observables for the new members of this pool, and notify them
-        // on the pool members observable.
-        val addedMembers = new mutable.MutableList[PoolMemberState]
-        for (memberId <- memberIds if !poolMembers.contains(memberId)) {
-            val memberState = new PoolMemberState(memberId, vt)
-            poolMembers += memberId -> memberState
-            addedMembers += memberState
-        }
-
-        // Publish observable for added members.
-        for (memberState <- addedMembers) {
-            poolMembersSubject onNext memberState.observable
-        }
-    }
-
-    /** Processes updates from a pool's member. */
-    private def poolMemberUpdated(poolMember: SimulationPoolMember)
-    : TopologyPool = {
-        assertThread()
-        log.debug("Pool member updated {}", poolMember)
-        pool
+        // Update the device state for VIPs.
+        updateZoomDeviceState[SimulationVip, TopologyVip](
+            vipIds.toSet, vips, vipsSubject, vt)
     }
 
     /**
-     * This method orders the members passed as parameter according
-     * to the order in which they appear in the pool protocol buffer.
+     * The method is called when the pool is deleted. It triggers a completion
+     * of the device observable, by completing all pool member subjects.
      */
-    private def orderMembers(members: mutable.Map[UUID, PoolMemberState])
-    : Array[SimulationPoolMember] = {
-        val memberArray = new Array[SimulationPoolMember](members.size)
-        var index = 0
-        for (memberId <- membersInOrder) {
-            if (members.contains(memberId)) {
-                memberArray(index) = members(memberId).poolMember
-                index += 1
-            }
-        }
-        memberArray
+    private def poolDeleted(): Unit = {
+        assertThread()
+        log.debug("Pool deleted")
+
+        completeDeviceState(members)
+        completeDeviceState(vips)
+        membersSubject.onCompleted()
+        vipsSubject.onCompleted()
     }
 
     /**
      * Maps the [[TopologyPool]] to a [[SimulationPool]] device.
      */
-    private def buildDevice(): SimulationPool = {
+    private def buildPool(pool: TopologyPool): SimulationPool = {
         assertThread()
 
         // Compute the active and disabled pool members.
-        val activePoolMembers = poolMembers.filter(_._2.poolMember.isUp)
-        val disabledPoolMembers = poolMembers
-            .filterNot(_._2.poolMember.adminStateUp)
+        val activePoolMembers = members.filter(_._2.device.isUp)
+        val disabledPoolMembers = members.filterNot(_._2.device.adminStateUp)
 
         // Create the simulation pool.
-        new SimulationPool(
+        val device = new SimulationPool(
             pool.getId,
             pool.getAdminStateUp,
             if (pool.hasLbMethod) PoolLBMethod.fromProto(pool.getLbMethod) else null,
             if (pool.hasHealthMonitorId) pool.getHealthMonitorId else null,
             if (pool.hasLoadBalancerId) pool.getLoadBalancerId else null,
-            orderMembers(poolMembers),
-            orderMembers(activePoolMembers),
-            orderMembers(disabledPoolMembers))
+            members.orderAsKeys(memberIds).map(_.device).toArray,
+            activePoolMembers.orderAsKeys(memberIds).map(_.device).toArray,
+            disabledPoolMembers.orderAsKeys(memberIds).map(_.device).toArray,
+            vips.orderAsKeys(vipIds).map(_.device).toArray)
+        log.debug("Building pool {}", device)
+        device
     }
 }
