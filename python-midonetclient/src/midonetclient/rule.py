@@ -17,7 +17,6 @@
 
 
 from midonetclient import condition
-from midonetclient import resource_base
 from midonetclient import vendor_media_type
 
 
@@ -50,6 +49,7 @@ class Rule(condition.Condition):
     def get_target_port(self):
         return self.dto['targetPortId']
 # TODO: </move>
+
     def get_chain_id(self):
         return self.dto['chainId']
 

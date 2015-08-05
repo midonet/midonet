@@ -13,6 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from __future__ import print_function
+
 import logging
 
 from midonetclient import application
@@ -496,7 +498,7 @@ class MidonetApi(object):
 
         # Initialize the rule with passed-in or default values
         vals = {}
-        for (prop, default) in prop_defaults.iteritems():
+        for (prop, default) in prop_defaults.items():
             vals[prop] = kwargs.get(prop, default)
 
         rule = chain.add_rule().type(action)
@@ -579,9 +581,9 @@ if __name__ == '__main__':
     import uuid
 
     if len(sys.argv) < 4:
-        print >> sys.stderr, "Functional testing with MN API"
-        print >> sys.stderr, "Usage: " + sys.argv[0] \
-            + " <URI> <username> <password> [project_id]"
+        print("Functional testing with MN API", file=sys.stderr)
+        print("Usage: " + sys.argv[0]
+            + " <URI> <username> <password> [project_id]", file=sys.stderr)
         sys.exit(-1)
 
     uri = sys.argv[1]
@@ -612,7 +614,7 @@ if __name__ == '__main__':
 
     # Routers
     api.get_routers({'tenant_id': 'non-existent'})
-    print api.get_routers({'tenant_id': tenant_id})
+    print(api.get_routers({'tenant_id': tenant_id}))
 
     router1 = api.add_router().name('router-1').tenant_id(tenant_id).create()
     api.get_routers({'tenant_id': 'non-existent'})
@@ -625,29 +627,29 @@ if __name__ == '__main__':
     api.get_router(router1.get_id())
 
     for r in api.get_routers({'tenant_id': tenant_id}):
-        print '--------', r.get_name()
-        print 'id: ', r.get_id()
-        print 'inboundFilterId: ', r.get_inbound_filter_id()
-        print 'outboundFilterId: ', r.get_outbound_filter_id()
+        print('-------- %s' % r.get_name())
+        print('id: %s' % r.get_id())
+        print('inboundFilterId: %s' % r.get_inbound_filter_id())
+        print('outboundFilterId: %s' % r.get_outbound_filter_id())
 
     api.get_router(router1.get_id())
 
-    print '-------- Tenants ------'
+    print('-------- Tenants ------')
     tenants = api.get_tenants(query={})
     for t in tenants:
-        print 'id: ', t.get_id()
-        print 'name: ', t.get_name()
+        print('id: %s' % t.get_id())
+        print('name: %s' % t.get_name())
 
-        print '----- Tenant by ID ------'
+        print('----- Tenant by ID ------')
         t = api.get_tenant(t.get_id())
-        print 'id: ', t.get_id()
-        print 'name: ', t.get_name()
+        print('id: %s' % t.get_id())
+        print('name: %s' % t.get_name())
 
     # Tenant routers
-    print '-------- Tenant Routers ------'
+    print('-------- Tenant Routers ------')
     for t in tenants:
         for r in t.get_routers():
-            print 'id: ', r.get_id()
+            print('id: %s' % r.get_id())
 
     # Routers/Ports
 
@@ -663,11 +665,11 @@ if __name__ == '__main__':
                  .network_address('1.1.1.0').network_length(24).create()
     rp4 = router1.add_port().port_address('1.1.1.3')\
                  .network_address('1.1.1.0').network_length(24).create()
-    print api.get_port(rp1.get_id())
+    print(api.get_port(rp1.get_id()))
 
     # Router/Routes
 
-    print '-------- router/routes'
+    print('-------- router/routes')
     router1.add_route().type('Normal').src_network_addr('0.0.0.0')\
                        .src_network_length(0)\
                        .dst_network_addr('100.100.100.1')\
@@ -676,21 +678,21 @@ if __name__ == '__main__':
                        .next_hop_port(rp4.get_id())\
                        .next_hop_gateway('10.0.0.1').create()
 
-    print router1.get_routes()
+    print(router1.get_routes())
 
     rp2.link(rp3.get_id())
 
     # Remove all the existing IP addr groups and their addresses
     ip_addr_groups = api.get_ip_addr_groups()
-    print "Removing %d IP addr groups" % len(ip_addr_groups)
+    print("Removing %d IP addr groups" % len(ip_addr_groups))
     for ip_addr_group in ip_addr_groups:
         # Get all the addresses
         addrs = ip_addr_group.get_addrs()
-        print "Removing %d IP addrs" % len(addrs)
+        print("Removing %d IP addrs" % len(addrs))
         for addr in addrs:
-            print "Removing %r" % addr
+            print("Removing %r" % addr)
             addr.delete()
-        print "Removing %r" % ip_addr_group
+        print("Removing %r" % ip_addr_group)
         ip_addr_group.delete()
 
     # IP Addr group
@@ -698,7 +700,7 @@ if __name__ == '__main__':
 
     # Get itn
     ip_addr_groups = api.get_ip_addr_groups()
-    print "Got %d IP addr groups" % len(ip_addr_groups)
+    print("Got %d IP addr groups" % len(ip_addr_groups))
     assert 1 == len(ip_addr_groups)
 
     # Add IPv4 address
@@ -721,7 +723,7 @@ if __name__ == '__main__':
 
     # Get it again
     ip_addr_groups = api.get_ip_addr_groups()
-    print "Got %d IP addr groups" % len(ip_addr_groups)
+    print("Got %d IP addr groups" % len(ip_addr_groups))
     assert 0 == len(ip_addr_groups)
 
     # Bridges
@@ -731,33 +733,33 @@ if __name__ == '__main__':
     bridge2 = api.add_bridge().name('bridge-2').tenant_id(tenant_id).create()
 
     for b in api.get_bridges({'tenant_id': tenant_id}):
-        print '--------', b.get_name()
-        print 'id: ', b.get_id()
-        print 'inboundFilterId: ', b.get_inbound_filter_id()
-        print 'outboundFilterId: ', b.get_outbound_filter_id()
+        print('-------- %s' % b.get_name())
+        print('id: %s' % b.get_id())
+        print('inboundFilterId: %s' % b.get_inbound_filter_id())
+        print('outboundFilterId: %s' % b.get_outbound_filter_id())
 
-    print api.get_bridge(bridge1.get_id())
+    print(api.get_bridge(bridge1.get_id()))
 
     # Tenant bridges
-    print '-------- Tenant Bridges ------'
+    print('-------- Tenant Bridges ------')
     for t in tenants:
         for b in t.get_bridges():
-            print 'id: ', b.get_id()
+            print('id: %s' % b.get_id())
 
     # Bridges/Ports
     bp1 = bridge1.add_port().create()
 
     bp2 = bridge1.add_port().create()
 
-    print api.get_port(bp1.get_id())
+    print(api.get_port(bp1.get_id()))
     bp2.link(rp4.get_id())
 
-    print router1.get_peer_ports({})
-    print bridge1.get_peer_ports({})
+    print(router1.get_peer_ports({}))
+    print(bridge1.get_peer_ports({}))
 
     for bp in bridge1.get_ports():
-        print 'bridge port----'
-        print bp.get_id()
+        print('bridge port----')
+        print(bp.get_id())
 
     dhcp1 = bridge1.add_dhcp_subnet().default_gateway('10.10.10.1')\
                    .subnet_prefix('10.10.10.0').subnet_length(24).create()
@@ -773,7 +775,7 @@ if __name__ == '__main__':
     assert 2 == len(dhcp1.get_dhcp_hosts())
 
     for ds in bridge1.get_dhcp_subnets():
-        print 'dhcp subnet', ds
+        print('dhcp subnet %s' % ds)
 
     bridge1.get_dhcp_subnet('11.11.11.0_24')
 
@@ -791,14 +793,14 @@ if __name__ == '__main__':
     chain2 = api.add_chain().tenant_id(tenant_id).name('chain-2').create()
 
     for c in api.get_chains({'tenant_id': tenant_id}):
-        print '------- chain: ', c.get_name()
-        print c.get_id()
+        print('------- chain: %s' % c.get_name())
+        print(c.get_id())
 
     # Tenant chains
-    print '-------- Tenant Chains -----'
+    print('-------- Tenant Chains -----')
     for t in tenants:
         for c in t.get_chains():
-            print 'id: ', c.get_id()
+            print('id: %s' % c.get_id())
 
     rule1 = chain1.add_rule().type('accept').create()
     rule2 = chain1.add_rule().type('reject').create()
@@ -818,8 +820,8 @@ if __name__ == '__main__':
                              .nat_targets(nat_targets)\
                              .create()
 
-    print '=' * 10
-    print rule3.get_nat_targets()
+    print('=' * 10)
+    print(rule3.get_nat_targets())
 
     chain1.delete()
     chain2.delete()

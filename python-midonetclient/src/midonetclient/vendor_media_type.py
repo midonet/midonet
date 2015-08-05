@@ -177,5 +177,7 @@ APPLICATION_VTEP_PORT_COLLECTION_JSON = \
     "application/vnd.org.midonet.collection.VTEPPort-v1+json"
 
 # trace requests
-APPLICATION_TRACE_REQUEST_JSON = "application/vnd.org.midonet.TraceRequest-v1+json"
-APPLICATION_TRACE_REQUEST_COLLECTION_JSON = "application/vnd.org.midonet.collection.TraceRequest-v1+json"
+APPLICATION_TRACE_REQUEST_JSON = \
+    "application/vnd.org.midonet.TraceRequest-v1+json"
+APPLICATION_TRACE_REQUEST_COLLECTION_JSON = \
+    "application/vnd.org.midonet.collection.TraceRequest-v1+json"
