@@ -21,13 +21,11 @@ import java.util.List;
 import java.util.UUID;
 
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import org.midonet.api.rest_api.FuncTest;
 import org.midonet.client.dto.DtoError;
 import org.midonet.client.dto.DtoLoadBalancer;
 import org.midonet.client.dto.DtoPool;
@@ -157,9 +155,6 @@ public class TestPoolMember {
 
         @Test
         public void testDeletePoolRemovesReferencesFromPoolMembers() {
-
-            Assume.assumeFalse(FuncTest.isCompatApiEnabled());
-
             assertEquals(pool.getId(), member.getPoolId());
             assertEquals(pool.getUri(), member.getPool());
 

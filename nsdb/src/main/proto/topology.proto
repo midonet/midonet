@@ -188,9 +188,6 @@ message LoadBalancer {
     // Backreference
     optional UUID router_id = 101;
     repeated UUID pool_ids = 102;
-    // Tentatively keep the backreference to VIPs in LB.
-    // TODO Remove this once the Agent side has been refactored.
-    repeated UUID vip_ids = 103;
 }
 
 message Network {
@@ -371,7 +368,7 @@ message Rule {
     optional Condition condition = 5;
 
     // Port for which this rule implements floating IP NAT.
-    optional UUID fip_port_id = 41;
+    optional UUID fip_port_id = 6;
 
     message JumpRuleData {
         optional UUID jump_chain_id = 1;
@@ -449,8 +446,6 @@ message Vip {
     optional uint32 protocol_port = 5;
     optional SessionPersistence session_persistence = 6;
     optional UUID gateway_port_id = 7;
-    // TODO Remove this once the Agent side has been refactored.
-    optional UUID load_balancer_id = 8;
 }
 
 message Vtep {
