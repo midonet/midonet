@@ -133,6 +133,7 @@ message NeutronRouter {
     }
     optional ExternalGatewayInfo external_gateway_info = 6;
     optional bool admin_state_up = 7;
+    repeated NeutronRoute routes = 8;
 }
 
 message NeutronRouterInterface {

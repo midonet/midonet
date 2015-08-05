@@ -22,11 +22,14 @@ import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
 import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.services.c3po.midonet.{Create, CreateNode, Delete, Update}
-import org.midonet.cluster.util.IPSubnetUtil
+import org.midonet.cluster.util.{UUIDUtil, IPSubnetUtil}
 import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ICMP
 import org.midonet.util.concurrent.toFutureOps
+
+import scala.collection.JavaConverters._
+import scala.collection.mutable.ListBuffer
 
 class RouterTranslator(protected val storage: ReadOnlyStorage,
                        protected val pathBldr: PathBuilder)
@@ -72,7 +75,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateUpdate(nr: NeutronRouter): MidoOpList = {
         val r = translate(nr)
         val gwOps = gatewayPortUpdateOps(nr, r)
-        Update(r, RouterUpdateValidator) :: gwOps
+        val rtOps = extraRoutesUpdateOps(nr)
+        Update(r, RouterUpdateValidator) :: gwOps ++ rtOps
     }
 
     private object RouterUpdateValidator extends UpdateValidator[Router] {
@@ -158,6 +162,35 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
                     nGwPort.getNetworkId, gwIpAddr.getAddress, mac)
             ops += CreateNode(arpPath, null)
         }
+
+        ops.toList
+    }
+
+    private def extraRoutesUpdateOps(nr: NeutronRouter): MidoOpList = {
+        if (!nr.hasGwPortId) return List()
+
+        val ops = new MidoOpListBuffer
+
+        val gwPort = storage.get(classOf[Port],
+                                 UUIDUtil.toProto(nr.getGwPortId)).await()
+        val mRouteIds = gwPort.getRouteIdsList.asScala
+        val commonRouteIds = new ListBuffer[UUID]
+        nr.getRoutesList.asScala foreach { r =>
+            val rId = extraRouteId(nr.getId, r)
+
+            if (!mRouteIds.contains(rId)) {
+                val newRt = newNextHopPortRoute(
+                    nr.getGwPortId, id = rId,
+                    dstSubnet = r.getDestination,
+                    nextHopGwIpAddr = r.getNexthop)
+                ops += Create(newRt)
+            } else {
+                commonRouteIds += rId
+            }
+        }
+
+        val delRoutes = mRouteIds filterNot (commonRouteIds contains)
+        delRoutes foreach (ops += Delete(classOf[Route], _))
 
         ops.toList
     }
