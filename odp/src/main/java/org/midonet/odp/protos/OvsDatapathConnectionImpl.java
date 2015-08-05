@@ -359,7 +359,7 @@ public class OvsDatapathConnectionImpl extends OvsDatapathConnection {
 
     @Override
     protected void _doFlowsDelete(@Nonnull final Datapath datapath,
-                                  @Nonnull final Iterable<FlowKey> keys,
+                                  @Nonnull final ArrayList<FlowKey> keys,
                                   @Nonnull final Callback<Flow> callback,
                                   final long timeoutMillis) {
         int datapathId = datapath.getIndex();
