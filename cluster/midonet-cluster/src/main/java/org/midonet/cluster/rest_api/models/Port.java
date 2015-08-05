@@ -84,6 +84,10 @@ public abstract class Port extends UriResource {
     @ZoomField(name = "port_group_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> portGroupIds;
 
+    @JsonIgnore
+    @ZoomField(name = "trace_request_ids", converter = UUIDUtil.Converter.class)
+    public List<UUID> traceRequestIds;
+
     public boolean active;
 
     public Port() {
@@ -142,5 +146,6 @@ public abstract class Port extends UriResource {
             peerId = from.peerId;
         }
         portGroupIds = from.portGroupIds;
+        traceRequestIds = from.traceRequestIds;
     }
 }
