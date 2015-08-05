@@ -104,6 +104,24 @@
       "revId": "1e9a3664e148f02b17b23cac13fc507ea1532844",
       "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
       "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_cd43436a",
+        "filename": "midonet-util/src/main/java/org/midonet/util/collection/ArrayListUtil.java",
+        "patchSetId": 4
+      },
+      "lineNbr": 30,
+      "author": {
+        "id": 1002754
+      },
+      "writtenOn": "2015-08-05T12:17:23Z",
+      "side": 1,
+      "message": "some profilers prevent it, like yourkit. mission control, on the other hand, is supposed to support it. http://psy-lob-saw.blogspot.pt/2014/12/the-escape-of-arraylistiterator.html\n\nwe have no flag, it\u0027s just an unreliable/unfinished feature i guess.",
+      "parentUuid": "9ad9bd40_2d52ef66",
+      "revId": "1e9a3664e148f02b17b23cac13fc507ea1532844",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
     }
   ]
 }
