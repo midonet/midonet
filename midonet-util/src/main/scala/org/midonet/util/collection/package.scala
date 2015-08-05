@@ -44,5 +44,13 @@ package object collection {
         }
     }
 
+    final class RichMutableMap[K, V](val map: mutable.Map[K, V]) extends AnyVal {
+        def orderAsKeys(keys: Seq[K]): Seq[V] = {
+            for (key <- keys; value <- map get key) yield value
+        }
+    }
+
+    implicit def asRichMutableMap[K, V](map: mutable.Map[K, V])
+    : RichMutableMap[K, V] = new RichMutableMap(map)
 
 }
