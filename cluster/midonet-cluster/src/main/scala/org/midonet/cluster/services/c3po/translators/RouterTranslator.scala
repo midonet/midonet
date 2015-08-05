@@ -17,7 +17,7 @@
 package org.midonet.cluster.services.c3po.translators
 
 import org.midonet.cluster.data.storage.{ReadOnlyStorage, UpdateValidator}
-import org.midonet.cluster.models.Commons.{IPAddress, UUID}
+import org.midonet.cluster.models.Commons.{IPAddress, IPVersion, UUID}
 import org.midonet.cluster.models.Neutron.{NeutronPort, NeutronRouter}
 import org.midonet.cluster.models.Topology.Rule.{Action, FragmentPolicy}
 import org.midonet.cluster.models.Topology._
@@ -27,6 +27,8 @@ import org.midonet.cluster.util.UUIDUtil.{asRichProtoUuid, fromProto}
 import org.midonet.midolman.state.PathBuilder
 import org.midonet.packets.ICMP
 import org.midonet.util.concurrent.toFutureOps
+
+import scala.collection.JavaConverters._
 
 class RouterTranslator(protected val storage: ReadOnlyStorage,
                        protected val pathBldr: PathBuilder)
@@ -72,7 +74,8 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
     override protected def translateUpdate(nr: NeutronRouter): MidoOpList = {
         val r = translate(nr)
         val gwOps = gatewayPortUpdateOps(nr, r)
-        Update(r, RouterUpdateValidator) :: gwOps
+        val rtOps = extraRoutesUpdateOps(nr)
+        Update(r, RouterUpdateValidator) :: gwOps ++ rtOps
     }
 
     private object RouterUpdateValidator extends UpdateValidator[Router] {
@@ -135,7 +138,6 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
         val trPort = newTenantRouterGWPort(trPortId, nr.getId,
                                            dhcp.getSubnetAddress, gwIpAddr,
                                            mac = gwMac)
-
         val linkOps = linkPortOps(trPort, extNwPort)
 
         val netRoute = newNextHopPortRoute(trPortId,
@@ -157,6 +159,51 @@ class RouterTranslator(protected val storage: ReadOnlyStorage,
             val arpPath = arpEntryPath(
                     nGwPort.getNetworkId, gwIpAddr.getAddress, mac)
             ops += CreateNode(arpPath, null)
+        }
+
+        ops.toList
+    }
+
+    private def extraRoutesUpdateOps(nr: NeutronRouter): MidoOpList = {
+
+        val ops = new MidoOpListBuffer
+
+        val oldRouter = storage.get(classOf[NeutronRouter], nr.getId).await()
+        val oldRouteIds = oldRouter.getRoutesList.asScala
+            .map(r => extraRouteId(nr.getId, r))
+
+        // Create a list of tuples containing routeID and the route itself
+        val routes = nr.getRoutesList.asScala
+            .map(r => (extraRouteId(nr.getId, r), r))
+
+        // Process deletion
+        val delRouteIds = oldRouteIds filterNot (routes.map(_._1) contains)
+        delRouteIds foreach (ops +=  Delete(classOf[Route], _))
+
+        // Determine routes to add
+        val newRoutes = routes filterNot (r => oldRouteIds contains r._1)
+
+        // Get the ports on this router
+        val oldMRouter = storage.get(classOf[Router], nr.getId).await()
+        val ports = storage.getAll(classOf[Port],
+                                   oldMRouter.getPortIdsList.asScala).await()
+        newRoutes foreach { case (rId, r) =>
+
+            if (r.getDestination.getVersion == IPVersion.V6 ||
+                r.getNexthop.getVersion == IPVersion.V6) {
+                throw new IllegalArgumentException(
+                    "IPv6 is not supported in this version of Midonet.")
+            }
+
+            val nextHopPort = ports.find(isValidRouteOnPort(r.getNexthop, _))
+                .getOrElse(
+                    throw new IllegalArgumentException(
+                        "No valid port was found to add route: " + r))
+
+            val newRt = newNextHopPortRoute(nextHopPort.getId, id = rId,
+                                            dstSubnet = r.getDestination,
+                                            nextHopGwIpAddr = r.getNexthop)
+            ops += Create(newRt)
         }
 
         ops.toList

@@ -16,18 +16,23 @@
 
 package org.midonet.cluster.services.c3po.translators
 
-import scala.collection.JavaConverters._
+import java.nio.ByteBuffer
+
 import org.midonet.cluster.data.storage.ReadOnlyStorage
 import org.midonet.cluster.models.Commons.{IPAddress, IPSubnet, UUID}
+import org.midonet.cluster.models.Neutron.NeutronRoute
 import org.midonet.cluster.models.Topology.Dhcp.Opt121RouteOrBuilder
 import org.midonet.cluster.models.Topology.Route.NextHop
-import org.midonet.cluster.models.Topology.{Dhcp, PortOrBuilder, Route, RouteOrBuilder}
+import org.midonet.cluster.models.Topology._
 import org.midonet.cluster.rest_api.neutron.models.MetaDataService
 import org.midonet.cluster.services.c3po.midonet.{Create, Update}
 import org.midonet.cluster.util.IPSubnetUtil.univSubnet4
 import org.midonet.cluster.util.UUIDUtil.asRichProtoUuid
-import org.midonet.cluster.util.{IPSubnetUtil, UUIDUtil}
+import org.midonet.cluster.util.{IPAddressUtil, IPSubnetUtil, UUIDUtil}
+import org.midonet.packets.IPv4Addr
 import org.midonet.util.concurrent.toFutureOps
+
+import scala.collection.JavaConverters._
 
 
 trait RouteManager {
@@ -117,6 +122,21 @@ trait RouteManager {
             Update(bldr.build())
         }
     }
+
+    /**
+     * Checks whether the given IP address can be added with the given port as
+     * the next hop.
+     *
+     * The following checks are performed:
+     *    * Next hop cannot match IP on the port.
+     *    * Next hop must be in the CIDR that the port is connected to.
+     */
+    protected def isValidRouteOnPort(address: IPAddress,
+                                     port: Port): Boolean = {
+        port.hasPortSubnet && port.getPortAddress != address &&
+            IPSubnetUtil.fromProto(port.getPortSubnet).containsAddress(
+                IPAddressUtil.toIPv4Addr(address))
+    }
 }
 
 /**
@@ -185,4 +205,17 @@ object RouteManager {
      * address. */
     def fipDnatRuleId(fipId: UUID): UUID =
         fipId.xorWith(0xe40c77c188694ac0L, 0x9a8e6c1863e2232eL)
+
+    // Deterministically generate the extra route IDs based on the router ID
+    // and the route attributes.
+    def extraRouteId(routerId:UUID, route: NeutronRoute): UUID = {
+        val bb = ByteBuffer.allocate(16)
+        bb.putInt(IPv4Addr.stringToInt(route.getDestination.getAddress))
+        bb.putInt(route.getDestination.getPrefixLength)
+        bb.putLong(IPv4Addr.stringToInt(route.getNexthop.getAddress))
+        bb.flip()
+
+        routerId.xorWith(bb.getLong, bb.getLong)
+            .xorWith(0x90ac2be23b7911e5L, 0x823b0242ac110002L)
+    }
 }

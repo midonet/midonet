@@ -15,17 +15,22 @@
  */
 package org.midonet.cluster.rest_api.neutron.models;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Objects;
 
+import org.apache.commons.collections4.ListUtils;
+
 import org.midonet.cluster.data.ZoomClass;
 import org.midonet.cluster.data.ZoomField;
 import org.midonet.cluster.data.ZoomObject;
 import org.midonet.cluster.models.Neutron;
 import org.midonet.cluster.util.UUIDUtil.Converter;
+import org.midonet.util.collection.ListUtil;
 
 @ZoomClass(clazz = Neutron.NeutronRouter.class)
 public class Router extends ZoomObject{
@@ -33,13 +38,15 @@ public class Router extends ZoomObject{
     public Router() {}
 
     public Router(UUID id, String tenantId, String name, boolean adminStateUp,
-                  UUID gwPortId, ExternalGatewayInfo gwInfo) {
+                  UUID gwPortId, ExternalGatewayInfo gwInfo,
+                  List<Route> routes) {
         this.id = id;
         this.tenantId = tenantId;
         this.name = name;
         this.gwPortId = gwPortId;
         this.externalGatewayInfo = gwInfo;
         this.adminStateUp = adminStateUp;
+        this.routes = routes;
     }
 
     @ZoomField(name = "id",converter = Converter.class)
@@ -67,6 +74,9 @@ public class Router extends ZoomObject{
     @ZoomField(name = "external_gateway_info")
     public ExternalGatewayInfo externalGatewayInfo;
 
+    @ZoomField(name = "routes")
+    public List<Route> routes = new ArrayList<>();
+
     @Override
     public boolean equals(Object obj) {
 
@@ -82,13 +92,14 @@ public class Router extends ZoomObject{
                 && Objects.equal(adminStateUp, other.adminStateUp)
                 && Objects.equal(gwPortId, other.gwPortId)
                 && Objects.equal(
-                    externalGatewayInfo, other.externalGatewayInfo);
+                    externalGatewayInfo, other.externalGatewayInfo)
+                && ListUtils.isEqualList(routes, other.routes);
     }
 
     @Override
     public int hashCode() {
         return Objects.hashCode(id, name, status, tenantId, adminStateUp,
-                gwPortId, externalGatewayInfo);
+                gwPortId, externalGatewayInfo, routes);
     }
 
     @Override
@@ -101,7 +112,8 @@ public class Router extends ZoomObject{
                 .add("tenantId", tenantId)
                 .add("adminStateUp", adminStateUp)
                 .add("gwPortId", gwPortId)
-                .add("externalGatewayInfo", externalGatewayInfo).toString();
+                .add("externalGatewayInfo", externalGatewayInfo)
+                .add("routes", ListUtil.toString(routes)).toString();
     }
 
     @JsonIgnore
