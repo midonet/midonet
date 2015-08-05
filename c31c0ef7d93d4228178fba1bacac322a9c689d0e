@@ -1,0 +1,50 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "9ad9bd40_8243caad",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/c3po/translators/HealthMonitorTranslator.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-05T05:54:25Z",
+      "side": 1,
+      "message": "This is just a little unnerving, as this is a back-reference field and the reference is to be set from Pool\u0027s side as is done so at line 56. It\u0027s probably fine in practice, though.",
+      "range": {
+        "startLine": 45,
+        "startChar": 12,
+        "endLine": 45,
+        "endChar": 49
+      },
+      "revId": "c31c0ef7d93d4228178fba1bacac322a9c689d0e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_4224620c",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/c3po/translators/LoadBalancerPoolTranslatorTest.scala",
+        "patchSetId": 1
+      },
+      "lineNbr": 172,
+      "author": {
+        "id": 1002760
+      },
+      "writtenOn": "2015-08-05T05:54:25Z",
+      "side": 1,
+      "message": "Not used.",
+      "range": {
+        "startLine": 171,
+        "startChar": 4,
+        "endLine": 172,
+        "endChar": 72
+      },
+      "revId": "c31c0ef7d93d4228178fba1bacac322a9c689d0e",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    }
+  ]
+}
