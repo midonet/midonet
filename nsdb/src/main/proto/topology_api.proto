@@ -199,6 +199,7 @@ message Response {
             TunnelZone tunnel_zone = 18;
             Vip vip = 19;
             Vtep vtep = 20;
+            TraceRequest trace_request = 21;
         }
     }
     message Snapshot {
