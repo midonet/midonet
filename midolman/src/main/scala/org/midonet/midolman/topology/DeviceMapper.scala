@@ -107,7 +107,7 @@ object DeviceMapper {
  *  - the [[DeviceMapper]] observer can execute the custom actions before
  *    subscribers are notified.
  */
-abstract class DeviceMapper[D <: Device](val id: UUID, vt: VirtualTopology)
+abstract class DeviceMapper[D <: Device](val id: UUID, val vt: VirtualTopology)
                                         (implicit tag: ClassTag[D])
     extends OnSubscribe[D] with Observer[D] with MidolmanLogging {
 

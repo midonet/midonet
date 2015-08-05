@@ -78,6 +78,7 @@ object SessionInventory {
             case h: Vip => Update.newBuilder().setVip(h).build()
             case h: Rule => Update.newBuilder().setRule(h).build()
             case h: TunnelZone => Update.newBuilder().setTunnelZone(h).build()
+            case h: TraceRequest => Update.newBuilder().setTraceRequest(h).build()
             case h: Vtep => Update.newBuilder().setVtep(h).build()
             case _ => throw new UnknownTopologyEntityException
         }

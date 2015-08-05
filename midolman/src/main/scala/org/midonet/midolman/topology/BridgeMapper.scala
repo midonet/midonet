@@ -31,7 +31,7 @@ import scala.util.control.NonFatal
 import akka.actor.ActorSystem
 import com.typesafe.scalalogging.Logger
 import rx.Observable
-import rx.subjects.PublishSubject
+import rx.subjects.{PublishSubject, Subject}
 
 import org.midonet.cluster.VlanPortMapImpl
 import org.midonet.cluster.client.{IpMacMap, MacLearningTable}
@@ -39,10 +39,10 @@ import org.midonet.cluster.models.Topology.{Network => TopologyBridge}
 import org.midonet.cluster.util.UUIDUtil._
 import org.midonet.midolman.logging.MidolmanLogging
 import org.midonet.midolman.simulation.{Bridge => SimulationBridge, RouterPort, Chain}
+import org.midonet.midolman.simulation.{BridgePort, Port}
 import org.midonet.midolman.simulation.Bridge.UntaggedVlanId
 import org.midonet.midolman.state.ReplicatedMap.Watcher
 import org.midonet.midolman.state.{ReplicatedMap, StateAccessException}
-import org.midonet.midolman.simulation.{BridgePort, Port}
 import org.midonet.packets.{IPv4Addr, IPAddr, MAC}
 import org.midonet.sdn.flows.FlowTagger.{tagForArpRequests, tagForBridgePort, tagForBroadcast, tagForFloodedFlowsByDstMac, tagForVlanPort}
 import org.midonet.util.collection.Reducer
@@ -264,13 +264,17 @@ object BridgeMapper {
 /**
  * A class that implements the [[DeviceMapper]] for a [[SimulationBridge]].
  */
-final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
+final class BridgeMapper(bridgeId: UUID, implicit override val vt: VirtualTopology,
+                         _traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]])
                         (implicit actorSystem: ActorSystem)
-    extends DeviceWithChainsMapper[SimulationBridge](bridgeId, vt) {
+        extends DeviceWithChainsMapper[SimulationBridge](bridgeId, vt)
+        with TraceRequestChainMapper[SimulationBridge] {
 
     import BridgeMapper._
 
     override def logSource = s"org.midonet.devices.bridge.bridge-$bridgeId"
+    override def traceChainMap: mutable.Map[UUID,Subject[Chain,Chain]] =
+        _traceChainMap
 
     private var bridge: TopologyBridge = null
     private val localPorts = new mutable.HashMap[UUID, LocalPortState]
@@ -278,6 +282,8 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
     private val exteriorPorts = new mutable.HashSet[UUID]
     private var oldExteriorPorts = Set.empty[UUID]
     private var oldRouterMacPortMap = Map.empty[MAC, UUID]
+    private var traceChain: Option[UUID] = None
+
     private val macLearningTables = new TrieMap[Short, BridgeMacLearningTable]
     private val macLearning =
         new MacLearning(macLearningTables, log,
@@ -343,6 +349,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
         .merge(portsSubject)
         .filter(makeFunc1(isPortKnown))
         .map[TopologyBridge](makeFunc1(portUpdated))
+
     private lazy val bridgeObservable = vt.store
         .observable(classOf[TopologyBridge], bridgeId)
         .observeOn(vt.vtScheduler)
@@ -351,6 +358,8 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
 
     protected override lazy val observable = Observable
         .merge[TopologyBridge](connectionObservable, portsObservable,
+                               traceChainObservable.map[TopologyBridge](
+                                   makeFunc1(traceChainUpdated)),
                                chainsObservable
                                    .map[TopologyBridge](makeFunc1(chainUpdated)),
                                bridgeObservable)
@@ -366,7 +375,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
         assertThread()
         val ready: JBoolean =
             localPorts.forall(_._2.isReady) && peerPorts.forall(_._2.isReady) &&
-            areChainsReady
+            areChainsReady && isTracingReady
         log.debug("Bridge ready: {}", ready)
         ready
     }
@@ -394,6 +403,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
         }
         portsSubject.onCompleted()
         completeChains()
+        completeTraceChain()
         macUpdatesSubject.onCompleted()
         connectionSubject.onCompleted()
         macUpdatesSubscription.unsubscribe()
@@ -453,6 +463,10 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             portsSubject onNext portState.observable
         }
 
+        // Request trace chain be built if necessary
+        requestTraceChain(Option(if (bridge.hasInboundFilterId) bridge.getInboundFilterId else null),
+                          bridge.getTraceRequestIdsList().asScala.map(_.asJava).toList)
+
         // Request the chains for this bridge.
         requestChains(
             if (bridge.hasInboundFilterId) bridge.getInboundFilterId else null,
@@ -503,6 +517,11 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
         bridge
     }
 
+    private def traceChainUpdated(chainId: Option[UUID]): TopologyBridge = {
+        log.debug(s"Trace chain updated $chainId")
+        traceChain = chainId
+        bridge
+    }
     /**
      * Emits an error on the connection observable to complete the device
      * notifications.
@@ -715,6 +734,14 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             oldExteriorPorts = exteriorPorts.toSet
         }
 
+        val inFilter = traceChain match {
+            case s: Some[UUID] => s
+            case None => {
+                if (bridge.hasInboundFilterId) {
+                    Some(bridge.getInboundFilterId.asJava)
+                } else None
+            }
+        }
         // Create the simulation bridge.
         val device = new SimulationBridge(
             bridge.getId,
@@ -723,8 +750,7 @@ final class BridgeMapper(bridgeId: UUID, implicit val vt: VirtualTopology)
             macLearningTables.readOnlySnapshot(),
             ipv4MacMap,
             flowCount,
-            if (bridge.hasInboundFilterId) Some(bridge.getInboundFilterId)
-            else None,
+            inFilter,
             if (bridge.hasOutboundFilterId) Some(bridge.getOutboundFilterId)
             else None,
             vlanPeerBridgePortId,
