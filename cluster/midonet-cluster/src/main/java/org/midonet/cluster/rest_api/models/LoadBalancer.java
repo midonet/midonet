@@ -47,10 +47,6 @@ public class LoadBalancer extends UriResource {
     @ZoomField(name = "pool_ids", converter = UUIDUtil.Converter.class)
     public List<UUID> poolIds;
 
-    @JsonIgnore
-    @ZoomField(name = "vip_ids", converter = UUIDUtil.Converter.class)
-    public List<UUID> vipIds;
-
     public URI getUri() {
         return absoluteUri(ResourceUris.LOAD_BALANCERS, id);
     }
@@ -82,7 +78,6 @@ public class LoadBalancer extends UriResource {
     public void update(LoadBalancer from) {
         id = from.id;
         poolIds = from.poolIds;
-        vipIds = from.vipIds;
     }
 
 }
