@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_cd7b4379",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 36,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-05T09:00:56Z",
+      "side": 1,
+      "message": "Added.",
+      "parentUuid": "9ad9bd40_42ae222f",
+      "range": {
+        "startLine": 36,
+        "startChar": 6,
+        "endLine": 36,
+        "endChar": 16
+      },
+      "revId": "bdd0acbe3a9223132692abe183de41300cb477bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_02b97a78",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
         "patchSetId": 3
@@ -48,6 +72,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_4db8132a",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 45,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-05T09:00:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_02b97a78",
+      "range": {
+        "startLine": 45,
+        "startChar": 8,
+        "endLine": 45,
+        "endChar": 14
+      },
+      "revId": "bdd0acbe3a9223132692abe183de41300cb477bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_22b3de98",
         "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
         "patchSetId": 3
@@ -59,6 +107,30 @@
       "writtenOn": "2015-08-05T07:56:49Z",
       "side": 1,
       "message": "same comment",
+      "range": {
+        "startLine": 49,
+        "startChar": 8,
+        "endLine": 49,
+        "endChar": 14
+      },
+      "revId": "bdd0acbe3a9223132692abe183de41300cb477bb",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_ad88bf71",
+        "filename": "nsdb/src/main/scala/org/midonet/cluster/data/storage/StateTable.scala",
+        "patchSetId": 3
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-05T09:00:56Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_22b3de98",
       "range": {
         "startLine": 49,
         "startChar": 8,
