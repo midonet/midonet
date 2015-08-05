@@ -18,15 +18,15 @@
 from midonetclient import bgp_network
 from midonetclient import bgp_peer
 from midonetclient import bridge
-from midonetclient import mirror
 from midonetclient import chain
 from midonetclient import health_monitor
 from midonetclient import host
 from midonetclient import host_version
 from midonetclient import ip_addr_group
-from midonetclient import load_balancer
 from midonetclient import l2insertion
 from midonetclient import l2service
+from midonetclient import load_balancer
+from midonetclient import mirror
 from midonetclient import pool
 from midonetclient import pool_member
 from midonetclient import pool_statistic
@@ -38,14 +38,15 @@ from midonetclient import router
 from midonetclient import rule
 from midonetclient import system_state
 from midonetclient import tenant
-from midonetclient import tunnel_zone
 from midonetclient import tracerequest
+from midonetclient import tunnel_zone
 from midonetclient import vendor_media_type
 from midonetclient import vip
 from midonetclient import vtep
 from midonetclient import write_version
 
 import uuid
+
 
 class Application(resource_base.ResourceBase):
 
@@ -224,7 +225,8 @@ class Application(resource_base.ResourceBase):
         return self.get_children(self.dto['hosts'], query, headers, host.Host)
 
     def delete_bgp_network(self, id_):
-        return self._delete_resource_by_id(self.get_bgp_network_template(), id_)
+        return self._delete_resource_by_id(self.get_bgp_network_template(),
+                                           id_)
 
     def get_bgp_network(self, id_):
         return self._get_resource_by_id(bgp_network.BgpNetwork, None,
@@ -250,6 +252,7 @@ class Application(resource_base.ResourceBase):
     def get_mirror(self, id_):
         return self._get_resource_by_id(mirror.Mirror, self.dto['mirrors'],
                                         self.get_mirror_template(), id_)
+
     def delete_chain(self, id_):
         return self._delete_resource_by_id(self.get_chain_template(), id_)
 
@@ -293,10 +296,12 @@ class Application(resource_base.ResourceBase):
                                         self.get_route_template(), id_)
 
     def delete_l2insertion(self, id_):
-        return self._delete_resource_by_id(self.get_l2insertion_template(), id_)
+        return self._delete_resource_by_id(self.get_l2insertion_template(),
+                                           id_)
 
     def get_l2insertion(self, id_):
-        return self._get_resource_by_id(l2insertion.L2Insertion, self.dto['l2insertions'],
+        return self._get_resource_by_id(l2insertion.L2Insertion,
+                                        self.dto['l2insertions'],
                                         self.get_l2insertion_template(), id_)
 
     def get_l2insertions(self, query):
@@ -312,8 +317,10 @@ class Application(resource_base.ResourceBase):
         return self._delete_resource_by_id(self.get_l2service_template(), id_)
 
     def get_l2service(self, id_):
-        return self._get_resource_by_id(l2service.L2Service, self.dto['l2services'],
+        return self._get_resource_by_id(l2service.L2Service,
+                                        self.dto['l2services'],
                                         self.get_l2service_template(), id_)
+
     def get_l2services(self, query):
         headers = {'Accept':
                    vendor_media_type.APPLICATION_L2SERVICE_COLLECTION_JSON}
@@ -573,7 +580,7 @@ class Application(resource_base.ResourceBase):
 
     def add_tracerequest(self):
         return tracerequest.TraceRequest(self.dto['traceRequests'],
-                                         {"id" : str(uuid.uuid4())},
+                                         {"id": str(uuid.uuid4())},
                                          self.auth)
 
     def get_tracerequest(self, _id):
