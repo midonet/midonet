@@ -25,6 +25,30 @@
     },
     {
       "key": {
+        "uuid": "9ad9bd40_28dbbd7c",
+        "filename": "cluster/midonet-cluster/src/main/scala/org/midonet/cluster/services/rest_api/resources/BridgeResource.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 407,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-05T14:07:47Z",
+      "side": 1,
+      "message": "Nope: removed.",
+      "parentUuid": "9ad9bd40_6d29579a",
+      "range": {
+        "startLine": 407,
+        "startChar": 4,
+        "endLine": 407,
+        "endChar": 28
+      },
+      "revId": "7d53e28ddba1223106566834bc195543c3d1c8fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
         "uuid": "9ad9bd40_4d057312",
         "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
         "patchSetId": 2
@@ -36,6 +60,30 @@
       "writtenOn": "2015-08-05T12:37:19Z",
       "side": 1,
       "message": "name parameters",
+      "range": {
+        "startLine": 68,
+        "startChar": 53,
+        "endLine": 68,
+        "endChar": 76
+      },
+      "revId": "7d53e28ddba1223106566834bc195543c3d1c8fd",
+      "serverId": "d5d70762-12d0-45a1-890d-524b12d3f735",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "9ad9bd40_48e64145",
+        "filename": "cluster/midonet-cluster/src/test/scala/org/midonet/cluster/services/rest_api/neutron/NeutronZoomPluginTest.scala",
+        "patchSetId": 2
+      },
+      "lineNbr": 68,
+      "author": {
+        "id": 1002751
+      },
+      "writtenOn": "2015-08-05T14:07:47Z",
+      "side": 1,
+      "message": "Done",
+      "parentUuid": "9ad9bd40_4d057312",
       "range": {
         "startLine": 68,
         "startChar": 53,
